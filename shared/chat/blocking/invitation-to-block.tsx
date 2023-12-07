@@ -1,55 +1,45 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as Chat2Gen from '../../actions/chat2-gen'
-type Props = {conversationID: string}
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as Container from '@/util/container'
 
-const BlockButtons = (props: Props) => {
-  const dispatch = Container.useDispatch()
+const BlockButtons = () => {
   const nav = Container.useSafeNavigation()
+  const conversationIDKey = C.useChatContext(s => s.id)
 
-  const teamname = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamname)
-  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID ?? '')
-  const blockButtonInfo = Container.useSelector(state => {
-    const blockButtonsMap = state.chat2.blockButtonsMap
+  const teamname = C.useChatContext(s => s.meta.teamname)
+  const teamID = C.useChatContext(s => s.meta.teamID)
+  const blockButtonInfo = C.useChatState(s => {
+    const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, props.conversationID)
-  )
-  const currentUser = Container.useSelector(state => state.config.username)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const currentUser = C.useCurrentUserState(s => s.username)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const dismissBlockButtons = C.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
   }
   const team = teamname
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
-    person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
+    person => person !== currentUser && person !== adder && !C.Chat.isAssertion(person)
   )
 
-  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username: adder}))
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onViewProfile = () => showUserProfile(adder)
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
   const onBlock = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              blockUserByDefault: true,
-              convID: props.conversationID,
-              others: others,
-              team: team,
-              username: adder,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
-  const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
+    nav.safeNavigateAppend({
+      props: {
+        blockUserByDefault: true,
+        conversationIDKey,
+        others: others,
+        team: team,
+        username: adder,
+      },
+      selected: 'chatBlockingModal',
+    })
+  const onDismiss = () => dismissBlockButtons(teamID)
 
   const buttonRow = (
     <Kb.ButtonBar
@@ -59,7 +49,7 @@ const BlockButtons = (props: Props) => {
     >
       <Kb.WaveButton
         small={true}
-        conversationIDKey={props.conversationID}
+        conversationIDKey={conversationIDKey}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />
@@ -155,5 +145,5 @@ const styles = Styles.styleSheetCreate(
           width: '',
         },
       }),
-    } as const)
+    }) as const
 )

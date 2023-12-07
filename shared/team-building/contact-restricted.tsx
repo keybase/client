@@ -1,28 +1,20 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
-
-type OwnProps = Container.RouteProps<'contactRestricted'>
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 
 type Props = {
-  source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'walletsRequest' | 'misc'
+  source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'misc'
   usernames: Array<string>
 }
 
 export const ContactRestricted = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []
   const firstUser = props.usernames[0]
   switch (props.source) {
-    case 'walletsRequest':
-      header = `You cannot request a payment from @${firstUser}.`
-      description = `@${firstUser}'s contact restrictions prevent you from requesting a payment. Contact them outside Keybase to proceed.`
-      break
     case 'newFolder':
       header = `You cannot open a private folder with @${firstUser}.`
       description = `@${firstUser}'s contact restrictions prevent you from opening a private folder with them. Contact them outside Keybase to proceed.`
@@ -46,12 +38,13 @@ export const ContactRestricted = (props: Props) => {
       description =
         'Their contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.'
       break
+    default:
   }
   return (
     <Kb.Modal
       onClose={onBack}
       header={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? {
               leftButton: <Kb.BackButton onClick={onBack} />,
             }
@@ -60,13 +53,7 @@ export const ContactRestricted = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Default"
-              label="Okay"
-              onClick={onBack}
-              style={styles.button}
-              waitingKey={null}
-            />
+            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
           </Kb.ButtonBar>
         ),
         hideBorder: true,
@@ -82,7 +69,7 @@ export const ContactRestricted = (props: Props) => {
         style={styles.container}
         noShrink={true}
       >
-        <Kb.Icon type="iconfont-warning" sizeType="Huge" color={Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-warning" sizeType="Huge" color={Kb.Styles.globalColors.black_20} />
         <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
           {header}
         </Kb.Text>
@@ -91,8 +78,8 @@ export const ContactRestricted = (props: Props) => {
             {disallowedUsers.map((username, idx) => (
               <Kb.ListItem2
                 key={username}
-                type={Styles.isMobile ? 'Large' : 'Small'}
-                icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+                type={Kb.Styles.isMobile ? 'Large' : 'Small'}
+                icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
                 firstItem={idx === 0}
                 body={
                   <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -111,36 +98,36 @@ export const ContactRestricted = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     flex: 1,
   },
   buttonBar: {
-    marginBottom: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.medium,
+    marginTop: Kb.Styles.globalMargins.small,
     minHeight: undefined,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.medium),
+      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium),
       flex: 1,
     },
   }),
   icon: {
-    marginBottom: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.xlarge,
+    marginBottom: Kb.Styles.globalMargins.medium,
+    marginTop: Kb.Styles.globalMargins.xlarge,
   },
   text: {
-    margin: Styles.globalMargins.small,
+    margin: Kb.Styles.globalMargins.small,
   },
 }))
 
-const noArray = []
-export default Container.connect(
-  () => ({}),
-  () => ({}),
-  (_, __, ownProps: OwnProps) => ({
-    source: ownProps.route.params?.source ?? 'misc',
-    usernames: ownProps.route.params?.usernames ?? noArray,
-  })
-)(ContactRestricted)
+const ContactContainer = (ownProps: Props) => {
+  const props = {
+    source: ownProps.source,
+    usernames: ownProps.usernames,
+  }
+  return <ContactRestricted {...props} />
+}
+
+export default ContactContainer

@@ -1,22 +1,16 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import {headerNavigationOptions} from './header-area/container'
-import type {RouteProps} from '../../router-v2/route-params'
 
-type SwitchProps = RouteProps<'chatConversation'>
-
-const Conversation = (p: SwitchProps) => {
-  const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const type = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    switch (conversationIDKey) {
-      case Constants.noConversationIDKey:
+const Conversation = React.memo(function Conversation() {
+  const type = C.useChatContext(s => {
+    const meta = s.meta
+    switch (s.id) {
+      case C.noConversationIDKey:
         return 'noConvo'
       default:
         if (meta.membershipType === 'youAreReset') {
@@ -33,7 +27,7 @@ const Conversation = (p: SwitchProps) => {
 
   switch (type) {
     case 'error':
-      return <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Error />
     case 'noConvo':
       // When navigating back to the inbox on mobile, we deselect
       // conversationIDKey by called mobileChangeSelection. This results in
@@ -45,26 +39,16 @@ const Conversation = (p: SwitchProps) => {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return Container.isPhone ? null : <NoConversation />
+      return C.isPhone ? null : <NoConversation />
     case 'normal':
-      // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
-      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Normal />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':
-      return <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Rekey />
     default:
       return <NoConversation />
   }
-}
-
-// @ts-ignore
-Conversation.navigationOptions = ({route}) => ({
-  ...headerNavigationOptions(route),
-  presentation: undefined,
 })
 
-const ConversationMemoed = React.memo(Conversation)
-Container.hoistNonReactStatic(ConversationMemoed, Conversation)
-
-export default ConversationMemoed
+export default Conversation

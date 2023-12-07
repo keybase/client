@@ -1,19 +1,15 @@
+import * as C from '@/constants'
 // A screen we show when we have a problem loading a screen
-import * as Container from '../util/container'
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Constants from '../constants/waiting'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '@/styles'
 import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {settingsTab} from '../constants/tabs'
-import {feedbackTab} from '../constants/settings'
 import {useFocusEffect} from '@react-navigation/core'
-import type {RPCError} from '../util/errors'
+import type {RPCError} from '@/util/errors'
 
 const Kb = {
   Box2,
@@ -92,7 +88,7 @@ const Reloadable = (props: Props) => {
     }, [reloadOnMount])
   )
   if (!props.needsReload) {
-    return props.children
+    return <>{props.children}</>
   }
   return (
     <Reload
@@ -153,45 +149,47 @@ export type OwnProps = {
   errorFilter?: (rPCError: RPCError) => boolean
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    let error = Constants.anyErrors(state, ownProps.waitingKeys)
+const ReloadContainer = (ownProps: OwnProps) => {
+  let error = C.useAnyErrors(ownProps.waitingKeys)
 
-    // make sure reloadable only responds to network-related errors
-    error = error && Container.isNetworkErr(error.code) ? error : undefined
+  // make sure reloadable only responds to network-related errors
+  error = error && C.isNetworkErr(error.code) ? error : undefined
 
-    if (error && ownProps.errorFilter) {
-      error = ownProps.errorFilter(error) ? error : undefined
+  if (error && ownProps.errorFilter) {
+    error = ownProps.errorFilter(error) ? error : undefined
+  }
+
+  const _loggedIn = C.useConfigState(s => s.loggedIn)
+
+  const stateProps = {
+    _loggedIn,
+    needsReload: !!error,
+    reason: error?.message || '',
+  }
+
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onFeedback = (loggedIn: boolean) => {
+    if (loggedIn) {
+      navigateAppend(C.settingsTab)
+      navigateAppend({props: {}, selected: C.settingsFeedbackTab})
+    } else {
+      navigateAppend({props: {}, selected: 'feedback'})
     }
-    return {
-      _loggedIn: state.config.loggedIn,
-      needsReload: !!error,
-      reason: (error && error.message) || '',
-    }
-  },
-  dispatch => ({
-    _onFeedback: (loggedIn: boolean) => {
-      if (loggedIn) {
-        dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
-          })
-        )
-      } else {
-        dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
-      }
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  }
+
+  const props = {
     children: ownProps.children,
     needsReload: stateProps.needsReload,
     onBack: ownProps.onBack,
-    onFeedback: () => dispatchProps._onFeedback(stateProps._loggedIn),
+    onFeedback: () => _onFeedback(_loggedIn),
     onReload: ownProps.onReload,
     reason: stateProps.reason,
     reloadOnMount: ownProps.reloadOnMount,
     style: ownProps.style,
     title: ownProps.title,
-  })
-)(Reloadable as any)
+  }
+
+  return <Reloadable {...props} />
+}
+
+export default ReloadContainer

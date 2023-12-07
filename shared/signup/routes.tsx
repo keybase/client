@@ -1,46 +1,23 @@
-import type SignupEnterDevicename from './device-name/container'
-import type SignupEnterEmail from './email/container'
-import type SignupEnterUsername from './username/container'
-import type SignupEnterPhoneNumber from './phone-number/container'
-import type SignupVerifyPhoneNumber from './phone-number/verify-container'
-import type SignupSendFeedback from './feedback/container'
+import type * as C from '@/constants'
+import feedback from './feedback.page'
+import signupEnterDevicename from './device-name.page'
+import signupEnterUsername from './username.page'
+import signupEnterEmail from './email/page'
+import signupEnterPhoneNumber from './phone-number/page'
+import signupVerifyPhoneNumber from './phone-number/verify.page'
 
 export const newRoutes = {
-  signupEnterDevicename: {
-    getScreen: (): typeof SignupEnterDevicename => require('./device-name/container').default,
-  },
-  signupEnterUsername: {getScreen: (): typeof SignupEnterUsername => require('./username/container').default},
-  signupSendFeedbackLoggedOut: {
-    getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-  },
+  signupEnterDevicename,
+  signupEnterUsername,
+  signupSendFeedbackLoggedOut: feedback,
 }
 
 // Some screens in signup show up after we've actually signed up
 export const newModalRoutes = {
-  signupEnterEmail: {
-    getScreen: (): typeof SignupEnterEmail => require('./email/container').default,
-  },
-  signupEnterPhoneNumber: {
-    getScreen: (): typeof SignupEnterPhoneNumber => require('./phone-number/container').default,
-  },
-  signupSendFeedbackLoggedIn: {
-    getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-  },
-  signupVerifyPhoneNumber: {
-    getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
-  },
+  signupEnterEmail,
+  signupEnterPhoneNumber,
+  signupSendFeedbackLoggedIn: feedback,
+  signupVerifyPhoneNumber,
 }
 
-export type RootParamListSignup = {
-  signupEnterDevicename: undefined
-  signupEnterEmail: undefined
-  signupEnterPhoneNumber: undefined
-  signupEnterUsername: undefined
-  signupSendFeedbackLoggedIn: undefined
-  signupSendFeedbackLoggedOut: undefined
-  signupVerifyPhoneNumber: undefined
-  signupError: undefined
-  signupInviteCode: undefined
-  signupRequestInvite: undefined
-  signupRequestInviteSuccess: undefined
-}
+export type RootParamListSignup = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

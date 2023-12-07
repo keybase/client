@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
 import * as RowSizes from '../../sizes'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const SwipeConvActions = (props: Props) => {
@@ -11,7 +11,7 @@ const SwipeConvActions = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   row: {
     flexShrink: 0,
     height: RowSizes.smallRowHeight,

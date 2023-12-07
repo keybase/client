@@ -1,9 +1,7 @@
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
-import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
+import * as C from '@/constants'
+import {OrdinalContext} from '../../ids-context'
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
+import * as Kb from '@/common-adapters'
 
 type AnimationStatus =
   | 'encrypting'
@@ -31,34 +29,41 @@ const statusToIconDark = {
 
 const statusToIconExploding = {
   encrypting: 'messageStatusEncryptingExploding',
+  encryptingExploding: undefined,
+  error: undefined,
   sending: 'messageStatusSendingExploding',
+  sendingExploding: undefined,
+  sent: undefined,
 } as const
 const statusToIconDarkExploding = {
   encrypting: 'darkMessageStatusEncryptingExploding',
+  encryptingExploding: undefined,
+  error: undefined,
   sending: 'darkMessageStatusSendingExploding',
+  sendingExploding: undefined,
+  sent: undefined,
 } as const
 
 const shownEncryptingSet = new Set()
 
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isExploding = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const isExploding = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     return !!message?.exploding
   })
-  const sent = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const sent = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     return (
       (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
     )
   })
-  const failed = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const failed = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
   })
-  const id = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const id = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     return message?.timestamp
   })
 
@@ -76,34 +81,35 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
 
   const animationType: Kb.AnimationType | undefined = isExploding
-    ? Styles.isDarkMode()
+    ? Kb.Styles.isDarkMode()
       ? statusToIconDarkExploding[status]
       : statusToIconExploding[status]
-    : Styles.isDarkMode()
+    : Kb.Styles.isDarkMode()
     ? statusToIconDark[status]
     : statusToIcon[status]
 
-  const lastFailedRef = React.useRef(failed)
-  const lastSentRef = React.useRef(sent)
-  React.useEffect(() => {
-    if (failed && !lastFailedRef.current) {
+  const [lastFailed, setLastFailed] = React.useState(failed)
+  const [lastSent, setLastSent] = React.useState(sent)
+
+  if (failed !== lastFailed || sent !== lastSent) {
+    setLastFailed(failed)
+    setLastSent(sent)
+    if (failed && !lastFailed) {
       setStatus('error')
       timeoutRef.current && clearTimeout(timeoutRef.current)
       timeoutRef.current = undefined
-    } else if (sent && !lastSentRef.current) {
+    } else if (sent && !lastSent) {
       setStatus('sent')
       timeoutRef.current && clearTimeout(timeoutRef.current)
       timeoutRef.current = setTimeout(() => {
         setVisible(false)
         timeoutRef.current = undefined
       }, 400)
-    } else if (!failed && lastFailedRef.current) {
+    } else if (!failed && lastFailed) {
       setVisible(true)
       setStatus('sending')
     }
-    lastFailedRef.current = failed
-    lastSentRef.current = sent
-  }, [failed, sent])
+  }
 
   if (status === 'encrypting' && !timeoutRef.current) {
     timeoutRef.current = setTimeout(() => {
@@ -132,21 +138,21 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   ) : null
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      animationInvisible: Styles.platformStyles({
+      animationInvisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 0, width: 20},
-        isMobile: {backgroundColor: Styles.globalColors.white},
+        isMobile: {backgroundColor: Kb.Styles.globalColors.white},
       }),
-      animationVisible: Styles.platformStyles({
+      animationVisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 10,
         },
       }),
-      send: Styles.platformStyles({
+      send: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           top: 3,
@@ -157,7 +163,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {right: 8},
       }),
-    } as const)
+    }) as const
 )
 
 export default SendIndicatorContainer

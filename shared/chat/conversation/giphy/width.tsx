@@ -19,7 +19,7 @@ export const getMargins = (totalWidth: number, widths: Array<number>) => {
   const res: Array<number> = []
   let longRow: Array<Image> = []
   for (let index = 0; index < images.length; index++) {
-    const im = images[index]
+    const im = images[index]!
     longRow.push(im)
     if (groupWidth(longRow) >= totalWidth) {
       // we have a row now that can be compressed, pick between it and the row minus the last image,

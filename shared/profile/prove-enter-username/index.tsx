@@ -1,12 +1,11 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/profile'
+import * as Kb from '@/common-adapters'
 import Modal from '../modal'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import type * as T from '@/constants/types'
 
 type Props = {
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   username: string
   errorText: string
   onSubmit: (username: string) => void
@@ -23,10 +22,10 @@ class EnterUsername extends React.Component<Props, State> {
   _submit = () => {
     this.state.canSubmit && this.props.onSubmit(this.state.username)
   }
-  _onChangeUsername = username => this.setState({canSubmit: !!username.length, username})
+  _onChangeUsername = (username: string) => this.setState({canSubmit: !!username.length, username})
   render() {
     const pt = platformText[this.props.platform]
-    if (!pt || !pt.headerText) {
+    if (!pt.headerText) {
       // TODO support generic proofs
       throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
     }
@@ -48,7 +47,7 @@ class EnterUsername extends React.Component<Props, State> {
             style={styles.centered}
             platform={this.props.platform}
             overlay="icon-proof-unfinished"
-            overlayColor={Styles.globalColors.greyDark}
+            overlayColor={Kb.Styles.globalColors.greyDark}
           />
           <Kb.LabeledInput
             autoFocus={true}
@@ -60,14 +59,14 @@ class EnterUsername extends React.Component<Props, State> {
           <UsernameTips platform={this.props.platform} />
           <Kb.Box2 direction="horizontal" gap="small">
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.profileWaitingKey}
               onlyDisable={true}
               type="Dim"
               onClick={this.props.onCancel}
               label="Cancel"
             />
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.profileWaitingKey}
               disabled={!this.state.canSubmit}
               onClick={this._submit}
               label="Continue"
@@ -79,7 +78,7 @@ class EnterUsername extends React.Component<Props, State> {
   }
 }
 
-const UsernameTips = ({platform}) =>
+const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
       <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>
@@ -132,15 +131,15 @@ const platformText = {
   },
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   centered: {alignSelf: 'center'},
   error: {
-    backgroundColor: Styles.globalColors.red,
-    borderRadius: Styles.borderRadius,
-    marginBottom: Styles.globalMargins.small,
-    padding: Styles.globalMargins.medium,
+    backgroundColor: Kb.Styles.globalColors.red,
+    borderRadius: Kb.Styles.borderRadius,
+    marginBottom: Kb.Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.medium,
   },
-  tips: {padding: Styles.globalMargins.small},
+  tips: {padding: Kb.Styles.globalMargins.small},
 }))
 
 export default EnterUsername

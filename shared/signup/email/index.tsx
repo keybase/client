@@ -1,7 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Platform from '../../constants/platform'
+import * as Kb from '@/common-adapters'
+import * as Platform from '@/constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 
 export type Props = {
@@ -62,9 +61,9 @@ export const EnterEmailBody = (props: BodyProps) => (
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      gap={Styles.isMobile ? 'small' : 'medium'}
+      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
       fullWidth={true}
-      style={Styles.globalStyles.flexOne}
+      style={Kb.Styles.globalStyles.flexOne}
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
@@ -91,14 +90,14 @@ export const EnterEmailBody = (props: BodyProps) => (
   </Kb.ScrollView>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {
       width: 368,
     },
   }),
-  inputBox: Styles.platformStyles({
+  inputBox: Kb.Styles.platformStyles({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,

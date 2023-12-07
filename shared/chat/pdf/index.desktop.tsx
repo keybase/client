@@ -1,26 +1,22 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as FsGen from '../../actions/fs-gen'
-import {downloadFolder} from '../../constants/platform'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message} = props.route.params || {}
+  const {ordinal} = props
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
-  const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
+
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = React.useCallback(() => {
-    message &&
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          conversationIDKey: message.conversationIDKey,
-          ordinal: message.id,
-        })
-      )
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
-  }, [dispatch, message])
+    message && attachmentDownload(message.id)
+    openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
+  }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
   return (
     <Kb.Modal2
       header={{
@@ -41,8 +37,4 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-ChatPDF.navigationOptions = {
-  modal2: true,
-  modal2Type: 'SuperWide',
-}
 export default ChatPDF

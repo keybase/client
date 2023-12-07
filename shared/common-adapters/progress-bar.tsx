@@ -1,6 +1,6 @@
 import Box from './box'
 import {useSpring, animated} from 'react-spring'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 type Props = {
   ratio: number

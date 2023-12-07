@@ -1,21 +1,39 @@
 import partition from 'lodash/partition'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import capitalize from 'lodash/capitalize'
 
 type Props = {
-  result: RPCChatTypes.UICoinFlipResult
+  result: T.RPCChat.UICoinFlipResult
+}
+
+// prettier-ignore
+type CardIndex = 0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51
+
+type CardType = {
+  card: CardIndex
+  hand?: boolean
+}
+
+function isCardIndex(value: number): value is CardIndex {
+  return value >= 0 && value <= 51
+}
+
+function isArrayOfCardIndex(arr: Array<number>): arr is Array<CardIndex> {
+  return arr.every(isCardIndex)
 }
 
 const CoinFlipResult = (props: Props) => {
   switch (props.result.typ) {
-    case RPCChatTypes.UICoinFlipResultTyp.shuffle:
+    case T.RPCChat.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
-    case RPCChatTypes.UICoinFlipResultTyp.deck:
-      return <CoinFlipResultDeck deck={props.result.deck || undefined} />
-    case RPCChatTypes.UICoinFlipResultTyp.hands:
+    case T.RPCChat.UICoinFlipResultTyp.deck: {
+      const d = isArrayOfCardIndex(props.result.deck) ? props.result.deck : undefined
+      return <CoinFlipResultDeck deck={d} />
+    }
+    case T.RPCChat.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
-    case RPCChatTypes.UICoinFlipResultTyp.coin:
+    case T.RPCChat.UICoinFlipResultTyp.coin:
       return <CoinFlipResultCoin coin={props.result.coin} />
     default:
       return <CoinFlipResultNumber number={props.result.number} />
@@ -80,34 +98,55 @@ const cards = [
 
 const suits = {
   clubs: {
-    color: Styles.globalColors.blackOrBlack,
+    color: Kb.Styles.globalColors.blackOrBlack,
     icon: 'iconfont-club',
   },
   diamonds: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     icon: 'iconfont-diamond',
   },
   hearts: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     icon: 'iconfont-heart',
   },
   spades: {
-    color: Styles.globalColors.blackOrBlack,
+    color: Kb.Styles.globalColors.blackOrBlack,
     icon: 'iconfont-spade',
   },
 } as const
 
-type CardType = {
-  card: number
-  hand?: boolean
+const cardToTitle = (c: (typeof cards)[number]) => {
+  let v
+  switch (c.value) {
+    case 'A':
+      v = 'Ace'
+      break
+    case 'K':
+      v = 'King'
+      break
+    case 'Q':
+      v = 'Queen'
+      break
+    case 'J':
+      v = 'Jack'
+      break
+    default:
+      v = c.value
+  }
+  return `${v} of ${capitalize(c.suit)}`
 }
 
 const Card = (props: CardType) => (
-  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.card}>
+  <Kb.Box2
+    direction="vertical"
+    centerChildren={true}
+    style={styles.card}
+    title={cardToTitle(cards[props.card])}
+  >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Styles.isMobile ? 'BodySmall' : 'Body'}
+        type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -115,8 +154,8 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={Styles.isMobile ? 10 : 12}
-        type={suits[cards[props.card]?.suit]?.icon}
+        fontSize={Kb.Styles.isMobile ? 10 : 12}
+        type={suits[cards[props.card]?.suit].icon}
         color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
       />
@@ -125,7 +164,7 @@ const Card = (props: CardType) => (
 )
 
 type DeckType = {
-  deck?: Array<number>
+  deck?: Array<CardType['card']>
   hand?: boolean
 }
 
@@ -133,16 +172,14 @@ const CoinFlipResultDeck = (props: DeckType) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
+    style={Kb.Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
-    {props.deck?.map(card => (
-      <Card key={card} card={card} hand={props.hand} />
-    ))}
+    {props.deck?.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
 )
 
 type CoinType = {
-  coin: boolean | null
+  coin?: boolean
 }
 
 const CoinFlipResultCoin = (props: CoinType) => (
@@ -159,7 +196,7 @@ const CoinFlipResultCoin = (props: CoinType) => (
 )
 
 type HandType = {
-  hands: Array<RPCChatTypes.UICoinFlipHand> | null
+  hands?: Array<T.RPCChat.UICoinFlipHand>
 }
 
 const CoinFlipResultHands = (props: HandType) => {
@@ -178,16 +215,19 @@ const CoinFlipResultHands = (props: HandType) => {
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.handContainer}>
-          {handsWithCards.map(hand => (
-            <Kb.Box2
-              key={hand.target}
-              direction="vertical"
-              alignSelf="flex-start"
-              style={styles.commonContainer}
-            >
-              <CoinFlipResultDeck deck={hand.hand || undefined} hand={true} />
-            </Kb.Box2>
-          ))}
+          {handsWithCards.map(hand => {
+            const d = hand.hand && isArrayOfCardIndex(hand.hand) ? hand.hand : undefined
+            return (
+              <Kb.Box2
+                key={hand.target}
+                direction="vertical"
+                alignSelf="flex-start"
+                style={styles.commonContainer}
+              >
+                <CoinFlipResultDeck deck={d} hand={true} />
+              </Kb.Box2>
+            )
+          })}
         </Kb.Box2>
       </Kb.Box2>
       {handsWithoutCards.length > 0 && (
@@ -203,7 +243,7 @@ const CoinFlipResultHands = (props: HandType) => {
 }
 
 type NumberType = {
-  number: string | null
+  number?: string
 }
 
 const CoinFlipResultNumber = (props: NumberType) => (
@@ -215,20 +255,18 @@ const CoinFlipResultNumber = (props: NumberType) => (
 )
 
 type ShuffleType = {
-  shuffle: Array<string> | null
+  shuffle?: Array<string>
 }
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>
-    {props.shuffle?.slice(0, 5).map((item, i) => (
-      <CoinFlipResultShuffleItem key={i} item={item} index={i} />
-    ))}
+    {props.shuffle?.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
         <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
-            {props.shuffle?.join(', ')}
+            {props.shuffle.join(', ')}
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>
@@ -243,7 +281,7 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
         selectable={true}
         center={true}
         type={props.index === 0 ? 'BodyBig' : 'BodyTiny'}
-        style={Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
+        style={Kb.Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
       >
         {props.index + 1}
       </Kb.Text>
@@ -257,31 +295,31 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
 const paragraphOverrides = {
   paragraph: {
     // These are Header's styles.
-    fontSize: Styles.isMobile ? 20 : 18,
+    fontSize: Kb.Styles.isMobile ? 20 : 18,
     fontWeight: '700',
-    lineHeight: Styles.isMobile ? 24 : undefined,
+    lineHeight: Kb.Styles.isMobile ? 24 : undefined,
   } as const,
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      break: Styles.platformStyles({
+      break: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
         },
       }),
-      card: Styles.platformStyles({
+      card: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.whiteOrWhite,
-          borderColor: Styles.globalColors.black_10OrBlack,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
+          borderColor: Kb.Styles.globalColors.black_10OrBlack,
+          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
           flexShrink: 0,
           height: 44,
           marginRight: -4,
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
           width: 28,
         },
         isMobile: {
@@ -290,22 +328,22 @@ const styles = Styles.styleSheetCreate(
           width: 20,
         },
       }),
-      cardSuit: Styles.platformStyles({
+      cardSuit: Kb.Styles.platformStyles({
         isMobile: {
           position: 'relative',
           top: -1,
         },
       }),
       // compensate for the bottom margin on cards
-      cards: Styles.platformStyles({
+      cards: Kb.Styles.platformStyles({
         common: {
           flexWrap: 'wrap',
         },
         isElectron: {
-          marginTop: -Styles.globalMargins.tiny,
+          marginTop: -Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginTop: -Styles.globalMargins.xtiny,
+          marginTop: -Kb.Styles.globalMargins.xtiny,
         },
       }),
       coin: {
@@ -313,33 +351,33 @@ const styles = Styles.styleSheetCreate(
         width: 48,
       },
       commonContainer: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       handContainer: {
         flexShrink: 1,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       handTarget: {
         height: 'auto',
         justifyContent: 'space-around',
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       listContainer: {
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Kb.Styles.globalMargins.xsmall,
       },
-      listFull: Styles.platformStyles({
+      listFull: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
       listFullContainer: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
-      listOrder: Styles.platformStyles({
+      listOrder: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.greyDark,
+          backgroundColor: Kb.Styles.globalColors.greyDark,
           borderRadius: 2,
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
           height: 14,
           width: 14,
         },
@@ -350,14 +388,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       listOrderContainer: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         width: 20,
       },
-      listOrderFirst: Styles.platformStyles({
+      listOrderFirst: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black,
-          color: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.black,
+          color: Kb.Styles.globalColors.white,
           height: 18,
           width: 18,
         },
@@ -369,7 +407,7 @@ const styles = Styles.styleSheetCreate(
       noMarginTop: {
         marginTop: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default CoinFlipResult

@@ -1,6 +1,7 @@
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron.desktop'
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
+import * as R from '@/constants/remote'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
@@ -10,8 +11,7 @@ import fs from 'fs'
 import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
-import * as ConfigGen from '../../actions/config-gen'
-import * as DeeplinksGen from '../../actions/deeplinks-gen'
+import * as RemoteGen from '@/actions/remote-gen'
 import startWinService from './start-win-service.desktop'
 import {
   isDarwin,
@@ -22,23 +22,23 @@ import {
   fileUIName,
   dokanPath,
   windowsBinPath,
-} from '../../constants/platform.desktop'
-import {isPathSaltpack} from '../../constants/crypto'
+} from '@/constants/platform.desktop'
 import {ctlQuit} from './ctl.desktop'
-import logger from '../../logger'
+import logger from '@/logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCTypes from '@/constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
-import {makeEngine} from '../../engine'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
-
+import {makeEngine} from '@/engine'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
 const {env} = KB2.constants
-const {mainWindowDispatch} = KB2.functions
+
+const isPathSaltpack = (path: string) =>
+  path.endsWith('.signed.saltpack') || path.endsWith('.encrypted.saltpack')
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
-let startupURL: string | null = null
-let saltpackFilePath: string | null = null
+let startupURL: string | undefined
+let saltpackFilePath: string | undefined
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 
@@ -73,7 +73,7 @@ const appShouldDieOnStartup = () => {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
-    if (parseInt(os.release().split('.')[0], 10) < 14) {
+    if (parseInt(os.release().split('.')[0] ?? '', 10) < 14) {
       Electron.dialog.showErrorBox('Keybase Error', "This version of macOS isn't currently supported.")
       return true
     }
@@ -88,7 +88,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
 
   mainWindow.show()
   if (isWindows || isLinux) {
-    mainWindow?.focus()
+    mainWindow.focus()
   }
 
   // The new instance might be due to a URL schema handler launch.
@@ -101,10 +101,10 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
     // ["Keybase.exe", "--somearg", "--someotherarg", "actuallink"]
     for (const link of commandLine.slice(1)) {
       if (isRelevantDeepLink(link)) {
-        mainWindowDispatch(DeeplinksGen.createLink({link}))
+        R.remoteDispatch(RemoteGen.createLink({link}))
         return
       } else if (isValidSaltpackFilePath(link)) {
-        mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: link}))
+        R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: link}))
         return
       }
     }
@@ -153,25 +153,16 @@ const handleCrashes = () => {
   }
 
   Electron.app.on('browser-window-created', (_, win) => {
-    if (!win) {
-      return
-    }
-
     win.on('unresponsive', (e: Electron.Event) => {
       console.log('Browser window unresponsive: ', e)
       win.reload()
     })
 
-    if (win.webContents) {
-      win.webContents.on('crashed', (_, killed) => {
-        if (killed) {
-          console.log('browser window killed')
-        } else {
-          console.log('browser window crashed')
-        }
-        win.reload()
-      })
-    }
+    win.webContents.on('render-process-gone', (_, details) => {
+      if (details.reason === 'clean-exit') return
+      console.log('browser window killed', details)
+      win.reload()
+    })
   })
 }
 
@@ -193,12 +184,12 @@ const getStartupProcessArgs = () => {
 
   if (
     process.argv.length > 1 &&
-    (isRelevantDeepLink(process.argv[1]) || isValidSaltpackFilePath(process.argv[1]))
+    (isRelevantDeepLink(process.argv[1] ?? '') || isValidSaltpackFilePath(process.argv[1] ?? ''))
   ) {
     arg = process.argv[1]
   } else if (
     process.argv.length > 2 &&
-    (isRelevantDeepLink(process.argv[2]) || isValidSaltpackFilePath(process.argv[2]))
+    (isRelevantDeepLink(process.argv[2] ?? '') || isValidSaltpackFilePath(process.argv[2] ?? ''))
   ) {
     arg = process.argv[2]
   }
@@ -214,9 +205,9 @@ const getStartupProcessArgs = () => {
   }
 
   if (isRelevantDeepLink(arg)) {
-    mainWindowDispatch(DeeplinksGen.createLink({link: arg}))
+    R.remoteDispatch(RemoteGen.createLink({link: arg}))
   } else if (isValidSaltpackFilePath(arg)) {
-    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: arg}))
+    R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: arg}))
   }
 }
 
@@ -241,7 +232,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       saltpackFilePath = path
     } else {
-      mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path}))
+      R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path}))
     }
   })
 
@@ -250,12 +241,10 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       startupURL = link
     } else {
-      mainWindowDispatch(DeeplinksGen.createLink({link}))
+      R.remoteDispatch(RemoteGen.createLink({link}))
     }
   })
 }
-
-let menubarWindowID = 0
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__FILE_SUFFIX__}.html?param=${windowParam}`
@@ -264,7 +253,7 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
   return Electron.BrowserWindow.getAllWindows().find(w => {
     const wc = w.webContents
-    return wc?.getURL() === url
+    return wc.getURL() === url
   })
 }
 
@@ -279,8 +268,8 @@ const winCheckRPCOwnership = async () => {
         reject(error)
         return
       }
-      const result = JSON.parse(stdout.toString())
-      if (result.isOwner) {
+      const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
+      if (result?.isOwner) {
         resolve(undefined)
         return
       }
@@ -317,7 +306,6 @@ const showOpenDialog = async (opts: OpenDialogOptions) => {
     const mw = getMainWindow()
     if (!mw) return []
     const result = await Electron.dialog.showOpenDialog(mw, allowedOptions)
-    if (!result) return []
     if (result.canceled) return []
     return result.filePaths
   } catch (err) {
@@ -340,7 +328,6 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
     const mw = getMainWindow()
     if (!mw) return []
     const result = await Electron.dialog.showSaveDialog(mw, allowedOptions)
-    if (!result) return []
     if (result.canceled) return []
     return result.filePath
   } catch (err) {
@@ -365,29 +352,29 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
 
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
-    mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
+    R.remoteDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
 
   // this crashes on newer electron, unclear why
   if (!isLinux) {
     Electron.powerMonitor.on('suspend', () => {
-      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'suspend'}))
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
     })
     Electron.powerMonitor.on('resume', () => {
-      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'resume'}))
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
     })
     Electron.powerMonitor.on('shutdown', () => {
-      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'shutdown'}))
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
     })
     Electron.powerMonitor.on('lock-screen', () => {
-      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'lock-screen'}))
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
     })
     Electron.powerMonitor.on('unlock-screen', () => {
-      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'unlock-screen'}))
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
     })
   }
 
-  Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
+  Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
@@ -427,7 +414,7 @@ const plumbEvents = () => {
             logger.info('Opened directory:', openPath)
             resolve()
           })
-          .catch(err => {
+          .catch((err: unknown) => {
             reject(err)
           })
       })
@@ -441,13 +428,23 @@ const plumbEvents = () => {
   }
 
   // we use this engine to proxy calls to the service from the renderer
-  const nodeEngine = makeEngine(mainWindowDispatch)
+  const nodeEngine = makeEngine(
+    // no waiting on node side
+    () => {},
+    (c: boolean) => {
+      R.remoteDispatch(RemoteGen.createEngineConnection({connected: c}))
+    }
+  )
+
+  const timeoutPromise = async (timeMs: number) =>
+    new Promise<void>(resolve => {
+      setTimeout(() => resolve(), timeMs)
+    })
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'engineSend': {
         const {buf} = action.payload
-        // @ts-ignore reaching into internals here
         nodeEngine._rpcClient.transport.send(buf)
         return
       }
@@ -483,10 +480,6 @@ const plumbEvents = () => {
       }
       case 'readImageFromClipboard': {
         const image = Electron.clipboard.readImage()
-        if (!image) {
-          // Nothing to read
-          return null
-        }
         return image.toPNG()
       }
       case 'copyToClipboard': {
@@ -494,7 +487,7 @@ const plumbEvents = () => {
         return
       }
       case 'isDirectory': {
-        return new Promise(resolve =>
+        return new Promise(resolve => {
           fs.lstat(action.payload.path, (err, stats) => {
             if (err) {
               resolve(false)
@@ -502,21 +495,22 @@ const plumbEvents = () => {
               resolve(stats.isDirectory())
             }
           })
-        )
+        })
       }
       case 'windowsCheckMountFromOtherDokanInstall': {
         const {mountPoint, status} = action.payload
         return mountPoint
-          ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
-              mountExists =>
-                mountExists
-                  ? {
-                      ...status,
-                      installAction: RPCTypes.InstallAction.none,
-                      installStatus: RPCTypes.InstallStatus.installed,
-                      kextStarted: true,
-                    }
-                  : status
+          ? new Promise(resolve => {
+              fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))
+            }).then(mountExists =>
+              mountExists
+                ? {
+                    ...status,
+                    installAction: RPCTypes.InstallAction.none,
+                    installStatus: RPCTypes.InstallStatus.installed,
+                    kextStarted: true,
+                  }
+                : status
             )
           : status
       }
@@ -707,10 +701,8 @@ const plumbEvents = () => {
       case 'setupPreloadKB2':
         return KB2.constants
       case 'showMainWindow':
-        {
-          mainWindow?.show()
-          showDockIcon()
-        }
+        mainWindow?.show()
+        showDockIcon()
         break
       case 'activeChanged':
         // the installer reads this file to understand the gui state to not interrupt
@@ -733,27 +725,22 @@ const plumbEvents = () => {
         // tell mainwindow we're connected
         nodeEngine.listenersAreReady()
 
-        if (menubarWindowID) {
-          mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
-          // reset it
-          menubarWindowID = 0
-        }
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
-          mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
-          startupURL = null
+          R.remoteDispatch(RemoteGen.createLink({link: startupURL}))
+          startupURL = undefined
         } else if (saltpackFilePath) {
-          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
-          saltpackFilePath = null
+          R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: saltpackFilePath}))
+          saltpackFilePath = undefined
         } else if (!isDarwin) {
           getStartupProcessArgs()
         }
 
         // run installer
-        installer(mainWindowDispatch, err => {
+        installer(err => {
           err && console.log('Error: ', err)
-          mainWindowDispatch(ConfigGen.createInstallerRan())
+          R.remoteDispatch(RemoteGen.createInstallerRan())
         })
         break
       case 'requestWindowsStartService':
@@ -767,8 +754,18 @@ const plumbEvents = () => {
         break
       }
       case 'rendererNewProps': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w?.webContents.send('KBprops', action.payload.propsStr)
+        // this can be racy so we try a few
+        let count = 0
+        while (count < 5) {
+          const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+          if (w) {
+            w.webContents.send('KBprops', action.payload.propsStr)
+            break
+          } else {
+            await timeoutPromise(500)
+          }
+          ++count
+        }
         break
       }
       case 'closeRenderer': {
@@ -795,10 +792,10 @@ const plumbEvents = () => {
         const remoteWindow = new Electron.BrowserWindow(opts)
 
         remoteWindow.on('show', () => {
-          mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))
+          R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))
         })
 
-        if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
+        if (action.payload.windowPositionBottomRight) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
             width - action.payload.windowOpts.width - 100,
@@ -816,8 +813,11 @@ const plumbEvents = () => {
           menuHelper(remoteWindow)
         }
 
-        if (showDevTools && remoteWindow.webContents && !skipSecondaryDevtools) {
-          remoteWindow.webContents.openDevTools({mode: 'detach'})
+        if (showDevTools && !skipSecondaryDevtools) {
+          remoteWindow.webContents.openDevTools({
+            mode: 'detach',
+            title: `${__DEV__ ? 'DEV' : 'Prod'} ${action.payload.windowComponent} Devtools`,
+          })
         }
 
         showDockIcon()
@@ -848,17 +848,7 @@ const start = () => {
 
   devTools()
 
-  // Load menubar and get its browser window id so we can tell the main window
-  menuBar(id => {
-    // its possible the app started up way before we get this id in rare cases
-    if (appStartedUp && id) {
-      mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id}))
-    } else {
-      // else stash it for later
-      menubarWindowID = id
-    }
-  })
-
+  menuBar()
   plumbEvents()
 
   Electron.app.once('will-finish-launching', willFinishLaunching)

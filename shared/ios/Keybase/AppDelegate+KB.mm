@@ -15,6 +15,7 @@
 #import <RNHWKeyboardEvent.h>
 #import <React/RCTLinkingManager.h>
 #import <UserNotifications/UserNotifications.h>
+#import "Kb.h"
 
 @implementation AppDelegate(KB)
 
@@ -24,6 +25,9 @@
   // uncomment to get more console.logs
   // RCTSetLogThreshold(RCTLogLevelInfo - 1);
   self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
+  
+  FsPathsHolder * fph = [FsPathsHolder sharedFsPathsHolder];
+  fph.fsPaths = self.fsPaths;
 
   NSString *systemVer = [[UIDevice currentDevice] systemVersion];
   BOOL isIPad =
@@ -75,6 +79,11 @@
 }
 
 - (void)didLaunchSetupAfter: (UIView*) rootView {
+  if (@available(iOS 13.0, *)) {
+      rootView.backgroundColor = [UIColor systemBackgroundColor];
+    } else {
+      rootView.backgroundColor = [UIColor whiteColor];
+    }
   // To simplify the cover animation raciness
   // With iPads, we had a bug with this resignImageView where if
   // you backgrounded the app in portrait and then rotated to
@@ -132,8 +141,7 @@
       }];
   self.iph = [[ItemProviderHelper alloc]
            initForShare:false
-              withItems:items
-             attrString:@""
+              withItems:@[items]
       completionHandler:^{
         NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
         __typeof__(self) strongSelf = weakSelf;
@@ -237,6 +245,7 @@
   NSLog(@"applicationWillResignActive: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
   // Try a nice animation out
+  [self.resignImageView.superview bringSubviewToFront:self.resignImageView];
   NSLog(@"applicationWillResignActive: rendering keyz screen...");
   [UIView animateWithDuration:0.3
       delay:0.1

@@ -1,9 +1,8 @@
 import * as React from 'react'
 import PeopleItem from '../item'
-import type * as Types from '../../constants/types/people'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {FollowButton} from '../../settings/contacts-joined/buttons'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import {FollowButton} from '@/settings/contacts-joined/buttons'
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -16,9 +15,9 @@ const connectedUsernamesProps = {
   underline: true,
 } as const
 
-export type NewFollow = Types.FollowedNotification
+export type NewFollow = T.People.FollowedNotification
 
-export type Props = Types.FollowedNotificationItem & {
+export type Props = T.People.FollowedNotificationItem & {
   onClickUser: (username: string) => void
 }
 
@@ -36,7 +35,7 @@ const FollowNotification = (props: Props) => {
   }
 
   const {newFollows, onClickUser, type} = props
-  const username = newFollows[0].username
+  const username = newFollows[0]?.username ?? ''
   const usernameComponent = (
     <Kb.ConnectedUsernames
       {...connectedUsernamesProps}
@@ -44,7 +43,7 @@ const FollowNotification = (props: Props) => {
       onUsernameClicked={props.onClickUser}
     />
   )
-  const desc = newFollows[0].contactDescription
+  const desc = newFollows[0]?.contactDescription ?? ''
 
   const onClick = React.useCallback(() => {
     onClickUser(username)
@@ -55,14 +54,14 @@ const FollowNotification = (props: Props) => {
       <PeopleItem
         badged={props.badged}
         buttons={
-          props.type == 'contact'
+          props.type === 'contact'
             ? [
                 <FollowButton username={username} small={true} key="follow" />,
                 <Kb.WaveButton username={username} small={true} key="wave" />,
               ]
             : undefined
         }
-        icon={<Kb.Avatar username={username} onClick={onClick} size={Styles.isMobile ? 48 : 32} />}
+        icon={<Kb.Avatar username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
@@ -111,7 +110,7 @@ export const MultiFollowNotification = React.memo(function MultiFollowNotificati
         </Kb.Text>
       )}
       <Kb.ScrollView
-        {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+        {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (
@@ -124,35 +123,35 @@ export const MultiFollowNotification = React.memo(function MultiFollowNotificati
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatar: {marginRight: Styles.globalMargins.xtiny},
+      avatar: {marginRight: Kb.Styles.globalMargins.xtiny},
       iconContainer: {width: 'auto'},
-      multiText: Styles.platformStyles({
+      multiText: Kb.Styles.platformStyles({
         common: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.xlarge,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.xlarge,
           marginTop: 2,
         },
         isElectron: {display: 'inline'},
       }),
       peopleItem: {justifyContent: 'center'},
-      scrollViewContainer: Styles.platformStyles({
+      scrollViewContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
           height: 32,
           overflow: 'hidden',
           width: '100%',
         },
       }),
-      usernames: Styles.platformStyles({isElectron: {whiteSpace: 'normal'} as const}),
-    } as const)
+      usernames: Kb.Styles.platformStyles({isElectron: {whiteSpace: 'normal'} as const}),
+    }) as const
 )

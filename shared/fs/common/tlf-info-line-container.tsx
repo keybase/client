@@ -1,33 +1,30 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import TlfInfoLine from './tlf-info-line'
 
 export type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   mixedMode?: boolean
   mode: 'row' | 'default'
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
-    _username: state.config.username,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => {
-    const resetParticipants =
-      stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants
-    return {
-      isNew: stateProps._tlf.isNew,
-      mixedMode: ownProps.mixedMode,
-      mode: ownProps.mode,
-      reset:
-        !!resetParticipants &&
-        !!resetParticipants.length &&
-        (resetParticipants.includes(stateProps._username) || resetParticipants),
-      tlfMtime: stateProps._tlf.tlfMtime,
-      tlfType: Types.getPathVisibility(ownProps.path),
-    }
+const Container = (ownProps: OwnProps) => {
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
+  const _username = C.useCurrentUserState(s => s.username)
+  const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
+  const props = {
+    isNew: _tlf.isNew,
+    mixedMode: ownProps.mixedMode,
+    mode: ownProps.mode,
+    reset:
+      !!resetParticipants &&
+      !!resetParticipants.length &&
+      (resetParticipants.includes(_username) || resetParticipants),
+    tlfMtime: _tlf.tlfMtime,
+    tlfType: T.FS.getPathVisibility(ownProps.path),
   }
-)(TlfInfoLine)
+  return <TlfInfoLine {...props} />
+}
+
+export default Container

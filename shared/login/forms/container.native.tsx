@@ -1,30 +1,30 @@
-import * as Styles from '../../styles'
 import type {Props} from './container'
-import {Box, NativeScrollView} from '../../common-adapters/mobile.native'
+import * as Kb from '@/common-adapters'
+import NativeScrollView from '@/common-adapters/scroll-view.native'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (
     <NativeScrollView style={{...styles.container, ...outerStyle}}>
-      <Box style={{...styles.innerContainer, ...style}}>{children}</Box>
+      <Kb.Box style={{...styles.innerContainer, ...style}}>{children}</Kb.Box>
     </NativeScrollView>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexGrow: 1,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.medium,
+        paddingRight: Kb.Styles.globalMargins.medium,
       },
       innerContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexGrow: 1,
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
       },
-    } as const)
+    }) as const
 )
 
 export default Container

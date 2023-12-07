@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
-import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
+import {NativeAnimated, NativeEasing} from '@/common-adapters/native-wrappers.native'
 
 const lightPatternImage = require('../../images/upload-pattern-80.png')
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png')
@@ -25,13 +24,13 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   _mounted = false
 
   _animations: {
-    in: NativeAnimated.CompositeAnimation | null
-    loop: NativeAnimated.CompositeAnimation | null
-    out: NativeAnimated.CompositeAnimation | null
+    in: NativeAnimated.CompositeAnimation | undefined
+    loop: NativeAnimated.CompositeAnimation | undefined
+    out: NativeAnimated.CompositeAnimation | undefined
   } = {
-    in: null,
-    loop: null,
-    out: null,
+    in: undefined,
+    loop: undefined,
+    out: undefined,
   }
 
   _startAnimationLoop() {
@@ -65,12 +64,13 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     this._animations.out = out
     out.start(({finished}) => finished && cbIfFinish())
   }
-  _stopAnimation(animation: string) {
-    if (!this._animations[animation]) {
+  _stopAnimation(animation: keyof typeof this._animations) {
+    const a = this._animations[animation]
+    if (!a) {
       return
     }
-    this._animations[animation].stop()
-    this._animations[animation] = null
+    a.stop()
+    this._animations[animation] = undefined
   }
   _stopAllAnimations() {
     this._stopAnimation('out')
@@ -132,7 +132,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             <Kb.Box style={styles.backgroundBox}>
               <NativeAnimated.Image
                 resizeMode="repeat"
-                source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
+                source={Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
                 style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
               />
             </Kb.Box>
@@ -144,7 +144,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
                   ? 'Encrypting and uploading...'
                   : 'Done!'}
               </Kb.Text>
-              {!!(timeLeft && timeLeft.length) && (
+              {!!timeLeft.length && (
                 <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
               )}
             </Kb.Box>
@@ -155,10 +155,10 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backgroundBox: Styles.platformStyles({
+      backgroundBox: Kb.Styles.platformStyles({
         common: {
           height: 48,
           overflow: 'hidden',
@@ -170,16 +170,16 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       box: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         height: 48,
         justifyContent: 'center',
         marginTop: -48,
       },
       text: {
-        color: Styles.globalColors.whiteOrWhite,
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
-    } as const)
+    }) as const
 )
 
 export default Upload

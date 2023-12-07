@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Emoji from './emoji'
 import Text from './text'
-import {Box2} from './box'
+import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import PlainInput from './plain-input'
@@ -10,8 +10,8 @@ import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
-import {usePopup} from './use-popup'
-import {isIOS, isMobile} from '../constants/platform'
+import {usePopup2, type Popup2Parms} from './use-popup'
+import {isIOS, isMobile} from '@/constants/platform'
 import {
   countryData,
   codeToCountry,
@@ -19,11 +19,13 @@ import {
   AsYouTypeFormatter,
   validateNumber,
   type CountryData,
-} from '../util/phone-numbers'
-import {memoize} from '../util/memoize'
+} from '@/util/phone-numbers'
+import {memoize} from '@/util/memoize'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
+  Box2Measure,
   ClickableBox,
   Emoji,
   FloatingMenu,
@@ -33,25 +35,25 @@ const Kb = {
   ProgressIndicator,
   SearchFilter,
   Text,
-  usePopup,
+  usePopup2,
 }
 
 const normalizeCountryCode = (countryCode: string) =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
 const getCallingCode = (countryCode: string) =>
-  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)].callingCode : ''
+  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)]?.callingCode ?? '' : ''
 const getCountryEmoji = (countryCode: string) => (
-  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)].emojiText} />
+  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
 )
 const getPlaceholder = (countryCode: string) =>
-  countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)].example : 'N/A'
+  countryCode !== '' ? 'Ex: ' + (countryData()[normalizeCountryCode(countryCode)]?.example ?? 'N/A') : 'N/A'
 const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 
-const pickerItems = memoize(countryData =>
+const pickerItems = memoize((countryData: {[key: string]: CountryData}) =>
   [
     ...prioritizedCountries.map(code => countryData[code]),
-    ...Object.values<CountryData>(countryData)
+    ...Object.values(countryData)
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(cd => {
         if (prioritizedCountries.includes(cd.alpha2)) {
@@ -62,81 +64,89 @@ const pickerItems = memoize(countryData =>
         }
         return cd
       }),
-  ].map(cd => ({label: cd.pickerText, value: cd.alpha2}))
+  ].map(cd => ({label: cd?.pickerText ?? '', value: cd?.alpha2 ?? ''}))
 )
-const menuItems = memoize((countryData, filter, onClick) => {
-  const strippedFilter = filterNumeric(filter)
-  const lowercaseFilter = filter.toLowerCase()
+const menuItems = memoize(
+  (
+    countryData: {
+      [key: string]: CountryData
+    },
+    filter: string,
+    onClick: (selected: string) => void
+  ) => {
+    const strippedFilter = filterNumeric(filter)
+    const lowercaseFilter = filter.toLowerCase()
 
-  return Object.values<CountryData>(countryData)
-    .filter(cd => {
-      if (strippedFilter.length > 0) {
-        return filterNumeric(cd.callingCode).startsWith(strippedFilter)
-      }
-      return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
-    })
-    .sort((a: CountryData, b: CountryData) => {
-      // Special cases
-      for (const country of prioritizedCountries) {
-        const countryName = countryData[country].name
-        if (a.name === countryName) {
-          return -1
+    return Object.values<CountryData>(countryData)
+      .filter(cd => {
+        if (strippedFilter.length > 0) {
+          return filterNumeric(cd.callingCode).startsWith(strippedFilter)
         }
-        if (b.name === countryName) {
-          return 1
+        return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+      })
+      .sort((a: CountryData, b: CountryData) => {
+        // Special cases
+        for (const country of prioritizedCountries) {
+          const countryName = countryData[country]?.name
+          if (a.name === countryName) {
+            return -1
+          }
+          if (b.name === countryName) {
+            return 1
+          }
         }
-      }
 
-      // Numeric prefix matcher
-      if (strippedFilter.length > 0) {
-        const aCallingCode = filterNumeric(a.callingCode)
-        const bCallingCode = filterNumeric(b.callingCode)
+        // Numeric prefix matcher
+        if (strippedFilter.length > 0) {
+          const aCallingCode = filterNumeric(a.callingCode)
+          const bCallingCode = filterNumeric(b.callingCode)
 
-        // Exact match, fixes +47 (Norway and Svalbard) vs Bermuda's +471
-        if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
-          return -1
-        }
-        if (aCallingCode !== strippedFilter && bCallingCode === strippedFilter) {
-          return 1
-        }
-        if (aCallingCode === strippedFilter && bCallingCode === strippedFilter) {
+          // Exact match, fixes +47 (Norway and Svalbard) vs Bermuda's +471
+          if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
+            return -1
+          }
+          if (aCallingCode !== strippedFilter && bCallingCode === strippedFilter) {
+            return 1
+          }
+          if (aCallingCode === strippedFilter && bCallingCode === strippedFilter) {
+            return a.name.localeCompare(b.name)
+          }
+
+          const aCodeMatch = aCallingCode.startsWith(strippedFilter)
+          const bCodeMatch = bCallingCode.startsWith(strippedFilter)
+
+          // Either matches
+          if (aCodeMatch && !bCodeMatch) {
+            return -1
+          }
+          if (!aCodeMatch && bCodeMatch) {
+            return 1
+          }
+          // Both or none match perfectly, sort alphabetically
           return a.name.localeCompare(b.name)
         }
 
-        const aCodeMatch = aCallingCode.startsWith(strippedFilter)
-        const bCodeMatch = bCallingCode.startsWith(strippedFilter)
-
-        // Either matches
-        if (aCodeMatch && !bCodeMatch) {
+        // Textual prefix matcher
+        const aPrefixMatch = a.name.toLowerCase().startsWith(lowercaseFilter)
+        const bPrefixMatch = b.name.toLowerCase().startsWith(lowercaseFilter)
+        if (aPrefixMatch && !bPrefixMatch) {
           return -1
         }
-        if (!aCodeMatch && bCodeMatch) {
+        if (!aPrefixMatch && bPrefixMatch) {
           return 1
         }
-        // Both or none match perfectly, sort alphabetically
+
+        // Fallback to alphabetical sorting
         return a.name.localeCompare(b.name)
-      }
-
-      // Textual prefix matcher
-      const aPrefixMatch = a.name.toLowerCase().startsWith(lowercaseFilter)
-      const bPrefixMatch = b.name.toLowerCase().startsWith(lowercaseFilter)
-      if (aPrefixMatch && !bPrefixMatch) {
-        return -1
-      }
-      if (!aPrefixMatch && bPrefixMatch) {
-        return 1
-      }
-
-      // Fallback to alphabetical sorting
-      return a.name.localeCompare(b.name)
-    })
-    .map((cd: CountryData) => ({
-      alpha2: cd.alpha2,
-      onClick: () => onClick(cd.alpha2),
-      title: cd.pickerText,
-      view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
-    }))
-})
+      })
+      .map((cd: CountryData) => ({
+        alpha2: cd.alpha2,
+        onClick: () => onClick(cd.alpha2),
+        title: cd.pickerText,
+        view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
+      }))
+  }
+)
 
 const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
@@ -148,7 +158,7 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 )
 
 type CountrySelectorProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   onSelect: (s?: string) => void
   onHidden: () => void
   selected?: string
@@ -156,7 +166,7 @@ type CountrySelectorProps = {
 }
 
 type CountrySelectorState = {
-  selected: string | undefined | null
+  selected?: string
   filter: string
 }
 
@@ -176,13 +186,12 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = (selected: string | null | undefined) =>
-    this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected?: string) => this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
-    if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
+    if (Styles.isMobile && this.mobileItems?.[0]) {
       this.onSelectMenu(this.mobileItems[0].value)
-    } else if (this.desktopItems && this.desktopItems[0]) {
+    } else if (this.desktopItems?.[0]) {
       this.onSelectMenu(this.desktopItems[0].alpha2)
     }
     this.props.onHidden()
@@ -259,15 +268,15 @@ type Props = {
   autoFocus?: boolean
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
-  onEnterKeyDown?: React.ComponentProps<typeof PlainInput>['onEnterKeyDown']
+  onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   onClear?: () => void
   small?: boolean // default is true on desktop and false on mobile
   style?: Styles.StylesCrossPlatform
 }
 
 type OldProps = Props & {
-  popup: any
-  popupAnchor: any
+  popup: React.ReactNode
+  popupAnchor: React.RefObject<MeasureRef>
   country: string | undefined
   setCountry: React.Dispatch<React.SetStateAction<string | undefined>>
   focused: boolean
@@ -324,13 +333,13 @@ class _PhoneInput extends React.Component<OldProps> {
         const changedChar = this.props.formatted[diffIndex]
 
         // Make sure that the changed char isn't a number
-        if (isNaN(parseInt(changedChar, 10))) {
+        if (isNaN(parseInt(changedChar ?? '', 10))) {
           // At this point we're certain we're in the special scenario.
 
           // Take everything BUT the different character, make it all numbers
-          const beforeDiff = filterNumeric(newText.substr(0, diffIndex))
+          const beforeDiff = filterNumeric(newText.substring(0, diffIndex))
           // We don't care about what's in the section that includes the difference
-          const afterDiff = newText.substr(diffIndex)
+          const afterDiff = newText.substring(diffIndex)
 
           // Combine it back into a newText, slicing off the last character of beforeDiff
           newText = beforeDiff.slice(0, -1).concat(afterDiff)
@@ -346,9 +355,9 @@ class _PhoneInput extends React.Component<OldProps> {
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
-      this.props.formatter.inputDigit(newText[i])
+      this.props.formatter.inputDigit(newText[i]!)
     }
-    const formatted = this.props.formatter.inputDigit(newText[newText.length - 1])
+    const formatted = this.props.formatter.inputDigit(newText.at(-1)!)
     this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
@@ -365,13 +374,11 @@ class _PhoneInput extends React.Component<OldProps> {
         const possibleMatch = codeToCountry()[extPrefix]
         if (possibleMatch) {
           this.setCountry(possibleMatch, false)
-        } else {
+        } else if (areaCodeIsCanadian(areaCode)) {
           // Otherwise determine the country using the hardcoded ranges
-          if (areaCodeIsCanadian(areaCode)) {
-            this.setCountry('CA', true)
-          } else {
-            this.setCountry('US', true)
-          }
+          this.setCountry('CA', true)
+        } else {
+          this.setCountry('US', true)
         }
       }
     }
@@ -391,12 +398,13 @@ class _PhoneInput extends React.Component<OldProps> {
 
     // NA countries that use area codes require special behaviour
     if (newText.length === 4) {
-      newText = newText[0]
+      newText = newText[0]!
     }
     this.props.setPrefix(newText)
   }
 
-  setCountry = (country: string, keepPrefix: boolean) => {
+  setCountry = (_country: string, keepPrefix: boolean) => {
+    let country = _country
     if (this.props.country !== country) {
       country = normalizeCountryCode(country)
 
@@ -436,7 +444,7 @@ class _PhoneInput extends React.Component<OldProps> {
             ? !this.props.prefix
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData()[this.props.country].emoji + ' ' + countryData()[this.props.country].name}
+            : countryData()[this.props.country]?.emoji + ' ' + countryData()[this.props.country]?.name}
         </Kb.Text>
       )
     }
@@ -509,7 +517,7 @@ class _PhoneInput extends React.Component<OldProps> {
             onClick={this.props.toggleShowingMenu}
             style={this.isSmall() ? styles.fullWidthDesktopOnly : styles.fullWidth}
           >
-            <Kb.Box2
+            <Kb.Box2Measure
               direction="horizontal"
               style={styles.countrySelectorContainer}
               alignItems="center"
@@ -518,7 +526,7 @@ class _PhoneInput extends React.Component<OldProps> {
             >
               {this.renderCountrySelector()}
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-            </Kb.Box2>
+            </Kb.Box2Measure>
           </Kb.ClickableBox>
         </Kb.Box2>
         <Kb.Box2
@@ -607,24 +615,39 @@ const PhoneInput = (p: Props) => {
 
   const {defaultCountry} = p
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <CountrySelector
-      attachTo={attachTo}
-      onSelect={onSelectCountry}
-      onHidden={toggleShowingMenu}
-      selected={country}
-      visible={showingPopup}
-      ref={countrySelectorRef}
-    />
-  ))
+  const toggleShowingMenu = React.useCallback(
+    (toggleShowingPopup: () => void) => {
+      if (!country && defaultCountry) {
+        countrySelectorRef.current?.onSelectMenu(defaultCountry)
+      }
+      countrySelectorRef.current?.clearFilter()
+      toggleShowingPopup()
+    },
+    [country, defaultCountry]
+  )
 
-  const toggleShowingMenu = React.useCallback(() => {
-    if (!country && defaultCountry) {
-      countrySelectorRef.current?.onSelectMenu(defaultCountry)
-    }
-    countrySelectorRef.current?.clearFilter()
-    toggleShowingPopup()
-  }, [country, defaultCountry, toggleShowingPopup])
+  const makePopup = React.useCallback(
+    (p: Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <CountrySelector
+          attachTo={attachTo}
+          onSelect={onSelectCountry}
+          onHidden={() => toggleShowingMenu(toggleShowingPopup)}
+          selected={country}
+          visible={true}
+          ref={countrySelectorRef}
+        />
+      )
+    },
+    [country, onSelectCountry, toggleShowingMenu]
+  )
+
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+
+  const _toggleShowingMenu = React.useCallback(() => {
+    toggleShowingMenu(toggleShowingPopup)
+  }, [toggleShowingMenu, toggleShowingPopup])
 
   // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
   // want to rewrite this now
@@ -646,7 +669,7 @@ const PhoneInput = (p: Props) => {
       prefix={prefix}
       setPrefix={setPrefix}
       phoneInputRef={phoneInputRef}
-      toggleShowingMenu={toggleShowingMenu}
+      toggleShowingMenu={_toggleShowingMenu}
     />
   )
 }
@@ -743,7 +766,7 @@ const styles = Styles.styleSheetCreate(
       searchWrapper: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
       },
-    } as const)
+    }) as const
 )
 
 export default PhoneInput

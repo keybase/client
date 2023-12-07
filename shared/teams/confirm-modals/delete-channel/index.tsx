@@ -1,16 +1,15 @@
-import * as Constants from '../../../constants/teams'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import {pluralize} from '../../../util/string'
-import {useAllChannelMetas} from '../../common/channel-hooks'
+import type * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
-type Props = Container.RouteProps<'teamDeleteChannel'>
+type Props = {
+  teamID: T.Teams.TeamID
+  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
 
 const Header = () => (
   <>
@@ -19,17 +18,13 @@ const Header = () => (
   </>
 )
 
-const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID) => {
-  return state.teams.teamSelectedChannels.get(teamID)
-}
-
 const DeleteChannel = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const routePropChannel = props.route.params?.conversationIDKey ?? undefined
-  const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
+  const teamID = props.teamID
+  const routePropChannel = props.conversationIDKey
+  const storeSelectedChannels = C.useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
-  const [channelIDs] = React.useState<ChatTypes.ConversationIDKey[]>(
+  const [channelIDs] = React.useState<T.Chat.ConversationIDKey[]>(
     routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
   )
 
@@ -37,15 +32,15 @@ const DeleteChannel = (props: Props) => {
   const channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
-    const conversationMeta = channelMetas?.get(channelID)
+    const conversationMeta = channelMetas.get(channelID)
     const channelname = conversationMeta ? conversationMeta.channelname : ''
     channelnames.push(channelname)
   })
 
   let deleteMsg: string
-  if (channelnames.length == 1) {
+  if (channelnames.length === 1) {
     deleteMsg = `#${channelnames[0]}`
-  } else if (channelnames.length == 2) {
+  } else if (channelnames.length === 2) {
     deleteMsg = `#${channelnames[0]} and #${channelnames[1]}`
   } else {
     const numOtherChans = channelnames.length - 2
@@ -55,27 +50,17 @@ const DeleteChannel = (props: Props) => {
     )}`
   }
 
-  const dispatch = Container.useDispatch()
+  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
+  const deleteMultiChannelsConfirmed = C.useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
 
   const onDelete = () => {
-    dispatch(
-      TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
-        teamID,
-      })
-    )
-    dispatch(
-      TeamsGen.createSetChannelSelected({
-        channel: '',
-        clearAll: true,
-        selected: false,
-        teamID: teamID,
-      })
-    )
+    deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))
+    setChannelSelected(teamID, '', false, true)
   }
 
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   return (
@@ -90,13 +75,13 @@ const DeleteChannel = (props: Props) => {
           Delete {deleteMsg}?
         </Kb.Text>
       }
-      waitingKey={Constants.deleteChannelWaitingKey(teamID)}
+      waitingKey={C.Teams.deleteChannelWaitingKey(teamID)}
     />
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  prompt: Styles.padding(0, Styles.globalMargins.small),
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
 }))
 
 export default DeleteChannel

@@ -1,16 +1,12 @@
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
-  teamID: Types.TeamID
-  conversationIDKey?: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
   notChannelMember?: boolean
 }
 const icon: {[K in Props['type']]: Kb.IconType} = {
@@ -29,27 +25,29 @@ const buttonLabel = {
 
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
-        dispatch(
-          conversationIDKey
-            ? nav.safeNavigateAppendPayload({
-                path: [{props: {conversationIDKey: conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-              })
-            : TeamsGen.createStartAddMembersWizard({teamID})
-        )
+        if (conversationIDKey) {
+          nav.safeNavigateAppend({
+            props: {conversationIDKey: conversationIDKey, teamID},
+            selected: 'chatAddToChannel',
+          })
+        } else {
+          startAddMembersWizard(teamID)
+        }
         break
       case 'subteams':
-        dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
+        launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+        nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
         break
       case 'channelsEmpty':
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamCreateChannels'}]}))
+        nav.safeNavigateAppend({props: {teamID}, selected: 'teamCreateChannels'})
         break
     }
   }
@@ -79,23 +77,23 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = Container.useSelector(state => state.config.username)
-
-  const dispatch = Container.useDispatch()
+  const you = C.useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
-  const onAddSelf = () =>
-    dispatch(
-      conversationIDKey
-        ? Chat2Gen.createJoinConversation({conversationIDKey})
-        : TeamsGen.createAddToTeam({
-            sendChatNotification: false,
-            teamID,
-            users: [{assertion: you, role: 'admin'}],
-          })
-    )
-  const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const joinConversation = C.useConvoState(
+    conversationIDKey ?? C.noConversationIDKey,
+    s => s.dispatch.joinConversation
+  )
+  const onAddSelf = () => {
+    if (conversationIDKey) {
+      joinConversation()
+    } else {
+      addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
+    }
+  }
+  const waiting = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
@@ -113,7 +111,7 @@ const EmptyRow = (props: Props) => {
           .istanbul, ...
         </Kb.Text>
       )}
-      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (
           <Kb.Button small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
         )}
@@ -128,19 +126,19 @@ const EmptyRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.padding(40, 0),
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.padding(40, 0),
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {maxWidth: 272},
       }),
-    } as const)
+    }) as const
 )
 
 export default EmptyRow

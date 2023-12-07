@@ -1,25 +1,29 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
 
 type Props = {
-  editID: Types.EditID
+  editID: T.FS.EditID
 }
 
-const Editing = ({editID}: Props) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
-  const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
-  const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
+const Editing = React.memo(function ({editID}: Props) {
+  const discardEdit = C.useFSState(s => s.dispatch.discardEdit)
+  const onCancel = () => {
+    discardEdit(editID)
+  }
+  const commitEdit = C.useFSState(s => s.dispatch.commitEdit)
+  const onSubmit = () => {
+    commitEdit(editID)
+  }
+  const edit = C.useFSState(s => s.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
+  const setEditName = C.useFSState(s => s.dispatch.setEditName)
   React.useEffect(() => {
-    dispatch(FsGen.createSetEditName({editID: editID, name: filename}))
-  }, [editID, filename, dispatch])
+    setEditName(editID, filename)
+  }, [editID, filename, setEditName])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
     <Kb.ListItem2
@@ -27,7 +31,7 @@ const Editing = ({editID}: Props) => {
       firstItem={true /* we add divider in Rows */}
       statusIcon={
         <Kb.Icon
-          type={edit.type === Types.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
+          type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
           sizeType="Small"
           padding="xtiny"
         />
@@ -55,39 +59,39 @@ const Editing = ({editID}: Props) => {
         <Kb.Box key="right" style={styles.rightBox}>
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
-              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.red} />
+              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
           <Kb.WaitingButton
             key="create"
             style={styles.button}
             small={true}
-            label={edit.error ? 'Retry' : edit.type === Types.EditType.NewFolder ? 'Create' : 'Save'}
+            label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
             waitingKey={Constants.commitEditWaitingKey}
             onClick={onSubmit}
           />
           <Kb.Icon
             onClick={onCancel}
-            type={edit.type === Types.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
-            color={Styles.globalColors.black_50}
-            hoverColor={Styles.globalColors.black}
+            type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
+            color={Kb.Styles.globalColors.black_50}
+            hoverColor={Kb.Styles.globalColors.black}
             style={styles.iconCancel}
           />
         </Kb.Box>
       }
     />
   )
-}
+})
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
-        marginLeft: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.tiny,
       },
-      iconCancel: Styles.platformStyles({
+      iconCancel: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
           paddingRight: 0,
         },
         isMobile: {
@@ -95,18 +99,18 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       rightBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flexShrink: 1,
         justifyContent: 'flex-end',
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.fontSemibold,
+          ...Kb.Styles.globalStyles.fontSemibold,
           maxWidth: '100%',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default Editing

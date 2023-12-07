@@ -1,5 +1,4 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 
 type Props = {}
 
@@ -17,50 +16,50 @@ const HelloBot = (_: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.orange,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.orange,
+          borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
           height: 100,
-          marginTop: Styles.globalMargins.xsmall,
+          marginTop: Kb.Styles.globalMargins.xsmall,
           maxWidth: 400,
         },
         isMobile: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.small,
           width: 288,
         },
       }),
       header: {
-        maxWidth: Styles.isMobile ? 126 : undefined,
+        maxWidth: Kb.Styles.isMobile ? 126 : undefined,
       },
-      icon: Styles.platformStyles({
+      icon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'block',
           marginTop: 4,
         },
       }),
-      image: Styles.platformStyles({
+      image: Kb.Styles.platformStyles({
         common: {
-          marginLeft: Styles.globalMargins.medium,
+          marginLeft: Kb.Styles.globalMargins.medium,
         },
         isElectron: {
-          marginTop: -Styles.globalMargins.xsmall,
+          marginTop: -Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
           alignSelf: 'center',
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
-      textContainer: {padding: Styles.globalMargins.medium},
-    } as const)
+      link: {color: Kb.Styles.isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
+      textContainer: {padding: Kb.Styles.globalMargins.medium},
+    }) as const
 )
 
 export default HelloBot

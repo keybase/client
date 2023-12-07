@@ -1,0 +1,55 @@
+diff --git a/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx b/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
+index 6ad44d2..2e1bc50 100644
+--- a/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
++++ b/node_modules/@react-navigation/native-stack/src/navigators/createNativeStackNavigator.tsx
+@@ -5,7 +5,7 @@ import {
+   StackActionHelpers,
+   StackActions,
+   StackNavigationState,
+-  StackRouter,
++  StackRouter as OriginalStackRouter,
+   StackRouterOptions,
+   useNavigationBuilder,
+ } from '@react-navigation/native';
+@@ -18,6 +18,41 @@ import type {
+ } from '../types';
+ import NativeStackView from '../views/NativeStackView';
+ 
++import isEqual from 'lodash/isEqual'
++import omitBy from 'lodash/omitBy'
++
++const StackRouter = options => {
++  const router = OriginalStackRouter(options)
++  return {
++    ...router,
++    getStateForAction(state, action, options) {
++      switch (action.type) {
++        case 'NAVIGATE': // fallthrough
++        case 'PUSH': {
++          const s = router.getStateForAction(state, action, options)
++          // not handled by us or weird internal state
++          if (!s || !state.routes) {
++            return s
++          }
++          if (state.routes.length + 1 === s?.routes?.length) {
++            const oldLast = state.routes[state.routes.length - 1]
++            const newLast = s?.routes?.[s?.routes?.length - 1]
++	    // ignore _ props
++	    const oldParams = omitBy(oldLast?.params ?? {}, (_, k) => k.startsWith('_'))
++	    const newParams = omitBy(newLast?.params ?? {}, (_, k) => k.startsWith('_'))
++            if (oldLast?.name === newLast?.name && isEqual(oldParams, newParams)) {
++              return state
++            }
++          }
++          return s
++        }
++        default:
++          return router.getStateForAction(state, action, options)
++      }
++    },
++  }
++}
++
+ function NativeStackNavigator({
+   id,
+   initialRouteName,

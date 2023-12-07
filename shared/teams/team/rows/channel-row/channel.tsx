@@ -1,76 +1,73 @@
-import type * as Types from '../../../../constants/types/teams'
-import type * as ChatTypes from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/teams'
-import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import * as Styles from '../../../../styles'
-import {Activity, useChannelParticipants} from '../../../common'
-import {pluralize} from '../../../../util/string'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import type * as T from '@/constants/types'
+import {Activity, useChannelParticipants} from '@/teams/common'
+import {pluralize} from '@/util/string'
 
 type ChannelRowProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props
-  const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channel = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
-  const selected = Container.useSelector(
-    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
-  )
-  const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const selected = C.useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
+  const canPerform = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const hasAllMembers = details.members.size === numParticipants
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
+  const details = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const hasAllMembers = details?.members.size === numParticipants
+  const activityLevel = C.useTeamsState(
+    s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
-    dispatch(
-      TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected: newSelected, teamID})
-    )
+    setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
-  const navPropsForAction = {
-    conversationIDKey: channel.conversationIDKey,
-    teamID,
-  }
-  const editChannelProps = {
-    ...navPropsForAction,
-    afterEdit: () => {
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-    },
-    channelname: channel.channelname,
-    description: channel.description,
-  }
-  const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
-  const onNavToChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
-  const onNavToSettings = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              ...props,
-              conversationIDKey: channel.conversationIDKey,
-              selectedTab: 'settings' as const,
-            },
-            selected: 'teamChannel',
-          },
-        ],
-      })
-    )
 
-  const onDeleteChannel = () =>
-    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
+  const onEditChannel = React.useCallback(() => {
+    nav.safeNavigateAppend({
+      props: {
+        channelname: channel.channelname,
+        conversationIDKey: channel.conversationIDKey,
+        description: channel.description,
+        teamID,
+      },
+      selected: 'teamEditChannel',
+    })
+  }, [nav, channel, teamID])
+  const onNavToChannel = React.useCallback(() => {
+    nav.safeNavigateAppend({
+      props: {
+        conversationIDKey: channel.conversationIDKey,
+        teamID,
+      },
+      selected: 'teamChannel',
+    })
+  }, [nav, channel, teamID])
+  const onNavToSettings = React.useCallback(() => {
+    nav.safeNavigateAppend({
+      props: {
+        ...props,
+        conversationIDKey: channel.conversationIDKey,
+        selectedTab: 'settings' as const,
+      },
+      selected: 'teamChannel',
+    })
+  }, [channel, props, nav])
+
+  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
+
+  const onDeleteChannel = React.useCallback(() => {
+    deleteChannelConfirmed(teamID, channel.conversationIDKey)
+  }, [deleteChannelConfirmed, channel, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}
@@ -91,42 +88,46 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySmall" lineClamp={1}>
         {channel.description}
       </Kb.Text>
-      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-        {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        {!Kb.Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
         <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
   )
 
-  const menuItems: Array<Kb.MenuItem> = [
-    {onClick: onNavToSettings, title: 'Settings'},
-    ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
-  ]
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const menuItems: Array<Kb.MenuItem> = [
+        {onClick: onNavToSettings, title: 'Settings'},
+        ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [canDelete, onDeleteChannel, onNavToSettings]
+  )
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = canPerform.deleteChannel ? (
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={Styles.collapseStyles([
-        styles.actionButtons,
-        canPerform.deleteChannel ? styles.mobileMarginsHack : undefined,
-      ])}
+      style={Kb.Styles.collapseStyles([styles.actionButtons, styles.mobileMarginsHack])}
       alignSelf="flex-start"
     >
       {popup}
       <Kb.Button
         icon="iconfont-edit"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={onEditChannel}
         small={true}
@@ -134,7 +135,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       />
       <Kb.Button
         icon="iconfont-ellipsis"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={toggleShowingPopup}
         ref={popupAnchor}
@@ -155,7 +156,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
-      height={Styles.isMobile ? 90 : 64}
+      height={Kb.Styles.isMobile ? 90 : 64}
       type="Large"
       body={body}
       firstItem={isGeneral}
@@ -165,22 +166,22 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionButtons: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       row: {
-        paddingTop: Styles.globalMargins.xtiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
-      unselected: {backgroundColor: Styles.globalColors.white},
+      selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
+      unselected: {backgroundColor: Kb.Styles.globalColors.white},
       widenClickableArea: {margin: -5, padding: 5},
-    } as const)
+    }) as const
 )
 
 export default ChannelRow

@@ -1,14 +1,14 @@
 import * as dateFns from 'date-fns'
 import {enUS} from 'date-fns/locale'
-import {uses24HourClock} from '../constants/platform'
+import {uses24HourClock} from '@/constants/platform'
 
 const hourMinuteString = uses24HourClock ? 'HH:mm' : 'h:mm a'
 const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 
 // getting this time is very slow on android so we cache it, it never grows large
 const chatTimeCache = new Map<number, string>()
-let cacheData = dateFns.startOfDay(new Date())
-export function formatTimeForChat(time: number): string | null {
+const cacheData = dateFns.startOfDay(new Date())
+export function formatTimeForChat(time: number): string {
   // if the date changes, clear our cache as the 'yesterday' stuff is actually sensitive to this
   if (!dateFns.isToday(cacheData)) {
     chatTimeCache.clear()
@@ -97,14 +97,16 @@ const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date
     return dateFns.isSameYear(date, baseDate) ? "EEE MMM d 'at' p" : "EEE MMM d yyyy 'at' p"
   }
 
-  return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]
+  return dontUpperCase
+    ? noUpperCaseFirst[token as keyof typeof noUpperCaseFirst]
+    : upperCaseFirst[token as keyof typeof upperCaseFirst]
 }
 
 export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   dateFns.formatRelative(time, Date.now(), {
     locale: {
       ...enUS,
-      formatRelative: (token, date, baseDate) =>
+      formatRelative: (token: string, date: Date, baseDate: Date) =>
         formatRelativeCalendarForFS(dontUpperCase, token, date, baseDate),
     },
   })
@@ -118,8 +120,8 @@ export const formatDuration = (duration: number): string => {
   return d.getUTCHours()
     ? `${d.getUTCHours()} hr`
     : d.getUTCMinutes()
-    ? `${d.getUTCMinutes()} min`
-    : `${d.getUTCSeconds()} s`
+      ? `${d.getUTCMinutes()} min`
+      : `${d.getUTCSeconds()} s`
 }
 
 export const formatAudioRecordDuration = (duration: number): string => {
@@ -146,7 +148,7 @@ export const formatDurationForLocation = (duration: number): string => {
   return dateFns.formatDistanceStrict(0, duration, {
     locale: {
       ...enUS,
-      formatDistance: (token, count, _) => formatDistanceAbbr(token, count),
+      formatDistance: (token: Token, count: number, _) => formatDistanceAbbr(token, count),
     },
   })
 }
@@ -204,16 +206,20 @@ const formatDistanceLocale = {
   xSeconds: '{{count}}s',
   xYears: '{{count}}y',
 }
+type Token = keyof typeof formatDistanceLocale
 
-const formatDistanceAbbr = (token: keyof typeof formatDistanceLocale, count: number): string =>
+const formatDistanceAbbr = (token: Token, count: number): string =>
   formatDistanceLocale[token].replace('{{count}}', String(count))
 
 export function formatTimeForPeopleItem(time: number): string {
   return dateFns.formatDistanceStrict(time, Date.now(), {
     locale: {
       ...enUS,
-      formatDistance: (token, count, _) =>
-        token == 'xSeconds' && count == 1 ? 'now' : formatDistanceAbbr(token, count),
+      formatDistance: (
+        token: 'xDays' | 'xHours' | 'xMinutes' | 'xMonths' | 'xSeconds' | 'xYears',
+        count: number,
+        _
+      ) => (token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count)),
     },
   })
 }

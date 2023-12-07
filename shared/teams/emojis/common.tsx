@@ -1,8 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 
 type AliasInputProps = {
   error?: string
@@ -48,8 +46,8 @@ export class AliasInput extends React.PureComponent<AliasInputProps> {
             ref={this.inputRef}
             error={!!this.props.error}
             disabled={this.props.disabled}
-            textType={Styles.isMobile ? 'BodySemibold' : 'Body'}
-            containerStyle={Styles.collapseStyles([
+            textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
+            containerStyle={Kb.Styles.collapseStyles([
               styles.aliasInput,
               !this.props.small && styles.aliasInputLarge,
             ])}
@@ -100,20 +98,20 @@ type ModalProps = {
 }
 
 export const Modal = (props: ModalProps) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onCancel = () => clearModals()
   return (
     <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
       <Kb.Box2
         direction="vertical"
-        fullHeight={Styles.isMobile}
-        fullWidth={Styles.isMobile}
-        style={Styles.collapseStyles([
+        fullHeight={Kb.Styles.isMobile}
+        fullWidth={Kb.Styles.isMobile}
+        style={Kb.Styles.collapseStyles([
           styles.container,
-          !Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
+          !Kb.Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
         ])}
       >
-        {!Styles.isMobile && (
+        {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
             {props.backButtonOnClick && (
               <Kb.Icon
@@ -157,51 +155,51 @@ export const Modal = (props: ModalProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  aliasInput: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  aliasInput: Kb.Styles.platformStyles({
     common: {
       flexBasis: 0,
       flexGrow: 1,
       height: '100%',
     },
     isElectron: {
-      height: Styles.globalMargins.mediumLarge,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
+      height: Kb.Styles.globalMargins.mediumLarge,
+      paddingLeft: Kb.Styles.globalMargins.xsmall,
+      paddingRight: Kb.Styles.globalMargins.xsmall,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      height: Kb.Styles.globalMargins.large,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
-  aliasInputContainer: {...Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
-  aliasInputLarge: Styles.platformStyles({
+  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
+  aliasInputLarge: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
-      height: Styles.globalMargins.large,
+      height: Kb.Styles.globalMargins.large,
     },
     isMobile: {
-      height: Styles.globalMargins.large + 3 * Styles.globalMargins.xxtiny,
+      height: Kb.Styles.globalMargins.large + 3 * Kb.Styles.globalMargins.xxtiny,
     },
   }),
   backButton: {
-    left: Styles.globalMargins.xsmall,
+    left: Kb.Styles.globalMargins.xsmall,
     position: 'absolute',
   },
   bannerContainer: {
-    height: Styles.globalMargins.xlarge + Styles.globalMargins.mediumLarge,
+    height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
     position: 'relative',
   },
-  bannerError: Styles.platformStyles({
+  bannerError: Kb.Styles.platformStyles({
     common: {
       position: 'absolute',
     },
   }),
-  bannerImage: Styles.platformStyles({
+  bannerImage: Kb.Styles.platformStyles({
     common: {
       height: '100%',
       width: '100%',
@@ -213,7 +211,7 @@ const styles = Styles.styleSheetCreate(() => ({
       resizeMode: 'cover',
     },
   }),
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
       position: 'relative',
     },
@@ -221,23 +219,23 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 400,
     },
   }),
-  footerContainer: Styles.platformStyles({
+  footerContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
     },
     isMobile: {
-      padding: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.small,
     },
   }),
-  headerContainer: Styles.platformStyles({
+  headerContainer: Kb.Styles.platformStyles({
     isElectron: {
-      height: Styles.globalMargins.large + Styles.globalMargins.tiny,
+      height: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
     },
   }),
   removeBox: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Styles.globalMargins.xtiny,
+    padding: Kb.Styles.globalMargins.xtiny,
   },
 }))

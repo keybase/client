@@ -1,21 +1,25 @@
 import type {Props} from './zoomable-box'
-import React, {useCallback, useMemo} from 'react'
+import * as React from 'react'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
   useDerivedValue,
   withTiming,
   withSpring,
   cancelAnimation,
   runOnJS,
 } from 'react-native-reanimated'
-import {View} from 'react-native'
+import {View, type LayoutChangeEvent} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
+
+const needDiff = Styles.dimensionWidth / 3
 
 // mostly based on https://github.com/intergalacticspacehighway/react-native-reanimated-zoom
 export function ZoomableBox(props: Props) {
-  const {children, minZoom = 1, maxZoom = 3, style, onZoom, contentContainerStyle} = props
+  const {children, minZoom = 1, maxZoom = 10, style} = props
+  const {onZoom, contentContainerStyle, onLayout: _onLayout, onSwipe} = props
 
   const translationX = useSharedValue(0)
   const translationY = useSharedValue(0)
@@ -34,11 +38,12 @@ export function ZoomableBox(props: Props) {
 
   const panTranslateX = useSharedValue(0)
   const panTranslateY = useSharedValue(0)
+  const panSwipedCounter = useSharedValue(0)
 
   const containerWidth = useSharedValue(0)
   const containerHeight = useSharedValue(0)
 
-  const gesture = useMemo(() => {
+  const gesture = React.useMemo(() => {
     const resetZoomState = () => {
       'worklet'
       // reset all state
@@ -100,8 +105,8 @@ export function ZoomableBox(props: Props) {
         }
       })
       .onEnd(() => {
+        panSwipedCounter.value++
         if (isPinching.value || !isZoomed.value) return
-
         panTranslateX.value = 0
         panTranslateY.value = 0
       })
@@ -137,6 +142,8 @@ export function ZoomableBox(props: Props) {
             offsetScale.value = scale.value
           }
 
+          // maybe this is always true... but not changing this now
+          // eslint-disable-next-line
           if (isPinching.value) {
             // translate the image to the focal point as we're zooming
             translationX.value =
@@ -192,6 +199,7 @@ export function ZoomableBox(props: Props) {
     scale,
     translationX,
     translationY,
+    panSwipedCounter,
   ])
 
   useDerivedValue(() => {
@@ -208,7 +216,7 @@ export function ZoomableBox(props: Props) {
       const width = scale * viewWidth.value
       const x = width / 2 - px - containerWidth.value / 2
       const y = height / 2 - py - containerHeight.value / 2
-      onZoom?.({height, width, x, y})
+      onZoom?.({height, scale, width, x, y})
     },
     [onZoom, viewHeight, viewWidth, containerHeight, containerWidth]
   )
@@ -216,6 +224,25 @@ export function ZoomableBox(props: Props) {
   useDerivedValue(() => {
     runOnJS(updateOnZoom)(scale.value, translationX.value, translationY.value)
   }, [])
+
+  const lastPanSwipedCounter = useSharedValue(0)
+  useAnimatedReaction(
+    () => ({
+      _panSwipedCounter: panSwipedCounter.value,
+    }),
+    ({_panSwipedCounter}) => {
+      if (lastPanSwipedCounter.value === _panSwipedCounter) return
+      lastPanSwipedCounter.value = _panSwipedCounter
+      if (isZoomed.value || !onSwipe) return
+      const tx = panTranslateX.value
+      if (tx > needDiff) {
+        runOnJS(onSwipe)(false)
+      } else if (-tx > needDiff) {
+        runOnJS(onSwipe)(true)
+      }
+    },
+    [onSwipe]
+  )
 
   const as = useAnimatedStyle(() => {
     return {
@@ -227,22 +254,23 @@ export function ZoomableBox(props: Props) {
     }
   }, [])
 
-  const onContainerLayout = useCallback(
-    e => {
+  const onContainerLayout = React.useCallback(
+    (e: LayoutChangeEvent) => {
       containerHeight.value = e.nativeEvent.layout.height
       containerWidth.value = e.nativeEvent.layout.width
+      _onLayout?.(e)
     },
-    [containerHeight, containerWidth]
+    [containerHeight, containerWidth, _onLayout]
   )
-  const onLayout = useCallback(
-    e => {
+  const onLayout = React.useCallback(
+    (e: LayoutChangeEvent) => {
       viewHeight.value = e.nativeEvent.layout.height
       viewWidth.value = e.nativeEvent.layout.width
     },
     [viewHeight, viewWidth]
   )
 
-  const memoizedStyle = useMemo(() => [as, contentContainerStyle], [as, contentContainerStyle])
+  const memoizedStyle = React.useMemo(() => [as, contentContainerStyle], [as, contentContainerStyle])
 
   return (
     <GestureDetector gesture={gesture}>

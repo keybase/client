@@ -1,39 +1,36 @@
-import * as Kb from '../../../../../common-adapters'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Styles from '../../../../../styles'
-import * as Container from '../../../../../util/container'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 
 type Props = {
-  error: RPCChatTypes.UICoinFlipError
+  error: T.RPCChat.UICoinFlipError
 }
 
 const CoinFlipError = (props: Props) => {
-  if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.generic) {
-    return <CoinFlipGenericError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.absentee) {
-    return <CoinFlipAbsenteeError error={props.error.absentee} />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.timeout) {
-    return <CoinFlipTimeoutError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.aborted) {
-    return <CoinFlipAbortedError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreg) {
-    return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupcommitcomplete) {
-    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreveal) {
-    return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.commitmismatch) {
-    return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
+  switch (props.error.typ) {
+    case T.RPCChat.UICoinFlipErrorTyp.generic:
+      return <CoinFlipGenericError />
+    case T.RPCChat.UICoinFlipErrorTyp.absentee:
+      return <CoinFlipAbsenteeError error={props.error.absentee} />
+    case T.RPCChat.UICoinFlipErrorTyp.timeout:
+      return <CoinFlipTimeoutError />
+    case T.RPCChat.UICoinFlipErrorTyp.aborted:
+      return <CoinFlipAbortedError />
+    case T.RPCChat.UICoinFlipErrorTyp.dupreg:
+      return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
+    case T.RPCChat.UICoinFlipErrorTyp.dupcommitcomplete:
+      return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
+    case T.RPCChat.UICoinFlipErrorTyp.dupreveal:
+      return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
+    case T.RPCChat.UICoinFlipErrorTyp.commitmismatch:
+      return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
-
-  return <CoinFlipGenericError />
 }
 
 const CoinFlipGenericError = () => {
-  const dispatch = Container.useDispatch()
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const sendFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
+    navigateAppend({props: {}, selected: 'modalFeedback'})
   }
   return (
     <Kb.Text selectable={true} style={styles.error} type="BodySmall">
@@ -46,7 +43,7 @@ const CoinFlipGenericError = () => {
 }
 
 type AbsenteeProps = {
-  error: RPCChatTypes.UICoinFlipAbsenteeError
+  error: T.RPCChat.UICoinFlipAbsenteeError
 }
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
@@ -84,7 +81,7 @@ const CoinFlipAbortedError = () => (
 
 type DupProps = {
   desc: string
-  offender: RPCChatTypes.UICoinFlipErrorParticipant
+  offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
 const CoinFlipDupError = (props: DupProps) => (
@@ -99,7 +96,7 @@ const CoinFlipDupError = (props: DupProps) => (
 )
 
 type CommitMismatchProps = {
-  offender: RPCChatTypes.UICoinFlipErrorParticipant
+  offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
@@ -113,19 +110,19 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bordered: {
-        borderColor: Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       error: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
-    } as const)
+    }) as const
 )
 
 export default CoinFlipError

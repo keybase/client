@@ -1,29 +1,32 @@
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import DefaultView from './default-view'
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({
-    pathItem: Constants.getPathItem(state.fs.pathItems, path),
-    sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
-  }),
-  (dispatch, {path}: OwnProps) => ({
-    download: () => dispatch(FsGen.createDownload({path})),
-    showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
-  }),
-  (stateProps, dispatchProps, {path}: OwnProps) => {
-    const {sfmiEnabled, pathItem} = stateProps
-    const {download, showInSystemFileManager} = dispatchProps
-    return {
-      download,
-      path,
-      pathItem,
-      sfmiEnabled,
-      showInSystemFileManager,
-    }
+const Container = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+
+  const _download = C.useFSState(s => s.dispatch.download)
+  const download = () => {
+    _download(path, 'download')
   }
-)(DefaultView)
+  const openPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
+  const showInSystemFileManager = () => {
+    openPathInSystemFileManagerDesktop?.(path)
+  }
+  const props = {
+    download,
+    path,
+    pathItem,
+    sfmiEnabled,
+    showInSystemFileManager,
+  }
+  return <DefaultView {...props} />
+}
+
+export default Container

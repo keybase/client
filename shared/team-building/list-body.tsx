@@ -1,41 +1,36 @@
-import * as Container from '../util/container'
-import trim from 'lodash/trim'
-import type {RootRouteProps} from '../router-v2/route-params'
-import {getTeamDetails} from '../constants/teams'
-import * as Constants from '../constants/team-building'
-import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
-import type * as TeamTypes from '../constants/types/teams'
-import {memoize} from '../util/memoize'
-import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
-import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
+import trim from 'lodash/trim'
+import type * as T from '@/constants/types'
 import type * as Types from './types'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
+import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
+import {memoize} from '@/util/memoize'
 import {useRoute} from '@react-navigation/native'
-// import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
+// import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props
   return (
     <Kb.Box2
       alignSelf="center"
-      centerChildren={!Styles.isMobile}
+      centerChildren={!Kb.Styles.isMobile}
       direction="vertical"
       fullWidth={true}
       gap="tiny"
       style={styles.emptyContainer}
     >
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Styles.collapseStyles([
-            !!selectedService && {color: Shared.serviceIdToAccentColor(selectedService)},
-          ])}
+          style={Kb.Styles.collapseStyles([{color: Shared.serviceIdToAccentColor(selectedService)}])}
         />
       )}
       {namespace === 'people' ? (
@@ -61,20 +56,39 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
   )
 }
 
+function isKeybaseUserId(userId: string) {
+  // Only keybase user id's do not have
+  return !userId.includes('@')
+}
+
+function followStateHelperWithId(
+  me: string,
+  followingState: Set<string>,
+  userId: string = ''
+): T.TB.FollowingState {
+  if (isKeybaseUserId(userId)) {
+    if (userId === me) {
+      return 'You'
+    } else {
+      return followingState.has(userId) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
+}
+
 const expensiveDeriveResults = (
-  searchResults: Array<TeamBuildingTypes.User> | undefined,
-  teamSoFar: Set<TeamBuildingTypes.User>,
+  searchResults: Array<T.TB.User> | undefined,
+  teamSoFar: Set<T.TB.User>,
   myUsername: string,
   followingState: Set<string>,
-  preExistingTeamMembers: Map<string, TeamTypes.MemberInfo>
+  preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
 ) =>
-  searchResults &&
-  searchResults.map(info => {
+  searchResults?.map(info => {
     const label = info.label || ''
     return {
       contact: !!info.contact,
       displayLabel: formatAnyPhoneNumbers(label),
-      followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: [...teamSoFar].some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       isYou: info.username === myUsername,
@@ -96,9 +110,11 @@ const deriveSearchResults = memoize(expensiveDeriveResults)
 //
 // Resulting list may have nulls in place of fake rows.
 const flattenRecommendations = (recommendations: Array<Types.SearchRecSection>) => {
-  const result: Array<Types.SearchResult | null> = []
+  const result: Array<Types.SearchResult | undefined> = []
   for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
+    result.push(
+      ...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? undefined : rec))
+    )
   }
   return result
 }
@@ -117,10 +133,10 @@ const deriveRecommendation = memoize(expensiveDeriveResults)
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
   (
-    results: Unpacked<typeof deriveSearchResults>,
+    results: T.Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
-  ): Array<Types.SearchRecSection> | null => {
-    if (!results) return null
+  ): Array<Types.SearchRecSection> | undefined => {
+    if (!results) return undefined
 
     const sections: Array<Types.SearchRecSection> = [
       ...(showingContactsButton
@@ -143,14 +159,14 @@ const sortAndSplitRecommendations = memoize(
     const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
       if (!rec.contact) {
-        sections[recSectionIdx].data.push(rec)
+        sections[recSectionIdx]?.data.push(rec)
         return
       }
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
         const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-        if (decodedLetter && decodedLetter[0]) {
+        if (decodedLetter[0]) {
           const letter = decodedLetter[0].toLowerCase()
           if (isAlpha(letter)) {
             // offset 1 to skip recommendations
@@ -162,7 +178,7 @@ const sortAndSplitRecommendations = memoize(
                 shortcut: true,
               }
             }
-            sections[sectionIdx].data.push(rec)
+            sections[sectionIdx]?.data.push(rec)
           } else {
             if (!sections[numSectionIdx]) {
               sections[numSectionIdx] = {
@@ -171,7 +187,7 @@ const sortAndSplitRecommendations = memoize(
                 shortcut: true,
               }
             }
-            sections[numSectionIdx].data.push(rec)
+            sections[numSectionIdx]?.data.push(rec)
           }
         }
       }
@@ -183,7 +199,7 @@ const sortAndSplitRecommendations = memoize(
         shortcut: false,
       })
     }
-    return sections.filter(s => s && s.data && s.data.length > 0)
+    return sections.filter(s => s.data.length > 0)
   }
 )
 
@@ -208,37 +224,38 @@ export const ListBody = (
   }
 ) => {
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
-  const recommendedHideYourself = params?.recommendedHideYourself ?? false
-  const teamID = params?.teamID
+  const recommendedHideYourself = params.recommendedHideYourself ?? false
+  const teamID = params.teamID
   const {searchString, selectedService} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
 
-  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
-  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
 
-  const username = Container.useSelector(state => state.config.username)
-  const following = Container.useSelector(state => state.config.following)
-  const maybeTeamDetails = Container.useSelector(state =>
-    teamID ? getTeamDetails(state, teamID) : undefined
-  )
-  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
+  const username = C.useCurrentUserState(s => s.username)
+  const following = C.useFollowerState(s => s.following)
+
+  const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
+  const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
+  const userRecs = C.useTBContext(s => s.userRecs)
+  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
+  const _searchResults = C.useTBContext(s => s.searchResults)
   const _recommendations = deriveRecommendation(
-    teamBuildingState.userRecs,
-    teamBuildingState.teamSoFar,
+    userRecs,
+    _teamSoFar,
     username,
     following,
     preExistingTeamMembers
   )
 
-  const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
+  const userResults: Array<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
   const searchResults = deriveSearchResults(
     userResults,
-    teamBuildingState.teamSoFar,
+    _teamSoFar,
     username,
     following,
     preExistingTeamMembers
@@ -256,11 +273,10 @@ export const ListBody = (
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   const showLoading = !!searchString && !searchResults
 
-  const showingContactsButton =
-    Container.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
+  const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
   const recommendations = showRecs
     ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
-    : null
+    : undefined
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
   Container.useDepChangeEffect(() => {
@@ -302,7 +318,7 @@ export const ListBody = (
       </Kb.Box2>
     )
   }
-  if (!showRecs && !showResults && !!selectedService) {
+  if (!showRecs && !showResults) {
     return <Suggestions namespace={namespace} selectedService={selectedService} />
   }
 
@@ -330,10 +346,10 @@ export const ListBody = (
 
   return (
     <>
-      {searchResults === undefined || searchResults?.length ? (
+      {searchResults?.length ? (
         <Kb.List
           reAnimated={true}
-          items={searchResults || []}
+          items={searchResults}
           onScroll={onScroll}
           selectedIndex={highlightedIndex || 0}
           style={styles.list}
@@ -356,7 +372,7 @@ export const ListBody = (
               isPreExistingTeamMember={result.isPreExistingTeamMember}
               isYou={result.isYou}
               followingState={result.followingState}
-              highlight={!Styles.isMobile && index === highlightedIndex}
+              highlight={!Kb.Styles.isMobile && index === highlightedIndex}
               userId={result.userId}
               onAdd={onAdd}
               onRemove={onRemove}
@@ -372,10 +388,10 @@ export const ListBody = (
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -383,19 +399,19 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '80%'},
       }),
-      emptyServiceText: Styles.platformStyles({
+      emptyServiceText: Kb.Styles.platformStyles({
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
-      list: Styles.platformStyles({
-        common: {paddingBottom: Styles.globalMargins.small},
+      list: Kb.Styles.platformStyles({
+        common: {paddingBottom: Kb.Styles.globalMargins.small},
       }),
-      listContentContainer: Styles.platformStyles({
-        isMobile: {paddingTop: Styles.globalMargins.xtiny},
+      listContentContainer: Kb.Styles.platformStyles({
+        isMobile: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
-      loadingAnimation: Styles.platformStyles({
+      loadingAnimation: Kb.Styles.platformStyles({
         isElectron: {
           height: 32,
           width: 32,
@@ -412,7 +428,7 @@ const styles = Styles.styleSheetCreate(
       noResults: {
         flex: 1,
         textAlign: 'center',
-        ...Styles.padding(Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
-    } as const)
+    }) as const
 )

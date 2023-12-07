@@ -1,5 +1,3 @@
-import type HiddenString from '../../util/hidden-string'
-
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string
 
@@ -19,10 +17,7 @@ export type Device = {
 
 export type State = {
   deviceMap: Map<DeviceID, Device>
-  endangeredTLFMap: Map<DeviceID, Set<string>>
   isNew: Set<string>
-  justRevokedSelf: string
-  newPaperkey: HiddenString
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

@@ -33,10 +33,3 @@ export type PushNotification =
   | {
       type: 'settings.contacts'
     }
-
-export type State = {
-  hasPermissions: boolean
-  justSignedUp: boolean
-  showPushPrompt: boolean
-  token: string
-}

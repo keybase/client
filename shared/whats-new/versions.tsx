@@ -1,19 +1,16 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Platform from '../constants/platform'
-import * as Tabs from '../constants/tabs'
-import {encryptTab} from '../constants/crypto'
-import {cryptoTab, displayTab} from '../constants/settings'
-import {keybaseFM} from '../constants/whats-new'
+import * as Kb from '@/common-adapters'
+import * as Platform from '@/constants/platform'
+import {encryptTab} from '@/constants/crypto'
+import {keybaseFM} from '@/constants/whats-new'
 import NewFeatureRow from './new-feature-row'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: NavigateAppendPayload['payload']) => void
+  onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: Tabs.AppTab) => void
+  onSwitchTab: (tab: C.AppTab) => void
 }
 
 export const Version = ({children}: {children: React.ReactNode}) => {
@@ -41,7 +38,7 @@ export const Current = ({onSwitchTab, seen}: VersionProps) => {
         seen={seen}
         primaryButtonText="Go to Teams"
         onPrimaryButtonClick={() => {
-          onSwitchTab(Tabs.teamsTab)
+          onSwitchTab(C.teamsTab)
         }}
       >
         Administering groups is easier than ever with the redesigned Teams tab.
@@ -67,7 +64,7 @@ export const Last = ({seen}: VersionProps) => {
           </Kb.Box2>
           <Kb.Text type="BodySmall" allowFontScaling={true}>
             Keybase now supports custom emoji{' '}
-            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" />
+            <Kb.Emoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />
           </Kb.Text>
         </Kb.Box2>
       </NewFeatureRow>
@@ -81,8 +78,8 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       <VersionTitle title="Previous releases" />
       <NewFeatureRow image="release-5.3.0-ipad" noSeparator={true} seen={seen}>
         Keybase for iPad is here!{' '}
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":sparkles:" /> Download
-        it from the App Store.
+        <Kb.Emoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":sparkles:" />{' '}
+        Download it from the App Store.
       </NewFeatureRow>
       <NewFeatureRow image="release-5.3.0-open-teams" seen={seen}>
         You can now search for open teams using chat search
@@ -92,7 +89,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate({path: [Platform.isMobile ? cryptoTab : encryptTab]})
+          onNavigate(Platform.isMobile ? C.settingsCryptoTab : encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}
@@ -100,7 +97,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         Encrypt, decrypt, sign, and verify all from within Keybase.{' '}
         <Kb.Emoji
           allowFontScaling={true}
-          size={Styles.globalMargins.small}
+          size={Kb.Styles.globalMargins.small}
           emojiName=":closed_lock_with_key:"
         />
       </NewFeatureRow>
@@ -133,7 +130,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate({path: [displayTab]})
+          onNavigate(C.settingsDisplayTab)
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.
@@ -142,9 +139,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         seen={seen}
         primaryButtonText="Try it"
         onPrimaryButtonClick={() => {
-          onNavigate({
-            path: [{props: {namespace: 'chat2' as const, title: 'New chat'}, selected: 'chatNewChat'}],
-          })
+          onNavigate({props: {namespace: 'chat2' as const, title: 'New chat'}, selected: 'chatNewChat'})
         }}
         secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {
@@ -153,21 +148,21 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
       >
         You can now start a conversation with a phone number or email address.
         {` `}
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":phone:" />
+        <Kb.Emoji allowFontScaling={true} size={Kb.Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
         Chat admins can now pin messages.
         {` `}
-        <Kb.Emoji size={Styles.globalMargins.small} emojiName=":pushpin:" />
+        <Kb.Emoji size={Kb.Styles.globalMargins.small} emojiName=":pushpin:" />
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image={'release-4.7.0-keybase-fm'}>
         Listen to
         {` `}
         <Kb.Icon
           type="iconfont-radio"
-          color={Styles.globalColors.black_50}
+          color={Kb.Styles.globalColors.black_50}
           boxStyle={styles.inlineIcon}
-          sizeType={Styles.isMobile ? 'Small' : 'Default'}
+          sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'}
         />
         {` `}
         <Kb.Text type="BodySmallSemibold">{keybaseFM}</Kb.Text>
@@ -178,22 +173,22 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  inlineIcon: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  inlineIcon: Kb.Styles.platformStyles({
     isElectron: {
       display: 'inline-block',
-      marginTop: Styles.globalMargins.xtiny,
+      marginTop: Kb.Styles.globalMargins.xtiny,
     },
   }),
   ponyAlignment: {
     alignSelf: 'flex-start',
     justifyContent: 'center',
   },
-  ponyIcon: {marginLeft: Styles.globalMargins.tiny},
-  roundedImage: Styles.platformStyles({
+  ponyIcon: {marginLeft: Kb.Styles.globalMargins.tiny},
+  roundedImage: Kb.Styles.platformStyles({
     common: {
-      borderColor: Styles.globalColors.grey,
-      borderWidth: Styles.globalMargins.xxtiny,
+      borderColor: Kb.Styles.globalColors.grey,
+      borderWidth: Kb.Styles.globalMargins.xxtiny,
     },
     isElectron: {
       // Pass borderRadius as a number to the image on mobile using collapseStyles
@@ -202,8 +197,8 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   versionTitle: {
-    color: Styles.globalColors.black_50,
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.xsmall,
+    color: Kb.Styles.globalColors.black_50,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.xsmall,
   },
 }))

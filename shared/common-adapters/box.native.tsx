@@ -1,35 +1,26 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {View} from 'react-native'
-import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
+import type {MeasureRef} from './measure-ref'
+import Reanimated from 'react-native-reanimated'
 
-const Box = View
+export const Box = View
 
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys: Array<Margins> = Object.keys(Styles.globalMargins) as any
 
-const hgapStyles = new Map(marginKeys.map(gap => [gap, {flexShrink: 0, width: Styles.globalMargins[gap]}]))
-const vgapStyles = new Map(marginKeys.map(gap => [gap, {flexShrink: 0, height: Styles.globalMargins[gap]}]))
+const hgapStyles = new Map(marginKeys.map(gap => [gap, {columnGap: Styles.globalMargins[gap]}]))
+const vgapStyles = new Map(marginKeys.map(gap => [gap, {rowGap: Styles.globalMargins[gap]}]))
+const hgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingLeft: Styles.globalMargins[gap]}]))
+const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.globalMargins[gap]}]))
+const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
+const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
 
-// premake the gaps and cache them forever so we can take advantage of react optimizing them if they're the same
-const vgaps = new Map(
-  marginKeys.map(gap => [
-    gap,
-    new Array(100).fill('').map((_, idx) => <View key={'vgap-' + idx} style={vgapStyles.get(gap)} />),
-  ])
-)
-const hgaps = new Map(
-  marginKeys.map(gap => [
-    gap,
-    new Array(100).fill('').map((_, idx) => <View key={'hgap-' + idx} style={hgapStyles.get(gap)} />),
-  ])
-)
-
-const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Ref<View>) {
-  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
-  const {collapsable = true} = props
-  const {style, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = props
+const useBox2Shared = (p: Box2Props) => {
+  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
+  const {collapsable = true, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = p
+  const {style: _style} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   let directionStyle: Styles.StylesCrossPlatform
   switch (direction) {
@@ -60,6 +51,8 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
       break
     case 'stretch':
       alignSelfStyle = styles.alignSelfStretch
+      break
+    default:
   }
   let alignItemsStyle: Styles.StylesCrossPlatform = null
   switch (alignItems) {
@@ -75,44 +68,68 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
     case 'stretch':
       alignItemsStyle = styles.alignItemsStretch
       break
+    default:
   }
 
-  let gappedChildren: Array<React.ReactNode> = children as any
-  if (gap && (gapStart || gapEnd || React.Children.count(children) > 1)) {
-    let gapIdx = 1
-    const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
-    gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))
-    if (gapStart) {
-      gappedChildren.unshift(gapList[0])
-    }
-    if (gapEnd) {
-      gappedChildren.push(gapList[gapIdx])
-    }
-  }
+  const style = Styles.collapseStyles([
+    directionStyle,
+    fullHeight && styles.fullHeight,
+    fullWidth && styles.fullWidth,
+    !fullHeight && !fullWidth && styles.centered,
+    centerChildren && styles.centeredChildren,
+    alignSelfStyle,
+    alignItemsStyle,
+    noShrink && styles.noShrink,
+    gap && horizontal && hgapStyles.get(gap),
+    gap && !horizontal && vgapStyles.get(gap),
+    gap && gapStart && horizontal && hgapStartStyles.get(gap),
+    gap && gapStart && !horizontal && vgapStartStyles.get(gap),
+    gap && gapEnd && horizontal && hgapEndStyles.get(gap),
+    gap && gapEnd && !horizontal && vgapEndStyles.get(gap),
+    // uncomment this to get debugging colors
+    // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
+    _style,
+  ])
 
-  return (
-    <View
-      ref={ref}
-      collapsable={collapsable}
-      style={Styles.collapseStyles([
-        directionStyle,
-        fullHeight && styles.fullHeight,
-        fullWidth && styles.fullWidth,
-        !fullHeight && !fullWidth && styles.centered,
-        centerChildren && styles.centeredChildren,
-        alignSelfStyle,
-        alignItemsStyle,
-        noShrink && styles.noShrink,
-        // uncomment this to get debugging colors
-        // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
-        style,
-      ])}
-      onLayout={onLayout}
-      pointerEvents={pointerEvents}
-    >
-      {gappedChildren}
-    </View>
+  return {
+    children,
+    collapsable,
+    onLayout,
+    pointerEvents,
+    style,
+  }
+}
+
+export const Box2 = (p: Box2Props) => {
+  const props = useBox2Shared(p)
+  return <View {...props} />
+}
+
+export const Box2Div = () => {
+  throw new Error('Wrong platform')
+}
+
+export const Box2View = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
+  const props = useBox2Shared(p)
+  return <View {...props} ref={ref} />
+})
+
+export const Box2Animated = Reanimated.createAnimatedComponent(Box2View)
+
+export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
+  React.useImperativeHandle(
+    _ref,
+    () => {
+      // we don't use this in mobile for now, and likely never
+      return {
+        divRef: {current: null},
+      }
+    },
+    []
   )
+
+  const props = useBox2Shared(p)
+  return <View {...props} />
 })
 
 const common = {
@@ -158,4 +175,3 @@ const styles = {
 } as const
 
 export default Box
-export {Box, Box2}

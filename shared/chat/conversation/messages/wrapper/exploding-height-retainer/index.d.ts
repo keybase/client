@@ -1,12 +1,14 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../../../../../styles'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
 export type Props = {
-  children?: React.ReactNode
+  children?: React.ReactElement
   explodedBy?: string
   exploding: boolean
   messageKey: string
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
   retainHeight: boolean
 }
 export declare const animationDuration: number
-export default class ExplodingHeightRetainer extends React.Component<Props> {}
+
+declare const ExplodingHeightRetainer: (p: Props) => React.ReactNode
+export default ExplodingHeightRetainer

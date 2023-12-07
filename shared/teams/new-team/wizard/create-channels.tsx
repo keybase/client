@@ -1,15 +1,14 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/teams'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
-import {pluralize} from '../../../util/string'
-import {ModalTitle} from '../../common'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import * as Container from '@/util/container'
+import {pluralize} from '@/util/string'
+import {ModalTitle} from '@/teams/common'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
-  teamID?: Types.TeamID
+  teamID?: T.Teams.TeamID
   waiting?: boolean
   banners?: React.ReactNode
 }
@@ -18,15 +17,9 @@ const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
 const CreateChannel = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const teamID = props.teamID || Types.newTeamWizardTeamID
-  const initialChannels = Container.useSelector(s => s.teams.newTeamWizard.channels) ?? [
-    'hellos',
-    'random',
-    '',
-  ]
+  const teamID = props.teamID || T.Teams.newTeamWizardTeamID
+  const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number) => (value: string) => {
@@ -43,12 +36,10 @@ const CreateChannel = (props: Props) => {
   }
 
   const filteredChannels = channels.filter(c => c.trim())
+  const setTeamWizardChannels = C.useTeamsState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
-    onSubmitChannels
-      ? onSubmitChannels(filteredChannels)
-      : dispatch(TeamsGen.createSetTeamWizardChannels({channels: filteredChannels}))
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-
+    onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
+  const onBack = () => nav.safeNavigateUp()
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
@@ -85,7 +76,7 @@ const CreateChannel = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
@@ -130,24 +121,24 @@ const ChannelInput = (props: ChannelInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addButton: Kb.Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
     isTablet: {alignSelf: 'flex-start'},
   }),
-  background: {backgroundColor: Styles.globalColors.blueGrey},
-  banner: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, height: 96},
+  background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  banner: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
   body: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     flex: 1,
   },
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
-  inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
-  noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},
+  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+  inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
+  noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
 }))
 
 export default CreateChannel

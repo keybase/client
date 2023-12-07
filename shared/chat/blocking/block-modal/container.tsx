@@ -1,71 +1,82 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/users'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as UsersGen from '../../../actions/users-gen'
-import BlockModal, {type BlockType, type NewBlocksMap, type ReportSettings} from '.'
-import {leaveTeamWaitingKey} from '../../../constants/teams'
+import * as C from '@/constants'
+import * as Constants from '@/constants/users'
+import * as React from 'react'
+import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 
-type OwnProps = Container.RouteProps<'chatBlockingModal'>
+type OwnProps = {
+  blockUserByDefault?: boolean
+  filterUserByDefault?: boolean
+  flagUserByDefault?: boolean
+  reportsUserByDefault?: boolean
+  context?: BlockModalContext
+  conversationIDKey?: string
+  others?: Array<string>
+  team?: string
+  username?: string
+}
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const teamname = ownProps.route.params?.team ?? undefined
-    const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
-    const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
-    const waitingForReport = Container.anyWaiting(state, Constants.reportUserWaitingKey)
-    let others = ownProps.route.params?.others ?? undefined
-    let adderUsername = ownProps.route.params?.username ?? undefined
-    if (others?.length === 1 && !adderUsername) {
-      adderUsername = others[0]
-      others = undefined
-    }
+const Container = (ownProps: OwnProps) => {
+  const {context, conversationIDKey} = ownProps
+  const teamname = ownProps.team
+  const blockUserByDefault = ownProps.blockUserByDefault ?? false
+  const filterUserByDefault = ownProps.filterUserByDefault ?? false
+  const flagUserByDefault = ownProps.flagUserByDefault ?? false
+  const reportsUserByDefault = ownProps.reportsUserByDefault ?? false
+  let others = ownProps.others
+  let adderUsername = ownProps.username
+  const waitingForLeave = C.useAnyWaiting(teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined)
+  const waitingForBlocking = C.useAnyWaiting(Constants.setUserBlocksWaitingKey)
+  const waitingForReport = C.useAnyWaiting(Constants.reportUserWaitingKey)
+  if (others?.length === 1 && !adderUsername) {
+    adderUsername = others[0]
+    others = undefined
+  }
 
-    return {
-      _allKnownBlocks: state.users.blockMap,
-      adderUsername,
-      blockUserByDefault: ownProps.route.params?.blockUserByDefault ?? false,
-      context: ownProps.route.params?.context ?? undefined,
-      convID: ownProps.route.params?.convID ?? undefined,
-      filterUserByDefault: ownProps.route.params?.filterUserByDefault ?? false,
-      finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
-      flagUserByDefault: ownProps.route.params?.flagUserByDefault ?? false,
-      loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
-      otherUsernames: others && others.length > 0 ? others : undefined,
-      reportsUserByDefault: ownProps.route.params?.reportUserByDefault ?? false,
-      teamname,
-    }
-  },
-  (dispatch: Container.TypedDispatch) => ({
-    _close: () => dispatch(RouteTreeGen.createNavigateUp()),
-    _leaveTeamAndBlock: (teamname: string) =>
-      dispatch(
-        TeamsGen.createLeaveTeam({
-          context: 'chat',
-          permanent: true,
-          teamname,
-        })
-      ),
-    _refreshBlocksFor: (usernames: Array<string>) => dispatch(UsersGen.createGetBlockState({usernames})),
-    _reportUser: (username: string, convID: string | undefined, report: ReportSettings) =>
-      dispatch(
-        UsersGen.createReportUser({
-          comment: report.extraNotes,
-          convID: convID || null,
-          includeTranscript: report.includeTranscript && !!convID,
-          reason: report.reason,
-          username: username,
-        })
-      ),
-    _setConversationStatus: (conversationIDKey: string, reportUser: boolean) =>
-      dispatch(
-        Chat2Gen.createBlockConversation({
-          conversationIDKey,
-          reportUser,
-        })
-      ),
-    _setUserBlocks: (newBlocks: NewBlocksMap) => {
+  const _allKnownBlocks = C.useUsersState(s => s.blockMap)
+  const loadingWaiting = C.useAnyWaiting(Constants.getUserBlocksWaitingKey)
+  const stateProps = {
+    _allKnownBlocks,
+    adderUsername,
+    blockUserByDefault,
+    context,
+    conversationIDKey,
+    filterUserByDefault,
+    finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
+    flagUserByDefault,
+    loadingWaiting,
+    otherUsernames: others && others.length > 0 ? others : undefined,
+    reportsUserByDefault,
+    teamname,
+  }
+
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onClose = navigateUp
+  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
+  const leaveTeamAndBlock = React.useCallback(
+    (teamname: string) => {
+      leaveTeam(teamname, true, 'chat')
+    },
+    [leaveTeam]
+  )
+  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
+  const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
+  const refreshBlocksFor = getBlockState
+  const reportUser = React.useCallback(
+    (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
+      _reportUser({
+        comment: report.extraNotes,
+        conversationIDKey,
+        includeTranscript: report.includeTranscript && !!conversationIDKey,
+        reason: report.reason,
+        username,
+      })
+    },
+    [_reportUser]
+  )
+  const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
+  const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = React.useCallback(
+    (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
       const blocks = [...newBlocks.entries()]
         .filter(
@@ -77,39 +88,41 @@ export default Container.connect(
           username,
         }))
       if (blocks.length) {
-        dispatch(UsersGen.createSetUserBlocks({blocks}))
+        _setUserBlocks(blocks)
       }
     },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+    [_setUserBlocks]
+  )
+
+  const props = {
     ...stateProps,
     isBlocked: (username: string, which: BlockType) => {
       const blockObj = stateProps._allKnownBlocks.get(username)
       return blockObj ? blockObj[which] : false
     },
-    onClose: dispatchProps._close,
+    onClose,
     onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => {
       let takingAction = false
       if (blockTeam) {
         const {teamname} = stateProps
         if (teamname) {
           takingAction = true
-          dispatchProps._leaveTeamAndBlock(teamname)
-        } else if (stateProps.convID) {
+          leaveTeamAndBlock(teamname)
+        } else if (stateProps.conversationIDKey) {
           takingAction = true
-          const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
-          dispatchProps._setConversationStatus(stateProps.convID, anyReported)
+          const anyReported = [...newBlocks.values()].some(v => v.report !== undefined)
+          setConversationStatus(anyReported)
         }
       }
       if (newBlocks.size) {
         takingAction = true
-        dispatchProps._setUserBlocks(newBlocks)
+        setUserBlocks(newBlocks)
       }
       newBlocks.forEach(
-        ({report}, username) => report && dispatchProps._reportUser(username, stateProps.convID, report)
+        ({report}, username) => report && reportUser(username, stateProps.conversationIDKey, report)
       )
       if (!takingAction) {
-        dispatchProps._close()
+        onClose()
       }
     },
     refreshBlocks: () => {
@@ -118,8 +131,11 @@ export default Container.connect(
         ...(stateProps.otherUsernames || []),
       ]
       if (usernames.length) {
-        dispatchProps._refreshBlocksFor(usernames)
+        refreshBlocksFor(usernames)
       }
     },
-  })
-)(BlockModal)
+  }
+
+  return <BlockModal {...props} />
+}
+export default Container

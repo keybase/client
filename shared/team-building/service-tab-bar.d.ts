@@ -1,23 +1,24 @@
-import * as React from 'react'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
-import type {SharedValue} from '../common-adapters/reanimated'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
+import type {SharedValue} from '@/common-adapters/reanimated'
 
 export type Props = {
-  services: Array<ServiceIdWithContact>
-  selectedService: ServiceIdWithContact
-  onChangeService: (newService: ServiceIdWithContact) => void
+  services: Array<T.TB.ServiceIdWithContact>
+  selectedService: T.TB.ServiceIdWithContact
+  onChangeService: (newService: T.TB.ServiceIdWithContact) => void
   servicesShown?: number
   minimalBorder?: boolean
   offset?: SharedValue<number>
 }
 
 export type IconProps = {
-  service: ServiceIdWithContact
+  service: T.TB.ServiceIdWithContact
   label: Array<string>
-  onClick: (s: ServiceIdWithContact) => void
+  onClick: (s: T.TB.ServiceIdWithContact) => void
   isActive: boolean
   minimalBorder?: boolean
   offset?: SharedValue<number>
 }
 
-export class ServiceTabBar extends React.Component<Props> {}
+export declare const ServiceTabBar: (p: Props) => React.ReactNode
+export default ServiceTabBar

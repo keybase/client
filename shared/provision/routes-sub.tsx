@@ -1,26 +1,24 @@
-// this is loaded up by login/routes
-import type CodePage from './code-page/container'
-import type ErrorView from './error/container'
-import type ForgotUsername from './forgot-username'
-import type GpgSign from './gpg-sign/container'
-import type Paperkey from './paper-key/container'
-import type Password from './password/container'
-import type SelectOtherDevice from './select-other-device/container'
-import type SetPublicName from './set-public-name/container'
-import type Username from './username-or-email/container'
+// this is loaded up by login/routes and device/routes
+import codePage from './code-page/page'
+import error from './error.page'
+import forgotUsername from './forgot-username.page'
+// import gpgSign from './gpg-sign/page'
+import paperkey from './paper-key.page'
+import password from './password.page'
+import selectOtherDevice from './select-other-device.page'
+import setPublicName from './set-public-name.page'
+import username from './username-or-email/page'
 
 export const newRoutes = {
-  codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default},
-  error: {getScreen: (): typeof ErrorView => require('./error/container').default},
-  forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username').default},
-  gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default},
-  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default},
-  password: {getScreen: (): typeof Password => require('./password/container').default},
-  selectOtherDevice: {
-    getScreen: (): typeof SelectOtherDevice => require('./select-other-device/container').default,
-  },
-  setPublicName: {getScreen: (): typeof SetPublicName => require('./set-public-name/container').default},
-  username: {getScreen: (): typeof Username => require('./username-or-email/container').default},
+  codePage,
+  error,
+  forgotUsername,
+  // gpgSign,
+  paperkey,
+  password,
+  selectOtherDevice,
+  setPublicName,
+  username,
 }
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not

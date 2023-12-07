@@ -1,39 +1,34 @@
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
-import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
-import * as Constants from '../../../constants/teams'
-import {pluralize} from '../../../util/string'
-import * as TeamsGen from '../../../actions/teams-gen'
-import {useTeamDetailsSubscribe} from '../../subscriber'
+import * as T from '@/constants/types'
+import {ModalTitle} from '@/teams/common'
+import {pluralize} from '@/util/string'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 
 const AddSubteamMembers = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
-
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
+  const setTeamWizardSubteamMembers = C.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
     selectedMembers.size
-      ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
-      : dispatch(TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID}))
+      ? setTeamWizardSubteamMembers([...selectedMembers])
+      : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
 
-  const yourUsername = Container.useSelector(state => state.config.username)
-  const parentTeamID = Container.useSelector(
-    state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
-  )
+  const yourUsername = C.useCurrentUserState(s => s.username)
+  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = Container.useSelector(state => Constants.getTeamMeta(state, parentTeamID).teamname)
-  const parentMembersMap = Container.useSelector(
-    state => Constants.getTeamDetails(state, parentTeamID).members
+  const parentTeamName = C.useTeamsState(s => C.Teams.getTeamMeta(s, parentTeamID).teamname)
+  const parentMembersMap = C.useTeamsState(
+    s => (s.teamDetails.get(parentTeamID) ?? C.Teams.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(
-    m => !Constants.isBot(m.type) && m.username !== yourUsername
+    m => !C.Teams.isBot(m.type) && m.username !== yourUsername
   )
   const filteredMembers = filter
     ? parentMembers.filter(
@@ -49,7 +44,7 @@ const AddSubteamMembers = () => {
     : 'Continue without members'
   const doneLabel = selectedMembers.size ? 'Done' : 'Skip'
 
-  const renderItem = (_: number, m: Types.MemberInfo) => {
+  const renderItem = (_: number, m: T.Teams.MemberInfo) => {
     const selected = selectedMembers.has(m.username)
     const onSelect = () => {
       // TODO: ensure performance (see Y2K-1666)
@@ -82,17 +77,17 @@ const AddSubteamMembers = () => {
       mode="DefaultFullHeight"
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        rightButton: Styles.isMobile ? (
+        rightButton: Kb.Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" style={styles.noWrap}>
             <Kb.Text type="BodyBigLink" onClick={onContinue}>
               {doneLabel}
             </Kb.Text>
           </Kb.Box2>
         ) : undefined,
-        title: <ModalTitle teamID={Types.newTeamWizardTeamID} title="Add members" />,
+        title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
       }}
       footer={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? undefined
           : {
               content: <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />,
@@ -132,15 +127,15 @@ const AddSubteamMembers = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   flexShrink: {flexShrink: 1},
   header: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.blueGrey,
-    height: Styles.globalMargins.mediumLarge,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    height: Kb.Styles.globalMargins.mediumLarge,
     justifyContent: 'space-between',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
   hideOverflow: {overflow: 'hidden'},
   noWrap: {
@@ -150,7 +145,7 @@ const styles = Styles.styleSheetCreate(() => ({
   search: {
     borderRadius: 4,
   },
-  searchContainer: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+  searchContainer: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
 }))
 
 export default AddSubteamMembers

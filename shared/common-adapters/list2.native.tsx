@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {FlatList, View} from 'react-native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {smallHeight, largeHeight} from './list-item2'
 import {createAnimatedComponent} from './reanimated'
 import type {Props} from './list2'
@@ -37,12 +37,9 @@ class List2<T> extends React.PureComponent<Props<T>> {
       return String(index)
     }
 
-    if (this.props.itemAsKey) {
-      return item
-    }
-
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp]
+    const i: {[key: string]: string} = item
+    return i[keyProp] ?? String(index)
   }
 
   render() {
@@ -55,7 +52,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}
-          getItemLayout={(data, index) => this._getItemLayout(data, index)}
+          getItemLayout={(data: any, index: number) => this._getItemLayout(data, index)}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
           onEndReached={this.props.onEndReached}
@@ -76,7 +73,7 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default List2

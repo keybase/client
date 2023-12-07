@@ -1,9 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
-import SafeReactList from '../../../../common-adapters/safe-react-list'
+import SafeReactList from '@/common-adapters/safe-react-list'
 import type RL from 'react-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
 
@@ -22,14 +21,14 @@ class SuggestionList extends React.Component<Props> {
   }
 
   private itemRenderer = (index: number) =>
-    this.props.renderItem(index, this.props.items[index]) as JSX.Element
+    this.props.renderItem(index, this.props.items[index]) as React.JSX.Element
 
   render() {
     return (
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([styles.listContainer, this.props.style])}
+        style={Kb.Styles.collapseStyles([styles.listContainer, this.props.style])}
       >
         <Kb.ScrollView style={styles.fullHeight}>
           <SafeReactList
@@ -40,27 +39,27 @@ class SuggestionList extends React.Component<Props> {
           />
         </Kb.ScrollView>
         {this.props.suggestBotCommandsUpdateStatus &&
-          this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
-            <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
-              <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
-            </Kb.Box2>
-          )}
+        this.props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+          <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       commandStatusContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         justifyContent: 'center',
-        ...Styles.padding(Styles.globalMargins.xxtiny, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
       fullHeight: {height: '100%'},
-      listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
-    } as const)
+      listContainer: {backgroundColor: Kb.Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
+    }) as const
 )
 
 export default SuggestionList

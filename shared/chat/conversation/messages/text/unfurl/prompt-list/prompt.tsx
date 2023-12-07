@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
+import * as Kb from '@/common-adapters/index'
 
 export type Props = {
   domain: string
@@ -11,7 +10,7 @@ export type Props = {
   onNever: () => void
 }
 
-const promptIcon = Styles.isMobile
+const promptIcon = Kb.Styles.isMobile
   ? 'icon-fancy-unfurl-preview-mobile-128-128'
   : 'icon-fancy-unfurl-preview-desktop-96-96'
 
@@ -19,7 +18,7 @@ const UnfurlPrompt = (p: Props) => {
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      {!Styles.isMobile && <Kb.Icon type={promptIcon} style={styles.icon} />}
+      {!Kb.Styles.isMobile && <Kb.Icon type={promptIcon} style={styles.icon} />}
       <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
@@ -48,38 +47,38 @@ const UnfurlPrompt = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      choiceContainer: Styles.platformStyles({
+      choiceContainer: Kb.Styles.platformStyles({
         isElectron: {width: 370},
       }),
-      closeContainer: Styles.platformStyles({
+      closeContainer: Kb.Styles.platformStyles({
         common: {alignSelf: 'flex-start'},
         isElectron: {
           marginLeft: 'auto',
           width: 30,
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignSelf: 'flex-start',
-          backgroundColor: Styles.globalColors.blueLighter3,
-          borderRadius: Styles.borderRadius,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          borderRadius: Kb.Styles.borderRadius,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {maxWidth: 600},
       }),
-      icon: Styles.platformStyles({
+      icon: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default UnfurlPrompt

@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   onBack: () => void
@@ -42,15 +41,15 @@ class PaperKeyInput extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   back: {
     left: 30,
     position: 'absolute',
     top: 30,
   },
-  button: {marginTop: Styles.globalMargins.small},
-  container: {padding: Styles.globalMargins.small},
-  icon: {marginBottom: Styles.globalMargins.tiny},
+  button: {marginTop: Kb.Styles.globalMargins.small},
+  container: {padding: Kb.Styles.globalMargins.small},
+  icon: {marginBottom: Kb.Styles.globalMargins.tiny},
 }))
 
 export default PaperKeyInput

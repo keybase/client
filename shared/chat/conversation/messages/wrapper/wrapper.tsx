@@ -1,12 +1,7 @@
-import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -15,17 +10,17 @@ import {useMessagePopup} from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
-// import {useDebugLayout} from '../../../../util/debug'
+// import {useDebugLayout} from '@/util/debug'
 
 export type Props = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
 }
 
-const messageShowsPopup = (type?: Types.Message['type']) =>
+const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   !!type &&
   [
     'text',
@@ -48,23 +43,27 @@ const messageShowsPopup = (type?: Types.Message['type']) =>
   ].includes(type)
 
 // If there is no matching message treat it like a deleted
-const missingMessage = Constants.makeMessageDeleted({})
+const missingMessage = C.Chat.makeMessageDeleted({})
 
-export const useCommon = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const showCenteredHighlight = useHighlightMode(conversationIDKey, ordinal)
+export const useCommon = (ordinal: T.Chat.Ordinal) => {
+  const showCenteredHighlight = useHighlightMode(ordinal)
 
-  const {type, shouldShowPopup} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    const type = m?.type
-    const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
-    return {shouldShowPopup, type}
-  }, shallowEqual)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const {type, shouldShowPopup} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const type = m?.type
+      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
+      return {shouldShowPopup, type}
+    })
+  )
 
+  const shouldShow = React.useCallback(() => {
+    return messageShowsPopup(type) && shouldShowPopup
+  }, [shouldShowPopup, type])
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
-    conversationIDKey,
     ordinal,
-    shouldShow: () => messageShowsPopup(type) && shouldShowPopup && showingPopup,
+    shouldShow,
     style: styles.messagePopupContainer,
   })
   return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
@@ -77,28 +76,44 @@ type WMProps = {
   toggleShowingPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
 } & Props
 
-const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+const hasSuccessfulInlinePayments = (
+  paymentStatusMap: C.Chat.State['paymentStatusMap'],
+  message: T.Chat.Message
+): boolean => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  return (
+    message.inlinePaymentSuccessful ||
+    message.inlinePaymentIDs.some(id => {
+      const s = paymentStatusMap.get(id)
+      return !!s && successfulInlinePaymentStatuses.includes(s.status)
+    })
+  )
+}
+
+const useRedux = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
+    ordinals: Array<T.Chat.Ordinal>,
     hasReactions: boolean,
-    message: Types.Message,
-    state: Container.TypedState
+    message: T.Chat.Message
   ) => {
-    if (Container.isMobile) return 'none' as const
+    if (C.isMobile) return 'none' as const
     if (hasReactions) {
       return 'none' as const
     }
-    const validMessage = message && Constants.isMessageWithReactions(message)
+    const validMessage = C.Chat.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
-    const ordinals = Constants.getMessageOrdinals(state, message.conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
+    return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
   }
 
-  const getEcrType = (message: Types.Message, you: string) => {
-    if (!message || !you) {
+  const getEcrType = (message: T.Chat.Message, you: string) => {
+    if (!you) {
       return EditCancelRetryType.NONE
     }
     const {errorReason, type, submitState} = message
@@ -112,58 +127,64 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     }
 
     const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+    if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) {
       return EditCancelRetryType.EDIT_CANCEL
     }
     if (outboxID) {
       switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
+        case T.RPCChat.OutboxErrorType.minwriter:
+        case T.RPCChat.OutboxErrorType.restrictedbot:
           return EditCancelRetryType.CANCEL
+        default:
       }
     }
     return EditCancelRetryType.RETRY_CANCEL
   }
 
-  return Container.useSelector(state => {
-    const you = state.config.username
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
-    const {exploded, submitState, author, id, botUsername} = m
-    const youSent = m.author === you && m.ordinal !== m.id
-    const exploding = !!m.exploding
-    const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
-    const decorate = !exploded && !m.errorReason
-    const type = m.type
-    const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal
-    const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
-    const showSendIndicator =
-      !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
-    const showRevoked = !!m?.deviceRevokedAt
-    const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-    const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
-    const hasReactions = (m.reactions?.size ?? 0) > 0
-    // hide if the bot is writing to itself
-    const botname = botUsername === author ? '' : botUsername ?? ''
-    const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
-    const ecrType = getEcrType(m, you)
-    return {
-      botname,
-      decorate,
-      ecrType,
-      exploding,
-      hasReactions,
-      isEditing,
-      isPendingPayment,
-      reactionsPopupPosition,
-      showCoinsIcon,
-      showExplodingCountdown,
-      showRevoked,
-      showSendIndicator,
-      type,
-      you,
-      youSent,
-    }
-  }, shallowEqual)
+  const you = C.useCurrentUserState(s => s.username)
+  const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const isEditing = C.useChatContext(s => s.editing === ordinal)
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const d = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const {exploded, submitState, author, id, botUsername} = m
+      const youSent = m.author === you && m.ordinal !== m.id
+      const exploding = !!m.exploding
+      const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
+      const decorate = !exploded && !m.errorReason
+      const type = m.type
+      const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
+      const showSendIndicator =
+        !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
+      const showRevoked = !!m.deviceRevokedAt
+      const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+      const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
+      const hasReactions = (m.reactions?.size ?? 0) > 0
+      // hide if the bot is writing to itself
+      const botname = botUsername === author ? '' : botUsername ?? ''
+      const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
+      const ecrType = getEcrType(m, you)
+      return {
+        botname,
+        decorate,
+        ecrType,
+        exploding,
+        hasReactions,
+        isPendingPayment,
+        reactionsPopupPosition,
+        showCoinsIcon,
+        showExplodingCountdown,
+        showRevoked,
+        showSendIndicator,
+        type,
+        you,
+        youSent,
+      }
+    })
+  )
+  return {...d, isEditing}
 }
 
 type TSProps = {
@@ -176,7 +197,7 @@ type TSProps = {
   hasReactions: boolean
   isPendingPayment: boolean
   isHighlighted: boolean
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
   showCoinsIcon: boolean
@@ -186,13 +207,19 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   toggleShowingPopup: () => void
-  type: Types.MessageType
+  type: T.Chat.MessageType
   you: string
 }
 
-const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
+const NormalWrapper = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style: Kb.Styles.StylesCrossPlatform
+}) => {
   return (
-    <Kb.Box2 direction="vertical" style={style} fullWidth={!Styles.isMobile}>
+    <Kb.Box2 direction="vertical" style={style} fullWidth={!Kb.Styles.isMobile}>
       {children}
     </Kb.Box2>
   )
@@ -203,29 +230,29 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
-  const pressableProps = Styles.isMobile
+  const pressableProps = Kb.Styles.isMobile
     ? {
         onLongPress: decorate ? toggleShowingPopup : undefined,
-        style: isHighlighted ? {backgroundColor: Styles.globalColors.yellowOrYellowAlt} : undefined,
+        style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
-        className: Styles.classNames({
+        className: Kb.Styles.classNames({
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
-          systemMessage: type?.startsWith('system'),
+          systemMessage: type.startsWith('system'),
           // eslint-disable-next-line
           active: showingPopup || showingPicker,
         }),
         onContextMenu: toggleShowingPopup,
         // attach popups to the message itself
-        ref: popupAnchor as any,
+        ref: popupAnchor,
       }
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
-  let content = exploding ? (
+  const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
+      <ExplodingHeightRetainer>{children as React.ReactElement}</ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
     children
@@ -248,7 +275,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Styles.isMobile}>
+      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
         <Background style={styles.background}>
           {content}
           <BottomSide
@@ -274,9 +301,9 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 })
 
-const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const centeredOrdinalType = Container.useSelector(state => {
-    const i = state.chat2.messageCenterOrdinals.get(conversationIDKey)
+const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
+  const centeredOrdinalType = C.useChatContext(s => {
+    const i = s.messageCenterOrdinal
     return i?.ordinal === ordinal ? i.highlightMode : undefined
   })
 
@@ -292,25 +319,28 @@ enum EditCancelRetryType {
 }
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const outboxID = m?.outboxID
-    const reason = m?.errorReason ?? ''
-    const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-    return {failureDescription, outboxID}
-  }, shallowEqual)
-  const dispatch = Container.useDispatch()
+  const {failureDescription, outboxID} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const outboxID = m?.outboxID
+      const reason = m?.errorReason ?? ''
+      const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+      return {failureDescription, outboxID}
+    })
+  )
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    messageDelete(ordinal)
+  }, [messageDelete, ordinal])
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    setEditing(ordinal)
+  }, [setEditing, ordinal])
+  const messageRetry = C.useChatContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
-    outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [dispatch, conversationIDKey, outboxID])
+    outboxID && messageRetry(outboxID)
+  }, [messageRetry, outboxID])
 
   const cancel = (
     <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
@@ -323,7 +353,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       <Kb.Text type="BodySmall"> or </Kb.Text>
     ) : null
 
-  let action: React.ReactNode =
+  const action: React.ReactNode =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
       <Kb.Text
         type="BodySmall"
@@ -363,9 +393,9 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const reactionsPopup =
-    !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
+    !C.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
-        className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
+        className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         onShowingEmojiPicker={setShowingPicker}
         tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
@@ -403,7 +433,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
-      <Kb.Icon type="iconfont-rip" color={Styles.globalColors.black_35} />
+      <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
     </Kb.WithTooltip>
   ) : null
 
@@ -411,7 +441,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const bot = botname ? (
     <Kb.WithTooltip tooltip={`Encrypted for @${botname}`}>
-      <Kb.Icon color={Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.WithTooltip>
   ) : null
 
@@ -423,7 +453,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   // left, then on hover we invert the list so its on the right. Theres usually only 1 non menu item so this
   // is fine
 
-  const menu = Container.isMobile ? null : (
+  const menu = C.isMobile ? null : (
     <Kb.WithTooltip
       tooltip="More actions..."
       toastStyle={styles.moreActionsTooltip}
@@ -442,7 +472,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
         gap="tiny"
-        className={Styles.classNames({
+        className={Kb.Styles.classNames({
           'hover-reverse-row': hasVisibleItems && menu,
           'hover-visible': !hasVisibleItems && menu,
         })}
@@ -464,25 +494,16 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal, bottomChildren, children} = p
 
   // passed in context so stable
-  const conversationIDKeyRef = React.useRef(conversationIDKey)
   const ordinalRef = React.useRef(ordinal)
-
-  React.useEffect(() => {
-    conversationIDKeyRef.current = conversationIDKey
-    ordinalRef.current = ordinal
-  }, [conversationIDKey, ordinal])
-  const getIds = React.useCallback(() => {
-    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
-  }, [])
+  ordinalRef.current = ordinal
 
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useRedux(conversationIDKey, ordinal)
+  const mdata = useRedux(ordinal)
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
@@ -490,7 +511,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
-  const maybeSentChildren = Container.isMobile && youSent ? <Sent>{children}</Sent> : children
+  const maybeSentChildren = C.isMobile && youSent ? <Sent>{children}</Sent> : children
 
   const tsprops = {
     botname,
@@ -517,20 +538,18 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   }
 
   return (
-    <GetIdsContext.Provider value={getIds}>
-      <OrdinalContext.Provider value={ordinal}>
-        <HighlightedContext.Provider value={showCenteredHighlight}>
-          <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-            <TextAndSiblings {...tsprops} />
-            {popup}
-          </Styles.CanFixOverdrawContext.Provider>
-        </HighlightedContext.Provider>
-      </OrdinalContext.Provider>
-    </GetIdsContext.Provider>
+    <OrdinalContext.Provider value={ordinal}>
+      <HighlightedContext.Provider value={showCenteredHighlight}>
+        <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+          <TextAndSiblings {...tsprops} />
+          {popup}
+        </Kb.Styles.CanFixOverdrawContext.Provider>
+      </HighlightedContext.Provider>
+    </OrdinalContext.Provider>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       background: {
@@ -539,48 +558,48 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      ellipsis: Styles.platformStyles({
+      ellipsis: Kb.Styles.platformStyles({
         isElectron: {height: 4, paddingTop: 0},
         isMobile: {paddingTop: 4},
       }),
-      emojiRow: Styles.platformStyles({
+      emojiRow: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          border: `1px solid ${Styles.globalColors.black_10}`,
-          borderRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.medium + 3,
-          paddingRight: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          border: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          borderRadius: Kb.Styles.borderRadius,
+          bottom: -Kb.Styles.globalMargins.medium + 3,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
           zIndex: 2,
         },
       }),
-      emojiRowLast: Styles.platformStyles({
+      emojiRowLast: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          border: `1px solid ${Styles.globalColors.black_10}`,
-          borderRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.medium + 3,
-          paddingRight: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          border: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          borderRadius: Kb.Styles.borderRadius,
+          bottom: -Kb.Styles.globalMargins.medium + 3,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
-          top: -Styles.globalMargins.medium + 5,
+          top: -Kb.Styles.globalMargins.medium + 5,
           zIndex: 2,
         },
       }),
-      fail: {color: Styles.globalColors.redDark},
-      failExploding: {color: Styles.globalColors.black_50},
-      failExplodingIcon: Styles.platformStyles({
+      fail: {color: Kb.Styles.globalColors.redDark},
+      failExploding: {color: Kb.Styles.globalColors.black_50},
+      failExplodingIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
           verticalAlign: 'middle',
         },
       }),
-      failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
       highlighted: {
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
       },
-      menuButtons: Styles.platformStyles({
+      menuButtons: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           flexShrink: 0,
@@ -590,36 +609,36 @@ const styles = Styles.styleSheetCreate(
         isElectron: {height: 20},
         isMobile: {height: 24},
       }),
-      messagePopupContainer: {marginRight: Styles.globalMargins.small},
+      messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
         flexGrow: 1,
         flexShrink: 1,
-        paddingLeft: Styles.isMobile ? 48 : 56,
+        paddingLeft: Kb.Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',
       },
-      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
-      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
-      rightSide: Styles.platformStyles({
+      moreActionsTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
+      paddingLeftTiny: {paddingLeft: Kb.Styles.globalMargins.tiny},
+      rightSide: Kb.Styles.platformStyles({
         common: {
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          backgroundColor: Styles.globalColors.white_90,
+          backgroundColor: Kb.Styles.globalColors.white_90,
           minHeight: 14,
           position: 'absolute',
           right: 16,
           top: 4,
         },
       }),
-      rightSideItems: Styles.platformStyles({
+      rightSideItems: Kb.Styles.platformStyles({
         common: {
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {minHeight: 14},
       }),
@@ -627,11 +646,11 @@ const styles = Styles.styleSheetCreate(
         height: 20,
         width: 20,
       },
-      timestamp: Styles.platformStyles({
+      timestamp: Kb.Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )

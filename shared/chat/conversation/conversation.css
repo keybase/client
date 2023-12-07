@@ -1,15 +1,33 @@
 .WrapperMessage {
-}
+  &.highlighted {
+    &,
+    &:hover,
+    &.WrapperMessage-hoverColor,
+    &.WrapperMessage-hoverColor:hover {
+      animation: highlightAnimation 0.3s ease-in forwards running;
+    }
+  }
 
-.WrapperMessage.highlighted,
-.WrapperMessage.highlighted:hover,
-.WrapperMessage.highlighted.WrapperMessage-hoverColor,
-.WrapperMessage.highlighted.WrapperMessage-hoverColor:hover {
-  animation-name: highlightAnimation;
-  animation-duration: 0.3s;
-  animation-timing-function: ease-in;
-  animation-play-state: running;
-  animation-fill-mode: forwards;
+  &.highlighted {
+    &:hover {
+      .explodingTimeContainer {
+        .darkMode & {
+          background-color: rgba(255, 255, 255, 0.85) !important;
+        }
+      }
+      .explodingTimeText {
+        .darkMode & {
+          color: rgba(0, 0, 0, 0.85) !important;
+        }
+      }
+
+      .explodingTimeIcon {
+        .darkMode & {
+          color: rgba(255, 255, 255, 0.85) !important;
+        }
+      }
+    }
+  }
 }
 
 @keyframes highlightAnimation {
@@ -26,19 +44,47 @@
 }
 
 .WrapperMessage-hoverBox {
-  padding-bottom: 3px;
-  padding-top: 3px;
-  padding-right: 16px;
+  padding: 3px 16px 3px 0;
   display: flex;
   flex-direction: column;
   position: relative;
   width: 100%;
-}
-.WrapperMessage-hoverBox .WrapperMessage-buttons {
-  display: none;
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-left: 0;
+  .WrapperMessage-buttons {
+    display: none;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+
+  .WrapperMessage-emojiButton {
+    transition: box-shadow 0.1s ease-out;
+  }
+
+  &:hover {
+    .WrapperMessage-emojiButton {
+      box-shadow: 0 1px 1px 0 var(--color-black_10);
+      .darkMode & .WrapperMessage-emojiButton {
+        box-shadow: none;
+      }
+      &.noShadow,
+      &:active {
+        box-shadow: none;
+      }
+    }
+    .WrapperMessage-newEmojiButton {
+      visibility: visible;
+    }
+    .WrapperMessage-emojiRow {
+      box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
+    }
+    .sendingStatus {
+      visibility: hidden;
+    }
+  }
+
+  .WrapperMessage-newEmojiButton {
+    visibility: hidden;
+  }
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
 .WrapperMessage-decorated.active .WrapperMessage-buttons {
@@ -47,106 +93,79 @@
   justify-content: flex-end;
   margin-left: 0;
 }
-.WrapperMessage-hoverColor:hover {
-  background-color: var(--color-blueLighter2);
-}
-.darkMode .WrapperMessage-hoverColor:hover {
-  background-color: var(--color-blueLighter3);
+.WrapperMessage-hoverColor {
+  &:hover {
+    background-color: var(--color-blueLighter2);
+    .darkMode & {
+      background-color: var(--color-blueLighter3);
+    }
+  }
 }
 
 .TextAndSiblings {
-}
-.TextAndSiblings.noOverflow {
-  overflow: hidden;
-}
-.TextAndSiblings.systemMessage {
-  padding-left: 0;
+  &.noOverflow {
+    overflow: hidden;
+  }
+  &.systemMessage {
+    padding-left: 0;
+  }
 }
 
 .WrapperMessage-decorated {
   min-height: 26px;
-}
-.WrapperMessage-decorated.active {
-  background-color: var(--color-blueLighter2);
-}
-.darkMode .WrapperMessage-decorated.active {
-  background-color: var(--color-blueLighter3);
+  &.active {
+    background-color: var(--color-blueLighter2);
+    .darkMode & {
+      background-color: var(--color-blueLighter3);
+    }
+  }
 }
 .WrapperMessage-author {
   padding-left: 0;
   padding-top: 8px;
 }
-.WrapperMessage-hoverBox .WrapperMessage-emojiButton {
-  transition: box-shadow 0.1s ease-out;
-}
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-  box-shadow: 0 1px 1px 0 var(--color-black_10);
-}
-.darkMode .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
-  box-shadow: none;
-}
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
-  box-shadow: none;
-}
-.WrapperMessage-hoverBox .WrapperMessage-newEmojiButton {
-  visibility: hidden;
-}
-.WrapperMessage-hoverBox:hover .WrapperMessage-newEmojiButton {
-  visibility: visible;
-}
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiRow {
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
-}
 
-.ReplyBox:hover {
-  background-color: white;
-}
-.ReplyBox:hover .text_BodySmall {
-  color: var(--color-blackOrBlack) !important;
-}
-.darkMode .ReplyBox:hover {
-  background-color: var(--color-blackOrBlack);
-}
-.darkMode .ReplyBox:hover .text_BodySmall {
-  color: var(--color-whiteOrWhite) !important;
-}
-
-.WrapperMessage-hoverBox:hover .sendingStatus {
-  visibility: hidden;
-}
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeContainer {
-  background-color: rgba(255, 255, 255, 0.85) !important;
-}
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeText {
-  color: rgba(0, 0, 0, 0.85) !important;
-}
-.darkMode .WrapperMessage.highlighted:hover .explodingTimeIcon {
-  color: rgba(255, 255, 255, 0.85) !important;
+.ReplyBox {
+  &:hover {
+    background-color: white;
+    .darkMode & {
+      background-color: var(--color-blackOrBlack);
+    }
+    .text_BodySmall {
+      color: var(--color-blackOrBlack) !important;
+      .darkMode & {
+        color: var(--color-whiteOrWhite) !important;
+      }
+    }
+  }
 }
 
 .react-button {
-}
-.react-button.border:hover {
-  backgroundcolor: var(--color-blueLighter2);
-  bordercolor: var(--color-blue);
+  &.border {
+    &:hover {
+      backgroundcolor: var(--color-blueLighter2);
+      bordercolor: var(--color-blue);
+    }
+  }
 }
 
 .ashbox {
   overflow: hidden;
   transition: width 0s;
   width: 0;
+
+  &.full-width {
+    overflow: visible;
+    transition: width 2000ms linear;
+    width: 100%;
+  }
 }
 
-.ashbox.full-width {
-  overflow: visible;
-  transition: width 2000ms linear;
-  width: 100%;
-}
-
-.timer-icon-container .timer-icon {
-}
-.timer-icon-container:hover .timer-icon,
-.timer-icon-container.expanded .timer-icon {
-  color: var(--color-black);
+.timer-icon-container {
+  &:hover,
+  &.expanded {
+    .timer-icon {
+      color: var(--color-black);
+    }
+  }
 }

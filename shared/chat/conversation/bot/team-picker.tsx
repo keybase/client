@@ -1,26 +1,27 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Types from '../../../constants/types/chat2'
-import * as BotsGen from '../../../actions/bots-gen'
-import {Avatars, TeamAvatar} from '../../avatars'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as T from '@/constants/types'
+import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
-import logger from '../../../logger'
+import logger from '@/logger'
 
-type Props = Container.RouteProps<'chatInstallBotPick'>
+type Props = {
+  botUsername: string
+}
 
 const BotTeamPicker = (props: Props) => {
-  const botUsername = props.route.params?.botUsername ?? ''
+  const botUsername = props.botUsername
   const [term, setTerm] = React.useState('')
-  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
+  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
-  const doSearch = React.useCallback(() => {
+  const submit = C.useRPC(T.RPCChat.localAddBotConvSearchRpcPromise)
+
+  const [lastTerm, setLastTerm] = React.useState('init')
+  if (lastTerm !== term) {
+    setLastTerm(term)
     setWaiting(true)
     submit(
       [{term}],
@@ -34,32 +35,27 @@ const BotTeamPicker = (props: Props) => {
         logger.info('BotTeamPicker: error loading search results: ' + error.message)
       }
     )
-  }, [term, submit])
+  }
 
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
-  const onSelect = (convID: RPCChatTypes.ConversationID) => {
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername, conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSelect = (convID: T.RPCChat.ConversationID) => {
+    const conversationIDKey = T.Chat.conversationIDToKey(convID)
+    navigateAppend({
+      props: {botUsername, conversationIDKey},
+      selected: 'chatInstallBot',
+    })
   }
-  React.useEffect(() => {
-    doSearch()
-  }, [doSearch])
-  React.useEffect(() => {
-    dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [dispatch])
 
-  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
+  C.useOnMountOnce(() => {
+    getFeaturedBots()
+  })
+
+  const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
@@ -146,7 +142,7 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default BotTeamPicker

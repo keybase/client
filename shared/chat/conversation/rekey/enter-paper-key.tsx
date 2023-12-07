@@ -1,23 +1,33 @@
-import EnterPaperkey from '../../../provision/paper-key'
-import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {PaperKey} from '@/provision/paper-key'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 
-type OwnProps = {}
+const EnterPaperKey = () => {
+  const error = ''
+  const hint = ''
+  const waiting = false
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
 
-export default Container.connect(
-  () => ({
-    error: '',
-    hint: '',
-    waiting: false,
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSubmit: (paperKey: string) => {
-      dispatch(createCheckPaperKey({paperKey}))
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(EnterPaperkey)
+  const checkPaperKeyRPC = C.useRPC(T.RPCGen.loginPaperKeySubmitRpcPromise)
+  const onSubmit = (paperKey: string) => {
+    checkPaperKeyRPC(
+      [{paperPhrase: paperKey}],
+      () => {},
+      () => {}
+    )
+    navigateUp()
+    navigateUp()
+  }
+  const props = {
+    error,
+    hint,
+    onBack,
+    onSubmit,
+    waiting,
+  }
+  return <PaperKey {...props} />
+}
+export default EnterPaperKey

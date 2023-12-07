@@ -82,9 +82,6 @@ const urlIsOK = (url: string, allowFile?: boolean) => {
 
   // This should be as limited as possible, to avoid injections.
   if (/^[a-zA-Z0-9=.%:?/&-_]*$/.test(url)) {
-    if (__STORYBOOK__ || __STORYSHOT__) {
-      return true
-    }
     const u = new URL(url)
     if (allowedHosts.includes(u.hostname)) {
       return true
@@ -103,11 +100,13 @@ type CheckURLProps = {
   allowFile?: boolean
 }
 
-export const CheckURL = (props: CheckURLProps) =>
-  urlIsOK(props.url, props.allowFile) ? (
+export const CheckURL = (props: CheckURLProps) => {
+  const ok = urlIsOK(props.url, props.allowFile)
+  return ok ? (
     props.children
   ) : (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Kb.Text type="BodySmall">Invalid URL: {props.url}</Kb.Text>
     </Kb.Box2>
   )
+}

@@ -1,12 +1,6 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SettingsConstants from '../../constants/settings'
-import {anyWaiting} from '../../constants/waiting'
 import VerifyPhoneNumber, {type Props} from './verify'
-
-type OwnProps = {}
 
 type WatcherProps = Props & {
   onCleanup: () => void
@@ -38,37 +32,46 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
   }
 }
 
-export default Container.connect(
-  state => ({
-    error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
-    phoneNumber: state.settings.phoneNumbers.pendingVerification,
-    resendWaiting: anyWaiting(
-      state,
-      SettingsConstants.resendVerificationForPhoneWaitingKey,
-      SettingsConstants.addPhoneNumberWaitingKey
-    ),
-    verificationStatus: state.settings.phoneNumbers.verificationState,
-    verifyWaiting: anyWaiting(state, SettingsConstants.verifyPhoneNumberWaitingKey),
-  }),
-  dispatch => ({
-    _onContinue: (phoneNumber: string, code: string) =>
-      dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
-    _onResend: (phoneNumber: string) =>
-      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber})),
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberAdd()),
-    onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: stateProps.error,
-    onBack: dispatchProps.onBack,
-    onCleanup: dispatchProps.onCleanup,
-    onContinue: (code: string) => dispatchProps._onContinue(stateProps.phoneNumber, code),
-    onResend: () => dispatchProps._onResend(stateProps.phoneNumber),
-    onSuccess: dispatchProps.onSuccess,
-    phoneNumber: stateProps.phoneNumber,
-    resendWaiting: stateProps.resendWaiting,
-    verificationStatus: stateProps.verificationStatus,
-    verifyWaiting: stateProps.verifyWaiting,
-  })
-)(WatchForSuccess)
+const Container = () => {
+  const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
+  const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
+  const resendWaiting = C.useAnyWaiting([C.resendVerificationForPhoneWaitingKey, C.addPhoneNumberWaitingKey])
+  const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)
+  const verifyWaiting = C.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
+
+  const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
+  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+
+  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+
+  const _onContinue = (phoneNumber: string, code: string) => {
+    verifyPhoneNumber(phoneNumber, code)
+  }
+  const _onResend = (phoneNumber: string) => {
+    resendVerificationForPhone(phoneNumber)
+  }
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
+  const onCleanup = clearPhoneNumberAdd
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onSuccess = () => {
+    clearModals()
+  }
+  const props = {
+    error: error,
+    onBack: onBack,
+    onCleanup: onCleanup,
+    onContinue: (code: string) => _onContinue(phoneNumber, code),
+    onResend: () => _onResend(phoneNumber),
+    onSuccess: onSuccess,
+    phoneNumber: phoneNumber,
+    resendWaiting: resendWaiting,
+    verificationStatus: verificationStatus,
+    verifyWaiting: verifyWaiting,
+  }
+  return <WatchForSuccess {...props} />
+}
+
+export default Container

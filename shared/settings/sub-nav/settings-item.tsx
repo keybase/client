@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 type SettingsItemProps = {
   badgeNumber?: number
@@ -11,7 +10,7 @@ type SettingsItemProps = {
   onClick: () => void
   text: string
   subText?: string
-  textColor?: Styles.Color
+  textColor?: Kb.Styles.Color
   selected?: boolean
 }
 
@@ -19,7 +18,7 @@ export default function SettingsItem(props: SettingsItemProps) {
   return (
     <Kb.ClickableBox
       onClick={props.onClick}
-      style={Styles.collapseStyles([styles.item, props.selected && styles.selected] as const)}
+      style={Kb.Styles.collapseStyles([styles.item, props.selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
         <props.iconComponent />
@@ -27,14 +26,16 @@ export default function SettingsItem(props: SettingsItemProps) {
         <Kb.Icon
           fontSize={24}
           type={props.icon}
-          color={Styles.globalColors.black_50}
-          style={{marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny}}
+          color={Kb.Styles.globalColors.black_50}
+          style={{
+            marginRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+          }}
         />
       ) : null}
       <Kb.Box2 direction="vertical">
         <Kb.Text
           type="BodySemibold"
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             props.selected ? styles.selectedText : styles.itemText,
             props.textColor ? {color: props.textColor} : {},
           ])}
@@ -51,16 +52,16 @@ export default function SettingsItem(props: SettingsItemProps) {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: 6,
   },
-  item: Styles.platformStyles({
+  item: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
       position: 'relative',
     },
     isElectron: {
@@ -68,25 +69,25 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
     isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: Styles.hairlineWidth,
+      borderBottomColor: Kb.Styles.globalColors.black_10,
+      borderBottomWidth: Kb.Styles.hairlineWidth,
       height: 56,
     },
   }),
-  itemText: Styles.platformStyles({
+  itemText: Kb.Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.black_50,
+      color: Kb.Styles.globalColors.black_50,
     },
     isMobile: {
-      color: Styles.globalColors.black,
+      color: Kb.Styles.globalColors.black,
     },
   }),
   progress: {
     marginLeft: 6,
   },
-  selected: Styles.platformStyles({
+  selected: Kb.Styles.platformStyles({
     common: {
-      borderLeftColor: Styles.globalColors.blue,
+      borderLeftColor: Kb.Styles.globalColors.blue,
       borderLeftWidth: 3,
       borderStyle: 'solid',
     },
@@ -95,6 +96,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   selectedText: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
 }))

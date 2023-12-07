@@ -1,51 +1,48 @@
-import * as Container from '../../../../../../util/container'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters/index'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
-import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
-import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
-import {formatDurationForLocation} from '../../../../../../util/timestamp'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {formatDurationForLocation} from '@/util/timestamp'
 import {getUnfurlInfo} from './use-redux'
-import {maxWidth} from '../../../attachment/shared'
+import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, youAreAuthor, author} = getUnfurlInfo(state, conversationIDKey, ordinal, idx)
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
-      return null
-    }
-    const {generic} = unfurl
-    const {mapInfo, media, url} = generic
-    const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
-      coord: 0,
-      isLiveLocationDone: false,
-      liveLocationEndTime: 0,
-      time: 0,
-    }
-    const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
+      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
+        return null
+      }
+      const {generic} = unfurl
+      const {mapInfo, media, url} = generic
+      const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
+        coord: {accuracy: 0, lat: 0, lon: 0},
+        isLiveLocationDone: false,
+        liveLocationEndTime: 0,
+        time: 0,
+      }
+      const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
 
-    return {
-      author,
-      coord,
-      height,
-      imageURL,
-      isLiveLocationDone,
-      liveLocationEndTime,
-      time,
-      url,
-      width,
-      youAreAuthor,
-    }
-  }, shallowEqual)
-
-  const dispatch = Container.useDispatch()
+      return {
+        author,
+        coord,
+        height,
+        imageURL,
+        isLiveLocationDone,
+        liveLocationEndTime,
+        time,
+        url,
+        width,
+        youAreAuthor,
+      }
+    })
+  )
 
   if (!data) {
     return null
@@ -54,23 +51,16 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {author, url, coord, isLiveLocationDone, liveLocationEndTime} = data
   const {height, width, imageURL, youAreAuthor, time} = data
   const onViewMap = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              author,
-              conversationIDKey,
-              coord,
-              isAuthor: youAreAuthor,
-              isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
-              url,
-            },
-            selected: 'chatUnfurlMapPopup',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        author,
+        coord,
+        isAuthor: youAreAuthor,
+        isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
+        url,
+      },
+      selected: 'chatUnfurlMapPopup',
+    })
   }
 
   return (
@@ -86,7 +76,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!!liveLocationEndTime && (
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
+          style={Kb.Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical">
@@ -156,19 +146,19 @@ const LiveDuration = (props: DurationProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      fastStyle: {backgroundColor: Styles.globalColors.blueGrey},
+      fastStyle: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       liveLocation: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        borderBottomLeftRadius: Styles.borderRadius,
-        borderBottomRightRadius: Styles.borderRadius,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        borderBottomLeftRadius: Kb.Styles.borderRadius,
+        borderBottomRightRadius: Kb.Styles.borderRadius,
         justifyContent: 'space-between',
         marginTop: -2,
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default UnfurlMap

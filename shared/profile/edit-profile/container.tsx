@@ -1,33 +1,33 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as Constants from '../../constants/tracker2'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
 import EditProfile from '.'
 
-type OwnProps = {}
+const Container = () => {
+  const username = C.useCurrentUserState(s => s.username)
+  const d = C.useTrackerState(s => Constants.getDetails(s, username))
+  const bio = d.bio || ''
+  const fullname = d.fullname || ''
+  const location = d.location || ''
 
-export default Container.connect(
-  state => {
-    const d = Constants.getDetails(state, state.config.username)
-    return {
-      bio: d.bio || '',
-      fullname: d.fullname || '',
-      location: d.location || '',
-    }
-  },
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSubmit: (bio: string, fullname: string, location: string) => {
-      dispatch(ProfileGen.createEditProfile({bio, fullname, location}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    bio: stateProps.bio,
-    fullname: stateProps.fullname,
-    location: stateProps.location,
-    onCancel: dispatchProps.onCancel,
-    onSubmit: dispatchProps.onSubmit,
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+
+  const editProfile = C.useProfileState(s => s.dispatch.editProfile)
+  const onSubmit = (bio: string, fullname: string, location: string) => {
+    editProfile(bio, fullname, location)
+    navigateUp()
+  }
+  const props = {
+    bio,
+    fullname,
+    location,
+    onCancel,
+    onSubmit,
     title: 'Edit Profile',
-  })
-)(EditProfile)
+  }
+  return <EditProfile {...props} />
+}
+
+export default Container

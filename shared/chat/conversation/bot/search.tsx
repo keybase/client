@@ -1,76 +1,67 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/bots'
-import * as BotsGen from '../../../actions/bots-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Styles from '../../../styles'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import {Bot} from '../info-panel/bot'
+import * as Styles from '@/styles'
 import debounce from 'lodash/debounce'
-import shallowEqual from 'shallowequal'
+import type * as T from '@/constants/types'
+import {Bot} from '../info-panel/bot'
 
-type Props = Container.RouteProps<'chatSearchBots'>
+type Props = {teamID?: T.Teams.TeamID}
 
-const renderSectionHeader = ({section}: any) => {
+const renderSectionHeader = ({section}: {section: {title: string}}) => {
   return <Kb.SectionDivider label={section.title} />
 }
 
 const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
-const getResults = (state: Container.TypedState) => {
-  const {botSearchResults, featuredBotsMap} = state.chat2
-  return {botSearchResults, featuredBotsMap}
-}
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? undefined
-  const teamID = props.route.params?.teamID ?? undefined
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
-  const waiting = Container.useAnyWaiting(
-    Constants.waitingKeyBotSearchUsers,
-    Constants.waitingKeyBotSearchFeatured
-  )
-  const dispatch = Container.useDispatch()
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const botSearchResults = C.useBotsState(s => s.botSearchResults)
+  const waiting = C.useAnyWaiting([C.waitingKeyBotSearchUsers, C.waitingKeyBotSearchFeatured])
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
+
+  const searchFeaturedAndUsers = C.useBotsState(s => s.dispatch.searchFeaturedAndUsers)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
+  const setSearchFeaturedAndUsersResults = C.useBotsState(s => s.dispatch.setSearchFeaturedAndUsersResults)
+
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
     if (query.length > 0) {
-      dispatch(BotsGen.createSearchFeaturedAndUsers({query}))
+      searchFeaturedAndUsers(query)
     } else {
-      dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query, results: undefined}))
+      setSearchFeaturedAndUsersResults(query, undefined)
     }
   }, 200)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelect = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: username, conversationIDKey, teamID},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername: username, conversationIDKey, teamID},
+      selected: 'chatInstallBot',
+    })
   }
-  React.useEffect(() => {
-    dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
-    dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [dispatch])
 
-  const botData: Array<RPCTypes.FeaturedBot | string> =
+  C.useOnMountOnce(() => {
+    setSearchFeaturedAndUsersResults('', undefined)
+    getFeaturedBots()
+  })
+
+  const botData: Array<T.RPCGen.FeaturedBot | string> =
     lastQuery.length > 0
-      ? botSearchResults?.get(lastQuery)?.bots.slice() ?? []
-      : Constants.getFeaturedSorted(featuredBotsMap)
+      ? botSearchResults.get(lastQuery)?.bots.slice() ?? []
+      : C.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }
   const botSection = {
     data: botData,
-    renderItem: ({index, item}: {index: number; item: RPCTypes.FeaturedBot | string}) => {
+    renderItem: ({index, item}: {index: number; item: T.RPCGen.FeaturedBot | string}) => {
       return item === resultEmptyPlaceholder ? (
         <Kb.Text
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}

@@ -1,6 +1,5 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {pluralize} from '../../util/string'
+import * as Kb from '@/common-adapters'
+import {pluralize} from '@/util/string'
 
 type Props = {
   onClick: () => void
@@ -16,7 +15,7 @@ const UnreadShortcut = (props: Props) => (
       fullWidth={true}
       style={styles.unreadShortcut}
     >
-      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Styles.globalColors.white} />
+      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Kb.Styles.globalColors.white} />
       <Kb.Text negative={true} type="BodySmallSemibold">
         {props.unreadCount} unread {pluralize('message', props.unreadCount)}
       </Kb.Text>
@@ -24,7 +23,7 @@ const UnreadShortcut = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
@@ -33,16 +32,16 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      unreadShortcut: Styles.platformStyles({
+      unreadShortcut: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.orange_90,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.orange_90,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {height: 32},
         isMobile: {height: 40},
       }),
-    } as const)
+    }) as const
 )
 
 export default UnreadShortcut

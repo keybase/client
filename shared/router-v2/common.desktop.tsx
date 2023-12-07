@@ -1,18 +1,16 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import Header from './header/index.desktop'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {TabActions} from '@react-navigation/core'
 import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 
 export const headerDefaultStyle = {}
 export const tabBarStyle = {
   get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
+    return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
 }
-export const TabletWrapper = (p: {children: React.ReactNode}) => p.children
 const actionWidth = 64
 export const defaultNavigationOptions = {
   header: (p: any) => <Header {...p} />,
@@ -36,11 +34,11 @@ export const defaultNavigationOptions = {
   },
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   headerTitle: {
     alignSelf: 'center',
-    color: Styles.globalColors.black,
-    marginLeft: Styles.globalMargins.xsmall,
+    color: Kb.Styles.globalColors.black,
+    marginLeft: Kb.Styles.globalMargins.xsmall,
   },
 }))
 
@@ -59,15 +57,13 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
   navRef.current = navigation
 
   const onSelectTab = React.useCallback((tab: string) => {
-    // @ts-ignore
     const key = routeKeyMapRef.current.get(tab)
     const event = key
       ? navRef.current.emit({
           canPreventDefault: true,
           target: key,
-          // @ts-ignore
           type: 'tabPress',
-        })
+        } as any)
       : {defaultPrevented: false}
 
     if (!event.defaultPrevented) {

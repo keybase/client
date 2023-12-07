@@ -30,12 +30,12 @@ type Event = {
 
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
-if (!['gui', 'core'].includes(guiOrCore) || !logfile || !outfile) {
+if (!['gui', 'core'].includes(guiOrCore ?? '') || !logfile || !outfile) {
   console.log('Usage: node log-to-trace (gui|core) logfile outfile [filter1] [filter2]')
   process.exit(1)
 }
 
-const swimlanesReg = (_swimlanes || []).map(swim => new RegExp(swim))
+const swimlanesReg = _swimlanes.map(swim => new RegExp(swim))
 const isGUI = guiOrCore === 'gui'
 
 // core regs
@@ -51,7 +51,7 @@ const actionPayloadReg = /\\"/g
 
 const getSwimlane = (line: string) => {
   const matched = swimlanesReg.find(s => s.exec(line) && !!s.toString())
-  return matched && matched.toString()
+  return matched?.toString()
 }
 
 // Handle a single line from a gui log
@@ -61,7 +61,7 @@ const convertGuiLine = (line: string): Info | undefined => {
     console.log('🛑 Skipping unparsed line:', line)
     return
   }
-  const [, type, time, _data] = e
+  const [, type, time = '', _data = ''] = e
   let name = ''
   let args = {}
   switch (type) {
@@ -78,7 +78,7 @@ const convertGuiLine = (line: string): Info | undefined => {
       {
         const m = actionReg.exec(_data)
         if (m) {
-          const [, actionType, payload] = m
+          const [, actionType = '', payload = ''] = m
           name = actionType
           try {
             args = JSON.parse(payload.replace(actionPayloadReg, '"'))
@@ -115,11 +115,11 @@ const convertCoreLine = (line: string): Info | undefined => {
     console.log('🛑 Skipping unparsed line:', line)
     return
   }
-  const [, time, _app, file, fileline, counter, _typeAndMethod, _tags] = e
+  const [, time = '', _app = '', file = '', fileline = '', counter = '', _typeAndMethod = '', _tags = ''] = e
   let tags = 'NO_TAG'
   if (_tags) {
     const match = tagsReg.exec(_tags)
-    if (match && match[1]) {
+    if (match?.[1]) {
       tags = match[1].split(',').sort().join(',')
     }
   }
@@ -128,7 +128,7 @@ const convertCoreLine = (line: string): Info | undefined => {
 
   let type = ''
   const _type = typeAndMethodReg.exec(typeAndMethod)
-  if (_type && _type[1]) {
+  if (_type?.[1]) {
     type = _type[1].trim()
   }
 
@@ -197,8 +197,8 @@ const lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // lines = [
 // 'Line to debug',
 // ]
-let lastGuiLine: Info | null = null
-const knownIDs = {}
+let lastGuiLine: Info | undefined
+const knownIDs: {[key: string]: Info | undefined} = {}
 lines.forEach(line => {
   const info = convertLine(line)
   if (!info) return
@@ -206,17 +206,20 @@ lines.forEach(line => {
   // console.log(`DEBUG line type: '${info.type}' \n${line}\n${JSON.stringify(info, null, 2)}`)
   // Core has start/end marked with +/-. Ui doesn't have any timing like this so we treat them like they're contiguous
   switch (info.type) {
-    case '+':
+    case '+': {
       // If we overwrite an event, bookkeep that
-      if (knownIDs[info.id]) {
-        output.single = output.single.concat(buildEvent(knownIDs[info.id], 'i'))
+      const k = knownIDs[info.id]
+      if (k) {
+        output.single = output.single.concat(buildEvent(k, 'i'))
         output.collision.push(info)
       }
       knownIDs[info.id] = info
       break
-    case '-':
-      if (knownIDs[info.id]) {
-        output.good = output.good.concat(buildGood(knownIDs[info.id], info))
+    }
+    case '-': {
+      const k = knownIDs[info.id]
+      if (k) {
+        output.good = output.good.concat(buildGood(k, info))
         knownIDs[info.id] = undefined
       } else {
         // If we didn't find a corresponding event, bookkeep that
@@ -224,6 +227,7 @@ lines.forEach(line => {
         output.unmatched.push(info)
       }
       break
+    }
     case '|':
       // We ignore pipes
       break

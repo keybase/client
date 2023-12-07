@@ -1,32 +1,41 @@
-declare var __HOT__: boolean
-declare var __VERSION__: string
-declare var __FILE_SUFFIX__: string
-declare var __PROFILE__: boolean
-declare var __STORYBOOK__: boolean
-declare var __STORYSHOT__: boolean
+/* eslint-disable no-var,vars-on-top */
+export {}
 
-type Values<T extends object> = T[keyof T]
-
-type Unpacked<T> = T extends (infer U)[]
-  ? U
-  : T extends (...args: any[]) => infer U
-  ? U
-  : T extends Promise<infer U>
-  ? U
-  : T
-
-type RequestIdleCallbackHandle = any
-type RequestIdleCallbackOptions = {
+export type RequestIdleCallbackHandle = unknown
+export type RequestIdleCallbackOptions = {
   timeout: number
 }
-type RequestIdleCallbackDeadline = {
+export type RequestIdleCallbackDeadline = {
   readonly didTimeout: boolean
   timeRemaining: () => number
 }
 
-interface Console {
-  _log: any
-  _warn: any
-  _error: any
-  _info: any
+export interface Console {
+  _log: unknown
+  _warn: unknown
+  _error: unknown
+  _info: unknown
+}
+
+declare global {
+  var DEBUGNavigator: unknown
+  var DEBUGRouter2: unknown
+  var DEBUGmadeEngine: boolean | undefined
+  var DEBUGStore: unknown
+  var DEBUGEngine: unknown
+  var DEBUGLoaded: boolean | undefined
+  var KBCONSTANTS: unknown
+  var DEBUGLog: (s: any) => void
+  var DEBUGWarn: (s: any) => void
+  var DEBUGInfo: (s: any) => void
+  var DEBUGError: (s: any) => void
+  var _fromPreload: unknown
+  var __HOT__: boolean
+  var __VERSION__: string
+  var __FILE_SUFFIX__: string
+  var __PROFILE__: boolean
+  var rpcOnGo: undefined | ((b: unknown) => void)
+  var rpcOnJs: undefined | ((b: unknown) => void)
+  // RN
+  var __turboModuleProxy: unknown
 }

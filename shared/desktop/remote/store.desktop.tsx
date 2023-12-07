@@ -3,11 +3,11 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import {createStore, applyMiddleware, type Store} from 'redux'
-import type {TypedActions} from '../../actions/typed-actions-gen'
-import * as ConfigGen from '../../actions/config-gen'
-import KB2 from '../../util/electron.desktop'
+import * as R from '@/constants/remote'
+import * as RemoteGen from '@/actions/remote-gen'
+import KB2 from '@/util/electron.desktop'
 
-const {mainWindowDispatch, ipcRendererOn} = KB2.functions
+const {ipcRendererOn} = KB2.functions
 
 const updateStore = 'remoteStore:update'
 // Special action that's not sent
@@ -19,13 +19,13 @@ type UpdateStoreAction = {
 }
 
 class RemoteStore {
-  _store: Store<any, any>
-  _gotPropsCallback: (() => void) | null = null // let component know it loaded once so it can show itself. Set to null after calling once
-  _deserialize: (arg0: any, arg1: any) => any
+  _store: Store<unknown, any>
+  _gotPropsCallback: (() => void) | undefined // let component know it loaded once so it can show itself. Set to null after calling once
+  _deserialize: (a: unknown, b: unknown) => unknown
 
   getStore = () => this._store
 
-  _onPropsUpdated = propsStr => {
+  _onPropsUpdated = (propsStr: string) => {
     // setImmediate since this can be a side effect of the reducer which redux doesn't like
     setTimeout(() => {
       this._store.dispatch({
@@ -36,7 +36,7 @@ class RemoteStore {
 
     if (this._gotPropsCallback) {
       this._gotPropsCallback()
-      this._gotPropsCallback = null
+      this._gotPropsCallback = undefined
     }
   }
 
@@ -46,24 +46,25 @@ class RemoteStore {
     })
   }
 
-  _reducer = (state: any, action: any) => {
+  _reducer = (state: unknown, action: {type?: 'remoteStore:update'; payload: {propsStr: string}}) => {
     switch (action.type) {
       case updateStore: {
         return this._deserialize(state, JSON.parse(action.payload.propsStr))
       }
+      default:
+        return state
     }
-
-    return state
   }
 
   constructor(props: {
     windowComponent: string
     windowParam: string
     gotPropsCallback: () => void
-    deserialize: (arg0: any, arg1: any) => any
+    deserialize: (a: unknown, b: unknown) => unknown
   }) {
+    // eslint-disable-next-line
     this._store = createStore(
-      this._reducer,
+      this._reducer as any,
       props.deserialize(undefined, undefined),
       applyMiddleware(sendToRemoteMiddleware as any)
     )
@@ -76,8 +77,8 @@ class RemoteStore {
     }
 
     // Search for the main window and ask it directly for our props
-    mainWindowDispatch(
-      ConfigGen.createRemoteWindowWantsProps({
+    R.remoteDispatch(
+      RemoteGen.createRemoteWindowWantsProps({
         component: props.windowComponent,
         param: props.windowParam,
       })
@@ -87,15 +88,15 @@ class RemoteStore {
 
 const sendToRemoteMiddleware =
   () =>
-  (next: (action: TypedActions | UpdateStoreAction) => void) =>
-  (action: TypedActions | UpdateStoreAction) => {
+  (next: (action: RemoteGen.Actions | UpdateStoreAction) => void) =>
+  (action: RemoteGen.Actions | UpdateStoreAction) => {
     if (action.constructor === Function) {
       throw new Error('pure actions only allowed in remote store2')
     } else if (action.type === updateStore) {
       // Don't forward our internal updateStore call
       return next(action)
     } else {
-      mainWindowDispatch(action)
+      R.remoteDispatch(action)
     }
     return next(action)
   }

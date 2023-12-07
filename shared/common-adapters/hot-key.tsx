@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {bind, unbind} from '../util/mousetrap'
+import {bind, unbind} from '@/util/mousetrap'
 
 // mousetrap is very simple. a bind will overwrite the binding. unbind unbinds it globally
 // we need to keep a stack to manage the state
@@ -22,7 +22,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
     // actually bind
     bind(
       keys,
-      (e: React.BaseSyntheticEvent, key: string) => {
+      (e: {stopPropagation: () => void}, key: string) => {
         e.stopPropagation()
         key && cb(key)
       },
@@ -33,17 +33,17 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       keysArr.forEach(key => {
         const cbs = keyToCBStack.get(key)
         if (!cbs) return
-        const idx = cbs.indexOf(cb) ?? -1
+        const idx = cbs.indexOf(cb)
         if (idx !== -1) {
           cbs.splice(idx, 1)
           // mousetrap will remove existing bindings. if there is an older one turn it back on
-          const last = cbs[cbs.length - 1]
+          const last = cbs.at(-1)
           if (last) {
             bind(
               key,
-              (e: React.BaseSyntheticEvent, k: string) => {
+              (e: {stopPropagation: () => void}, key: string) => {
                 e.stopPropagation()
-                k && last(k)
+                key && last(key)
               },
               'keydown'
             )

@@ -1,16 +1,17 @@
-import * as React from 'react'
-import {IconType} from './icon'
+import type * as React from 'react'
+import type {IconType} from './icon'
 
 export type Option = {
   title: string
   description: string
-  icon: IconType | React.ReactNode
+  icon: IconType
   onClick: () => void
-  onPress?: void
+  onPress?: never
 }
 
 export type Props = {
   options: Array<Option>
 }
 
-export default class ChoiceList extends React.Component<Props> {}
+declare const ChoiceList: (p: Props) => React.ReactNode
+export default ChoiceList

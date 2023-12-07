@@ -1,41 +1,36 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as ChatConstants from '../../../../constants/chat2'
-import * as ChatTypes from '../../../../constants/types/chat2'
-import * as TeamConstants from '../../../../constants/teams'
-import * as TeamTypes from '../../../../constants/types/teams'
-import * as Container from '../../../../util/container'
-import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
-import {pluralize} from '../../../../util/string'
-import {memoize} from '../../../../util/memoize'
-import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {pluralize} from '@/util/string'
+import {memoize} from '@/util/memoize'
+import {ModalTitle, useChannelParticipants} from '@/teams/common'
 
-type Props = Container.RouteProps<'chatAddToChannel'>
+type Props = {
+  teamID: T.Teams.TeamID
+}
 
-const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
+const sortMembers = memoize((members: T.Teams.TeamDetails['members']) =>
   [...members.values()]
     .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
     .sort((a, b) => a.username.localeCompare(b.username))
 )
 
 const AddToChannel = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
-  const teamID = props.route.params?.teamID ?? TeamTypes.noTeamID
-  const dispatch = Container.useDispatch()
+  const {teamID} = props
   const nav = Container.useSafeNavigation()
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname} = Container.useSelector(s =>
-    TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
-  )
+  const {channelname} = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
-  const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
@@ -45,16 +40,17 @@ const AddToChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
+  const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
     addToChannel(
-      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
       () => {
         setWaiting(false)
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
         onClose()
       },
       e => {
@@ -178,7 +174,7 @@ const AddToChannel = (props: Props) => {
   )
 }
 
-const title = ({channelname, teamID}: {channelname: string; teamID: TeamTypes.TeamID}) =>
+const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
   Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -1,18 +1,15 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {downloadFolder} from '../../constants/platform'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads)
+  const downloadIDs = C.useFSState(s => s.downloads.regularDownloads)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
-      <Kb.ScrollView horizontal={true} snapToInterval={160 + Styles.globalMargins.xtiny}>
+      <Kb.ScrollView horizontal={true} snapToInterval={160 + Kb.Styles.globalMargins.xtiny}>
         <Kb.Box2
           direction="horizontal"
           style={styles.box}
@@ -32,10 +29,11 @@ const Mobile = () => {
 
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads)
-  const dispatch = Container.useDispatch()
-  const openDownloadFolder = () =>
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
+  const downloadIDs = C.useFSState(s => s.downloads.regularDownloads)
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
+  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -57,7 +55,7 @@ const Desktop = () => {
               style={styles.iconBoxEllipsis}
               type="iconfont-ellipsis"
               hint="Open downloads folder"
-              color={Styles.globalColors.black_50}
+              color={Kb.Styles.globalColors.black_50}
               padding="tiny"
               onClick={openDownloadFolder}
             />
@@ -68,7 +66,7 @@ const Desktop = () => {
           <Kb.Icon
             type="iconfont-folder-downloads"
             hint="Open downloads folder"
-            color={Styles.globalColors.black_50}
+            color={Kb.Styles.globalColors.black_50}
             padding="tiny"
             onClick={openDownloadFolder}
           />
@@ -78,24 +76,24 @@ const Desktop = () => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      box: Styles.platformStyles({
+      box: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueLighter3,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
           overflow: 'hidden',
         },
         isElectron: {height: 40},
         isMobile: {height: 48},
       }),
       iconBoxEllipsis: {
-        backgroundColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: 4,
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
       },
       space: {flex: 1},
-    } as const)
+    }) as const
 )
 
-export default Styles.isMobile ? Mobile : Desktop
+export default Kb.Styles.isMobile ? Mobile : Desktop

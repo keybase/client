@@ -1,8 +1,8 @@
 // Debug utilities for chat
 import * as React from 'react'
-import logger from '../../logger'
+import logger from '@/logger'
 
-export const chatDebugEnabled = false
+export const chatDebugEnabled = false as boolean
 
 if (chatDebugEnabled) {
   for (let i = 0; i < 10; ++i) {

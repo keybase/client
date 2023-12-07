@@ -1,18 +1,10 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
-const UserCard = ({
-  avatarSize,
-  outerStyle,
-  onAvatarClicked,
-  username,
-  style,
-  children,
-  lighterPlaceholders,
-}: Props) => {
+const UserCard = (p: Props) => {
+  const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children, lighterPlaceholders} = p
   return (
-    <div style={Styles.collapseStyles([styles.container, outerStyle])}>
+    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>
       <Kb.Avatar
         size={avatarSize}
         onClick={onAvatarClicked}
@@ -20,14 +12,16 @@ const UserCard = ({
         lighterPlaceholders={lighterPlaceholders}
       />
       <div
-        style={Styles.collapseStyles([
-          styles.inside,
-          {
-            marginTop: -avatarSize / 2,
-            paddingTop: 30 + avatarSize / 2,
-          },
-          style,
-        ])}
+        style={
+          Kb.Styles.collapseStyles([
+            styles.inside,
+            {
+              marginTop: -avatarSize / 2,
+              paddingTop: 30 + avatarSize / 2,
+            },
+            style,
+          ]) as React.CSSProperties
+        }
       >
         {children}
       </div>
@@ -35,22 +29,18 @@ const UserCard = ({
   )
 }
 
-UserCard.defaultProps = {
-  avatarSize: 128,
-}
-
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     height: 430,
     width: 410,
   },
   inside: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     borderRadius: 4,
     padding: 30,
   },

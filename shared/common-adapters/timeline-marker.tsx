@@ -1,5 +1,5 @@
 import Box from './box'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {timeline_grey} from './timeline-marker.meta'
 
 const Kb = {

@@ -1,6 +1,7 @@
 import { NativeEventEmitter } from 'react-native';
 export declare const getDefaultCountryCode: () => Promise<string>;
 export declare const logSend: (status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string) => Promise<string>;
+export declare const install: () => void;
 export declare const iosGetHasShownPushPrompt: () => Promise<boolean>;
 export declare const androidOpenSettings: () => void;
 export declare const androidSetSecureFlagSetting: (s: boolean) => Promise<boolean>;
@@ -21,7 +22,7 @@ export declare const androidAddCompleteDownload: (o: {
 export declare const androidAppColorSchemeChanged: (mode: 'system' | 'alwaysDark' | 'alwaysLight' | '') => void;
 export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
 export declare const androidGetInitialBundleFromNotification: () => Promise<any>;
-export declare const androidGetInitialShareFileUrl: () => Promise<string>;
+export declare const androidGetInitialShareFileUrls: () => Promise<Array<string>>;
 export declare const androidGetInitialShareText: () => Promise<string>;
 export declare const engineReset: () => void;
 export declare const engineStart: () => void;
@@ -37,3 +38,4 @@ export declare const guiConfig: string;
 export declare const serverConfig: string;
 export declare const uses24HourClock: boolean;
 export declare const version: string;
+//# sourceMappingURL=index.d.ts.map

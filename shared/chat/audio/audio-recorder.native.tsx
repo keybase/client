@@ -1,12 +1,11 @@
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as Container from '../../util/container'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 // we need to use the raw colors to animate
-import {colors} from '../../styles/colors'
-import type * as Types from '../../constants/types/chat2'
+import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
 import {
@@ -16,10 +15,10 @@ import {
   type PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler'
 import {View} from 'react-native'
-import {formatAudioRecordDuration} from '../../util/timestamp'
+import {formatAudioRecordDuration} from '@/util/timestamp'
 import {Audio} from 'expo-av'
-import {setupAudioMode} from '../../util/audio.native'
-import logger from '../../logger'
+import {setupAudioMode} from '@/util/audio.native'
+import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
 import AudioSend from './audio-send.native'
@@ -30,7 +29,6 @@ const Animated = Reanimated.default
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   showAudioSend: boolean
   setShowAudioSend: (s: boolean) => void
 }
@@ -43,6 +41,7 @@ enum Visible {
 
 const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
+  const [lastShowTooltip, setLastShowTooltip] = React.useState(showTooltip)
   const opacitySV = useSharedValue(0)
 
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
@@ -54,20 +53,26 @@ const useTooltip = () => {
     )
   }
 
-  React.useEffect(() => {
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
+
+  if (showTooltip !== lastShowTooltip) {
+    setLastShowTooltip(showTooltip)
     if (showTooltip) {
-      const id = setTimeout(() => {
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => {
         setShowTooltip(false)
       }, 1400)
-      return () => {
-        clearTimeout(id)
-      }
     }
-    return
-  }, [showTooltip])
+  }
+
+  React.useEffect(() => {
+    return () => {
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+    }
+  }, [])
 
   const tooltip = showTooltip ? (
-    <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+    <Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
@@ -75,7 +80,7 @@ const useTooltip = () => {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-    </Kb.Portal>
+    </Portal>
   ) : null
 
   const flashTip = React.useCallback(() => {
@@ -218,11 +223,9 @@ const useIconAndOverlay = (p: {
           fadeSyncedSV.value = 0
           runOnJS(setVisible)(Visible.HIDDEN)
         }
-      } else {
-        if (fadeSyncedSV.value !== 1) {
-          fadeSyncedSV.value = 1
-          runOnJS(setVisible)(Visible.SHOW)
-        }
+      } else if (fadeSyncedSV.value !== 1) {
+        fadeSyncedSV.value = 1
+        runOnJS(setVisible)(Visible.SHOW)
       }
     }
   )
@@ -284,7 +287,7 @@ const useIconAndOverlay = (p: {
 
   const overlay =
     visible === Visible.HIDDEN ? null : (
-      <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+      <Portal hostName="convOverlay" useFullScreenOverlay={false}>
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
@@ -302,7 +305,7 @@ const useIconAndOverlay = (p: {
             <AudioCounter />
           </Animated.View>
         </Animated.View>
-      </Kb.Portal>
+      </Portal>
     )
 
   return {icon, overlay}
@@ -353,36 +356,32 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
 }
 
 // Hook for interfacing with the native recorder
-const useRecorder = (p: {
-  conversationIDKey: Types.ConversationIDKey
-  ampSV: SVN
-  setShowAudioSend: (s: boolean) => void
-  showAudioSend: boolean
-}) => {
-  const {conversationIDKey, ampSV, setShowAudioSend, showAudioSend} = p
+const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
+  const {ampSV, setShowAudioSend, showAudioSend} = p
   const recordingRef = React.useRef<Audio.Recording | undefined>()
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
-  const dispatch = Container.useDispatch()
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
 
   const stopRecording = React.useCallback(async () => {
-    hasSetupRecording.current && (await setupAudioMode(false))
-    hasSetupRecording.current = false
+    const needsTeardown = hasSetupRecording.current
+    if (needsTeardown) {
+      hasSetupRecording.current = false
+      await setupAudioMode(false)
+    }
     recordEndRef.current = Date.now()
 
     const recording = recordingRef.current
+    recordingRef.current = undefined
     if (recording) {
       recording.setOnRecordingStatusUpdate(null)
       try {
         await recording.stopAndUnloadAsync()
       } catch (e) {
         console.log('Recoding stopping fail', e)
-      } finally {
-        recordingRef.current = undefined
       }
     }
   }, [])
@@ -392,17 +391,19 @@ const useRecorder = (p: {
       await stopRecording()
     } catch {}
     ampTracker.reset()
-    if (pathRef.current) {
+    const path = pathRef.current
+    pathRef.current = ''
+    if (path) {
       try {
-        await FileSystem.deleteAsync(pathRef.current, {idempotent: true})
+        await FileSystem.deleteAsync(path, {idempotent: true})
       } catch {}
-      pathRef.current = ''
     }
     recordStartRef.current = 0
     recordEndRef.current = 0
     setStaged(false)
     setShowAudioSend(false)
   }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
+  const setCommandStatusInfo = C.useChatContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = React.useCallback(() => {
     // calls of this never handle the promise so just handle it here
@@ -420,16 +421,11 @@ const useRecorder = (p: {
       } catch (_error) {
         const error = _error as {message: string}
         logger.info('failed to get audio perms: ' + error.message)
-        dispatch(
-          Chat2Gen.createSetCommandStatusInfo({
-            conversationIDKey,
-            info: {
-              actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-              displayText: `Failed to access audio. ${error.message}`,
-              displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-            },
-          })
-        )
+        setCommandStatusInfo({
+          actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+          displayText: `Failed to access audio. ${error.message}`,
+          displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+        })
       }
       return false
     }
@@ -474,7 +470,9 @@ const useRecorder = (p: {
           .catch(() => {})
       })
     return
-  }, [ampTracker, conversationIDKey, dispatch, onReset, ampSV])
+  }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
+
+  const sendAudioRecording = C.useChatContext(s => s.dispatch.sendAudioRecording)
 
   const sendRecording = React.useCallback(() => {
     const impl = async () => {
@@ -484,14 +482,7 @@ const useRecorder = (p: {
       const path = pathRef.current
       const amps = ampTracker.getBucketedAmps(duration)
       if (duration > 500 && path && amps.length) {
-        dispatch(
-          Chat2Gen.createSendAudioRecording({
-            amps,
-            conversationIDKey,
-            duration,
-            path,
-          })
-        )
+        sendAudioRecording(path, duration, amps)
       } else {
         console.log('bail on too short or not path', duration, path)
       }
@@ -500,7 +491,7 @@ const useRecorder = (p: {
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
+  }, [sendAudioRecording, ampTracker, onReset, stopRecording])
 
   const cancelRecording = React.useCallback(() => {
     onReset()
@@ -543,12 +534,11 @@ const useRecorder = (p: {
 }
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
-  const {conversationIDKey, setShowAudioSend, showAudioSend} = props
+  const {setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
   const {startRecording, cancelRecording, sendRecording, stageRecording, audioSend} = useRecorder({
     ampSV,
-    conversationIDKey,
     setShowAudioSend,
     showAudioSend,
   })

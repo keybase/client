@@ -1,11 +1,10 @@
 import * as React from 'react'
-import {findDOMNode} from 'react-dom'
 import type {Props} from '.'
-import logger from '../../logger'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
+import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
 type State = {
-  targetRect: ClientRect | null
+  targetRect?: MeasureDesktop
 }
 
 class FloatingBox extends React.PureComponent<Props, State> {
@@ -17,28 +16,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
   }
 
   _getTargetRect = () => {
-    let targetRect: ClientRect | null = null
-    if (this.props.attachTo) {
-      const attachTo = this.props.attachTo()
-      if (attachTo instanceof HTMLElement) {
-        return attachTo.getBoundingClientRect()
-      }
-      if (attachTo) {
-        console.warn('Non html element passed to floating box, deprecate this soon')
-        let node
-        try {
-          node = findDOMNode(attachTo)
-        } catch (error_) {
-          const error = error_ as any
-          logger.error(`FloatingBox: unable to find rect to attach to. Error: ${error.message}`)
-          return null
-        }
-        if (node instanceof HTMLElement) {
-          targetRect = node.getBoundingClientRect()
-        }
-      }
-    }
-    return targetRect
+    return this.props.attachTo?.current?.measure?.()
   }
 
   _onHidden = () => {

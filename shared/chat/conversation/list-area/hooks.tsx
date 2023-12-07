@@ -1,45 +1,33 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
 import JumpToRecent from './jump-to-recent'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '@/constants/types'
+import logger from '@/logger'
 
-export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
   const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
-    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    const selected = C.getSelectedConversation()
+    if (selected !== conversationIDKey) {
+      logger.info('mark intially as read bail on not looking at this thread anymore?')
+      return
+    }
+    C.getConvoState(conversationIDKey).dispatch.markThreadAsRead()
+  }, [conversationIDKey])
 
   return {markInitiallyLoadedThreadAsRead}
 }
 
-export const useIsMounted = () => {
-  const isMountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-  return isMountedRef
-}
+export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
+  const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
 
-export const useJumpToRecent = (
-  conversationIDKey: Types.ConversationIDKey,
-  scrollToBottom: () => void,
-  numOrdinals: number
-) => {
-  const dispatch = Container.useDispatch()
-
-  const containsLatestMessage = Container.useSelector(
-    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-  )
-
-  const jumpToRecent = React.useCallback(() => {
+  const onJump = React.useCallback(() => {
     scrollToBottom()
-    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
-  }, [dispatch, conversationIDKey, scrollToBottom])
+    jumpToRecent()
+    toggleThreadSearch(true)
+  }, [toggleThreadSearch, jumpToRecent, scrollToBottom])
 
-  return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={jumpToRecent} />
+  return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }

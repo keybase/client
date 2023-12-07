@@ -15,7 +15,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     private static final String NAME = "NativeLogger";
     private static final String RN_NAME = "ReactNativeJS";
 
-    private static void rawLog(String tag, String jsonLog) {
+    public static void rawLog(String tag, String jsonLog) {
         Log.i(tag + NAME, jsonLog);
     }
 

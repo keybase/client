@@ -1,6 +1,5 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import QRLines from '../../../common-adapters/qr-lines'
+import * as Kb from '@/common-adapters'
+import QRLines from '@/common-adapters/qr-lines'
 import type {Props} from '.'
 // Basically only used for storybook
 
@@ -11,12 +10,12 @@ const QRScan = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.black,
+        backgroundColor: Kb.Styles.globalColors.black,
         height: 200,
         justifyContent: 'center',
         position: 'relative',
@@ -24,7 +23,7 @@ const styles = Styles.styleSheetCreate(
       waiting: {
         alignSelf: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default QRScan

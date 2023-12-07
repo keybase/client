@@ -1,49 +1,50 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import {type Props as ButtonProps} from '../common-adapters/button'
-import openURL from '../util/open-url'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters'
+import {type Props as ButtonProps} from '@/common-adapters/button'
+import openURL from '@/util/open-url'
 
 type InfoIconProps = {
   invisible?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 export const InfoIcon = (props: InfoIconProps) => {
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const dispatch = Container.useDispatch()
-  const onDocumentation = () => openURL('https://book.keybase.io/docs')
-  const onFeedback = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
-      })
-    )
-  }
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onDocumentation = () => openURL('https://book.keybase.io/docs')
+      const onFeedback = () => {
+        navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
+      }
 
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      items={[
-        {onClick: onFeedback, title: 'Send feedback'},
-        {onClick: onDocumentation, title: 'Documentation'},
-      ]}
-      attachTo={attachTo}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-    />
-  ))
+      return (
+        <Kb.FloatingMenu
+          items={[
+            {onClick: onFeedback, title: 'Send feedback'},
+            {onClick: onDocumentation, title: 'Documentation'},
+          ]}
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+        />
+      )
+    },
+    [navigateAppend, loggedIn]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
       <Kb.Icon
         type="iconfont-question-mark"
         onClick={props.invisible ? undefined : toggleShowingPopup}
-        ref={popupAnchor as any}
-        style={Styles.collapseStyles([
-          Styles.desktopStyles.windowDraggingClickable,
+        ref={popupAnchor}
+        style={Kb.Styles.collapseStyles([
+          Kb.Styles.desktopStyles.windowDraggingClickable,
           props.invisible && styles.opacityNone,
           props.style,
         ] as any)}
@@ -54,16 +55,16 @@ export const InfoIcon = (props: InfoIconProps) => {
 }
 
 type HeaderProps = {
-  onBack?: (() => void) | null
+  onBack?: () => void
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
   showInfoIconRow: boolean
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
   negative: boolean
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: (() => void) | null
+  onRightAction?: () => void
 }
 
 // Only used on desktop
@@ -71,7 +72,7 @@ const Header = (props: HeaderProps) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.headerContainer, props.style])}
+    style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
   >
     {(props.showInfoIcon || props.showInfoIconRow) && (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
@@ -84,7 +85,7 @@ const Header = (props: HeaderProps) => (
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             <Kb.Icon
               type="iconfont-arrow-left"
-              color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
+              color={props.negative ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}
               sizeType="Small"
               style={styles.fixIconAlignment}
             />
@@ -124,7 +125,7 @@ type ButtonMeta = {
   onClick: () => void
   type?: ButtonProps['type']
   waiting?: boolean
-  waitingKey?: string | null // makes this a WaitingButton
+  waitingKey?: string // makes this a WaitingButton
 }
 
 type SignupScreenProps = {
@@ -135,15 +136,15 @@ type SignupScreenProps = {
   noBackground?: boolean
   onBack?: () => void
   skipMobileHeader?: boolean
-  headerStyle?: Styles.StylesCrossPlatform
-  containerStyle?: Styles.StylesCrossPlatform
-  contentContainerStyle?: Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  contentContainerStyle?: Kb.Styles.StylesCrossPlatform
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: (() => void) | null
+  onRightAction?: () => void
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean
@@ -159,21 +160,24 @@ export const SignupScreen = (props: SignupScreenProps) => (
     alignItems="center"
     style={styles.whiteBackground}
   >
-    {!Styles.isMobile && (
+    {!Kb.Styles.isMobile && (
       <Header
         onBack={props.onBack}
         title={props.title}
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
         showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
+        style={Kb.Styles.collapseStyles([
+          props.noBackground && styles.whiteHeaderContainer,
+          props.headerStyle,
+        ])}
         negative={!!props.negativeHeader}
         rightActionComponent={props.rightActionComponent}
         rightActionLabel={props.rightActionLabel}
         onRightAction={props.onRightAction}
       />
     )}
-    {Styles.isMobile && !props.skipMobileHeader && (
+    {Kb.Styles.isMobile && !props.skipMobileHeader && (
       <Kb.ModalHeader
         leftButton={
           props.leftAction && props.onBack ? (
@@ -193,11 +197,11 @@ export const SignupScreen = (props: SignupScreenProps) => (
         title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
       />
     )}
-    {Styles.isMobile && props.header}
+    {Kb.Styles.isMobile && props.header}
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.background,
         props.noBackground ? styles.whiteBackground : styles.blueBackground,
         props.containerStyle,
@@ -207,7 +211,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        style={Kb.Styles.collapseStyles([styles.body, props.contentContainerStyle])}
         fullWidth={true}
       >
         {props.children}
@@ -217,7 +221,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
       {!!props.buttons && (
         <Kb.ButtonBar
           direction="column"
-          fullWidth={Styles.isMobile && !Styles.isTablet}
+          fullWidth={Kb.Styles.isMobile && !Kb.Styles.isTablet}
           style={styles.buttonBar}
         >
           {props.buttons.map(b =>
@@ -252,16 +256,16 @@ export const errorBanner = (error: string) =>
     </Kb.Banner>
   ) : null
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       backButton: {
-        bottom: Styles.globalMargins.small,
-        left: Styles.globalMargins.small,
+        bottom: Kb.Styles.globalMargins.small,
+        left: Kb.Styles.globalMargins.small,
         position: 'absolute',
       },
       backText: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
       },
       background: {
         flex: 1,
@@ -274,16 +278,16 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       blueBackground: {
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
       body: {
-        ...Styles.padding(
-          Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-          Styles.globalMargins.small
+        ...Kb.Styles.padding(
+          Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
+          Kb.Styles.globalMargins.small
         ),
         flex: 1,
       },
-      button: Styles.platformStyles({
+      button: Kb.Styles.platformStyles({
         isElectron: {
           height: 32,
           width: 368,
@@ -296,12 +300,12 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 368,
         },
       }),
-      buttonBar: Styles.platformStyles({
+      buttonBar: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+          paddingBottom: Kb.Styles.globalMargins.xlarge - Kb.Styles.globalMargins.tiny, // tiny added inside buttonbar
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
       }),
       fixIconAlignment: {
@@ -309,47 +313,47 @@ const styles = Styles.styleSheetCreate(
         top: 2,
       },
       headerContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       infoIconContainer: {
         justifyContent: 'flex-end',
-        ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
       },
       opacityNone: {
         opacity: 0,
       },
-      rightAction: Styles.platformStyles({
+      rightAction: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
           alignSelf: 'flex-end',
           bottom: 0,
           justifyContent: 'center',
-          paddingRight: Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
           position: 'absolute',
           right: 0,
           top: 0,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      rightActionButton: Styles.platformStyles({
+      rightActionButton: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
-          right: Styles.globalMargins.small,
+          right: Kb.Styles.globalMargins.small,
           top: 10,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
       titleContainer: {
-        ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, Kb.Styles.globalMargins.small),
         position: 'relative',
       },
       whiteBackground: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       whiteHeaderContainer: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
       },
-    } as const)
+    }) as const
 )

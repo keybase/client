@@ -1,8 +1,7 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {formatTimeForMessages} from '../../../util/timestamp'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import {formatTimeForMessages} from '@/util/timestamp'
 
 const hitHeight = 30
 
@@ -14,7 +13,7 @@ type SearchHit = {
 
 export type Props = {
   clearInitialText: () => void
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   hits: Array<SearchHit>
   initialText?: string
   loadSearchHit: (hit: number) => void
@@ -22,8 +21,8 @@ export type Props = {
   onSearch: (toFind: string) => void
   onToggleThreadSearch: () => void
   selfHide: () => void
-  status: Types.ThreadSearchStatus
-  style?: Styles.StylesCrossPlatform
+  status?: T.Chat.ThreadSearchStatus
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 type State = {
@@ -100,7 +99,7 @@ class ThreadSearch extends React.Component<Props, State> {
   }
 
   render() {
-    const Searcher = Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
+    const Searcher = Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
     return (
       <Searcher
         {...this.props}
@@ -120,7 +119,7 @@ class ThreadSearch extends React.Component<Props, State> {
 }
 
 type SearchProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   submitSearch: () => void
   selectResult: (arg0: number) => void
   onEnter: () => void
@@ -221,13 +220,13 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                       : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                   <Kb.Icon
-                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onUp : null}
+                    color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                    onClick={!noResults ? this.props.onUp : undefined}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
-                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onDown : null}
+                    color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                    onClick={!noResults ? this.props.onDown : undefined}
                     type="iconfont-arrow-down"
                   />
                 </Kb.Box2>
@@ -286,12 +285,12 @@ const ThreadSearchMobile = (props: SearchProps & Props) => (
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Icon
-          color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+          color={props.hits.length > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
           onClick={props.onUp}
           type="iconfont-arrow-up"
         />
         <Kb.Icon
-          color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+          color={props.hits.length > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
           onClick={props.onDown}
           type="iconfont-arrow-down"
         />
@@ -302,63 +301,63 @@ const ThreadSearchMobile = (props: SearchProps & Props) => (
 
 export default ThreadSearch
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      done: {color: Styles.globalColors.blueDark},
+      done: {color: Kb.Styles.globalColors.blueDark},
       doneContainer: {flexShrink: 0},
-      hitList: Styles.platformStyles({
+      hitList: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.blueLighter3,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
           borderBottom: '1px solid',
-          borderColor: Styles.globalColors.black_20,
+          borderColor: Kb.Styles.globalColors.black_20,
           height: 4 * hitHeight,
         },
       }),
       hitRow: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: hitHeight,
         justifyContent: 'space-between',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-      hitSummary: Styles.platformStyles({
+      hitSummary: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline',
           flex: 1,
-          marginLeft: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         },
       }),
-      inputContainer: Styles.platformStyles({
+      inputContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_20,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderColor: Kb.Styles.globalColors.black_20,
+          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
           flex: 1,
           justifyContent: 'space-between',
         },
         isElectron: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
-        isMobile: {padding: Styles.globalMargins.tiny},
+        isMobile: {padding: Kb.Styles.globalMargins.tiny},
       }),
       outerContainer: {
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
         justifyContent: 'space-between',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       progress: {height: 16},
       queryContainer: {flex: 1},
-      results: {color: Styles.globalColors.black_50},
+      results: {color: Kb.Styles.globalColors.black_50},
       resultsContainer: {flexShrink: 0},
       time: {flexShrink: 0},
-    } as const)
+    }) as const
 )

@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   username: string
@@ -25,18 +24,18 @@ const MenuHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
-  header: Styles.platformStyles({
+  header: Kb.Styles.platformStyles({
     isElectron: {
-      padding: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.small,
     },
-    isMobile: Styles.padding(
-      Styles.globalMargins.medium,
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.small
+    isMobile: Kb.Styles.padding(
+      Kb.Styles.globalMargins.medium,
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.small
     ),
   }),
 }))

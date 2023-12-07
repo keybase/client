@@ -1,46 +1,41 @@
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RowSizes from './sizes'
-import * as Styles from '../../../styles'
-import * as TabsContants from '../../../constants/tabs'
-import * as TeamConstants from '../../../constants/teams'
-import type * as TeamTypes from '../../../constants/types/teams'
-import TeamMenu from '../../conversation/info-panel/menu/container'
+import type * as T from '@/constants/types'
+import TeamMenu from '@/chat/conversation/info-panel/menu/container'
 
 type Props = {
   navKey: string
   teamname: string
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
-  const dispatch = Container.useDispatch()
+  const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
 
-  const badgeSubscribe = Container.useSelector(
-    state => !TeamConstants.isTeamWithChosenChannels(state, teamname)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <C.ChatProvider id={C.dummyConversationIDKey}>
+          <TeamMenu
+            attachTo={attachTo}
+            visible={true}
+            onHidden={toggleShowingPopup}
+            teamID={teamID}
+            hasHeader={true}
+            isSmallTeam={false}
+          />
+        </C.ChatProvider>
+      )
+    },
+    [teamID]
   )
-
-  const onClick = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        fromKey: navKey,
-        path: [TabsContants.teamsTab, {props: {teamID}, selected: 'team'}],
-      })
-    )
-
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <TeamMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      teamID={teamID}
-      hasHeader={true}
-      isSmallTeam={false}
-    />
-  ))
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
@@ -65,72 +60,72 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       >
         <Kb.Icon
           className="hover_contained_color_black"
-          fixOverdraw={!Styles.isTablet}
-          color={Styles.globalColors.black_35}
+          fixOverdraw={!Kb.Styles.isTablet}
+          color={Kb.Styles.globalColors.black_35}
           type="iconfont-gear"
         />
-        <Kb.Box style={Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
+        <Kb.Box style={Kb.Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
       </Kb.ClickableBox>
     </Kb.Box2>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
         height: 10,
         position: 'absolute',
-        right: Styles.isMobile ? 4 : -4,
-        top: Styles.isMobile ? 7 : -2,
+        right: Kb.Styles.isMobile ? 4 : -4,
+        top: Kb.Styles.isMobile ? 7 : -2,
         width: 10,
       },
       badgeVisible: {
-        backgroundColor: Styles.globalColors.blue,
-        borderColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blue,
+        borderColor: Kb.Styles.globalColors.blueGrey,
         borderRadius: 5,
         borderStyle: `solid`,
         borderWidth: 2,
       },
-      showMenu: Styles.platformStyles({
+      showMenu: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
         },
         isElectron: {
+          alignSelf: 'center',
           position: 'relative',
-          top: Styles.globalMargins.xxtiny,
         },
         isMobile: {
           marginRight: -6,
           padding: 6,
         },
       }),
-      team: Styles.platformStyles({
+      team: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'center',
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
           letterSpacing: 0.2,
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
-        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
+        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       }),
-      teamRowContainer: Styles.platformStyles({
+      teamRowContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
         },
         isElectron: {
-          ...Styles.desktopStyles.clickable,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          ...Kb.Styles.desktopStyles.clickable,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default BigTeamHeader

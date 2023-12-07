@@ -1,46 +1,35 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import * as FsConstants from '../../../constants/fs'
-import * as FsTypes from '../../../constants/types/fs'
-import * as Kb from '../../../common-adapters'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Separator from './separator'
-import {ConvoIDContext} from './ids-context'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
-import shallowEqual from 'shallowequal'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
-  const createConversationError = Container.useSelector(state => state.chat2.createConversationError)
-  const dispatch = Container.useDispatch()
+  const createConversationError = C.useChatState(s => s.createConversationError)
+  const createConversation = C.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: Array<string>) => {
-      dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers}))
+      createConversation(allowedUsers)
     },
-    [dispatch]
+    [createConversation]
   )
 
-  const _onBack = React.useCallback(() => {
-    dispatch(Chat2Gen.createNavigateToInbox())
-  }, [dispatch])
-
-  const onBack = Styles.isMobile ? _onBack : null
+  const onBack = C.useChatState(s => (Kb.Styles.isMobile ? s.dispatch.navigateToInbox : null))
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
   let createConversationErrorHeader = ''
-  let onCreateWithoutThem: (() => void) | null = null
+  let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
-    if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+    if (code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
       if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
         // One-on-one conversation.
         createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
@@ -70,7 +59,7 @@ const ErrorMessage = () => {
       gapStart={true}
       centerChildren={true}
     >
-      <Kb.Icon color={Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
       <Kb.Text center={true} style={styles.errorText} type="Header">
         {createConversationErrorHeader}
       </Kb.Text>
@@ -79,8 +68,8 @@ const ErrorMessage = () => {
           {createConversationDisallowedUsers.map((username, idx) => (
             <Kb.ListItem2
               key={username}
-              type={Styles.isMobile ? 'Large' : 'Small'}
-              icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+              type={Kb.Styles.isMobile ? 'Large' : 'Small'}
+              icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
               firstItem={idx === 0}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -94,21 +83,19 @@ const ErrorMessage = () => {
       <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
         {createConversationErrorDescription}
       </Kb.Text>
-      <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} fullWidth={true} style={styles.buttonBar}>
+      <Kb.ButtonBar
+        direction={Kb.Styles.isMobile ? 'column' : 'row'}
+        fullWidth={true}
+        style={styles.buttonBar}
+      >
         {onCreateWithoutThem && (
-          <Kb.WaitingButton
-            type="Default"
-            label="Create without them"
-            onClick={onCreateWithoutThem}
-            waitingKey={null}
-          />
+          <Kb.WaitingButton type="Default" label="Create without them" onClick={onCreateWithoutThem} />
         )}
         {onBack && (
           <Kb.WaitingButton
             type={onCreateWithoutThem ? 'Dim' : 'Default'}
             label={onCreateWithoutThem ? 'Cancel' : 'Okay'}
             onClick={onBack}
-            waitingKey={null}
           />
         )}
       </Kb.ButtonBar>
@@ -117,67 +104,66 @@ const ErrorMessage = () => {
 }
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const dispatch = Container.useDispatch()
-
-  const data = Container.useSelector(state => {
-    const username = state.config.username
-    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
-    const hasLoadedEver = ordinals !== undefined
-    const ordinal = ordinals?.[0] ?? 0
-
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-    const loadMoreType =
-      state.chat2.moreToLoadMap.get(conversationIDKey) !== false
-        ? ('moreToLoad' as const)
-        : ('noMoreToLoad' as const)
-
-    return {
-      hasLoadedEver,
-      loadMoreType,
-      ordinal,
-      retentionPolicy,
-      supersedes,
-      teamRetentionPolicy,
-      teamType,
-      username,
-    }
-  }, shallowEqual)
-  const {hasLoadedEver, loadMoreType, ordinal, retentionPolicy} = data
-  const {supersedes, teamType, teamRetentionPolicy, username} = data
+  const username = C.useCurrentUserState(s => s.username)
+  const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const hasLoadedEver = ordinals !== undefined
+      const ordinal = ordinals?.[0] ?? 0
+      const meta = s.meta
+      const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+      return {
+        hasLoadedEver,
+        loadMoreType,
+        ordinal,
+        retentionPolicy,
+        supersedes,
+        teamRetentionPolicy,
+        teamType,
+        username,
+      }
+    })
+  )
+  const {hasLoadedEver, ordinal, retentionPolicy} = data
+  const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
+  const [lastOrdinal, setLastOrdinal] = React.useState(ordinal)
 
-  React.useEffect(() => {
+  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
+  if (ordinal !== lastOrdinal) {
     setAllowDigging(false)
-    const id = setTimeout(() => {
+    setLastOrdinal(ordinal)
+    digTimerRef.current && clearTimeout(digTimerRef.current)
+    digTimerRef.current = setTimeout(() => {
       setAllowDigging(true)
     }, 3000)
-    return () => clearTimeout(id)
-  }, [ordinal])
+  }
+
+  React.useEffect(() => {
+    return () => {
+      digTimerRef.current && clearTimeout(digTimerRef.current)
+    }
+  }, [])
 
   // could not expose this and just return an enum for the is*convos
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all,
-    (a, b) => shallowEqual(a, b)
-  )
+  const participantInfoAll = C.useChatContext(s => s.participants.all)
 
-  let pendingState: 'waiting' | 'error' | 'done'
-  switch (conversationIDKey) {
-    case Constants.pendingWaitingConversationIDKey:
-      pendingState = 'waiting'
-      break
-    case Constants.pendingErrorConversationIDKey:
-      pendingState = 'error'
-      break
-    default:
-      pendingState = 'done'
-      break
-  }
+  const pendingState = C.useChatContext(s => {
+    switch (s.id) {
+      case C.Chat.pendingWaitingConversationIDKey:
+        return 'waiting'
+      case C.Chat.pendingErrorConversationIDKey:
+        return 'error'
+      default:
+        return 'done'
+    }
+  })
+
   const showTeamOffer =
     hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
-  const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
+  const hasOlderResetConversation = supersedes !== C.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
     retentionPolicy.type !== 'retain' &&
@@ -188,18 +174,14 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
-    )
-  }, [dispatch, username])
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
+  }, [username])
 
   return (
     <Kb.Box>
-      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && (
-        <RetentionNotice conversationIDKey={conversationIDKey} />
-      )}
+      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box style={styles.spacer} />
-      {hasOlderResetConversation && <ProfileResetNotice conversationIDKey={conversationIDKey} />}
+      {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
@@ -217,7 +199,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
       {showTeamOffer && (
         <Kb.Box style={styles.more}>
-          <MakeTeamCard conversationIDKey={conversationIDKey} />
+          <MakeTeamCard />
         </Kb.Box>
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
@@ -228,7 +210,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
-      {!Styles.isMobile || usingFlashList ? (
+      {!Kb.Styles.isMobile || usingFlashList ? (
         <Separator trailingItem={ordinal} leadingItem={undefined} />
       ) : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useReduxFast
@@ -238,19 +220,19 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      buttonBar: {padding: Styles.globalMargins.small},
-      errorText: {padding: Styles.globalMargins.small},
+      buttonBar: {padding: Kb.Styles.globalMargins.small},
+      errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        paddingBottom: Styles.globalMargins.medium,
+        paddingBottom: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
-      spacer: {height: Styles.globalMargins.small},
-    } as const)
+      spacer: {height: Kb.Styles.globalMargins.small},
+    }) as const
 )
 
 export default SpecialTopMessage

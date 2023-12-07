@@ -1,9 +1,9 @@
-import * as RPCTypes from '../constants/types/rpc-gen'
-import type * as Types from '../constants/types/pinentry'
+import * as T from '@/constants/types'
+import type * as Constants from '@/constants/pinentry'
 
 export type ProxyProps = {
   darkMode: boolean
-} & Types.State
+} & Constants.Store
 
 type SerializeProps = ProxyProps
 export type DeserializeProps = ProxyProps
@@ -17,16 +17,19 @@ const initialState: DeserializeProps = {
     label: '',
     readonly: false,
   },
-  type: RPCTypes.PassphraseType.none,
+  type: T.RPCGen.PassphraseType.none,
   windowTitle: '',
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
 
 export const deserialize = (
-  state: DeserializeProps = initialState,
+  _state: DeserializeProps | undefined,
   props: SerializeProps
-): DeserializeProps => ({
-  ...state,
-  ...props,
-})
+): DeserializeProps => {
+  const state = _state ?? initialState
+  return {
+    ...state,
+    ...props,
+  }
+}

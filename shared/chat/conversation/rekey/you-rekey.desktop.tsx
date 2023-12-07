@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from './you-rekey'
 
 const YouRekey = ({onRekey}: Props) => {
@@ -7,8 +6,8 @@ const YouRekey = ({onRekey}: Props) => {
     <Kb.Box style={styles.container}>
       <Kb.Box
         style={{
-          ...Styles.globalStyles.flexBoxRow,
-          backgroundColor: Styles.globalColors.red,
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          backgroundColor: Kb.Styles.globalColors.red,
           justifyContent: 'center',
         }}
       >
@@ -27,17 +26,17 @@ const YouRekey = ({onRekey}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'stretch',
-        backgroundColor: Styles.globalColors.blueDarker2,
+        backgroundColor: Kb.Styles.globalColors.blueDarker2,
         flex: 1,
         justifyContent: 'flex-start',
       },
-    } as const)
+    }) as const
 )
 
 export default YouRekey

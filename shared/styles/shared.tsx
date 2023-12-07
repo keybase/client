@@ -1,7 +1,7 @@
 import {themed as globalColors} from './colors'
-import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '../constants/platform'
+import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-import type {Background} from '../common-adapters/text'
+import type {Background} from '@/common-adapters/text'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -77,13 +77,15 @@ type Unified<T> = {
   [P in keyof T]: P extends 'lineHeight' ? _StylesCrossPlatform[P] : T[P]
 }
 function unifyStyles<T extends {}>(s_: T): Unified<T> {
-  const s: any = s_
+  const s: {[key: string]: unknown} = s_
   return {
     ...s,
-    ...(Object.prototype.hasOwnProperty.call(s, 'lineHeight') && typeof s.lineHeight === 'number'
-      ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
+    ...(Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number'
+      ? ({
+          lineHeight: isMobile ? s['lineHeight'] : s['lineHeight'] === 0 ? '0' : `${s['lineHeight']}px`,
+        } as const)
       : {}),
-  }
+  } as Unified<T>
 }
 
 // This is a better literal to literal inferrer but is too slow
@@ -143,7 +145,7 @@ export function platformStyles<
     isAndroid?: _StylesMobile
     isElectron?: _StylesDesktop
   },
-  OUT = _StylesCrossPlatform
+  OUT = _StylesCrossPlatform,
 >(o: T): OUT {
   return {
     ...(o.common ? unifyStyles(o.common) : {}),

@@ -1,49 +1,47 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/teams'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
-import * as ProfileGen from '../../../actions/profile-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Types from '../../../constants/types/teams'
 import RoleButton from '../../role-button'
-import isEqual from 'lodash/isEqual'
-import logger from '../../../logger'
+import logger from '@/logger'
 import {FloatingRolePicker} from '../../role-picker'
-import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
-import {pluralize} from '../../../util/string'
-import {useAllChannelMetas} from '../../common/channel-hooks'
-import {useTeamDetailsSubscribe} from '../../subscriber'
-import {createAnimatedComponent} from '../../../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../../../common-adapters/section-list'
+import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp'
+import {pluralize} from '@/util/string'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
-type OwnProps = Container.RouteProps<'teamMember'>
+type OwnProps = {
+  teamID: T.Teams.TeamID
+  username: string
+}
 
 type TeamTreeRowNotIn = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
   memberCount?: number
   joinTime?: number
   canAdminister: boolean
 }
 type TeamTreeRowIn = {
-  role: Types.TeamRoleType
+  role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
+type Either = TeamTreeRowNotIn & {role?: T.Teams.TeamRoleType}
 
 const getMemberships = (
-  state: Container.TypedState,
-  teamIDs: Array<Types.TeamID>,
+  state: C.Teams.State,
+  teamIDs: Array<T.Teams.TeamID>,
   username: string
-): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
-  const results = new Map<Types.TeamID, Types.TreeloaderSparseMemberInfo>()
+): Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo> => {
+  const results = new Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>()
   teamIDs.forEach(teamID => {
-    const info = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+    const info = C.Teams.maybeGetSparseMemberInfo(state, teamID, username)
     if (info) {
       results.set(teamID, info)
     }
@@ -51,46 +49,41 @@ const getMemberships = (
   return results
 }
 
-type TreeMembershipOK = {s: RPCTypes.TeamTreeMembershipStatus.ok; ok: RPCTypes.TeamTreeMembershipValue}
-const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
-  const errors: Array<RPCTypes.TeamTreeMembership> = []
+type TreeMembershipOK = {s: T.RPCGen.TeamTreeMembershipStatus.ok; ok: T.RPCGen.TeamTreeMembershipValue}
+const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
+  const errors: Array<T.RPCGen.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = Container.useSelector(state =>
-    state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
-  )
-  const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
-  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+  const memberships = C.useTeamsState(s => s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username))
+  const roleMap = C.useTeamsState(s => s.teamRoleMap.roles)
+  const teamMetas = C.useTeamsState(s => s.teamMeta)
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to
-  // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
+  // C.Teams.maybeGetSparseMemberInfo which opportunistically sources the information from the
   // teamDetails map if present, so as to show up-to-date information.
-  const teamIDs: Array<Types.TeamID> =
+  const teamIDs: Array<T.Teams.TeamID> =
     memberships?.memberships
-      .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
+      .filter(m => m.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = Container.useSelector(
-    state => getMemberships(state, teamIDs, username),
-    isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
-  )
+  const upToDateSparseMemberInfos = C.useTeamsState(C.useDeep(s => getMemberships(s, teamIDs, username)))
 
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}
   }
 
   for (const membership of memberships.memberships) {
-    const teamname = membership?.teamName
+    const teamname = membership.teamName
 
-    if (RPCTypes.TeamTreeMembershipStatus.ok === membership.result.s) {
+    if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
       const sparseMemberInfo = upToDateSparseMemberInfos.get(teamID)
       if (!sparseMemberInfo) {
         continue
       }
 
-      const ops = Constants.deriveCanPerform(roleMap.get(teamID))
+      const ops = C.Teams.deriveCanPerform(roleMap.get(teamID))
       const row = {
         canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
@@ -101,7 +94,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
         teamname,
       }
 
-      if ('none' != sparseMemberInfo.type) {
+      if ('none' !== sparseMemberInfo.type) {
         nodesIn.push({
           role: sparseMemberInfo.type,
           ...row,
@@ -109,7 +102,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
       } else {
         nodesNotIn.push(row)
       }
-    } else if (RPCTypes.TeamTreeMembershipStatus.error == membership.result.s) {
+    } else if (T.RPCGen.TeamTreeMembershipStatus.error === membership.result.s) {
       errors.push(membership)
     }
   }
@@ -120,34 +113,31 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   }
 }
 
-const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
-  const dispatch = Container.useDispatch()
+const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = Container.useSafeNavigation()
-  const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
+  const waiting = C.useAnyWaiting(waitingKey)
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   })
   return wasWaiting && !waiting
 }
 
 type Extra = {title: React.ReactElement}
-type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
+type Section = SectionType<Either, Extra>
 
-const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList as any)
+const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList)
 
 const TeamMember = (props: OwnProps) => {
-  const dispatch = Container.useDispatch()
-  const username = props.route.params?.username ?? ''
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-
-  const isMe = username == Container.useSelector(state => state.config.username)
-  const loading = Container.useSelector(state => {
-    const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
-    if (!memberships || !memberships.expectedCount) {
+  const username = props.username
+  const teamID = props.teamID
+  const isMe = username === C.useCurrentUserState(s => s.username)
+  const loading = C.useTeamsState(s => {
+    const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
+    if (!memberships?.expectedCount) {
       return true
     }
     const got = memberships.memberships.length
@@ -158,10 +148,12 @@ const TeamMember = (props: OwnProps) => {
     return got < want
   })
 
+  const loadTeamTree = C.useTeamsState(s => s.dispatch.loadTeamTree)
+
   // Load up the memberships when the page is opened
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
-  }, [teamID, username, dispatch])
+    loadTeamTree(teamID, username)
+  }, [loadTeamTree, teamID, username])
 
   const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
@@ -179,12 +171,11 @@ const TeamMember = (props: OwnProps) => {
   const nodesInSection: Section = {
     data: nodesIn,
     key: 'section-nodes',
-    // @ts-ignore TODO differentiate the type
-    renderItem: ({item, index}: {item: TeamTreeRowIn; index: number}) => (
+    renderItem: ({item, index}) => (
       <NodeInRow
-        node={item}
+        node={item as TeamTreeRowIn}
         idx={index}
-        isParentTeamMe={isMe && teamID == item.teamID}
+        isParentTeamMe={isMe && teamID === item.teamID}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -203,9 +194,8 @@ const TeamMember = (props: OwnProps) => {
   const nodesNotInSection = {
     data: nodesNotIn,
     key: 'section-add-nodes',
-    // @ts-ignore TODO differentiate the type
-    renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <NodeNotInRow node={item} idx={index} username={username} />
+    renderItem: ({item, index}: {item: Either; index: number}) => (
+      <NodeNotInRow node={item as TeamTreeRowNotIn} idx={index} username={username} />
     ),
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
@@ -225,14 +215,14 @@ const TeamMember = (props: OwnProps) => {
             content={[
               'The following teams could not be loaded. ',
               {
-                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                onClick: () => loadTeamTree(teamID, username),
                 text: 'Click to reload.',
               },
             ]}
           />
           <>
             {errors.map((error, idx) => {
-              if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+              if (T.RPCGen.TeamTreeMembershipStatus.error !== error.result.s) {
                 return <></>
               }
 
@@ -248,7 +238,7 @@ const TeamMember = (props: OwnProps) => {
                 const last = failedAt.pop()
                 failedAtStr = failedAt.join(', ') + ', and ' + last
               } else {
-                failedAtStr = failedAt[0]
+                failedAtStr = failedAt[0] ?? ''
               }
               return (
                 <Kb.BannerParagraph
@@ -272,11 +262,6 @@ const TeamMember = (props: OwnProps) => {
   )
 }
 
-TeamMember.navigationOptions = {
-  headerHideBorder: true,
-  headerTitle: '',
-}
-
 type NodeNotInRowProps = {
   idx: number
   node: TeamTreeRowNotIn
@@ -284,32 +269,19 @@ type NodeNotInRowProps = {
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
-  const onAdd = (role: Types.TeamRoleType) =>
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: true,
-        teamID: props.node.teamID,
-        users: [{assertion: props.username, role}],
-      })
-    )
+  const onAddWaitingKey = C.Teams.addMemberWaitingKey(props.node.teamID, props.username)
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const onAdd = (role: T.Teams.TeamRoleType) => {
+    addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
+  }
   const openTeam = React.useCallback(
-    () =>
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
-        })
-      ),
-    [props.node.teamID, dispatch, nav]
+    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
+    [props.node.teamID, nav]
   )
-
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = C.useTeamsState(s =>
+    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -320,15 +292,15 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="stretch"
-        style={Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
+        style={Kb.Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
       >
         <Kb.Box2
           direction="horizontal"
           alignSelf="flex-start"
           alignItems="center"
           gap="tiny"
-          style={Styles.collapseStyles([
-            Styles.globalStyles.flexGrow,
+          style={Kb.Styles.collapseStyles([
+            Kb.Styles.globalStyles.flexGrow,
             styles.inviteTeamInfo,
             styles.contentCollapsedFixedHeight,
           ] as const)}
@@ -337,8 +309,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexOne,
+            style={Kb.Styles.collapseStyles([
+              Kb.Styles.globalStyles.flexOne,
               styles.membershipTeamText,
               styles.contentCollapsedFixedHeight,
             ])}
@@ -380,9 +352,9 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
-const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
-  const lastActivity = Container.useSelector(state =>
-    Constants.getTeamMemberLastActivity(state, props.teamID, props.username)
+const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username: string}) => {
+  const lastActivity = C.useTeamsState(s =>
+    C.Teams.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
 
   return (
@@ -410,72 +382,59 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   useTeamDetailsSubscribe(props.node.teamID)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddToChannels = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {teamID: props.node.teamID, usernames: [props.username]},
-            selected: 'teamAddToChannels',
-          },
-        ],
-      })
-    )
-  const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
+    nav.safeNavigateAppend({
+      props: {teamID: props.node.teamID, usernames: [props.username]},
+      selected: 'teamAddToChannels',
+    })
+  const onKickOutWaitingKey = C.Teams.removeMemberWaitingKey(props.node.teamID, props.username)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const onKickOut = () => {
-    dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
+    removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   }
 
   const openTeam = React.useCallback(
-    () =>
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
-        })
-      ),
-    [props.node.teamID, dispatch, nav]
+    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
+    [props.node.teamID, nav]
   )
 
   const {expanded, setExpanded} = props
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
+  const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const onChangeRole = (role: Types.TeamRoleType) => {
+  const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
+  const onChangeRole = (role: T.Teams.TeamRoleType) => {
     setRole(role)
-    dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, usernames: [props.username]}))
+    editMembership(props.node.teamID, [props.username], role)
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   }
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = C.useTeamsState(s =>
+    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.node.teamID))
-  const isMe = props.username == Container.useSelector(state => state.config.username)
-  const changingRole = Container.useAnyWaiting(
-    Constants.editMembershipWaitingKey(props.node.teamID, props.username)
-  )
-  const loadingActivity = Container.useAnyWaiting(
-    Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
+  const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
+  const isMe = props.username === C.useCurrentUserState(s => s.username)
+  const changingRole = C.useAnyWaiting(C.Teams.editMembershipWaitingKey(props.node.teamID, props.username))
+  const loadingActivity = C.useAnyWaiting(
+    C.Teams.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !Container.useSelector(s => Constants.isBigTeam(s, props.node.teamID))
-
+  const isSmallTeam = !C.useChatState(s => C.Chat.isBigTeam(s, props.node.teamID))
   const channelsJoined = isSmallTeam
-    ? []
+    ? ''
     : Array.from(channelMetas)
         .map(([_, {channelname}]) => channelname)
         .join(', #')
 
   const rolePicker = props.node.canAdminister ? (
     <RoleButton
-      containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+      containerStyle={Kb.Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
       onClick={() => setOpen(true)}
       selectedRole={role}
@@ -484,7 +443,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const myRole = Container.useSelector(s => Constants.getRole(s, props.node.teamID))
+  const myRole = C.useTeamsState(s => C.Teams.getRole(s, props.node.teamID))
   const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
@@ -505,12 +464,12 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.expandIcon])}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 {flexGrow: 1, flexShrink: 1},
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
@@ -528,7 +487,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   alignSelf="flex-start"
                   alignItems="center"
                   gap="tiny"
-                  style={Styles.collapseStyles([
+                  style={Kb.Styles.collapseStyles([
                     !expanded && styles.contentCollapsedFixedHeight,
                     expanded && styles.membershipContentExpanded,
                   ] as const)}
@@ -537,7 +496,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   <Kb.Box2
                     direction="vertical"
                     alignItems="flex-start"
-                    style={Styles.collapseStyles([
+                    style={Kb.Styles.collapseStyles([
                       styles.membershipTeamText,
                       expanded && styles.membershipTeamTextExpanded,
                       !expanded && styles.contentCollapsedFixedHeight,
@@ -553,7 +512,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
-                {expanded && Styles.isPhone && (
+                {expanded && Kb.Styles.isPhone && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
                     {rolePicker}
                   </Kb.Box2>
@@ -563,7 +522,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Icon
                       type="iconfont-typing"
                       sizeType="Small"
-                      color={Styles.globalColors.black_20}
+                      color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
                     <LastActivity
@@ -578,12 +537,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Icon
                       type="iconfont-hash"
                       sizeType="Small"
-                      color={Styles.globalColors.black_20}
+                      color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"
-                      style={Styles.globalStyles.flexOne}
+                      style={Kb.Styles.globalStyles.flexOne}
                       lineClamp={4}
                       ellipsizeMode="tail"
                     >
@@ -596,7 +555,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     direction="horizontal"
                     gap="tiny"
                     alignSelf="flex-start"
-                    gapEnd={Styles.isMobile}
+                    gapEnd={Kb.Styles.isMobile}
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (
@@ -622,7 +581,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && (
+            {!Kb.Styles.isPhone && (
               <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
                 {rolePicker}
               </Kb.Box2>
@@ -637,21 +596,20 @@ const NodeInRow = (props: NodeInRowProps) => {
 // exported for stories
 export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-  const yourUsername = Container.useSelector(s => s.config.username)
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const yourUsername = C.useCurrentUserState(s => s.username)
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
-  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username}))
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
+  const onViewProfile = () => showUserProfile(username)
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
-  const member = teamDetails.members.get(username)
+  const member = teamDetails?.members.get(username)
   if (!member) {
     if (!leaving) {
       // loading? should never happen.
@@ -661,7 +619,7 @@ export const TeamMemberHeader = (props: Props) => {
   }
 
   const buttons = (
-    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Styles.isPhone ? 'flex-start' : 'flex-end'}>
+    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Kb.Styles.isPhone ? 'flex-start' : 'flex-end'}>
       <Kb.Button small={true} label="Chat" onClick={onChat} />
       <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
       {username !== yourUsername && <BlockDropdown username={username} />}
@@ -675,12 +633,12 @@ export const TeamMemberHeader = (props: Props) => {
           <Kb.Box2
             direction="horizontal"
             alignItems="center"
-            gap={Styles.isPhone ? 'tiny' : 'xtiny'}
+            gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}
             alignSelf="flex-start"
           >
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
             <Kb.Text
-              type={Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
+              type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
             >
               {teamMeta.teamname}
@@ -708,9 +666,9 @@ export const TeamMemberHeader = (props: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && buttons}
+            {!Kb.Styles.isPhone && buttons}
           </Kb.Box2>
-          {Styles.isPhone && buttons}
+          {Kb.Styles.isPhone && buttons}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -718,23 +676,25 @@ export const TeamMemberHeader = (props: Props) => {
 }
 
 const BlockDropdown = (props: {username: string}) => {
-  const dispatch = Container.useDispatch()
+  const {username} = props
   const nav = Container.useSafeNavigation()
-  const onBlock = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+        />
+      )
+    },
+    [nav, username]
+  )
+  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
@@ -749,7 +709,7 @@ const BlockDropdown = (props: {username: string}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
     left: 0,
@@ -757,16 +717,16 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flex: 1,
     position: 'relative',
     width: '100%',
   },
-  contentCollapsedFixedHeight: Styles.platformStyles({
+  contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
     isPhone: {height: 64},
   }),
-  expandIcon: Styles.platformStyles({
+  expandIcon: Kb.Styles.platformStyles({
     common: {
       alignItems: 'center',
       alignSelf: 'flex-start',
@@ -774,80 +734,80 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 0,
       height: 48,
       justifyContent: 'center',
-      padding: Styles.globalMargins.tiny,
+      padding: Kb.Styles.globalMargins.tiny,
       width: 40,
     },
     isPhone: {
       height: 64,
       padding: 0,
-      width: 10 + Styles.globalMargins.small * 2, // 16px side paddings
+      width: 10 + Kb.Styles.globalMargins.small * 2, // 16px side paddings
     },
   }),
-  floatingContainerStyle: Styles.platformStyles({
+  floatingContainerStyle: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
-      right: Styles.globalMargins.tiny,
+      right: Kb.Styles.globalMargins.tiny,
     },
   }),
-  headerContainer: Styles.platformStyles({
+  headerContainer: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
-      paddingBottom: Styles.globalMargins.small,
+      backgroundColor: Kb.Styles.globalColors.white,
+      paddingBottom: Kb.Styles.globalMargins.small,
     },
-    isElectron: {...Styles.desktopStyles.windowDraggingClickable},
-    isPhone: {paddingTop: Styles.globalMargins.small},
-    isTablet: {paddingTop: Styles.globalMargins.small},
+    isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
+    isPhone: {paddingTop: Kb.Styles.globalMargins.small},
+    isTablet: {paddingTop: Kb.Styles.globalMargins.small},
   }),
-  headerContent: {...Styles.padding(0, Styles.globalMargins.small)},
-  headerText: Styles.platformStyles({
+  headerContent: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
+  headerText: Kb.Styles.platformStyles({
     common: {width: 127},
     isPhone: {flex: 1},
   }),
-  headerTextContainer: Styles.platformStyles({
-    isPhone: {paddingBottom: Styles.globalMargins.tiny},
+  headerTextContainer: Kb.Styles.platformStyles({
+    isPhone: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
   inviteButton: {minWidth: 56},
-  inviteTeamInfo: Styles.platformStyles({
-    common: {paddingLeft: Styles.globalMargins.small},
+  inviteTeamInfo: Kb.Styles.platformStyles({
+    common: {paddingLeft: Kb.Styles.globalMargins.small},
   }),
-  membershipContentExpanded: Styles.platformStyles({
+  membershipContentExpanded: Kb.Styles.platformStyles({
     common: {
       height: 40,
-      paddingTop: Styles.globalMargins.tiny,
+      paddingTop: Kb.Styles.globalMargins.tiny,
     },
     isPhone: {
       height: 48,
-      paddingTop: Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
-  membershipExpanded: Styles.platformStyles({
-    isElectron: {paddingBottom: Styles.globalMargins.tiny},
-    isTablet: {paddingBottom: Styles.globalMargins.tiny},
+  membershipExpanded: Kb.Styles.platformStyles({
+    isElectron: {paddingBottom: Kb.Styles.globalMargins.tiny},
+    isTablet: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
   membershipIcon: {
     flexShrink: 0,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   membershipTeamText: {justifyContent: 'center'},
-  membershipTeamTextExpanded: Styles.platformStyles({
-    isMobile: {paddingTop: Styles.globalMargins.tiny},
+  membershipTeamTextExpanded: Kb.Styles.platformStyles({
+    isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
   }),
   mobileHeader: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     height: 40,
     position: 'absolute',
     right: 0,
     top: 0,
   },
-  paddingBottomMobile: Styles.platformStyles({
-    isPhone: {paddingBottom: Styles.globalMargins.small},
+  paddingBottomMobile: Kb.Styles.platformStyles({
+    isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
   reloadButton: {
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
     minWidth: 56,
   },
   roleButton: {paddingRight: 0},
-  roleButtonExpanded: Styles.platformStyles({
+  roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
       marginTop: 10, // does not exist as an official size
     },
@@ -855,16 +815,16 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 10, // does not exist as an official size
     },
   }),
-  row: {paddingRight: Styles.globalMargins.small},
-  rowCollapsedFixedHeight: Styles.platformStyles({
+  row: {paddingRight: Kb.Styles.globalMargins.small},
+  rowCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 49},
     isPhone: {
       flexShrink: 0,
       height: 65,
     },
   }),
-  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
-  teamNameLink: {color: Styles.globalColors.black},
+  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
+  teamNameLink: {color: Kb.Styles.globalColors.black},
 }))
 
 export default TeamMember

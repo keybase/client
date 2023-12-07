@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {SafeAreaView} from 'react-native'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'

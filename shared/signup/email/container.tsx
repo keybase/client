@@ -1,15 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SettingsConstants from '../../constants/settings'
-import * as SignupGen from '../../actions/signup-gen'
-import * as SignupConstants from '../../constants/signup'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Platform from '../../constants/platform'
-import {anyWaiting} from '../../constants/waiting'
+import * as Constants from '@/constants/signup'
 import EnterEmail, {type Props} from '.'
-
-type OwnProps = {}
 
 type WatcherProps = Props & {
   addedEmail?: string
@@ -39,45 +31,45 @@ const WatchForSuccess = (props: WatcherProps) => {
   )
 }
 
-const ConnectedEnterEmail = Container.connect(
-  (state: Container.TypedState) => ({
-    _showPushPrompt: Platform.isMobile && !state.push.hasPermissions && state.push.showPushPrompt,
-    addedEmail: state.settings.email.addedEmail,
-    error: state.settings.email.error || '',
-    initialEmail: state.signup.email,
-    waiting: anyWaiting(state, SettingsConstants.addEmailWaitingKey),
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    _navClearModals: () => dispatch(RouteTreeGen.createClearModals()),
-    _navToPushPrompt: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: ['settingsPushPrompt'],
-          replace: true,
-        })
-      ),
-    _onSkip: () => dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail})),
-    _onSuccess: (email: string) => dispatch(SignupGen.createSetJustSignedUpEmail({email})),
-    onCreate: (email: string, searchable: boolean) => {
-      dispatch(SettingsGen.createAddEmail({email, searchable}))
-    },
-  }),
-  (s, d, o: OwnProps) => ({
-    addedEmail: s.addedEmail,
-    error: s.error,
-    initialEmail: s.initialEmail,
-    onCreate: d.onCreate,
+const ConnectedEnterEmail = () => {
+  const _showPushPrompt = C.usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const error = C.useSettingsEmailState(s => s.error)
+  const initialEmail = C.useSignupState(s => s.email)
+  const waiting = C.useAnyWaiting(C.addEmailWaitingKey)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const _navClearModals = () => {
+    clearModals()
+  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _navToPushPrompt = () => {
+    navigateAppend('settingsPushPrompt', true)
+  }
+
+  const setJustSignedUpEmail = C.useSignupState(s => s.dispatch.setJustSignedUpEmail)
+  const _onSkip = () => {
+    setJustSignedUpEmail(Constants.noEmail)
+  }
+  const _onSuccess = setJustSignedUpEmail
+
+  const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
+  const onCreate = addEmail
+  const props = {
+    addedEmail: addedEmail,
+    error: error,
+    initialEmail: initialEmail,
+    onCreate: onCreate,
     onSkip: () => {
-      d._onSkip()
-      s._showPushPrompt ? d._navToPushPrompt() : d._navClearModals()
+      _onSkip()
+      _showPushPrompt ? _navToPushPrompt() : _navClearModals()
     },
     onSuccess: (email: string) => {
-      d._onSuccess(email)
-      s._showPushPrompt ? d._navToPushPrompt() : d._navClearModals()
+      _onSuccess(email)
+      _showPushPrompt ? _navToPushPrompt() : _navClearModals()
     },
-    waiting: s.waiting,
-    ...o,
-  })
-)(WatchForSuccess)
+    waiting: waiting,
+  }
+  return <WatchForSuccess {...props} />
+}
 
 export default ConnectedEnterEmail

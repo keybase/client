@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
 import {Box2, Box, type LayoutEvent} from './box'
 import BoxGrow from './box-grow'

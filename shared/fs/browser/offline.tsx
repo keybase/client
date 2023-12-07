@@ -1,12 +1,10 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles/index'
-import * as Types from '../../constants/types/fs'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import TopBar from '../top-bar'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   syncEnabled: boolean
 }
 
@@ -17,7 +15,7 @@ const OfflineFolder = (props: Props) => (
       <Kb.Icon
         type={props.syncEnabled ? 'iconfont-clock' : 'iconfont-cloud'}
         sizeType="Huge"
-        color={Styles.globalColors.black_10}
+        color={Kb.Styles.globalColors.black_10}
       />
       <Kb.Text type="BodySmall">
         {props.syncEnabled
@@ -28,31 +26,32 @@ const OfflineFolder = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
         flex: 1,
       },
       emptyContainer: {
-        ...Styles.globalStyles.flexGrow,
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.globalStyles.flexGrow,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flex: 1,
       },
-    } as const)
+    }) as const
 )
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const mapStateToProps = (state, {path}) => ({
-  syncConfig: Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig,
-})
+const Container = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const syncConfig = C.useFSState(s => C.getTlfFromPath(s.tlfs, path).syncConfig)
+  const props = {
+    ...ownProps,
+    syncEnabled: syncConfig.mode === T.FS.TlfSyncMode.Enabled,
+  }
+  return <OfflineFolder {...props} />
+}
 
-const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
-  ...ownProps,
-  syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === Types.TlfSyncMode.Enabled,
-})
-
-export default Container.connect(mapStateToProps, () => ({}), mergeProps)(OfflineFolder)
+export default Container

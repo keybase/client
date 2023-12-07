@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
-import {e164ToDisplay} from '../../util/phone-numbers'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 export type Props = {
   error: string
@@ -45,7 +44,7 @@ const VerifyPhoneNumber = (props: Props) => {
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {displayPhone}
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
         </Kb.Box2>
       }
       negativeHeader={true}
@@ -95,7 +94,7 @@ export const VerifyBody = (props: BodyProps) => {
         textType="Header"
         textContentType="oneTimeCode"
       >
-        {Styles.isAndroid ? undefined : (
+        {Kb.Styles.isAndroid ? undefined : (
           <Kb.Text type="Header" style={styles.inputText}>
             {/* We put this child in Input because some text styles don't work on RN input itself - the one we need here is letterSpacing */}
             {props.code}
@@ -110,14 +109,14 @@ export const VerifyBody = (props: BodyProps) => {
           alignItems="center"
           direction="horizontal"
           gap="tiny"
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.resend,
             (props.resendWaiting || resendDisabled) && styles.opacity30,
           ])}
         >
           <Kb.Icon
             type="iconfont-reload"
-            color={Styles.globalColors.white}
+            color={Kb.Styles.globalColors.white}
             style={styles.iconVerticalAlign}
           />
           <Kb.Text type="BodySemibold" negative={true}>
@@ -134,71 +133,71 @@ export const VerifyBody = (props: BodyProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       backButton: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         flex: 1,
       },
-      body: Styles.platformStyles({
+      body: Kb.Styles.platformStyles({
         isMobile: {
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      container: {backgroundColor: Styles.globalColors.blue},
+      container: {backgroundColor: Kb.Styles.globalColors.blue},
       headerContainer: {
-        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.blue,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.blue,
         position: 'relative',
       },
-      headerText: {color: Styles.globalColors.black_50},
-      iconVerticalAlign: Styles.platformStyles({
+      headerText: {color: Kb.Styles.globalColors.black_50},
+      iconVerticalAlign: Kb.Styles.platformStyles({
         isElectron: {
           position: 'relative',
           top: 1,
         },
       }),
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueDark,
-          borderRadius: Styles.borderRadius,
-          color: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.blueDark,
+          borderRadius: Kb.Styles.borderRadius,
+          color: Kb.Styles.globalColors.white,
           letterSpacing: 20,
           textAlign: 'center',
         },
         isElectron: {
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
           fontVariantLigatures: 'none', // ligatures interfere with letterSpacing
           height: 38,
           width: 368,
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
           minHeight: 48,
           width: '100%',
         },
         isTablet: {maxWidth: 368},
       }),
-      inputText: Styles.platformStyles({
+      inputText: Kb.Styles.platformStyles({
         isMobile: {
-          color: Styles.globalColors.white,
+          color: Kb.Styles.globalColors.white,
           letterSpacing: 20,
           lineHeight: 28, // arrived at by fiddling - doesn't affect android
         },
       }),
       opacity30: {opacity: 0.3},
       positionRelative: {position: 'relative'},
-      progressContainer: Styles.platformStyles({
-        common: {...Styles.globalStyles.fillAbsolute},
-        isElectron: {paddingTop: Styles.globalMargins.tiny},
+      progressContainer: Kb.Styles.platformStyles({
+        common: {...Kb.Styles.globalStyles.fillAbsolute},
+        isElectron: {paddingTop: Kb.Styles.globalMargins.tiny},
       }),
-      resend: Styles.platformStyles({
+      resend: Kb.Styles.platformStyles({
         isElectron: {
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default VerifyPhoneNumber

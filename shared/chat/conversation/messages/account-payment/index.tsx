@@ -1,7 +1,6 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type {AllowedColors} from '../../../../common-adapters/text'
-import {MarkdownMemo} from '../../../../wallets/common'
+import * as Kb from '@/common-adapters'
+import type {AllowedColors} from '@/common-adapters/text'
+import MarkdownMemo from '@/wallets/markdown-memo'
 
 export type Props = {
   action: string
@@ -13,34 +12,22 @@ export type Props = {
   cancelButtonLabel: string
   canceled: boolean
   claimButtonLabel: string
-  icon: Kb.IconType | null
+  icon?: Kb.IconType
   loading: boolean
   memo: string
-  onCancel: () => void
-  onClaim: () => void
-  onSend: () => void
   pending: boolean
   sendButtonLabel: string
   showCoinsIcon: boolean
   sourceAmount?: string
 }
 
-const ButtonText = (props: {text: string; amount: string}) => (
-  <Kb.Text style={styles.buttonText} type="BodySemibold">
-    {props.text}{' '}
-    <Kb.Text style={styles.buttonText} type="BodyExtrabold">
-      {props.amount}
-    </Kb.Text>
-  </Kb.Text>
-)
-
 const AccountPayment = (props: Props) => {
   const balanceChange = (
     <Kb.Box2
       direction="horizontal"
-      fullWidth={Styles.isMobile}
+      fullWidth={Kb.Styles.isMobile}
       style={styles.amountContainer}
-      gap={Styles.isMobile ? 'tiny' : 'small'}
+      gap={Kb.Styles.isMobile ? 'tiny' : 'small'}
     >
       {!!props.balanceChange && (
         <Kb.Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
@@ -60,23 +47,23 @@ const AccountPayment = (props: Props) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.alignItemsCenter,
           styles.flexWrap,
-          {marginBottom: Styles.globalMargins.xtiny},
+          {marginBottom: Kb.Styles.globalMargins.xtiny},
         ])}
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
           {!!props.icon && (
             <Kb.Icon
               type={props.icon}
-              color={props.pending ? Styles.globalColors.purpleOrWhite : Styles.globalColors.purple}
+              color={props.pending ? Kb.Styles.globalColors.purpleOrWhite : Kb.Styles.globalColors.purple}
               fontSize={12}
             />
           )}
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               {flexShrink: 1},
               styles.purple,
               props.pending && styles.purpleOrWhite,
@@ -87,21 +74,21 @@ const AccountPayment = (props: Props) => {
             <Kb.Text
               type="BodySmallExtrabold"
               selectable={true}
-              style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+              style={Kb.Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
             >
               {props.amount}
             </Kb.Text>
             {props.approxWorth && (
               <Kb.Text
                 type="BodySmall"
-                style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+                style={Kb.Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
               >
                 {' '}
                 (approximately{' '}
                 <Kb.Text
                   type="BodySmallExtrabold"
                   selectable={true}
-                  style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+                  style={Kb.Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
                 >
                   {props.approxWorth}
                 </Kb.Text>
@@ -112,33 +99,10 @@ const AccountPayment = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {props.canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
-        {!Styles.isMobile && balanceChange}
+        {!Kb.Styles.isMobile && balanceChange}
       </Kb.Box2>
       <MarkdownMemo memo={props.memo} style={styles.memo} />
-      {Styles.isMobile && balanceChange}
-      {!!props.sendButtonLabel && (
-        <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
-          <ButtonText text={props.sendButtonLabel} amount={props.amount} />
-        </Kb.Button>
-      )}
-      {!!props.claimButtonLabel && (
-        <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.button}>
-          <ButtonText text={props.claimButtonLabel} amount={props.amount} />
-        </Kb.Button>
-      )}
-      {!!props.cancelButtonLabel && (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmall">{props.cancelButtonInfo}</Kb.Text>
-          <Kb.WaitingButton
-            waitingKey={null}
-            type="Danger"
-            label={props.cancelButtonLabel}
-            onClick={props.onCancel}
-            small={true}
-            style={styles.button}
-          />
-        </Kb.Box2>
-      )}
+      {Kb.Styles.isMobile && balanceChange}
     </>
   )
   return (
@@ -148,11 +112,11 @@ const AccountPayment = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alignItemsCenter: {alignItems: 'center'},
-      amountContainer: Styles.platformStyles({
+      amountContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
           marginLeft: 'auto',
@@ -161,15 +125,15 @@ const styles = Styles.styleSheetCreate(
       }),
       button: {
         alignSelf: 'flex-start',
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
-      buttonText: {color: Styles.globalColors.white},
+      buttonText: {color: Kb.Styles.globalColors.white},
       flexWrap: {flexWrap: 'wrap'},
       lineThrough: {textDecorationLine: 'line-through'},
-      memo: Styles.platformStyles({
-        isMobile: {paddingRight: Styles.globalMargins.small},
+      memo: Kb.Styles.platformStyles({
+        isMobile: {paddingRight: Kb.Styles.globalMargins.small},
       }),
-      progressIndicator: Styles.platformStyles({
+      progressIndicator: Kb.Styles.platformStyles({
         // Match height of a line of text
         isElectron: {
           height: 17,
@@ -180,12 +144,12 @@ const styles = Styles.styleSheetCreate(
           width: 22,
         },
       }),
-      purple: {color: Styles.globalColors.purpleDark},
-      purpleOrWhite: {color: Styles.globalColors.purpleDarkOrWhite},
-      tooltipText: Styles.platformStyles({
+      purple: {color: Kb.Styles.globalColors.purpleDark},
+      purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
+      tooltipText: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},
       }),
-    } as const)
+    }) as const
 )
 
 export default AccountPayment

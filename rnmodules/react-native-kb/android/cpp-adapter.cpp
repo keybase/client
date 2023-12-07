@@ -1,7 +1,6 @@
-// from
 // https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
 #include "pthread.h"
-#include "rpc.h"
+#include "react-native-kb.h"
 #include <ReactCommon/CallInvoker.h>
 #include <ReactCommon/CallInvokerHolder.h>
 #include <fbjni/fbjni.h>
@@ -12,8 +11,9 @@
 using namespace facebook;
 using namespace facebook::jsi;
 using namespace std;
+using namespace kb;
 
-JavaVM *java_vm;
+JavaVM *java_vm = NULL;
 jclass java_class;
 jobject java_object;
 
@@ -89,7 +89,10 @@ static jstring string2jstring(JNIEnv *env, const string &str) {
 }
 
 void install(facebook::jsi::Runtime &jsiRuntime) {
-  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
+  auto rpcOnGo = Function::createFromHostFunction(
+      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
+      [](Runtime &runtime, const Value &thisValue, const Value *arguments,
+         size_t count) -> Value {
         return RpcOnGo(
             runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
               JNIEnv *jniEnv = GetJniEnv();
@@ -102,15 +105,13 @@ void install(facebook::jsi::Runtime &jsiRuntime) {
               params[0].l = jba;
               jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
             });
-      };
-  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", 
-      Function::createFromHostFunction(
-      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1, move(rpcOnGoWrap)));
+      });
+  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", std::move(rpcOnGo));
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativekb_KbModuleImpl_nativeInstallJSI(JNIEnv *env, jobject thiz,
-                                                     jlong jsi) {
+Java_com_reactnativekb_KbModule_nativeInstallJSI(JNIEnv *env, jobject thiz,
+                                                 jlong jsi) {
   auto runtime = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   if (runtime) {
     install(*runtime);
@@ -119,11 +120,9 @@ Java_com_reactnativekb_KbModuleImpl_nativeInstallJSI(JNIEnv *env, jobject thiz,
   java_object = env->NewGlobalRef(thiz);
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativekb_KbModuleImpl_nativeEmit(JNIEnv *env, jclass clazz,
-                                               jlong jsi,
-                                               jobject boxedCallInvokerHolder,
-                                               jbyteArray data) {
+extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeEmit(
+    JNIEnv *env, jclass clazz, jlong jsi, jobject boxedCallInvokerHolder,
+    jbyteArray data) {
   auto rPtr = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   auto &runtime = *rPtr;
   auto boxedCallInvokerRef = jni::make_local(boxedCallInvokerHolder);

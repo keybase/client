@@ -1,23 +1,17 @@
-import * as Container from '../../../../util/container'
-import * as FsConstants from '../../../../constants/fs'
-import * as FsTypes from '../../../../constants/types/fs'
-import * as GitGen from '../../../../actions/git-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '@/constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemGitPush
+  message: T.Chat.MessageSystemGitPush
 }
 
 const GitContainer = React.memo(function GitContainer(p: OwnProps) {
   const {message} = p
-  const dispatch = Container.useDispatch()
   const onClickCommit = React.useCallback(
     (commitHash: string) => {
-      const path = FsTypes.stringToPath(
+      const path = T.FS.stringToPath(
         '/keybase/team/' +
           message.team +
           '/.kbfs_autogit/' +
@@ -25,23 +19,24 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      dispatch(FsConstants.makeActionForOpenPathInFilesTab(path))
+      C.makeActionForOpenPathInFilesTab(path)
     },
-    [dispatch, message]
+    [message]
   )
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(
     (username: string) => {
-      Container.isMobile
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      C.isMobile ? showUserProfile(username) : showUser(username, true)
     },
-    [dispatch]
+    [showUser, showUserProfile]
   )
+  const navigateToTeamRepo = C.useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
-      dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
+      navigateToTeamRepo(teamname, repoID)
     },
-    [dispatch]
+    [navigateToTeamRepo]
   )
   const props = {message, onClickCommit, onClickUserAvatar, onViewGitRepo}
   return <Git {...props} />

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import PopupDialog from '../popup-dialog'
-import ScrollView from '../scroll-view'
-import {Box2, Box, type LayoutEvent} from '../box'
+import ScrollView from '@/common-adapters/scroll-view'
+import {Box2, Box, type LayoutEvent} from '@/common-adapters/box'
 import BoxGrow from '../box-grow'
-import Text from '../text'
+import Text from '@/common-adapters/text'
 import {useTimeout} from '../use-timers'
 
 const Kb = {

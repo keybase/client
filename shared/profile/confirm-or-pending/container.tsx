@@ -1,36 +1,27 @@
-import * as ProfileGen from '../../actions/profile-gen'
+import * as C from '@/constants'
 import ConfirmOrPending from '.'
-import {ProofStatus} from '../../constants/types/rpc-gen'
-import {globalColors} from '../../styles'
-import * as Container from '../../util/container'
+import * as T from '@/constants/types'
+import {globalColors} from '@/styles'
 
-type OwnProps = {}
+const Container = () => {
+  const proofFound = C.useProfileState(s => s.proofFound)
+  const proofStatus = C.useProfileState(s => s.proofStatus)
+  const platform = C.useProfileState(s => s.platform)
+  const username = C.useProfileState(s => s.username)
+  const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const profile = state.profile
-  const isGood = profile.proofFound && profile.proofStatus === ProofStatus.ok
+  const isGood = proofFound && proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =
-    !isGood &&
-    !profile.proofFound &&
-    !!profile.proofStatus &&
-    profile.proofStatus <= ProofStatus.baseHardError
+    !isGood && !proofFound && !!proofStatus && proofStatus <= T.RPCGen.ProofStatus.baseHardError
 
-  if (!profile.platform) {
+  if (!platform) {
     throw new Error('No platform passed to confirm or pending container')
   }
 
-  return {
-    isPending,
-    platform: profile.platform,
-    platformIconOverlayColor: isGood ? globalColors.green : globalColors.greyDark,
-    username: profile.username,
-  }
+  const platformIconOverlayColor = isGood ? globalColors.green : globalColors.greyDark
+  const onCancel = backToProfile
+  const props = {isPending, onCancel, platform, platformIconOverlayColor, username}
+  return <ConfirmOrPending {...props} />
 }
 
-export default Container.connect(
-  mapStateToProps,
-  dispatch => ({
-    onCancel: () => dispatch(ProfileGen.createBackToProfile()),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ConfirmOrPending)
+export default Container

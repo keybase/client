@@ -1,18 +1,16 @@
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/teams'
-import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
-import {ModalTitle} from '../../common'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {ModalTitle} from '@/teams/common'
 
 const MakeBigTeam = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const onBack = () => nav.safeNavigateUp()
+  const setTeamWizardTeamSize = C.useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
+  const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
-
-  const teamID = Types.newTeamWizardTeamID
+  const teamID = T.Teams.newTeamWizardTeamID
 
   return (
     <Kb.Modal
@@ -28,7 +26,7 @@ const MakeBigTeam = () => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.RichButton
           description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."
@@ -48,14 +46,14 @@ const MakeBigTeam = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
 }))
 

@@ -1,7 +1,8 @@
 import * as React from 'react'
-import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
-import {type PastedFile} from '@mattermost/react-native-paste-input'
-import {TextType} from './text'
+import type {globalMargins, CustomStyles} from '@/styles'
+import type {TextType} from './text'
+import type {NativeSyntheticEvent} from 'react-native'
+import type {MeasureDesktop} from './measure-ref'
 
 export type KeyboardType =
   | 'default'
@@ -59,8 +60,7 @@ export type Selection = {
 export type InputStyle = CustomStyles<'padding', {}>
 
 export type Props = {
-  allowImagePaste?: boolean // mobile only
-  onPasteImage?: (error: string | null | undefined, files: Array<PastedFile>) => void // mobile only, if allowImagePaste is on
+  onPasteImage?: (uri: string) => void // mobile only, if allowImagePaste is on
   autoFocus?: boolean
   // Enable if you want this to always have focus (desktop only)
   globalCaptureKeypress?: boolean
@@ -92,20 +92,17 @@ export type Props = {
   dummyInput?: boolean // Only affects mobile
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
-  onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
+  onEnterKeyDown?: (event?: React.KeyboardEvent) => void
   // Desktop only
   allowKeyboardEvents?: boolean // By default keybaord events won't fire in textarea or input elements. Adds 'mousetrap' class to enable keyboard events.
   onClick?: () => void
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
+  spellCheck?: boolean
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean
-  onKeyPress?: (event: {
-    nativeEvent: {
-      key: 'Enter' | 'Backspace' | string
-    }
-  }) => void
+  onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   keyboardType?: KeyboardType
@@ -154,7 +151,7 @@ declare class PlainInput extends React.Component<Props> {
   clear: () => void
   focus: () => void
   isFocused: () => boolean
-  getSelection: () => Selection | null
+  getSelection: () => Selection | undefined
   get value(): string
 
   /**
@@ -173,6 +170,7 @@ declare class PlainInput extends React.Component<Props> {
    *  calling this.
    **/
   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
-}
 
+  _input: React.RefObject<{getBoundingClientRect?: () => MeasureDesktop}>
+}
 export default PlainInput

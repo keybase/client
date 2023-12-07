@@ -1,20 +1,22 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import {Box2} from '../../../common-adapters/box'
-import Divider from '../../../common-adapters/divider'
-import Text from '../../../common-adapters/text'
-import FloatingMenu, {type MenuItems} from '../../../common-adapters/floating-menu'
+import {Box2} from '@/common-adapters/box'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import Divider from '@/common-adapters/divider'
+import Text from '@/common-adapters/text'
+import * as Styles from '@/styles'
+import FloatingMenu, {type MenuItems} from '@/common-adapters/floating-menu'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
   Box2,
   Divider,
   FloatingMenu,
+  Styles,
   Text,
 }
 
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   onHidden: () => void
   error: string
   visible: boolean
@@ -49,18 +51,18 @@ const PaymentStatusError = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      bodyError: Styles.platformStyles({
-        common: {color: Styles.globalColors.redDark, textAlign: 'center'},
+      bodyError: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.redDark, textAlign: 'center'},
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
-      errorContainer: Styles.platformStyles({
+      errorContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isElectron: {
           maxWidth: 200,
@@ -69,10 +71,10 @@ const styles = Styles.styleSheetCreate(
       }),
       headerError: {
         alignSelf: 'center',
-        color: Styles.globalColors.redDark,
-        padding: Styles.globalMargins.tiny,
+        color: Kb.Styles.globalColors.redDark,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default PaymentStatusError

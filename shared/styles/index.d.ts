@@ -1,9 +1,9 @@
 // Styles from our designers
-import * as React from 'react'
+import type * as React from 'react'
 import type * as CSS from './css'
 export {default as globalColors} from './colors'
 
-export declare const transition: (...properties: Array<string>) => any
+export declare const transition: (...properties: Array<string>) => {transition: string}
 
 type _fakeFontDefSeeCommentsOnThisStyle = {
   fontFamily: 'Keybase'
@@ -12,7 +12,6 @@ type _fakeFontDefSeeCommentsOnThisStyle = {
 }
 
 export declare const globalStyles: {
-  fastBackground: _fakeFontDefSeeCommentsOnThisStyle
   fillAbsolute: {
     bottom: 0
     left: 0
@@ -24,24 +23,12 @@ export declare const globalStyles: {
     alignItems: 'center'
     justifyContent: 'center'
   }
-  flexBoxColumn: {
-    flexDirection: 'column'
-  }
-  flexBoxColumnReverse: {
-    flexDirection: 'column-reverse'
-  }
-  flexBoxRow: {
-    flexDirection: 'row'
-  }
-  flexBoxRowReverse: {
-    flexDirection: 'row-reverse'
-  }
-  flexGrow: {
-    flexGrow: 1
-  }
-  flexOne: {
-    flex: 1
-  }
+  flexBoxColumn: {flexDirection: 'column'}
+  flexBoxColumnReverse: {flexDirection: 'column-reverse'}
+  flexBoxRow: {flexDirection: 'row'}
+  flexBoxRowReverse: {flexDirection: 'row-reverse'}
+  flexGrow: {flexGrow: 1}
+  flexOne: {flex: 1}
   flexWrap: {
     flexWrap: 'wrap'
   }
@@ -55,22 +42,16 @@ export declare const globalStyles: {
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminal: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle
-  fullHeight: {
-    height: '100%'
-  }
-  fullWidth: {
-    width: '100%'
-  }
+  fullHeight: {height: '100%'}
+  fullWidth: {width: '100%'}
   italic: _fakeFontDefSeeCommentsOnThisStyle
-  largeWidthPercent: string
+  largeWidthPercent: CSS.DimensionValue
   loadingTextStyle: CSS._StylesCrossPlatform
-  mediumSubNavWidth: number | string
-  mediumWidth: number | string
+  mediumSubNavWidth: CSS.DimensionValue
+  mediumWidth: CSS.DimensionValue
   opacity0: {opacity: 0}
   positionRelative: {position: 'relative'}
-  rounded: {
-    borderRadius: 3
-  }
+  rounded: {borderRadius: 3}
   shortSubNavWidth: number | string
 }
 
@@ -87,10 +68,8 @@ export declare const desktopStyles: {
 
 export declare const mobileStyles: {}
 export declare const fileUIName: string
-export declare const statusBarHeight: number
 export declare const borderRadius: number
 export declare const hairlineWidth: number
-export declare function backgroundURL(...path: Array<string>): string
 
 type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
@@ -102,12 +81,12 @@ type RemovedStyle = false | '' | 0 | null | undefined
 type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
 
 // TODO better styles that aren't slow
-export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
+export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform
 
 // new style, used in the common-adapters, not the components, can memo for you
 export declare function useCollapseStyles<
   IsMobile = false,
-  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform
+  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform,
 >(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
 
 export declare const windowStyle: {
@@ -146,7 +125,6 @@ export declare const isMobile: boolean
 export declare const isPhone: boolean
 export declare const isTablet: boolean
 export declare const isDarkMode: () => boolean
-export declare const isIPhoneX: boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
 export declare const headerExtraHeight: number
@@ -165,4 +143,8 @@ export type {
 export {default as classNames} from 'classnames'
 export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const DarkModeContext: React.Context<boolean>
-export declare const undynamicColor: (col: any) => any
+export declare const undynamicColor: (col: string) => string
+// add file:// if its a pure path
+export declare const normalizePath: (p: string) => string
+// remove file://
+export declare const unnormalizePath: (p: string) => string

@@ -1,11 +1,10 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
 import {Audio, type AVPlaybackStatus} from 'expo-av'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
   const {url, seekRef, paused, onPositionUpdated, onEnded} = props
-  const [sound, setSound] = React.useState<Audio.Sound | null>(null)
+  const [sound, setSound] = React.useState<Audio.Sound | undefined>()
 
   React.useEffect(() => {
     return () => {
@@ -42,14 +41,12 @@ const AudioVideo = (props: Props) => {
           return
         }
         onPositionUpdated(ct / dur)
-      } else {
-        if (e.didJustFinish) {
-          onEnded()
-          sound
-            ?.setPositionAsync(0)
-            .then(() => {})
-            .catch(() => {})
-        }
+      } else if (e.didJustFinish) {
+        onEnded()
+        sound
+          ?.setPositionAsync(0)
+          .then(() => {})
+          .catch(() => {})
       }
     },
     [onPositionUpdated, onEnded, sound]
@@ -61,11 +58,10 @@ const AudioVideo = (props: Props) => {
 
   seekRef.current = seek
 
-  const lastPaused = Container.usePrevious(paused)
-  React.useEffect(() => {
-    if (lastPaused === undefined || paused === lastPaused) {
-      return
-    }
+  const [lastPaused, setLastPaused] = React.useState(paused)
+
+  if (lastPaused !== paused) {
+    setLastPaused(paused)
     const f = async () => {
       let s = sound
       if (!sound) {
@@ -81,11 +77,12 @@ const AudioVideo = (props: Props) => {
         await s?.playAsync()
       }
     }
-
     f()
       .then(() => {})
-      .catch(() => {})
-  }, [paused, lastPaused, sound, url])
+      .catch(e => {
+        console.error('audio play fail', e)
+      })
+  }
 
   return null
 }

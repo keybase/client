@@ -1,27 +1,30 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
-import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
+import * as Kb from '@/common-adapters'
+import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '@/constants/platform.native'
 
 const Screenprotector = () => {
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
-  const getIsMounted = Kb.useMounted()
+  const isMounted = C.useIsMounted()
 
-  React.useEffect(() => {
+  C.useOnMountOnce(() => {
     getSecureFlagSetting()
       .then(secureFlag => {
-        getIsMounted() && setSecureFlag(secureFlag)
+        isMounted() && setSecureFlag(secureFlag)
       })
       .then(() => {})
       .catch(() => {})
-  }, [getIsMounted])
+  })
 
-  const changeSecureFlagOption = async (nextValue: boolean) => {
-    setSecureFlag(nextValue)
-    const success = await setSecureFlagSetting(nextValue)
-    if (success && getIsMounted()) {
+  const changeSecureFlagOption = (nextValue: boolean) => {
+    const f = async () => {
       setSecureFlag(nextValue)
+      const success = await setSecureFlagSetting(nextValue)
+      if (success && isMounted()) {
+        setSecureFlag(nextValue)
+      }
     }
+    C.ignorePromise(f())
   }
 
   if (!isAndroid) {
@@ -42,14 +45,9 @@ const Screenprotector = () => {
   )
 }
 
-Screenprotector.navigationOptions = {
-  header: undefined,
-  title: 'Screen Protector',
-}
-
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
   },
 }))
 

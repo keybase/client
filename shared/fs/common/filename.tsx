@@ -1,15 +1,14 @@
-import * as Types from '../../constants/types/fs'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import type {allTextTypes} from '../../common-adapters/text.shared'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {allTextTypes} from '@/common-adapters/text.shared'
 
 type TextType = keyof typeof allTextTypes
 
 type Props = {
-  path?: Types.Path
+  path?: T.FS.Path
   filename?: string
   selectable?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   type: TextType
 }
 
@@ -23,8 +22,9 @@ const splitFileNameAndExtension = (fileName: string) => {
 }
 
 const Filename = (props: Props) => {
+  // also does this to subteams...
   const [fileNameWithoutExtension, fileExtension] = splitFileNameAndExtension(
-    props.path ? Types.getPathName(props.path) : props.filename || ''
+    props.path ? T.FS.getPathName(props.path) : props.filename || ''
   )
   return (
     <Kb.Box2 direction="horizontal" style={props.style}>
@@ -32,7 +32,7 @@ const Filename = (props: Props) => {
         fixOverdraw={true}
         className="hover-underline-child"
         type={props.type}
-        style={Styles.collapseStyles([props.style, styles.breakAll])}
+        style={styles.breakAll}
         lineClamp={1}
         selectable={props.selectable}
       >
@@ -43,7 +43,7 @@ const Filename = (props: Props) => {
           fixOverdraw={true}
           className="hover-underline-child"
           type={props.type}
-          style={Styles.collapseStyles([props.style, styles.noShrink])}
+          style={styles.noShrink}
           selectable={props.selectable}
         >
           {fileExtension}
@@ -55,16 +55,13 @@ const Filename = (props: Props) => {
 
 export default Filename
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      breakAll: Styles.platformStyles({
-        isElectron: {
-          wordBreak: 'break-all',
-        },
+      breakAll: Kb.Styles.platformStyles({
+        common: {flexShrink: 1},
+        isElectron: {wordBreak: 'break-all'},
       }),
-      noShrink: {
-        flexShrink: 0,
-      },
-    } as const)
+      noShrink: {flexShrink: 0},
+    }) as const
 )

@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 export type AnimationType =
   | 'darkMessageStatusEncrypting'
@@ -25,11 +25,11 @@ export type AnimationType =
 export type Props = {
   animationType: AnimationType
   className?: string
-  containerStyle?: StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
   height?: number
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
   width?: number
 }
 
-declare class Animation extends React.Component<Props> {}
+declare const Animation: (p: Props) => React.ReactNode
 export default Animation

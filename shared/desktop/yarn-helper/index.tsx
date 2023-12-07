@@ -10,20 +10,31 @@ import {rimrafSync} from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
-const commands = {
+type Command = {
+  code?: (info: unknown, exec: Function) => void
+  help?: string
+  env?: {}
+  shell?: string
+  nodeEnv?: 'production' | 'development'
+  options?: {}
+}
+
+const commands: {[key: string]: Command} = {
   ...buildCommands,
   ...fontCommands,
   ...electronComands,
   ...prettierCommands,
   help: {
     code: () => {
+      const keys = Object.keys(commands) as Array<keyof typeof commands>
       console.log(
-        Object.keys(commands)
-          .map(c => commands[c].help && `yarn run ${c}}${commands[c].help || ''}`)
+        keys
+          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c]?.help || ''}`)
           .filter(Boolean)
           .join('\n')
       )
     },
+    help: '',
   },
   postinstall: {
     code: () => {
@@ -60,13 +71,14 @@ const patch = () => {
 const prepareSubmodules = () => {
   if (process.platform === 'darwin') {
     const root = path.resolve(__dirname, '..', '..', '..', 'rnmodules')
-    const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
+    // const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
     fs.readdirSync(root, {withFileTypes: true}).forEach(f => {
       if (f.isDirectory()) {
         const full = path.resolve(root, f.name)
         exec(`cd ${full} && yarn`)
         // need top bring our TS over, hacky but other things were more complex
-        exec(`cp ${full}/lib/typescript/index.d.ts ${tsOverride}/${f.name}`)
+        // exec(`cp ${full}/lib/typescript/* ${tsOverride}/${f.name}`)
+        // what it produces is slightly incorrect so we just have to sync this up periodically
       }
     })
   }
@@ -108,13 +120,13 @@ function exec(command: string, env?: any, options?: Object) {
   )
 }
 
-const decorateInfo = info => {
+const decorateInfo = (info: Command) => {
   const temp = {
     ...info,
     env: {
       ...process.env,
       ...info.env,
-    },
+    } as {NODE_ENV?: unknown},
   }
 
   if (info.nodeEnv) {
@@ -130,8 +142,8 @@ const decorateInfo = info => {
 
 const getMsgPack = () => {
   if (process.platform === 'darwin') {
-    const ver = '4.1.1'
-    const shasum = '3b64e37641520ea0c9d1f52f80de61ea1868b42c'
+    const ver = '6.1.0'
+    const shasum = '09b6b71cdfb4b176e5bb12b02b4ffc290ec10b41'
     const file = `msgpack-cxx-${ver}.tar.gz`
     const url = `https://github.com/msgpack/msgpack-c/releases/download/cpp-${ver}/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')
@@ -200,7 +212,7 @@ const clearTSCache = () => {
 }
 
 function main() {
-  let info = commands[command]
+  let info = commands[command ?? '']
 
   if (!info) {
     console.log('Unknown command: ', command)

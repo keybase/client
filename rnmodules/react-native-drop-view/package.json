@@ -31,20 +31,21 @@
   "homepage": "https://github.com/keybase/client/react-native-drop-view#readme",
   "private": true,
   "devDependencies": {
-    "@welldone-software/why-did-you-render": "7.0.1",
-    "@types/react": "18.0.25",
-    "@types/react-native": "0.70.6",
-    "react-native": "0.70.5",
-    "react-native-builder-bob": "^0.18.3",
-    "patch-package": "6.5.0",
-    "typescript": "4.8.4"
+    "patch-package": "file:../../shared/node_modules/patch-package",
+    "react": "file:../../shared/node_modules/react",
+    "react-native": "file:../../shared/node_modules/react-native",
+    "@types/react": "file:../../shared/node_modules/@types/react",
+    "typescript": "file:../../shared/node_modules/typescript",
+    "react-native-builder-bob": "^0.20.4"
   },
   "resolutions": {
-    "@types/react": "18.0.25"
+    "@types/react": "18.2.12"
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "@welldone-software/why-did-you-render": "*",
+    "@types/react": "*"
   },
   "react-native-builder-bob": {
     "source": "src",
@@ -53,5 +54,10 @@
       "module",
       "typescript"
     ]
+  },
+  "codegenConfig": {
+    "name": "RNDropViewViewSpec",
+    "type": "components",
+    "jsSrcsDir": "src"
   }
 }

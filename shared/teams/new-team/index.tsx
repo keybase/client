@@ -1,9 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
-import openUrl from '../../util/open-url'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
+import openUrl from '@/util/open-url'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
 
@@ -18,7 +16,7 @@ type Props = {
 const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
-  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
 
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam
@@ -81,10 +79,10 @@ const CreateNewTeam = (props: Props) => {
           maxLength={16}
           disabled={waiting}
           onEnterKeyDown={disabled ? undefined : onSubmitCb}
-          autoFocus={!Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
+          autoFocus={!Kb.Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
         />
         {isSubteam && (
-          <Kb.Text type="BodySmall" style={!name && Styles.globalStyles.opacity0}>
+          <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>
             This team will be named{' '}
             <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
               {props.baseTeam}.{name}
@@ -99,11 +97,11 @@ const CreateNewTeam = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  wordBreak: Styles.platformStyles({
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

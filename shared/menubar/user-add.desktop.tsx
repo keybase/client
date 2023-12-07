@@ -1,12 +1,12 @@
 import * as React from 'react'
-import {Box, Button, Input, Icon} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
-import {defaultKBFSPath} from '../constants/config'
+import {Box, Button, Input, Icon} from '@/common-adapters'
+import {globalColors, globalStyles, desktopStyles, platformStyles} from '@/styles'
+import {defaultKBFSPath} from '@/constants/config'
 
 export type Props = {
   isPublic: boolean
   onAdded: (path: string) => void
-  username: string | null
+  username?: string
 }
 
 type State = {
@@ -38,7 +38,7 @@ type UserInputProps = {
   onSubmit: () => void
   onCancel: () => void
   onUpdateText: (text: string) => void
-  username: string | null
+  username?: string
   text: string
 }
 

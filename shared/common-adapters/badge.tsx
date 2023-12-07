@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Box2} from './box'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const Kb = {
   Box,
@@ -29,7 +29,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
 
   if (border) {
     const outerSize = height
-    const innerSize = border ? height - 3 : height
+    const innerSize = height - 3
     return (
       <Kb.Box2
         direction="vertical"

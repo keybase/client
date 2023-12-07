@@ -1,12 +1,8 @@
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Common from './common'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
-import {useMemo} from '../../../../util/memoize'
 
 export const transformer = (
   input: {
@@ -32,11 +28,11 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${s}`, tData, preview)
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   iconPeople: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderColor: Kb.Styles.globalColors.black_10,
     borderRadius: 16,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -106,7 +102,7 @@ const filterUsersAndTeams = (
   })
 
   if (sortedUsers.length === 0 && sortedTeams.length === 1) {
-    const first = sortedTeams[0]
+    const first = sortedTeams[0]!
     // The only user+team result is a single team. Present its channels as well.
     return [first, ...allChannels.filter(v => v.teamname === first.teamname)]
   }
@@ -126,10 +122,10 @@ const filterAndJoin = (
   return teamNames ? teamNames : filterUsersAndTeams(users, teams, allChannels, filter)
 }
 
-const getTeams = (layout: RPCChatTypes.UIInboxLayout | null) => {
+const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
-      l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      l.state === T.RPCChat.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
       return arr
     }, []) ?? []
   const smallTeams =
@@ -140,14 +136,16 @@ const getTeams = (layout: RPCChatTypes.UIInboxLayout | null) => {
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
 }
 
-const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
-  return Container.useSelector(state => {
-    const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
-    const teamMembers = state.teams.teamIDToMembers.get(teamID)
-    const infoMap = state.users.infoMap
+const useDataUsers = () => {
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useChatContext(s => s.participants)
+  return C.useChatContext(s => {
+    const {teamID, teamType} = s.meta
+    // TODO not reactive
+    const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : Constants.getParticipantInfo(state, conversationIDKey).all
+      : participantInfo.all
     const suggestions = usernames.map(username => ({
       fullName: infoMap.get(username)?.fullname || '',
       username,
@@ -162,12 +160,12 @@ const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Container.useSelector(state => state.chat2.inboxLayout)
-  const teams = useMemo(() => getTeams(inboxLayout), [inboxLayout])
-  const allChannels = useMemo(
+  const inboxLayout = C.useChatState(s => s.inboxLayout)
+  const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
+  const allChannels = React.useMemo(
     () =>
       inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
           arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
         }
         return arr
@@ -177,9 +175,9 @@ const useDataTeams = () => {
   return {allChannels, teams}
 }
 
-const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+const useDataSource = (filter: string) => {
   const fl = filter.toLowerCase()
-  const users = useDataUsers(conversationIDKey)
+  const users = useDataUsers()
   const {teams, allChannels} = useDataTeams()
   return filterAndJoin(users, teams, allChannels, fl)
 }
@@ -205,7 +203,6 @@ type ListProps = Pick<
   Common.ListProps<ListItem>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -224,16 +221,16 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
         Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
       gap="tiny"
     >
-      {Constants.isSpecialMention(username ?? '') ? (
+      {C.Chat.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
-          <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
+          <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
         <Kb.Avatar username={username} size={32} />
@@ -259,7 +256,7 @@ const keyExtractor = (item: ListItem) => {
 
 export const UsersList = (p: ListProps) => {
   const {filter, ...rest} = p
-  const items = useDataSource(p.conversationIDKey, filter)
+  const items = useDataSource(filter)
   return (
     <Common.List
       {...rest}

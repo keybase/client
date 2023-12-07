@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from './participant-rekey.types'
 
 const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (
@@ -7,11 +6,11 @@ const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) 
     <Kb.Avatar
       username={props.username}
       size={48}
-      style={{marginRight: Styles.globalMargins.small, padding: 4}}
+      style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
     />
     <Kb.Box style={styles.innerRow}>
       <Kb.ConnectedUsernames inline={true} type="BodyBold" usernames={props.username} />
-      <Kb.Text type="BodySmall" style={Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
+      <Kb.Text type="BodySmall" style={Kb.Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
         Can rekey this chat by opening the Keybase app.
       </Kb.Text>
     </Kb.Box>
@@ -23,8 +22,8 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
     <Kb.Box style={styles.container}>
       <Kb.Box
         style={{
-          ...Styles.globalStyles.flexBoxRow,
-          backgroundColor: Styles.globalColors.red,
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          backgroundColor: Kb.Styles.globalColors.red,
           justifyContent: 'center',
         }}
       >
@@ -38,7 +37,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       </Kb.Box>
       <Kb.Box
         style={{
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           flex: 1,
           justifyContent: 'center',
           marginLeft: 8,
@@ -55,35 +54,35 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'stretch',
-          backgroundColor: Styles.globalColors.white,
-          borderLeft: `1px solid ${Styles.globalColors.black_20}`,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderLeft: `1px solid ${Kb.Styles.globalColors.black_20}`,
           flex: 1,
           justifyContent: 'flex-start',
         },
       }),
-      innerRow: Styles.platformStyles({
+      innerRow: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
-          borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          borderBottom: `1px solid ${Kb.Styles.globalColors.black_10}`,
           flex: 1,
           justifyContent: 'center',
         },
       }),
-      row: Styles.platformStyles({
+      row: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxRow,
-          ...Styles.desktopStyles.clickable,
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.desktopStyles.clickable,
           minHeight: 48,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ParticipantRekey

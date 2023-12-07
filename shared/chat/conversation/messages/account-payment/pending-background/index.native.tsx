@@ -1,7 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../../styles'
-import * as Container from '../../../../../util/container'
+import * as Kb from '@/common-adapters'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from '.'
 
 const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
@@ -9,24 +9,24 @@ const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.
 
 const PendingBackground = (p: Props) => {
   const {children, style} = p
-  const offset = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const offset = React.useRef(new NativeAnimated.Value(0)).current
 
-  Container.useOnMountOnce(() => {
-    Kb.NativeAnimated.loop(
-      Kb.NativeAnimated.timing(offset, {
+  C.useOnMountOnce(() => {
+    NativeAnimated.loop(
+      NativeAnimated.timing(offset, {
         duration: 2000,
-        easing: Kb.NativeEasing.linear,
+        easing: NativeEasing.linear,
         toValue: -80,
         useNativeDriver: true,
       })
     ).start()
   })
 
-  const source = Styles.isDarkMode() ? darkPatternImage : lightPatternImage
+  const source = Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage
 
   return (
     <Kb.Box2 direction="vertical" style={style}>
-      <Kb.NativeAnimated.Image
+      <NativeAnimated.Image
         resizeMode="repeat"
         source={source}
         style={[styles.image, {transform: [{translateY: offset}] as any}]}
@@ -36,7 +36,7 @@ const PendingBackground = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       image: {
@@ -48,7 +48,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         width: 'auto',
       },
-    } as const)
+    }) as const
 )
 
 export default PendingBackground

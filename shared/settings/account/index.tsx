@@ -1,10 +1,85 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as Container from '../../util/container'
+import {isMobile} from '@/styles'
+
+const Container = () => {
+  const _emails = C.useSettingsEmailState(s => s.emails)
+  const _phones = C.useSettingsPhoneState(s => s.phones)
+  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const addedPhone = C.useSettingsPhoneState(s => s.addedPhone)
+  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
+  const clearAddedPhone = C.useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
+  const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
+  const waiting = C.useAnyWaiting(Constants.loadSettingsWaitingKey)
+  const _onClearSupersededPhoneNumber = (phone: string) => {
+    editPhone(phone, true)
+  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onAddEmail = () => {
+    navigateAppend('settingsAddEmail')
+  }
+  const onAddPhone = () => {
+    navigateAppend('settingsAddPhone')
+  }
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = isMobile
+    ? () => {
+        navigateUp()
+      }
+    : undefined
+
+  const resetAddedEmail = C.useSettingsEmailState(s => s.dispatch.resetAddedEmail)
+  const onClearAddedEmail = resetAddedEmail
+  const onClearAddedPhone = clearAddedPhone
+  const onDeleteAccount = () => {
+    navigateAppend('deleteConfirm')
+  }
+  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const loadRememberPassword = C.useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+
+  const onReload = () => {
+    loadSettings()
+    loadRememberPassword()
+    loadHasRandomPw()
+  }
+  const onSetPassword = () => {
+    navigateAppend(C.settingsPasswordTab)
+  }
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onStartPhoneConversation = () => {
+    switchTab(C.chatTab)
+    navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
+    clearAddedPhone()
+  }
+  const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
+  const supersededKey = supersededPhoneNumber?.e164
+  const props = {
+    addedEmail: addedEmail,
+    addedPhone: addedPhone,
+    contactKeys: [..._emails.keys(), ...(_phones ? _phones.keys() : [])],
+    hasPassword: hasPassword,
+    moreThanOneEmail: _emails.size > 1,
+    onAddEmail,
+    onAddPhone,
+    onBack,
+    onClearAddedEmail,
+    onClearAddedPhone,
+    onClearSupersededPhoneNumber: () => supersededKey && _onClearSupersededPhoneNumber(supersededKey),
+    onDeleteAccount,
+    onReload,
+    onSetPassword,
+    onStartPhoneConversation,
+    supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
+    tooManyEmails: _emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
+    tooManyPhones: !!_phones && _phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
+    waiting: waiting,
+  }
+  return <AccountSettings {...props} />
+}
 
 export type Props = {
   addedEmail?: string
@@ -75,7 +150,7 @@ const EmailPhone = (props: Props) => (
             type="iconfont-open-browser"
             sizeType="Tiny"
             boxStyle={styles.displayInline}
-            color={Styles.globalColors.blueDark}
+            color={Kb.Styles.globalColors.blueDark}
           />
         </Kb.Text>
       </Kb.Text>
@@ -97,7 +172,7 @@ const EmailPhone = (props: Props) => (
 const Password = (props: Props) => {
   let passwordLabel: string
   if (props.hasPassword) {
-    passwordLabel = Styles.isMobile ? 'Change' : 'Change password'
+    passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
   } else {
     passwordLabel = 'Set a password'
   }
@@ -122,8 +197,7 @@ const Password = (props: Props) => {
 }
 
 const WebAuthTokenLogin = (_: Props) => {
-  const dispatch = Container.useDispatch()
-
+  const loginBrowserViaWebAuthToken = C.useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -133,7 +207,7 @@ const WebAuthTokenLogin = (_: Props) => {
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
           label={`Open keybase.io in web browser`}
-          onClick={() => dispatch(SettingsGen.createLoginBrowserViaWebAuthToken())}
+          onClick={loginBrowserViaWebAuthToken}
           mode="Secondary"
           small={true}
         />
@@ -168,7 +242,7 @@ const AccountSettings = (props: Props) => (
     reloadOnMount={true}
     waitingKeys={[Constants.loadSettingsWaitingKey]}
   >
-    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
       {props.addedEmail && (
         <Kb.Banner key="clearAdded" color="yellow" onClose={props.onClearAddedEmail}>
           <Kb.BannerParagraph
@@ -216,52 +290,51 @@ const AccountSettings = (props: Props) => (
   </Kb.Reloadable>
 )
 
-AccountSettings.navigationOptions = {
-  header: undefined,
-  title: 'Your account',
-}
-
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,
     width: undefined,
   },
-  contactRows: Styles.platformStyles({
+  contactRows: Kb.Styles.platformStyles({
     isElectron: {
-      paddingTop: Styles.globalMargins.xtiny,
+      paddingTop: Kb.Styles.globalMargins.xtiny,
     },
   }),
-  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
+  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
-    ...Styles.padding(Styles.globalMargins.xsmall, 0),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
   },
   progress: {
     height: 16,
     width: 16,
   },
-  section: Styles.platformStyles({
+  section: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.mediumLarge,
-        Styles.globalMargins.medium,
-        Styles.globalMargins.small
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.mediumLarge,
+        Kb.Styles.globalMargins.medium,
+        Kb.Styles.globalMargins.small
       ),
     },
     isElectron: {
       maxWidth: 600,
     },
     isPhone: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.medium
+      ),
     },
     isTablet: {
-      maxWidth: Styles.globalStyles.largeWidthPercent,
+      maxWidth: Kb.Styles.globalStyles.largeWidthPercent,
     },
   }),
   topButton: {
-    marginTop: Styles.globalMargins.xtiny,
+    marginTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 
-export default AccountSettings
+export default Container

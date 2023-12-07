@@ -1,17 +1,17 @@
-import * as React from 'react'
-import {Color, StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type {Color, StylesCrossPlatform} from '@/styles'
 
 export type Props = {
   badgeNumber?: number
   hideBackLabel?: boolean
   onClick?: () => void // if undefined will give you a navigate up
   disabled?: boolean
-  onPress?: void
+  onPress?: never
   iconColor?: Color
-  textStyle?: StylesCrossPlatform | null
-  style?: StylesCrossPlatform | null
-  title?: string | null
+  textStyle?: StylesCrossPlatform
+  style?: StylesCrossPlatform
+  title?: string
 }
 
-declare class BackButton extends React.Component<Props> {}
+declare const BackButton: (p: Props) => React.ReactNode
 export default BackButton

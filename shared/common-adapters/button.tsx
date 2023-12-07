@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys */
 import './button.css'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Icon, {type SizeType} from './icon'
@@ -9,6 +9,7 @@ import Text, {type StylesTextCrossPlatform} from './text'
 import WithTooltip from './with-tooltip'
 import type {IconType} from './icon.constants-gen'
 import {Box, Box2} from './box'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Badge,
@@ -67,6 +68,7 @@ type DefaultProps = {
   tooltip?: string
   type?: ButtonType
   waiting?: boolean
+  disabledStopClick?: boolean // if disabled it'll by default let clicks bleed through
 }
 
 export type Props = DefaultProps & WithIconProps
@@ -83,17 +85,44 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   )
 }
 
-const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
+const stopClick = (e: React.BaseSyntheticEvent) => {
+  e.stopPropagation()
+}
+
+type ModeAndType =
+  | 'PrimaryDefault'
+  | 'PrimarySuccess'
+  | 'PrimaryDanger'
+  | 'PrimaryWallet'
+  | 'PrimaryDim'
+  | 'SecondaryDefault'
+  | 'SecondarySuccess'
+  | 'SecondaryDanger'
+  | 'SecondaryWallet'
+  | 'SecondaryDim'
+
+type ModeAndBGColor =
+  | 'Primaryblue'
+  | 'Primaryred'
+  | 'Primarygreen'
+  | 'Primarypurple'
+  | 'Primaryblack'
+  | 'Primaryyellow'
+  | 'Secondary'
+
+const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   props: Props,
-  ref: React.Ref<ClickableBox>
+  ref: React.Ref<MeasureRef>
 ) {
   const {mode = 'Primary', type = 'Default'} = props
-  let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
-    ? backgroundColorContainerStyles[mode as any]
-    : containerStyles[(mode + type) as any]
-  let labelStyle: StylesTextCrossPlatform = props.backgroundColor
-    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
-    : labelStyles[mode + type]
+  const modeAndType = (mode + type) as ModeAndType
+  const modeAndBGColor = (mode + (props.backgroundColor ?? '')) as ModeAndBGColor
+  let containerStyle = props.backgroundColor
+    ? (backgroundColorContainerStyles[mode] as Styles.StylesCrossPlatform)
+    : (containerStyles[modeAndType] as Styles.StylesCrossPlatform)
+  let labelStyle = props.backgroundColor
+    ? (backgroundColorLabelStyles[mode === 'Secondary' ? mode : modeAndBGColor] as StylesTextCrossPlatform)
+    : (labelStyles[modeAndType] as StylesTextCrossPlatform)
 
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
@@ -117,18 +146,19 @@ const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
   }
 
   if (props.waiting) {
-    labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0])
+    labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0]) as StylesTextCrossPlatform
   }
 
   containerStyle = Styles.collapseStyles([containerStyle, props.style])
-
-  const onClick =
-    !unclickable && props.onClick
-      ? (e: React.BaseSyntheticEvent) => {
-          e.stopPropagation()
-          props.onClick && props.onClick(e)
-        }
-      : undefined
+  const {onClick: ponClick} = props
+  const _onClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.stopPropagation()
+      ponClick?.(e)
+    },
+    [ponClick]
+  )
+  const onClick = !unclickable && props.onClick ? _onClick : props.disabledStopClick ? stopClick : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
     (mode === 'Secondary' && !!props.backgroundColor)
@@ -240,7 +270,7 @@ const typeToColorName = {
 export const smallHeight = Styles.isMobile ? 32 : 28
 export const regularHeight = Styles.isMobile ? 40 : 32
 
-const common: () => Styles.StylesCrossPlatform = () =>
+const common: () => Styles._StylesCrossPlatform = () =>
   Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -316,9 +346,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const containerStyles: any = Styles.styleSheetCreate(() => {
+const containerStyles = Styles.styleSheetCreate(() => {
   const commonSecondaryWhiteBg = Styles.platformStyles({
-    // @ts-ignore TS is correct we shouldn't be doing this. TODO fix later
     common: common(),
     isElectron: {
       backgroundColor: Styles.globalColors.white,
@@ -343,7 +372,7 @@ const containerStyles: any = Styles.styleSheetCreate(() => {
     SecondaryDanger: commonSecondaryWhiteBg,
     SecondaryWallet: commonSecondaryWhiteBg,
     SecondaryDim: commonSecondaryWhiteBg,
-  }
+  } as const
 })
 
 const commonLabel = () =>
@@ -351,12 +380,13 @@ const commonLabel = () =>
     common: {
       color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
+      display: 'flex',
     },
     isElectron: {whiteSpace: 'pre', userSelect: 'none'},
     isMobile: {lineHeight: undefined},
   })
 
-const labelStyles: any = Styles.styleSheetCreate(() => {
+const labelStyles = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
     color: Styles.globalColors.whiteOrWhite,
@@ -375,26 +405,32 @@ const labelStyles: any = Styles.styleSheetCreate(() => {
     SecondaryDanger: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.redDark},
     SecondaryWallet: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.purpleDark},
     SecondaryDim: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.black_50},
-  }
+  } as const
 })
 
 // With backgroundColor styles
-const backgroundColorContainerStyles: any = Styles.styleSheetCreate(() => ({
-  Primary: {...common(), backgroundColor: Styles.globalColors.white},
-  Secondary: Styles.platformStyles({
-    common: {...common(), backgroundColor: Styles.globalColors.black_20},
-    isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
-  }),
-}))
+const backgroundColorContainerStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      Primary: {...common(), backgroundColor: Styles.globalColors.white},
+      Secondary: Styles.platformStyles({
+        common: {...common(), backgroundColor: Styles.globalColors.black_20},
+        isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
+      }),
+    }) as const
+)
 
-const backgroundColorLabelStyles: any = Styles.styleSheetCreate(() => ({
-  Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
-  Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
-  Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
-  Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
-  Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
-  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
-  Secondary: {...commonLabel(), color: Styles.globalColors.white},
-}))
+const backgroundColorLabelStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
+      Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
+      Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
+      Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
+      Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
+      Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
+      Secondary: {...commonLabel(), color: Styles.globalColors.white},
+    }) as const
+)
 
 export default Button

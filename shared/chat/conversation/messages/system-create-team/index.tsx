@@ -1,13 +1,12 @@
-import * as Kb from '../../../../common-adapters'
-import type * as TeamsTypes from '../../../../constants/types/teams'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
+import type * as T from '@/constants/types'
 
 type Props = {
   creator: string
   team: string
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   you: string
   isAdmin: boolean
   onViewTeam: () => void
@@ -26,8 +25,8 @@ const ManageComponent = (props: Props) => {
   }
 }
 const AddInvite = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  const onAddInvite = () => dispatch(TeamsGen.createStartAddMembersWizard({teamID: props.teamID}))
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const onAddInvite = () => startAddMembersWizard(props.teamID)
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.isAdmin) {
     return (

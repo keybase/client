@@ -31,7 +31,7 @@ const prettierCheck = () => {
       stdio: [],
     })
   } catch (error_) {
-    const error = error_ as any
+    const error = error_ as {stdout: string}
     const lines = error.stdout.split('\n')
     const [, ...toPrint] = lines
     toPrint.pop()
@@ -48,7 +48,7 @@ const prettierWriteAll = () =>
     stdio: 'inherit',
   })
 
-export default {
+const Prettier = {
   'prettier-check': {
     code: prettierCheck,
     help: 'Test for any misformatted files',
@@ -58,3 +58,4 @@ export default {
     help: 'Prettier all files',
   },
 }
+export default Prettier

@@ -1,33 +1,34 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../util/container'
-import type * as Types from '../constants/types/teams'
-import * as TeamsGen from '../actions/teams-gen'
+import type * as T from '@/constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
 // context, you must use `*MountOnly` variants of these helpers
 
 const useTeamsSubscribeMobile = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = C.useTeamsState(s => s.dispatch.unsubscribeTeamList)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+      getTeams(true)
       return () => {
-        dispatch(TeamsGen.createUnsubscribeTeamList())
+        unsubscribeTeamList()
       }
-    }, [dispatch])
+    }, [getTeams, unsubscribeTeamList])
   )
 }
 const useTeamsSubscribeDesktop = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = C.useTeamsState(s => s.dispatch.unsubscribeTeamList)
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+    getTeams(true)
     return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamList())
+      unsubscribeTeamList()
     }
-  }, [dispatch])
+  }, [getTeams, unsubscribeTeamList])
 }
-export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
+export const useTeamsSubscribe = C.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
 export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
@@ -41,36 +42,36 @@ export const TeamsSubscriberMountOnly = () => {
   return null
 }
 
-const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+const useTeamDetailsSubscribeMobile = (teamID: T.Teams.TeamID) => {
+  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-      return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }, [dispatch, teamID])
+      loadTeam(teamID, true)
+      return () => unsubscribeTeamDetails(teamID)
+    }, [loadTeam, unsubscribeTeamDetails, teamID])
   )
 }
-const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+const useTeamDetailsSubscribeDesktop = (teamID: T.Teams.TeamID) => {
+  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-    return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }
-  }, [dispatch, teamID])
+    loadTeam(teamID, true)
+    return () => unsubscribeTeamDetails(teamID)
+  }, [loadTeam, unsubscribeTeamDetails, teamID])
 }
-export const useTeamDetailsSubscribe = Container.isMobile
+export const useTeamDetailsSubscribe = C.isMobile
   ? useTeamDetailsSubscribeMobile
   : useTeamDetailsSubscribeDesktop
 export const useTeamDetailsSubscribeMountOnly = useTeamDetailsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
-export const TeamDetailsSubscriber = (props: {teamID: Types.TeamID}) => {
+export const TeamDetailsSubscriber = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribe(props.teamID)
   return null
 }
 
-export const TeamDetailsSubscriberMountOnly = (props: {teamID: Types.TeamID}) => {
+export const TeamDetailsSubscriberMountOnly = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribeMountOnly(props.teamID)
   return null
 }

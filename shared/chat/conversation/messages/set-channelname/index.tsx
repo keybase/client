@@ -1,9 +1,8 @@
-import type * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 
 type Props = {
-  message: Types.MessageSetChannelname
+  message: T.Chat.MessageSetChannelname
 }
 
 const ChannelNameMessage = (props: Props) => (
@@ -13,9 +12,9 @@ const ChannelNameMessage = (props: Props) => (
 )
 export default ChannelNameMessage
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},
-    } as const)
+    }) as const
 )

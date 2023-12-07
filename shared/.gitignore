@@ -11,6 +11,9 @@ android/**/.classpath
 android/**/.project
 android/**/.settings/**
 android/app/.cxx
+android/app/google-services.json
+android/app/src/debug/google-services.json
+android/app/src/releaseUnsigned/google-services.json
 
 # iOS
 !default.mode1v3
@@ -44,3 +47,6 @@ ios/.xcode.env.local
 
 main.jsbundle
 .eslintcache
+.metro-health-check*
+
+coverage-ts

@@ -1,24 +1,22 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
-import logger from '../../../logger'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
+import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {Avatars, TeamAvatar} from '../../avatars'
+import {Avatars, TeamAvatar} from '@/chat/avatars'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */
 
 type Props = {
   onDone?: () => void
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 type Row = {
   isSelected: boolean
-  item: RPCChatTypes.SimpleSearchInboxConvNamesHit
+  item: T.RPCChat.SimpleSearchInboxConvNamesHit
   onSelect: () => void
 }
 
@@ -30,11 +28,13 @@ const _itemRenderer = (index: number, row: Row) => {
         direction="horizontal"
         fullWidth={true}
         gap="tiny"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.results,
           {
             backgroundColor:
-              !Styles.isMobile && row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
+              !Kb.Styles.isMobile && row.isSelected
+                ? Kb.Styles.globalColors.blue
+                : Kb.Styles.globalColors.white,
           },
         ])}
       >
@@ -59,9 +59,11 @@ const ConversationList = (props: Props) => {
   const [query, setQuery] = React.useState('')
   const [waiting, setWaiting] = React.useState(false)
   const [selected, setSelected] = React.useState(0)
-  const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
-  const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
-  const doSearch = React.useCallback(() => {
+  const [results, setResults] = React.useState<Array<T.RPCChat.SimpleSearchInboxConvNamesHit>>([])
+  const submit = C.useRPC(T.RPCChat.localSimpleSearchInboxConvNamesRpcPromise)
+  const [lastQuery, setLastQuery] = React.useState('init')
+  if (lastQuery !== query) {
+    setLastQuery(query)
     setWaiting(true)
     setSelected(0)
     submit(
@@ -75,11 +77,8 @@ const ConversationList = (props: Props) => {
         logger.info('ConversationList: error loading search results: ' + error.message)
       }
     )
-  }, [query, submit])
-  React.useEffect(() => {
-    doSearch()
-  }, [doSearch])
-  const onSelect = (convID: Types.ConversationIDKey, convName: string) => {
+  }
+  const onSelect = (convID: T.Chat.ConversationIDKey, convName: string) => {
     props.onSelect(convID, convName)
     props.onDone?.()
   }
@@ -99,9 +98,9 @@ type ConversationListRenderProps = {
   selected: number
   setSelected: (selected: number) => void
   waiting: boolean
-  results: Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>
+  results: Array<T.RPCChat.SimpleSearchInboxConvNamesHit>
   setQuery: (query: string) => void
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 export const ConversationListRender = (props: ConversationListRenderProps) => {
@@ -130,7 +129,10 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
               case 'Enter':
                 if (props.results.length > 0) {
                   const result = props.results[props.selected]
-                  props.onSelect(Types.conversationIDToKey(result.convID), result.name)
+                  props.onSelect(
+                    result?.convID ? T.Chat.conversationIDToKey(result.convID) : '',
+                    result?.name ?? ''
+                  )
                 }
                 break
             }
@@ -143,7 +145,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
           items={props.results.map((r, index) => ({
             isSelected: index === props.selected,
             item: r,
-            onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.tlfName),
+            onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
           }))}
           renderItem={_itemRenderer}
           indexAsKey={true}
@@ -153,26 +155,26 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      filterContainer: Styles.platformStyles({
+      filterContainer: Kb.Styles.platformStyles({
         isElectron: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
-      results: Styles.platformStyles({
+      results: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ConversationList

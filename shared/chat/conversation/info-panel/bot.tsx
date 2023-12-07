@@ -1,29 +1,21 @@
-import * as BotConstants from '../../../constants/bots'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as TeamConstants from '../../../constants/teams'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import type {Section as _Section} from '../../../common-adapters/section-list'
+import * as Styles from '@/styles'
+import type * as T from '@/constants/types'
+import type {Section as _Section} from '@/common-adapters/section-list'
 
 type AddToChannelProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   username: string
 }
 type Extra = {renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null}
-type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: string}, Extra>
+type Section = _Section<string | T.RPCGen.FeaturedBot, Extra> | _Section<{key: string}, Extra>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const dispatch = Container.useDispatch()
-  const settings = Container.useSelector(
-    state => state.chat2.botSettings.get(conversationIDKey)?.get(username) ?? undefined
-  )
+  const settings = C.useChatContext(s => s.botSettings.get(username))
+  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -35,29 +27,26 @@ const AddToChannel = (props: AddToChannelProps) => {
         e.preventDefault()
         // if settings aren't loaded, don't even try to do anything
         if (settings && !settings.convs?.includes(conversationIDKey)) {
-          dispatch(
-            Chat2Gen.createEditBotSettings({
-              allowCommands: settings.cmds,
-              allowMentions: settings.mentions,
-              conversationIDKey,
-              convs: [conversationIDKey].concat(settings.convs ?? []),
-              username,
-            })
+          editBotSettings(
+            username,
+            settings.cmds,
+            settings.mentions,
+            [conversationIDKey].concat(settings.convs ?? [])
           )
         }
       }}
-      waitingKey={Constants.waitingKeyBotAdd}
+      waitingKey={C.Chat.waitingKeyBotAdd}
     />
   )
 }
 
-type BotProps = RPCTypes.FeaturedBot & {
+type BotProps = T.RPCGen.FeaturedBot & {
   description?: string
   firstItem?: boolean
   hideHover?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
   onClick: (username: string) => void
 }
 export const Bot = (props: BotProps) => {
@@ -65,13 +54,13 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
+  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
+  C.useCIDChanged(conversationIDKey, () => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
-      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+      refreshBotSettings(botUsername)
     }
-  }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
+  })
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
@@ -176,11 +165,10 @@ const styles = Styles.styleSheetCreate(
           ...Styles.desktopStyles.clickable,
         },
       }),
-    } as const)
+    }) as const
 )
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactElement | null
   commonSections: Array<Section>
 }
@@ -193,13 +181,10 @@ const addBotButton = 'bots: add bot'
 const featuredBotSpinner = 'bots: featured spinners'
 
 const BotTab = (props: Props) => {
-  const {renderTabs, conversationIDKey} = props
-  const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {renderTabs} = props
+  const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
@@ -207,41 +192,39 @@ const BotTab = (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) ?? new Map()
+  const participantInfo = C.useChatContext(s => s.participants)
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
     botUsernames = participantsAll.filter(p => !participantInfo.name.includes(p))
-  } else {
+  } else if (teamMembers) {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
       )
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
-  const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap)
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const featuredBots = C.getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        !(!adhocTeam && teamMembers && C.Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index}))
-  const infoMap = Container.useSelector(state => state.users.infoMap)
-  const loadedAllBots = Container.useSelector(state => state.chat2.featuredBotsLoaded)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const loadedAllBots = C.useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]) =>
     usernames.map((b, index) => ({
       ...(featuredBotsMap.get(b) ?? {
-        botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname,
+        botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname ?? '',
         botUsername: b,
         description: infoMap.get(b)?.bio ?? '',
         extendedDescription: '',
@@ -258,36 +241,32 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
+  const navigateAppend = C.useChatNavigateAppend()
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onBotAdd = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatSearchBots'}],
-      })
-    )
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
   }
   const onBotSelect = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: username, conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend(conversationIDKey => ({
+      props: {botUsername: username, conversationIDKey},
+      selected: 'chatInstallBot',
+    }))
   }
-  const onLoadMoreBots = () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
+  const loadNextBotPage = C.useBotsState(s => s.dispatch.loadNextBotPage)
+  const onLoadMoreBots = () => loadNextBotPage()
   const loadingBots = !featuredBotsMap.size
 
   const featuredBotsLength = featuredBots.length
-  React.useEffect(() => {
+  const [lastFBL, setLastFBL] = React.useState(-1)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
+  if (cidChanged || lastFBL !== featuredBotsLength) {
+    setLastFBL(featuredBotsLength)
     if (featuredBotsLength === 0 && !loadedAllBots) {
-      dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
+      loadNextBotPage()
     }
-  }, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
+  }
 
-  const items: Array<string | RPCTypes.FeaturedBot> = [
+  const items: Array<string | T.RPCGen.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),
     ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
     ...usernamesToFeaturedBots(botsInConv),
@@ -299,18 +278,17 @@ const BotTab = (props: Props) => {
     ...(loadingBots ? [featuredBotSpinner] : []),
   ]
 
-  const sections: Section[] = [
+  const sections = [
     {
       data: items,
       key: 'bots',
-      // @ts-ignore this is a mobile-only property we don't want to generally expose because it might end up confusing people.
-      keyExtractor: (item: Unpacked<typeof items>, index: number) => {
+      keyExtractor: (item: (typeof items)[number], index: number) => {
         if (typeof item === 'string' || item instanceof String) {
           return item
         }
         return item.botUsername ? 'abot-' + item.botUsername : index
       },
-      renderItem: ({item}) => {
+      renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
@@ -357,17 +335,24 @@ const BotTab = (props: Props) => {
             />
           )
         }
-        if (!item.botUsername) {
+
+        const i = item as {
+          botUsername: string
+          index: number
+          description?: string
+          hideHover?: boolean
+        } & T.RPCGen.FeaturedBot
+        if (!i.botUsername) {
           return null
         } else {
           return (
             <Bot
-              {...item}
+              {...i}
               conversationIDKey={conversationIDKey}
-              firstItem={item.index === 0}
+              firstItem={i.index === 0}
               onClick={onBotSelect}
-              showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(item.botUsername)}
-              showTeamAdd={canManageBots && featuredBots.find(bot => bot.botUsername === item.botUsername)}
+              showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(i.botUsername)}
+              showTeamAdd={canManageBots && !!featuredBots.find(bot => bot.botUsername === i.botUsername)}
             />
           )
         }
@@ -380,7 +365,7 @@ const BotTab = (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) ?? null}
       sections={[...props.commonSections, ...sections]}
     />
   )

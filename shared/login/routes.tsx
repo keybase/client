@@ -1,92 +1,42 @@
-import * as Container from '../util/container'
-import type Feedback from '../settings/feedback/container'
-import type {ProxySettingsPopup} from '../settings/proxy'
-import type {KnowPassword, EnterPassword} from './reset/password'
-import type Waiting from './reset/waiting'
-import type Confirm from './reset/confirm'
-import type LoadingType from './loading/container'
-import type ReloginType from './relogin/container'
-import type JoinOrLoginType from './join-or-login/container'
-
-type OwnProps = {}
-type Props = {
-  isLoggedIn: boolean
-  showLoading: boolean
-  showRelogin: boolean
-}
-
-const _RootLogin = (p: Props) => {
-  // routing should switch us away so lets not draw anything to speed things up
-  if (p.isLoggedIn) return null
-  if (p.showLoading) {
-    const Loading = require('./loading/container').default as typeof LoadingType
-    return <Loading />
-  }
-  if (p.showRelogin) {
-    const Relogin = require('./relogin/container').default as typeof ReloginType
-    return <Relogin />
-  }
-
-  const JoinOrLogin = require('./join-or-login/container').default as typeof JoinOrLoginType
-  return <JoinOrLogin />
-}
-
-_RootLogin.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
-const RootLogin = Container.connect(
-  state => {
-    const isLoggedIn = state.config.loggedIn
-    const showLoading = state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
-    const showRelogin = !showLoading && state.config.configuredAccounts.length > 0
-    return {isLoggedIn, showLoading, showRelogin}
-  },
-  () => ({}),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(_RootLogin)
+import * as C from '@/constants'
+import login from './page'
+import proxySettingsModal from '../settings/proxy/page'
+import recoverPasswordDeviceSelector from './recover-password/device-selector/page'
+import recoverPasswordError from './recover-password/error.page'
+import recoverPasswordErrorModal from './recover-password/error-modal.page'
+import recoverPasswordExplainDevice from './recover-password/explain-device.page'
+import recoverPasswordPaperKey from './recover-password/paper-key.page'
+import recoverPasswordPromptResetAccount from './recover-password/prompt-reset-account.page'
+import recoverPasswordPromptResetPassword from './recover-password/prompt-reset-password.page'
+import recoverPasswordSetPassword from './recover-password/password.page'
+import resetConfirm from './reset/confirm.page'
+import resetEnterPassword from './reset/password-enter.page'
+import resetKnowPassword from './reset/password-known.page'
+import resetWaiting from './reset/waiting.page'
+import {newRoutes as provisionRoutes} from '../provision/routes-sub'
+import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
+import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {
-  feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},
-  login: {getScreen: () => RootLogin},
-  resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
-  resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
-  resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
-  resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},
-  ...require('../provision/routes-sub').newRoutes,
-  ...require('./recover-password/routes-sub').newRoutes,
+  feedback: settingsRoutes[C.settingsFeedbackTab],
+  login,
+  recoverPasswordDeviceSelector,
+  recoverPasswordError,
+  recoverPasswordExplainDevice,
+  recoverPasswordPaperKey,
+  recoverPasswordPromptResetAccount,
+  recoverPasswordPromptResetPassword,
+  resetConfirm,
+  resetEnterPassword,
+  resetKnowPassword,
+  resetWaiting,
+  ...provisionRoutes,
+  ...signupRoutes,
 }
 export const newModalRoutes = {
-  proxySettingsModal: {
-    getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
-  },
-  ...require('./recover-password/routes-sub').newModalRoutes,
+  proxySettingsModal,
+  recoverPasswordErrorModal,
+  recoverPasswordSetPassword,
 }
 
-export type RootParamListLogin = {
-  codePage: undefined
-  error: undefined
-  feedback: undefined
-  forgotUsername: undefined
-  gpgSign: undefined
-  login: undefined
-  paperkey: undefined
-  password: undefined
-  proxySettingsModal: undefined
-  recoverPasswordDeviceSelector: undefined
-  recoverPasswordError: undefined
-  recoverPasswordErrorModal: undefined
-  recoverPasswordExplainDevice: undefined
-  recoverPasswordPaperKey: undefined
-  recoverPasswordPromptResetAccount: undefined
-  recoverPasswordPromptResetPassword: undefined
-  recoverPasswordSetPassword: undefined
-  resetConfirm: undefined
-  resetEnterPassword: undefined
-  resetKnowPassword: undefined
-  resetWaiting: {pipelineStarted: boolean}
-  selectOtherDevice: undefined
-  setPublicName: undefined
-  username: {fromReset: boolean}
-}
+export type RootParamListLogin = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

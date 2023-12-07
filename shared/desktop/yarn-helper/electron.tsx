@@ -41,7 +41,7 @@ const commands = {
     help: 'Start electron with profile',
     shell: `electron ${path.resolve(__dirname, '../dist/node.profile.bundle.js')}`,
   },
-}
+} as const
 
 function startHot() {
   try {
@@ -53,12 +53,12 @@ function startHot() {
 
   // Find extensions
 
-  const devToolRoots = !process.env.KEYBASE_PERF && process.env.KEYBASE_DEV_TOOL_ROOTS
+  const devToolRoots = !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
   const devToolExtensions = devToolRoots
     ? {
         KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots
           .split(',')
-          .map(root => path.join(root, fs.readdirSync(root)[0]))
+          .map(root => path.join(root, fs.readdirSync(root)[0] ?? ''))
           .join(','),
       }
     : null
@@ -71,8 +71,7 @@ function startHot() {
   const hitServer = () => {
     const req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
-      const electron = require('electron')
-      // @ts-ignore
+      const electron = require('electron') as unknown as string
       spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {env, stdio: 'inherit'})
     })
     req.on('error', e => {

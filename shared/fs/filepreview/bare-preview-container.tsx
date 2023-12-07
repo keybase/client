@@ -1,19 +1,19 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import BarePreview from './bare-preview'
 
-type OwnProps = Container.RouteProps<'barePreview'>
+type OwnProps = {path: T.FS.Path}
 
-const ConnectedBarePreview = Container.isMobile
-  ? Container.connect(
-      () => ({}),
-      dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
-      (_, {onBack}, ownProps: OwnProps) => ({
-        onBack,
-        path: ownProps.route.params?.path ?? Constants.defaultPath,
-      })
-    )(BarePreview)
-  : () => null
+const ConnectedBarePreview = (ownProps: OwnProps) => {
+  const path = ownProps.path ?? C.defaultPath
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
+  const props = {onBack, path}
+  return <BarePreview {...props} />
+}
 
-export default ConnectedBarePreview
+const Noop = (_: OwnProps) => {
+  return null
+}
+
+export default C.isMobile ? ConnectedBarePreview : Noop

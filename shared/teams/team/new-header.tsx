@@ -1,20 +1,15 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 import TeamMenu from './menu-container'
-import type {TeamID} from '../../constants/types/teams'
-import {pluralize} from '../../util/string'
-import capitalize from 'lodash/capitalize'
+import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
-import * as TeamsGen from '../../actions/teams-gen'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '@/constants/types'
 
-const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const onAdd = () => dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const onAdd = () => startAddMembersWizard(teamID)
   return (
     <Kb.Button
       label="Add/Invite people"
@@ -26,20 +21,21 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
     />
   )
 }
-type FeatureTeamCardProps = {teamID: Types.TeamID}
+type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const dispatch = Container.useDispatch()
-  const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const onFeature = () => setMemberPublicity(teamID, true)
+  const setJustFinishedAddMembersWizard = C.useTeamsState(s => s.dispatch.setJustFinishedAddMembersWizard)
   const onNoThanks = React.useCallback(() => {
-    dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
-  }, [dispatch])
+    setJustFinishedAddMembersWizard(false)
+  }, [setJustFinishedAddMembersWizard])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
-  const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(C.Teams.setMemberPublicityWaitingKey(teamID))
   return (
     <Kb.Box2
       direction="vertical"
-      gap={Styles.isPhone ? 'xtiny' : 'tiny'}
+      gap={Kb.Styles.isPhone ? 'xtiny' : 'tiny'}
       style={styles.addInviteAsFeatureTeamBox}
       className="addInviteAndLinkBox"
       alignItems="flex-start"
@@ -57,7 +53,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
           type="Success"
           onClick={onFeature}
           small={true}
-          style={Styles.globalStyles.flexOne}
+          style={Kb.Styles.globalStyles.flexOne}
           waiting={waiting}
         />
         <Kb.Button
@@ -65,7 +61,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
           type="Dim"
           onClick={onNoThanks}
           small={true}
-          style={Styles.globalStyles.flexOne}
+          style={Kb.Styles.globalStyles.flexOne}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -73,36 +69,37 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
 }
 
 type HeaderTitleProps = {
-  teamID: TeamID
+  teamID: T.Teams.TeamID
 }
 
 const roleDisplay = {
   admin: 'an admin of',
+  bot: 'a bot in',
   none: 'not a member of',
   owner: 'an owner of',
   reader: 'a reader in',
+  restrictedbot: 'a bot in',
   writer: 'a writer in',
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
+  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const details = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const justFinishedAddWizard = C.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
-  const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
-  const newMemberCount = 0 // TODO plumbing
+  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const callbacks = useHeaderCallbacks(teamID)
-  const teamMenu = Kb.usePopup(attachTo => (
-    <TeamMenu
-      attachTo={attachTo}
-      onHidden={teamMenu.toggleShowingPopup}
-      teamID={props.teamID}
-      visible={teamMenu.showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamMenu attachTo={attachTo} onHidden={toggleShowingPopup} teamID={teamID} visible={true} />
+    },
+    [teamID]
+  )
+  const teamMenu = Kb.usePopup2(makePopup)
 
   const avatar = (
     <Kb.Avatar
@@ -110,7 +107,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       onEditAvatarClick={callbacks.onEditAvatar}
       teamname={meta.teamname}
       size={96}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.alignSelfFlexStart,
         callbacks.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
         callbacks.onEditAvatar && styles.clickable,
@@ -121,7 +118,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2
-        direction={Styles.isPhone ? 'vertical' : 'horizontal'}
+        direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'}
         gap="xxtiny"
         alignSelf="flex-start"
         style={styles.flexShrink}
@@ -139,24 +136,24 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {!!callbacks.onRename && <Kb.Icon type="iconfont-edit" onClick={callbacks.onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
-          <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
+          <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
         )}
       </Kb.Box2>
-      {!!meta.role && (
+      {
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-start">
           {(meta.role === 'admin' || meta.role === 'owner') && (
             <Kb.Icon
-              color={meta.role === 'owner' ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-              fontSize={Styles.isPhone ? 16 : 10}
+              color={
+                meta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35
+              }
+              fontSize={Kb.Styles.isPhone ? 16 : 10}
               type={meta.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
             />
           )}
-          {(!Styles.isPhone || !!meta.role) && (
+          {!Kb.Styles.isPhone && (
             <>
               <Kb.Text type="BodySmall">
-                {Styles.isPhone
-                  ? capitalize(meta.role)
-                  : `You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
+                {`You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
               </Kb.Text>
               {meta.role === 'none' && (
                 <Kb.Text
@@ -170,7 +167,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             </>
           )}
         </Kb.Box2>
-      )}
+      }
     </Kb.Box2>
   )
 
@@ -178,13 +175,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isPhone}>
-        {!!details.description && (
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isPhone}>
+        {!!details?.description && (
           <Kb.Text
             type="Body"
             lineClamp={3}
             onClick={callbacks.onEditDescription}
-            className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
+            className={Kb.Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
             style={styles.clickable}
           >
             {details.description}
@@ -193,7 +190,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {meta.memberCount !== -1 && (
           <Kb.Text type="BodySmall">
             {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-            {!!newMemberCount && ` · ${newMemberCount} new this week`}
           </Kb.Text>
         )}
         <Activity level={activityLevel} style={styles.activity} />
@@ -215,7 +211,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             ref={teamMenu.popupAnchor}
             onClick={teamMenu.toggleShowingPopup}
           >
-            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
+            <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
           {teamMenu.popup}
         </Kb.Box2>
@@ -230,7 +226,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     ) : (
       <Kb.Box2
         direction="vertical"
-        gap={Styles.isPhone ? 'xtiny' : 'tiny'}
+        gap={Kb.Styles.isPhone ? 'xtiny' : 'tiny'}
         style={styles.addInviteAndLinkBox}
         className="addInviteAndLinkBox"
         alignItems="center"
@@ -240,7 +236,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       </Kb.Box2>
     )
 
-  if (Styles.isPhone) {
+  if (Kb.Styles.isPhone) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
@@ -285,42 +281,32 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default HeaderTitle
 
-const useHeaderCallbacks = (teamID: TeamID) => {
-  const dispatch = Container.useDispatch()
+const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = Container.useSafeNavigation()
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const yourUsername = Container.useSelector(s => s.config.username)
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const yourUsername = C.useCurrentUserState(s => s.username)
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onAddSelf = () => {
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
-    dispatch(
-      TeamsGen.createAddMembersWizardPushMembers({members: [{assertion: yourUsername, role: 'writer'}]})
-    )
+    startAddMembersWizard(teamID)
+    addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname: meta.teamname}))
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({
-            path: [{props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
-          })
-        )
+        nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamInfo'}]}))
+    ? () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamEditTeamInfo'})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({path: [{props: {teamname: meta.teamname}, selected: 'teamRename'}]})
-        )
+    ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
     : undefined
-  const onManageInvites = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
-  const onGenerateLink = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
+  const onManageInvites = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteHistory'})
+  const onGenerateLink = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
 
   return {
     onAddSelf,
@@ -333,23 +319,23 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activity: {alignSelf: 'flex-start'},
-      addInviteAndLinkBox: Styles.platformStyles({
+      addInviteAndLinkBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.black_10,
+          borderColor: Kb.Styles.globalColors.black_10,
           borderStyle: 'solid',
           borderWidth: 1,
           flexShrink: 0,
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           borderRadius: 4,
-          marginBottom: Styles.globalMargins.xsmall,
-          marginRight: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginRight: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.tiny,
           width: 220,
         },
         isPhone: {
@@ -358,25 +344,25 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           borderRadius: 4,
-          marginBottom: Styles.globalMargins.xsmall,
-          marginRight: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginRight: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.tiny,
           width: 260,
         },
       }),
-      addInviteAsFeatureTeamBox: Styles.platformStyles({
+      addInviteAsFeatureTeamBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.black_10,
+          borderColor: Kb.Styles.globalColors.black_10,
           borderStyle: 'solid',
           borderWidth: 1,
           flexShrink: 0,
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           borderRadius: 4,
           height: 184,
-          marginBottom: Styles.globalMargins.xsmall,
-          marginRight: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginRight: Kb.Styles.globalMargins.small,
           width: 220,
         },
         isPhone: {
@@ -387,21 +373,21 @@ const styles = Styles.styleSheetCreate(
         isTablet: {
           borderRadius: 4,
           height: 194,
-          marginBottom: Styles.globalMargins.xsmall,
-          marginRight: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.xsmall,
+          marginRight: Kb.Styles.globalMargins.small,
           width: 260,
         },
       }),
       addPeopleButton: {flexGrow: 0},
       addSelfLink: {
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
       },
       alignSelfFlexStart: {alignSelf: 'flex-start'},
-      backButton: {backgroundColor: Styles.globalColors.white},
-      backgroundWhite: {backgroundColor: Styles.globalColors.white},
-      clickable: Styles.platformStyles({
-        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+      backButton: {backgroundColor: Kb.Styles.globalColors.white},
+      backgroundWhite: {backgroundColor: Kb.Styles.globalColors.white},
+      clickable: Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
       }),
       flexShrink: {flexShrink: 1},
       flexShrinkGrow: {
@@ -411,30 +397,30 @@ const styles = Styles.styleSheetCreate(
       header: {flexShrink: 1},
       illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
       marginBottomRightTiny: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
-      openMeta: Styles.platformStyles({
+      openMeta: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
-          marginLeft: Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.xtiny,
         },
         isPhone: {alignSelf: 'flex-start'},
         isTablet: {
           alignSelf: 'center',
-          marginLeft: Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.xtiny,
         },
       }),
       outerBoxMobile: {
-        ...Styles.padding(Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.white,
       },
-      rightActionsContainer: Styles.platformStyles({
+      rightActionsContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-    } as const)
+    }) as const
 )

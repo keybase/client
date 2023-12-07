@@ -1,34 +1,32 @@
-import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Constants from '../../constants/teams'
+import * as C from '@/constants'
 import RenameTeam from '.'
 
-type OwnProps = Container.RouteProps<'teamRename'>
+type OwnProps = {teamname: string}
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
-    teamname: ownProps.route.params?.teamname ?? '',
-    waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
-  }),
-  dispatch => ({
-    _onRename: (oldName, newName) => dispatch(TeamsGen.createRenameTeam({newName, oldName})),
-    onCancel: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.teamRenameWaitingKey}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onSuccess: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: (!stateProps.error ? undefined : stateProps.error.message) || '',
-    onCancel: dispatchProps.onCancel,
-    onRename: newName => dispatchProps._onRename(stateProps.teamname, newName),
-    onSuccess: dispatchProps.onSuccess,
-    teamname: stateProps.teamname,
-    waiting: stateProps.waiting,
-  })
-)(RenameTeam)
+const Container = (ownProps: OwnProps) => {
+  const teamname = ownProps.teamname
+  const error = C.useAnyErrors(C.Teams.teamRenameWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamRenameWaitingKey)
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
+  const _onRename = renameTeam
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    dispatchClearWaiting(C.Teams.teamRenameWaitingKey)
+    navigateUp()
+  }
+  const onSuccess = () => {
+    navigateUp()
+  }
+  const props = {
+    error: (!error ? undefined : error.message) || '',
+    onCancel: onCancel,
+    onRename: (newName: string) => _onRename(teamname, newName),
+    onSuccess: onSuccess,
+    teamname: teamname,
+    waiting: waiting,
+  }
+  return <RenameTeam {...props} />
+}
+
+export default Container

@@ -1,12 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/teams'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-
-type Props = {title: string; teamID: Types.TeamID}
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -16,27 +11,44 @@ const activityToLabel = {
   active: 'Active',
   recently: 'Recently active',
 }
-const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.StylesCrossPlatform}) =>
-  level === 'none' ? null : (
-    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile} style={style}>
+
+type Props = {
+  level: T.Teams.ActivityLevel
+  style?: Kb.Styles.StylesCrossPlatform
+  iconOnly?: boolean
+}
+const Activity = (p: Props) => {
+  const {level, style, iconOnly = false} = p
+  return level === 'none' ? null : (
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      alignItems="center"
+      fullWidth={Kb.Styles.isMobile}
+      style={style}
+    >
       <Kb.Icon
         type={activityToIcon[level]}
-        color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}
+        color={level === 'active' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black_50}
         sizeType="Small"
       />
-      <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
-        {activityToLabel[level]}
-      </Kb.Text>
+      {iconOnly ? null : (
+        <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
+          {activityToLabel[level]}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
+}
 
-export const ModalTitle = ({title, teamID}: Props) => {
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
-  const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
+type MTProps = {title: string; teamID: T.Teams.TeamID}
+export const ModalTitle = ({title, teamID}: MTProps) => {
+  const teamname = C.useTeamsState(state => C.Teams.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
+  const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
+  const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       {!!teamname && (
         <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
@@ -70,23 +82,23 @@ export const ModalTitle = ({title, teamID}: Props) => {
  * @param forceLoad force a reload even if they're already loaded.
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
-  const dispatch = Container.useDispatch()
-  const activityLevelsLoaded = Container.useSelector(s => s.teams.activityLevels.loaded)
+  const activityLevelsLoaded = C.useTeamsState(s => s.activityLevels.loaded)
+  const getActivityForTeams = C.useTeamsState(s => s.dispatch.getActivityForTeams)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {
     if ((!activityLevelsLoaded || forceLoad) && !triggeredLoad.current) {
-      dispatch(TeamsGen.createGetActivityForTeams())
+      getActivityForTeams()
       triggeredLoad.current = true
     }
-  }, [dispatch, activityLevelsLoaded, forceLoad])
+  }, [getActivityForTeams, activityLevelsLoaded, forceLoad])
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   activityActive: {
-    color: Styles.globalColors.greenDark,
+    color: Kb.Styles.globalColors.greenDark,
   },
-  avatar: Styles.platformStyles({
+  avatar: Kb.Styles.platformStyles({
     isElectron: {
       height: 16,
       position: 'relative',
@@ -94,7 +106,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   title: {
-    paddingBottom: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

@@ -1,69 +1,62 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
-  path: Types.Path
+  path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
-const PathStatusIconPathItem = Container.connect(
-  (state: Container.TypedState, ownProps: OwnPropsPathItem) => ({
-    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
-    _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
-    _uploads: state.fs.uploads.syncingPaths,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnPropsPathItem) => ({
-    isFolder: stateProps._pathItem.type === Types.PathType.Folder,
+const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
+  const _uploads = C.useFSState(s => s.uploads.syncingPaths)
+  const props = {
+    isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
     statusIcon: Constants.getPathStatusIconInMergeProps(
-      stateProps._kbfsDaemonStatus,
-      stateProps._tlf,
-      stateProps._pathItem,
-      stateProps._uploads,
+      _kbfsDaemonStatus,
+      _tlf,
+      _pathItem,
+      _uploads,
       ownProps.path
     ),
-  })
-)(PathStatusIcon)
-
-type OwnPropsTlfType = {
-  tlfType?: Types.TlfType
+  }
+  return <PathStatusIcon {...props} />
 }
 
-const PathStatusIconTlfType = Container.connect(
-  (state: Container.TypedState, ownProps: OwnPropsTlfType) => ({
-    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _tlfList: ownProps.tlfType ? Constants.getTlfListFromType(state.fs.tlfs, ownProps.tlfType) : new Map(),
-    _uploads: state.fs.uploads,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnPropsTlfType) => ({
+type OwnPropsTlfType = {
+  tlfType?: T.FS.TlfType
+}
+
+const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _tlfList = C.useFSState(s =>
+    ownProps.tlfType ? Constants.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+  )
+  const _uploads = C.useFSState(s => s.uploads)
+  const props = {
     isFolder: true,
     isTlfType: true,
     statusIcon:
       ownProps.tlfType &&
-      Constants.getUploadIconForTlfType(
-        stateProps._kbfsDaemonStatus,
-        stateProps._uploads,
-        stateProps._tlfList,
-        ownProps.tlfType
-      ),
-  })
-)(PathStatusIcon)
+      Constants.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
+  }
+  return <PathStatusIcon {...props} />
+}
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
-  Types.getPathLevel(props.path) > 2 ? (
+  T.FS.getPathLevel(props.path) > 2 ? (
     <PathStatusIconPathItem path={props.path} showTooltipOnPressMobile={props.showTooltipOnPressMobile} />
   ) : (
-    <PathStatusIconTlfType tlfType={Types.getTlfTypeFromPath(props.path)} />
+    <PathStatusIconTlfType tlfType={T.FS.getTlfTypeFromPath(props.path)} />
   )
 
 export default PathStatusIconConnected

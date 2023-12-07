@@ -1,5 +1,4 @@
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters/index'
 
 export type Props = {
   label: string
@@ -15,13 +14,13 @@ const ContinueButton = (props: Props) => (
   </Kb.Button>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},
   continueText: {
-    color: Styles.globalColors.white,
+    color: Kb.Styles.globalColors.white,
   },
   rabbitEmoji: {
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

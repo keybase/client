@@ -21,13 +21,15 @@ import android.view.Window;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactRootView;
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
+import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
@@ -41,6 +43,9 @@ import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import io.keybase.ossifrage.modules.NativeLogger;
@@ -58,14 +63,14 @@ public class MainActivity extends ReactActivity {
     private boolean isUsingHardwareKeyboard = false;
     static boolean createdReact = false;
     private Bundle initialBundleFromNotification;
-    private String shareFileUrl;
+    private String[] shareFileUrls;
     private String shareText;
 
     public void setInitialBundleFromNotification(Bundle bundle) {
         this.initialBundleFromNotification = bundle;
     }
-    public void setInitialShareFileUrl(String s) {
-        this.shareFileUrl = s;
+    public void setInitialShareFileUrls(String [] urls) {
+        this.shareFileUrls = urls;
     }
     public void setInitialShareText(String text) {
         this.shareText = text;
@@ -76,9 +81,9 @@ public class MainActivity extends ReactActivity {
         this.initialBundleFromNotification = null;
         return b;
     }
-    public String getInitialShareFileUrl() {
-        String s = this.shareFileUrl;
-        this.shareFileUrl = null;
+    public String []getInitialShareFileUrls() {
+        String []s = this.shareFileUrls;
+        this.shareFileUrls = null;
         return s;
     }
     public String getInitialShareText() {
@@ -94,15 +99,12 @@ public class MainActivity extends ReactActivity {
     }
 
     private static void createDummyFile(Context context) {
-        final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
+        File dummyFile = new File(context.getFilesDir(), "dummy.txt");
         try {
             if (dummyFile.createNewFile()) {
                 dummyFile.setWritable(true);
-                final FileOutputStream stream = new FileOutputStream(dummyFile);
-                try {
+                try (FileOutputStream stream = new FileOutputStream(dummyFile)) {
                     stream.write("hi".getBytes());
-                } finally {
-                    stream.close();
                 }
             } else {
                 Log.d(TAG, "dummy.txt exists");
@@ -148,8 +150,7 @@ public class MainActivity extends ReactActivity {
 
     private String colorSchemeForCurrentConfiguration() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            int currentNightMode =
-                this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (currentNightMode) {
                 case Configuration.UI_MODE_NIGHT_NO:
                     return "light";
@@ -219,6 +220,45 @@ public class MainActivity extends ReactActivity {
         }
     }
 
+    private String getFileNameFromResolver(ContentResolver resolver, Uri uri, String extension) {
+        // Use a GUID default.
+        String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
+
+        String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
+        try (Cursor cursor = resolver.query(uri, nameProjection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                filename = cursor.getString(0);
+            }
+        }
+
+        int cut = filename.lastIndexOf('/');
+        if (cut != -1) {
+            filename = filename.substring(cut + 1);
+        }
+
+        return filename;
+    }
+
+    private File saveFileToCache(ReactContext reactContext, Uri uri, String filename) {
+        File file = new File(reactContext.getCacheDir(), filename);
+
+        try (InputStream istream = reactContext.getContentResolver().openInputStream(uri);
+                OutputStream ostream = new FileOutputStream(file)) {
+
+            byte[] buf = new byte[64 * 1024];
+            int len;
+
+            while ((len = istream.read(buf)) != -1) {
+                ostream.write(buf, 0, len);
+            }
+
+        } catch (IOException ex) {
+            Log.w(TAG, "Error writing shared file " + uri.toString(), ex);
+        }
+
+        return file;
+    }
+
     private String readFileFromUri(ReactContext reactContext, Uri uri) {
         if (uri == null) return null;
 
@@ -229,41 +269,11 @@ public class MainActivity extends ReactActivity {
             String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
 
             // Load the filename from the resolver.
-            // Of course, Android makes this super clean and easy.
-            // Use a GUID default.
-            String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
-            String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
-            Cursor cursor = resolver.query(uri, nameProjection, null, null, null);
-            if (cursor != null) {
-                try {
-                    if (cursor.moveToFirst()) {
-                        filename = cursor.getString(0);
-                    }
-                } finally {
-                    cursor.close();
-                }
-            }
-
-            int cut = filename.lastIndexOf('/');
-            if (cut != -1) {
-                filename = filename.substring(cut + 1);
-            }
+            String filename = getFileNameFromResolver(resolver, uri, extension);
 
             // Now load the file itself.
-            File file = new File(reactContext.getCacheDir(), filename);
-            try {
-                InputStream istream = resolver.openInputStream(uri);
-                OutputStream ostream = new FileOutputStream(file);
-
-                byte[] buf = new byte[64 * 1024];
-                int len;
-                while ((len = istream.read(buf)) != -1) {
-                    ostream.write(buf, 0, len);
-                }
-                filePath = file.getPath();
-            } catch (IOException ex) {
-                Log.w(TAG, "error writing shared file " + uri.toString());
-            }
+            File file = saveFileToCache(reactContext, uri, filename);
+            filePath = file.getPath();
         } else {
             filePath = uri.getPath();
         }
@@ -284,8 +294,18 @@ public class MainActivity extends ReactActivity {
             Bundle bundleFromNotification = intent.getBundleExtra("notification");
             intent.removeExtra("notification");
 
-            Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            String action = intent.getAction();
+
+            Uri [] uris_ = null;
+            if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                ArrayList<Uri> alUri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                uris_ = alUri.toArray(new Uri[0]);
+            } else if (Intent.ACTION_SEND.equals(action)) {
+                Uri oneUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                uris_ = new Uri[]{oneUri};
+            }
             intent.removeExtra(Intent.EXTRA_STREAM);
+            final Uri [] uris = uris_;
 
             String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
             intent.removeExtra(Intent.EXTRA_SUBJECT);
@@ -297,13 +317,26 @@ public class MainActivity extends ReactActivity {
             if (subject != null) {
                 sb.append(subject);
             }
-            if (subject!=null&&text!=null){
+            if (subject != null && text != null){
                 sb.append(" ");
             }
             if (text != null) {
                 sb.append(text);
             }
             String textPayload = sb.toString();
+
+            final String[] filePaths = uris != null ? Arrays.stream(uris)
+                .map(uri -> readFileFromUri(getReactContext(), uri))
+                .filter(Objects::nonNull)
+                .toArray(String[]::new) : new String[0];
+
+            if (bundleFromNotification != null) {
+                setInitialBundleFromNotification(bundleFromNotification);
+            } else if (filePaths != null && filePaths.length != 0) {
+                setInitialShareFileUrls(filePaths);
+            } else if (textPayload.length() > 0){
+                setInitialShareText(textPayload);
+            }
 
             // Closure like class so we can keep our emit logic together
             class Emit {
@@ -316,17 +349,6 @@ public class MainActivity extends ReactActivity {
                 }
 
                 private void run() {
-                    if (bundleFromNotification != null) {
-                        setInitialBundleFromNotification(bundleFromNotification);
-                    } else if (uri != null) {
-                        String filePath = readFileFromUri(getReactContext(), uri);
-                        if (filePath != null) {
-                            setInitialShareFileUrl(filePath);
-                        }
-                    } else if (textPayload.length() > 0){
-                        setInitialShareText(textPayload);
-                    }
-
                     ReactContext context = getReactContext();
                     if (context == null) {
                         return;
@@ -337,13 +359,14 @@ public class MainActivity extends ReactActivity {
                         emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
                     }
 
-                    if (uri != null) {
-                        String filePath = readFileFromUri(getReactContext(), uri);
-                        if (filePath != null) {
-                            WritableMap args = Arguments.createMap();
-                            args.putString("localPath", filePath);
-                            emitter.emit("onShareData", args);
+                    if (filePaths.length != 0) {
+                        WritableMap args = Arguments.createMap();
+                        WritableArray lPaths = Arguments.createArray();
+                        for (String path : filePaths) {
+                            lPaths.pushString(path);
                         }
+                        args.putArray("localPaths", lPaths);
+                        emitter.emit("onShareData", args);
                     } else if (textPayload.length() > 0) {
                         WritableMap args = Arguments.createMap();
                         args.putString("text", textPayload);
@@ -365,7 +388,6 @@ public class MainActivity extends ReactActivity {
                 if (context != null) {
                     DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-
                     (new Emit(emitter, context)).run();
 
                 } else {
@@ -426,33 +448,18 @@ public class MainActivity extends ReactActivity {
     }
 
     /**
-     * Returns the instance of the {@link ReactActivityDelegate}. There the RootView is created and
-     * you can specify the renderer you wish to use - the new renderer (Fabric) or the old renderer
-     * (Paper).
+     * Returns the instance of the {@link ReactActivityDelegate}. Here we use a util class {@link
+     * DefaultReactActivityDelegate} which allows you to easily enable Fabric and Concurrent React
+     * (aka React 18) with two boolean flags.
      */
     @Override
     protected ReactActivityDelegate createReactActivityDelegate() {
-        return new MainActivityDelegate(this, getMainComponentName());
-    }
-
-    public static class MainActivityDelegate extends ReactActivityDelegate {
-        public MainActivityDelegate(ReactActivity activity, String mainComponentName) {
-            super(activity, mainComponentName);
-        }
-        @Override
-        protected ReactRootView createRootView() {
-            ReactRootView reactRootView = new ReactRootView(getContext());
-            // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-            reactRootView.setIsFabric(BuildConfig.IS_NEW_ARCHITECTURE_ENABLED);
-            return reactRootView;
-        }
-
-        @Override
-        protected boolean isConcurrentRootEnabled() {
-          // If you opted-in for the New Architecture, we enable Concurrent Root (i.e. React 18).
-          // More on this on https://reactjs.org/blog/2022/03/29/react-v18.html
-          return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
-        }
+        return new DefaultReactActivityDelegate(
+                this,
+                getMainComponentName(),
+                // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+                DefaultNewArchitectureEntryPoint.getFabricEnabled()
+                );
     }
 
     @Override

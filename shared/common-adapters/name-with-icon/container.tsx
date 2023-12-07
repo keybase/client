@@ -1,9 +1,6 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
-import * as Container from '../../util/container'
 
 export type ConnectedNameWithIconProps = {
   onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
@@ -13,33 +10,36 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = Container.useSelector(state => state.teams.teamNameToID.get(teamname ?? ''))
-  const dispatch = Container.useDispatch()
+  const teamID = C.useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onOpenTeamProfile = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-  }, [dispatch, teamID])
+    if (teamID) {
+      clearModals()
+      navigateAppend({props: {teamID}, selected: 'team'})
+    }
+  }, [clearModals, navigateAppend, teamID])
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
-    username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-  }, [dispatch, username])
+    username && showUser(username, true)
+  }, [showUser, username])
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
-    username && dispatch(ProfileGen.createShowUserProfile({username}))
-  }, [dispatch, username])
+    username && showUserProfile(username)
+  }, [username, showUserProfile])
 
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
     case 'tracker': {
-      if (!Container.isMobile) {
+      if (!C.isMobile) {
         if (username) {
           functionOnClick = onOpenTracker
         }
-      } else {
-        if (username) {
-          functionOnClick = onOpenUserProfile
-        } else if (teamID) {
-          functionOnClick = onOpenTeamProfile
-        }
+      } else if (username) {
+        functionOnClick = onOpenUserProfile
+      } else if (teamID) {
+        functionOnClick = onOpenTeamProfile
       }
       break
     }

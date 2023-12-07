@@ -1,10 +1,10 @@
 import * as React from 'react'
-import Measure from 'react-measure'
+import {default as Measure, type ContentRect} from 'react-measure'
 import type {Props, State} from './video'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {getVideoSize, CheckURL} from './video.shared'
 
-export default class extends React.PureComponent<Props, State> {
+export default class Video extends React.PureComponent<Props, State> {
   state = {
     containerHeight: 0,
     containerWidth: 0,
@@ -15,8 +15,10 @@ export default class extends React.PureComponent<Props, State> {
 
   _mounted = false
 
-  _onContainerResize = ({bounds}) =>
-    this._mounted && this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
+  _onContainerResize = ({bounds}: ContentRect) =>
+    bounds !== undefined &&
+    this._mounted &&
+    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
   _videoRef: {
     current: HTMLVideoElement | null
@@ -31,12 +33,12 @@ export default class extends React.PureComponent<Props, State> {
         : this._videoRef.current.pause())
   }
 
-  _onVideoLoadedmetadata = ({target}) => {
+  _onVideoLoadedmetadata = ({currentTarget}: React.SyntheticEvent<HTMLVideoElement>) => {
     this._mounted &&
       this.setState({
         loadedVideoSize: true,
-        videoHeight: target.videoHeight,
-        videoWidth: target.videoWidth,
+        videoHeight: currentTarget.videoHeight,
+        videoWidth: currentTarget.videoWidth,
       })
   }
 
@@ -54,14 +56,19 @@ export default class extends React.PureComponent<Props, State> {
       <CheckURL url={this.props.url} allowFile={this.props.allowFile}>
         <Measure bounds={true} onResize={this._onContainerResize}>
           {({measureRef}) => (
-            <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>
+            <div
+              ref={measureRef}
+              style={Styles.collapseStyles([styles.container, this.props.style]) as React.CSSProperties}
+            >
               <video
                 controlsList="nodownload nofullscreen"
                 onClick={this._onVideoClick}
                 ref={this._videoRef}
                 controls={!this.props.hideControls}
                 src={this.props.url}
-                style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
+                style={
+                  Styles.collapseStyles([styles.container, getVideoSize(this.state)]) as React.CSSProperties
+                }
                 muted={this.props.muted ?? true}
                 autoPlay={this.props.autoPlay ?? true}
                 preload="metadata"

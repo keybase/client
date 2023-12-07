@@ -1,7 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
+import type {Props} from '.'
 
-const LongPressable = React.forwardRef(function LongPressable(props, ref: React.Ref<any>) {
-  return <Kb.Box2 direction="horizontal" fullWidth={true} {...props} ref={ref} />
+const LongPressable = React.forwardRef<Kb.MeasureRef, Props>(function LongPressable(props, ref) {
+  return <Kb.Box2Measure direction="horizontal" fullWidth={true} {...props} ref={ref} />
 })
 export default LongPressable

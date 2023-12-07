@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
 import {HotKey} from './hot-key'
@@ -8,13 +8,16 @@ import PlainInput from './plain-input'
 import Text, {type AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
 import Icon, {type IconType} from './icon'
-import * as Styles from '../styles'
-import * as Platforms from '../constants/platform'
+import * as Styles from '@/styles'
+import * as Platforms from '@/constants/platform'
+import type {NativeSyntheticEvent} from 'react-native'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Animation,
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   HotKey,
   Icon,
@@ -25,7 +28,7 @@ const Kb = {
 }
 
 type Props = {
-  icon?: IconType | null
+  icon?: IconType
   iconColor?: AllowedColors
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
@@ -34,31 +37,28 @@ type Props = {
   placeholderText: string
   placeholderCentered?: boolean
   placeholderColor?: AllowedColors
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
   valueControlled?: boolean
   value?: string
   waiting?: boolean
   mobileCancelButton?: boolean // show "Cancel" on the left
-  showXOverride?: boolean | null
+  showXOverride?: boolean
   dummyInput?: boolean
-  onBlur?: (() => void) | null
-  onCancel?: (() => void) | null
+  onBlur?: () => void
+  onCancel?: () => void
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
-  onClick?: (() => void) | null
-  onFocus?: (() => void) | null
+  onClick?: () => void
+  onFocus?: () => void
   // following props are ignored when onClick is provided
-  hotkey?: 'f' | 'k' | null // desktop only,
+  hotkey?: 'f' | 'k' // desktop only,
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
-  onKeyPress?: (event: {
-    nativeEvent: {
-      key: 'Enter' | 'Backspace' | string
-    }
-  }) => void
+  onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
+  measureRef?: React.RefObject<MeasureRef>
 }
 
 type State = {
@@ -97,10 +97,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     if (this.state.focused && !this.props.focusOnMount) {
       return
     }
-    this.inputRef.current && this.inputRef.current.focus()
+    this.inputRef.current?.focus()
   }
   blur = () => {
-    this.inputRef.current && this.inputRef.current.blur()
+    this.inputRef.current?.blur()
   }
   private clear = () => {
     this.update('')
@@ -108,7 +108,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   private cancel = (e?: any) => {
     this.blur()
     this.props.onCancel ? this.props.onCancel() : this.clear()
-    e && e.stopPropagation()
+    e?.stopPropagation()
   }
   private update = (text: string) => {
     this.setState({text})
@@ -242,10 +242,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     } else {
       return (
         <Kb.ClickableBox
-          onClick={Styles.isMobile ? this.cancel : () => {}}
+          onClick={() => {}}
           // use onMouseDown to work around input's onBlur disappearing the "x" button prior to onClick firing.
           // https://stackoverflow.com/questions/9335325/blur-event-stops-click-event-from-working
-          onMouseDown={Styles.isMobile ? undefined : this.cancel}
+          onMouseDown={this.cancel}
           style={
             this.props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
           }
@@ -285,7 +285,8 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        <Kb.Box2
+        <Kb.Box2Measure
+          ref={this.props.measureRef}
           direction="horizontal"
           style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
           pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
@@ -295,7 +296,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           {this.input()}
           {this.waiting()}
           {this.rightCancelIcon()}
-        </Kb.Box2>
+        </Kb.Box2Measure>
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (

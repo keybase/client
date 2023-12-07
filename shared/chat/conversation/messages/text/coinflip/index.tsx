@@ -1,35 +1,31 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
-import * as Kb from '../../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
-import {pluralize} from '../../../../../util/string'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-
-  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-  const status = Container.useSelector(state => state.chat2.flipStatusMap.get(flipGameID))
-  const dispatch = Container.useDispatch()
+  const status = C.useChatState(s => s.flipStatusMap.get(flipGameID))
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onFlipAgain = React.useCallback(() => {
-    text && dispatch(Chat2Gen.createMessageSend({conversationIDKey, text}))
-  }, [dispatch, conversationIDKey, text])
+    text && messageSend(text.stringValue())
+  }, [messageSend, text])
   const phase = status?.phase
-  const errorInfo = phase === RPCChatTypes.UICoinFlipPhase.error ? status?.errorInfo : undefined
+  const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined
   const resultInfo = status?.resultInfo
   const commitmentVis = status?.commitmentVisualization
   const revealVis = status?.revealVisualization
-  const showParticipants = phase === RPCChatTypes.UICoinFlipPhase.complete
+  const showParticipants = phase === T.RPCChat.UICoinFlipPhase.complete
   const numParticipants = participants?.length ?? 0
 
   const revealed =
@@ -38,14 +34,21 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     }, 0) ?? 0
   const revealSummary = `${revealed} / ${numParticipants}`
 
-  const {setShowingPopup, toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <CoinFlipParticipants
-      attachTo={attachTo}
-      onHidden={toggleShowingPopup}
-      participants={participants}
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <CoinFlipParticipants
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          participants={participants}
+          visible={true}
+        />
+      )
+    },
+    [participants]
+  )
+  const {setShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const showPopup = React.useCallback(() => {
     setShowingPopup(true)
   }, [setShowingPopup])
@@ -54,8 +57,8 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   }, [setShowingPopup])
 
   const statusText = showParticipants ? (
-    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
-      {!Styles.isMobile && (
+    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+      {!Kb.Styles.isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
         </Kb.Text>
@@ -64,33 +67,33 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
         {`${numParticipants} ${pluralize('participant', numParticipants)}`}
       </Kb.Text>
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   ) : (
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
-          {!Styles.isMobile && 'Collecting '}commitments: {numParticipants}
+          {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
-        {phase === RPCChatTypes.UICoinFlipPhase.reveals && (
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
+        {phase === T.RPCChat.UICoinFlipPhase.reveals && (
+          <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
         )}
       </Kb.Box2>
-      {phase === RPCChatTypes.UICoinFlipPhase.reveals && (
+      {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
-            {!Styles.isMobile && 'Collecting '}secrets: {revealSummary}
+            {!Kb.Styles.isMobile && 'Collecting '}secrets: {revealSummary}
           </Kb.Text>
         </Kb.Box2>
       )}
     </Kb.Box2>
   )
 
-  const commitSrc = `data:image/png;base64, ${commitmentVis}`
-  const revealSrc = `data:image/png;base64, ${revealVis}`
+  const commitSrc = `data:image/png;base64,${commitmentVis}`
+  const revealSrc = `data:image/png;base64,${revealVis}`
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([!errorInfo && styles.container])}
+      style={Kb.Styles.collapseStyles([!errorInfo && styles.container])}
       fullWidth={true}
     >
       {errorInfo ? (
@@ -100,21 +103,21 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
-                <Kb.Image src={commitSrc} style={styles.progressVis} />
+                <Kb.Image2 src={commitSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
-                  style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
             <Kb.Box2 direction="vertical">
-              {(revealVis?.length ?? 0) > 0 && phase !== RPCChatTypes.UICoinFlipPhase.commitment ? (
-                <Kb.Image src={revealSrc} style={styles.progressVis} />
+              {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
+                <Kb.Image2 src={revealSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
-                  style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
@@ -136,7 +139,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           direction="vertical"
           alignSelf="flex-start"
           style={
-            phase === RPCChatTypes.UICoinFlipPhase.complete
+            phase === T.RPCChat.UICoinFlipPhase.complete
               ? styles.flipAgainContainer
               : styles.flipAgainContainerHidden
           }
@@ -150,22 +153,22 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignSelf: 'flex-start',
-        borderColor: Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
-        marginTop: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
-      error: {color: Styles.globalColors.redDark},
-      flipAgainContainer: {paddingTop: Styles.globalMargins.tiny},
-      flipAgainContainerHidden: {opacity: 0, paddingTop: Styles.globalMargins.tiny},
-      placeholder: {backgroundColor: Styles.globalColors.grey},
-      progress: Styles.platformStyles({
+      error: {color: Kb.Styles.globalColors.redDark},
+      flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
+      flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
+      placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
+      progress: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'text',
           userSelect: 'text',
@@ -176,7 +179,7 @@ const styles = Styles.styleSheetCreate(
         height: 40,
         width: 64,
       },
-      result: Styles.platformStyles({
+      result: Kb.Styles.platformStyles({
         common: {fontWeight: '600'},
         isElectron: {
           cursor: 'text',
@@ -184,8 +187,8 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
       }),
-      statusContainer: {paddingTop: Styles.globalMargins.tiny},
-    } as const)
+      statusContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
+    }) as const
 )
 
 export default CoinFlipContainer

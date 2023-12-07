@@ -1,18 +1,10 @@
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
-type OwnProps = {
-  message: Types.MessageSystemLeft
-}
-
-const LeftContainer = React.memo(function LeftContainer(p: OwnProps) {
-  const {message} = p
-  const {conversationIDKey} = message
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+const LeftContainer = React.memo(function LeftContainer() {
+  const meta = C.useChatContext(s => s.meta)
   const {channelname, teamType, teamname} = meta
   const isBigTeam = teamType === 'big'
 

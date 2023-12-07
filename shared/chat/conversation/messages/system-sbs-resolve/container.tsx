@@ -1,16 +1,16 @@
+import * as C from '@/constants'
 import SystemInviteAccepted from '.'
-import type * as Types from '../../../../constants/types/chat2'
-import {connect} from '../../../../util/container'
+import type * as T from '@/constants/types'
 
-type OwnProps = {
-  message: Types.MessageSystemSBSResolved
+type OwnProps = {message: T.Chat.MessageSystemSBSResolved}
+
+const Container = (ownProps: OwnProps) => {
+  const {message} = ownProps
+  const you = C.useCurrentUserState(s => s.username)
+  const props = {
+    message,
+    you,
+  }
+  return <SystemInviteAccepted {...props} />
 }
-
-export default connect(
-  state => ({you: state.config.username}),
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => ({
-    message: ownProps.message,
-    you: stateProps.you,
-  })
-)(SystemInviteAccepted)
+export default Container

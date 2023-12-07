@@ -1,17 +1,24 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {InlineDropdown} from '../../common-adapters/dropdown'
-import type {TeamRoleType} from '../../constants/types/teams'
-import {roleIconMap} from '../role-picker'
+import * as Kb from '@/common-adapters'
+import {InlineDropdown} from '@/common-adapters/dropdown'
+import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 
 export type Props = {
-  containerStyle?: Styles.StylesCrossPlatform
-  selectedRole: TeamRoleType
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  selectedRole: T.Teams.TeamRoleType
   onClick: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   loading?: boolean
 }
+
+const roleIconMap = {
+  admin: 'iconfont-crown-admin',
+  bot: undefined,
+  owner: 'iconfont-crown-owner',
+  reader: undefined,
+  restrictedbot: undefined,
+  writer: undefined,
+} as const
 
 const RoleButton = (props: Props) => {
   const iconType = roleIconMap[props.selectedRole]
@@ -22,19 +29,19 @@ const RoleButton = (props: Props) => {
       textWrapperType={null}
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
-          <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" />
+          {iconType ? <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" /> : null}
           <Kb.Text type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text>
         </Kb.Box2>
       }
       onPress={props.onClick}
-      style={Styles.collapseStyles([styles.button, props.style])}
+      style={Kb.Styles.collapseStyles([styles.button, props.style])}
       loading={props.loading}
     />
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  button: Kb.Styles.platformStyles({
     common: {
       marginRight: 0,
     },
@@ -50,10 +57,10 @@ const styles = Styles.styleSheetCreate(() => ({
   icon: {
     alignSelf: 'center',
     marginLeft: 0,
-    marginRight: Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
   label: {
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

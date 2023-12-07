@@ -1,13 +1,14 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import SafeReactList from './safe-react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
-import {memoize} from '../util/memoize'
-import {renderElementOrComponentOrNot} from '../util/util'
+import noop from 'lodash/noop'
+import {memoize} from '@/util/memoize'
+import {renderElementOrComponentOrNot} from '@/util/util'
 import type RL from 'react-list'
 import type {Props, Section, ItemTFromSectionT} from './section-list'
 
@@ -27,7 +28,7 @@ type State = {
   currentSectionFlatIndex: number
 }
 
-class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
+class SectionList<T extends Section<any>> extends React.Component<Props<T>, State> {
   _flat: Array<FlatListElement<T>> = []
   _sectionIndexToFlatIndex: Array<number> = []
   state = {currentSectionFlatIndex: 0}
@@ -76,14 +77,12 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
-      // @ts-ignore
-      return null
+      return <></>
     }
-    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T>
+    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
     if (!section) {
       // data is switching out from under us. let things settle
-      // @ts-ignore
-      return null
+      return <></>
     }
 
     if (item.type === 'header') {
@@ -124,14 +123,16 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     } else {
       return (
         <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
-          {
-            // @ts-ignore TODO fix this
-            (section.section.renderItem || this.props.renderItem)({
-              index: item.indexWithinSection,
-              item: item.item,
-              section: section.section,
-            })
-          }
+          {(section.section.renderItem || this.props.renderItem)?.({
+            index: item.indexWithinSection,
+            item: item.item,
+            section: section.section as any,
+            separators: {
+              highlight: noop,
+              unhighlight: noop,
+              updateProps: noop,
+            },
+          })}
         </Kb.Box2>
       )
     }
@@ -150,6 +151,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   _checkSticky = () => {
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
+      if (firstIndex === undefined) return
       const item = this._flat[firstIndex]
       if (item) {
         this.setState(p =>
@@ -196,32 +198,28 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
 
   _flatten = memoize((sections: ReadonlyArray<T>) => {
     this._sectionIndexToFlatIndex = []
-    this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
+    this._flat = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
       this._sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
         flatSectionIndex,
-        // @ts-ignore TODO fix this
         key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
         sectionIndex,
         type: 'header',
       })
-      // @ts-ignore TODO fix this
       if (section.data.length) {
         arr.push(
-          // @ts-ignore TODO fix this
           ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
             flatSectionIndex,
             indexWithinSection,
             item,
             key:
               this.props.keyExtractor?.(item, indexWithinSection) ||
-              // @ts-ignore
               item.key ||
               `${sectionIndex}-${indexWithinSection}`,
             sectionIndex,
-            type: 'body',
+            type: 'body' as const,
           }))
         )
       } else {
@@ -239,12 +237,13 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     }, [])
   })
 
-  _itemIndexToFlatIndex = (index: number) => {
+  _itemIndexToFlatIndex = (_index: number) => {
+    let index = _index
     if (index < 0) {
       return 0
     }
     for (let i = 0; i < this._flat.length; i++) {
-      const item = this._flat[i]
+      const item = this._flat[i]!
       if (item.type === 'body') {
         // are we there yet?
         if (index === 0) {
@@ -267,11 +266,11 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     return item.type === 'header'
       ? getSectionHeaderHeight(item.sectionIndex)
       : item.type === 'body'
-      ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
-      : 0
+        ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
+        : 0
   }
 
-  private itemRenderer = (index, key) => this._itemRenderer(index, key, false)
+  private itemRenderer = (index: number, key: any) => this._itemRenderer(index, key, false)
 
   render() {
     this._flatten(this.props.sections)
@@ -285,7 +284,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         <Kb.ScrollView
           contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
-          onScroll={this.onScroll}
+          onScroll={this.onScroll as any}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           <SafeReactList
@@ -297,8 +296,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
                 : undefined
             }
             length={this._flat.length}
-            // @ts-ignore
-            retrigger={this._flat}
+            extraData={this._flat as any}
             ref={this._listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />
@@ -309,14 +307,15 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 }
 
-type HeaderFlatListElement<T> = {
+type HeaderFlatListElement<SectionT extends Section<any>> = {
   flatSectionIndex: number
   key: React.Key
-  section: T
+  section: SectionT
   sectionIndex: number
   type: 'header'
 }
-type FlatListElement<T> =
+
+type FlatListElement<T extends Section<any>> =
   | {
       flatSectionIndex: number
       indexWithinSection: number
@@ -351,7 +350,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default SectionList

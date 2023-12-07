@@ -1,6 +1,6 @@
-import {Box, Icon} from '../common-adapters'
+import {Box, Icon} from '@/common-adapters'
 import range from 'lodash/range'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors} from '@/styles'
 
 function Stars({count}: {count: number}) {
   return (

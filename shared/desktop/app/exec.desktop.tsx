@@ -1,8 +1,8 @@
-import {exec} from 'child_process'
+import {exec as _exec, type ExecException} from 'child_process'
 import fs from 'fs'
 import os from 'os'
 
-import {runMode} from '../../constants/platform.desktop'
+import {runMode} from '@/constants/platform.desktop'
 
 // Execute at path with args.
 // If you specify platformOnly or runModeOnly, then callback will be called
@@ -11,43 +11,42 @@ import {runMode} from '../../constants/platform.desktop'
 // parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function (
-  path: string | null,
-  args: any,
-  platformOnly: any,
-  runModeOnly: string | null,
+export default function exec(
+  path: string | undefined,
+  args: Array<string>,
+  platformOnly: undefined | ReturnType<typeof os.platform>,
+  runModeOnly: string | undefined,
   killOnExit: boolean,
-  callback: (err: any, attempted: boolean, stdout: string, stderr: string) => void
+  callback: (err: ExecException | null, attempted: boolean, stdout: string, stderr: string) => void
 ): void {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
-    if (callback) callback(null, false, '', '')
+    callback(null, false, '', '')
     return
   }
   if (!path) {
     console.log('Exec path not available:', path)
-    if (callback) callback(null, false, '', '')
+    callback(null, false, '', '')
     return
   }
   if (runModeOnly && runMode !== runModeOnly) {
     console.log('Exec path not available for this run mode: %s != %s', runModeOnly, runMode)
-    if (callback) callback(null, false, '', '')
+    callback(null, false, '', '')
     return
   }
 
-  // @ts-ignore codemode issue
-  fs.access(path, fs.X_OK, function (err) {
+  fs.access(path, fs.constants.X_OK, function (err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)
-      if (callback) callback(null, false, '', '')
+      callback(null, false, '', '')
       return
     }
 
     args.unshift(`'${path}'`) // protect against spaces in path
     const cmd = args.join(' ')
     console.log('Executing:', cmd)
-    const procExec = exec(cmd, function (execErr, stdout, stderr) {
+    const procExec = _exec(cmd, function (execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -57,10 +56,10 @@ export default function (
       if (execErr) {
         console.log('Exec (err):', execErr)
       }
-      if (callback) callback(execErr, true, stdout, stderr)
+      callback(execErr, true, stdout, stderr)
     })
 
-    if (killOnExit && procExec) {
+    if (killOnExit) {
       // Kill the process if parent process exits
       process.on('exit', function () {
         procExec.kill()

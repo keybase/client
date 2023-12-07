@@ -1,23 +1,21 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 
 export type Props = {
   disableSync: () => void
   enableSync: () => void
   hideSyncToggle: boolean
-  syncConfig?: Types.TlfSyncConfig | null
+  syncConfig?: T.FS.TlfSyncConfig
   waiting: boolean
 }
 
-const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () => void}) => {
-  const wasWaiting = React.useRef(props.waiting)
-  if (wasWaiting.current !== props.waiting) {
-    wasWaiting.current = props.waiting
-    if (props.showingPopup) {
-      props.toggleShowingPopup()
-    }
+const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingPopup: () => void}) => {
+  const {toggleShowingPopup, waiting, disableSync} = props
+  const wasWaiting = React.useRef(waiting)
+  if (wasWaiting.current !== waiting) {
+    wasWaiting.current = waiting
+    toggleShowingPopup()
   }
   return (
     <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
@@ -27,7 +25,7 @@ const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () =
       <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
         This will delete your local copies of all the files in this folder.
       </Kb.Text>
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Box2
           direction="horizontal"
           style={styles.popupButtonContainer}
@@ -40,17 +38,17 @@ const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () =
             small={true}
             type="Dim"
             label="Cancel"
-            onClick={props.toggleShowingPopup}
-            disabled={props.waiting}
+            onClick={toggleShowingPopup}
+            disabled={waiting}
           />
           <Kb.Button
             key="yes"
             small={true}
             type="Danger"
             label="Yes, unsync"
-            onClick={props.disableSync}
-            disabled={props.waiting}
-            waiting={props.waiting}
+            onClick={disableSync}
+            disabled={waiting}
+            waiting={waiting}
           />
         </Kb.Box2>
       )}
@@ -59,38 +57,48 @@ const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () =
 }
 
 const SyncToggle = (props: Props) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      position="bottom left"
-      closeOnSelect={false}
-      containerStyle={styles.floating}
-      header={<Confirm {...props} showingPopup={showingPopup} toggleShowingPopup={toggleShowingPopup} />}
-      items={
-        Styles.isMobile
-          ? [
-              {
-                danger: true,
-                disabled: props.waiting,
-                icon: 'iconfont-cloud',
-                inProgress: props.waiting,
-                onClick: props.disableSync,
-                style: props.waiting ? {opacity: 0.3} : undefined,
-                title: props.waiting ? 'Unsyncing' : 'Yes, unsync',
-              } as const,
-            ]
-          : []
-      }
-    />
-  ))
+  const {waiting, disableSync} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          position="bottom left"
+          closeOnSelect={false}
+          containerStyle={styles.floating}
+          header={
+            <Confirm waiting={waiting} disableSync={disableSync} toggleShowingPopup={toggleShowingPopup} />
+          }
+          items={
+            Kb.Styles.isMobile
+              ? [
+                  {
+                    danger: true,
+                    disabled: waiting,
+                    icon: 'iconfont-cloud',
+                    inProgress: waiting,
+                    onClick: disableSync,
+                    style: waiting ? {opacity: 0.3} : undefined,
+                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
+                  } as const,
+                ]
+              : []
+          }
+        />
+      )
+    },
+    [disableSync, waiting]
+  )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return props.syncConfig && !props.hideSyncToggle ? (
     <>
       <Kb.Switch
         align="right"
-        onClick={props.syncConfig.mode === Types.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
-        on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
+        onClick={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
+        on={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled}
         color="green"
         label="Sync on this device"
         ref={popupAnchor}
@@ -101,40 +109,40 @@ const SyncToggle = (props: Props) => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      explainText: Styles.platformStyles({
+      explainText: Kb.Styles.platformStyles({
         isElectron: {
-          marginTop: Styles.globalMargins.xxtiny,
+          marginTop: Kb.Styles.globalMargins.xxtiny,
         },
         isMobile: {
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      floating: Styles.platformStyles({
+      floating: Kb.Styles.platformStyles({
         isElectron: {
           marginTop: -38,
         },
       }),
       popupButtonContainer: {
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Kb.Styles.globalMargins.xsmall,
       },
-      popupContainer: Styles.platformStyles({
+      popupContainer: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
         },
         isElectron: {
-          paddingTop: Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
           width: 235,
         },
         isMobile: {
-          paddingTop: Styles.globalMargins.large,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default SyncToggle

@@ -1,62 +1,49 @@
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as TeamConstants from '../../../constants/teams'
-import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/chat2'
-import * as Styles from '../../../styles'
+import * as C from '@/constants'
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu/container'
-import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
-import shallowEqual from 'shallowequal'
-import {ConvoIDContext} from '../messages/ids-context'
 
-type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
+const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
-const gearIconSize = Styles.isMobile ? 24 : 16
+const TeamHeader = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const meta = C.useChatContext(s => s.meta)
+  const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
+  const participants = C.useChatContext(s => s.participants)
+  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
+  const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
-const TeamHeader = (props: SmallProps) => {
-  const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
-  const {
-    teamname,
-    teamID,
-    channelname,
-    descriptionDecorated: description,
-    membershipType,
-    teamType,
-  } = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-    return {channelname, descriptionDecorated: description, membershipType, teamID, teamType, teamname}
-  }, shallowEqual)
-  const yourOperations = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
-  const onJoinChannel = () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
-  const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(conversationIDKey)
   let title = teamname
   if (channelname && !isSmallTeam) {
     title += '#' + channelname
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <ConvoIDContext.Provider value={conversationIDKey}>
-      <InfoPanelMenu
-        attachTo={attachTo}
-        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-        onHidden={toggleShowingPopup}
-        hasHeader={false}
-        isSmallTeam={isSmallTeam}
-        visible={showingPopup}
-      />
-    </ConvoIDContext.Provider>
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <C.ChatProvider id={conversationIDKey}>
+          <InfoPanelMenu
+            attachTo={attachTo}
+            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+            onHidden={toggleShowingPopup}
+            hasHeader={false}
+            isSmallTeam={isSmallTeam}
+            visible={true}
+          />
+        </C.ChatProvider>
+      )
+    },
+    [conversationIDKey, isSmallTeam]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
@@ -72,10 +59,10 @@ const TeamHeader = (props: SmallProps) => {
               title={title}
             />
             <Kb.Meta
-              backgroundColor={Styles.globalColors.blueGrey}
-              color={Styles.globalColors.black_50}
+              backgroundColor={Kb.Styles.globalColors.blueGrey}
+              color={Kb.Styles.globalColors.black_50}
               icon="iconfont-people-solid"
-              iconColor={Styles.globalColors.black_20}
+              iconColor={Kb.Styles.globalColors.black_20}
               style={styles.meta}
               title={channelHumans.length}
             />
@@ -93,10 +80,10 @@ const TeamHeader = (props: SmallProps) => {
               </Kb.Text>
               {!isGeneralChannel && (
                 <Kb.Meta
-                  backgroundColor={Styles.globalColors.blueGrey}
-                  color={Styles.globalColors.black_50}
+                  backgroundColor={Kb.Styles.globalColors.blueGrey}
+                  color={Kb.Styles.globalColors.black_50}
                   icon="iconfont-people-solid"
-                  iconColor={Styles.globalColors.black_20}
+                  iconColor={Kb.Styles.globalColors.black_20}
                   title={channelHumans.length}
                 />
               )}
@@ -112,10 +99,10 @@ const TeamHeader = (props: SmallProps) => {
                 <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
               </Kb.Box2>
               <Kb.Meta
-                backgroundColor={Styles.globalColors.blueGrey}
-                color={Styles.globalColors.black_50}
+                backgroundColor={Kb.Styles.globalColors.blueGrey}
+                color={Kb.Styles.globalColors.black_50}
                 icon="iconfont-people-solid"
-                iconColor={Styles.globalColors.black_20}
+                iconColor={Kb.Styles.globalColors.black_20}
                 title={teamHumanCount}
               />
             </Kb.Box2>
@@ -124,7 +111,7 @@ const TeamHeader = (props: SmallProps) => {
         <Kb.Icon
           type="iconfont-gear"
           onClick={toggleShowingPopup}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
           style={styles.gear}
           fontSize={gearIconSize}
         />
@@ -146,32 +133,19 @@ const TeamHeader = (props: SmallProps) => {
         />
       )}
       {!isPreview && (admin || !isGeneralChannel) && (
-        <AddPeople
-          isAdmin={admin}
-          isGeneralChannel={isGeneralChannel}
-          conversationIDKey={conversationIDKey}
-        />
+        <AddPeople isAdmin={admin} isGeneralChannel={isGeneralChannel} />
       )}
     </Kb.Box2>
   )
 }
 
-type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
-
-export const AdhocHeader = (props: AdhocHeaderProps) => {
-  const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
+export const AdhocHeader = () => {
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatShowNewTeamDialog',
-          },
-        ],
-      })
-    )
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey},
+      selected: 'chatShowNewTeamDialog',
+    }))
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -189,41 +163,41 @@ export const AdhocHeader = (props: AdhocHeaderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMembers: {
         alignSelf: undefined,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
-      adhocPartContainer: {padding: Styles.globalMargins.tiny},
-      adhocScrollContainer: Styles.platformStyles({
+      adhocPartContainer: {padding: Kb.Styles.globalMargins.tiny},
+      adhocScrollContainer: Kb.Styles.platformStyles({
         isElectron: {maxHeight: 230},
         isMobile: {maxHeight: 220},
       }),
-      channelName: Styles.platformStyles({
+      channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
       channelnameContainer: {flex: 1},
       description: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       editBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         position: 'absolute',
         right: -50,
-        top: Styles.isMobile ? 2 : 1,
+        top: Kb.Styles.isMobile ? 2 : 1,
       },
-      editIcon: {marginRight: Styles.globalMargins.xtiny},
+      editIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
-      floatingMenuContainerStyle: Styles.platformStyles({
+      floatingMenuContainerStyle: Kb.Styles.platformStyles({
         isElectron: {
-          marginRight: Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      gear: Styles.platformStyles({
+      gear: Kb.Styles.platformStyles({
         common: {
           height: gearIconSize,
           paddingLeft: 16,
@@ -235,13 +209,13 @@ const styles = Styles.styleSheetCreate(
       meta: {alignSelf: 'center'},
       smallContainer: {
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
       },
       textWrapper: {
         flex: 1,
         justifyContent: 'space-between',
       },
-    } as const)
+    }) as const
 )
 
 export {TeamHeader}

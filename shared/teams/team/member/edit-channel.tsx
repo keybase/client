@@ -1,50 +1,49 @@
-import * as Constants from '../../../constants/teams'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Types from '../../../constants/types/teams'
-import {ModalTitle} from '../../common'
+import type * as T from '@/constants/types'
+import {ModalTitle} from '@/teams/common'
 
-type Props = Container.RouteProps<'teamEditChannel'>
+type Props = {
+  channelname: string
+  description: string
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+}
 
 const EditChannel = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
+  const teamID = props.teamID
+  const conversationIDKey = props.conversationIDKey
+  const oldName = props.channelname
+  const oldDescription = props.description
 
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
-  const oldName = props.route.params?.channelname ?? ''
-  const oldDescription = props.route.params?.description ?? ''
-  const onFinish = props.route.params?.afterEdit ?? undefined
+  const nav = Container.useSafeNavigation()
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
 
   const [description, setDescription] = React.useState(oldDescription)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onBack = () => nav.safeNavigateUp()
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onClose = () => clearModals()
+
+  const updateChannelName = C.useTeamsState(s => s.dispatch.updateChannelName)
+  const updateTopic = C.useTeamsState(s => s.dispatch.updateTopic)
 
   const onSave = () => {
-    if (oldName !== name) {
-      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName: name, teamID}))
-    }
-    if (oldDescription !== description) {
-      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic: description, teamID}))
-    }
+    const ps = [
+      ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
+      ...(oldDescription !== description ? [updateTopic(teamID, conversationIDKey, description)] : []),
+    ]
+    Promise.all(ps)
+      .then(() => {
+        nav.safeNavigateUp()
+      })
+      .catch(() => {})
   }
-  const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
-  const wasWaiting = Container.usePrevious(waiting)
-
-  React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      dispatch(nav.safeNavigateUpPayload())
-      onFinish?.()
-    }
-  }, [dispatch, nav, waiting, wasWaiting, onFinish])
+  const waiting = C.useAnyWaiting(C.Teams.updateChannelNameWaitingKey(teamID))
 
   return (
     <Kb.Modal
@@ -97,16 +96,16 @@ const EditChannel = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  channelNameinput: Styles.padding(Styles.globalMargins.tiny),
+  channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
 export default EditChannel

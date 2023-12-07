@@ -1,11 +1,10 @@
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
-import type {GoButtonLabel} from '../constants/types/team-building'
+import * as Kb from '@/common-adapters/index'
+import type * as T from '@/constants/types'
 
 export type Props = {
   onClick: () => void
-  label: GoButtonLabel
-  waitingKey: string | null
+  label: T.TB.GoButtonLabel
+  waitingKey?: string
 }
 
 const GoButton = (props: Props) => (
@@ -16,7 +15,7 @@ const GoButton = (props: Props) => (
           <Kb.Icon
             type="iconfont-return"
             sizeType="Small"
-            color={Styles.globalColors.white}
+            color={Kb.Styles.globalColors.white}
             style={styles.goTooltipIcon}
           />
           Enter
@@ -36,35 +35,35 @@ const GoButton = (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     height: '100%',
   },
   container: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
-  go: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
+  go: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.white},
     isElectron: {lineHeight: 40},
   }),
-  goIcon: Styles.platformStyles({
+  goIcon: Kb.Styles.platformStyles({
     isElectron: {
       lineHeight: 40,
     },
   }),
-  goTooltipIcon: Styles.platformStyles({
+  goTooltipIcon: Kb.Styles.platformStyles({
     isElectron: {
-      marginRight: Styles.globalMargins.xtiny,
+      marginRight: Kb.Styles.globalMargins.xtiny,
       verticalAlign: 'middle',
     },
   }),
-  goTooltipIconContainer: Styles.platformStyles({
+  goTooltipIconContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.fullHeight,
+      ...Kb.Styles.globalStyles.fullHeight,
     },
   }),
-  hoverContainerStyle: Styles.platformStyles({
+  hoverContainerStyle: Kb.Styles.platformStyles({
     isElectron: {
       justifyContent: 'center',
       width: '100%',

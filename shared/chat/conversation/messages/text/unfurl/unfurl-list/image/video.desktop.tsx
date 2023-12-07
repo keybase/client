@@ -1,15 +1,20 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../../styles'
+import * as Kb from '@/common-adapters/index'
 import type {Props} from './video'
 
 export const Video = (p: Props) => {
   const {autoPlay, onClick, height, width, style, url} = p
   const videoRef = React.useRef<HTMLVideoElement | null>(null)
   const [playing, setPlaying] = React.useState(autoPlay)
-  React.useEffect(() => {
+  const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
+  const [lastUrl, setLastUrl] = React.useState(url)
+
+  if (lastAutoPlay !== autoPlay || lastUrl !== url) {
+    setLastAutoPlay(autoPlay)
+    setLastUrl(url)
     setPlaying(autoPlay)
-  }, [url, autoPlay])
+  }
+
   const _onClick = React.useCallback(() => {
     if (onClick) {
       onClick()
@@ -31,7 +36,7 @@ export const Video = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container}>
-      <Kb.Box style={Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
       </Kb.Box>
       <video
@@ -47,7 +52,7 @@ export const Video = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       absoluteContainer: {
@@ -70,5 +75,5 @@ const styles = Styles.styleSheetCreate(
         right: '50%',
         top: '50%',
       },
-    } as const)
+    }) as const
 )

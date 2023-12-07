@@ -1,22 +1,21 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as RowTypes from './types'
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '@/constants/types'
 import Placeholder from './placeholder'
 import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
-import {memoize} from '../../../util/memoize'
-import {useFsChildren, UploadButton} from '../../common'
+import {memoize} from '@/util/memoize'
+import {useFsChildren, UploadButton} from '@/fs/common'
 
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   destinationPickerIndex?: number
   items: Array<RowTypes.RowItem>
-  path: Types.Path
+  path: T.FS.Path
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
@@ -156,12 +155,12 @@ const RowsWithAutoLoad = (props: Props) => {
   return <Rows {...props} />
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      divider: Styles.platformStyles({
+      divider: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black_05_on_white,
+          backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         },
         isElectron: {
           marginLeft: 94,
@@ -171,14 +170,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       emptyContainer: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
       },
       rowContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: normalRowHeight,
       },
-    } as const)
+    }) as const
 )
 
 const getRowHeight = (row: RowTypes.RowItem) =>

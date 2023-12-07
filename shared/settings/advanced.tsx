@@ -1,29 +1,19 @@
-import * as ConfigGen from '../actions/config-gen'
-import * as Constants from '../constants/settings'
-import * as Container from '../util/container'
-import * as FSGen from '../actions/fs-gen'
-import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
-import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
-import {anyErrors, anyWaiting} from '../constants/waiting'
-import {isMobile, isLinux, isWindows} from '../constants/platform'
-import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = () => {
-  const dispatch = Container.useDispatch()
-  const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
-  const onChangeUseNativeFrame = (useNativeFrame: boolean) =>
-    dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+  const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
+  const onChangeUseNativeFrame = C.useConfigState(s => s.dispatch.setUseNativeFrame)
   if (initialUseNativeFrame === undefined) {
     initialUseNativeFrame = useNativeFrame
   }
-  return isMobile ? null : (
+  return C.isMobile ? null : (
     <>
       <Kb.Checkbox
         checked={!useNativeFrame}
@@ -40,21 +30,20 @@ const UseNativeFrame = () => {
 }
 
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
-  const dispatch = Container.useDispatch()
   const {hasRandomPW, settingLockdownMode} = p
-  const lockdownModeEnabled = Container.useSelector(state => !!state.settings.lockdownModeEnabled)
-  const onChangeLockdownMode = (enabled: boolean) =>
-    dispatch(SettingsGen.createOnChangeLockdownMode({enabled}))
+  const lockdownModeEnabled = C.useSettingsState(s => !!s.lockdownModeEnabled)
+  const setLockdownMode = C.useSettingsState(s => s.dispatch.setLockdownMode)
+  const onChangeLockdownMode = setLockdownMode
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
-  const disabled = lockdownModeEnabled === null || hasRandomPW || settingLockdownMode
+  const disabled = hasRandomPW || settingLockdownMode
   return (
     <Kb.Checkbox
       checked={checked}
       disabled={disabled}
       onCheck={onChangeLockdownMode}
       labelComponent={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
           <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
           <Kb.Text type="BodySmall">
@@ -67,7 +56,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
               type="iconfont-open-browser"
               sizeType="Tiny"
               boxStyle={styles.displayInline}
-              color={Styles.globalColors.blueDark}
+              color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
         </Kb.Box2>
@@ -77,40 +66,37 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 }
 
 const Advanced = () => {
-  const dispatch = Container.useDispatch()
-
-  const settingLockdownMode = Container.useSelector(state =>
-    anyWaiting(state, Constants.setLockdownModeWaitingKey)
-  )
-  const hasRandomPW = Container.useSelector(state => !!state.settings.password.randomPW)
-  const openAtLogin = Container.useSelector(state => state.config.openAtLogin)
-  const rememberPassword = Container.useSelector(state => state.settings.password.rememberPassword)
-  const setLockdownModeError =
-    Container.useSelector(state => anyErrors(state, Constants.setLockdownModeWaitingKey))?.message || ''
-  const onChangeRememberPassword = (remember: boolean) =>
-    dispatch(SettingsGen.createOnChangeRememberPassword({remember}))
-  const onSetOpenAtLogin = (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+  const settingLockdownMode = C.useAnyWaiting(Constants.setLockdownModeWaitingKey)
+  const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
+  const openAtLogin = C.useConfigState(s => s.openAtLogin)
+  const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
+  const setLockdownModeError = C.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
+  const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
+  const onChangeRememberPassword = setRememberPassword
+  const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
   const initialDisableSpellCheck = React.useRef<boolean | undefined>(undefined)
-  const loadDisableSpellcheck = Container.useRPC(RPCTypes.configGuiGetValueRpcPromise)
+  const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   // load it
   if (disableSpellCheck === undefined) {
-    loadDisableSpellcheck(
-      [{path: 'ui.disableSpellCheck'}],
-      result => {
-        const res = result.b ?? false
-        initialDisableSpellCheck.current = res
-        setDisableSpellcheck(res)
-      },
-      () => {
-        setDisableSpellcheck(false)
-      }
-    )
+    setTimeout(() => {
+      loadDisableSpellcheck(
+        [{path: 'ui.disableSpellCheck'}],
+        result => {
+          const res = result.b ?? false
+          initialDisableSpellCheck.current = res
+          setDisableSpellcheck(res)
+        },
+        () => {
+          setDisableSpellcheck(false)
+        }
+      )
+    }, 1)
   }
-  const submitDisableSpellcheck = Container.useRPC(RPCTypes.configGuiSetValueRpcPromise)
+  const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   const onToggleDisableSpellcheck = () => {
     const next = !disableSpellCheck
@@ -130,12 +116,15 @@ const Advanced = () => {
     )
   }
 
+  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = C.useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadLockdownMode = C.useSettingsState(s => s.dispatch.loadLockdownMode)
+
   React.useEffect(() => {
-    dispatch(SettingsGen.createLoadHasRandomPw())
-    dispatch(SettingsGen.createLoadLockdownMode())
-    ;(isLinux || isWindows) && dispatch(ConfigGen.createLoadOnLoginStartup())
-    dispatch(SettingsGen.createLoadRememberPassword())
-  }, [dispatch])
+    loadHasRandomPw()
+    loadLockdownMode()
+    loadRememberPassword()
+  }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
 
   return (
     <Kb.ScrollView style={styles.scrollview}>
@@ -152,7 +141,7 @@ const Advanced = () => {
             <Kb.Checkbox
               checked={rememberPassword}
               labelComponent={
-                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                   <Kb.Text type="Body">Always stay logged in</Kb.Text>
                   <Kb.Text type="BodySmall">
                     You won't be asked for your password when restarting the app or your device.
@@ -162,11 +151,11 @@ const Advanced = () => {
               onCheck={onChangeRememberPassword}
             />
           )}
-          {isLinux ? <UseNativeFrame /> : null}
-          {!Styles.isMobile && (
+          {C.isLinux ? <UseNativeFrame /> : null}
+          {!C.isMobile && (
             <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
           )}
-          {!Styles.isMobile && (
+          {!C.isMobile && (
             <Kb.Checkbox
               label={
                 'Disable spellchecking' +
@@ -182,7 +171,7 @@ const Advanced = () => {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([styles.section, {paddingTop: 0}])}
+          style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
         >
           <ProxySettings />
         </Kb.Box2>
@@ -192,23 +181,16 @@ const Advanced = () => {
   )
 }
 
-if (isMobile) {
-  Advanced.navigationOptions = {
-    header: undefined,
-    title: 'Advanced',
-  }
-}
-
 const clickThreshold = 7
 const traceDurationSeconds = 30
 const processorProfileDurationSeconds = 30
 
 const Developer = () => {
-  const dispatch = Container.useDispatch()
   const [clickCount, setClickCount] = React.useState(0)
 
-  const onExtraKBFSLogging = () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'}))
-  const onToggleRuntimeStats = () => dispatch(ConfigGen.createToggleRuntimeStats())
+  const setDebugLevel = C.useFSState(s => s.dispatch.setDebugLevel)
+  const onExtraKBFSLogging = () => setDebugLevel('vlog2')
+  const onToggleRuntimeStats = C.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {
       const next = s + 1
@@ -221,14 +203,15 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = Container.useSelector(state => Constants.traceInProgress(state))
-  const onTrace = (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds}))
-  const processorProfileInProgress = Container.useSelector(state =>
-    Constants.processorProfileInProgress(state)
-  )
-  const onProcessorProfile = (durationSeconds: number) =>
-    dispatch(SettingsGen.createProcessorProfile({durationSeconds}))
-  const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))
+  const traceInProgress = C.useAnyWaiting(Constants.traceInProgressKey)
+
+  const trace = C.useSettingsState(s => s.dispatch.trace)
+  const processorProfile = C.useSettingsState(s => s.dispatch.processorProfile)
+  const onTrace = trace
+  const processorProfileInProgress = C.useAnyWaiting(Constants.processorProfileInProgressKey)
+  const onProcessorProfile = processorProfile
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onDBNuke = () => navigateAppend('dbNukeConfirm')
 
   return (
     <Kb.Box style={styles.developerContainer}>
@@ -252,22 +235,15 @@ const Developer = () => {
             style={styles.developerButtons}
           />
           <Kb.Button
-            label="Toggle Render Stats"
-            onClick={toggleRenderDebug}
-            mode="Secondary"
-            style={styles.developerButtons}
-          />
-
-          <Kb.Button
             waiting={traceInProgress}
-            style={{marginTop: Styles.globalMargins.small}}
+            style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`Trace (${traceDurationSeconds}s)`}
             onClick={() => onTrace(traceDurationSeconds)}
           />
           <Kb.Button
             waiting={processorProfileInProgress}
-            style={{marginTop: Styles.globalMargins.small}}
+            style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`CPU Profile (${traceDurationSeconds}s)`}
             onClick={() => onProcessorProfile(processorProfileDurationSeconds)}
@@ -282,62 +258,62 @@ const Developer = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkboxContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
     width: '100%',
   },
   developerButtons: {
-    marginTop: Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
   },
   developerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    paddingBottom: Styles.globalMargins.medium,
+    paddingBottom: Kb.Styles.globalMargins.medium,
   },
-  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
+  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   divider: {
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   error: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
   },
   filler: {
     flex: 1,
   },
   progressContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 32,
   },
   proxyDivider: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
     width: '100%',
   },
   scrollview: {
     width: '100%',
   },
-  section: Styles.platformStyles({
+  section: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.mediumLarge,
-        Styles.globalMargins.medium,
-        Styles.globalMargins.small
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.mediumLarge,
+        Kb.Styles.globalMargins.medium,
+        Kb.Styles.globalMargins.small
       ),
     },
     isElectron: {
       maxWidth: 600,
     },
   }),
-  text: Styles.platformStyles({
+  text: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },

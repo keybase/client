@@ -1,12 +1,12 @@
-import * as Container from '../../../util/container'
+import * as C from '@/constants'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
-import type * as WalletTypes from '../../../constants/types/wallets'
-import {ConvoIDContext, OrdinalContext} from '../../conversation/messages/ids-context'
+import type * as WalletTypes from '@/constants/types/wallets'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 
 type OwnProps = {
-  allowFontScaling?: boolean | null
-  error?: string | null
+  allowFontScaling?: boolean
+  error?: string
   paymentID?: WalletTypes.PaymentID
   text: string
 }
@@ -32,24 +32,16 @@ const reduceStatus = (status: string): Status => {
 
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const paymentInfo = Container.useSelector(state =>
-    paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
-  )
+  const paymentInfo = C.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 
-  const allowPopup = Container.useSelector(state => {
-    const you = state.config.username
-    const author = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.author
-    return status === 'completed' || status === 'pending' || status === 'claimable' || author === you
-  })
-
+  const you = C.useCurrentUserState(s => s.username)
   // TODO remove
-  const message = Container.useSelector(state => {
-    return state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-  })
-
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const author = message?.author
+  const allowPopup =
+    status === 'completed' || status === 'pending' || status === 'claimable' || author === you
   if (message?.type !== 'text') return null
 
   const props = {

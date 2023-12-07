@@ -1,30 +1,27 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 
 type Props = {
   onTriggerFilterMobile: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  const softErrors = C.useFSState(s => s.softErrors)
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
-
-  const dispatch = Container.useDispatch()
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
-    !Styles.isMobile && dispatch(FsGen.createSetFolderViewFilter({filter: null})) // mobile is handled in mobile-header.tsx
-  }, [dispatch, props.path]) // clear if path changes or it's a new layer of mount
+    !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+  }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      {Styles.isMobile ? (
+      {Kb.Styles.isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
@@ -33,7 +30,7 @@ const FsNavHeaderRightActions = (props: Props) => {
       <Kbfs.PathItemAction
         path={props.path}
         clickable={{type: 'icon'}}
-        initView={Types.PathItemActionMenuView.Root}
+        initView={T.FS.PathItemActionMenuView.Root}
         mode="screen"
       />
     </Kb.Box2>
@@ -42,26 +39,26 @@ const FsNavHeaderRightActions = (props: Props) => {
 
 export default FsNavHeaderRightActions
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
           height: 28,
           // Supposed to be small, but icons already have padding
-          paddingRight: Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
       }),
       folderViewFilter: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
         width: 140,
       },
-      uploadButton: Styles.platformStyles({
+      uploadButton: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

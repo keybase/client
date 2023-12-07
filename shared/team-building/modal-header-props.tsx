@@ -1,8 +1,7 @@
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type * as Types from './types'
-import {noTeamID} from '../constants/types/teams'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 
 export const modalHeaderProps = (
   props: Pick<Types.Props, 'onClose' | 'namespace' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'> & {
@@ -11,20 +10,20 @@ export const modalHeaderProps = (
   }
 ) => {
   const {onClose, namespace, hasTeamSoFar, teamID, onFinishTeamBuilding, title, goButtonLabel} = props
-  const mobileCancel = Styles.isMobile ? (
+  const mobileCancel = Kb.Styles.isMobile ? (
     <Kb.Text type="BodyBigLink" onClick={onClose}>
       Cancel
     </Kb.Text>
   ) : undefined
   switch (namespace) {
     case 'people': {
-      return Styles.isMobile ? {hideBorder: true, leftButton: mobileCancel} : undefined
+      return Kb.Styles.isMobile ? {hideBorder: true, leftButton: mobileCancel} : undefined
     }
     case 'teams': {
       return {
         hideBorder: true,
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />,
-        rightButton: Styles.isMobile ? (
+        rightButton: Kb.Styles.isMobile ? (
           <Kb.Text
             type="BodyBigLink"
             onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
@@ -33,11 +32,11 @@ export const modalHeaderProps = (
             Done
           </Kb.Text>
         ) : undefined,
-        title: <TeamsModalTitle teamID={teamID ?? noTeamID} title="Search people" />,
+        title: <TeamsModalTitle teamID={teamID ?? T.Teams.noTeamID} title="Search people" />,
       }
     }
     case 'chat2': {
-      const rightButton = Styles.isMobile ? (
+      const rightButton = Kb.Styles.isMobile ? (
         <Kb.Button
           label="Start"
           onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
@@ -49,7 +48,7 @@ export const modalHeaderProps = (
       return {hideBorder: true, leftButton: mobileCancel, rightButton, title: title}
     }
     case 'crypto': {
-      const rightButton = Styles.isMobile ? (
+      const rightButton = Kb.Styles.isMobile ? (
         <Kb.Button
           label={goButtonLabel ?? 'Start'}
           onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
@@ -66,4 +65,4 @@ export const modalHeaderProps = (
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({hide: {opacity: 0}} as const))
+const styles = Kb.Styles.styleSheetCreate(() => ({hide: {opacity: 0}}) as const)

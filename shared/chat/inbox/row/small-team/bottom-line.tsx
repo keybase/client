@@ -1,13 +1,11 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import shallowEqual from 'shallowequal'
-import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
-  isDecryptingSnippet: boolean
+  layoutSnippet?: string
   backgroundColor?: string
   isSelected?: boolean
   isInWidget?: boolean
@@ -19,46 +17,46 @@ const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: strin
     <Kb.Icon
       color={color}
       type={type}
-      fontSize={Styles.isMobile ? 16 : 12}
+      fontSize={Kb.Styles.isMobile ? 16 : 12}
       style={styles.snippetDecoration}
     />
   )
   return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
-const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Styles.StylesCrossPlatform}) {
+const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.Styles.StylesCrossPlatform}) {
   const snippet = React.useContext(SnippetContext)
   const {isSelected, style} = p
 
   const decoration = React.useContext(SnippetDecorationContext)
   let snippetDecoration: React.ReactNode
   let exploded = false
-  const defaultIconColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
+  const defaultIconColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20
 
   switch (decoration) {
-    case RPCChatTypes.SnippetDecoration.pendingMessage:
+    case T.RPCChat.SnippetDecoration.pendingMessage:
       snippetDecoration = (
         <SnippetDecoration type="iconfont-hourglass" color={defaultIconColor} tooltip="Sending…" />
       )
       break
-    case RPCChatTypes.SnippetDecoration.failedPendingMessage:
+    case T.RPCChat.SnippetDecoration.failedPendingMessage:
       snippetDecoration = (
         <SnippetDecoration
           type="iconfont-exclamation"
-          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+          color={isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
           tooltip="Failed to send"
         />
       )
       break
-    case RPCChatTypes.SnippetDecoration.explodingMessage:
+    case T.RPCChat.SnippetDecoration.explodingMessage:
       snippetDecoration = <SnippetDecoration type="iconfont-timer-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.explodedMessage:
+    case T.RPCChat.SnippetDecoration.explodedMessage:
       snippetDecoration = (
         <Kb.Text
           type="BodySmall"
           style={{
-            color: isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
+            color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50,
           }}
         >
           Message exploded.
@@ -66,25 +64,25 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
       )
       exploded = true
       break
-    case RPCChatTypes.SnippetDecoration.audioAttachment:
+    case T.RPCChat.SnippetDecoration.audioAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-mic-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.videoAttachment:
+    case T.RPCChat.SnippetDecoration.videoAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-film-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.photoAttachment:
+    case T.RPCChat.SnippetDecoration.photoAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-camera-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.fileAttachment:
+    case T.RPCChat.SnippetDecoration.fileAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-file-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.stellarReceived:
+    case T.RPCChat.SnippetDecoration.stellarReceived:
       snippetDecoration = <SnippetDecoration type="iconfont-stellar-request" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.stellarSent:
+    case T.RPCChat.SnippetDecoration.stellarSent:
       snippetDecoration = <SnippetDecoration type="iconfont-stellar-send" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.pinnedMessage:
+    case T.RPCChat.SnippetDecoration.pinnedMessage:
       snippetDecoration = <SnippetDecoration type="iconfont-pin-solid" color={defaultIconColor} />
       break
     default:
@@ -107,42 +105,57 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
-  const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
+  const {isSelected, backgroundColor, isInWidget, layoutSnippet} = p
 
-  const data = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
-    const youAreReset = meta?.membershipType === 'youAreReset'
-    const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
-    const youNeedToRekey = meta?.rekeyers?.has(state.config.username) ?? false
-    const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
-    const draft = (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
+  const isTypingSnippet = C.useChatContext(s => {
+    const typers = !isInWidget ? s.typing : undefined
+    return !!typers?.size
+  })
 
-    let isTypingSnippet = false
-    if (!isInWidget) {
-      const typers = state.chat2.typingMap.get(conversationIDKey)
-      if (typers?.size) {
-        isTypingSnippet = true
-      }
-    }
+  const you = C.useCurrentUserState(s => s.username)
+  const hasUnread = C.useChatContext(s => s.unread > 0)
+  const _draft = C.useChatContext(s => s.meta.draft)
+  const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
+    C.useChatContext(
+      C.useShallow(s => {
+        const {
+          membershipType,
+          rekeyers,
+          resetParticipants,
+          trustedState,
+          conversationIDKey,
+          snippetDecorated,
+        } = s.meta
+        const youAreReset = membershipType === 'youAreReset'
+        const participantNeedToRekey = rekeyers.size > 0
+        const youNeedToRekey = rekeyers.has(you)
+        const hasResetUsers = resetParticipants.size > 0
 
-    return {
-      draft,
-      hasResetUsers,
-      hasUnread,
-      isTypingSnippet,
-      participantNeedToRekey,
-      youAreReset,
-      youNeedToRekey,
-    }
-  }, shallowEqual)
+        // only use layout if we don't have the meta at all
+        const typers = !isInWidget ? s.typing : undefined
+        const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
+        const maybeLayoutSnippet = conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+
+        const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
+        const isDecryptingSnippet =
+          s.id && !snippet ? trustedState === 'requesting' || trustedState === 'untrusted' : false
+
+        return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
+      })
+    )
+  const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {
-    ...data,
     backgroundColor,
+    draft,
+    hasResetUsers,
+    hasUnread,
     isDecryptingSnippet,
     isSelected,
+    isTypingSnippet,
+    participantNeedToRekey,
+    youAreReset,
+    youNeedToRekey,
   }
 
   return <BottomLineImpl {...props} />
@@ -165,20 +178,20 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   const {isTypingSnippet, hasResetUsers, hasUnread, participantNeedToRekey, backgroundColor} = p
 
   const subColor = isSelected
-    ? Styles.globalColors.white
+    ? Kb.Styles.globalColors.white
     : hasUnread
-    ? Styles.globalColors.black
-    : Styles.globalColors.black_50
+      ? Kb.Styles.globalColors.black
+      : Kb.Styles.globalColors.black_50
   const showBold = !isSelected && hasUnread
 
   let content: React.ReactNode
   const style = React.useMemo(
     () =>
-      Styles.collapseStyles([
+      Kb.Styles.collapseStyles([
         styles.bottomLine,
         {
           color: subColor,
-          ...(showBold ? Styles.globalStyles.fontBold : {}),
+          ...(showBold ? Kb.Styles.globalStyles.fontBold : {}),
         },
         isTypingSnippet ? styles.typingSnippet : null,
       ]),
@@ -190,11 +203,11 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     content = (
       <Kb.Text
         type="BodySmallSemibold"
-        fixOverdraw={Styles.isPhone}
+        fixOverdraw={Kb.Styles.isPhone}
         negative={true}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.youAreResetText,
-          {color: isSelected ? Styles.globalColors.white : Styles.globalColors.red},
+          {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red},
         ])}
       >
         You are locked out.
@@ -202,16 +215,16 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     )
   } else if (participantNeedToRekey) {
     content = (
-      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
     )
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <Kb.Text
           type="BodySmall"
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.draftLabel,
-            isSelected ? {color: Styles.globalColors.white} : null,
+            isSelected ? {color: Kb.Styles.globalColors.white} : null,
           ])}
         >
           Draft:
@@ -223,7 +236,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     )
   } else if (isDecryptingSnippet) {
     content = (
-      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Styles.globalColors.blue} />
+      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.blue} />
     )
   } else {
     content = (
@@ -235,16 +248,20 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   return (
     <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
       <Kb.Box
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.outerBox,
-          {backgroundColor: Styles.isMobile ? backgroundColor : undefined},
+          {backgroundColor: Kb.Styles.isMobile ? backgroundColor : undefined},
         ])}
       >
         {hasResetUsers && (
-          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
         )}
         {youNeedToRekey && (
-          <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+          <Kb.Meta
+            title="rekey needed"
+            style={styles.alertMeta}
+            backgroundColor={Kb.Styles.globalColors.red}
+          />
         )}
         <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
       </Kb.Box>
@@ -252,10 +269,10 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alertMeta: Styles.platformStyles({
+      alertMeta: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'center',
           marginRight: 6,
@@ -263,10 +280,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginTop: 2},
       }),
       bottom: {justifyContent: 'flex-start'},
-      bottomLine: Styles.platformStyles({
-        isAndroid: {lineHeight: undefined},
+      bottomLine: Kb.Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
           display: 'block',
           minHeight: 16,
           overflow: 'hidden',
@@ -276,23 +292,21 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isMobile: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
           flex: 1,
-          fontSize: 15,
           lineHeight: 19,
           paddingRight: 40,
-          paddingTop: 2, // so the tops of emoji aren't chopped off
         },
       }),
       contentBox: {
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
         width: '100%',
       },
-      draftLabel: {color: Styles.globalColors.orange},
-      innerBox: Styles.platformStyles({
+      draftLabel: {color: Kb.Styles.globalColors.orange},
+      innerBox: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           flexGrow: 1,
           height: 17,
@@ -301,14 +315,11 @@ const styles = Styles.styleSheetCreate(
         isMobile: {height: 21},
       }),
       outerBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
       },
-      snippetDecoration: Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
-        isMobile: {marginRight: 4},
-      }),
+      snippetDecoration: {alignSelf: 'flex-start'},
       typingSnippet: {},
-      youAreResetText: Styles.platformStyles({
+      youAreResetText: Kb.Styles.platformStyles({
         isElectron: {
           fontSize: 12,
           lineHeight: 13,
@@ -318,6 +329,6 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )
 export {BottomLine}

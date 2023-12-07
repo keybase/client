@@ -1,5 +1,5 @@
-import * as Types from '../../../constants/types/fs'
-import * as Container from '../../../util/container'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm-container'
@@ -7,26 +7,29 @@ import Confirm from './confirm-container'
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
   mode: 'row' | 'screen'
-  path: Types.Path
+  path: T.FS.Path
 }
-type StateProps = {view: Types.PathItemActionMenuView}
+type StateProps = {view: T.FS.PathItemActionMenuView}
 type Props = OwnProps & StateProps
 
 const ChooseView = (props: Props) => {
-  if (props.view === Types.PathItemActionMenuView.Root || props.view === Types.PathItemActionMenuView.Share) {
-    return <Menu path={props.path} mode={props.mode} floatingMenuProps={props.floatingMenuProps} />
-  } else if (
-    props.view === Types.PathItemActionMenuView.ConfirmSaveMedia ||
-    props.view === Types.PathItemActionMenuView.ConfirmSendToOtherApp
-  ) {
-    return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
-  } else {
-    return null
+  switch (props.view) {
+    case T.FS.PathItemActionMenuView.Root: // fallthrough
+    case T.FS.PathItemActionMenuView.Share:
+      return <Menu path={props.path} mode={props.mode} floatingMenuProps={props.floatingMenuProps} />
+    case T.FS.PathItemActionMenuView.ConfirmSaveMedia: // fallthrough
+    case T.FS.PathItemActionMenuView.ConfirmSendToOtherApp:
+      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
   }
 }
 
-export default Container.connect(
-  state => ({view: state.fs.pathItemActionMenu.view}),
-  () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ChooseView)
+const Container = (ownProps: OwnProps) => {
+  const view = C.useFSState(s => s.pathItemActionMenu.view)
+  const props = {
+    ...ownProps,
+    view,
+  }
+  return <ChooseView {...props} />
+}
+
+export default Container

@@ -1,6 +1,5 @@
-import * as Kb from '../../../common-adapters/mobile.native'
-import * as QR from '../../../common-adapters/qr.native'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
+import * as QR from '@/common-adapters/qr.native'
 import type {Props} from '.'
 
 const QRScan = (props: Props) => (
@@ -17,19 +16,19 @@ const QRScan = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   camera: {
     flexGrow: 1,
   },
   container: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.black,
+    backgroundColor: Kb.Styles.globalColors.black,
     height: 160,
     overflow: 'hidden',
     position: 'relative',
   },
   waiting: {
-    ...Styles.globalStyles.fillAbsolute,
+    ...Kb.Styles.globalStyles.fillAbsolute,
   },
 }))
 

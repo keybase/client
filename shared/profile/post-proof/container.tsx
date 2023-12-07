@@ -1,79 +1,71 @@
-import * as ConfigGen from '../../actions/config-gen'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as C from '@/constants'
 import PostProof from '.'
-import {connect} from '../../util/container'
 
-type OwnProps = {}
+const Container = () => {
+  const platform = C.useProfileState(s => s.platform)
+  const errorText = C.useProfileState(s => s.errorText)
+  const username = C.useProfileState(s => s.username)
+  let proofText = C.useProfileState(s => s.proofText)
 
-export default connect(
-  state => {
-    const profile = state.profile
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const checkProof = C.useProfileState(s => s.dispatch.checkProof)
 
-    if (
-      !profile.platform ||
-      profile.platform === 'zcash' ||
-      profile.platform === 'btc' ||
-      profile.platform === 'dnsOrGenericWebSite' ||
-      profile.platform === 'pgp'
-    ) {
-      throw new Error(`Invalid profile platform in PostProofContainer: ${profile.platform || ''}`)
-    }
+  if (
+    !platform ||
+    platform === 'zcash' ||
+    platform === 'btc' ||
+    platform === 'dnsOrGenericWebSite' ||
+    platform === 'pgp'
+  ) {
+    throw new Error(`Invalid profile platform in PostProofContainer: ${platform || ''}`)
+  }
 
-    const platform = profile.platform
+  let url = ''
+  let openLinkBeforeSubmit = false
+  switch (platform) {
+    case 'twitter':
+      openLinkBeforeSubmit = true
+      url = proofText ? `https://twitter.com/home?status=${proofText || ''}` : ''
+      break
+    case 'github':
+      openLinkBeforeSubmit = true
+      url = 'https://gist.github.com/'
+      break
+    case 'reddit': // fallthrough
+    case 'facebook':
+      openLinkBeforeSubmit = true
+      url = proofText ? proofText : ''
+      proofText = ''
+      break
+    case 'hackernews':
+      openLinkBeforeSubmit = true
+      url = `https://news.ycombinator.com/user?id=${username || ''}`
+      break
+    default:
+      break
+  }
 
-    let url = ''
-    let openLinkBeforeSubmit = false
-    let proofText = profile.proofText || ''
-    switch (platform) {
-      case 'twitter':
-        openLinkBeforeSubmit = true
-        url = profile.proofText ? `https://twitter.com/home?status=${profile.proofText || ''}` : ''
-        break
-      case 'github':
-        openLinkBeforeSubmit = true
-        url = 'https://gist.github.com/'
-        break
-      case 'reddit': // fallthrough
-      case 'facebook':
-        openLinkBeforeSubmit = true
-        url = profile.proofText ? profile.proofText : ''
-        proofText = ''
-        break
-      case 'hackernews':
-        openLinkBeforeSubmit = true
-        url = `https://news.ycombinator.com/user?id=${profile.username || ''}`
-        break
-      default:
-        break
-    }
+  const platformUserName = username
 
-    return {
-      errorMessage: profile.errorText,
-      openLinkBeforeSubmit,
-      platform,
-      platformUserName: profile.username,
-      proofText,
-      url,
-    }
-  },
-  dispatch => ({
-    copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    onCancel: () => {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(ProfileGen.createCancelAddProof())
-    },
-    onSubmit: () => dispatch(ProfileGen.createCheckProof()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    copyToClipboard: dispatchProps.copyToClipboard,
-    errorMessage: stateProps.errorMessage,
-    onCancel: dispatchProps.onCancel,
-    onSubmit: dispatchProps.onSubmit,
-    openLinkBeforeSubmit: stateProps.openLinkBeforeSubmit,
-    platform: stateProps.platform,
-    platformUserName: stateProps.platformUserName,
-    proofText: stateProps.proofText,
-    url: stateProps.url,
-  })
-)(PostProof)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onCancel = () => {
+    clearModals()
+    cancelAddProof?.()
+  }
+  const onSubmit = checkProof
+  const props = {
+    copyToClipboard,
+    errorMessage: errorText,
+    onCancel,
+    onSubmit,
+    openLinkBeforeSubmit: openLinkBeforeSubmit,
+    platform,
+    platformUserName,
+    proofText,
+    url: url,
+  }
+  return <PostProof {...props} />
+}
+
+export default Container

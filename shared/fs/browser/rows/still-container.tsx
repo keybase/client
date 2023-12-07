@@ -1,25 +1,23 @@
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
-import {useOpen} from '../../common/use-open'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import {useOpen} from '@/fs/common/use-open'
 import Still from './still'
 
 type OwnProps = {
   destinationPickerIndex?: number
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
-  const _downloads = Container.useSelector(state => state.fs.downloads)
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
-  const _uploads = Container.useSelector(state => state.fs.uploads)
+  const _downloads = C.useFSState(s => s.downloads)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const _uploads = C.useFSState(s => s.uploads)
 
-  const dispatch = Container.useDispatch()
-
-  const dismissUploadError = (uploadID: string) => dispatch(FsGen.createDismissUpload({uploadID}))
+  const dismissUpload = C.useFSState(s => s.dispatch.dismissUpload)
+  const dismissUploadError = dismissUpload
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
   const onOpen = useOpen({destinationPickerIndex, path})
   const np = {
@@ -29,8 +27,8 @@ const StillContainer = (p: OwnProps) => {
       : undefined,
     intentIfDownloading: Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu),
     isEmpty:
-      _pathItem.type === Types.PathType.Folder &&
-      _pathItem.progress === Types.ProgressType.Loaded &&
+      _pathItem.type === T.FS.PathType.Folder &&
+      _pathItem.progress === T.FS.ProgressType.Loaded &&
       !_pathItem.children.size,
     onOpen,
     path,

@@ -1,46 +1,46 @@
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
 import ProveEnterUsername from '.'
 
-type OwnProps = {}
-export default Container.connect(
-  state => {
-    const profile = state.profile
+const Container = () => {
+  const platform = C.useProfileState(s => s.platform)
+  const username = C.useProfileState(s => s.username)
+  const _errorText = C.useProfileState(s => s.errorText)
+  const updateUsername = C.useProfileState(s => s.dispatch.updateUsername)
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const submitBTCAddress = C.useProfileState(s => s.dispatch.submitBTCAddress)
+  const submitZcashAddress = C.useProfileState(s => s.dispatch.submitZcashAddress)
+  const submitUsername = C.useProfileState(s => s.dispatch.dynamic.submitUsername)
 
-    if (!profile.platform) {
-      throw new Error('No platform passed to prove enter username')
+  if (!platform) {
+    throw new Error('No platform passed to prove enter username')
+  }
+
+  const errorText = _errorText === 'Input canceled' ? '' : _errorText
+
+  const _onSubmit = (username: string, platform?: string) => {
+    updateUsername(username)
+
+    if (platform === 'btc') {
+      submitBTCAddress()
+    } else if (platform === 'zcash') {
+      submitZcashAddress()
+    } else {
+      submitUsername?.()
     }
+  }
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onCancel = () => {
+    cancelAddProof?.()
+    clearModals()
+  }
+  const props = {
+    errorText: errorText,
+    onCancel: onCancel,
+    onSubmit: (username: string) => _onSubmit(username, platform),
+    platform: platform,
+    username: username,
+  }
+  return <ProveEnterUsername {...props} />
+}
 
-    return {
-      errorText: profile.errorText === 'Input canceled' ? '' : profile.errorText,
-      platform: profile.platform,
-      title: 'Add Proof',
-      username: profile.username,
-    }
-  },
-  dispatch => ({
-    _onSubmit: (username: string, platform: string | null) => {
-      dispatch(ProfileGen.createUpdateUsername({username}))
-
-      if (platform === 'btc') {
-        dispatch(ProfileGen.createSubmitBTCAddress())
-      } else if (platform === 'zcash') {
-        dispatch(ProfileGen.createSubmitZcashAddress())
-      } else {
-        dispatch(ProfileGen.createSubmitUsername())
-      }
-    },
-    onCancel: () => {
-      dispatch(ProfileGen.createCancelAddProof())
-      dispatch(RouteTreeGen.createClearModals())
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    errorText: stateProps.errorText,
-    onCancel: dispatchProps.onCancel,
-    onSubmit: (username: string) => dispatchProps._onSubmit(username, stateProps.platform),
-    platform: stateProps.platform,
-    username: stateProps.username,
-  })
-)(ProveEnterUsername)
+export default Container

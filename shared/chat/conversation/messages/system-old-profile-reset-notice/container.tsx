@@ -1,36 +1,26 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import OldProfileResetNotice from '.'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
-
-export default Container.connect(
-  (state, {conversationIDKey}: OwnProps) => {
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return {
-      _participants: participantInfo.all,
-      nextConversationIDKey: meta.supersededBy,
-      username: meta.wasFinalizedBy || '',
-    }
-  },
-  dispatch => ({
-    onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'})),
-    startConversation: (participants: Array<string>) =>
-      dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const {nextConversationIDKey, _participants, username} = stateProps
-    return {
-      onOpenNewerConversation: nextConversationIDKey
-        ? () => dispatchProps.onOpenConversation(nextConversationIDKey)
-        : () => dispatchProps.startConversation(_participants),
-      username,
-    }
+const Container = () => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const _participants = participantInfo.all
+  const nextConversationIDKey = meta.supersededBy
+  const username = meta.wasFinalizedBy || ''
+  const onOpenConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
-)(OldProfileResetNotice)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const startConversation = (participants: Array<string>) => {
+    previewConversation({participants, reason: 'fromAReset'})
+  }
+  const props = {
+    onOpenNewerConversation: nextConversationIDKey
+      ? () => onOpenConversation(nextConversationIDKey)
+      : () => startConversation(_participants),
+    username,
+  }
+  return <OldProfileResetNotice {...props} />
+}
+export default Container

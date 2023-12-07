@@ -3,8 +3,8 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
-import logger from '../logger'
-import * as Styles from '../styles'
+import logger from '@/logger'
+import * as Styles from '@/styles'
 
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
@@ -35,7 +35,7 @@ const detailContainerStyle = {
   maxHeight: 100,
   minWidth: '75%',
   padding: 10,
-}
+} as const
 
 const detailStyle = Styles.platformStyles({
   isElectron: {
@@ -124,15 +124,15 @@ type Props = {
 }
 
 type State = {
-  info: AllErrorInfo | null
+  info: AllErrorInfo | undefined
 }
 
 class ErrorBoundary extends React.PureComponent<Props, State> {
-  state = {info: null}
+  state: State = {info: undefined}
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.children !== prevProps.children && this.state.info) {
-      this.setState(p => (p.info ? {info: null} : null))
+      this.setState(p => (p.info ? {info: undefined} : null))
     }
   }
 

@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from './text-view'
 
 const TextView = (props: Props) => {
@@ -33,35 +32,35 @@ const TextView = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueLighter3,
-          padding: Styles.globalMargins.medium,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          padding: Kb.Styles.globalMargins.medium,
         },
         isElectron: {overflow: 'scroll'} as const,
       }),
       innerContainer: {
-        ...Styles.globalStyles.flexGrow,
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black,
+        ...Kb.Styles.globalStyles.flexGrow,
+        backgroundColor: Kb.Styles.globalColors.white,
+        color: Kb.Styles.globalColors.black,
         maxWidth: '100%',
-        paddingBottom: Styles.globalMargins.large,
-        paddingLeft: Styles.globalMargins.xlarge,
-        paddingRight: Styles.globalMargins.xlarge,
-        paddingTop: Styles.globalMargins.large,
+        paddingBottom: Kb.Styles.globalMargins.large,
+        paddingLeft: Kb.Styles.globalMargins.xlarge,
+        paddingRight: Kb.Styles.globalMargins.xlarge,
+        paddingTop: Kb.Styles.globalMargins.large,
         width: 800,
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.black_on_white,
+          color: Kb.Styles.globalColors.black_on_white,
           overflow: 'hidden',
           whiteSpace: 'pre-wrap',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default TextView

@@ -1,30 +1,10 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './scroll-view'
 
 const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
-  const {
-    alwaysBounceHorizontal,
-    alwaysBounceVertical,
-    bounces,
-    centerContent,
-    className,
-    contentContainerStyle,
-    horizontal,
-    indicatorStyle,
-    maximumZoomScale,
-    minimumZoomScale,
-    onLayout,
-    onScroll,
-    refreshControl,
-    scrollEventThrottle,
-    scrollsToTop,
-    showsHorizontalScrollIndicator,
-    showsVerticalScrollIndicator,
-    snapToInterval,
-    style,
-    ...rest
-  } = props
+  const {className, contentContainerStyle, onScroll, style, children} = props
+  const {showsHorizontalScrollIndicator, showsVerticalScrollIndicator} = props
   const hideScroll = showsVerticalScrollIndicator === false && showsHorizontalScrollIndicator === false
   const cn = Styles.classNames(
     // TODO: make it work for horizontal/vertical separately
@@ -46,14 +26,15 @@ const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
     }),
     [divRef]
   )
+
   return (
     <div
       className={cn}
-      style={Styles.collapseStyles([styles.overflowAuto, style])}
-      onScroll={props.onScroll || undefined}
+      style={Styles.collapseStyles([styles.overflowAuto, style]) as React.CSSProperties}
+      onScroll={onScroll as any}
       ref={divRef}
     >
-      <div style={contentContainerStyle as any} {...rest} />
+      <div style={contentContainerStyle as any}>{children}</div>
     </div>
   )
 })

@@ -1,29 +1,18 @@
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import type * as Types from '../../constants/types/teams'
-import type * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
-import * as Constants from '../../constants/teams'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-
-const emptyArrForUseSelector = []
-
-function filterNull<A>(arr: Array<A | null>): Array<A> {
-  return arr.filter(a => a !== null) as Array<A>
-}
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
-  teamID: Types.TeamID,
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID,
+  conversationIDKey: T.Chat.ConversationIDKey
 ) => {
-  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey).all)
-  const teamMembers = Container.useSelector(s => Constants.getTeamDetails(s, teamID).members)
+  const participants = C.useConvoState(conversationIDKey, s => s.participants.all)
+  const teamMembers = C.useTeamsState(s => s.teamDetails.get(teamID)?.members)
   return React.useMemo(
     () =>
       participants.filter(username => {
-        const maybeMember = teamMembers.get(username)
+        const maybeMember = teamMembers?.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
       }),
     [participants, teamMembers]
@@ -31,19 +20,20 @@ export const useChannelParticipants = (
 }
 
 export const useAllChannelMetas = (
-  teamID: Types.TeamID,
+  teamID: T.Teams.TeamID,
   dontCallRPC?: boolean
 ): {
-  channelMetas: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>
+  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   loadingChannels: boolean
   reloadChannels: () => Promise<void>
 } => {
-  const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
+  const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
-    new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
+    new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
   )
+
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
   const reloadChannels = React.useCallback(
@@ -53,21 +43,25 @@ export const useAllChannelMetas = (
         getConversations(
           [
             {
-              membersType: RPCChatTypes.ConversationMembersType.team,
+              membersType: T.RPCChat.ConversationMembersType.team,
               tlfName: teamname,
-              topicType: RPCChatTypes.TopicType.chat,
+              topicType: T.RPCChat.TopicType.chat,
             },
-            Constants.getChannelsWaitingKey(teamID),
+            C.Teams.getChannelsWaitingKey(teamID),
           ],
           ({convs}) => {
             resolve()
             if (convs) {
               setChannelMetas(
                 new Map(
-                  filterNull(
-                    convs?.map(conv => ChatConstants.inboxUIItemToConversationMeta(undefined, conv)) ??
-                      emptyArrForUseSelector
-                  ).map(a => [a.conversationIDKey, a])
+                  convs
+                    .map(conv => C.Chat.inboxUIItemToConversationMeta(conv))
+                    .reduce((arr, a) => {
+                      if (a) {
+                        arr.push([a.conversationIDKey, a])
+                      }
+                      return arr
+                    }, new Array<[string, T.Chat.ConversationMeta]>())
                 )
               )
             }
@@ -95,20 +89,20 @@ export const useAllChannelMetas = (
 }
 
 export const useChannelMeta = (
-  teamID: Types.TeamID,
-  conversationIDKey: ChatTypes.ConversationIDKey
-): ChatTypes.ConversationMeta | null => {
-  const getInboxItem = Container.useRPC(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise)
-  const [conv, setConv] = React.useState<RPCChatTypes.InboxUIItem | null>(null)
+  teamID: T.Teams.TeamID,
+  conversationIDKey: T.Chat.ConversationIDKey
+): T.Chat.ConversationMeta | undefined => {
+  const getInboxItem = C.useRPC(T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise)
+  const [conv, setConv] = React.useState<T.RPCChat.InboxUIItem | undefined>()
 
-  const waitingKey = Constants.teamWaitingKey(teamID)
+  const waitingKey = C.teamWaitingKey(teamID)
 
   React.useEffect(() => {
     getInboxItem(
       [
         {
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          query: ChatConstants.makeInboxQuery([conversationIDKey], true /* all statuses */),
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          query: C.Chat.makeInboxQuery([conversationIDKey], true /* all statuses */),
         },
         waitingKey,
       ],
@@ -121,9 +115,6 @@ export const useChannelMeta = (
     )
   }, [teamID, conversationIDKey, getInboxItem, waitingKey])
 
-  const meta: ChatTypes.ConversationMeta | null = Container.useSelector(state =>
-    conv ? ChatConstants.inboxUIItemToConversationMeta(state, conv) : null
-  )
-
-  return meta
+  const meta = conv ? C.Chat.inboxUIItemToConversationMeta(conv) : undefined
+  return meta ?? undefined
 }

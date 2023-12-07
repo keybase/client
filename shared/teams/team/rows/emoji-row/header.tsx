@@ -1,5 +1,4 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 
 const EmojiHeader = () => {
   return (
@@ -21,27 +20,27 @@ const EmojiHeader = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 6),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 6),
   },
   date: {
     marginLeft: 'auto',
-    width: 130 + Styles.globalMargins.small,
+    width: 130 + Kb.Styles.globalMargins.small,
   },
   divider: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
+    marginLeft: Kb.Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.small,
     maxHeight: 2,
     minHeight: 2,
   },
   emoji: {
-    marginRight: Styles.globalMargins.medium + Styles.globalMargins.xtiny,
-    width: 72 - Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny,
+    width: 72 - Kb.Styles.globalMargins.small,
   },
-  text: {padding: Styles.globalMargins.xtiny},
+  text: {padding: Kb.Styles.globalMargins.xtiny},
   username: {
-    marginRight: Styles.globalMargins.large + Styles.globalMargins.small, // width of icon button + gap + padding
+    marginRight: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.small, // width of icon button + gap + padding
     width: 210,
   },
 }))

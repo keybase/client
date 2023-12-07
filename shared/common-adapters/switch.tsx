@@ -1,11 +1,12 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import Box, {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
 import WithTooltip from './with-tooltip'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box,
@@ -17,19 +18,19 @@ const Kb = {
 }
 
 type Props = {
-  align?: 'left' | 'right' | null // default to 'left',
+  align?: 'left' | 'right' // default to 'left',
   allowLabelClick?: boolean
   children?: React.ReactNode
-  color?: 'blue' | 'green' | 'red' | null // default to 'blue',
-  disabled?: boolean | null
-  gapInBetween?: boolean | null // inserts flex:1 gap between toggle and text,
-  gapSize?: number | null // inserts a gap of N pixels between toggle and text
+  color?: 'blue' | 'green' | 'red' // default to 'blue',
+  disabled?: boolean
+  gapInBetween?: boolean // inserts flex:1 gap between toggle and text,
+  gapSize?: number // inserts a gap of N pixels between toggle and text
   label: string | React.ReactNode
-  labelSubtitle?: string | null // only effective when label is a string,
-  labelTooltip?: string | null // only effective when label is a string,
+  labelSubtitle?: string // only effective when label is a string,
+  labelTooltip?: string // only effective when label is a string,
   on: boolean
   onClick: () => void
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
 }
 
 const LabelContainer = (props: Props) =>
@@ -50,7 +51,7 @@ const LabelContainer = (props: Props) =>
     </Kb.Box2>
   )
 
-const getContent = (props: Props, ref: React.Ref<ClickableBox>) => (
+const getContent = (props: Props, ref: React.Ref<MeasureRef>) => (
   <>
     <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
       <SwitchToggle
@@ -89,7 +90,7 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-const Switch = React.forwardRef<ClickableBox, Props>(function Switch(props: Props, ref) {
+const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props, ref) {
   return Styles.isMobile || !props.labelTooltip ? (
     <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
   ) : (

@@ -1,21 +1,23 @@
-.listItem2 .fade {
-  opacity: 0;
-  transition: opacity 0.1s ease-out;
-}
-.listItem2 .grow {
-  max-width: 0;
-  overflow: hidden;
-  transition: max-width 0.1s ease-out;
-}
-.listItem2:hover {
-  background-color: var(--color-blueLighter2);
-}
-.listItem2:hover .avatar-border {
-  box-shadow: 0px 0px 0px 2px var(--color-blueLighter2) !important;
-}
-.listItem2:hover .fade {
-  opacity: 1;
-}
-.listItem2:hover .grow {
-  max-width: 64px;
+.listItem2 {
+  .fade {
+    opacity: 0;
+    transition: opacity 0.1s ease-out;
+  }
+  .grow {
+    max-width: 0;
+    overflow: hidden;
+    transition: max-width 0.1s ease-out;
+  }
+  &:hover {
+    background-color: var(--color-blueLighter2);
+    .avatar-border {
+      box-shadow: 0px 0px 0px 2px var(--color-blueLighter2) !important;
+    }
+    .fade {
+      opacity: 1;
+    }
+    .grow {
+      max-width: 64px;
+    }
+  }
 }

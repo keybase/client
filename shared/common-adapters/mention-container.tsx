@@ -1,37 +1,42 @@
-import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as C from '@/constants'
 import Mention, {type OwnProps} from './mention'
-import {isSpecialMention} from '../constants/chat2'
-import * as Container from '../util/container'
 
-export default Container.connect(
-  (state, {username}: OwnProps) => {
-    username = username.toLowerCase()
-    if (isSpecialMention(username)) {
-      return {theme: 'highlight' as const}
+const Container = (ownProps: OwnProps) => {
+  let {username} = ownProps
+  username = username.toLowerCase()
+  const following = C.useFollowerState(s => s.following.has(username))
+  const myUsername = C.useCurrentUserState(s => s.username)
+  const theme = (() => {
+    if (C.Chat.isSpecialMention(username)) {
+      return 'highlight' as const
+    } else {
+      if (myUsername === username) {
+        return 'highlight' as const
+      } else if (following) {
+        return 'follow' as const
+      }
+      return 'nonFollow' as const
     }
+  })()
 
-    if (state.config.username === username) {
-      return {theme: 'highlight' as const}
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const _onClick = () => {
+    if (C.isMobile) {
+      showUserProfile(username)
+    } else {
+      showUser(username, true)
     }
+  }
+  const onClick = C.Chat.isSpecialMention(username) ? undefined : _onClick
 
-    if (state.config.following.has(username)) {
-      return {theme: 'follow' as const}
-    }
+  const props = {
+    onClick,
+    theme,
+    username,
+  }
 
-    return {theme: 'nonFollow' as const}
-  },
-  (dispatch, {username}: OwnProps) => ({
-    onClick: isSpecialMention(username)
-      ? undefined
-      : () => {
-          if (Container.isMobile) {
-            dispatch(ProfileGen.createShowUserProfile({username}))
-          } else {
-            dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-          }
-        },
-  }),
+  return <Mention {...props} />
+}
 
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(Mention)
+export default Container

@@ -1,13 +1,13 @@
-import * as Container from '../util/container'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
-const UnlockFolders = (p: ProxyProps) => {
+const UnlockFolders = React.memo(function (p: ProxyProps) {
   const windowComponent = 'unlock-folders'
   const windowParam = windowComponent
 
@@ -20,21 +20,18 @@ const UnlockFolders = (p: ProxyProps) => {
 
   useSerializeProps(p, serialize, windowComponent, windowParam)
   return null
-}
-
-const UnlockFoldersMemo = React.memo(UnlockFolders)
+})
 
 const UnlockRemoteProxy = () => {
-  const unlockFolders = Container.useSelector(s => s.unlockFolders)
-  const {popupOpen} = unlockFolders
-  if (popupOpen) {
-    const {devices, phase, paperkeyError, waiting} = unlockFolders
+  const devices = C.useConfigState(s => s.unlockFoldersDevices)
+  const paperKeyError = C.useConfigState(s => s.unlockFoldersError)
+  const waiting = C.useAnyWaiting('unlock-folders:waiting')
+  if (devices.length) {
     return (
-      <UnlockFoldersMemo
-        darkMode={Styles.isDarkMode()}
+      <UnlockFolders
+        darkMode={Kb.Styles.isDarkMode()}
         devices={devices}
-        paperkeyError={paperkeyError}
-        phase={phase}
+        paperKeyError={paperKeyError}
         waiting={waiting}
       />
     )

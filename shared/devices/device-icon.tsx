@@ -1,24 +1,24 @@
-import * as Kb from '../common-adapters'
-import type * as Types from '../constants/types/devices'
-import type * as ProvisionTypes from '../constants/types/provision'
-import * as Constants from '../constants/devices'
-import type {IconStyle} from '../common-adapters/icon'
+import type * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import * as Constants from '@/constants/devices'
+import type {IconStyle} from '@/common-adapters/icon'
 
 export type Props = {
   current?: boolean
-  device: Types.Device | ProvisionTypes.Device
+  device: T.Devices.Device | C.ProvisionDevice
   size: 32 | 64 | 96
   style?: IconStyle
 }
 const DeviceIcon = (props: Props) => {
   const defaultIcons = {
-    backup: `icon-paper-key-${props.size}` as Kb.IconType,
-    desktop: `icon-computer-${props.size}` as Kb.IconType,
-    mobile: `icon-phone-${props.size}` as Kb.IconType,
-  }
+    backup: `icon-paper-key-${props.size}`,
+    desktop: `icon-computer-${props.size}`,
+    mobile: `icon-phone-${props.size}`,
+  } as const
 
   const {type, deviceNumberOfType} = props.device
-  const iconNumber = (deviceNumberOfType % Constants.numBackgrounds) + 1
+  const iconNumber = ((deviceNumberOfType % Constants.numBackgrounds) + 1) as T.Devices.IconNumber
   const badge = props.current ? 'success-' : ''
 
   const maybeIcon = (

@@ -1,25 +1,23 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/autoreset'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as AutoresetGen from '../../actions/autoreset-gen'
-import {formatDurationForAutoreset} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import {formatDurationForAutoreset} from '@/util/timestamp'
 
 const ResetModal = () => {
-  const isResetActive = Container.useSelector(state => state.autoreset.active)
+  const isResetActive = C.useAutoResetState(s => s.active)
   return isResetActive ? <ResetModalImpl /> : null
 }
 
 const ResetModalImpl = () => {
-  const {active, endTime, error} = Container.useSelector(s => s.autoreset)
-  const dispatch = Container.useDispatch()
+  const active = C.useAutoResetState(s => s.active)
+  const endTime = C.useAutoResetState(s => s.endTime)
+  const error = C.useAutoResetState(s => s.error)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
-      dispatch(RouteTreeGen.createNavigateUp())
+      navigateUp()
     }
-  }, [active, dispatch])
+  }, [active, navigateUp])
   const now = Date.now()
   const timeLeft = endTime - now
 
@@ -28,14 +26,12 @@ const ResetModalImpl = () => {
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
-  const onCancelReset = () => {
-    dispatch(AutoresetGen.createCancelReset())
-  }
+  const onCancelReset = C.useAutoResetState(s => s.dispatch.cancelReset)
 
   return (
     <Kb.SafeAreaView
       style={{
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         left: 0,
         position: 'absolute',
@@ -51,7 +47,7 @@ const ResetModalImpl = () => {
               type="Danger"
               fullWidth={true}
               onClick={onCancelReset}
-              waitingKey={Constants.cancelResetWaitingKey}
+              waitingKey={C.cancelResetWaitingKey}
               label="Cancel account reset"
             />
           ),
@@ -74,8 +70,8 @@ const ResetModalImpl = () => {
             centerChildren={true}
           >
             <Kb.Icon
-              type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-              color={Styles.globalColors.black_20}
+              type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+              color={Kb.Styles.globalColors.black_20}
               fontSize={48}
             />
             <Kb.Text type="Body" center={true}>
@@ -92,17 +88,15 @@ const ResetModalImpl = () => {
   )
 }
 
-ResetModal.navigationOptions = {gesturesEnabled: false}
-
-const styles = Styles.styleSheetCreate(() => ({
-  textContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  textContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.xlarge,
-      paddingTop: Styles.globalMargins.xlarge,
+      paddingBottom: Kb.Styles.globalMargins.xlarge,
+      paddingTop: Kb.Styles.globalMargins.xlarge,
     },
   }),
 }))

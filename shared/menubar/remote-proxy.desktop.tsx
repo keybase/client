@@ -1,39 +1,29 @@
 // A mirror of the remote menubar windows.
-import * as FSConstants from '../constants/fs'
-import type * as NotificationTypes from '../constants/types/notifications'
-import * as FSTypes from '../constants/types/fs'
-import * as Container from '../util/container'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
-import {intersect} from '../util/set'
+import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
+import {intersect} from '@/util/set'
+import {mapFilterByKey} from '@/util/map'
+import {memoize} from '@/util/memoize'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
-import {isSystemDarkMode} from '../styles/dark-mode'
-import {mapFilterByKey} from '../util/map'
-import {memoize} from '../util/memoize'
-import shallowEqual from 'shallowequal'
-import _getIcons from './icons'
-import KB2 from '../util/electron.desktop'
+import {useAvatarState} from '@/common-adapters/avatar-zus'
+import type * as NotifConstants from '@/constants/notifications'
 
 const {showTray} = KB2.functions
 
-const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
-  return _getIcons(iconType, isBadged, isSystemDarkMode())
-}
-
 type WidgetProps = {
   desktopAppBadgeCount: number
-  widgetBadge: NotificationTypes.BadgeType
+  widgetBadge: NotifConstants.BadgeType
 }
 
 function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
-
-  const systemDarkMode = Container.useSelector(state => state.config.systemDarkMode)
-
+  const systemDarkMode = C.useDarkModeState(s => s.systemDarkMode)
   React.useEffect(() => {
-    const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    showTray?.(desktopAppBadgeCount, icon)
+    showTray?.(desktopAppBadgeCount, widgetBadge)
   }, [widgetBadge, desktopAppBadgeCount, systemDarkMode])
 }
 
@@ -47,11 +37,11 @@ const Widget = (p: ProxyProps & WidgetProps) => {
   return null
 }
 
-const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): RemoteTlfUpdates => ({
+const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfUpdates => ({
   timestamp: t.serverTime,
   tlf: t.path,
   updates: t.history.map(u => {
-    const path = FSTypes.stringToPath(u.filename)
+    const path = T.FS.stringToPath(u.filename)
     return {path, uploading: uploads.syncingPaths.has(path) || uploads.writingToJournal.has(path)}
   }),
   writer: t.writer,
@@ -59,57 +49,59 @@ const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): R
 
 const getCachedUsernames = memoize(
   (users: Array<string>) => new Set(users),
-  ([a], [b]) => shallowEqual(a, b)
+  ([a], [b]) => C.shallowEqual(a, b)
 )
+
+const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
+  if (a === b) return false
+
+  if (a.meta !== b.meta) {
+    if (
+      a.meta.channelname !== b.meta.channelname ||
+      a.meta.snippetDecorated !== b.meta.snippetDecorated ||
+      a.meta.teamType !== b.meta.teamType ||
+      a.meta.timestamp !== b.meta.timestamp ||
+      a.meta.tlfname !== b.meta.tlfname
+    ) {
+      return true
+    }
+  }
+
+  if (
+    a.badge !== b.badge ||
+    a.unread !== b.unread ||
+    !C.shallowEqual(a.participants.name, b.participants.name)
+  ) {
+    return true
+  }
+
+  return false
+}
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const s = Container.useSelector(state => {
-    const {notifications, config, fs, chat2, users} = state
-    const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
-    const {outOfDate, loggedIn, daemonHandshakeState, avatarRefreshCounter, followers} = config
-    const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
-    const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
-    const widgetList = inboxLayout?.widgetList
-    const {infoMap} = users
-
-    return {
-      avatarRefreshCounter,
-      badgeMap,
-      daemonHandshakeState,
-      desktopAppBadgeCount,
-      followers,
-      following,
-      httpSrvAddress,
-      httpSrvToken,
-      infoMap,
-      kbfsDaemonStatus,
-      loggedIn,
-      metaMap,
-      navBadges,
-      outOfDate,
-      overallSyncStatus,
-      participantMap,
-      pathItems,
-      sfmi,
-      tlfUpdates,
-      unreadMap,
-      uploads,
-      username,
-      widgetBadge,
-      widgetList,
-      windowShownCount,
-    }
-  }, shallowEqual)
-
-  const {avatarRefreshCounter, badgeMap, daemonHandshakeState, desktopAppBadgeCount, followers, following} = s
-  const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
-  const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
-  const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
-  const {widgetBadge, widgetList, windowShownCount} = s
-
-  const darkMode = Styles.isDarkMode()
+  const following = C.useFollowerState(s => s.following)
+  const followers = C.useFollowerState(s => s.followers)
+  const username = C.useCurrentUserState(s => s.username)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const windowShownCount = C.useConfigState(s => s.windowShownCount)
+  const outOfDate = C.useConfigState(s => s.outOfDate)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
+  const pathItems = C.useFSState(s => s.pathItems)
+  const sfmi = C.useFSState(s => s.sfmi)
+  const tlfUpdates = C.useFSState(s => s.tlfUpdates)
+  const uploads = C.useFSState(s => s.uploads)
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = C.useNotifState(
+    C.useShallow(s => {
+      const {desktopAppBadgeCount, navBadges, widgetBadge} = s
+      return {desktopAppBadgeCount, navBadges, widgetBadge}
+    })
+  )
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
+  const darkMode = Kb.Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
 
@@ -118,36 +110,63 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     [tlfUpdates, uploads]
   )
 
+  // could handle this in a different way later but here we need to subscribe to all the convoStates
+  // normally we'd have a list and these would all subscribe within the component but this proxy isn't
+  // setup that way so instead we manually subscribe to all the substores and increment when a meta
+  // changes inside
+  const [remakeChat, setRemakeChat] = React.useState(0)
+  React.useEffect(() => {
+    const unsubs = widgetList?.map(v => {
+      return C.chatStores.get(v.convID)?.subscribe((s, old) => {
+        if (convoDiff(s, old)) {
+          setRemakeChat(c => c + 1)
+        }
+      })
+    })
+
+    return () => {
+      for (const unsub of unsubs ?? []) {
+        unsub?.()
+      }
+    }
+  }, [widgetList])
+
   const conversationsToSend = React.useMemo(
     () =>
       widgetList?.map(v => {
-        const c = metaMap.get(v.convID)
-
-        let participants = participantMap.get(v.convID)?.name ?? []
-        participants = participants.slice(0, 3)
-
+        remakeChat // implied dependency
+        const {badge, unread, participants, meta} = C.getConvoState(v.convID)
+        const c = meta
         return {
-          channelname: c?.channelname,
+          channelname: c.channelname,
           conversationIDKey: v.convID,
-          snippetDecorated: c?.snippetDecorated,
-          teamType: c?.teamType,
-          timestamp: c?.timestamp,
-          tlfname: c?.tlfname,
-          ...(badgeMap.get(v.convID) ? {hasBadge: true as const} : {}),
-          ...(unreadMap.get(v.convID) ? {hasUnread: true as const} : {}),
-          ...(participants.length ? {participants} : {}),
+          snippetDecorated: c.snippetDecorated,
+          teamType: c.teamType,
+          timestamp: c.timestamp,
+          tlfname: c.tlfname,
+          ...(badge > 0 ? {hasBadge: true as const} : {}),
+          ...(unread > 0 ? {hasUnread: true as const} : {}),
+          ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
         }
       }) ?? [],
-    [widgetList, metaMap, badgeMap, unreadMap, participantMap]
+    [widgetList, remakeChat]
   )
 
   // filter some data based on visible users
   const usernamesArr: Array<string> = []
   tlfUpdates.forEach(update => usernamesArr.push(update.writer))
-  conversationsToSend.forEach(c => usernamesArr.push(...(c.participants ?? [])))
+  conversationsToSend.forEach(c => {
+    if (c.teamType === 'adhoc') {
+      c.participants && usernamesArr.push(...c.participants)
+    } else {
+      c.tlfname && usernamesArr.push(c.tlfname)
+    }
+  })
 
   // memoize so useMemos work below
   const usernames = getCachedUsernames(usernamesArr)
+
+  const avatarRefreshCounter = useAvatarState(s => s.counts)
 
   const avatarRefreshCounterFiltered = React.useMemo(
     () => mapFilterByKey(avatarRefreshCounter, usernames),
@@ -163,7 +182,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => FSConstants.getPathItem(pathItems, path).type !== FSTypes.PathType.Folder
+    path => C.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const upDown = {
@@ -171,10 +190,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     endEstimate: uploads.endEstimate ?? 0,
-    filename: FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath('')),
+    filename: T.FS.getPathName(filePaths[1] || T.FS.stringToPath('')),
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
+
+  const daemonHandshakeState = C.useDaemonState(s => s.handshakeState)
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,
@@ -186,8 +207,8 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     diskSpaceStatus,
     followers: followersFiltered,
     following: followingFiltered,
-    httpSrvAddress,
-    httpSrvToken,
+    httpSrvAddress: httpSrv.address,
+    httpSrvToken: httpSrv.token,
     infoMap: infoMapFiltered,
     kbfsDaemonStatus,
     kbfsEnabled,
@@ -198,7 +219,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     showingDiskSpaceBanner: showingBanner,
     username,
     widgetBadge,
-    windowShownCount,
+    windowShownCountNum: windowShownCount.get('menu') ?? 0,
   }
 
   return <Widget {...p} />

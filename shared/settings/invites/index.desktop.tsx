@@ -1,11 +1,27 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/settings'
+import * as Kb from '@/common-adapters'
+import type {AcceptedInvite, PendingInvite} from '@/constants/settings-invites'
 import * as React from 'react'
 import SubHeading from '../subheading'
 import type {Props} from '.'
-import {intersperseFn} from '../../util/arrays'
 import * as dateFns from 'date-fns'
+
+// Like intersperse but takes a function to define the separator
+function intersperseFn<A, B>(
+  separatorFn: (index: number, x: A, a: Array<A>) => B,
+  arr: Array<A>
+): Array<A | B> {
+  if (arr.length === 0) {
+    return arr
+  }
+
+  const toReturn = new Array(arr.length * 2 - 1)
+  toReturn[0] = arr[0]
+  for (let i = 1; i < arr.length; i++) {
+    toReturn[i * 2 - 1] = separatorFn(i, arr[i]!, arr)
+    toReturn[i * 2] = arr[i]
+  }
+  return toReturn
+}
 
 type State = {
   inviteEmail: string
@@ -48,18 +64,18 @@ class Invites extends React.Component<Props, State> {
   render() {
     const props = this.props
     return (
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
         {!!this.props.error && (
           <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={this.props.error.message} />
+            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
           </Kb.Banner>
         )}
         <Kb.Box
           style={{
-            ...Styles.globalStyles.flexBoxColumn,
+            ...Kb.Styles.globalStyles.flexBoxColumn,
             flex: 1,
             overflow: 'auto',
-            padding: Styles.globalMargins.medium,
+            padding: Kb.Styles.globalMargins.medium,
           }}
         >
           <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
@@ -81,11 +97,11 @@ class Invites extends React.Component<Props, State> {
               label="Generate invitation"
               onClick={() => this._invite()}
               waiting={props.waitingForResponse}
-              style={{alignSelf: 'center', marginTop: Styles.globalMargins.medium}}
+              style={{alignSelf: 'center', marginTop: Kb.Styles.globalMargins.medium}}
             />
           </Kb.Box2>
           {props.pendingInvites.length > 0 && (
-            <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
+            <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
               <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
               {intersperseDividers(
                 props.pendingInvites.map(invite => (
@@ -99,7 +115,7 @@ class Invites extends React.Component<Props, State> {
               )}
             </Kb.Box>
           )}
-          <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexShrink: 0}}>
+          <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flexShrink: 0}}>
             <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
             {intersperseDividers(
               props.acceptedInvites.map(invite => (
@@ -117,7 +133,7 @@ class Invites extends React.Component<Props, State> {
   }
 }
 
-function intersperseDividers(arr) {
+function intersperseDividers(arr: Array<React.ReactNode>) {
   return intersperseFn(i => <Kb.Divider key={i} />, arr)
 }
 
@@ -126,9 +142,9 @@ function PendingInviteItem({
   onReclaimInvitation,
   onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite
+  invite: PendingInvite
   onReclaimInvitation: (id: string) => void
-  onSelectPendingInvite: (invite: Types.PendingInvite) => void
+  onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
     <Kb.Box style={styles.inviteItem}>
@@ -141,7 +157,7 @@ function PendingInviteItem({
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={() => onReclaimInvitation(invite.id)}
-        style={{color: Styles.globalColors.redDark}}
+        style={{color: Kb.Styles.globalColors.redDark}}
       >
         Reclaim
       </Kb.Text>
@@ -153,13 +169,13 @@ function PendingEmailContent({
   invite,
   onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite
-  onSelectPendingInvite: (invite: Types.PendingInvite) => void
+  invite: PendingInvite
+  onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
-    <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Kb.Avatar size={32} />
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small}}>
         <Kb.Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Kb.Text>
@@ -171,58 +187,53 @@ function PendingEmailContent({
   )
 }
 
-function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
+function PendingURLContent({invite}: {invite: PendingInvite}) {
   return (
-    <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Kb.Icon
         type="iconfont-link"
         style={{
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
           marginTop: 3,
         }}
-        color={Styles.globalColors.black_20}
+        color={Kb.Styles.globalColors.black_20}
         fontSize={13}
       />
-      <Kb.Text type="Body" selectable={true} style={{color: Styles.globalColors.blueDark}}>
+      <Kb.Text type="Body" selectable={true} style={{color: Kb.Styles.globalColors.blueDark}}>
         {invite.url}
       </Kb.Text>
     </Kb.Box>
   )
 }
 
-function AcceptedInviteItem({
-  invite,
-  onClick,
-}: {
-  invite: Types.AcceptedInvite
-  onClick: (username: string) => void
-}) {
+function AcceptedInviteItem(p: {invite: AcceptedInvite; onClick: () => void}) {
+  const {invite, onClick} = p
   return (
     <Kb.Box
-      style={{...styles.inviteItem, ...Styles.desktopStyles.clickable, flexShrink: 0}}
+      style={{...styles.inviteItem, ...Kb.Styles.desktopStyles.clickable, flexShrink: 0}}
       onClick={onClick}
     >
       <Kb.Avatar username={invite.username} size={32} />
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small}}>
         <Kb.ConnectedUsernames type="BodyBold" usernames={invite.username} />
       </Kb.Box>
     </Kb.Box>
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    marginTop: Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
     minHeight: 269,
     width: 400,
   },
   inviteItem: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
     height: 40,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
+    marginLeft: Kb.Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

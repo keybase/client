@@ -1,5 +1,5 @@
 import type * as Types from '.'
-import {toStringForLog} from '../util/string'
+import {toStringForLog} from '@/util/string'
 
 const levelToFunction = {
   Action: 'log',
@@ -13,7 +13,7 @@ const levelToFunction = {
 class RingLogger {
   private ringSize: number
   private currentWriteIdx: number = 0
-  private ringBuffer: Array<Types.LogLine> = []
+  private ringBuffer: Array<Types.LogLine | undefined> = []
   private logLevel: Types.LogLevel
   private consoleLog: (...s: Array<any>) => void
 
@@ -42,7 +42,7 @@ class RingLogger {
       const idxWrapped = (this.currentWriteIdx + i) % this.ringSize
       const s = this.ringBuffer[idxWrapped]
       if (s) {
-        delete this.ringBuffer[idxWrapped]
+        this.ringBuffer[idxWrapped] = undefined
         toDump.push([this.logLevel, s[0], s[1]])
       }
     }

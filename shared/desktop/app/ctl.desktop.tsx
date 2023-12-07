@@ -1,21 +1,24 @@
 import * as Electron from 'electron'
 import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
-import {isWindows} from '../../constants/platform'
+import {isWindows} from '@/constants/platform'
 import {spawn} from 'child_process'
+import {type ExecException} from 'child_process'
 
-export function ctlStop(callback: any) {
+export function ctlStop(
+  callback: (err: ExecException | null, attempted: boolean, stdout: string, stderr: string) => void
+) {
   const binPath = keybaseBinPath()
   if (isWindows) {
     if (!binPath) {
-      if (callback) callback("cannot get keybaseBinPath which shouldn't happen")
+      callback(new Error("cannot get keybaseBinPath which shouldn't happen"), false, '', '')
       return
     }
     spawn(binPath, ['ctl', 'stop'], {
       detached: true,
       stdio: 'inherit',
     })
-    if (callback) callback(null)
+    callback(null, false, '', '')
     return
   }
   const plat = 'darwin'
@@ -47,7 +50,7 @@ export function ctlQuit(appOnly: boolean = false) {
   }
 
   console.log('Quit the app')
-  ctlStop(function (stopErr: any) {
+  ctlStop(stopErr => {
     console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quitting:', stopErr)

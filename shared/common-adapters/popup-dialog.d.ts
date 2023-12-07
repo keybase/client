@@ -1,7 +1,8 @@
-import * as React from 'react'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 export type Props = {
-  onClose?: (() => void) | null
+  onClose?: () => void
   onMouseUp?: (e: React.MouseEvent) => void
   onMouseDown?: (e: React.MouseEvent) => void
   onMouseMove?: (e: React.MouseEvent) => void
@@ -9,10 +10,11 @@ export type Props = {
   fill?: boolean
   children?: React.ReactNode
   immuneToEscape?: boolean
-  styleCover?: any
-  styleContainer?: any
-  styleClose?: any
-  styleClipContainer?: any
+  styleCover?: Styles.StylesCrossPlatform
+  styleClipContainer?: Styles.StylesCrossPlatform
+  styleClose?: Styles.StylesCrossPlatform
+  styleContainer?: Styles.StylesCrossPlatform
 }
 
-export default class PopupDialog extends React.Component<Props> {}
+declare const PopupDialog: (p: Props) => React.ReactNode
+export default PopupDialog

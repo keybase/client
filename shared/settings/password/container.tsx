@@ -1,35 +1,45 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Constants from '../../constants/settings'
-import * as SettingsGen from '../../actions/settings-gen'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
 import UpdatePassword from '.'
-import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 
-type OwnProps = {}
+const Container = () => {
+  const error = C.useSettingsPasswordState(s => s.error)
+  const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
+  const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
+  const newPasswordConfirmError = C.useSettingsPasswordState(s => s.newPasswordConfirmError)
+  const newPasswordError = C.useSettingsPasswordState(s => s.newPasswordError)
+  const saveLabel = C.useSettingsPasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
+  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
 
-export default Container.connect(
-  state => ({
-    error: state.settings.password.error,
-    hasPGPKeyOnServer: !!state.settings.password.hasPGPKeyOnServer,
-    hasRandomPW: !!state.settings.password.randomPW,
-    newPasswordConfirmError: state.settings.password.newPasswordConfirmError
-      ? state.settings.password.newPasswordConfirmError.stringValue()
-      : undefined,
-    newPasswordError: state.settings.password.newPasswordError
-      ? state.settings.password.newPasswordError.stringValue()
-      : undefined,
-    saveLabel: state.settings.password.randomPW ? 'Create password' : 'Save',
-    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
-  }),
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onChangeShowPassword: () => dispatch(SettingsGen.createOnChangeShowPassword()),
-    onSave: (password: string) => {
-      dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: false}))
-    },
-    onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(UpdatePassword)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+
+  const setPassword = C.useSettingsPasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = C.useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
+  const submitNewPassword = C.useSettingsPasswordState(s => s.dispatch.submitNewPassword)
+
+  const onSave = (password: string) => {
+    setPassword(password)
+    setPasswordConfirm(password)
+    submitNewPassword(false)
+  }
+
+  const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
+  const props = {
+    error,
+    hasPGPKeyOnServer,
+    hasRandomPW,
+    newPasswordConfirmError,
+    newPasswordError,
+    onCancel,
+    onSave,
+    onUpdatePGPSettings,
+    saveLabel,
+    waitingForResponse,
+  }
+  return <UpdatePassword {...props} />
+}
+
+export default Container

@@ -1,38 +1,19 @@
-import * as FSTypes from '../constants/types/fs'
-import type * as ChatTypes from '../constants/types/chat2'
-import type {State as ConfigState} from '../constants/types/config'
-import type {State as NotificationsState} from '../constants/types/notifications'
-import type {State as UsersState, UserInfo} from '../constants/types/users'
-import type {Tab} from '../constants/tabs'
+import type * as C from '@/constants'
+import * as T from '@/constants/types'
 import {produce} from 'immer'
 
 const emptySet = new Set<any>()
 
 export type RemoteTlfUpdates = {
   timestamp: number
-  tlf: FSTypes.Path
-  updates: Array<{path: FSTypes.Path; uploading: boolean}>
+  tlf: T.FS.Path
+  updates: Array<{path: T.FS.Path; uploading: boolean}>
   writer: string
 }
 
-// for convenience we flatten the props we send over the wire
-type ConfigHoistedProps =
-  | 'avatarRefreshCounter'
-  | 'daemonHandshakeState'
-  | 'outOfDate'
-  | 'followers'
-  | 'following'
-  | 'httpSrvAddress'
-  | 'httpSrvToken'
-  | 'loggedIn'
-  | 'username'
-  | 'windowShownCount'
-
-type UsersHoistedProps = 'infoMap'
-
 type Conversation = {
   conversationIDKey: string
-  teamType?: ChatTypes.TeamType
+  teamType?: T.Chat.TeamType
   tlfname?: string
   teamname?: string
   timestamp?: number
@@ -44,25 +25,35 @@ type Conversation = {
 }
 
 type KbfsDaemonStatus = {
-  readonly rpcStatus: FSTypes.KbfsDaemonRpcStatus
-  readonly onlineStatus: FSTypes.KbfsDaemonOnlineStatus
+  readonly rpcStatus: T.FS.KbfsDaemonRpcStatus
+  readonly onlineStatus: T.FS.KbfsDaemonOnlineStatus
 }
 
 export type ProxyProps = {
+  daemonHandshakeState: T.Config.DaemonHandshakeState
+  avatarRefreshCounter: Map<string, number>
   conversationsToSend: Array<Conversation>
   darkMode?: boolean
-  diskSpaceStatus: FSTypes.DiskSpaceStatus
+  diskSpaceStatus: T.FS.DiskSpaceStatus
   endEstimate?: number
   files?: number
   fileName?: string
+  followers: Set<string>
+  following: Set<string>
   kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
+  loggedIn: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
+  outOfDate: T.Config.OutOfDate
   totalSyncingBytes?: number
-} & Pick<ConfigState, ConfigHoistedProps> &
-  Pick<NotificationsState, 'navBadges'> &
-  Pick<UsersState, UsersHoistedProps>
+  username: string
+  httpSrvAddress: string
+  httpSrvToken: string
+  windowShownCountNum: number
+  navBadges: Map<C.Tab, number>
+  infoMap: Map<string, T.Users.UserInfo>
+}
 
 type SerializeProps = Omit<
   ProxyProps,
@@ -71,85 +62,94 @@ type SerializeProps = Omit<
   avatarRefreshCounterArr: Array<[string, number]>
   followersArr: Array<string>
   followingArr: Array<string>
-  infoMapArr: Array<[string, UserInfo]>
-  navBadgesArr: Array<[Tab, number]>
+  infoMapArr: Array<[string, T.Users.UserInfo]>
+  navBadgesArr: Array<[C.Tab, number]>
   windowShownCountNum: number
+  // ensure we never send extra stuff
+  avatarRefreshCounter?: never
+  followers?: never
+  following?: never
+  infoMap?: never
+  navBadges?: never
+  windowShownCount?: never
 }
 
 // props we don't send at all if they're falsey
 type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 'showingDiskSpaceBanner'
 
-export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps | RemovedEmpties> & {
+export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
+  avatarRefreshCounter: Map<string, number>
   darkMode: boolean
+  daemonHandshakeState: T.Config.DaemonHandshakeState
   files: number
   fileName: string
+  followers: Set<string>
+  following: Set<string>
   totalSyncingBytes: number
   showingDiskSpaceBanner: boolean
-  chat2: {
-    badgeMap: Map<string, number>
-    draftMap: Map<string, number>
-    metaMap: Map<
-      string,
-      {
-        teamname?: string
-        timestamp?: number
-        channelname?: string
-        snippetDecorated?: string
-        // its not important to show rekey/reset stuff in the widget
-        rekeyers?: Set<string>
-        resetParticipants?: Set<string>
-        wasFinalizedBy?: string
-      }
-    >
-    participantMap: Map<string, {name: Array<string>}>
-    unreadMap: Map<string, number>
-    mutedMap: Map<string, number>
-  }
-  config: Pick<ConfigState, ConfigHoistedProps>
-  users: Pick<UsersState, UsersHoistedProps>
+  httpSrvAddress: string
+  httpSrvToken: string
+  metaMap: Map<
+    string,
+    {
+      teamname?: string
+      timestamp?: number
+      channelname?: string
+      snippetDecorated?: string
+      // its not important to show rekey/reset stuff in the widget
+      rekeyers?: Set<string>
+      resetParticipants?: Set<string>
+      wasFinalizedBy?: string
+    }
+  >
+  badgeMap: Map<string, number>
+  unreadMap: Map<string, number>
+  loggedIn: boolean
+  outOfDate: T.Config.OutOfDate
+  infoMap: Map<string, T.Users.UserInfo>
+  username: string
+  windowShownCountNum: number
 }
 
 const initialState: DeserializeProps = {
-  chat2: {
-    badgeMap: new Map(),
-    draftMap: new Map(),
-    metaMap: new Map(),
-    mutedMap: new Map(),
-    participantMap: new Map(),
-    unreadMap: new Map(),
-  },
-  config: {
-    avatarRefreshCounter: new Map(),
-    daemonHandshakeState: 'starting',
-    followers: new Set(),
-    following: new Set(),
-    httpSrvAddress: '',
-    httpSrvToken: '',
-    loggedIn: false,
-    outOfDate: undefined,
-    username: '',
-    windowShownCount: new Map([['menu', 0]]),
-  },
+  avatarRefreshCounter: new Map(),
+  badgeMap: new Map(),
   conversationsToSend: [],
+  daemonHandshakeState: 'starting',
   darkMode: false,
-  diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
+  diskSpaceStatus: T.FS.DiskSpaceStatus.Ok,
   endEstimate: 0,
   fileName: '',
   files: 0,
+  followers: new Set(),
+  following: new Set(),
+  httpSrvAddress: '',
+  httpSrvToken: '',
+  infoMap: new Map(),
   kbfsDaemonStatus: {
-    onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
-    rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
+    onlineStatus: T.FS.KbfsDaemonOnlineStatus.Unknown,
+    rpcStatus: T.FS.KbfsDaemonRpcStatus.Connected,
   },
   kbfsEnabled: false,
+  loggedIn: false,
+  metaMap: new Map(),
   navBadges: new Map(),
+  outOfDate: {
+    critical: false,
+    message: '',
+    outOfDate: false,
+    updating: false,
+  },
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
-  users: {infoMap: new Map()},
+  unreadMap: new Map(),
+  username: '',
+  windowShownCountNum: 0,
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
-  const {avatarRefreshCounter, followers, following, infoMap, ...toSend} = p
+  const {avatarRefreshCounter, followers, following, infoMap, navBadges, ...toSend} = p
   return {
     ...toSend,
     avatarRefreshCounterArr: [...avatarRefreshCounter.entries()],
@@ -157,13 +157,12 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
     followingArr: [...following],
     infoMapArr: [...infoMap.entries()],
     navBadgesArr: [...p.navBadges.entries()],
-    windowShownCountNum: p.windowShownCount.get('menu') ?? 0,
   }
 }
 
 export const deserialize = (
   state: DeserializeProps = initialState,
-  props: Partial<SerializeProps>
+  props?: Partial<SerializeProps>
 ): DeserializeProps => {
   if (!props) return state
   const {avatarRefreshCounterArr, conversationsToSend, daemonHandshakeState, diskSpaceStatus} = props
@@ -173,34 +172,34 @@ export const deserialize = (
 
   return produce(state, s => {
     if (avatarRefreshCounterArr !== undefined) {
-      s.config.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
+      s.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
     }
     if (daemonHandshakeState !== undefined) {
-      s.config.daemonHandshakeState = daemonHandshakeState
+      s.daemonHandshakeState = daemonHandshakeState
     }
     if (followersArr !== undefined) {
-      s.config.followers = new Set(followersArr)
+      s.followers = new Set(followersArr)
     }
     if (followingArr !== undefined) {
-      s.config.following = new Set(followingArr)
+      s.following = new Set(followingArr)
     }
     if (httpSrvAddress !== undefined) {
-      s.config.httpSrvAddress = httpSrvAddress
+      s.httpSrvAddress = httpSrvAddress
     }
     if (httpSrvToken !== undefined) {
-      s.config.httpSrvToken = httpSrvToken
+      s.httpSrvToken = httpSrvToken
     }
     if (loggedIn !== undefined) {
-      s.config.loggedIn = loggedIn
+      s.loggedIn = loggedIn
     }
     if (outOfDate !== undefined) {
-      s.config.outOfDate = outOfDate
+      s.outOfDate = outOfDate
     }
     if (username !== undefined) {
-      s.config.username = username
+      s.username = username
     }
     if (windowShownCountNum !== undefined) {
-      s.config.windowShownCount.set('menu', windowShownCountNum)
+      s.windowShownCountNum = windowShownCountNum
     }
     if (conversationsToSend !== undefined) {
       s.conversationsToSend = conversationsToSend
@@ -239,18 +238,15 @@ export const deserialize = (
       s.totalSyncingBytes = totalSyncingBytes
     }
     if (infoMapArr !== undefined) {
-      s.users.infoMap = new Map(infoMapArr)
+      s.infoMap = new Map(infoMapArr)
     }
 
     conversationsToSend?.forEach(c => {
-      const {participants, conversationIDKey, hasUnread, hasBadge} = c
+      const {conversationIDKey, hasUnread, hasBadge} = c
       const {teamname, timestamp, channelname, snippetDecorated} = c
-      s.chat2.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-      if (participants) {
-        s.chat2.participantMap.set(conversationIDKey, {name: participants ?? []})
-      }
-      s.chat2.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
-      const meta = s.chat2.metaMap.get(conversationIDKey) ?? {
+      s.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
+      s.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
+      const meta = s.metaMap.get(conversationIDKey) ?? {
         channelname: undefined,
         rekeyers: undefined,
         resetParticipants: undefined,
@@ -269,7 +265,7 @@ export const deserialize = (
       meta.resetParticipants = emptySet
       meta.wasFinalizedBy = ''
 
-      s.chat2.metaMap.set(conversationIDKey, meta)
+      s.metaMap.set(conversationIDKey, meta)
     })
   })
 }

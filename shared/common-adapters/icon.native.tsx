@@ -1,23 +1,17 @@
 import * as React from 'react'
 import * as Shared from './icon.shared'
-import * as Styles from '../styles'
-import logger from '../logger'
+import * as Styles from '@/styles'
+import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
-import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
+import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
-
-const Kb = {
-  NativeImage,
-  NativeText,
-  NativeTouchableOpacity,
-}
 
 type TextProps = {
   children: React.ReactNode
   color?: Styles.Color
   fixOverdraw?: boolean
   fontSize?: number
-  onClick?: ((event: React.BaseSyntheticEvent) => void) | null
+  onClick?: (event: React.BaseSyntheticEvent) => void
   onLongPress?: (event: React.BaseSyntheticEvent) => void
   opacity?: boolean
   sizeType: SizeType
@@ -25,20 +19,25 @@ type TextProps = {
   type: IconType
 }
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
-const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
+type DirtyType = {
+  width?: number
+  height?: number
+  backgroundColor?: string
+  textAlign?: string
+  color?: string
+}
+
+const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
-  // TODO change this
-  const pStyle: any = p.style
+  const pStyle = p.style as DirtyType | undefined
 
   const color =
     p.color ||
-    // @ts-ignore TS is correct but we do actually pass in this color
-    // sometimes. TODO remove this
-    (pStyle && p.style.color) ||
+    pStyle?.color ||
     Shared.defaultColor(p.type) ||
-    (p.opacity && Styles.globalColors.greyLight)
+    (p.opacity ? Styles.globalColors.greyLight : undefined)
   if (color) {
     style.color = color
   }
@@ -52,17 +51,11 @@ const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
     }
   }
 
-  // @ts-ignore isn't in the type, but keeping this for now. TODO remove this
-  if (p.textAlign !== undefined) {
-    // @ts-ignore see above
-    style.textAlign = p.textAlign
+  if (p.fontSize !== undefined || pStyle?.width !== undefined) {
+    style.fontSize = p.fontSize || pStyle?.width
   }
 
-  if (p.fontSize !== undefined || (pStyle && pStyle.width !== undefined)) {
-    style.fontSize = p.fontSize || pStyle.width
-  }
-
-  const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
+  const temp = Shared.fontSize(p.type)
   if (temp) {
     style.fontSize = temp.fontSize
   }
@@ -71,7 +64,7 @@ const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
   const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
 
   return (
-    <Kb.NativeText
+    <RNText
       style={[styles.text, style, p.fixOverdraw && styles.fixOverdraw, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
@@ -80,22 +73,24 @@ const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
       suppressHighlighting={true}
     >
       {p.children}
-    </Kb.NativeText>
+    </RNText>
   )
 })
 Text.displayName = 'IconText'
 
 type ImageProps = {
   style?: Props['style']
-  source: any
+  source?: number
 }
 
-const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
-  let style: any
+const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
+  if (!p.source) return null
+
+  let style: Styles.StylesCrossPlatform | undefined
 
   // we really should disallow reaching into style like this but this is what the old code does.
   // TODO change this
-  const pStyle: any = p.style
+  const pStyle = p.style as DirtyType | undefined
 
   if (pStyle) {
     style = {}
@@ -110,27 +105,20 @@ const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
     }
   }
 
-  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} />
+  return <RNImage ref={ref} style={[style, pStyle]} source={p.source} />
 })
 Image.displayName = 'IconImage'
 
 const Icon = React.memo<Props>(
-  // TODO this type is a mess
-  // @ts-ignore
   React.forwardRef<any, Props>((p: Props, ref: any) => {
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
-    const iconType = Shared.typeToIconMapper(p.type)
-
+    const iconType = p.type
     const isDarkMode = React.useContext(Styles.DarkModeContext)
 
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
     if (!Shared.isValidIconType(iconType)) {
-      logger.warn(`Invalid icon type passed in: ${iconType}`)
+      logger.warn(`Invalid icon type passed in: ${String(iconType)}`)
       return null
     }
 
@@ -139,7 +127,7 @@ const Icon = React.memo<Props>(
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      let color: undefined | string | null
+      let color: undefined | string
       if (p.colorOverride || p.color) {
         color = p.colorOverride || p.color
       }
@@ -160,24 +148,22 @@ const Icon = React.memo<Props>(
         </Text>
       )
     } else {
-      icon = (
-        <Image
-          source={(isDarkMode && iconMeta[iconType].requireDark) || iconMeta[iconType].require}
-          style={hasContainer ? null : p.style}
-          ref={wrap ? undefined : ref}
-        />
-      )
+      let source = (isDarkMode && iconMeta[iconType].requireDark) || iconMeta[iconType].require
+      if (typeof source !== 'number') {
+        source = undefined
+      }
+      icon = <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : ref} />
     }
 
     return wrap ? (
-      <Kb.NativeTouchableOpacity
+      <TouchableOpacity
         onPress={p.onClick || undefined}
         activeOpacity={0.8}
         ref={ref}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}
-      </Kb.NativeTouchableOpacity>
+      </TouchableOpacity>
     ) : (
       icon
     )
@@ -187,10 +173,14 @@ Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  const idealMults = [2, 3, 1]
+  const idealMults = [2, 3, 1] as const
   for (const mult of idealMults) {
     if (multsMap[mult]) {
-      return iconMeta[imgMap[multsMap[mult]]].require
+      const size = multsMap[mult]
+      if (!size) return null
+      const icon = imgMap[size]
+      if (!icon) return null
+      return iconMeta[icon].require
     }
   }
   return null
@@ -205,9 +195,11 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  const imgSet = Object.keys(multsMap)
+  const keys = Object.keys(multsMap)
+  const imgSet = keys
     .map(mult => {
-      const uri = imgMap[multsMap[mult]]
+      const size = multsMap[mult as any as keyof typeof multsMap]
+      const uri = size ? imgMap[size] : null
       if (!uri) {
         return null
       }
@@ -219,10 +211,6 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
     })
     .filter(Boolean)
   return imgSet.length ? imgSet : null
-}
-
-export function castPlatformStyles(styles: any) {
-  return Shared.castPlatformStyles(styles)
 }
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 
 const BigTeamsLabel = () => (
   <Kb.Box style={styles.bigTeamsLabelBox}>
@@ -9,13 +8,13 @@ const BigTeamsLabel = () => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   bigTeamsLabelBox: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     minHeight: 24,
   },
-  text: {backgroundColor: Styles.globalColors.fastBlank},
+  text: {backgroundColor: Kb.Styles.globalColors.fastBlank},
 }))
 
 export {BigTeamsLabel}

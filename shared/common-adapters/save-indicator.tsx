@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Box from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
@@ -66,44 +66,32 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
       if (state.saving) {
         return 'saving'
       }
-
       return null
-
     case 'saving':
       if (state.saving) {
         return null
       }
-
       return 'savingHysteresis'
-
     case 'savingHysteresis': {
       if (state.saving) {
         return 'saving'
       }
-
       const timeToJustSaved = state.lastSave.getTime() + props.minSavingTimeMs - now.getTime()
       if (timeToJustSaved > 0) {
         return timeToJustSaved
       }
-
       return 'justSaved'
     }
-
     case 'justSaved': {
       if (state.saving) {
         return 'saving'
       }
-
       const timeToSteady = state.lastJustSaved.getTime() + props.savedTimeoutMs - now.getTime()
       if (timeToSteady > 0) {
         return timeToSteady
       }
-
       return 'steady'
     }
-
-    default:
-      throw new Error(`Unexpected state ${saveState}`)
   }
 }
 
@@ -143,16 +131,15 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const debugLog = this.props.debugLog
-    const newPartialState: Partial<State> = {
+    const newPartialState = {
+      lastJustSaved: result === 'justSaved' ? now : this.state.lastJustSaved,
       saveState: result,
-      ...(result === 'justSaved' ? {lastJustSaved: now} : {}),
-    }
+    } as const
     if (debugLog) {
       debugLog(
         `runStateMachine: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`
       )
     }
-    // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
     this.setState(newPartialState)
   }
 
@@ -163,16 +150,15 @@ class SaveIndicator extends React.Component<Props, State> {
   componentDidUpdate(_: Props, prevState: State) {
     if (this.props.saving !== this.state.saving) {
       const debugLog = this.props.debugLog
-      const newPartialState: Partial<State> = {
+      const newPartialState = {
+        lastSave: this.props.saving ? new Date() : this.state.lastSave,
         saving: this.props.saving,
-        ...(this.props.saving ? {lastSave: new Date()} : {}),
       }
       if (debugLog) {
         debugLog(
           `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
         )
       }
-      // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
       this.setState(newPartialState)
     }
 
@@ -196,8 +182,6 @@ class SaveIndicator extends React.Component<Props, State> {
             </Kb.Text>
           </>
         )
-      default:
-        throw new Error(`Unexpected state ${saveState}`)
     }
   }
 

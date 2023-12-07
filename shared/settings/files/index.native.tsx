@@ -1,9 +1,8 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/fs'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Kb from '@/common-adapters'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import type {Props} from '.'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -22,7 +21,7 @@ class ThresholdDropdown extends React.PureComponent<
     this.props.onSetSyncNotificationThreshold(this.state.notificationThreshold)
     this.setState({visible: false})
   }
-  _select = selectedVal => this.setState({notificationThreshold: selectedVal})
+  _select = (selectedVal?: number) => selectedVal && this.setState({notificationThreshold: selectedVal})
   _show = () => this.setState({visible: true})
   _toggleShowingMenu = () => this.setState(s => ({visible: !s.visible}))
   render() {
@@ -58,23 +57,21 @@ class ThresholdDropdown extends React.PureComponent<
 }
 
 const Files = (props: Props) => {
-  const syncOnCellular = Container.useSelector(state => state.fs.settings.syncOnCellular)
+  const syncOnCellular = C.useFSState(s => s.settings.syncOnCellular)
   const toggleSyncOnCellular = () => {
-    RPCTypes.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
+    T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
       {syncOnCellular: !syncOnCellular},
       Constants.setSyncOnCellularWaitingKey
     )
       .then(() => {})
       .catch(() => {})
   }
-  const waitingToggleSyncOnCellular = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
-  )
+  const waitingToggleSyncOnCellular = C.useAnyWaiting(Constants.setSyncOnCellularWaitingKey)
   return (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      alignItems={Styles.isTablet ? 'flex-start' : 'center'}
+      alignItems={Kb.Styles.isTablet ? 'flex-start' : 'center'}
       gap="small"
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
@@ -88,7 +85,7 @@ const Files = (props: Props) => {
           label="Warn when low on storage space"
           on={props.spaceAvailableNotificationThreshold !== 0}
           disabled={props.areSettingsLoading}
-          gapSize={Styles.globalMargins.small}
+          gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
         {!!props.spaceAvailableNotificationThreshold && (
@@ -101,7 +98,7 @@ const Files = (props: Props) => {
           disabled={waitingToggleSyncOnCellular}
           label="Sync files over mobile network"
           labelSubtitle="Syncing over Wi-Fi is always on"
-          gapSize={Styles.globalMargins.small}
+          gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
       </Kb.Box2>
@@ -109,32 +106,27 @@ const Files = (props: Props) => {
   )
 }
 
-Files.navigationOptions = {
-  header: undefined,
-  title: 'Files',
-}
-
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       selectedText: {
-        paddingLeft: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
       switch: {
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      syncContent: Styles.platformStyles({
+      syncContent: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.medium,
         },
         isTablet: {
           maxWidth: 410,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default Files

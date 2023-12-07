@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 export type Props = {}
-declare class Image2Impl extends React.Component<Props> {}
+declare const Image2Impl: (p: Props) => React.ReactNode
 export default Image2Impl

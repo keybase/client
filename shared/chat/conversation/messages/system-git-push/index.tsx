@@ -1,14 +1,12 @@
 import * as React from 'react'
-import * as RPCTypes from '../../../../constants/types/rpc-gen'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 const branchRefPrefix = 'refs/heads/'
 
 type Props = {
-  message: Types.MessageSystemGitPush
+  message: T.Chat.MessageSystemGitPush
   you?: string
   onClickCommit: (commitHash: string) => void
   onClickUserAvatar: (username: string) => void
@@ -38,7 +36,7 @@ const GitPushCreate = (props: CreateProps) => {
 
 type PushDefaultProps = {
   pusher: string
-  commitRef: RPCTypes.GitRefMetadata
+  commitRef: T.RPCGen.GitRefMetadata
   repo: string
   repoID: string
   team: string
@@ -76,7 +74,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                   style={styles.commitHash}
                   onClick={() => onClickCommit(commit.commitHash)}
                 >
-                  {commit.commitHash.substr(0, 8)}
+                  {commit.commitHash.substring(0, 8)}
                 </Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical">
@@ -98,64 +96,62 @@ type PushCommonProps = {
 
 const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</UserNotice>
 
-class GitPush extends React.PureComponent<Props> {
-  render() {
-    const {repo, repoID, refs, pushType, pusher, team} = this.props.message
-    const gitType = RPCTypes.GitPushType[pushType]
+const GitPush = React.memo(function GitPush(p: Props) {
+  const {repo, repoID, refs, pushType, pusher, team} = p.message
+  const gitType = T.RPCGen.GitPushType[pushType]
 
-    switch (gitType) {
-      case 'default':
-        return (
-          <>
-            {refs.map(ref => {
-              let branchName = ref.refName
-              if (branchName.startsWith(branchRefPrefix)) {
-                branchName = branchName.substring(branchRefPrefix.length)
-              } // else show full ref
-              return (
-                <GitPushCommon key={branchName}>
-                  <GitPushDefault
-                    commitRef={ref}
-                    branchName={branchName}
-                    pusher={pusher}
-                    repo={repo}
-                    repoID={repoID}
-                    team={team}
-                    onViewGitRepo={this.props.onViewGitRepo}
-                    onClickCommit={this.props.onClickCommit}
-                    you={this.props.you}
-                  />
-                </GitPushCommon>
-              )
-            })}
-          </>
-        )
-      case 'createrepo':
-        return (
-          <GitPushCommon>
-            <GitPushCreate
-              pusher={pusher}
-              repo={repo}
-              repoID={repoID}
-              team={team}
-              onViewGitRepo={this.props.onViewGitRepo}
-              you={this.props.you}
-            />
-          </GitPushCommon>
-        )
-      // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
-      default:
-        return null
-    }
+  switch (gitType) {
+    case 'default':
+      return (
+        <>
+          {refs.map(ref => {
+            let branchName = ref.refName
+            if (branchName.startsWith(branchRefPrefix)) {
+              branchName = branchName.substring(branchRefPrefix.length)
+            } // else show full ref
+            return (
+              <GitPushCommon key={branchName}>
+                <GitPushDefault
+                  commitRef={ref}
+                  branchName={branchName}
+                  pusher={pusher}
+                  repo={repo}
+                  repoID={repoID}
+                  team={team}
+                  onViewGitRepo={p.onViewGitRepo}
+                  onClickCommit={p.onClickCommit}
+                  you={p.you}
+                />
+              </GitPushCommon>
+            )
+          })}
+        </>
+      )
+    case 'createrepo':
+      return (
+        <GitPushCommon>
+          <GitPushCreate
+            pusher={pusher}
+            repo={repo}
+            repoID={repoID}
+            team={team}
+            onViewGitRepo={p.onViewGitRepo}
+            you={p.you}
+          />
+        </GitPushCommon>
+      )
+    // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
+    default:
+      return null
   }
-}
+})
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      commitHash: Styles.platformStyles({
+      commitHash: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.blueDarkOrBlueLight,
+          color: Kb.Styles.globalColors.blueDarkOrBlueLight,
           fontSize: 12,
           lineHeight: 16,
         },
@@ -165,26 +161,26 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'left',
       },
       dot: {
-        backgroundColor: Styles.globalColors.blueLighter_20,
+        backgroundColor: Kb.Styles.globalColors.blueLighter_20,
         borderRadius: 3,
         height: '100%',
         marginBottom: 1,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         padding: 2,
       },
       hashAndMessage: {
         height: 18,
-        marginBottom: Styles.globalMargins.xtiny,
-        marginTop: Styles.globalMargins.xtiny,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
       marker: {
         flexShrink: 0,
-        marginRight: Styles.globalMargins.xtiny,
-        ...(Styles.isMobile ? {marginTop: -3} : null),
+        marginRight: Kb.Styles.globalMargins.xtiny,
+        ...(Kb.Styles.isMobile ? {marginTop: -3} : null),
         minWidth: 0,
       },
-      repoText: {color: Styles.globalColors.black_50},
-    } as const)
+      repoText: {color: Kb.Styles.globalColors.black_50},
+    }) as const
 )
 
 export default GitPush

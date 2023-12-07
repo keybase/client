@@ -1,9 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource-apple'
-// MUST be lodash for node to work simply
-
-import {escapeRegExp} from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 import prettier from 'prettier'
 
 const commonTlds = [
@@ -38,7 +36,7 @@ const commonTlds = [
  */
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
-function UTF162JSON(text) {
+function UTF162JSON(text: string) {
   const r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
@@ -47,10 +45,10 @@ function UTF162JSON(text) {
 }
 
 function genEmojiData() {
-  const emojiIndexByChar = {}
-  const emojiIndexByName = {}
+  const emojiIndexByChar: {[key: string]: string} = {}
+  const emojiIndexByName: {[key: string]: string} = {}
   const emojiLiterals: Array<string> = []
-  function addEmojiLiteral(unified, name, skinTone?) {
+  function addEmojiLiteral(unified: string, name: string, skinTone?: number) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
@@ -70,10 +68,11 @@ function genEmojiData() {
 
   emojiData.forEach(emoji => {
     if (emoji.skin_variations) {
-      Object.keys(emoji.skin_variations).forEach((k, idx) =>
+      Object.keys(emoji.skin_variations).forEach((_k, idx) => {
+        const k = _k as keyof typeof emoji.skin_variations
         // + 2 because idx starts at 0, and skin-tone-1 is not a thing
-        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 2)
-      )
+        addEmojiLiteral(emoji.skin_variations[k]?.unified ?? '', emoji.short_name, idx + 2)
+      })
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)
     if (emoji.non_qualified) {
@@ -97,7 +96,7 @@ function genEmojiData() {
   return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
-function buildEmojiFile() {
+async function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
@@ -118,12 +117,14 @@ export const emojiIndexByChar: {[key: string]: string}  = JSON.parse(\`${JSON.st
   )}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
-
-  const formatted = prettier.format(data, {
-    ...prettier.resolveConfig.sync(p),
+  const options = await prettier.resolveConfig(p)
+  const formatted = await prettier.format(data, {
+    ...options,
     parser: 'typescript',
   })
   fs.writeFileSync(p, formatted, {encoding: 'utf8'})
 }
 
 buildEmojiFile()
+  .then(() => {})
+  .catch(() => {})

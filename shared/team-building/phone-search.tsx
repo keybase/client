@@ -1,36 +1,29 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
-import * as Constants from '../constants/team-building'
-import * as Container from '../util/container'
-import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as SettingsGen from '../actions/settings-gen'
-import type * as Types from 'constants/types/team-building'
-import type {AllowedNamespace} from '../constants/types/team-building'
+import * as Kb from '@/common-adapters/index'
+import * as Constants from '@/constants/team-building'
+import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'phone') => void
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
-  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const dispatch = Container.useDispatch()
-
+  const waiting = C.useAnyWaiting(Constants.searchWaitingKey)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     setPhoneValidity(validity)
@@ -40,22 +33,24 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     }
   }
 
-  const user: Types.User | undefined = isPhoneValid
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
+
+  const user: T.TB.User | undefined = isPhoneValid
     ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
     : undefined
 
   const canSubmit = !!user && !waiting && isPhoneValid
 
   const _onContinue = React.useCallback(() => {
-    if (!canSubmit || !user) {
+    if (!canSubmit) {
       return
     }
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+    addUsersToTeamSoFar([user])
     // Clear input
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setPhoneValidity(false)
-  }, [dispatch, namespace, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
+  }, [addUsersToTeamSoFar, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
 
   return (
     <>
@@ -74,17 +69,16 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           ) : (
             <Kb.Box2
               alignSelf="center"
-              centerChildren={!Styles.isMobile}
+              centerChildren={!Kb.Styles.isMobile}
               direction="vertical"
               fullWidth={true}
               gap="tiny"
               style={styles.emptyContainer}
             >
-              {!Styles.isMobile && (
-                <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
+              {!Kb.Styles.isMobile && (
+                <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
-
-              {namespace == 'chat2' ? (
+              {namespace === 'chat2' ? (
                 <Kb.Text type="BodySmall" style={styles.helperText}>
                   Start a chat with any phone contact, then tell them to install Keybase. Your messages will
                   unlock after they sign up.
@@ -110,7 +104,7 @@ type UserMatchMentionProps = {
 }
 export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
     <Kb.Text type="BodySmall">
       Great! That's{' '}
       <Kb.ConnectedUsernames
@@ -125,21 +119,21 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {flexGrow: 0},
-      containerStyle: Styles.platformStyles({
+      containerStyle: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,
         },
       }),
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -150,11 +144,11 @@ const styles = Styles.styleSheetCreate(
       flexGrow: {
         flex: 1,
       },
-      helperText: Styles.platformStyles({
+      helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
       loading: {alignSelf: 'center'},
@@ -162,7 +156,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         justifyContent: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default PhoneSearch

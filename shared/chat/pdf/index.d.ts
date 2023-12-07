@@ -1,5 +1,9 @@
-import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
 
-type Props = Container.RouteProps<'chatPDF'>
-export default class ChatPDF extends React.Component<Props> {}
+export type Props = {
+  ordinal: T.Chat.Ordinal
+  url?: string
+}
+declare const ChatPDF: (p: Props) => React.ReactNode
+export default ChatPDF

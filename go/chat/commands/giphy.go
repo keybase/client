@@ -17,11 +17,13 @@ type giphySearcher interface {
 		urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
 }
 
-type defaultGiphySearcher struct{}
+type defaultGiphySearcher struct {
+	globals.Contextified
+}
 
 func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource,
 	query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
-	return giphy.Search(mctx, apiKeySource, query, limit, urlsrv)
+	return giphy.Search(d.G(), mctx, apiKeySource, query, limit, urlsrv)
 }
 
 type Giphy struct {
@@ -40,7 +42,9 @@ func NewGiphy(g *globals.Context) *Giphy {
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
 		shownResults: make(map[chat1.ConvIDStr]*string),
 		shownWindow:  make(map[chat1.ConvIDStr]bool),
-		searcher:     defaultGiphySearcher{},
+		searcher: defaultGiphySearcher{
+			Contextified: globals.NewContextified(g),
+		},
 	}
 }
 

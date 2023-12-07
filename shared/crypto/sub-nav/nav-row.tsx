@@ -1,11 +1,9 @@
-import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/crypto'
-import * as Styles from '../../styles'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
+import * as Kb from '@/common-adapters'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 type Props = {
   title: string
-  tab: Types.CryptoSubTab
+  tab: string
   // Desktop only
   icon?: IconType
   isSelected?: boolean
@@ -22,7 +20,7 @@ const NavRow = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      className={Styles.classNames({
+      className={Kb.Styles.classNames({
         background_color_blue: isSelected,
         hover_background_color_blueGreyDark: !isSelected,
       })}
@@ -34,7 +32,7 @@ const NavRow = (props: Props) => {
           <Kb.Icon
             type={icon}
             sizeType="Small"
-            color={isSelected ? Styles.globalColors.whiteOrWhite : ''}
+            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : ''}
             padding="xtiny"
           />
         }
@@ -45,12 +43,12 @@ const NavRow = (props: Props) => {
             direction="vertical"
             fullHeight={true}
             fullWidth={true}
-            style={Styles.collapseStyles([styles.textContainer])}
+            style={Kb.Styles.collapseStyles([styles.textContainer])}
           >
             <Kb.Text
               type="BodySemibold"
               style={{
-                color: isSelected ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blackOrWhite,
+                color: isSelected ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blackOrWhite,
               }}
             >
               {title}
@@ -66,15 +64,15 @@ const NavRow = (props: Props) => {
       <Kb.RichButton title={title} description={description} icon={illustration} onClick={onClick} />
     ) : null
 
-  return Styles.isMobile ? mobileRow : desktopRow
+  return Kb.Styles.isMobile ? mobileRow : desktopRow
 }
 
 const rowHeight = 50
 
-const styles = Styles.styleSheetCreate(() => ({
-  clickableContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  clickableContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.clickable,
+      ...Kb.Styles.desktopStyles.clickable,
       flexShrink: 0,
       height: rowHeight,
       width: '100%',
@@ -82,7 +80,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   textContainer: {
     justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
+    marginLeft: Kb.Styles.globalMargins.tiny,
   },
 }))
 

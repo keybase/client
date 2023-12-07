@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -84,7 +84,7 @@ type ReportOptionsProps = {
   setReason: (reason: string) => void
   showIncludeTranscript: boolean
 }
-const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...']
+const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...'] as const
 const defaultReport: ReportSettings = {
   extraNotes: '',
   includeTranscript: true,
@@ -157,11 +157,7 @@ class BlockModal extends React.PureComponent<Props, State> {
         report: this.props.reportsUserByDefault
           ? {
               ...defaultReport,
-              ...(this.props.flagUserByDefault
-                ? {
-                    reason: reasons[reasons.length - 2],
-                  }
-                : {}),
+              ...(this.props.flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
             }
           : undefined,
       })
@@ -383,13 +379,7 @@ class BlockModal extends React.PureComponent<Props, State> {
               {!Styles.isMobile && (
                 <Kb.Button fullWidth={true} label="Cancel" onClick={this.props.onClose} type="Dim" />
               )}
-              <Kb.WaitingButton
-                label="Finish"
-                onClick={this.onFinish}
-                fullWidth={true}
-                type="Danger"
-                waitingKey={null}
-              />
+              <Kb.WaitingButton label="Finish" onClick={this.onFinish} fullWidth={true} type="Danger" />
             </Kb.ButtonBar>
           ),
         }}

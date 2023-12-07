@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 // Mobile only. Show native dropdown UI.
 
@@ -9,8 +9,8 @@ export type PickerItem<T> = {
 
 export type Props<T> = {
   items: PickerItem<T>[] // values must be unique,,
-  selectedValue: T | null
-  onSelect: (t: T | null) => void
+  selectedValue?: T
+  onSelect: (t: T | undefined) => void
   header?: React.ReactNode
   prompt?: React.ReactNode
   promptString?: string // used on android as title of selection popup,,
@@ -20,5 +20,5 @@ export type Props<T> = {
   visible: boolean
 }
 
-declare class FloatingPicker<T> extends React.Component<Props<T>> {}
+declare function FloatingPicker<T>(p: Props<T>): React.ReactNode
 export default FloatingPicker

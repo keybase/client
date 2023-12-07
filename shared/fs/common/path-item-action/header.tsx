@@ -1,19 +1,16 @@
-import type * as Types from '../../../constants/types/fs'
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import PathItemInfo from '../path-item-info'
 import PathInfo from '../path-info'
 
-export type Props = {
-  path: Types.Path
-}
+export type Props = {path: T.FS.Path}
 
 const Header = (props: Props) => (
   <Kb.Box
     onClick={
       // This box is necessary as otherwise the click event propagates into
       // the ListItem2 backed row.
-      event => event.stopPropagation()
+      (event: any) => event.stopPropagation()
     }
   >
     <PathItemInfo path={props.path} containerStyle={styles.container} />
@@ -24,17 +21,17 @@ const Header = (props: Props) => (
 
 export default Header
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.large,
+          paddingBottom: Kb.Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )

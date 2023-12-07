@@ -1,9 +1,8 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
-  error?: Error | null
+  error: string
   hasPGPKeyOnServer?: boolean
   hasRandomPW: boolean
   newPasswordError?: string
@@ -68,23 +67,23 @@ class UpdatePassword extends React.Component<Props, State> {
 
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
-    const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
+    const keyboardType = this.state.showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
     const notification = this.props.error
-      ? this.props.error.message
+      ? this.props.error
       : this.props.hasPGPKeyOnServer
-      ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
-      : null
+        ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
+        : null
 
     const hintType = this.state.errorSaving
       ? 'BodySmallError'
       : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8
-      ? 'BodySmallSuccess'
-      : 'BodySmall'
+        ? 'BodySmallSuccess'
+        : 'BodySmall'
     const hintText = this.state.errorSaving ? (
       this.state.errorSaving
     ) : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8 ? (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
-        <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
+        <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
         <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
       </Kb.Box2>
     ) : (
@@ -106,7 +105,7 @@ class UpdatePassword extends React.Component<Props, State> {
                 <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordError} />
               </Kb.Banner>
             ) : null}
-            {this.props.hasPGPKeyOnServer === null ? (
+            {this.props.hasPGPKeyOnServer === undefined ? (
               <Kb.Banner color="red">
                 <Kb.BannerParagraph
                   bannerColor="red"
@@ -136,7 +135,7 @@ class UpdatePassword extends React.Component<Props, State> {
         }}
         header={{
           leftButton:
-            Styles.isMobile && this.props.onCancel ? (
+            Kb.Styles.isMobile && this.props.onCancel ? (
               <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
                 Cancel
               </Kb.Text>
@@ -146,7 +145,7 @@ class UpdatePassword extends React.Component<Props, State> {
         onClose={this.props.onCancel}
       >
         <Kb.Box2
-          centerChildren={!Styles.isTablet}
+          centerChildren={!Kb.Styles.isTablet}
           direction="vertical"
           fullHeight={true}
           style={styles.container}
@@ -196,40 +195,40 @@ class UpdatePassword extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyText: {
-        paddingBottom: Styles.globalMargins.small,
+        paddingBottom: Kb.Styles.globalMargins.small,
       },
       buttonBar: {
         minHeight: undefined,
       },
       checkbox: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       container: {
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       headerText: {
-        paddingBottom: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
-      passwordBackground: Styles.platformStyles({
+      passwordBackground: Kb.Styles.platformStyles({
         isTablet: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
       }),
       passwordFormat: {
         alignSelf: 'flex-start',
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default UpdatePassword

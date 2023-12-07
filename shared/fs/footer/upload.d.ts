@@ -1,13 +1,14 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type UploadProps = {
   showing: boolean
   files: number
-  fileName: string | null
+  fileName?: string
   totalSyncingBytes: number
   timeLeft: string
   debugToggleShow?: () => void
   smallMode?: boolean
 }
 
-export default class extends React.PureComponent<UploadProps> {}
+declare const Upload: (p: UploadProps) => React.ReactNode
+export default Upload

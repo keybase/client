@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 export type HeaderTextProps = {
   color: string

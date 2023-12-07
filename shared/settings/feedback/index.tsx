@@ -1,33 +1,19 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import {isMobile} from '../../util/container'
-import * as Styles from '../../styles'
-
-export const getOtherErrorInfo = (err: Error) => {
-  const info = {}
-  for (const k in err) info[k] = (err as Object)[k]
-  // @ts-ignore
-  delete info.name
-  // @ts-ignore
-  delete info.message
-  // @ts-ignore
-  delete info.stack
-  return info
-}
+import * as Kb from '@/common-adapters'
 
 type Props = {
-  feedback?: string | null
+  feedback?: string
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
-  sendError?: Error
+  sendError: string
   showInternalSuccessBanner: boolean // if true, enables the internal success bar
   onFeedbackDone: (success: boolean) => void
 }
 
 type State = {
   clickCount: number
-  email: string | null
+  email?: string
   feedback: string
   sendLogs: boolean
   showSuccessBanner: boolean
@@ -36,9 +22,9 @@ type State = {
 const clickThreshold = 7
 
 class Feedback extends React.Component<Props, State> {
-  state = {
+  state: State = {
     clickCount: 0,
-    email: null,
+    email: undefined,
     feedback: this.props.feedback || '',
     sendLogs: true,
     showSuccessBanner: false,
@@ -65,13 +51,13 @@ class Feedback extends React.Component<Props, State> {
     }
   }
 
-  _onChangeFeedback = feedback => {
+  _onChangeFeedback = (feedback: string) => {
     this.setState({feedback})
   }
 
   _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
 
-  _onChangeEmail = email => {
+  _onChangeEmail = (email: string) => {
     this.setState({email})
   }
 
@@ -109,7 +95,7 @@ class Feedback extends React.Component<Props, State> {
                 placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
                 resize={true}
                 rowsMin={4}
-                rowsMax={isMobile ? 4 : 10}
+                rowsMax={Kb.Styles.isMobile ? 4 : 10}
                 value={this.state.feedback}
               />
             </Kb.Box2>
@@ -147,7 +133,7 @@ class Feedback extends React.Component<Props, State> {
                   label="Send"
                   onClick={this._onSendFeedback}
                   waiting={sending}
-                  fullWidth={!Styles.isTablet}
+                  fullWidth={!Kb.Styles.isTablet}
                 />
               </Kb.ButtonBar>
             </Kb.Box2>
@@ -155,15 +141,7 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" gap="small">
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
                 <Kb.Text type="BodySmall" selectable={true}>
-                  {`${sendError.name}: ${sendError.message}`}
-                </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">Stack</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true}>
-                  {sendError.stack}
-                </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">Error dump</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true}>
-                  {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
+                  {sendError}
                 </Kb.Text>
               </Kb.Box2>
             )}
@@ -176,22 +154,22 @@ class Feedback extends React.Component<Props, State> {
 
 export default Feedback
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {flex: 1},
       }),
       includeLogs: {
-        ...Styles.globalStyles.fullWidth,
+        ...Kb.Styles.globalStyles.fullWidth,
       },
-      input: Styles.platformStyles({
-        isElectron: {padding: Styles.globalMargins.tiny},
-        isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
+      input: Kb.Styles.platformStyles({
+        isElectron: {padding: Kb.Styles.globalMargins.tiny},
+        isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
       }),
-      mainBox: Styles.platformStyles({
+      mainBox: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isElectron: {
           maxWidth: 550,
@@ -199,10 +177,10 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           alignSelf: 'flex-start',
-          width: Styles.globalStyles.largeWidthPercent,
+          width: Kb.Styles.globalStyles.largeWidthPercent,
         },
       }),
-      outerStyle: {backgroundColor: Styles.globalColors.white},
-      smallLabel: {color: Styles.globalColors.black},
-    } as const)
+      outerStyle: {backgroundColor: Kb.Styles.globalColors.white},
+      smallLabel: {color: Kb.Styles.globalColors.black},
+    }) as const
 )

@@ -1,8 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import {default as Button, type Props as ButtonProps} from './button'
-import type ClickableBox from './clickable-box'
-import * as Container from '../util/container'
-import * as WaitingConstants from '../constants/waiting'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Button,
@@ -10,7 +9,7 @@ const Kb = {
 
 export type Props = {
   onlyDisable?: boolean
-  waitingKey: Array<string> | string | null
+  waitingKey?: Array<string> | string
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.
@@ -25,13 +24,9 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-const WaitingButton = React.forwardRef<ClickableBox, Props>(function WaitingButton(props, ref) {
+const WaitingButton = React.forwardRef<MeasureRef, Props>(function WaitingButton(props, ref) {
   const {onlyDisable, waitingKey, ...buttonProps} = props
-  const storeWaiting = Container.useSelector(state =>
-    typeof waitingKey === 'string'
-      ? WaitingConstants.anyWaiting(state, waitingKey)
-      : WaitingConstants.anyWaiting(state, ...(waitingKey || []))
-  )
+  const storeWaiting = C.useAnyWaiting(waitingKey)
 
   const [localWaiting, setLocalWaiting] = React.useState(false)
 

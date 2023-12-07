@@ -1,13 +1,9 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as TeamsGen from '../../../../../actions/teams-gen'
-import type * as Types from '../../../../../constants/types/teams'
-import * as Constants from '../../../../../constants/teams'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
-import {sendNotificationFooter} from '../../../../role-picker'
+import type * as T from '@/constants/types'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
-import {createShowUserProfile} from '../../../../../actions/profile-gen'
+import {sendNotificationFooter} from '@/teams/role-picker'
 
 type OwnProps = {
   ctime: number
@@ -15,7 +11,7 @@ type OwnProps = {
   fullName: string
   username: string
   reset?: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 type State = {
@@ -25,7 +21,7 @@ type State = {
 
 type ExtraProps = {
   _notifLabel: string
-  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => void
+  letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType) => void
 }
 
 class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
@@ -60,55 +56,55 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   }
 }
 
-export default Container.connect(
-  (state, {fullName, username, teamID}: OwnProps) => {
-    const {teamname} = Constants.getTeamMeta(state, teamID)
+const Container = (ownProps: OwnProps) => {
+  const {teamID, username, reset, fullName} = ownProps
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const _notifLabel = C.useChatState(s =>
+    C.Chat.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
+  )
+  const disabledReasonsForRolePicker = C.useTeamsState(s =>
+    C.Teams.getDisabledReasonsForRolePicker(s, teamID, username)
+  )
+  const waiting = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 
-    return {
-      _notifLabel: Constants.isBigTeam(state, teamID)
-        ? `Announce them in #general`
-        : `Announce them in team chat`,
-      disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
-      fullName, // MemberRow has a special case for "You" but it's impossible to see your join req
-      teamname,
-      waiting: Container.anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
-    }
-  },
-  (dispatch, {reset, username, teamID}) => ({
-    _onIgnoreRequest: (teamname: string) =>
-      reset
-        ? dispatch(TeamsGen.createRemoveMember({teamID, username}))
-        : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username})),
-    letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
-      dispatch(
-        TeamsGen.createAddToTeam({
-          sendChatNotification: sendNotification,
-          teamID,
-          users: [{assertion: username, role}],
-        })
-      )
-    },
-    onChat: () => {
-      username &&
-        dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
-    },
-    onOpenProfile: () => dispatch(createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    return {
-      _notifLabel: stateProps._notifLabel,
-      ctime: ownProps.ctime,
-      disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
-      firstItem: ownProps.firstItem,
-      fullName: stateProps.fullName,
-      letIn: dispatchProps.letIn,
-      onChat: dispatchProps.onChat,
-      onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
-      onOpenProfile: dispatchProps.onOpenProfile,
-      reset: ownProps.reset,
-      teamID: ownProps.teamID,
-      username: ownProps.username,
-      waiting: stateProps.waiting,
+  const _onIgnoreRequest = (teamname: string) => {
+    if (reset) {
+      removeMember(teamID, username)
+    } else {
+      ignoreRequest(teamID, teamname, username)
     }
   }
-)(RequestRowStateWrapper)
+
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
+    addToTeam(teamID, [{assertion: username, role}], sendNotification)
+  }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => {
+    username && previewConversation({participants: [username], reason: 'teamInvite'})
+  }
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onOpenProfile = () => {
+    showUserProfile(username)
+  }
+  const props = {
+    _notifLabel: _notifLabel,
+    ctime: ownProps.ctime,
+    disabledReasonsForRolePicker: disabledReasonsForRolePicker,
+    firstItem: ownProps.firstItem,
+    fullName: fullName,
+    letIn: letIn,
+    onChat: onChat,
+    onIgnoreRequest: () => _onIgnoreRequest(teamname),
+    onOpenProfile: onOpenProfile,
+    reset: ownProps.reset,
+    teamID: ownProps.teamID,
+    username: ownProps.username,
+    waiting: waiting,
+  }
+  return <RequestRowStateWrapper {...props} />
+}
+
+export default Container

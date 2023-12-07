@@ -4,7 +4,7 @@ const webpackCmd =
   'node --trace-deprecation node_modules/webpack/bin/webpack.js --config ./desktop/webpack.config.babel.js'
 const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
 // set to true if you want to analyze the webpack output
-const outputStats = false
+const outputStats = false as boolean
 
 const commands = {
   'build-dev': {
@@ -36,7 +36,7 @@ const commands = {
     nodeEnv: 'production',
     shell: `yarn _node ${spaceArg} desktop/package.desktop.tsx`,
   },
-}
+} as const
 
 function hotServer(info: any, exec: Function) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})

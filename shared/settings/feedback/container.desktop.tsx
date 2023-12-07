@@ -1,28 +1,30 @@
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import Feedback from './index'
-import {anyWaiting} from '../../constants/waiting'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
+import Feedback from '.'
+import type {Props} from './container'
+import {useSendFeedback} from './shared'
 
-type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
-
-export default Container.connect(
-  state => ({
-    loggedOut: !state.config.loggedIn,
-    sendError: state.settings.feedback.error,
-    sending: anyWaiting(state, Constants.sendFeedbackWaitingKey),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) =>
-      dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
-  }),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    feedback: o.route.params?.feedback ?? '',
+const Container = (ownProps: Props) => {
+  const {sendFeedback, error} = useSendFeedback()
+  const feedback = ownProps.feedback ?? ''
+  const loggedOut = C.useConfigState(s => !s.loggedIn)
+  const sending = C.useAnyWaiting(Constants.sendFeedbackWaitingKey)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
+  const onSendFeedback = sendFeedback
+  const props = {
+    feedback,
+    loggedOut,
+    onBack,
     onFeedbackDone: () => null,
+    onSendFeedback,
+    sendError: error,
+    sending,
     showInternalSuccessBanner: true,
-  })
-)(Feedback)
+  }
+  return <Feedback {...props} />
+}
+
+export default Container

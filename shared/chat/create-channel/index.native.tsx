@@ -1,6 +1,5 @@
-import * as Constants from '../../constants/teams'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Constants from '@/constants/teams'
+import * as Kb from '@/common-adapters'
 import type {Props} from './index'
 
 const CreateChannel = (props: Props) => (
@@ -43,12 +42,12 @@ const CreateChannel = (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       box: {padding: 16},
       buttonBar: {alignItems: 'center'},
-    } as const)
+    }) as const
 )
 
 const Wrapper = (props: Props) => (

@@ -1,9 +1,8 @@
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import type {IconType} from '../../common-adapters/icon'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {IconType} from '@/common-adapters/icon'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'
@@ -57,25 +56,25 @@ const icons = {
 } as const
 
 export type TlfTypeIconProps = {
-  badgeOverride?: any // TS freaking out IconType
+  badgeOverride?: Kb.IconType
   size: Size
-  style: Styles.StylesCrossPlatform
-  tlfType: Types.TlfType
+  style: Kb.Styles.StylesCrossPlatform
+  tlfType: T.FS.TlfType
 }
 
-const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
+const getTlfTypeIcon = (size: Size, tlfType: T.FS.TlfType) => {
   switch (tlfType) {
-    case Types.TlfType.Private:
+    case T.FS.TlfType.Private:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.private[getIconSizeString(size)]} />
-    case Types.TlfType.Public:
+    case T.FS.TlfType.Public:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.public[getIconSizeString(size)]} />
-    case Types.TlfType.Team:
+    case T.FS.TlfType.Team:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.team[getIconSizeString(size)]} />
   }
 }
 
 export const TlfTypeIcon = (props: TlfTypeIconProps) => {
-  const tlfList = Container.useSelector(state => Constants.getTlfListFromType(state.fs.tlfs, props.tlfType))
+  const tlfList = C.useFSState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
@@ -84,7 +83,7 @@ export const TlfTypeIcon = (props: TlfTypeIconProps) => {
       {props.badgeOverride ? (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon fixOverdraw={true} type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
-          color={Styles.globalColors.greyDarker}
+          color={Kb.Styles.globalColors.greyDarker}
         </Kb.Box>
       ) : (
         !!badgeCount && (
@@ -100,8 +99,8 @@ export const TlfTypeIcon = (props: TlfTypeIconProps) => {
 type TlfIconProps = {
   badgeOverride?: any // TS freaking out IconType
   size: Size
-  style?: Styles.StylesCrossPlatform
-  tlfTypeForFolderIconOverride?: Types.TlfType
+  style?: Kb.Styles.StylesCrossPlatform
+  tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const TlfIcon = (props: TlfIconProps) => (
@@ -117,7 +116,7 @@ const TlfIcon = (props: TlfIconProps) => (
           fixOverdraw={true}
           type={props.badgeOverride}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
-          color={Styles.globalColors.greyDarker}
+          color={Kb.Styles.globalColors.greyDarker}
         />
       </Kb.Box>
     )}
@@ -125,23 +124,23 @@ const TlfIcon = (props: TlfIconProps) => (
 )
 
 type InTlfItemIconProps = {
-  badgeOverride?: any // TS freaking out IconType
-  path: Types.Path
+  badgeOverride?: Kb.IconType
+  path: T.FS.Path
   size: Size
-  style?: Styles.StylesCrossPlatform
-  tlfTypeForFolderIconOverride?: Types.TlfType
+  style?: Kb.Styles.StylesCrossPlatform
+  tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
-  const downloads = Container.useSelector(state => state.fs.downloads)
-  const pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const downloads = C.useFSState(s => s.downloads)
+  const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
+  const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
-  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading') || null
+  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (
     <Kb.Box style={props.style}>
-      {pathItem.type === Types.PathType.Folder ? (
+      {pathItem.type === T.FS.PathType.Folder ? (
         props.tlfTypeForFolderIconOverride ? (
           getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
         ) : (
@@ -150,15 +149,15 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
       ) : (
         <Kb.Icon type={icons.file[getIconSizeString(props.size)]} />
       )}
-      {badgeIcon && (
+      {badgeIcon ? (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon
             type={badgeIcon}
             style={badgeStyle.rightBottomBadge}
-            color={Styles.globalColors.greyDarker}
+            color={Kb.Styles.globalColors.greyDarker}
           />
         </Kb.Box>
-      )}
+      ) : null}
     </Kb.Box>
   )
 }
@@ -166,17 +165,17 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
 export type ItemIconProps = {
   badgeOverride?: IconType
   mixedMode?: boolean
-  path: Types.Path
+  path: T.FS.Path
   size: Size
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const ItemIcon = (props: ItemIconProps) => {
   const parsedPath = Constants.parsePath(props.path)
   switch (parsedPath.kind) {
-    case Types.PathKind.Root:
+    case T.FS.PathKind.Root:
       return <Kb.Icon fixOverdraw={true} type={icons['folder'][getIconSizeString(props.size)]} />
-    case Types.PathKind.TlfList:
+    case T.FS.PathKind.TlfList:
       return (
         <TlfTypeIcon
           badgeOverride={props.badgeOverride}
@@ -185,20 +184,20 @@ const ItemIcon = (props: ItemIconProps) => {
           tlfType={parsedPath.tlfType}
         />
       )
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
+    case T.FS.PathKind.GroupTlf:
+    case T.FS.PathKind.TeamTlf:
       return (
         <TlfIcon
           badgeOverride={props.badgeOverride}
           size={props.size}
           style={props.style}
           tlfTypeForFolderIconOverride={
-            props.mixedMode || parsedPath.tlfType === Types.TlfType.Public ? parsedPath.tlfType : undefined
+            props.mixedMode || parsedPath.tlfType === T.FS.TlfType.Public ? parsedPath.tlfType : undefined
           }
         />
       )
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
+    case T.FS.PathKind.InGroupTlf:
+    case T.FS.PathKind.InTeamTlf:
       return (
         <InTlfIcon
           badgeOverride={props.badgeOverride}
@@ -206,7 +205,7 @@ const ItemIcon = (props: ItemIconProps) => {
           size={props.size}
           style={props.style}
           tlfTypeForFolderIconOverride={
-            parsedPath.tlfType === Types.TlfType.Public ? Types.TlfType.Public : undefined
+            parsedPath.tlfType === T.FS.TlfType.Public ? T.FS.TlfType.Public : undefined
           }
         />
       )
@@ -215,7 +214,7 @@ const ItemIcon = (props: ItemIconProps) => {
 
 export default ItemIcon
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badgeContainer: {
@@ -227,98 +226,98 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         width: 0,
       },
-    } as const)
+    }) as const
 )
 
 const badgeStyles = {
-  '16': Styles.styleSheetCreate(
+  '16': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.tiny + Styles.globalMargins.xxtiny,
+          left: Kb.Styles.globalMargins.tiny + Kb.Styles.globalMargins.xxtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.medium + Styles.globalMargins.xxtiny),
+          top: -(Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xxtiny),
         },
-        rightBottomBadge: Styles.platformStyles({
+        rightBottomBadge: Kb.Styles.platformStyles({
           common: {
             position: 'absolute',
           },
           isElectron: {
-            height: Styles.globalMargins.tiny,
-            left: Styles.globalMargins.xsmall - Styles.globalMargins.xxtiny,
-            top: -Styles.globalMargins.tiny,
-            width: Styles.globalMargins.tiny,
+            height: Kb.Styles.globalMargins.tiny,
+            left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xxtiny,
+            top: -Kb.Styles.globalMargins.tiny,
+            width: Kb.Styles.globalMargins.tiny,
           },
           isMobile: {
-            height: Styles.globalMargins.xsmall,
-            left: Styles.globalMargins.xsmall - Styles.globalMargins.xtiny,
-            top: -Styles.globalMargins.tiny,
-            width: Styles.globalMargins.xsmall,
+            height: Kb.Styles.globalMargins.xsmall,
+            left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xtiny,
+            top: -Kb.Styles.globalMargins.tiny,
+            width: Kb.Styles.globalMargins.xsmall,
           },
         }),
-      } as const)
+      }) as const
   ),
-  '32': Styles.styleSheetCreate(
+  '32': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+          left: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.mediumLarge + Styles.globalMargins.xtiny),
+          top: -(Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.xtiny),
         },
-        rightBottomBadge: Styles.platformStyles({
+        rightBottomBadge: Kb.Styles.platformStyles({
           common: {
             position: 'absolute',
           },
           isElectron: {
-            height: Styles.globalMargins.xsmall,
-            left: Styles.globalMargins.medium - Styles.globalMargins.xxtiny,
-            top: -(Styles.globalMargins.xsmall + Styles.globalMargins.xxtiny),
-            width: Styles.globalMargins.xsmall,
+            height: Kb.Styles.globalMargins.xsmall,
+            left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xxtiny,
+            top: -(Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny),
+            width: Kb.Styles.globalMargins.xsmall,
           },
           isMobile: {
-            height: Styles.globalMargins.small,
-            left: Styles.globalMargins.medium - Styles.globalMargins.xtiny,
-            top: -Styles.globalMargins.small,
-            width: Styles.globalMargins.small,
+            height: Kb.Styles.globalMargins.small,
+            left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xtiny,
+            top: -Kb.Styles.globalMargins.small,
+            width: Kb.Styles.globalMargins.small,
           },
         }),
-      } as const)
+      }) as const
   ),
-  '48': Styles.styleSheetCreate(
+  '48': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.mediumLarge + Styles.globalMargins.xtiny,
+          left: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.large + Styles.globalMargins.tiny),
+          top: -(Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny),
         },
         rightBottomBadge: {
-          height: Styles.globalMargins.small,
-          left: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+          height: Kb.Styles.globalMargins.small,
+          left: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
           position: 'absolute',
-          top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
-          width: Styles.globalMargins.small,
+          top: -Kb.Styles.globalMargins.small - Kb.Styles.globalMargins.xtiny,
+          width: Kb.Styles.globalMargins.small,
         },
-      } as const)
+      }) as const
   ),
-  '96': Styles.styleSheetCreate(
+  '96': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.large + Styles.globalMargins.tiny,
+          left: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.large + Styles.globalMargins.small),
+          top: -(Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.small),
         },
         rightBottomBadge: {
           // this doesn't work for the folder icon, but it's fine as we don't
           // have such badge on folder icon of 96 size.
-          height: Styles.globalMargins.medium,
-          left: Styles.globalMargins.xlarge,
+          height: Kb.Styles.globalMargins.medium,
+          left: Kb.Styles.globalMargins.xlarge,
           position: 'absolute',
-          top: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
-          width: Styles.globalMargins.medium,
+          top: -(Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny),
+          width: Kb.Styles.globalMargins.medium,
         },
-      } as const)
+      }) as const
   ),
 }

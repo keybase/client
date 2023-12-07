@@ -1,6 +1,5 @@
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/tracker2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
 import Bio from '.'
 
 type OwnProps = {
@@ -8,43 +7,55 @@ type OwnProps = {
   username: string
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const d = Constants.getDetails(state, ownProps.username)
-    const common = {
-      blocked: d.blocked,
-      hidFromFollowers: d.hidFromFollowers,
-      username: ownProps.username,
-    }
-    if (d.state === 'notAUserYet') {
-      const nonUser = Constants.getNonUserDetails(state, ownProps.username)
-      return {
-        ...common,
-        bio: nonUser.bio,
-        followThem: false,
-        followsYou: false,
-        fullname: nonUser.fullName,
-        sbsDescription: nonUser.description,
+const Container = (ownProps: OwnProps) => {
+  const {inTracker, username} = ownProps
+  const stateProps = C.useTrackerState(
+    C.useShallow(s => {
+      const d = Constants.getDetails(s, username)
+      const common = {
+        blocked: d.blocked,
+        hidFromFollowers: d.hidFromFollowers,
       }
-    } else {
-      return {
-        ...common,
-        bio: d.bio,
-        followThem: Constants.followThem(state, ownProps.username),
-        followersCount: d.followersCount,
-        followingCount: d.followingCount,
-        followsYou: Constants.followsYou(state, ownProps.username),
-        fullname: d.fullname,
-        location: d.location,
+
+      if (d.state === 'notAUserYet') {
+        const nonUser = Constants.getNonUserDetails(s, username)
+        return {
+          ...common,
+          bio: nonUser.bio,
+          followThem: false,
+          followsYou: false,
+          fullname: nonUser.fullName,
+          sbsDescription: nonUser.description,
+        }
+      } else {
+        return {
+          ...common,
+          bio: d.bio,
+          followersCount: d.followersCount,
+          followingCount: d.followingCount,
+          fullname: d.fullname,
+          location: d.location,
+        }
       }
-    }
-  },
-  (dispatch: Container.TypedDispatch) => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    })
+  )
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
+
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
+
+  const props = {
+    followThem,
+    followsYou,
+    inTracker,
+    onBack,
+    username,
     ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-  })
-)(Bio)
+  }
+  return <Bio {...props} />
+}
+
+export default Container

@@ -1,7 +1,6 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {formatDurationShort} from '../../../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {formatDurationShort} from '@/util/timestamp'
 
 export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
   if (explodingModeSeconds === 0) {
@@ -10,7 +9,7 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   }
   return (
     <Kb.Meta
-      backgroundColor={Styles.globalColors.black_on_white}
+      backgroundColor={Kb.Styles.globalColors.black_on_white}
       noUppercase={true}
       style={styles.timeBadge}
       size="Small"
@@ -20,21 +19,22 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
 }
 
 type BotCommandUpdateStatusProps = {
-  status: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  status: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 
 export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   let statusText = ''
   switch (props.status) {
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate:
       statusText = 'Bot commands are up-to-date'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.failed:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.failed:
       statusText = 'Failed to update bot commands'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.updating:
       statusText = 'Updating bot commands...'
       break
+    default:
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>
@@ -43,19 +43,19 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  botCommandContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  botCommandContainer: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
     },
   }),
-  timeBadge: Styles.platformStyles({
+  timeBadge: Kb.Styles.platformStyles({
     common: {
-      borderColor: Styles.globalColors.white,
+      borderColor: Kb.Styles.globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
     },

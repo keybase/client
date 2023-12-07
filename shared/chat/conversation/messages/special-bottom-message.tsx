@@ -1,25 +1,23 @@
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
+import * as C from '@/constants'
 import * as React from 'react'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
-import {ConvoIDContext} from './ids-context'
-import shallowEqual from 'shallowequal'
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {showSuperseded, showResetParticipants} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const showResetParticipants = meta.resetParticipants.size !== 0
-    const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey
-    return {showResetParticipants, showSuperseded}
-  }, shallowEqual)
+  const {showSuperseded, showResetParticipants} = C.useChatContext(
+    C.useShallow(s => {
+      const meta = s.meta
+      const showResetParticipants = meta.resetParticipants.size !== 0
+      const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== C.noConversationIDKey
+      return {showResetParticipants, showSuperseded}
+    })
+  )
 
   if (showResetParticipants) {
-    return <ResetUser conversationIDKey={conversationIDKey} />
+    return <ResetUser />
   }
   if (showSuperseded) {
-    return <OldProfileReset conversationIDKey={conversationIDKey} />
+    return <OldProfileReset />
   }
   return null
 })

@@ -1,18 +1,15 @@
-import * as Constants from '../constants/router2'
-import * as Kb from '../common-adapters/mobile.native'
+import * as C from '@/constants'
+import * as Constants from '@/constants/router2'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import * as Shim from './shim.native'
-import * as Styles from '../styles'
-import * as Tabs from '../constants/tabs'
-import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import {shim, getOptions} from './shim'
+import * as Tabs from '@/constants/tabs'
+import * as Container from '@/util/container'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
-import * as ConfigConstants from '../constants/config'
-import {useMemo} from '../util/memoize'
-import {StatusBar} from 'react-native'
-import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
+import {StatusBar, View} from 'react-native'
+import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -24,26 +21,31 @@ if (module.hot) {
   })
 }
 
-const settingsTabChildren = Container.isPhone ? Tabs.settingsTabChildrenPhone : Tabs.settingsTabChildrenTablet
-const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
-const tabToData = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-} as const
+const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab] as const
+const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
+const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
+const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabToData = new Map<C.Tab, {icon: Kb.IconType; label: string}>([
+  [Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
+  [Tabs.fsTab, {icon: 'iconfont-nav-2-files', label: 'Files'}],
+  [Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
+  [Tabs.peopleTab, {icon: 'iconfont-nav-2-people', label: 'People'}],
+  [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
+  [Tabs.walletsTab, {icon: 'iconfont-nav-2-wallets', label: 'Wallet'}],
+] as const)
 
-const makeNavScreens = (rs, Screen, isModal) => {
-  return Object.keys(rs).map(name => {
+type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) => {
+  return Object.keys(rs).map((name: keyof typeof tabRoutes) => {
+    const val = rs[name]
+    if (!val?.getScreen) return null
     return (
       <Screen
         key={name}
         name={name}
-        getComponent={rs[name].getScreen}
+        getComponent={val.getScreen}
         options={({route, navigation}) => {
-          const no = Shim.getOptions(rs[name])
+          const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
             ...opt,
@@ -55,11 +57,11 @@ const makeNavScreens = (rs, Screen, isModal) => {
   })
 }
 
-const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
-  const {isFocused, routeName} = props
-  const badgeNumber = Container.useSelector(state => {
-    const {navBadges} = state.notifications
-    const {hasPermissions} = state.push
+const TabBarIcon = React.memo(
+  function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
+    const {isFocused, routeName} = props
+    const navBadges = C.useNotifState(s => s.navBadges)
+    const hasPermissions = C.usePushState(s => s.hasPermissions)
     const onSettings = routeName === Tabs.settingsTab
     const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
     const badgeNumber = tabsToCount.reduce(
@@ -67,55 +69,56 @@ const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; ro
       // notifications gets badged on native if there's no push, special case
       onSettings && !hasPermissions ? 1 : 0
     )
-    return badgeNumber
-  })
 
-  return tabToData[routeName] ? (
-    <Kb.NativeView style={styles.container}>
-      <Kb.Icon
-        type={tabToData[routeName].icon}
-        fontSize={32}
-        style={styles.tab}
-        color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
-      />
-      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
-      {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
-    </Kb.NativeView>
-  ) : null
-})
+    const data = tabToData.get(routeName)
+    return data ? (
+      <View style={styles.container}>
+        <Kb.Icon
+          type={data.icon}
+          fontSize={32}
+          style={styles.tab}
+          color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
+        />
+        {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
+        {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
+      </View>
+    ) : null
+  },
+  (a, b) => a.routeName === b.routeName && a.isFocused === b.isFocused
+)
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Styles.platformStyles({
+      badge: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           right: 8,
           top: 3,
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           flex: 1,
           justifyContent: 'center',
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-          minWidth: Styles.globalMargins.xlarge,
+          minWidth: Kb.Styles.globalMargins.xlarge,
         },
       }),
       keyboard: {
         flexGrow: 1,
         position: 'relative',
       },
-      label: {marginLeft: Styles.globalMargins.medium},
-      labelDarkMode: {color: Styles.globalColors.black_50},
-      labelDarkModeFocused: {color: Styles.globalColors.black},
-      labelLightMode: {color: Styles.globalColors.blueLighter},
-      labelLightModeFocused: {color: Styles.globalColors.white},
-      tab: Styles.platformStyles({
+      label: {marginLeft: Kb.Styles.globalMargins.medium},
+      labelDarkMode: {color: Kb.Styles.globalColors.black_50},
+      labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
+      labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
+      labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      tab: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
           paddingBottom: 6,
           paddingLeft: 16,
           paddingRight: 16,
@@ -123,20 +126,20 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {width: '100%'},
       }),
-    } as const)
+    }) as const
 )
 
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
 // we must ensure we don't keep remaking these components
-const tabScreensCache = new Map()
-const makeTabStack = (tab: string) => {
+const tabScreensCache = new Map<(typeof tabs)[number], ReturnType<typeof makeNavScreens>>()
+const makeTabStack = (tab: (typeof tabs)[number]) => {
   const S = createNativeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(tabRoutes, false, false), S.Screen, false)
+    tabScreens = makeNavScreens(shim(tabRoutes, false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -160,17 +163,10 @@ const makeTabStack = (tab: string) => {
   return Comp
 }
 
-const makeLongPressHandler = (dispatch: Container.TypedDispatch, tab: Tabs.AppTab) => {
-  return () => {
-    dispatch(RouteTreeGen.createTabLongPress({tab}))
-  }
-}
 const AppTabs = React.memo(
   function AppTabs() {
-    const dispatch = Container.useDispatch()
-
     // so we have a stack per tab
-    const tabStacks = useMemo(
+    const tabStacks = React.useMemo(
       () =>
         tabs.map(tab => (
           <Tab.Screen
@@ -183,36 +179,38 @@ const AppTabs = React.memo(
                 tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
               }
             }}
-            listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
+            listeners={{
+              tabLongPress: () => {
+                C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+              },
+            }}
           />
         )),
-      [dispatch]
+      []
     )
 
     const makeTabBarIcon =
       (routeName: string) =>
-      ({focused}) =>
-        <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+      ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
     const makeTabBarLabel =
       (routeName: string) =>
-      ({focused}) =>
-        (
-          <Kb.Text
-            style={Styles.collapseStyles([
-              styles.label,
-              Styles.isDarkMode()
-                ? focused
-                  ? styles.labelDarkModeFocused
-                  : styles.labelDarkMode
-                : focused
+      ({focused}: {focused: boolean}) => (
+        <Kb.Text
+          style={Kb.Styles.collapseStyles([
+            styles.label,
+            Kb.Styles.isDarkMode()
+              ? focused
+                ? styles.labelDarkModeFocused
+                : styles.labelDarkMode
+              : focused
                 ? styles.labelLightModeFocused
                 : styles.labelLightMode,
-            ])}
-            type="BodyBig"
-          >
-            {tabToData[routeName].label}
-          </Kb.Text>
-        )
+          ])}
+          type="BodyBig"
+        >
+          {tabToData.get(routeName as C.Tab)?.label}
+        </Kb.Text>
+      )
 
     return (
       <Tab.Navigator
@@ -221,12 +219,12 @@ const AppTabs = React.memo(
           return {
             ...Common.defaultNavigationOptions,
             headerShown: false,
-            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarHideOnKeyboard: true,
             tabBarIcon: makeTabBarIcon(route.name),
-            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarLabel: makeTabBarLabel(route.name),
-            tabBarShowLabel: Styles.isTablet,
+            tabBarShowLabel: Kb.Styles.isTablet,
             tabBarStyle: Common.tabBarStyle,
           }
         }}
@@ -240,17 +238,24 @@ const AppTabs = React.memo(
 
 const LoggedOutStack = createNativeStackNavigator()
 
-const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false}}>
+    // TODO show header and use nav headers
+    <LoggedOutStack.Navigator
+      initialRouteName="login"
+      screenOptions={{
+        ...Common.defaultNavigationOptions,
+        headerShown: false,
+      }}
+    >
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
 })
 
 const useInitialStateChangeAfterLinking = (
-  goodLinking: any,
+  goodLinking: unknown,
   onStateChange: () => void,
   loggedIn: boolean
 ) => {
@@ -279,13 +284,13 @@ const useInitialStateChangeAfterLinking = (
   const lastLoggedInTab = React.useRef<string | undefined>(undefined)
   const lastLoggedIn = Container.usePrevious(loggedIn)
   if (!loggedIn && lastLoggedIn) {
-    lastLoggedInTab.current = Constants.getTab(null)
+    lastLoggedInTab.current = Constants.getTab()
   }
 
   React.useEffect(() => {
     if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      // @ts-ignore
-      Constants.navigationRef_.navigate(lastLoggedInTab.current as any)
+      const navRef = Constants.navigationRef_
+      navRef.navigate(lastLoggedInTab.current)
     }
   }, [loggedIn, lastLoggedIn])
 
@@ -298,21 +303,23 @@ enum GoodLinkingState {
 }
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
-  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
-  if (!darkModePreference || darkModePreference === 'system') {
+  if (darkModePreference === 'system') {
     return 'default'
   }
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
 const RNApp = React.memo(function RNApp() {
-  const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
-  const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
+  const s = Shared.useShared()
+  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
+  const {navKey, initialState, onUnhandledAction} = s
+  const goodLinking = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
@@ -322,7 +329,7 @@ const RNApp = React.memo(function RNApp() {
 
   const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
-  const DEBUG_RNAPP_RENDER = __DEV__ && false
+  const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,
@@ -334,19 +341,19 @@ const RNApp = React.memo(function RNApp() {
       onStateChange,
     })
   }
-
   const barStyle = useBarStyle()
 
   return (
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
-        fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
-        linking={goodLinking}
+        fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
+        linking={goodLinking as any}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}
         initialState={initialState}
+        onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
         onReady={onReady}
       >
@@ -366,7 +373,7 @@ const RNApp = React.memo(function RNApp() {
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel2 />,
                   // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Styles.isAndroid ? undefined : 'modal',
+                  presentation: Kb.Styles.isAndroid ? undefined : 'modal',
                   title: '',
                 }}
               >

@@ -1,30 +1,32 @@
 import * as Common from './common.desktop'
-import * as Constants from '../constants/router2'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import * as Shim from './shim.desktop'
-import * as Styles from '../styles'
-import * as Tabs from '../constants/tabs'
+import {shim, getOptions} from './shim'
+import * as Tabs from '@/constants/tabs'
 import Header from './header/index.desktop'
-import type {RouteMap} from '../util/container'
-import {HeaderLeftCancel} from '../common-adapters/header-hoc'
+import type {RouteMap} from '@/constants/types/router2'
+import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {useMemo} from '../util/memoize'
+import './router.css'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
 
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
-const tabRootsVals = Object.values(tabRoots).filter(root => root != tabRoots[Tabs.fsTab]) // we allow fs root anywhere
+const tabRootsVals = Object.values(tabRoots).filter(root => {
+  return root !== tabRoots[Tabs.fsTab] && root !== tabRoots[Tabs.gitTab]
+}) // we allow some root anywhere
 // we don't want the other roots in other stacks
 const routesMinusRoots = (tab: DesktopTabs) => {
   const keepVal = tabRoots[tab]
   return Object.keys(routes).reduce<RouteMap>((m, k) => {
-    if (k === keepVal || !tabRootsVals.includes(k)) {
+    if (k === keepVal || !tabRootsVals.includes(k as any)) {
       m[k] = routes[k]
     }
     return m
@@ -32,13 +34,13 @@ const routesMinusRoots = (tab: DesktopTabs) => {
 }
 
 // we must ensure we don't keep remaking these components
-const tabScreensCache = new Map()
+const tabScreensCache = new Map<DesktopTabs, ReturnType<typeof makeNavScreens>>()
 const makeTabStack = (tab: DesktopTabs) => {
   const S = createNativeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(routesMinusRoots(tab), false, false), S.Screen, false)
+    tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -60,16 +62,19 @@ const makeTabStack = (tab: DesktopTabs) => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, _isModal: boolean) => {
-  return Object.keys(rs).map(name => {
+type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
+  return Object.keys(rs).map((name: keyof typeof routes) => {
+    const val = rs[name]
+    if (!val?.getScreen) return null
     return (
       <Screen
         key={name}
         navigationKey={name}
         name={name}
-        getComponent={rs[name].getScreen}
-        options={({route, navigation}) => {
-          const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
+        getComponent={val.getScreen}
+        options={({route, navigation}: any) => {
+          const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
@@ -80,7 +85,7 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
 
 const AppTabsInner = () => {
   // so we have a stack per tab
-  const tabStacks = useMemo(
+  const tabStacks = React.useMemo(
     () => Tabs.desktopTabs.map(tab => <Tab.Screen key={tab} name={tab} component={makeTabStack(tab)} />),
     []
   )
@@ -93,10 +98,10 @@ const AppTabsInner = () => {
           ...Common.defaultNavigationOptions,
           header: undefined,
           headerShown: false,
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarHideOnKeyboard: true,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarShowLabel: Styles.isTablet,
+          tabBarInactiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarShowLabel: Kb.Styles.isTablet,
           tabBarStyle: Common.tabBarStyle,
         }
       }}
@@ -112,7 +117,7 @@ const AppTabs = React.memo(
 )
 
 const LoggedOutStack = createNativeStackNavigator()
-const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     <LoggedOutStack.Navigator
@@ -132,24 +137,29 @@ const LoggedOut = React.memo(function LoggedOut() {
 })
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
-    const tabLabel = Tabs.desktopTabMeta[Constants.getTab(null) ?? '']?.label ?? ''
+    const t = C.getTab()
+    const m = t ? Tabs.desktopTabMeta[t] : undefined
+    const tabLabel: string = m?.label ?? ''
     return `Keybase: ${tabLabel}`
   },
 }
 const ElectronApp = () => {
-  const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
+  const s = Shared.useShared()
+  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
+  const {navKey, initialState, onUnhandledAction} = s
   Shared.useSharedAfter(appState)
 
   return (
     <NavigationContainer
-      ref={Constants.navigationRef_ as any}
+      ref={C.navigationRef_ as any}
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}
       onStateChange={onStateChange}
+      onUnhandledAction={onUnhandledAction}
       documentTitle={documentTitle}
     >
       <RootStack.Navigator

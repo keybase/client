@@ -1,20 +1,18 @@
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as C from '@/constants'
 import {useIsFocused} from '@react-navigation/core'
-import type {NavigateAppendType} from '../router-v2/route-params'
-
-type SafeNavigateAppendArg = {path: NavigateAppendType; replace?: boolean}
+import type {NavigateAppendType} from '@/router-v2/route-params'
 
 export const useSafeNavigation = () => {
   const isFocused = useIsFocused()
-
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   return React.useMemo(
     () => ({
-      safeNavigateAppendPayload: ({path, replace}: SafeNavigateAppendArg) =>
-        isFocused ? RouteTreeGen.createNavigateAppend({path, replace}) : RouteTreeGen.createNavigateUpNoop(),
-      safeNavigateUpPayload: () =>
-        isFocused ? RouteTreeGen.createNavigateUp({}) : RouteTreeGen.createNavigateUpNoop(),
+      safeNavigateAppend: (path: NavigateAppendType, replace?: boolean) =>
+        isFocused && navigateAppend(path, replace),
+      safeNavigateUp: () => isFocused && navigateUp(),
     }),
-    [isFocused]
+    [navigateUp, isFocused, navigateAppend]
   )
 }

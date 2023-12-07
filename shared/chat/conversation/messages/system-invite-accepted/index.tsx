@@ -1,13 +1,12 @@
-import type * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {typeToLabel} from '../../../../constants/teams'
 
 type Props = {
-  message: Types.MessageSystemInviteAccepted
+  message: T.Chat.MessageSystemInviteAccepted
   onViewTeam: () => void
-  role: TeamTypes.MaybeTeamRoleType
+  role: T.Teams.MaybeTeamRoleType
   teamname: string
   you: string
 }
@@ -25,7 +24,7 @@ const InviteAddedToTeamNotice = (props: Props) => {
     return <YouInviteAddedToTeamNotice {...props} />
   }
   const {inviter} = props.message
-  const roleLabel = props.role === 'none' ? null : typeToLabel[props.role]
+  const roleLabel = props.role === 'none' ? null : C.Teams.typeToLabel[props.role]
   // There's not a lot of space to explain the adder / inviter situation,
   // just pretend they were added by the inviter for now.
   return (

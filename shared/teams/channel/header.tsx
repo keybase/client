@@ -1,23 +1,18 @@
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
-import type {TeamID} from '../../constants/types/teams'
-import {pluralize} from '../../util/string'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
-import * as TeamsGen from '../../actions/teams-gen'
 
-const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
+const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
-  const getRecentJoinsRPC = Container.useRPC(RPCChatGen.localGetRecentJoinsLocalRpcPromise)
+  const getRecentJoinsRPC = C.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
     setRecentJoins(undefined)
     getRecentJoinsRPC(
-      [{convID: keyToConversationID(conversationIDKey)}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
       r => setRecentJoins(r),
       () => {}
     )
@@ -26,55 +21,35 @@ const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
 }
 
 type HeaderTitleProps = {
-  teamID: TeamID
-  conversationIDKey: ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
-    afterEdit: () => {
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-    },
     channelname: channelname,
     conversationIDKey,
     description: description,
     teamID,
   }
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onEditChannel = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: editChannelProps, selected: 'teamEditChannel'}],
-      })
-    )
+  const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
   const onAddMembers = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-      })
-    )
-  const onNavToTeam = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {teamID}, selected: 'team'}],
-      })
-    )
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
-  )
+    nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
+  const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const activityLevel = C.useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({conversationIDKey, reason: 'channelHeader'})
 
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
@@ -90,29 +65,49 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const onDeleteChannel = () => {
-    dispatch(nav.safeNavigateUpPayload())
-    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
-  }
+  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
-  const menuItems: Array<Kb.MenuItem> = [
-    // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
-    // It's included in the other place this menu appears.
-    ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
-  ]
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const menuItems: Array<Kb.MenuItem> = React.useMemo(
+    () => [
+      // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
+      // It's included in the other place this menu appears.
+      ...(canDelete
+        ? [
+            {
+              danger: true,
+              onClick: () => {
+                nav.safeNavigateUp()
+                deleteChannelConfirmed(teamID, conversationIDKey)
+              },
+              title: 'Delete channel',
+            },
+          ]
+        : []),
+    ],
+    [deleteChannelConfirmed, nav, teamID, conversationIDKey, canDelete]
+  )
+
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [menuItems]
+  )
+
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isMobile}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isMobile}>
         {!!description && (
           <Kb.Text type="Body" lineClamp={3}>
             {description}
@@ -132,7 +127,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {yourOperations.editChannelDescription && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
-          {!Styles.isMobile && (
+          {!Kb.Styles.isMobile && (
             <Kb.Button
               label="Add members"
               onClick={onAddMembers}
@@ -146,7 +141,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"
-              iconColor={Styles.globalColors.blue}
+              iconColor={Kb.Styles.globalColors.blue}
               ref={popupAnchor}
               onClick={toggleShowingPopup}
             />
@@ -159,12 +154,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const tip = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
-      <Kb.Icon color={Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
       <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
     </Kb.Box2>
   )
 
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.outerBoxMobile}>
@@ -204,7 +199,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default HeaderTitle
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMembersButton: {
@@ -214,7 +209,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
       },
       backButton: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       flexShrink: {
         flexShrink: 1,
@@ -225,29 +220,29 @@ const styles = Styles.styleSheetCreate(
       outerBoxDesktop: {
         flexGrow: 1,
         flexShrink: 1,
-        marginBottom: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
       },
       outerBoxMobile: {
-        ...Styles.padding(Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.white,
       },
-      rightActionsContainer: Styles.platformStyles({
+      rightActionsContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      tipBox: Styles.platformStyles({
+      tipBox: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
-          marginRight: Styles.globalMargins.large,
+          marginLeft: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.large,
+          marginRight: Kb.Styles.globalMargins.large,
           maxWidth: 460,
-          paddingTop: Styles.globalMargins.xxtiny,
+          paddingTop: Kb.Styles.globalMargins.xxtiny,
         },
         isMobile: {
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

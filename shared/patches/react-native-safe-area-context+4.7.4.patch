@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-safe-area-context/lib/module/SafeAreaContext.js b/node_modules/react-native-safe-area-context/lib/module/SafeAreaContext.js
+index 479a88d..cdbcb3d 100644
+--- a/node_modules/react-native-safe-area-context/lib/module/SafeAreaContext.js
++++ b/node_modules/react-native-safe-area-context/lib/module/SafeAreaContext.js
+@@ -54,7 +54,7 @@ export function SafeAreaProvider(_ref) {
+     });
+   }, []);
+   return /*#__PURE__*/React.createElement(NativeSafeAreaProvider, _extends({
+-    style: StyleSheet.compose(styles.fill, style),
++    style: [styles.fill, style],
+     onInsetsChange: onInsetsChange
+   }, others), insets != null ? /*#__PURE__*/React.createElement(SafeAreaFrameContext.Provider, {
+     value: frame

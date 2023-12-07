@@ -1,17 +1,18 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/settings'
+import * as Kb from '@/common-adapters'
+import * as Constants from '@/constants/settings'
 import UpdatePassword from '../password'
 
 export type Props = {
   checkPasswordIsCorrect?: boolean
+  hasPGPKeyOnServer: boolean
   hasRandomPW?: boolean
   onBootstrap: () => void
   onCancel: () => void
   onCheckPassword: (password: string) => void
   onLogout: () => void
   onSavePassword: (password: string) => void
+  onUpdatePGPSettings: () => void
   waitingForResponse: boolean
 }
 
@@ -42,13 +43,16 @@ class LogOut extends React.Component<Props, State> {
 
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
-    const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
-    return this.props.hasRandomPW === null ? (
+    const keyboardType = this.state.showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
+    return this.props.hasRandomPW === undefined ? (
       <Kb.Modal onClose={this.props.onCancel}>
         <Kb.ProgressIndicator style={styles.progress} type="Huge" />
       </Kb.Modal>
     ) : this.props.hasRandomPW ? (
       <UpdatePassword
+        error=""
+        onUpdatePGPSettings={this.props.onUpdatePGPSettings}
+        hasPGPKeyOnServer={this.props.hasPGPKeyOnServer}
         hasRandomPW={this.props.hasRandomPW}
         onCancel={this.props.onCancel}
         onSave={this.props.onSavePassword}
@@ -74,9 +78,7 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={
-                  !!this.props.checkPasswordIsCorrect || !this.state.password || this.state.loggingOut
-                }
+                disabled={!this.state.password || this.state.loggingOut}
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
@@ -110,17 +112,17 @@ class LogOut extends React.Component<Props, State> {
           ),
         }}
         header={{
-          leftButton: Styles.isMobile ? (
+          leftButton: Kb.Styles.isMobile ? (
             <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
               Cancel
             </Kb.Text>
           ) : null,
-          title: !Styles.isMobile && 'Do you know your password?',
+          title: !Kb.Styles.isMobile && 'Do you know your password?',
         }}
         onClose={this.props.onCancel}
       >
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-          {Styles.isMobile && (
+          {Kb.Styles.isMobile && (
             <Kb.Text style={styles.headerText} type="Header">
               Do you know your password?
             </Kb.Text>
@@ -154,60 +156,60 @@ class LogOut extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyText: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
         textAlign: 'center',
       },
       buttonBar: {
         minHeight: undefined,
       },
       checkbox: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       container: {
-        ...Styles.padding(
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small,
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small
         ),
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
       },
       headerText: {
-        marginBottom: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
         textAlign: 'center',
       },
       logout: {
-        paddingLeft: Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
       },
-      logoutBackground: Styles.platformStyles({
+      logoutBackground: Kb.Styles.platformStyles({
         isTablet: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
       }),
-      logoutContainer: Styles.platformStyles({
+      logoutContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           justifyContent: 'center',
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          ...Styles.desktopStyles.clickable,
+          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
       progress: {
         alignSelf: 'center',
-        marginBottom: Styles.globalMargins.xlarge,
-        marginTop: Styles.globalMargins.xlarge,
+        marginBottom: Kb.Styles.globalMargins.xlarge,
+        marginTop: Kb.Styles.globalMargins.xlarge,
       },
       smallProgress: {
         alignSelf: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default LogOut

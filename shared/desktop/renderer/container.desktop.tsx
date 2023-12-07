@@ -1,36 +1,30 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import {Provider} from 'react-redux'
-import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
-import {GatewayProvider} from '@chardskarth/react-gateway'
-import {CanFixOverdrawContext} from '../../styles'
+import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {CanFixOverdrawContext, DarkModeContext} from '@/styles'
 import './style.css'
 
 // if we want to load the read profiler before the app is loaded
-const deferLoadingApp = __DEV__ && false
+const deferLoadingApp = __DEV__ && (false as boolean)
 
-// TODO if we use it, add it here
-// <React.StrictMode>
-// </React.StrictMode>
-const Root = ({store, children}: any) => {
+const Root = ({children}: any) => {
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <GlobalKeyEventHandler>
-      <GatewayProvider>
-        <CanFixOverdrawContext.Provider value={true}>
-          <Provider store={store}>{children}</Provider>
-        </CanFixOverdrawContext.Provider>
-      </GatewayProvider>
+      <CanFixOverdrawContext.Provider value={true}>
+        <DarkModeContext.Provider value={darkMode}>{children}</DarkModeContext.Provider>
+      </CanFixOverdrawContext.Provider>
     </GlobalKeyEventHandler>
   )
 }
 
 const WaitingRoot = (props: any) => {
   const [wait, setWait] = React.useState(true)
-
-  React.useEffect(() => {
+  C.useOnMountOnce(() => {
     setTimeout(() => {
       setWait(false)
     }, 5000)
-  }, [])
+  })
 
   if (wait) {
     return null
@@ -38,5 +32,4 @@ const WaitingRoot = (props: any) => {
 
   return <Root {...props} />
 }
-
 export default deferLoadingApp ? WaitingRoot : Root

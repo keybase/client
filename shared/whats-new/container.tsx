@@ -1,19 +1,8 @@
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Container from '../util/container'
-import * as GregorGen from '../actions/gregor-gen'
-import type * as Tabs from '../constants/tabs'
-import openURL from '../util/open-url'
-import {
-  currentVersion,
-  lastVersion,
-  lastLastVersion,
-  noVersion,
-  getSeenVersions,
-  anyVersionsUnseen,
-} from '../constants/whats-new'
+import * as C from '@/constants'
+import openURL from '@/util/open-url'
+import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
 
 type OwnProps = {
   // Desktop only: popup.desktop.tsx passes this function to close the popup
@@ -21,59 +10,45 @@ type OwnProps = {
   onBack?: () => void
 }
 
-const WhatsNewContainer = Container.connect(
-  (state: Container.TypedState) => ({
-    lastSeenVersion: state.config.whatsNewLastSeenVersion,
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    // Navigate primary/secondary button click
+const WhatsNewContainer = (ownProps: OwnProps) => {
+  const _onNavigateExternal = (url: string) => {
+    openURL(url)
+  }
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const _onSwitchTab = (tab: C.AppTab) => {
+    switchTab(tab)
+  }
 
-    _onNavigate: (props: NavigateAppendPayload['payload']) => {
-      dispatch(RouteTreeGen.createNavigateAppend(props))
-    },
-
-    _onNavigateExternal: (url: string) => openURL(url),
-
-    _onSwitchTab: (tab: Tabs.AppTab) => dispatch(RouteTreeGen.createSwitchTab({tab})),
-
-    _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
-      const action = GregorGen.createUpdateCategory({
-        body: lastSeenVersion,
-        category: 'whatsNewLastSeenVersion',
-      })
-      dispatch(action)
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const seenVersions = getSeenVersions(stateProps.lastSeenVersion)
-    const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
-    const onBack = () => {
-      if (newRelease) {
-        dispatchProps._onUpdateLastSeenVersion(currentVersion)
-      }
-      if (ownProps.onBack) {
-        ownProps.onBack()
-      }
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
+  const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
+    updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
+  }
+  const seenVersions = C.useWNState(s => s.getSeenVersions())
+  const newRelease = C.useWNState(s => s.anyVersionsUnseen())
+  const onBack = () => {
+    if (newRelease) {
+      _onUpdateLastSeenVersion(currentVersion)
     }
-    return {
-      Current,
-      Last,
-      LastLast,
-      currentVersion,
-      lastLastVersion,
-      lastVersion,
-      noVersion,
-      onBack,
-      // Navigate then handle setting seen state and closing the modal (desktop only)
-      onNavigate: (props: NavigateAppendPayload['payload']) => {
-        dispatchProps._onNavigate(props)
-        onBack()
-      },
-      onNavigateExternal: dispatchProps._onNavigateExternal,
-      onSwitchTab: dispatchProps._onSwitchTab,
-      seenVersions,
+    if (ownProps.onBack) {
+      ownProps.onBack()
     }
   }
-)(WhatsNew)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const props = {
+    Current,
+    Last,
+    LastLast,
+    onBack,
+    // Navigate then handle setting seen state and closing the modal (desktop only)
+    onNavigate: (props: C.PathParam) => {
+      navigateAppend(props)
+      onBack()
+    },
+    onNavigateExternal: _onNavigateExternal,
+    onSwitchTab: _onSwitchTab,
+    seenVersions,
+  }
+  return <WhatsNew {...props} />
+}
 
 export default WhatsNewContainer

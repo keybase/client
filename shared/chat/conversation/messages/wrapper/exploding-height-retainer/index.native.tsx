@@ -1,39 +1,50 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../../styles'
+import * as Kb from '@/common-adapters'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
-import colors, {darkColors} from '../../../../../styles/colors'
+import colors, {darkColors} from '@/styles/colors'
 import type {Props} from '.'
-import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
-const explodedIllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
-const explodedIllustrationDarkURL = require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png')
+const explodedIllustrationURL =
+  require('../../../../../images/icons/pattern-ashes-mobile-400-80.png') as number
+const explodedIllustrationDarkURL =
+  require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png') as number
 
 export const animationDuration = 1500
 
-const copyChildren = (children: React.ReactNode): React.ReactNode =>
-  // @ts-ignore
-  React.Children.map(children, child => (child ? React.cloneElement(child) : child))
+const copyChildren = (children: React.ReactElement | Array<React.ReactElement>) =>
+  React.Children.map(children, child => {
+    return React.cloneElement(child)
+  })
 
 type State = {
-  children: React.ReactNode
-  height: number | null
+  children: React.ReactElement | Array<React.ReactElement>
+  height: number | undefined
   numImages: number
 }
 
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {
-    children: this.props.retainHeight ? null : copyChildren(this.props.children),
+    children: this.props.retainHeight ? (
+      <></>
+    ) : this.props.children ? (
+      copyChildren(this.props.children)
+    ) : (
+      <></>
+    ),
     height: 20,
     numImages: 1,
   }
   timeoutID?: ReturnType<typeof setTimeout>
 
   static getDerivedStateFromProps(nextProps: Props, _: State) {
-    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+    return nextProps.retainHeight
+      ? null
+      : {children: nextProps.children ? copyChildren(nextProps.children) : <></>}
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -41,7 +52,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       // we just exploded! get rid of children when we're supposed to.
       this._clearTimeout()
       this.timeoutID = setTimeout(() => {
-        this.setState({children: null})
+        this.setState({children: <></>})
         this.timeoutID = undefined
       }, animationDuration)
     }
@@ -51,8 +62,8 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     this._clearTimeout()
   }
 
-  _onLayout = (evt: any) => {
-    if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
+  _onLayout = (evt: Kb.LayoutEvent) => {
+    if (evt.nativeEvent.layout.height !== this.state.height) {
       this.setState({
         height: evt.nativeEvent.layout.height,
         numImages: Math.ceil(evt.nativeEvent.layout.height / 80),
@@ -72,7 +83,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     return (
       <Kb.Box
         onLayout={this._onLayout}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.container,
           this.props.style,
           this.props.retainHeight && styles.retaining,
@@ -100,22 +111,22 @@ type AshTowerProps = {
 
 type AshTowerState = {
   showExploded: boolean
-  width: Kb.NativeAnimated.Value
+  width: NativeAnimated.Value
 }
 
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   state = {
     showExploded: this.props.exploded,
-    width: this.props.exploded ? new Kb.NativeAnimated.Value(100) : new Kb.NativeAnimated.Value(0),
+    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
   }
   timerID?: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
       // just exploded! animate
-      Kb.NativeAnimated.timing(this.state.width, {
+      NativeAnimated.timing(this.state.width, {
         duration: animationDuration,
-        easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
+        easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
         useNativeDriver: false,
       }).start()
@@ -141,16 +152,16 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
       outputRange: ['0%', '100%'],
     })
     return (
-      <Kb.NativeAnimated.View style={[{width}, styles.slider]}>
+      <NativeAnimated.View style={[{width}, styles.slider]}>
         <AshTower {...this.props} showExploded={this.state.showExploded} />
         <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
-      </Kb.NativeAnimated.View>
+      </NativeAnimated.View>
     )
   }
 }
 
 class EmojiTower extends React.Component<
-  {numImages: number; animatedValue: Kb.NativeAnimated.Value},
+  {numImages: number; animatedValue: NativeAnimated.Value},
   {running: boolean}
 > {
   state = {running: false}
@@ -184,8 +195,8 @@ class EmojiTower extends React.Component<
     const children: Array<React.ReactNode> = []
     for (let i = 0; i < this.props.numImages * 4; i++) {
       const r = Math.random()
-      let emoji
-      if (Styles.isAndroid) {
+      let emoji: string
+      if (Kb.Styles.isAndroid) {
         emoji = r < 0.5 ? '💥' : '💣'
       } else {
         if (r < 0.33) {
@@ -209,9 +220,9 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(
-      <Kb.NativeImage
+      <Kb.Image2
         key={i}
-        source={Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        src={Kb.Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}
       />
     )
@@ -245,17 +256,17 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     </>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       ashes: {
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         height: 80,
         width: 400,
       },
-      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
       emojiTower: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         bottom: 0,
         overflow: 'hidden',
         position: 'absolute',
@@ -264,15 +275,15 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       exploded: {
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black_20_on_white,
-        paddingLeft: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        color: Kb.Styles.globalColors.black_20_on_white,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       retaining: {
         overflow: 'hidden',
       },
       slider: {
-        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
+        backgroundColor: Kb.Styles.isDarkMode() ? darkColors.white : colors.white,
         bottom: 0,
         height: '100%',
         left: 0,
@@ -281,14 +292,14 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       tagBox: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         bottom: 2,
         minWidth: 80,
         position: 'absolute',
         right: 0,
       },
-    } as const)
+    }) as const
 )
 export default ExplodingHeightRetainer

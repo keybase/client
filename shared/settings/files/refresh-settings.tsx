@@ -1,18 +1,5 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
-
-type OwnProps = {}
-
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = dispatch => ({
-  refresh: () => dispatch(FsGen.createLoadSettings()),
-})
-
-const mergeProps = (_, d, __: OwnProps) => ({
-  refresh: d.refresh,
-})
+import * as C from '@/constants'
 
 type Props = {
   refresh: () => void
@@ -27,4 +14,12 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Component)
+const Container = () => {
+  const refresh = C.useFSState(s => s.dispatch.loadSettings)
+  const props = {
+    refresh,
+  }
+  return <Component {...props} />
+}
+
+export default Container

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {FlatList, View} from 'react-native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './list'
 import {createAnimatedComponent} from './reanimated'
 import noop from 'lodash/noop'
@@ -15,7 +15,7 @@ class List<Item> extends React.PureComponent<Props<Item>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (_: Array<Item> | null | undefined, index: number) => ({
+  _getItemLayout = (_: unknown, index: number) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,
@@ -27,7 +27,8 @@ class List<Item> extends React.PureComponent<Props<Item>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp] ?? String(index)
+    const i = item as any
+    return i[keyProp] ?? String(index)
   }
 
   render() {

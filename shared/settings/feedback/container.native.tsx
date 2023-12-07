@@ -1,22 +1,21 @@
-import logger from '../../logger'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
 import Feedback from '.'
-import * as Container from '../../util/container'
-import {isAndroid, version, pprofDir} from '../../constants/platform'
+import logger from '@/logger'
 import {Platform} from 'react-native'
-import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
+import {getExtraChatLogsForLogSend} from './shared'
+import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
-
-type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
+import type {Props as OwnProps} from './container'
 
 export type State = {
   sending: boolean
-  sendError?: Error
+  sendError: string
 }
 export type Props = {
   chat: Object
-  feedback: string
+  feedback?: string
   loggedOut: boolean
   push: Object
   status: Object
@@ -25,17 +24,11 @@ export type Props = {
 const mobileOsVersion = Platform.Version
 
 class FeedbackContainer extends React.Component<Props, State> {
-  static navigationOptions = {
-    header: undefined,
-    title: 'Feedback',
-    useHeaderHeight: () => 60,
-  }
-
   private mounted = false
   private timeoutID?: ReturnType<typeof setTimeout>
 
   state = {
-    sendError: undefined,
+    sendError: '',
     sending: false,
   }
 
@@ -74,7 +67,7 @@ class FeedbackContainer extends React.Component<Props, State> {
         logger.info('logSendId is', logSendId)
         if (this.mounted) {
           this.setState({
-            sendError: undefined,
+            sendError: '',
             sending: false,
           })
         }
@@ -84,7 +77,7 @@ class FeedbackContainer extends React.Component<Props, State> {
         .catch(err => {
           logger.warn('err in sending logs', err)
           if (this.mounted) {
-            this.setState({sendError: err, sending: false})
+            this.setState({sendError: String(err), sending: false})
           }
         })
     }, 0)
@@ -109,28 +102,35 @@ class FeedbackContainer extends React.Component<Props, State> {
 
 // TODO really shouldn't be doing this in connect, should do this with an action
 
-const connected = Container.connect(
-  state => ({
-    chat: getExtraChatLogsForLogSend(state),
-    loggedOut: !state.config.loggedIn,
-    push: getPushTokenForLogSend(state),
-    status: {
-      appVersionCode,
-      appVersionName,
-      deviceID: state.config.deviceID,
-      mobileOsVersion,
-      platform: isAndroid ? 'android' : 'ios',
-      uid: state.config.uid,
-      username: state.config.username,
-      version,
-    },
-  }),
-  () => ({}),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    feedback: o.route.params?.feedback ?? '',
-  })
-)(FeedbackContainer)
+const Connected = (ownProps: OwnProps) => {
+  const feedback = ownProps.feedback ?? ''
+  const chat = getExtraChatLogsForLogSend()
+  const loggedOut = C.useConfigState(s => !s.loggedIn)
+  const _push = C.usePushState(s => s.token)
+  const push = {pushToken: _push}
 
-export default connected
+  const deviceID = C.useCurrentUserState(s => s.deviceID)
+  const uid = C.useCurrentUserState(s => s.uid)
+  const username = C.useCurrentUserState(s => s.username)
+  const status = {
+    appVersionCode,
+    appVersionName,
+    deviceID,
+    mobileOsVersion,
+    platform: isAndroid ? 'android' : 'ios',
+    uid,
+    username,
+    version,
+  }
+
+  const props = {
+    chat,
+    feedback,
+    loggedOut,
+    push,
+    status,
+  }
+  return <FeedbackContainer {...props} />
+}
+
+export default Connected

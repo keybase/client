@@ -1,5 +1,6 @@
-import * as React from 'react'
-import * as Styles from '../styles'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
+import type {MeasureRef} from './measure-ref'
 
 export type Props = {
   className?: string
@@ -7,7 +8,7 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
   onClick?: (event: React.BaseSyntheticEvent) => void
   onDoubleClick?: (event: React.BaseSyntheticEvent) => void
-  onPress?: void
+  onPress?: never
   onLongPress?: (event: React.BaseSyntheticEvent) => void
   underlayColor?: string
   onPressIn?: () => void
@@ -15,9 +16,8 @@ export type Props = {
   // mobile only
   feedback?: boolean
   activeOpacity?: number
-  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only'
   // desktop only
-  hoverColor?: string | null
+  hoverColor?: string
   onMouseOver?: (event: React.MouseEvent) => void
   onMouseEnter?: (event: React.MouseEvent) => void
   onMouseLeave?: (event: React.MouseEvent) => void
@@ -26,8 +26,6 @@ export type Props = {
   onMouseUp?: (event: React.MouseEvent) => void
   title?: string
 }
-
-declare class ClickableBox extends React.Component<Props> {}
 
 export type Props2 = {
   // mobile only
@@ -40,6 +38,7 @@ export type Props2 = {
   className?: string
   style?: Styles.StylesCrossPlatform
 }
-export declare class ClickableBox2 extends React.Component<Props2> {}
 
+export declare const ClickableBox: ReturnType<typeof React.forwardRef<MeasureRef, Props>>
+export declare const ClickableBox2: ReturnType<typeof React.forwardRef<MeasureRef, Props2>>
 export default ClickableBox

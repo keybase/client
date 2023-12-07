@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 
@@ -12,7 +12,7 @@ type State = {
 
 class Input extends React.PureComponent<Props, State> {
   _input: HTMLTextAreaElement | HTMLInputElement | null = null
-  _isComposingIME = false
+  _isComposingIME: boolean = false
 
   state = {
     focused: false,
@@ -69,7 +69,7 @@ class Input extends React.PureComponent<Props, State> {
     return {end: selectionEnd, start: selectionStart}
   }
 
-  _onChangeTextDone = value => {
+  _onChangeTextDone = (value: string) => {
     this.props.onChangeText?.(value)
   }
 
@@ -78,11 +78,7 @@ class Input extends React.PureComponent<Props, State> {
     this._onChangeTextDone(text)
   }
 
-  _onChange = (event: {
-    target: {
-      value: string | null
-    }
-  }) => {
+  _onChange = (event: {target: {value?: string}}) => {
     this._onChangeText(event.target.value || '')
   }
 
@@ -97,7 +93,7 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     const n = this._input
-    if (!n || !n.style) {
+    if (!n?.style) {
       return
     }
 
@@ -117,13 +113,14 @@ class Input extends React.PureComponent<Props, State> {
       if (n.scrollHeight > rect.height) {
         this._smartAutoresize.pivotLength = value.length
         n.style.height = `${n.scrollHeight}px`
-      } else {
+      } else if (
         // see if we went back down in height
-        if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-          this._smartAutoresize.pivotLength = -1
-          n.style.height = '1px'
-          n.style.height = `${n.scrollHeight}px`
-        }
+        this._smartAutoresize.pivotLength !== -1 &&
+        value.length <= this._smartAutoresize.pivotLength
+      ) {
+        this._smartAutoresize.pivotLength = -1
+        n.style.height = '1px'
+        n.style.height = `${n.scrollHeight}px`
       }
     } else {
       n.style.height = '1px'
@@ -194,7 +191,7 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }
-    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey) {
       if (e.altKey || e.ctrlKey) {
         // If multiline, inject a newline.
         if (this.props.multiline) {
@@ -246,7 +243,7 @@ class Input extends React.PureComponent<Props, State> {
     return this.state.focused ? Styles.globalColors.blue : Styles.globalColors.black_10
   }
 
-  _rowsToHeight = rows => {
+  _rowsToHeight = (rows: number) => {
     return rows * _lineHeight + 1 // border
   }
 
@@ -309,7 +306,7 @@ class Input extends React.PureComponent<Props, State> {
 
     const floatingHintText =
       !!value.length &&
-      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
+      (Object.hasOwn(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
@@ -325,29 +322,22 @@ class Input extends React.PureComponent<Props, State> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.hintText,
-      readOnly:
-        Object.prototype.hasOwnProperty.call(this.props, 'editable') && !this.props.editable
-          ? true
-          : undefined,
+      readOnly: Object.hasOwn(this.props, 'editable') && !this.props.editable ? true : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
-    }
-
-    if (!this.props.uncontrolled) {
-      // @ts-ignore it's ok to add this
-      commonProps.value = value
+      ...(this.props.uncontrolled ? null : {value}),
     }
 
     const singlelineProps = {
       ...commonProps,
-      style: Styles.collapseStyles([inputStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([inputStyle, this.props.inputStyle]) as React.CSSProperties,
       type: this._propTypeToSingleLineType(),
     }
 
     const multilineProps = {
       ...commonProps,
       rows: this.props.rowsMin || defaultRowsToShow,
-      style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]) as React.CSSProperties,
     }
 
     return (
@@ -365,13 +355,7 @@ class Input extends React.PureComponent<Props, State> {
             {this.props.smallLabel}
           </Text>
         )}
-        {this.props.multiline ? (
-          // @ts-ignore clash between our types and DOM types
-          <textarea {...multilineProps} />
-        ) : (
-          // @ts-ignore clash between our types and DOM types
-          <input {...singlelineProps} />
-        )}
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text
@@ -400,7 +384,6 @@ const styles = Styles.styleSheetCreate(() => ({
       border: 'none',
       color: Styles.globalColors.black,
       flex: 1,
-      // @ts-ignore
       outlineWidth: 0,
     },
   }),
@@ -429,7 +412,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   smallLabel: Styles.platformStyles({
-    // @ts-ignore
     isElectron: {
       ...Styles.globalStyles.fontSemibold,
       color: Styles.globalColors.blueDark,

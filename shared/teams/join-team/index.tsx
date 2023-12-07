@@ -1,16 +1,13 @@
-import * as TeamsGen from '../../actions/teams-gen'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   errorText: string
   initialTeamname?: string
   open: boolean
   success: boolean
-  successTeamName: string | null
+  successTeamName?: string
   onBack: () => void
   onJoinTeam: (name: string) => void
 }
@@ -32,12 +29,10 @@ export const Success = (props: {teamname: string}) => (
 const JoinTeam = (props: Props) => {
   const [name, _setName] = React.useState(props.initialTeamname ?? '')
   const setName = (n: string) => _setName(n.toLowerCase())
-  const dispatch = Container.useDispatch()
-
+  const resetTeamJoin = C.useTeamsState(s => s.dispatch.resetTeamJoin)
   React.useEffect(() => {
-    dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
-    dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
-  }, [dispatch])
+    resetTeamJoin()
+  }, [resetTeamJoin])
 
   const onSubmit = () => {
     props.onJoinTeam(name)
@@ -60,7 +55,7 @@ const JoinTeam = (props: Props) => {
               label={props.success ? 'Close' : 'Continue'}
               onClick={props.success ? props.onBack : onSubmit}
               type={props.success ? 'Dim' : 'Default'}
-              waitingKey={Constants.joinTeamWaitingKey}
+              waitingKey={C.Teams.joinTeamWaitingKey}
             />
           </Kb.ButtonBar>
         ),
@@ -68,7 +63,7 @@ const JoinTeam = (props: Props) => {
       header={{
         hideBorder: props.success,
         leftButton:
-          Styles.isMobile && !props.success ? (
+          Kb.Styles.isMobile && !props.success ? (
             <Kb.Text type="BodyBigLink" onClick={props.onBack}>
               Cancel
             </Kb.Text>
@@ -118,17 +113,17 @@ const JoinTeam = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
+      banner: Kb.Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
       buttonBar: {minHeight: undefined},
       container: {
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      roundedBox: {marginBottom: Styles.globalMargins.tiny},
-    } as const)
+      roundedBox: {marginBottom: Kb.Styles.globalMargins.tiny},
+    }) as const
 )
 
 export default JoinTeam

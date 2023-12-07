@@ -1,18 +1,14 @@
-import * as Constants from '../../../../../../constants/chat2'
-import * as Container from '../../../../../../util/container'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
-import type * as Types from '../../../../../../constants/types/chat2'
-import * as Kb from '../../../../../../common-adapters'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
-import shallowEqual from 'shallowequal'
+import * as Kb from '@/common-adapters'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 
 export type UnfurlListItem = {
-  unfurl: RPCChatTypes.UnfurlDisplay
+  unfurl: T.RPCChat.UnfurlDisplay
   url: string
   isCollapsed: boolean
   onClose?: () => void
@@ -20,7 +16,6 @@ export type UnfurlListItem = {
 }
 
 export type ListProps = {
-  conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
   author?: string
   toggleMessagePopup: () => void
@@ -28,28 +23,27 @@ export type ListProps = {
 }
 
 export type UnfurlProps = {
-  conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
   author?: string
   isCollapsed: boolean
   onClose?: () => void
   onCollapse: () => void
   toggleMessagePopup: () => void
-  unfurl: RPCChatTypes.UnfurlDisplay
+  unfurl: T.RPCChat.UnfurlDisplay
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           flex: 1,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: Kb.Styles.globalMargins.xtiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 type UnfurlRenderType = 'generic' | 'map' | 'giphy'
@@ -61,22 +55,21 @@ const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: 
 ])
 
 const UnfurlListContainer = React.memo(function UnfurlListContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Container.useSelector(
-    state =>
-      [...(Constants.getMessage(state, conversationIDKey, ordinal)?.unfurls?.values() ?? [])].map(u => {
+  const unfurlTypes: Array<UnfurlRenderType | 'none'> = C.useChatContext(
+    C.useShallow(s =>
+      [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
         switch (ut) {
-          case RPCChatTypes.UnfurlType.giphy:
+          case T.RPCChat.UnfurlType.giphy:
             return 'giphy'
-          case RPCChatTypes.UnfurlType.generic:
+          case T.RPCChat.UnfurlType.generic:
             return u.unfurl.generic.mapInfo ? 'map' : 'generic'
           default:
             return 'none'
         }
-      }),
-    shallowEqual
+      })
+    )
   )
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>

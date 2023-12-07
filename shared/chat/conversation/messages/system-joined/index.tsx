@@ -1,8 +1,7 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv'
-import {formatTimeForChat} from '../../../../util/timestamp'
+import {formatTimeForChat} from '@/util/timestamp'
 type Props = {
   author: string
   authorIsYou: boolean
@@ -28,7 +27,7 @@ const Joined = (props: Props) => (
 const MultiUserJoinedNotice = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
     <UserNotice>
-      <Kb.Text type="BodySmall" style={{paddingBottom: Styles.globalMargins.xxtiny}} lineClamp={2}>
+      <Kb.Text type="BodySmall" style={{paddingBottom: Kb.Styles.globalMargins.xxtiny}} lineClamp={2}>
         {props.joiners.length > 0 ? getAddedUsernames(props.joiners) : getAddedUsernames(props.leavers)}
         {` ${props.leavers.length > props.joiners.length ? 'left' : 'joined'} ${
           props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`
@@ -52,16 +51,16 @@ const MultiUserJoinedNotice = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarLine: Styles.platformStyles({
+      avatarLine: Kb.Styles.platformStyles({
         isElectron: {marginLeft: -2},
-        isMobile: {marginLeft: -Styles.globalMargins.xsmall},
+        isMobile: {marginLeft: -Kb.Styles.globalMargins.xsmall},
       }),
       container: {marginLeft: -40, paddingBottom: 4},
-      timestamp: Styles.platformStyles({isElectron: {lineHeight: 19}}),
-    } as const)
+      timestamp: Kb.Styles.platformStyles({isElectron: {lineHeight: 19}}),
+    }) as const
 )
 
 export default Joined

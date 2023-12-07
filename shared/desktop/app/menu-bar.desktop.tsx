@@ -1,27 +1,45 @@
 // Entrypoint for the menubar node part
-import * as ConfigGen from '../../actions/config-gen'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RemoteGen from '@/actions/remote-gen'
+import * as R from '@/constants/remote'
 import * as Electron from 'electron'
-import logger from '../../logger'
-import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
+import logger from '@/logger'
+import {isDarwin, isWindows, isLinux, getAssetPath} from '@/constants/platform.desktop'
 import {menubar} from 'menubar'
-import {showDevTools, skipSecondaryDevtools} from '../../local-debug'
+import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window.desktop'
-import getIcons from '../../menubar/icons'
-import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
+import type {BadgeType} from '@/constants/notifications'
 
-const {mainWindowDispatch} = KB2.functions
+const getIcons = (iconType: BadgeType, isBadged: boolean) => {
+  const devMode = __DEV__ ? '-dev' : ''
+  let color = 'white'
+  const badged = isBadged ? 'badged-' : ''
+  let platform = ''
+
+  if (isDarwin) {
+    color = 'white'
+  } else if (isWindows) {
+    color = 'black'
+    platform = 'windows-'
+  }
+
+  const size = isWindows ? 16 : 22
+  const x = isLinux ? '' : '@2x'
+  return `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
+}
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
-// support dynamic dark mode system bar in big sur
-const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
+let badgeType: BadgeType = 'regular'
+let badged = false
 
-let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
-// only use imageTemplate if its not badged, else we lose the orange
-let iconPathIsBadged = false
+const getIcon = () => {
+  const path = getIcons(badgeType, badged)
+  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', path))
+  // template it always, else the color is just wrong, lose the orange sadly
+  icon.setTemplateImage(true)
+  return icon
+}
 
 type Bounds = {
   x: number
@@ -30,11 +48,8 @@ type Bounds = {
   height: number
 }
 
-const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
-  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', iconPath))
-  if (useImageTemplate && !iconPathIsBadged) {
-    icon.setTemplateImage(true)
-  }
+const MenuBar = () => {
+  const icon = getIcon()
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
@@ -67,12 +82,7 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
 
   const updateIcon = () => {
     try {
-      const resolved = getAssetPath('images', 'menubarIcon', iconPath)
-      const i = Electron.nativeImage.createFromPath(resolved)
-      if (useImageTemplate && !iconPathIsBadged) {
-        i.setTemplateImage(true)
-      }
-      mb.tray.setImage(i)
+      mb.tray.setImage(getIcon())
     } catch (err) {
       console.error('menu icon err: ' + err)
     }
@@ -81,20 +91,19 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
   type Action = {
     type: 'showTray'
     payload: {
-      icon: string
-      iconSelected: string
+      badgeType: BadgeType
       desktopAppBadgeCount: number
     }
   }
 
-  Electron.ipcMain.handle('KBmenu', (_: any, action: Action) => {
+  Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
     switch (action.type) {
       case 'showTray': {
-        iconPath = action.payload.icon
-        iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
+        badgeType = action.payload.badgeType
+        badged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
-        if (dock?.isVisible()) {
+        if (dock.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
@@ -106,8 +115,7 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
             action.payload.desktopAppBadgeCount > 0
               ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
               : null
-          // @ts-ignore overlay can be a string but TS is wrong
-          mw?.setOverlayIcon(overlay, 'new activity')
+          overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
         }
 
         break
@@ -117,8 +125,8 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
 
   mb.on('ready', () => {
     // ask for an update in case we missed one
-    mainWindowDispatch(
-      ConfigGen.createRemoteWindowWantsProps({
+    R.remoteDispatch(
+      RemoteGen.createRemoteWindowWantsProps({
         component: 'menubar',
         param: '',
       })
@@ -126,22 +134,18 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
 
     mb.tray.setIgnoreDoubleClickEvents(true)
 
-    mb.window && menubarWindowIDCallback(mb.window.id)
-
     if (showDevTools && !skipSecondaryDevtools) {
-      mb.window?.webContents.openDevTools({mode: 'detach'})
+      mb.window?.webContents.openDevTools({
+        mode: 'detach',
+        title: `${__DEV__ ? 'DEV' : 'Prod'} Menu Devtools`,
+      })
     }
 
     // Hack: open widget when left/right/double clicked
-    mb.tray.on('right-click', (e: Electron.KeyboardEvent, bounds: Bounds) => {
-      // @ts-ignore
-      e?.preventDefault()
+    mb.tray.on('right-click', (e, bounds: Bounds) => {
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
-    mb.tray.on('double-click', (e: Electron.KeyboardEvent) => {
-      // @ts-ignore
-      e?.preventDefault()
-    })
+    mb.tray.on('double-click', () => {})
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
@@ -153,7 +157,7 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
     })
 
     mb.window?.on('show', () => {
-      mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: 'menu'}))
+      R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: 'menu'}))
     })
 
     if (isLinux) {
@@ -197,18 +201,14 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
     }
 
     mb.on('show', () => {
-      mainWindowDispatch(
-        Chat2Gen.createInboxRefresh({
-          reason: 'widgetRefresh',
-        })
-      )
+      R.remoteDispatch(RemoteGen.createInboxRefresh())
       adjustForWindows()
     })
     mb.on('hide', () => {})
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window?.getBounds())
     })
-    mb.tray.on('click', (_, bounds: Bounds) => {
+    mb.tray.on('click', (_: unknown, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })

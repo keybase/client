@@ -1,17 +1,15 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/teams'
-import * as Kb from '../../../common-adapters'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
-import {FloatingRolePicker} from '../../role-picker'
-import {pluralize} from '../../../util/string'
-import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import {InlineDropdown} from '@/common-adapters/dropdown'
+import {FloatingRolePicker} from '@/teams/role-picker'
+import {pluralize} from '@/util/string'
 import RetentionPicker from './retention/container'
-import * as Styles from '../../../styles'
 import DefaultChannels from './default-channels'
 
 type Props = {
+  allowOpenTrigger: number
   canShowcase: boolean
   error?: string
   isBigTeam: boolean
@@ -21,13 +19,13 @@ type Props = {
   publicityTeam: boolean
   onEditWelcomeMessage: () => void
   openTeam: boolean
-  openTeamRole: Types.TeamRoleType
-  savePublicity: (settings: Types.PublicitySettings) => void
-  showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => void
-  teamID: Types.TeamID
-  yourOperations: Types.TeamOperations
+  openTeamRole: T.Teams.TeamRoleType
+  savePublicity: (settings: T.Teams.PublicitySettings) => void
+  showOpenTeamWarning: (isOpenTeam: boolean, teamname: string) => void
+  teamID: T.Teams.TeamID
+  yourOperations: T.Teams.TeamOperations
   waitingForWelcomeMessage: boolean
-  welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
+  welcomeMessage?: T.RPCChat.WelcomeMessageDisplay
   loadWelcomeMessage: () => void
   teamname: string
 }
@@ -35,10 +33,10 @@ type Props = {
 type RolePickerProps = {
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onOpenRolePicker: () => void
-  newOpenTeamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
+  newOpenTeamRole: T.Teams.TeamRoleType
+  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string}
 }
 
 type NewSettings = {
@@ -47,7 +45,7 @@ type NewSettings = {
   newPublicityMember: boolean
   newPublicityTeam: boolean
   newOpenTeam: boolean
-  newOpenTeamRole: Types.TeamRoleType
+  newOpenTeamRole: T.Teams.TeamRoleType
 }
 
 type State = {
@@ -80,8 +78,8 @@ const SetMemberShowcase = (props: SettingProps) => (
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
-              ? 'You must join this team to feature it on your profile.'
-              : "Admins aren't allowing members to feature this team on their profile."}
+                ? 'You must join this team to feature it on your profile.'
+                : "Admins aren't allowing members to feature this team on their profile."}
           </Kb.Text>
         </Kb.Box2>
       }
@@ -143,8 +141,8 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
             <Kb.Text type="Body">Make this an open team</Kb.Text>
             <Kb.Box2
-              direction={isMobile ? 'vertical' : 'horizontal'}
-              alignItems={isMobile ? 'flex-start' : 'center'}
+              direction={C.isMobile ? 'vertical' : 'horizontal'}
+              alignItems={C.isMobile ? 'flex-start' : 'center'}
               alignSelf="flex-start"
             >
               <Kb.Text style={styles.joinAs} type="BodySmall">
@@ -170,7 +168,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
             </Kb.Box2>
           </Kb.Box2>
         }
-        onCheck={props.isRolePickerOpen ? null : props.showWarning}
+        onCheck={props.isRolePickerOpen ? undefined : props.showWarning}
       />
     </Kb.Box2>
   )
@@ -194,7 +192,7 @@ const IgnoreAccessRequests = (props: SettingProps) =>
     </Kb.Box2>
   ) : null
 
-const toRolePickerPropsHelper = (state: State, setState) => ({
+const toRolePickerPropsHelper = (state: State, setState: any) => ({
   disabledReasonsForRolePicker: {
     admin: `Users can't join open teams as admins.`,
     owner: `Users can't join open teams as owners.`,
@@ -204,7 +202,7 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,
   onCancelRolePicker: () => setState({isRolePickerOpen: false}),
-  onConfirmRolePicker: role => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
+  onConfirmRolePicker: (role: any) => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
 })
 
@@ -260,14 +258,17 @@ export class Settings extends React.Component<Props, State> {
 
       return null
     })
+
+    if (this.props.allowOpenTrigger !== prevProps.allowOpenTrigger) {
+      this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam)
+    }
   }
 
   // TODO just use real keys/setState and not this abstraction
   setBoolSettings =
     (key: SettingName) =>
     (newSetting: boolean): void => {
-      // @ts-ignore not sure how to type this
-      this.setState({[key]: newSetting})
+      this.setState({[key]: newSetting} as any)
     }
 
   onSaveSettings = () => {
@@ -282,15 +283,11 @@ export class Settings extends React.Component<Props, State> {
   }
 
   _showOpenTeamWarning = () => {
-    this.props.showOpenTeamWarning(
-      !this.state.newOpenTeam,
-      () => this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam),
-      this.props.teamname
-    )
+    this.props.showOpenTeamWarning(!this.state.newOpenTeam, this.props.teamname)
   }
 
   render() {
-    const rolePickerProps = toRolePickerPropsHelper(this.state, s => this.setState(s))
+    const rolePickerProps = toRolePickerPropsHelper(this.state, (s: any) => this.setState(s))
     const submenuProps: SettingProps = {
       ...this.props,
       ...this.state,
@@ -317,7 +314,7 @@ export class Settings extends React.Component<Props, State> {
           )}
           {this.props.yourOperations.chat && (
             <RetentionPicker
-              containerStyle={{marginTop: globalMargins.small}}
+              containerStyle={{marginTop: Kb.Styles.globalMargins.small}}
               showSaveIndicator={false}
               teamID={this.props.teamID}
               entityType={this.props.isBigTeam ? 'big team' : 'small team'}
@@ -336,56 +333,56 @@ export class Settings extends React.Component<Props, State> {
   }
 }
 
-const styles = styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     justifyContent: 'center',
-    paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
-    paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
+    paddingBottom: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
+    paddingTop: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
   },
-  floatingRolePicker: platformStyles({
+  floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -20,
     },
   }),
-  grey: {color: globalColors.black_50},
+  grey: {color: Kb.Styles.globalColors.black_50},
   header: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginBottom: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
-  joinAs: platformStyles({
-    isElectron: {paddingRight: globalMargins.xtiny},
+  joinAs: Kb.Styles.platformStyles({
+    isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),
   main: {
     alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: 0,
     flexGrow: 1,
     justifyContent: 'flex-start',
     maxWidth: 600,
-    padding: globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  memberShowcase: {alignItems: 'flex-start', paddingRight: globalMargins.small},
+  memberShowcase: {alignItems: 'flex-start', paddingRight: Kb.Styles.globalMargins.small},
   openDropdown: {width: 70},
   openTeam: {
     flexShrink: 1,
-    paddingRight: globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
-  outerBox: {backgroundColor: Styles.globalColors.white},
-  paddingRight: {paddingRight: globalMargins.xtiny},
+  outerBox: {backgroundColor: Kb.Styles.globalColors.white},
+  paddingRight: {paddingRight: Kb.Styles.globalMargins.xtiny},
   publicitySettings: {
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.small,
   },
   shrink: {flex: 1},
-  spinner: {paddingLeft: Styles.globalMargins.xtiny},
-  teamPadding: {paddingTop: globalMargins.small},
-  welcomeMessage: {paddingRight: globalMargins.small},
+  spinner: {paddingLeft: Kb.Styles.globalMargins.xtiny},
+  teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
+  welcomeMessage: {paddingRight: Kb.Styles.globalMargins.small},
   welcomeMessageBorder: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.grey,
-    paddingLeft: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.grey,
+    paddingLeft: Kb.Styles.globalMargins.xtiny,
   },
-  welcomeMessageCard: {paddingBottom: Styles.globalMargins.tiny},
+  welcomeMessageCard: {paddingBottom: Kb.Styles.globalMargins.tiny},
   welcomeMessageContainer: {position: 'relative'},
 }))

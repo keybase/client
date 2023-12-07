@@ -1,12 +1,10 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as Platform from '../../constants/platform'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Kbfs from '../../fs/common'
-import * as FsGen from '../../actions/fs-gen'
-import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Constants from '@/constants/fs'
+import * as Kb from '@/common-adapters'
+import * as Platform from '@/constants/platform'
+import * as Kbfs from '@/fs/common'
+import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import type {Props} from '.'
 
@@ -50,18 +48,21 @@ const SyncNotificationSetting = (props: Props) => (
 )
 
 const isPending = (props: Props) =>
-  props.driverStatus.type === Types.DriverStatusType.Unknown ||
-  (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
-  (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
+  props.driverStatus.type === T.FS.DriverStatusType.Unknown ||
+  (props.driverStatus.type === T.FS.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
+  (props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 const FinderIntegration = (props: Props) => {
-  const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const openMount = displayingMountDir
-    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
+    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
-  const disable = () => dispatch(FsGen.createDriverDisable())
+  const disable = driverDisable
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
@@ -69,7 +70,7 @@ const FinderIntegration = (props: Props) => {
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
-            {props.driverStatus.type === Types.DriverStatusType.Disabled &&
+            {props.driverStatus.type === T.FS.DriverStatusType.Disabled &&
               props.driverStatus.kextPermissionError && (
                 <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
                   <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
@@ -78,7 +79,7 @@ const FinderIntegration = (props: Props) => {
                 </Kb.ClickableBox>
               )}
           </Kb.Box2>
-          {props.driverStatus.type === Types.DriverStatusType.Enabled ? (
+          {props.driverStatus.type === T.FS.DriverStatusType.Enabled ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Keybase is enabled in {Platform.fileUIName}.</Kb.Text>
               <Kb.Text type="Body">
@@ -145,49 +146,49 @@ const FilesSettings = (props: Props) => (
 )
 export default FilesSettings
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionNeededBox: {
-        marginLeft: Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.medium,
       },
       actionNeededText: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
       buttonBox: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       contentHeader: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
       },
       divider: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
       },
       finderIntegrationContent: {
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       spinner: {
         height: 16,
         width: 16,
       },
       syncContent: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.medium,
       },
       syncNotificationCheckbox: {
         alignItems: 'center',
       },
       syncNotificationDropdownItem: {
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
       },
       syncNotificationDropdownOverlay: {
-        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+        width: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.medium,
       },
       syncNotificationSettingDropdown: {
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
+        width: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.medium,
       },
-    } as const)
+    }) as const
 )

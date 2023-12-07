@@ -1,14 +1,22 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as ConfigGen from '../actions/config-gen'
-import {Box2} from './box'
+import {Box2Measure} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
-import Text, {type LineClampType, type TextType} from './text'
+import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
-import logger from '../logger'
+import * as Styles from '@/styles'
+import logger from '@/logger'
+import type {MeasureRef} from './measure-ref'
+
+const Kb = {
+  Box2Measure,
+  Button,
+  Icon,
+  Text,
+  Toast,
+}
 
 type Props = {
   buttonType?: ButtonProps['type']
@@ -33,9 +41,12 @@ const CopyText = (props: Props) => {
   const [requestedCopy, setRequestedCopy] = React.useState(false)
   const shareSheet = props.shareSheet && Styles.isMobile
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
-  React.useEffect(() => {
+  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
+
+  if (lastShowingToast !== showingToast) {
+    setLastShowingToast(showingToast)
     showingToast && setShowingToastFalseLater()
-  }, [showingToast, setShowingToastFalseLater])
+  }
 
   React.useEffect(() => {
     if (!withReveal && !text) {
@@ -48,11 +59,10 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const attachmentRef = React.useRef<Box2>(null)
-  const textRef = React.useRef<Text>(null)
-
-  const dispatch = Container.useDispatch()
-
+  const popupAnchor = React.useRef<MeasureRef>(null)
+  const textRef = React.useRef<TextMeasureRef>(null)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const copy = React.useCallback(() => {
     if (!text) {
       if (!loadText) {
@@ -62,18 +72,18 @@ const CopyText = (props: Props) => {
       setRequestedCopy(true)
     } else {
       if (shareSheet) {
-        dispatch(ConfigGen.createShowShareActionSheet({message: text, mimeType: 'text/plain'}))
+        showShareActionSheet?.('', text, 'text/plain')
       } else {
         setShowingToast(true)
-        textRef.current && textRef.current.highlightText()
-        dispatch(ConfigGen.createCopyToClipboard({text}))
+        textRef.current?.highlightText()
+        copyToClipboard(text)
       }
       onCopy && onCopy()
       if (hideOnCopy) {
         setRevealed(false)
       }
     }
-  }, [text, loadText, shareSheet, dispatch, onCopy, hideOnCopy])
+  }, [showShareActionSheet, copyToClipboard, text, loadText, shareSheet, onCopy, hideOnCopy])
 
   React.useEffect(() => {
     if (requestedCopy && loadText) {
@@ -101,15 +111,15 @@ const CopyText = (props: Props) => {
   const isRevealed = !props.withReveal || revealed
   const lineClamp = props.multiline
     ? typeof props.multiline === 'number'
-      ? (props.multiline as LineClampType)
-      : null
+      ? props.multiline
+      : undefined
     : isRevealed
     ? 1
-    : null
+    : undefined
 
   return (
-    <Box2
-      ref={attachmentRef}
+    <Kb.Box2Measure
+      ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([
         styles.container,
@@ -117,44 +127,44 @@ const CopyText = (props: Props) => {
         props.containerStyle,
       ])}
     >
-      <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
-        <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+      <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
+        {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
+        <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
-        </Text>
-      </Toast>
-      <Text
+        </Kb.Text>
+      </Kb.Toast>
+      <Kb.Text
         lineClamp={lineClamp}
         type={props.textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
         allowHighlightText={true}
-        ref={textRef}
+        textRef={textRef}
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText
           : '••••••••••••'}
-      </Text>
+      </Kb.Text>
       {!isRevealed && (
-        <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
+        <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
-        </Text>
+        </Kb.Text>
       )}
       {!props.disabled && (
-        <Button
+        <Kb.Button
           type={props.buttonType || 'Default'}
           style={styles.button}
           onClick={copy}
           labelContainerStyle={styles.buttonLabelContainer}
         >
-          <Icon
+          <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}
           />
-        </Button>
+        </Kb.Button>
       )}
-    </Box2>
+    </Kb.Box2Measure>
   )
 }
 
@@ -249,7 +259,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CopyText

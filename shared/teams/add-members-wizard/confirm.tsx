@@ -1,45 +1,36 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as RPCGen from '../../constants/types/rpc-gen'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
-import {assertionToDisplay} from '../../common-adapters/usernames'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ModalTitle, ChannelsWidget} from '../common'
-import {pluralize} from '../../util/string'
-import logger from '../../logger'
+import {pluralize} from '@/util/string'
+import logger from '@/logger'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
   admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesForPhoneEmailIndividual = {
   admin: 'Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',
 }
 
 const AddMembersConfirm = () => {
-  const dispatch = Container.useDispatch()
-
-  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = Container.useSelector(
-    s => s.teams.addMembersWizard
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = C.useTeamsState(
+    s => s.addMembersWizard
   )
-  const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
-  const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
-  const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
+  const isSubteam = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname.includes('.'))
+  const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
+  const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : C.Chat.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const isInTeam = Container.useSelector(s => Constants.getRole(s, teamID) !== 'none')
+  const isInTeam = C.useTeamsState(s => C.Teams.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -49,23 +40,26 @@ const AddMembersConfirm = () => {
 
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
-  const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
+  const [emailMessage, setEmailMessage] = React.useState<string>('')
 
-  const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
-  const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
+  const cancelAddMembersWizard = C.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
+  const onLeave = () => cancelAddMembersWizard()
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
-  const newTeamWizErr = Container.useSelector(s =>
-    fromNewTeamWizard ? s.teams.newTeamWizard.error : undefined
-  )
+  const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
-  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const newTeamWaiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
-  const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addMembers = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
+  const finishedAddMembersWizard = C.useTeamsState(s => s.dispatch.finishedAddMembersWizard)
+
   const onComplete = fromNewTeamWizard
-    ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
+    ? () => finishNewTeamWizard()
     : () => {
         setWaiting(true)
         addMembers(
@@ -79,13 +73,13 @@ const AddMembersConfirm = () => {
               teamID,
               users: addingMembers.map(member => ({
                 assertion: member.assertion,
-                role: RPCGen.TeamRole[member.role],
+                role: T.RPCGen.TeamRole[member.role],
               })),
             },
           ],
           _ => {
             // TODO handle users not added?
-            dispatch(TeamsGen.createFinishedAddMembersWizard())
+            finishedAddMembersWizard()
           },
           err => {
             setWaiting(false)
@@ -136,7 +130,7 @@ const AddMembersConfirm = () => {
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
-            {emailMessage === null ? (
+            {emailMessage === '' ? (
               <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
                 Include a note in your email
               </Kb.Text>
@@ -160,9 +154,6 @@ const AddMembersConfirm = () => {
       </Kb.Box2>
     </Kb.Modal>
   )
-}
-AddMembersConfirm.navigationOptions = {
-  gesturesEnabled: false,
 }
 
 // Show no more than 20 assertions in "already in team" section.
@@ -196,6 +187,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
           return 'emails'
         case 'phone':
           return 'phone numbers'
+        default:
       }
     }
     return 'people'
@@ -208,27 +200,35 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
 }
 
 const AddMoreMembers = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-  const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-  const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-  const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      closeOnSelect={true}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      items={[
-        {onClick: onAddKeybase, title: 'From Keybase'},
-        ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
-        {onClick: onAddEmail, title: 'By email address'},
-        {onClick: onAddPhone, title: 'By phone number'},
-      ]}
-    />
-  ))
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onAddKeybase = () => appendNewTeamBuilder(teamID)
+      const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
+      const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
+      const onAddEmail = () => nav.safeNavigateAppend({props: {}, selected: 'teamAddToTeamEmail'})
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          items={[
+            {onClick: onAddKeybase, title: 'From Keybase'},
+            ...(Kb.Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+            {onClick: onAddEmail, title: 'By email address'},
+            {onClick: onAddPhone, title: 'By phone number'},
+          ]}
+        />
+      )
+    },
+    [appendNewTeamBuilder, nav, teamID]
+  )
+
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
@@ -242,21 +242,21 @@ const AddMoreMembers = () => {
     </>
   )
 }
-type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
+type RoleType = T.Teams.AddingMemberTeamRoleType | 'setIndividually'
 
 type RoleSelectorProps = {
   disabledRoles: DisabledRoles
   memberCount: number
 }
 const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
-  const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
+  const storeRole = C.useTeamsState(s => s.addMembersWizard.role)
+  const setAddMembersWizardRole = C.useTeamsState(s => s.dispatch.setAddMembersWizardRole)
   const [role, setRole] = React.useState<RoleType>(storeRole)
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
-    dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
+    setAddMembersWizardRole(newRole)
   }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
@@ -266,7 +266,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         presetRole={storeRole}
         onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
         onConfirm={onConfirmRole}
-        includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
+        includeSetIndividually={!Kb.Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
         plural={memberCount !== 1}
       >
@@ -285,17 +285,19 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
 }
 
 const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
-  const addingMembers = Container.useSelector(s => s.teams.addMembersWizard.addingMembers)
+  const addingMembers = C.useTeamsState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
-  const showDivider = Styles.isMobile && addingMembers.length > 4
-  const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
-  const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
+  const showDivider = Kb.Styles.isMobile && addingMembers.length > 4
+  const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = C.isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
-    Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    if (Kb.Styles.isMobile) {
+      Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    }
     setExpanded(!expanded)
   }
   const content = (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap={Kb.Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
         <AddingMember
           key={toAdd.assertion}
@@ -324,7 +326,7 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
         ))}
     </Kb.Box2>
   )
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.addingMembers}>
         {content}
@@ -334,18 +336,19 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
-  const dispatch = Container.useDispatch()
+const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
+  const addMembersWizardRemoveMember = C.useTeamsState(s => s.dispatch.addMembersWizardRemoveMember)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onRemove = () => {
-    dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+    addMembersWizardRemoveMember(props.assertion)
     if (props.lastMember) {
-      dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
+      navUpToScreen('teamAddToTeamFromWhere')
     }
   }
-  const role = Container.useSelector(s => s.teams.addMembersWizard.role)
-  const individualRole: Types.MaybeTeamRoleType = Container.useSelector(
+  const role = C.useTeamsState(s => s.addMembersWizard.role)
+  const individualRole: T.Teams.MaybeTeamRoleType = C.useTeamsState(
     s =>
-      s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
+      s.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
   )
   const isPhoneEmail = props.assertion.endsWith('@phone') || props.assertion.endsWith('@email')
@@ -356,10 +359,12 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     setRole(individualRole)
     setShowingMenu(true)
   }
-  const onConfirmRole = newRole => {
+
+  const setAddMembersWizardIndividualRole = C.useTeamsState(s => s.dispatch.setAddMembersWizardIndividualRole)
+  const onConfirmRole = (newRole: typeof rolePickerRole) => {
     setRole(newRole)
     setShowingMenu(false)
-    dispatch(TeamsGen.createSetAddMembersWizardIndividualRole({assertion: props.assertion, role: newRole}))
+    setAddMembersWizardIndividualRole(props.assertion, newRole)
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
@@ -402,25 +407,27 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
   )
 }
 
-const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
+const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const addToChannels = Container.useSelector(s => s.teams.addMembersWizard.addToChannels)
-  const allKeybaseUsers = Container.useSelector(
-    s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
+  const addToChannels = C.useTeamsState(s => s.addMembersWizard.addToChannels)
+  const allKeybaseUsers = C.useTeamsState(
+    s => !s.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
-  const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
+  const addMembersWizardSetDefaultChannels = C.useTeamsState(
+    s => s.dispatch.addMembersWizardSetDefaultChannels
+  )
+  const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
   const onAdd = React.useCallback(
-    (toAdd: Array<Types.ChannelNameID>) => {
-      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
+    (toAdd: Array<T.Teams.ChannelNameID>) => {
+      addMembersWizardSetDefaultChannels(toAdd)
     },
-    [dispatch]
+    [addMembersWizardSetDefaultChannels]
   )
   const onRemove = React.useCallback(
-    (toRemove: Types.ChannelNameID) => {
-      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toRemove}))
+    (toRemove: T.Teams.ChannelNameID) => {
+      addMembersWizardSetDefaultChannels(undefined, toRemove)
     },
-    [dispatch]
+    [addMembersWizardSetDefaultChannels]
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
@@ -466,40 +473,48 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addingMember: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addingMember: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderRadius: Kb.Styles.borderRadius,
       justifyContent: 'space-between',
     },
-    isElectron: {height: 32, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.tiny},
-    isMobile: {height: 40, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.xsmall},
+    isElectron: {
+      height: 32,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      height: 40,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.xsmall,
+    },
   }),
   addingMemberDivider: {
-    backgroundColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
+    backgroundColor: Kb.Styles.globalColors.black_20,
+    borderRadius: Kb.Styles.borderRadius,
     height: 40,
     justifyContent: 'center',
   },
-  addingMembers: Styles.platformStyles({
+  addingMembers: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blueGreyDark,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.blueGreyDark,
+      borderRadius: Kb.Styles.borderRadius,
     },
     isElectron: {
-      ...Styles.padding(
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.tiny
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.tiny,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.tiny,
+        Kb.Styles.globalMargins.tiny
       ),
       maxHeight: 168,
     },
-    isMobile: {padding: Styles.globalMargins.tiny},
+    isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   body: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   controls: {
     justifyContent: 'space-between',

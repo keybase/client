@@ -1,8 +1,7 @@
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '@/constants/types'
 import type {Contact} from '../common/use-contacts.native'
 
 // Contact info + other things needed for list row.
@@ -15,19 +14,20 @@ export type ContactRowProps = Contact & {
 
 const contactRow = (_: number, props: ContactRowProps) => {
   const hasThumbnail = !!props.pictureUri
-  const source = props.pictureUri ? {uri: props.pictureUri} : null
 
   return (
     <Kb.Box style={styles.contactRowBox}>
       <Kb.Box style={styles.contactRowInnerBox}>
         <Kb.Box style={styles.contactRowInnerBox}>
-          {!!hasThumbnail && !!source && <Kb.NativeImage style={styles.thumbnail} source={source} />}
+          {!!hasThumbnail && !!props.pictureUri && (
+            <Kb.Image2 style={styles.thumbnail} src={props.pictureUri} />
+          )}
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
             </Kb.Box>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
             </Kb.Box>
           </Kb.Box>
@@ -50,11 +50,11 @@ const contactRow = (_: number, props: ContactRowProps) => {
 
 export type InviteByContactProps = {
   onBack: () => void
-  selectedRole: TeamRoleType
-  onRoleChange: (newRole: TeamRoleType) => void
+  selectedRole: T.Teams.TeamRoleType
+  onRoleChange: (newRole: T.Teams.TeamRoleType) => void
   teamName: string
   listItems: Array<ContactRowProps>
-  errorMessage: string | null
+  errorMessage?: string
 }
 
 export const InviteByContact = (props: InviteByContactProps) => {
@@ -143,59 +143,59 @@ export const InviteByContact = (props: InviteByContactProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contactList: {
         alignSelf: 'stretch',
       },
       contactRowBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 56,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       contactRowInnerBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flex: 1,
       },
       errorMessageContainer: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
+        backgroundColor: Kb.Styles.globalColors.red,
         justifyContent: 'center',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       filter: {
         width: '100%',
       },
       filterContainer: {
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: Styles.hairlineWidth,
-        padding: Styles.globalMargins.small,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomWidth: Kb.Styles.hairlineWidth,
+        padding: Kb.Styles.globalMargins.small,
       },
       inviteButton: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
         width: 100,
       },
       listContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
-        paddingBottom: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
       },
       placeHolderAvatar: {
         marginRight: 16,
       },
       rolePickerBox: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: Styles.hairlineWidth,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomWidth: Kb.Styles.hairlineWidth,
         justifyContent: 'center',
-        marginBottom: Styles.globalMargins.xtiny,
-        padding: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.small,
       },
       thumbnail: {
         borderRadius: 24,
@@ -203,5 +203,5 @@ const styles = Styles.styleSheetCreate(
         marginRight: 16,
         width: 48,
       },
-    } as const)
+    }) as const
 )

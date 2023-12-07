@@ -1,17 +1,19 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
-import logger from '../logger'
+import logger from '@/logger'
 import pick from 'lodash/pick'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
-import type {TextInput} from 'react-native'
+import {
+  TextInput as NativeTextInput,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from 'react-native'
 import {Box2} from './box'
-import {NativeTextInput} from './native-wrappers.native'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
-import {isIOS} from '../constants/platform'
-import PasteInput from '@mattermost/react-native-paste-input'
-import noop from 'lodash/noop'
+import {isIOS} from '@/constants/platform'
+import {stringToUint8Array} from 'uint8array-extras'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -22,9 +24,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _mounted = true
-  _input = React.createRef<TextInput>()
-  _lastNativeText: string | null = null
-  _lastNativeSelection: Selection | null = null
+  _input = React.createRef<NativeTextInput>()
+  _lastNativeText: string | undefined
+  _lastNativeSelection: Selection | undefined
 
   get value() {
     return this._lastNativeText ?? ''
@@ -104,7 +106,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _onChangeText = (t: string) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
-      if (Buffer.byteLength(t) > maxBytes) {
+      if (stringToUint8Array(t).byteLength > maxBytes) {
         return
       }
     }
@@ -112,11 +114,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this.props.onChangeText?.(t)
   }
 
-  _onSelectionChange = (event: {
-    nativeEvent: {
-      selection: Selection
-    }
-  }) => {
+  _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
@@ -200,8 +198,19 @@ class PlainInput extends React.PureComponent<InternalProps> {
     ])
   }
 
+  onImageChange = (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
+    if (this.props.onPasteImage) {
+      const {uri, linkUri} = e.nativeEvent
+      uri && this.props.onPasteImage(linkUri || uri)
+    }
+  }
+
+  _onSubmitEditing = () => {
+    this.props.onEnterKeyDown?.()
+  }
+
   _getProps = () => {
-    let common = {
+    const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       allowFontScaling: this.props.allowFontScaling,
       autoCapitalize: this.props.autoCapitalize || 'none',
@@ -211,35 +220,27 @@ class PlainInput extends React.PureComponent<InternalProps> {
       editable: !this.props.disabled,
       // needed to workaround changing this not doing the right thing
       key: this.props.type,
-      keyboardAppearance: isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType: this.props.keyboardType,
       multiline: false,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
+      onImageChange: this.onImageChange,
       onKeyPress: this.props.onKeyPress,
-      onPaste: this.props.onPasteImage,
       onSelectionChange: this._onSelectionChange,
-      onSubmitEditing: this.props.onEnterKeyDown,
+      onSubmitEditing: this._onSubmitEditing,
       placeholder: this.props.placeholder,
       placeholderTextColor: this.props.placeholderColor || Styles.globalColors.black_35,
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
+      // currently broken on ios https://github.com/facebook/react-native/issues/30585
       selectTextOnFocus: this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
     } as const
-
-    if (this.props.allowImagePaste) {
-      common = {
-        ...common,
-        // @ts-ignore, we let this just bubble up
-        onDropped: noop,
-      }
-    }
 
     if (this.props.multiline) {
       return {
@@ -253,7 +254,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render() {
     const props = this._getProps()
-    const Clazz: typeof NativeTextInput = this.props.allowImagePaste ? (PasteInput as any) : NativeTextInput
 
     if (props.value) {
       this._lastNativeText = props.value
@@ -268,12 +268,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
       return (
         <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
-            <Clazz {...props} editable={false} />
+            <NativeTextInput {...props} editable={false} />
           </Box2>
         </ClickableBox>
       )
     }
-    return <Clazz {...props} />
+    return <NativeTextInput {...props} />
   }
 }
 

@@ -1,7 +1,7 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isDarkMode, isDarkModePreference} from './dark-mode'
-import {partyMode} from '../local-debug'
-import {isIOS} from '../constants/platform'
+import {_useState as useDarkModeState} from '@/constants/darkmode'
+import {partyMode} from '@/local-debug'
+import {isIOS, isNewArch} from '@/constants/platform'
 
 export const colors = {
   black: 'rgba(0, 0, 0, 0.85)',
@@ -114,6 +114,7 @@ export const colors = {
     return this.brown_75
   },
   brown_75_on_white: 'rgb(117,87,78)',
+  // TODO with new arch we need to change this so ios gets tree collapsing
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminated if we use white, on Android it's eliminated if it's undefined /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
@@ -439,7 +440,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
   get yellowOrYellowAlt() {
-    return '#616161'
+    return '#c3c390'
   },
 }
 
@@ -496,30 +497,30 @@ const partyFallbackColors: {[P in keyof typeof colors]?: string | undefined} = {
 type Color = typeof colors
 type Names = keyof Color
 
-const names: Array<Names> = Object.keys(colors) as any
-
-let iosDynamicColors: {[P in keyof typeof colors]: (typeof colors)[P]}
-if (isIOS) {
-  iosDynamicColors = names.reduce<Color>((obj, name) => {
-    const {DynamicColorIOS} = require('react-native')
-    // @ts-ignore
+const names = Object.keys(colors) as Array<Names>
+let iosDynamicColors: Color
+if (isIOS && !isNewArch /* not working? */) {
+  const {DynamicColorIOS: _DynamicColorIOS} = require('react-native')
+  const DynamicColorIOS: (u: unknown) => string = _DynamicColorIOS
+  iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
     obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
-    // eslint-disable-next-line
-  }, {} as Color)
+  }, {}) as Color
 } else {
   iosDynamicColors = colors
 }
 
 export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
+  const {isDarkMode} = useDarkModeState.getState()
   if (isIOS) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,
       get() {
+        const {darkModePreference} = useDarkModeState.getState()
         // if we're in auto mode, use ios native dynamic colors
-        if (isDarkModePreference() === 'system') {
+        if (darkModePreference === 'system') {
           return iosDynamicColors[name]
         }
         return isDarkMode() ? darkColors[name] : colors[name]

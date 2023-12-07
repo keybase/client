@@ -1,113 +1,113 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import type * as ImagePicker from 'expo-image-picker'
 import EditAvatar from '.'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/profile'
-import * as TeamsConstants from '../../constants/teams'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import type * as Types from '../../constants/types/teams'
-import {anyErrors, anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'profileEditAvatar'>
+type OwnProps = {
+  image?: ImagePicker.ImagePickerAsset
+  sendChatNotification?: boolean
+  showBack?: boolean
+  teamID?: string
+  createdTeam?: boolean
+  wizard?: boolean
+}
 
-const cancelledImage = {canceled: true as const}
+const Container = (ownProps: OwnProps) => {
+  const teamID = ownProps.teamID
+  const createdTeam = ownProps.createdTeam ?? false
+  const image = ownProps.image
+  const sperror = C.useAnyErrors(C.uploadAvatarWaitingKey)
+  const sendChatNotification = ownProps.sendChatNotification ?? false
+  const submitting = C.useAnyWaiting(C.uploadAvatarWaitingKey)
+  const teamname = C.useTeamsState(s => (teamID ? C.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {params} = ownProps.route
-    const teamID = params?.teamID
-    return {
-      createdTeam: params?.createdTeam ?? false,
-      error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-      image: params?.image ?? cancelledImage,
-      sendChatNotification: params?.sendChatNotification ?? false,
-      submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
-      teamID,
-      teamname: teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined,
-    }
-  },
-  dispatch => ({
-    onBack: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onClose: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
-    onSaveTeamAvatar: (
-      filename: string,
-      teamname: string,
-      sendChatNotification: boolean,
-      crop?: RPCTypes.ImageCropRect
-    ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
-    onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
-      dispatch(ProfileGen.createUploadAvatar({crop, filename})),
-    onSaveWizardAvatar: (filename: string, crop?: Types.AvatarCrop) =>
-      dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename})),
-    onSkip: () => {
-      dispatch(TeamsGen.createSetTeamWizardAvatar({}))
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {params} = ownProps.route
-    let error = ''
-    if (stateProps.error) {
-      error =
-        stateProps.error.code === RPCTypes.StatusCode.scgeneric
-          ? stateProps.error.desc
-          : Container.isNetworkErr(stateProps.error.code)
-          ? 'Connection lost. Please check your network and try again.'
-          : 'This image format is not supported.'
-    }
-    const wizard = params?.wizard ?? false
-    const bothProps = {
-      error,
-      image: stateProps.image?.canceled ? undefined : stateProps.image,
-      onBack: dispatchProps.onBack,
-      onClose: dispatchProps.onClose,
-      sendChatNotification: stateProps.sendChatNotification,
-      submitting: stateProps.submitting,
-      waitingKey: Constants.uploadAvatarWaitingKey,
-    }
-    return stateProps.teamID
-      ? {
-          ...bothProps,
-          createdTeam: stateProps.createdTeam,
-          onSave: (
-            filename: string,
-            crop?: RPCTypes.ImageCropRect,
-            scaledWidth?: number,
-            offsetLeft?: number,
-            offsetTop?: number
-          ) => {
-            if (wizard) {
-              dispatchProps.onSaveWizardAvatar(
-                filename,
-                crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined
-              )
-            } else {
-              dispatchProps.onSaveTeamAvatar(
-                filename,
-                stateProps.teamname!,
-                stateProps.sendChatNotification,
-                crop
-              )
-            }
-          },
-          onSkip: dispatchProps.onSkip,
-          showBack: params?.showBack ?? false,
-          teamID: stateProps.teamID,
-          teamname: stateProps.teamname!,
-          type: 'team' as const,
-          wizard,
-        }
-      : {
-          ...bothProps,
-          onSave: dispatchProps.onSaveUserAvatar,
-          type: 'profile' as const,
-        }
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
+    navigateUp()
   }
-)(EditAvatar as any)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onClose = () => {
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
+    clearModals()
+  }
+  const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
+  const onSaveTeamAvatar = (
+    _filename: string,
+    teamname: string,
+    sendChatNotification: boolean,
+    crop?: T.RPCGen.ImageCropRect
+  ) => {
+    const filename = Kb.Styles.unnormalizePath(_filename)
+    uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
+  }
+
+  const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
+
+  const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
+    const filename = Kb.Styles.unnormalizePath(_filename)
+    uploadAvatar(filename, crop)
+  }
+  const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
+    const filename = Kb.Styles.unnormalizePath(_filename)
+    setTeamWizardAvatar(crop, filename)
+  }
+  const onSkip = () => {
+    setTeamWizardAvatar()
+  }
+
+  let error = ''
+  if (sperror) {
+    error =
+      sperror.code === T.RPCGen.StatusCode.scgeneric
+        ? sperror.desc
+        : C.isNetworkErr(sperror.code)
+        ? 'Connection lost. Please check your network and try again.'
+        : 'This image format is not supported.'
+  }
+  const wizard = ownProps.wizard ?? false
+  const bothProps = {
+    error,
+    image,
+    onBack,
+    onClose,
+    sendChatNotification,
+    submitting,
+    waitingKey: C.uploadAvatarWaitingKey,
+  }
+  const props = teamID
+    ? {
+        ...bothProps,
+        createdTeam,
+        onSave: (
+          filename: string,
+          crop?: T.RPCGen.ImageCropRect,
+          scaledWidth?: number,
+          offsetLeft?: number,
+          offsetTop?: number
+        ) => {
+          if (wizard) {
+            onSaveWizardAvatar(filename, crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined)
+          } else {
+            onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
+          }
+        },
+        onSkip,
+        showBack: ownProps.showBack ?? false,
+        teamID,
+        teamname,
+        type: 'team' as const,
+        wizard,
+      }
+    : {
+        ...bothProps,
+        onSave: onSaveUserAvatar,
+        type: 'profile' as const,
+      }
+  return <EditAvatar {...props} />
+}
+
+export default Container

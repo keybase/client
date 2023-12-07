@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters/mobile.native'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from './you-rekey'
 
 const YouRekey = ({onEnterPaperkey}: Props) => (
@@ -10,7 +9,7 @@ const YouRekey = ({onEnterPaperkey}: Props) => (
     <Kb.Box style={styles.container}>
       <Kb.Box
         style={{
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'stretch',
           flex: 1,
           justifyContent: 'center',
@@ -25,21 +24,21 @@ const YouRekey = ({onEnterPaperkey}: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'stretch',
         flex: 1,
         justifyContent: 'flex-start',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       text: {
-        marginBottom: Styles.globalMargins.large,
-        marginTop: Styles.globalMargins.large,
+        marginBottom: Kb.Styles.globalMargins.large,
+        marginTop: Kb.Styles.globalMargins.large,
       },
-    } as const)
+    }) as const
 )
 
 export default YouRekey

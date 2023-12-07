@@ -1,10 +1,9 @@
-import {Component} from 'react'
-
-// TODO: This is used only in a few places. Get rid of it?
+import type * as React from 'react'
 
 export type Props = {
   value: string
   style?: Object
 }
 
-export default class CopyableText extends Component<Props> {}
+declare const CopyableText: (p: Props) => React.ReactNode
+export default CopyableText

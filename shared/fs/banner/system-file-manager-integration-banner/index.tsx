@@ -1,17 +1,14 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Kb from '../../../common-adapters'
-import {fileUIName} from '../../../constants/platform'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
-import * as Kbfs from '../../common'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import * as Kbfs from '@/fs/common'
 
 type Props = {
-  alwaysShow?: boolean | null
-  driverStatus: Types.DriverStatus
-  settings: Types.Settings
+  alwaysShow?: boolean
+  driverStatus: T.FS.DriverStatus
+  settings: T.FS.Settings
   onDisable: () => void
   onDismiss: () => void
   onEnable: () => void
@@ -34,9 +31,9 @@ type BannerButtonProps = {
 type BannerProps = {
   background: Background
   okIcon: boolean
-  onDismiss?: (() => void) | null
+  onDismiss?: () => void
   title: string
-  body?: string | null
+  body?: string
   bodyExtraComponent?: React.ReactNode
   button?: BannerButtonProps
   buttonSecondary?: BannerButtonProps
@@ -60,15 +57,15 @@ const backgroundToTextStyle = (background: Background) => {
 const backgroundToBackgroundColor = (background: Background) => {
   switch (background) {
     case Background.Blue:
-      return Styles.globalColors.blue
+      return Kb.Styles.globalColors.blue
     case Background.Green:
-      return Styles.globalColors.green
+      return Kb.Styles.globalColors.green
     case Background.Yellow:
-      return Styles.globalColors.yellow
+      return Kb.Styles.globalColors.yellow
     case Background.Black:
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     default:
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
   }
 }
 
@@ -89,7 +86,7 @@ const Banner = (props: BannerProps) => (
           {props.title}
         </Kb.Text>
         {props.body && (
-          <Kb.Box style={Styles.globalStyles.flexGrow}>
+          <Kb.Box style={Kb.Styles.globalStyles.flexGrow}>
             <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
             </Kb.Text>
@@ -120,13 +117,13 @@ const Banner = (props: BannerProps) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-    <Kb.Box style={Styles.globalStyles.flexGrow} />
+    <Kb.Box style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Icon
           type="iconfont-close"
           onClick={props.onDismiss}
-          color={Styles.globalColors.white_40}
+          color={Kb.Styles.globalColors.white_40}
           fontSize={16}
           style={styles.dismissIcon}
         />
@@ -140,7 +137,7 @@ const ThisShouldNotHappen = () => (
 )
 
 const DokanOutdated = (props: Props) => {
-  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
   return (
@@ -166,26 +163,28 @@ const DokanOutdated = (props: Props) => {
   )
 }
 
-type JustEnabledProps = {onDismiss: null | (() => void)}
+type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const open = displayingMountDir
-    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
+    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
   return (
     <Banner
       background={Background.Green}
       okIcon={true}
-      title={`Keybase is enabled in your ${fileUIName}.`}
+      title={`Keybase is enabled in your ${C.fileUIName}.`}
       body={displayingMountDir ? `Your files are accessible at ${displayingMountDir}.` : undefined}
       onDismiss={onDismiss}
       button={
         open
           ? {
               action: open,
-              buttonText: `Open in ${fileUIName}`,
+              buttonText: `Open in ${C.fileUIName}`,
               inProgress: false,
             }
           : undefined
@@ -195,7 +194,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
 }
 
 const Enabled = (props: Props) => {
-  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
   if (props.driverStatus.dokanOutdated) {
@@ -206,22 +205,26 @@ const Enabled = (props: Props) => {
     // the rare case where user disables finder integration, and goes to Files
     // tab before it's done. Just show a simple banner in this case.
     return (
-      <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
+      <Banner
+        background={Background.Blue}
+        okIcon={false}
+        title={`Disabling Keybase in ${C.fileUIName} ...`}
+      />
     )
   }
   if (props.alwaysShow || !props.settings.sfmiBannerDismissed) {
-    return <JustEnabled onDismiss={props.alwaysShow ? null : props.onDismiss} />
+    return <JustEnabled onDismiss={props.alwaysShow ? undefined : props.onDismiss} />
   }
   return null
 }
 
 const Disabled = (props: Props) => {
   const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
-    props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling,
-    Styles.globalColors.blue,
+    props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling,
+    Kb.Styles.globalColors.blue,
     backgroundToTextStyle(Background.Blue)
   )
-  if (props.driverStatus.type !== Types.DriverStatusType.Disabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
   }
 
@@ -229,7 +232,7 @@ const Disabled = (props: Props) => {
     <Banner
       background={Background.Blue}
       okIcon={false}
-      title={`Enable Keybase in ${fileUIName}?`}
+      title={`Enable Keybase in ${C.fileUIName}?`}
       body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
       bodyExtraComponent={component}
       button={{
@@ -238,7 +241,7 @@ const Disabled = (props: Props) => {
         disabled: !canContinue,
         inProgress: props.driverStatus.isEnabling,
       }}
-      onDismiss={props.alwaysShow ? null : props.onDismiss}
+      onDismiss={props.alwaysShow ? undefined : props.onDismiss}
     />
   )
 }
@@ -250,47 +253,47 @@ const SFMIBanner = (props: Props) => {
         background={Background.Blue}
         okIcon={false}
         title="Loading"
-        body={`Trying to find out if Keybase is enabled in ${fileUIName} ...`}
+        body={`Trying to find out if Keybase is enabled in ${C.fileUIName} ...`}
       />
     ) : null
   }
 
   switch (props.driverStatus.type) {
-    case Types.DriverStatusType.Disabled:
+    case T.FS.DriverStatusType.Disabled:
       return props.alwaysShow || !props.settings.sfmiBannerDismissed ? <Disabled {...props} /> : null
-    case Types.DriverStatusType.Enabled:
+    case T.FS.DriverStatusType.Enabled:
       return props.alwaysShow || !props.settings.sfmiBannerDismissed ? <Enabled {...props} /> : null
-    case Types.DriverStatusType.Unknown:
+    case T.FS.DriverStatusType.Unknown:
       return <ThisShouldNotHappen />
   }
 }
 export default SFMIBanner
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
         justifyContent: 'center',
-        maxWidth: Styles.globalMargins.large * 14 + Styles.globalMargins.mediumLarge * 2,
-        padding: Styles.globalMargins.mediumLarge,
+        maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
+        padding: Kb.Styles.globalMargins.mediumLarge,
       },
-      dismissIcon: Styles.platformStyles({
+      dismissIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'block',
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
       }),
       fancyIcon: {
-        marginBottom: Styles.globalMargins.medium,
-        marginTop: Styles.globalMargins.medium,
-        paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       textBrown: {
-        color: Styles.globalColors.brown_75,
+        color: Kb.Styles.globalColors.brown_75,
       },
       textWhite: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
-    } as const)
+    }) as const
 )

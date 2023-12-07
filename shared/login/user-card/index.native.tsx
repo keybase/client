@@ -1,22 +1,22 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
-const UserCard = ({
-  avatarBackgroundStyle,
-  avatarSize,
-  outerStyle,
-  onAvatarClicked,
-  username,
-  style,
-  children,
-  lighterPlaceholders,
-}: Props) => {
+const UserCard = (p: Props) => {
+  const {
+    avatarBackgroundStyle,
+    avatarSize = 96,
+    outerStyle,
+    onAvatarClicked,
+    username,
+    style,
+    children,
+    lighterPlaceholders,
+  } = p
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
+    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Box style={styles.avatar}>
         <Kb.Box
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.avatarBackground,
             {
               height: avatarSize / 2,
@@ -32,18 +32,14 @@ const UserCard = ({
           lighterPlaceholders={lighterPlaceholders}
         />
       </Kb.Box>
-      <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
     </Kb.Box>
   )
 }
 
-UserCard.defaultProps = {
-  avatarSize: 96,
-}
-
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     alignSelf: 'stretch',
     marginTop: 0,
@@ -53,9 +49,9 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     right: 0,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
       width: '100%',
     },
@@ -64,7 +60,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   inside: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     justifyContent: 'flex-start',
     padding: 16,

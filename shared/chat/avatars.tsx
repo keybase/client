@@ -1,10 +1,15 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import type {AvatarSize} from '../common-adapters/avatar'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters'
+import type {AvatarSize} from '@/common-adapters/avatar'
+import * as Styles from '@/styles'
 import './chat.css'
 
-const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boolean; isLocked: boolean}) => {
+const OverlayIcon = React.memo(function OverlayIcon(p: {
+  isHovered: boolean
+  isMuted: boolean
+  isSelected: boolean
+  isLocked: boolean
+}) {
   const {isHovered, isMuted, isSelected, isLocked} = p
 
   if (Styles.isMobile) {
@@ -47,7 +52,7 @@ const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boole
       />
     </Kb.Box>
   )
-}
+})
 
 type Props = {
   participantOne?: string
@@ -92,7 +97,7 @@ const Avatars = React.memo(function Avatars(p: Props) {
     return (
       <Kb.Box style={containerStyle}>
         <Kb.Box style={styles.outerBox}>
-          <Kb.Avatar username={participantOne} size={singleSize || 48} style={{backgroundColor, opacity}} />
+          <Kb.Avatar username={participantOne} size={singleSize} style={{backgroundColor, opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box>
       </Kb.Box>

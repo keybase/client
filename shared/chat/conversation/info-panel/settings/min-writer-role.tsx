@@ -1,35 +1,26 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Style from '../../../../styles'
-import * as TeamConstants from '../../../../constants/teams'
-import type * as TeamTypes from '../../../../constants/types/teams'
-import type * as Types from '../../../../constants/types/chat2'
+import * as Style from '@/styles'
+import type * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
-import {indefiniteArticle} from '../../../../util/string'
+import {indefiniteArticle} from '@/util/string'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
+const positionFallbacks = ['bottom center'] as const
 
-const MinWriterRole = (props: Props) => {
-  const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const {teamname} = meta
+const MinWriterRole = () => {
+  const meta = C.useChatContext(s => s.meta)
+  const {teamname, minWriterRole} = meta
 
-  const canPerform = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerform(state, teamname) : undefined
-  )
+  const canPerform = C.useTeamsState(s => (teamname ? C.Teams.getCanPerform(s, teamname) : undefined))
   const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
-  const minWriterRole = meta.minWriterRole ?? 'reader'
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)
+  const setMinWriterRole = C.useChatContext(s => s.dispatch.setMinWriterRole)
 
-  const onSetNewRole = (role: TeamTypes.TeamRoleType) =>
-    dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey, role}))
-  const selectRole = (role: TeamTypes.TeamRoleType) => {
+  const onSetNewRole = (role: T.Teams.TeamRoleType) => setMinWriterRole(role)
+  const selectRole = (role: T.Teams.TeamRoleType) => {
     if (role !== minWriterRole) {
       setSaving(true)
       setSelected(role)
@@ -37,18 +28,21 @@ const MinWriterRole = (props: Props) => {
     }
   }
 
-  const lastMinWriterRole = Container.usePrevious(minWriterRole)
+  const [lastMinWriterRole, setLastMinWriterRole] = React.useState(minWriterRole)
+  const [lastSelected, setLastSelected] = React.useState(selected)
 
-  React.useEffect(() => {
+  if (lastSelected !== selected || lastMinWriterRole !== minWriterRole) {
+    setLastSelected(selected)
+    setLastMinWriterRole(minWriterRole)
     if (minWriterRole !== lastMinWriterRole) {
       setSelected(minWriterRole)
     }
     if (selected === minWriterRole) {
       setSaving(false)
     }
-  }, [lastMinWriterRole, minWriterRole, selected])
+  }
 
-  const items = TeamConstants.teamRoleTypes.map(role => ({
+  const items = C.Teams.teamRoleTypes.map(role => ({
     isSelected: role === minWriterRole,
     onClick: () => selectRole(role),
     title: upperFirst(role),
@@ -69,24 +63,31 @@ const MinWriterRole = (props: Props) => {
 }
 
 type DropdownProps = {
-  minWriterRole: TeamTypes.TeamRoleType
+  minWriterRole: T.Teams.TeamRoleType
   items: Kb.MenuItems
   saving: boolean
 }
 
 const Dropdown = (p: DropdownProps) => {
   const {items, minWriterRole, saving} = p
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      visible={showingPopup}
-      items={items}
-      onHidden={toggleShowingPopup}
-      position="top center"
-      positionFallbacks={['bottom center']}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          visible={true}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="top center"
+          positionFallbacks={positionFallbacks}
+        />
+      )
+    },
+    [items]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.ClickableBox
@@ -111,7 +112,7 @@ const Dropdown = (p: DropdownProps) => {
   )
 }
 
-const Display = ({minWriterRole}: {minWriterRole: TeamTypes.TeamRoleType}) => (
+const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
   <Kb.Text type="BodySmall">
     You must be at least {indefiniteArticle(minWriterRole)}{' '}
     <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.
@@ -156,7 +157,7 @@ const styles = Style.styleSheetCreate(
           height: Style.globalMargins.medium,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default MinWriterRole

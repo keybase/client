@@ -1,6 +1,6 @@
 {
   "name": "react-native-kb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "misc kb",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -30,18 +30,11 @@
   "homepage": "https://github.com/keybase/client",
   "private": true,
   "devDependencies": {
-    "@types/react": "18.0.25",
-    "@types/react-native": "0.70.6",
-    "react-native": "0.70.5",
-    "react-native-builder-bob": "^0.18.3",
-    "typescript": "4.8.4"
-  },
-  "resolutions": {
-    "@types/react": "18.0.25"
-  },
-  "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": "file:../../shared/node_modules/react",
+    "react-native": "file:../../shared/node_modules/react-native",
+    "@types/react": "file:../../shared/node_modules/@types/react",
+    "react-native-builder-bob": "^0.20.4",
+    "typescript": "file:../../shared/node_modules/typescript"
   },
   "react-native-builder-bob": {
     "source": "src",
@@ -50,5 +43,13 @@
       "module",
       "typescript"
     ]
+  },
+  "codegenConfig": {
+    "name": "RNKbSpec",
+    "type": "all",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.reactnativekb"
+    }
   }
 }

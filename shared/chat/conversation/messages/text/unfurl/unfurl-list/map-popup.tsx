@@ -1,47 +1,39 @@
-import * as Kb from '../../../../../../common-adapters/index'
-import * as Container from '../../../../../../util/container'
-import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../../../../actions/chat2-gen'
-import * as Constants from '../../../../../../constants/chat2'
-import * as Styles from '../../../../../../styles'
-import openURL from '../../../../../../util/open-url'
-import LocationMap from '../../../../../location-map'
-import HiddenString from '../../../../../../util/hidden-string'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters/index'
+import type * as T from '@/constants/types'
+import openURL from '@/util/open-url'
+import LocationMap from '@/chat/location-map'
 
-type Props = Container.RouteProps<'chatUnfurlMapPopup'>
+type Props = {
+  coord: T.Chat.Coordinate
+  isAuthor: boolean
+  author?: string
+  isLiveLocation: boolean
+  url: string
+}
 
 const UnfurlMapPopup = (props: Props) => {
-  const {params} = props.route
-  const conversationIDKey = params?.conversationIDKey ?? Constants.noConversationIDKey
-  const coord = params?.coord ?? {accuracy: 0, lat: 0, lon: 0}
-  const isAuthor = params?.isAuthor ?? false
-  const author = params?.author ?? ''
-  const isLiveLocation = params?.isLiveLocation ?? false
-  const url = params?.url ?? ''
-  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
-  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
+  const {coord, isAuthor, isLiveLocation, url} = props
+  const author = props.author ?? ''
+  const httpSrv = C.useConfigState(s => s.httpSrv)
 
-  const dispatch = Container.useDispatch()
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onViewURL = () => {
     onClose()
     openURL(url)
   }
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onStopSharing = () => {
     onClose()
-    dispatch(
-      Chat2Gen.createMessageSend({
-        conversationIDKey,
-        text: new HiddenString('/location stop'),
-      })
-    )
+    messageSend('/location stop')
   }
 
-  const width = Math.ceil(Styles.dimensionWidth)
-  const height = Math.ceil(Styles.dimensionHeight)
-  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
+  const width = Math.ceil(Kb.Styles.dimensionWidth)
+  const height = Math.ceil(Kb.Styles.dimensionHeight)
+  const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
     <Kb.Modal
       scrollViewContainerStyle={{maxWidth: undefined}}

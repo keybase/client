@@ -1,13 +1,11 @@
-import * as TeamsGen from '../../../../../actions/teams-gen'
-import * as Constants from '../../../../../constants/teams'
-import * as Container from '../../../../../util/container'
+import * as C from '@/constants'
 import {TeamInviteRow} from '.'
-import type {InviteInfo, TeamID} from '../../../../../constants/types/teams'
-import {formatPhoneNumber} from '../../../../../util/phone-numbers'
+import type * as T from '@/constants/types'
+import {formatPhoneNumber} from '@/util/phone-numbers'
 
 type OwnProps = {
   id: string
-  teamID: TeamID
+  teamID: T.Teams.TeamID
   firstItem: boolean
 }
 
@@ -18,44 +16,46 @@ type OwnProps = {
 const labelledInviteRegex = /^(.+?) \((.+)\)$/
 
 // TODO: when removing flags.teamsRedesign, move this into the component itself
-export default Container.connect(
-  (state, {teamID}: OwnProps) => {
-    const teamDetails = Constants.getTeamDetails(state, teamID)
-    return {_invites: teamDetails.invites}
-  },
-  (dispatch, {teamID}: OwnProps) => ({
-    _onCancelInvite: (inviteID: string) => {
-      dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const user: InviteInfo | undefined =
-      [...(stateProps._invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
-    if (!user) {
-      // loading
-      return {firstItem: ownProps.firstItem, label: '', onCancelInvite: () => {}, role: 'reader'} as const
-    }
-    const onCancelInvite = () => dispatchProps._onCancelInvite(ownProps.id)
+const Container = (ownProps: OwnProps) => {
+  const {teamID} = ownProps
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const _invites = teamDetails?.invites
 
-    let label = user.username || user.name || user.email || user.phone
-    let subLabel = user.name ? user.phone || user.email : undefined
-    if (!subLabel && labelledInviteRegex.test(label)) {
-      const match = labelledInviteRegex.exec(label)!
-      label = match[1]
-      subLabel = match[2]
-    }
-    try {
-      label = label === user.phone ? formatPhoneNumber('+' + label) : label
-      subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
-    } catch {}
-
-    return {
-      firstItem: ownProps.firstItem,
-      isKeybaseUser: !!user.username,
-      label,
-      onCancelInvite,
-      role: user.role,
-      subLabel,
-    }
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
+  const _onCancelInvite = (inviteID: string) => {
+    removePendingInvite(teamID, inviteID)
   }
-)(TeamInviteRow)
+
+  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || C.Teams.emptyInviteInfo
+
+  let label: string = ''
+  let subLabel: undefined | string
+  let role: T.Teams.TeamRoleType = 'reader'
+  let isKeybaseUser = false
+
+  const onCancelInvite = () => _onCancelInvite(ownProps.id)
+  label = user.username || user.name || user.email || user.phone
+  subLabel = user.name ? user.phone || user.email : undefined
+  role = user.role
+  isKeybaseUser = !!user.username
+  if (!subLabel && labelledInviteRegex.test(label)) {
+    const match = labelledInviteRegex.exec(label)!
+    label = match[1] ?? ''
+    subLabel = match[2]
+  }
+  try {
+    label = label === user.phone ? formatPhoneNumber('+' + label) : label
+    subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
+  } catch {}
+  const props = {
+    firstItem: ownProps.firstItem,
+    isKeybaseUser,
+    label,
+    onCancelInvite,
+    role,
+    subLabel,
+  }
+  return <TeamInviteRow {...props} />
+}
+
+export default Container

@@ -1,12 +1,12 @@
 import * as Electron from 'electron'
-import type {TypedActions} from '../../actions/typed-actions-gen'
+import type {Actions} from '@/actions/remote-gen'
 import {
   injectPreload,
   type KB2,
   type OpenDialogOptions,
   type SaveDialogOptions,
-} from '../../util/electron.desktop'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+} from '@/util/electron.desktop'
+import type * as RPCTypes from '@/constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 
 const isRenderer = process.type === 'renderer'
@@ -79,8 +79,7 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: unknown) => {
-          // @ts-ignore
+        engineSend: (buf: Uint8Array) => {
           invoke({payload: {buf}, type: 'engineSend'})
             .then(() => {})
             .catch(() => {})
@@ -109,15 +108,21 @@ if (isRenderer) {
             throw new Error('installCachedDokan fail')
           }
         },
-        ipcRendererOn: (channel: string, cb: (event: any, action: any) => void) => {
+        ipcRendererOn: (channel: string, cb: (event: unknown, action: unknown) => void) => {
           Electron.ipcRenderer.on(channel, cb)
         },
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
-        mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
+        mainWindowDispatch: (action: Actions) => {
           Electron.ipcRenderer
-            .invoke(nodeTypeOverride ?? 'KBdispatchAction', action)
+            .invoke('KBdispatchAction', action)
+            .then(() => {})
+            .catch(() => {})
+        },
+        mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
+          Electron.ipcRenderer
+            .invoke('engineIncoming', data)
             .then(() => {})
             .catch(() => {})
         },
@@ -195,7 +200,7 @@ if (isRenderer) {
             .then(() => {})
             .catch(() => {})
         },
-        selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent: string | null) => {
+        selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent?: string) => {
           return invoke({
             payload: {parent, type},
             type: 'selectFilesToUploadDialog',
@@ -231,10 +236,10 @@ if (isRenderer) {
             type: 'showSaveDialog',
           })) as string
         },
-        showTray: (desktopAppBadgeCount: number, icon: string) => {
+        showTray: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => {
           Electron.ipcRenderer
             .invoke('KBmenu', {
-              payload: {desktopAppBadgeCount, icon},
+              payload: {badgeType, desktopAppBadgeCount},
               type: 'showTray',
             })
             .then(() => {})
@@ -283,23 +288,26 @@ if (isRenderer) {
       Electron.contextBridge.exposeInMainWorld('_fromPreload', kb2)
       injectPreload(kb2)
     })
-    .catch(e => {
+    .catch((e: unknown) => {
       throw e
     })
 } else {
-  const kb2consts = require('../app/kb2-impl.desktop').default
-  const getMainWindow = (): Electron.BrowserWindow | null => {
+  const kb2consts = require('../app/kb2-impl.desktop').default as KB2['constants']
+  const getMainWindow = (): Electron.BrowserWindow | undefined => {
     const w = require('electron')
       .BrowserWindow.getAllWindows()
       .find(w => w.webContents.getURL().includes('/main.'))
-    return w || null
+    return w
   }
 
   const kb2 = {
     constants: kb2consts,
     functions: {
-      mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
-        getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
+      mainWindowDispatch: (action: Actions) => {
+        getMainWindow()?.webContents.send('KBdispatchAction', action)
+      },
+      mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
+        getMainWindow()?.webContents.send('engineIncoming', data)
       },
     },
   }

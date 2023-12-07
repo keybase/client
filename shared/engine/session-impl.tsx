@@ -2,14 +2,12 @@ import {
   StatusCode,
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
-} from '../constants/types/rpc-gen'
+} from '@/constants/types/rpc-gen'
 import {rpcLog, type invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
-import {RPCError} from '../util/errors'
+import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
-import isArray from 'lodash/isArray'
-import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {TypedDispatch} from '../util/container'
+import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
 type WaitingKey = string | Array<string>
 
@@ -18,42 +16,39 @@ class Session {
   // Our id
   _id: SessionID
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType | {}
+  _incomingCallMap: IncomingCallMapType
   // Map of methods => callbacks
-  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
+  _customResponseIncomingCallMap: CustomResponseIncomingCallMap
   // Let the outside know we're waiting
   _waitingKey: WaitingKey
   // Tell engine we're done
-  _endHandler: EndHandlerType | null
+  _endHandler: EndHandlerType | undefined
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[K in string]: boolean} = {}
   // If you want to know about being cancelled
-  _cancelHandler: CancelHandlerType | null
+  _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
   _startMethod: MethodKey | undefined
   // Start callback so we can cancel our own callback
-  _startCallback: ((err?: RPCError, ...args: Array<any>) => void) | undefined
+  _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
 
   // Allow us to make calls
   _invoke: invokeType
 
   // Outstanding requests
-  _outgoingRequests: Array<any> = []
-  _incomingRequests: Array<any> = []
-
-  _dispatch: TypedDispatch
+  _outgoingRequests: Array<{method: string}> = []
+  _incomingRequests: Array<{method: string}> = []
 
   constructor(p: {
-    dispatch: TypedDispatch
     sessionID: SessionID
-    incomingCallMap: IncomingCallMapType | null
-    customResponseIncomingCallMap: CustomResponseIncomingCallMap | null
+    incomingCallMap?: IncomingCallMapType
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: WaitingKey
     invoke: invokeType
     endHandler: EndHandlerType
-    cancelHandler?: CancelHandlerType | null
+    cancelHandler?: CancelHandlerType
     dangling?: boolean
   }) {
     this._id = p.sessionID
@@ -62,9 +57,8 @@ class Session {
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
     this._endHandler = p.endHandler
-    this._cancelHandler = p.cancelHandler || null
+    this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
-    this._dispatch = p.dispatch
   }
 
   setId(_: SessionID) {
@@ -79,8 +73,8 @@ class Session {
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number | null) {
-    return (waiting: boolean, err: any) => {
+  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number) {
+    return (waiting: boolean, err: RPCError | undefined) => {
       rpcLog({
         extra: {
           id: this.getId(),
@@ -132,8 +126,8 @@ class Session {
     this._startCallback = callback
 
     // When this request is done the session is done
-    const wrappedCallback = (...args) => {
-      this._startCallback?.(...args)
+    const wrappedCallback = (err: RPCError | undefined, ...args: Array<unknown>) => {
+      this._startCallback?.(err, ...args)
       this._startCallback = undefined
       this.end()
     }
@@ -163,7 +157,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, response: any): boolean {
+  incomingCall(method: keyof IncomingCallMapType, param: Object, response?: ResponseType): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -175,10 +169,13 @@ class Session {
       type: 'engineInternal',
     })
 
-    let handler = this._incomingCallMap[method]
+    let handler = this._incomingCallMap[method] as
+      | undefined
+      | ((param: Object | undefined, request: ResponseType) => void)
 
     if (!handler) {
-      handler = this._customResponseIncomingCallMap[method]
+      const c = this._customResponseIncomingCallMap as {[key: string]: typeof handler}
+      handler = c[method]
     }
 
     if (!handler) {
@@ -189,25 +186,21 @@ class Session {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
-    const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
-    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
+    const waitingHandler = this._makeWaitingHandler(false, method, response?.seqid)
+    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler as any)
     this._incomingRequests.push(incomingRequest)
-    const actions = incomingRequest.handle()
-
-    const arr = isArray(actions) ? actions : [actions]
-    arr.forEach(a => !!a && this._dispatch(a))
-
+    incomingRequest.handle()
     return true
   }
 
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
     if (__DEV__) {
-      if (Object.prototype.hasOwnProperty.call(this._seqIDResponded, String(seqID))) {
+      if (Object.hasOwn(this._seqIDResponded, String(seqID))) {
         console.log('Cancelling seqid found, current session state', this)
       }
     }
-    return Object.prototype.hasOwnProperty.call(this._seqIDResponded, String(seqID))
+    return Object.hasOwn(this._seqIDResponded, String(seqID))
   }
 }
 

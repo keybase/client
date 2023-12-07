@@ -1,13 +1,12 @@
-import * as Types from '../../constants/types/fs'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import Footer from '../footer/footer'
 import View from './view'
 import * as Kbfs from '../common'
 
 type Props = {
   onBack: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const BarePreview = (props: Props) => {
@@ -28,7 +27,7 @@ const BarePreview = (props: Props) => {
         <Kbfs.PathItemAction
           path={props.path}
           clickable={{actionIconWhite: true, type: 'icon'}}
-          initView={Types.PathItemActionMenuView.Root}
+          initView={T.FS.PathItemActionMenuView.Root}
           mode="screen"
         />
       </Kb.Box>
@@ -39,38 +38,38 @@ const BarePreview = (props: Props) => {
 
 export default BarePreview
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       closeBox: {
         height: 48,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
         width: 64,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.flexGrow,
-          backgroundColor: Styles.globalColors.blackOrBlack,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexGrow,
+          backgroundColor: Kb.Styles.globalColors.blackOrBlack,
         },
       }),
       contentContainer: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
       },
       footer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 48,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       header: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       text: {
-        color: Styles.globalColors.whiteOrBlueDark,
+        color: Kb.Styles.globalColors.whiteOrBlueDark,
         lineHeight: 48,
       },
-    } as const)
+    }) as const
 )

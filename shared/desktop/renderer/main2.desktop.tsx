@@ -1,28 +1,30 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
-// order of the above 2 must NOT change. needed for patching / hot loading to be correct
-import * as NotificationsGen from '../../actions/notifications-gen'
+// order of the above must NOT change. needed for patching / hot loading to be correct
+import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
+import type * as RemoteGen from '@/actions/remote-gen'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
-import makeStore from '../../store/configure-store'
-import {makeEngine} from '../../engine'
-import {disableDragDrop} from '../../util/drag-drop.desktop'
-import flags from '../../util/feature-flags'
-import {dumpLogs} from '../../actions/platform-specific/index.desktop'
-import {initDesktopStyles} from '../../styles/index.desktop'
-import {_setDarkModePreference} from '../../styles/dark-mode'
-import {isWindows} from '../../constants/platform'
-import {useSelector} from '../../util/container'
-import {isDarkMode} from '../../constants/config'
-import type {TypedActions} from '../../actions/typed-actions-gen'
-import KB2 from '../../util/electron.desktop'
+import {makeEngine} from '@/engine'
+import {disableDragDrop} from '@/util/drag-drop.desktop'
+import {dumpLogs} from '@/constants/platform-specific/index.desktop'
+import {initDesktopStyles} from '@/styles/index.desktop'
+import {isWindows} from '@/constants/platform'
+import KB2 from '@/util/electron.desktop'
+
+import {setServiceDecoration} from '@/common-adapters/markdown/react'
+import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
+const isDarkFromNode = window.location.search.match(/isDarkMode=(0|1)/)
+
+const {setDarkModePreference, setSystemDarkMode} = C.useDarkModeState.getState().dispatch
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
@@ -30,8 +32,14 @@ if (darkModeFromNode) {
     case 'alwaysLight':
     case 'alwaysDark':
     case 'system':
-      _setDarkModePreference(dm)
+      setDarkModePreference(dm, false)
+      break
+    default:
   }
+}
+
+if (isDarkFromNode) {
+  setSystemDarkMode(isDarkFromNode[1] === '1')
 }
 
 // Top level HMR accept
@@ -39,41 +47,20 @@ if (module.hot) {
   module.hot.accept()
 }
 
-let _store: any
-
-const setupStore = () => {
-  let store = _store
-  let initListeners: any
-  if (!_store) {
-    const configured = makeStore()
-    store = configured.store
-    initListeners = configured.initListeners
-
-    _store = store
-    if (__DEV__ && flags.admin) {
-      // @ts-ignore codemode issue
-      window.DEBUGStore = _store
-    }
-  }
-
-  return {initListeners, store}
-}
-
-const setupApp = (store, initListeners) => {
+const setupApp = () => {
   disableDragDrop()
-  const eng = makeEngine(store.dispatch)
-  initListeners()
+
+  const {batch} = C.useWaitingState.getState().dispatch
+  const eng = makeEngine(batch, () => {
+    // do nothing we wait for the remote version from node
+  })
+  C.initListeners()
   eng.listenersAreReady()
 
-  ipcRendererOn?.('KBdispatchAction', (_: any, action: TypedActions) => {
-    // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
-    // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
+  ipcRendererOn?.('KBdispatchAction', (_: any, action: RemoteGen.Actions) => {
     setTimeout(() => {
       try {
-        store.dispatch({
-          payload: action.payload,
-          type: action.type,
-        })
+        C.useConfigState.getState().dispatch.eventFromRemoteWindows(action)
       } catch (_) {}
     }, 0)
   })
@@ -92,9 +79,6 @@ const setupApp = (store, initListeners) => {
       .catch(() => {})
   }, 5 * 1000)
 
-  // Handle notifications from the service
-  store.dispatch(NotificationsGen.createListenForNotifications())
-
   appStartedUp?.()
 }
 
@@ -112,11 +96,11 @@ const FontLoader = () => (
   </div>
 )
 
-let store
-
 const DarkCSSInjector = () => {
-  const isDark = useSelector(state => isDarkMode(state.config))
-  React.useEffect(() => {
+  const isDark = C.useDarkModeState(s => s.isDarkMode())
+  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
+  if (lastIsDark !== isDark) {
+    setLastIsDark(isDark)
     // inject it in body so modals get darkMode also
     if (isDark) {
       document.body.classList.add('darkMode')
@@ -125,7 +109,7 @@ const DarkCSSInjector = () => {
       document.body.classList.remove('darkMode')
       document.body.classList.add('lightMode')
     }
-  }, [isDark])
+  }
   return null
 }
 
@@ -135,8 +119,13 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
+  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
+  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
+  // else all nav stuff is broken
+  // <React.StrictMode>
+  // </React.StrictMode>
   ReactDOM.createRoot(root).render(
-    <Root store={store}>
+    <Root>
       <DarkCSSInjector />
       <RemoteProxies />
       <FontLoader />
@@ -147,8 +136,8 @@ const render = (Component = Main) => {
   )
 }
 
-const setupHMR = _ => {
-  const accept = module.hot && module.hot.accept
+const setupHMR = () => {
+  const accept = module.hot?.accept // eslint-disable-line
   if (!accept) {
     return
   }
@@ -161,7 +150,7 @@ const setupHMR = _ => {
   }
 
   accept(['../../app/main.desktop'], refreshMain)
-  accept('../../common-adapters/index.js', () => {})
+  accept('@/common-adapters/index.js', () => {})
 }
 
 const load = () => {
@@ -172,15 +161,12 @@ const load = () => {
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
-  const temp = setupStore()
-  const {initListeners} = temp
-  store = temp.store
-  setupApp(store, initListeners)
-  setupHMR(store)
+  setupApp()
+  setupHMR()
 
   if (__DEV__) {
     // let us load devtools first
-    const DEBUG_DEFER = false
+    const DEBUG_DEFER = false as boolean
     if (DEBUG_DEFER) {
       for (let i = 0; i < 10; ++i) {
         console.log('DEBUG_DEFER on!!!')

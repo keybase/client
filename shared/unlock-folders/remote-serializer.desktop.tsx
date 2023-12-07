@@ -1,7 +1,10 @@
-import type {State} from '../constants/types/unlock-folders'
+import type * as ConfigConstants from '@/constants/config'
 export type ProxyProps = {
   darkMode: boolean
-} & Pick<State, 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
+  devices: ConfigConstants.Store['unlockFoldersDevices']
+  paperKeyError: string
+  waiting: boolean
+}
 
 type SerializeProps = ProxyProps
 export type DeserializeProps = ProxyProps
@@ -9,16 +12,19 @@ export type DeserializeProps = ProxyProps
 const initialState: DeserializeProps = {
   darkMode: false,
   devices: [],
-  phase: 'dead',
+  paperKeyError: '',
   waiting: false,
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
 
 export const deserialize = (
-  state: DeserializeProps = initialState,
+  _state: DeserializeProps | undefined,
   props: SerializeProps
-): DeserializeProps => ({
-  ...state,
-  ...props,
-})
+): DeserializeProps => {
+  const state = _state ?? initialState
+  return {
+    ...state,
+    ...props,
+  }
+}

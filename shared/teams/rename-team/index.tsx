@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
-const splitTeamname = teamname => teamname.split('.')
+const splitTeamname = (teamname: string) => teamname.split('.')
 
 type Props = {
   error?: string
@@ -25,7 +24,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
     const teamNameParts = splitTeamname(this.props.teamname)
     const newName = teamNameParts.pop()
     this._prefix = teamNameParts.join('.')
-    this._originalName = newName
+    this._originalName = newName ?? ''
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -36,7 +35,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
   }
 
   _newFullName = () => [this._prefix, this.state.newName].join('.')
-  _onChangeText = newName => this.setState({newName})
+  _onChangeText = (newName: string) => this.setState({newName})
   _disabled = () => this.state.newName.length < 2
   _validateTeamname = () => {
     const {newName} = this.state
@@ -72,9 +71,9 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
       <Kb.PopupWrapper onCancel={this.props.onCancel} title="Rename subteam">
         <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
           <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
-            <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
+            <Kb.Avatar teamname={this.props.teamname} size={Kb.Styles.isMobile ? 64 : 48} />
             <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
-              {!Styles.isMobile && (
+              {!Kb.Styles.isMobile && (
                 <Kb.Text type="Header" center={true}>
                   Rename {this.props.teamname}
                 </Kb.Text>
@@ -94,7 +93,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
           >
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 styles.inputContainer,
                 this.props.error && styles.inputContainerError,
               ] as const)}
@@ -128,7 +127,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
             )}
           </Kb.Box2>
           <Kb.ButtonBar direction="row" style={styles.buttonBar}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} style={styles.button} />
             )}
             <Kb.Button
@@ -145,22 +144,22 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      body: Styles.platformStyles({
+      body: Kb.Styles.platformStyles({
         common: {flex: 1},
-        isElectron: {paddingLeft: Styles.globalMargins.large, paddingRight: Styles.globalMargins.large},
-        isMobile: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
+        isElectron: {paddingLeft: Kb.Styles.globalMargins.large, paddingRight: Kb.Styles.globalMargins.large},
+        isMobile: {paddingLeft: Kb.Styles.globalMargins.small, paddingRight: Kb.Styles.globalMargins.small},
       }),
       button: {
         flex: 1,
       },
       buttonBar: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           height: 480,
           width: 560,
@@ -170,30 +169,30 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       error: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
       inputContainer: {
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
+        borderColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       inputContainerError: {
-        borderColor: Styles.globalColors.red,
+        borderColor: Kb.Styles.globalColors.red,
       },
-      prefix: Styles.platformStyles({
+      prefix: Kb.Styles.platformStyles({
         isMobile: {
           position: 'relative',
           top: 1,
         },
       }),
-      teamnameHeader: Styles.platformStyles({
+      teamnameHeader: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default RenameTeam

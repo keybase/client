@@ -14,6 +14,6 @@ const BetterScrollView = React.forwardRef<ScrollView, ScrollViewProps>(function 
       overScrollMode="never"
     />
   )
-}) as any
+})
 
 export default BetterScrollView

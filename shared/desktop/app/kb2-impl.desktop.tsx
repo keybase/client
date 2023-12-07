@@ -2,7 +2,7 @@
 import {app, nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
-import type {KB2} from '../../util/electron.desktop'
+import type {KB2} from '@/util/electron.desktop'
 const {env, argv, pid} = process
 
 const platform = process.platform
@@ -10,6 +10,7 @@ if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
   throw new Error('Invalid platform: ' + platform)
 }
 const pathSep = path.sep
+// eslint-disable-next-line
 if (pathSep !== '/' && pathSep !== '\\') {
   throw new Error('Invalid path sep:' + pathSep)
 }
@@ -17,7 +18,7 @@ if (pathSep !== '/' && pathSep !== '\\') {
 const kb2: KB2['constants'] = {
   assetRoot: path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
   configOverload: {}, // filled in later
-  dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
+  dokanPath: path.resolve(env['LOCALAPPDATA'] ?? '', 'Keybase', 'DokanSetup_redist.exe'),
   downloadFolder: path.join(os.homedir(), 'Downloads'),
   env: {
     APPDATA: env['APPDATA'] ?? '',
@@ -50,7 +51,7 @@ const kb2: KB2['constants'] = {
   pathSep,
   platform,
   startDarkMode: nativeTheme.shouldUseDarkColors,
-  windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
+  windowsBinPath: path.resolve(env['LOCALAPPDATA'] ?? '', 'Keybase', 'keybase.exe'),
 }
 
 export default kb2

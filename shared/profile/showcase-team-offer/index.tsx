@@ -1,12 +1,67 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import {teamWaitingKey} from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
-import {useTeamsSubscribe} from '../../teams/subscriber'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {useTeamsSubscribe} from '@/teams/subscriber'
 
-export type RowProps = {
+const Container = () => {
+  const waiting = C.useWaitingState(s => s.counts)
+  const you = C.useCurrentUserState(s => s.username)
+  const teamMeta = C.useTeamsState(s => s.teamMeta)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = (you: string) => {
+    // sadly a little racy, doing this for now
+    setTimeout(() => {
+      C.useTrackerState.getState().dispatch.load({
+        assertion: you,
+        guiID: C.Tracker.generateGUIID(),
+        ignoreCache: true,
+        inTracker: false,
+        reason: '',
+      })
+    }, 500)
+    navigateUp()
+  }
+
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const onPromote = setMemberPublicity
+  const props = {
+    onCancel: () => onCancel(you),
+    onPromote,
+    teams: C.Teams.sortTeamsByName(teamMeta),
+    waiting,
+  }
+
+  useTeamsSubscribe()
+  return (
+    <Kb.PopupWrapper onCancel={props.onCancel} title="Feature your teams" customCancelText="Close">
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
+        <Kb.ScrollView>
+          {Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
+          {props.teams.map(teamMeta => (
+            <TeamRow
+              key={teamMeta.id}
+              canShowcase={
+                (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
+              }
+              isExplicitMember={teamMeta.isMember}
+              name={teamMeta.teamname}
+              isOpen={teamMeta.isOpen}
+              membercount={teamMeta.memberCount}
+              onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
+              showcased={teamMeta.showcasing}
+              waiting={!!props.waiting.get(C.Teams.teamWaitingKey(teamMeta.id))}
+            />
+          ))}
+        </Kb.ScrollView>
+      </Kb.Box2>
+    </Kb.PopupWrapper>
+  )
+}
+
+type RowProps = {
   canShowcase: boolean
-  name: Types.Teamname
+  name: T.Teams.Teamname
   isOpen: boolean
   membercount: number
   onPromote: (promote: boolean) => void
@@ -15,65 +70,54 @@ export type RowProps = {
   isExplicitMember: boolean
 }
 
-export type Props = {
-  onCancel: () => void
-  onPromote: (teamID: Types.TeamID, promote: boolean) => void
-  teams: ReadonlyArray<Types.TeamMeta>
-  waiting: Map<string, number>
-}
-
-const TeamRow = ({
-  canShowcase,
-  name,
-  isOpen,
-  membercount,
-  onPromote,
-  showcased,
-  waiting,
-  isExplicitMember,
-}: RowProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-      <Kb.Avatar isTeam={true} size={Styles.isMobile ? 48 : 32} teamname={name} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-          <Kb.Text type="BodySemibold" lineClamp={1}>
-            {name}
-          </Kb.Text>
-          {isOpen && <Kb.Meta title="open" style={styles.meta} backgroundColor={Styles.globalColors.green} />}
+const TeamRow = (p: RowProps) => {
+  const {canShowcase, name, isOpen, membercount, onPromote, showcased, waiting, isExplicitMember} = p
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 48 : 32} teamname={name} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
+            <Kb.Text type="BodySemibold" lineClamp={1}>
+              {name}
+            </Kb.Text>
+            {isOpen && (
+              <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
+            )}
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" style={styles.teamText}>
+            <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" style={styles.teamText}>
-          <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
-        </Kb.Box2>
+        {showcased || canShowcase || waiting ? (
+          <Kb.Box2 direction="vertical">
+            <Kb.Button
+              label={showcased ? 'Featured' : 'Feature'}
+              onClick={() => onPromote(!showcased)}
+              small={true}
+              type="Success"
+              mode={showcased ? 'Secondary' : 'Primary'}
+              waiting={waiting}
+            />
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
+            <Kb.Text style={styles.membershipText} type="BodySmall">
+              {isExplicitMember
+                ? 'Admins aren’t allowing members to feature.'
+                : 'Add yourself to the team first.'}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
-      {showcased || canShowcase || waiting ? (
-        <Kb.Box2 direction="vertical">
-          <Kb.Button
-            label={showcased ? 'Featured' : 'Feature'}
-            onClick={() => onPromote(!showcased)}
-            small={true}
-            type="Success"
-            mode={showcased ? 'Secondary' : 'Primary'}
-            waiting={waiting}
-          />
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
-          <Kb.Text style={styles.membershipText} type="BodySmall">
-            {isExplicitMember
-              ? 'Admins aren’t allowing members to feature.'
-              : 'Add yourself to the team first.'}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
+      {!Kb.Styles.isMobile && <Kb.Divider style={{marginLeft: 48}} />}
     </Kb.Box2>
-    {!Styles.isMobile && <Kb.Divider style={{marginLeft: 48}} />}
-  </Kb.Box2>
-)
+  )
+}
 
 const ShowcaseTeamOfferHeader = () => (
   <Kb.Box style={styles.headerContainer}>
-    {!Styles.isMobile && (
+    {!Kb.Styles.isMobile && (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
         <Kb.Text type="Header">Feature the teams you’re in</Kb.Text>
       </Kb.Box2>
@@ -87,98 +131,59 @@ const ShowcaseTeamOfferHeader = () => (
   </Kb.Box>
 )
 
-const ShowcaseTeamOffer = (props: Props) => {
-  useTeamsSubscribe()
-  return (
-    <Kb.PopupWrapper onCancel={props.onCancel} title="Feature your teams" customCancelText="Close">
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
-        <Kb.ScrollView>
-          {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-          {props.teams.map(teamMeta => (
-            <TeamRow
-              key={teamMeta.id}
-              canShowcase={
-                (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
-              }
-              isExplicitMember={teamMeta.isMember}
-              name={teamMeta.teamname}
-              isOpen={teamMeta.isOpen}
-              membercount={teamMeta.memberCount}
-              onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
-              showcased={teamMeta.showcasing}
-              waiting={!!props.waiting[teamWaitingKey(teamMeta.id)]}
-            />
-          ))}
-        </Kb.ScrollView>
-      </Kb.Box2>
-    </Kb.PopupWrapper>
-  )
-}
-
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           maxHeight: 600,
           maxWidth: 600,
         },
       }),
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.mediumLarge,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.mediumLarge,
         },
       }),
-      headerText: {
-        marginBottom: Styles.globalMargins.xsmall,
-      },
-      membershipText: Styles.platformStyles({
-        common: {color: Styles.globalColors.black_50},
+      headerText: {marginBottom: Kb.Styles.globalMargins.xsmall},
+      membershipText: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black_50},
         isElectron: {textAlign: 'right'},
         isMobile: {textAlign: 'center'},
       }),
-      membershipTextContainer: {
-        flexShrink: 1,
-      },
+      membershipTextContainer: {flexShrink: 1},
       meta: {
         alignSelf: 'center',
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
-      noteContainer: Styles.platformStyles({
-        isMobile: {
-          paddingTop: Styles.globalMargins.small,
-        },
+      noteContainer: Kb.Styles.platformStyles({
+        isMobile: {paddingTop: Kb.Styles.globalMargins.small},
       }),
       noteText: {
-        paddingBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.large,
-        paddingRight: Styles.globalMargins.large,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.large,
+        paddingRight: Kb.Styles.globalMargins.large,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       teamNameContainer: {
         flexShrink: 1,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
-      teamRowContainer: Styles.platformStyles({
+      teamRowContainer: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isMobile: {
-          minHeight: Styles.isMobile ? 64 : 48,
-        },
+        isMobile: {minHeight: Kb.Styles.isMobile ? 64 : 48},
       }),
-      teamText: {
-        alignSelf: 'flex-start',
-      },
-    } as const)
+      teamText: {alignSelf: 'flex-start'},
+    }) as const
 )
 
-export default ShowcaseTeamOffer
+export default Container

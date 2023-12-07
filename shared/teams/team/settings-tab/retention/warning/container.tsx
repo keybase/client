@@ -1,32 +1,37 @@
-import * as Container from '../../../../../util/container'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Constants from '../../../../../constants/teams'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import type {RetentionEntityType} from '@/teams/team/settings-tab/retention'
 import RetentionWarning from '.'
+import {useConfirm} from '../use-confirm'
 
-type OwnProps = Container.RouteProps<'retentionWarning'>
+type OwnProps = {
+  policy: T.Retention.RetentionPolicy
+  entityType: RetentionEntityType
+}
 
-export default Container.connect(
-  () => ({}),
-  (dispatch, ownProps: OwnProps) => ({
-    onBack: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      const onCancel = ownProps.route.params?.onCancel ?? null
-      onCancel?.()
-    },
-    onConfirm: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      const cb = ownProps.route.params?.onConfirm ?? null
-      cb?.()
-    },
-  }),
-  (_s, d, ownProps: OwnProps) => {
-    const policy = ownProps.route.params?.policy ?? Constants.retentionPolicies.policyInherit
-    return {
-      ...ownProps,
-      ...d,
-      entityType: ownProps.route.params?.entityType ?? 'adhoc',
-      exploding: policy.type === 'explode',
-      timePeriod: policy.title,
-    }
+const Container = (ownProps: OwnProps) => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
   }
-)(RetentionWarning)
+
+  const entityType = ownProps.entityType
+  const policy = ownProps.policy
+
+  const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
+  const onConfirm = () => {
+    navigateUp()
+    updateConfirm(policy)
+  }
+  const props = {
+    ...ownProps,
+    entityType,
+    exploding: policy.type === 'explode',
+    onBack,
+    onConfirm,
+    timePeriod: policy.title,
+  }
+  return <RetentionWarning {...props} />
+}
+
+export default Container

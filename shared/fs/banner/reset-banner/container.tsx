@@ -1,62 +1,68 @@
-import * as ProfileGen from '../../../actions/profile-gen'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
-import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
-import * as FsGen from '../../../actions/fs-gen'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Container from '../../../util/container'
-import {folderNameWithoutUsers} from '../../../util/kbfs'
+import * as C from '@/constants'
+import * as React from 'react'
+import * as T from '@/constants/types'
+import {folderNameWithoutUsers} from '@/util/kbfs'
 import Banner, {getHeight} from '.'
-import * as RowTypes from '../../browser/rows/types'
+import * as RowTypes from '@/fs/browser/rows/types'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const ConnectedBanner = Container.connect(
-  (state, {path}: OwnProps) => ({
-    _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
-    _username: state.config.username,
-  }),
-  dispatch => ({
-    _onOpenWithoutResetUsers: (currPath: Types.Path, users: {[K in string]: boolean}) => {
-      const pathElems = Types.getPathElements(currPath)
+const ConnectedBanner = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const letResetUserBackIn = C.useFSState(s => s.dispatch.letResetUserBackIn)
+  const _onOpenWithoutResetUsers = React.useCallback(
+    (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
+      const pathElems = T.FS.getPathElements(currPath)
       if (pathElems.length < 3) return
-      const filteredPathName = folderNameWithoutUsers(pathElems[2], users)
-      const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      dispatch(Constants.makeActionForOpenPathInFilesTab(filteredPath))
+      const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
+      const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
+      C.makeActionForOpenPathInFilesTab(filteredPath)
     },
-    _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
-      dispatch(FsGen.createLetResetUserBackIn({id, username})),
-    onViewProfile: (username: string) => () =>
-      Container.isMobile
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-  }),
-  (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}: OwnProps) => {
-    return {
-      onOpenWithoutResetUsers: () =>
-        _onOpenWithoutResetUsers(
-          path,
-          stateProps._tlf.resetParticipants.reduce((acc, i: string) => {
-            acc[i] = true
-            return acc
-          }, {})
-        ),
-      onReAddToTeam: (username: string) => () =>
-        stateProps._tlf.teamId ? _onReAddToTeam(stateProps._tlf.teamId, username) : undefined,
-      onViewProfile,
-      path,
-      resetParticipants: stateProps._tlf.resetParticipants,
-    }
+    []
+  )
+  const _onReAddToTeam = React.useCallback(
+    (id: T.RPCGen.TeamID, username: string) => {
+      letResetUserBackIn(id, username)
+    },
+    [letResetUserBackIn]
+  )
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const onViewProfile = React.useCallback(
+    (username: string) => () => {
+      C.isMobile ? showUserProfile(username) : showUser(username, true)
+    },
+    [showUser, showUserProfile]
+  )
+  const props = {
+    onOpenWithoutResetUsers: () =>
+      _onOpenWithoutResetUsers(
+        path,
+        _tlf.resetParticipants.reduce<{
+          [x: string]: boolean
+        }>((acc, i: string) => {
+          acc[i] = true
+          return acc
+        }, {})
+      ),
+    onReAddToTeam: (username: string) => () =>
+      _tlf.teamId ? _onReAddToTeam(_tlf.teamId, username) : undefined,
+    onViewProfile,
+    path,
+    resetParticipants: _tlf.resetParticipants,
   }
-)(Banner)
+  return <Banner {...props} />
+}
 
 export default ConnectedBanner
 
 export const asRows = (
-  path: Types.Path,
-  resetBannerType: Types.ResetBannerType
+  path: T.FS.Path,
+  resetBannerType: T.FS.ResetBannerType
 ): Array<RowTypes.HeaderRowItem> =>
   typeof resetBannerType === 'number'
     ? [

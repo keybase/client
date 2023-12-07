@@ -1,8 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
-import UnconnectedFollowButton from '../../profile/user/actions/follow-button'
-import * as Tracker2Constants from '../../constants/tracker2'
+import * as Tracker2Constants from '@/constants/tracker2'
+import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 
 type FollowProps = {
   username: string
@@ -12,32 +11,22 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const dispatch = Container.useDispatch()
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
-  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
+  const userDetails = C.useTrackerState(s => Tracker2Constants.getDetails(s, username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
+
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
 
   React.useEffect(() => {
     if (!guiID) {
-      dispatch(
-        Tracker2Gen.createShowUser({
-          asTracker: false,
-          skipNav: true,
-          username: username,
-        })
-      )
+      showUser(username, false, true)
     }
-  }, [username, guiID, dispatch])
+  }, [username, guiID, showUser])
 
-  const onFollow = React.useCallback(
-    () => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
-    [dispatch, guiID]
-  )
-  const onUnfollow = React.useCallback(
-    () => dispatch(Tracker2Gen.createChangeFollow({follow: false, guiID})),
-    [dispatch, guiID]
-  )
+  const onFollow = React.useCallback(() => changeFollow(guiID, true), [changeFollow, guiID])
+  const onUnfollow = React.useCallback(() => changeFollow(guiID, false), [changeFollow, guiID])
 
   const waitingKey = React.useMemo(
     () => [getFollowWaitingKey(username), Tracker2Constants.profileLoadWaitingKey],

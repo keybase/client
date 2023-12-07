@@ -1,35 +1,30 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import HiddenString from '../../util/hidden-string'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
-
-  const dispatch = Container.useDispatch()
+  const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)
   const nav = Container.useSafeNavigation()
+  const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
+  const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
+  const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
 
   const onCancel = () => {
-    dispatch(SettingsGen.createResetCheckPasswordIsCorrect())
-    dispatch(nav.safeNavigateUpPayload())
+    resetCheckPassword()
+    nav.safeNavigateUp()
   }
-  const onCheckPassword = (password: string) => {
-    if (password) {
-      dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
-    }
+  const onCheckPassword = checkPassword
+  const deleteForever = () => {
+    deleteAccountForever(password)
   }
-  const deleteForever = () =>
-    dispatch(SettingsGen.createDeleteAccountForever({passphrase: new HiddenString(password)}))
 
-  const waitingKey = Container.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingKey = C.useAnyWaiting(C.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'
-  const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
+  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return (
     <Kb.Modal
@@ -52,7 +47,7 @@ const CheckPassphraseMobile = () => {
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={Constants.checkPasswordWaitingKey}
+              waitingKey={C.checkPasswordWaitingKey}
               disabled={!!checkPasswordIsCorrect || !password}
               label="Authorize"
               onClick={() => onCheckPassword(password)}
@@ -61,7 +56,7 @@ const CheckPassphraseMobile = () => {
         ),
       }}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
@@ -70,7 +65,7 @@ const CheckPassphraseMobile = () => {
       onClose={onCancel}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.Text style={styles.headerText} type="Header">
             Do you know your password?
           </Kb.Text>
@@ -108,37 +103,37 @@ const CheckPassphraseMobile = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyText: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
         textAlign: 'center',
       },
       buttonBar: {
         minHeight: undefined,
       },
       checkbox: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       container: {
-        ...Styles.padding(
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small,
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small
         ),
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
       },
       deleteButton: {
-        marginTop: Styles.globalMargins.large,
+        marginTop: Kb.Styles.globalMargins.large,
       },
       headerText: {
-        marginBottom: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default CheckPassphraseMobile

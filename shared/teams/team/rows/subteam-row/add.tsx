@@ -1,27 +1,25 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/teams'
-import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
-const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const subteamFilter = Container.useSelector(s => s.teams.subteamFilter)
-  const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
-  const onChangeFilter = (filter: string) =>
-    dispatch(TeamsGen.createSetSubteamFilter({filter, parentTeam: teamID}))
+const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const subteamFilter = C.useTeamsState(s => s.subteamFilter)
+  const setSubteamFilter = C.useTeamsState(s => s.dispatch.setSubteamFilter)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const onCreateSubteam = () => launchNewTeamWizardOrModal(teamID)
+  const onChangeFilter = (filter: string) => setSubteamFilter(filter, teamID)
   // clear filter on unmount
   React.useEffect(
     () => () => {
-      dispatch(TeamsGen.createSetSubteamFilter({filter: ''}))
+      setSubteamFilter('')
     },
-    [dispatch]
+    [setSubteamFilter]
   )
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
       <Kb.Button mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"
@@ -36,26 +34,26 @@ const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
-      ...Styles.padding(Styles.globalMargins.tiny, 0),
+      ...Kb.Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0),
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
     },
     isMobile: {
-      paddingTop: Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
   containerNew: {
-    ...Styles.padding(6, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
+    ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
   },
   filterInput: {maxWidth: 148},
-  text: {padding: Styles.globalMargins.xtiny},
+  text: {padding: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default AddSubteam

@@ -1,23 +1,23 @@
-import type * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import type * as T from '@/constants/types'
 import LastModifiedLine from './last-modified-line'
 
 export type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   mode: 'row' | 'default' | 'menu'
 }
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({_pathItem: Constants.getPathItem(state.fs.pathItems, path)}),
-  () => ({}),
-  (stateProps, _, {mode}: OwnProps) => ({
+const Container = (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const props = {
     lastModifiedTimestamp:
-      stateProps._pathItem === Constants.unknownPathItem
-        ? undefined
-        : stateProps._pathItem.lastModifiedTimestamp,
-    lastWriter:
-      stateProps._pathItem === Constants.unknownPathItem ? undefined : stateProps._pathItem.lastWriter,
+      _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp,
+    lastWriter: _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastWriter,
     mode,
-  })
-)(LastModifiedLine)
+  }
+  return <LastModifiedLine {...props} />
+}
+
+export default Container

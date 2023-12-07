@@ -1,9 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -35,21 +33,22 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
-  const username = Container.useSelector(state => state.config.username)
-
+  const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
+  const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
+  const username = C.useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
-  const onDeleteForever = () =>
-    Styles.isMobile && hasPassword
-      ? dispatch(RouteTreeGen.createNavigateAppend({path: ['checkPassphraseBeforeDeleteAccount']}))
-      : dispatch(SettingsGen.createDeleteAccountForever())
+  const onCancel = () => nav.safeNavigateUp()
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onDeleteForever = () => {
+    if (Kb.Styles.isMobile && hasPassword) {
+      navigateAppend('checkPassphraseBeforeDeleteAccount')
+    } else {
+      deleteAccountForever()
+    }
+  }
 
   return (
     <Kb.ConfirmModal
@@ -79,10 +78,10 @@ const DeleteConfirm = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkbox: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkbox: Kb.Styles.platformStyles({
     isMobile: {
-      padding: Styles.globalMargins.mediumLarge,
+      padding: Kb.Styles.globalMargins.mediumLarge,
     },
   }),
 }))

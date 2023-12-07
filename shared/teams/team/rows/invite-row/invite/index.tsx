@@ -1,19 +1,20 @@
-import * as Kb from '../../../../../common-adapters'
-import {typeToLabel} from '../../../../../constants/teams'
-import type {TeamRoleType} from '../../../../../constants/types/teams'
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 
 export type Props = {
   isKeybaseUser?: boolean
   label: string
   subLabel?: string
   onCancelInvite?: () => void
-  role: TeamRoleType
+  role: T.Teams.TeamRoleType
   firstItem: boolean
 }
 
 export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
-  const text2 = subLabel ? (role ? `${subLabel} · ${typeToLabel[role]}` : subLabel) : typeToLabel[role]
+  const text2 = subLabel ? `${subLabel} · ${C.Teams.typeToLabel[role]}` : C.Teams.typeToLabel[role]
   return (
     <Kb.ListItem2
       type="Small"
@@ -36,15 +37,23 @@ export const TeamInviteRow = (props: Props) => {
 }
 
 const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      items={[{danger: true, icon: 'iconfont-remove', onClick: props.onCancelInvite, title: 'Cancel invite'}]}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      attachTo={attachTo}
-    />
-  ))
+  const {onCancelInvite} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          attachTo={attachTo}
+        />
+      )
+    },
+    [onCancelInvite]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button

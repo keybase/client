@@ -1,9 +1,9 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants-gen'
 import './icon.css'
 
-export function defaultColor(type: IconType): string | null {
+export function defaultColor(type: IconType): string {
   switch (type) {
     case 'iconfont-crown-admin':
       return Styles.globalColors.black_35
@@ -16,11 +16,11 @@ export function defaultColor(type: IconType): string | null {
     case 'iconfont-close':
       return Styles.globalColors.black_20
     default:
-      return null
+      return ''
   }
 }
 
-export function defaultHoverColor(type: IconType): string | null {
+export function defaultHoverColor(type: IconType): string {
   switch (type) {
     case 'iconfont-proof-broken':
     case 'iconfont-proof-pending':
@@ -28,14 +28,11 @@ export function defaultHoverColor(type: IconType): string | null {
     case 'iconfont-close':
       return Styles.globalColors.black_50
     default:
-      return null
+      return ''
   }
 }
 
 // Some types are the same underlying icon.
-export function typeToIconMapper(type: IconType): IconType {
-  return type
-}
 
 export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
@@ -45,25 +42,21 @@ export function getImagesDir(type: IconType): string {
   return iconMeta[type].imagesDir || 'icons'
 }
 
-export function fontSize(type: IconType): {fontSize: number} | null {
+export function fontSize(type: IconType): {fontSize: number} | undefined {
   const meta = iconMeta[type]
-  if (!meta) {
-    throw new Error('Invalid icon type: ' + type)
-  }
-
-  const fontSize: number | null = meta.gridSize || null
+  const fontSize: number = meta.gridSize || 0
 
   if (fontSize) {
     return {fontSize}
   } else {
-    return null
+    return undefined
   }
 }
 
 export function isValidIconType(inputType: string): inputType is IconType {
-  // @ts-ignore this type is what we're checking
-  const iconType = typeToIconMapper(inputType)
-  return !!iconType && !!iconMeta[iconType]
+  if (!inputType) return false
+  const iconType = inputType as IconType
+  return !!iconMeta[iconType]
 }
 
 export function typeToFontSize(sizeType: SizeType) {
@@ -116,9 +109,9 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
 
   const multsMap: MultMap = {
-    [1]: undefined,
-    [2]: undefined,
-    [3]: undefined,
+    1: undefined,
+    2: undefined,
+    3: undefined,
   }
 
   multiKeys.forEach(mult => {
@@ -135,15 +128,11 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     // fallback
     const ideal = mult * targetSize
     const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes[sizes.length - 1]
+    multsMap[mult] = size || sizes.at(-1)
   })
 
   _getMultsMapCache[sizeKey] = multsMap
   return multsMap
-}
-
-export function castPlatformStyles(styles: any) {
-  return styles
 }
 
 function makePaddingStyles(): PaddingStyles {

@@ -1,115 +1,72 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
 import Normal from '.'
-import type * as Types from '../../../constants/types/chat2'
-import {indefiniteArticle} from '../../../util/string'
-import shallowEqual from 'shallowequal'
+import {OrangeLineContext} from '../orange-line-context'
+import {FocusProvider, ScrollProvider} from './context'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
+// Orange line logic:
+// While looking at a thread the line should be static
+// If you aren't active (backgrounded on desktop) the orange line will appear above new content
+// If you are active and new items get added the orange line will be consistent, either where it was on first
+// mount or not there at all (active and new items come)
+// Handle mark as unread
+const useOrangeLine = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const readMsgID = C.useChatContext(s => s.meta.readMsgID)
+  const maxMsgID = C.useChatContext(s => s.meta.maxMsgID)
+  const metaOrangeShow = maxMsgID > readMsgID
+  const active = C.useActiveState(s => s.active)
 
-const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
-  const {conversationIDKey} = props
-  const [focusInputCounter, setFocusInputCounter] = React.useState(0)
-  const onFocusInput = React.useCallback(() => {
-    setFocusInputCounter(focusInputCounter + 1)
-  }, [setFocusInputCounter, focusInputCounter])
+  const initOrangeLine = () => {
+    return metaOrangeShow ? readMsgID : 0
+  }
+  const [orangeLine, setOrangeLine] = React.useState(initOrangeLine())
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const [lastReadMsgID, setLastReadMsgID] = React.useState(readMsgID)
+  const [metaGood, setMetaGood] = React.useState(readMsgID > 0)
 
-  const requestScrollDownRef = React.useRef<undefined | (() => void)>()
-  const onRequestScrollDown = React.useCallback(() => {
-    requestScrollDownRef.current?.()
-  }, [])
+  // meta not ready yet
+  if (readMsgID < 0) {
+    return 0
+  }
 
-  const requestScrollUpRef = React.useRef<undefined | (() => void)>()
-  const onRequestScrollUp = React.useCallback(() => {
-    requestScrollUpRef.current?.()
-  }, [])
+  if (!metaGood) {
+    setMetaGood(true)
+    setLastReadMsgID(readMsgID)
+    setOrangeLine(metaOrangeShow ? readMsgID : 0)
+  }
 
-  const requestScrollToBottomRef = React.useRef<undefined | (() => void)>()
-  const onRequestScrollToBottom = React.useCallback(() => {
-    requestScrollToBottomRef.current?.()
-  }, [])
+  // convo changed? reset
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
+    setLastReadMsgID(readMsgID)
+    setOrangeLine(initOrangeLine())
+  }
 
-  const {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline} = Container.useSelector(
-    state => {
-      const meta = Constants.getMeta(state, conversationIDKey)
-      const {cannotWrite, offline, minWriterRole} = meta
-      const threadLoadedOffline = offline
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
-      const minWriterReason = `You must be at least ${indefiniteArticle(
-        minWriterRole
-      )} ${minWriterRole} to post.`
-      return {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline}
-    },
-    shallowEqual
-  )
+  // not active and we should show?
+  if (metaOrangeShow && !active && orangeLine <= 0) {
+    setOrangeLine(readMsgID)
+  }
 
-  const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
+  // mark unread
+  if (metaOrangeShow && readMsgID < lastReadMsgID) {
+    setLastReadMsgID(readMsgID)
+    setOrangeLine(readMsgID)
+  }
 
-  React.useEffect(() => {
-    if (!Container.isMobile) {
-      setFocusInputCounter(c => c + 1)
-    }
-  }, [conversationIDKey])
+  return orangeLine
+}
 
-  const dispatch = Container.useDispatch()
-  const jumpToRecent = React.useCallback(() => {
-    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
-
-  const onPaste = React.useCallback(
-    (data: Buffer) => {
-      dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data}))
-    },
-    [conversationIDKey, dispatch]
-  )
-
-  const onToggleThreadSearch = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
-
-  const onShowTracker = React.useCallback(
-    (username: string) => {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-    },
-    [dispatch]
-  )
-
-  const onAttach = React.useCallback(
-    (paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({outboxID: null, path: p}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
-    },
-    [conversationIDKey, dispatch]
-  )
-
+const NormalWrapper = React.memo(function NormalWrapper() {
+  const orangeLine = useOrangeLine()
   return (
-    <Normal
-      conversationIDKey={conversationIDKey}
-      dragAndDropRejectReason={dragAndDropRejectReason}
-      threadLoadedOffline={threadLoadedOffline}
-      showThreadSearch={showThreadSearch}
-      onFocusInput={onFocusInput}
-      onRequestScrollDown={onRequestScrollDown}
-      onRequestScrollUp={onRequestScrollUp}
-      onRequestScrollToBottom={onRequestScrollToBottom}
-      requestScrollToBottomRef={requestScrollToBottomRef}
-      focusInputCounter={focusInputCounter}
-      requestScrollDownRef={requestScrollDownRef}
-      requestScrollUpRef={requestScrollUpRef}
-      jumpToRecent={jumpToRecent}
-      onPaste={onPaste}
-      onToggleThreadSearch={onToggleThreadSearch}
-      onShowTracker={onShowTracker}
-      onAttach={cannotWrite ? null : onAttach}
-    />
+    <OrangeLineContext.Provider value={orangeLine}>
+      <FocusProvider>
+        <ScrollProvider>
+          <Normal />
+        </ScrollProvider>
+      </FocusProvider>
+    </OrangeLineContext.Provider>
   )
 })
 export default NormalWrapper

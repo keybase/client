@@ -1,21 +1,19 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
-import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
-import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
-import {Swipeable} from '../../../../../common-adapters/swipeable.native'
-import {ConversationIDKeyContext} from '../contexts'
+import {Swipeable} from '@/common-adapters/swipeable.native'
+import {View} from 'react-native'
 
 const actionWidth = 64
 
 const Action = (p: {
   text: string
   mult: number
-  color: Styles.Color
+  color: Kb.Styles.Color
   iconType: Kb.IconType
   onClick: () => void
   progress: Reanimated.SharedValue<number>
@@ -30,7 +28,7 @@ const Action = (p: {
   return (
     <Reanimated.default.View style={[styles.action, as]}>
       <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
-        <Kb.Icon type={iconType} color={Styles.globalColors.white} />
+        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>
@@ -41,42 +39,43 @@ const Action = (p: {
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [extraData, setExtraData] = React.useState(0)
-
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     // only if open
     if (swipeCloseRef?.current) {
       setExtraData(d => d + 1)
     }
-  }
-
-  const dispatch = Container.useDispatch()
-  const onMarkConversationAsUnread = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
-  })
-  const onMuteConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
-  })
-  const onHideConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
   })
 
-  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
+  const onMarkConversationAsUnread = C.useEvent(() => {
+    setMarkAsUnread()
+  })
 
-  const onMarkAsUnread = Container.useEvent(() => {
+  const mute = C.useChatContext(s => s.dispatch.mute)
+  const onMuteConversation = C.useEvent(() => {
+    mute(!isMuted)
+  })
+
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
+  const onHideConversation = C.useEvent(() => {
+    hideConversation(true)
+  })
+
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
+
+  const onMarkAsUnread = C.useEvent(() => {
     onMarkConversationAsUnread()
     swipeCloseRef?.current?.()
   })
 
-  const onMute = Container.useEvent(() => {
+  const onMute = C.useEvent(() => {
     onMuteConversation()
     swipeCloseRef?.current?.()
   })
 
-  const onHide = Container.useEvent(() => {
+  const onHide = C.useEvent(() => {
     onHideConversation()
     swipeCloseRef?.current?.()
   })
@@ -85,10 +84,10 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     (_p: Reanimated.SharedValue<number>) => null
   )
   makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
-    <Kb.NativeView style={styles.container}>
+    <View style={styles.container}>
       <Action
         text="Unread"
-        color={Styles.globalColors.blue}
+        color={Kb.Styles.globalColors.blue}
         iconType="iconfont-envelope-solid"
         onClick={onMarkAsUnread}
         mult={0}
@@ -96,7 +95,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       />
       <Action
         text={isMuted ? 'Unmute' : 'Mute'}
-        color={Styles.globalColors.orange}
+        color={Kb.Styles.globalColors.orange}
         iconType="iconfont-shh"
         onClick={onMute}
         mult={1 / 3}
@@ -104,13 +103,13 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       />
       <Action
         text="Hide"
-        color={Styles.globalColors.greyDarker}
+        color={Kb.Styles.globalColors.greyDarker}
         iconType="iconfont-hide"
         onClick={onHide}
         mult={2 / 3}
         progress={progress}
       />
-    </Kb.NativeView>
+    </View>
   )
 
   const props = {
@@ -148,7 +147,7 @@ const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IPr
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       action: {
@@ -160,7 +159,7 @@ const styles = Styles.styleSheetCreate(
       },
       actionText: {
         backgroundColor: 'transparent',
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
       container: {
         display: 'flex',
@@ -179,7 +178,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         height: RowSizes.smallRowHeight,
       },
-    } as const)
+    }) as const
 )
 
 export default SwipeConvActions

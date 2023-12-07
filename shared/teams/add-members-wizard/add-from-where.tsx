@@ -1,18 +1,15 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
-import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {ModalTitle} from '../common'
 
 const Skip = () => {
-  const dispatch = Container.useDispatch()
-  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
-  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
+  const onSkip = () => finishNewTeamWizard()
+  const waiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
 
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
@@ -26,20 +23,19 @@ const Skip = () => {
 }
 
 const AddFromWhere = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-  const newTeam: boolean = teamID === Types.newTeamWizardTeamID
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const cancelAddMembersWizard = C.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
+  const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
-
-  const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-  const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-  const onContinueEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
+  const createTeamError = C.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
+  const onClose = () => cancelAddMembersWizard()
+  const onBack = () => nav.safeNavigateUp()
+  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
+  const onContinueKeybase = () => appendNewTeamBuilder(teamID)
+  const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
+  const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
+  const onContinueEmail = () => nav.safeNavigateAppend({props: {}, selected: 'teamAddToTeamEmail'})
   return (
     <Kb.Modal
       allowOverflow={true}
@@ -54,7 +50,7 @@ const AddFromWhere = () => {
       header={{
         leftButton: newTeam ? (
           <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : Styles.isMobile ? (
+        ) : Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
@@ -62,7 +58,7 @@ const AddFromWhere = () => {
         rightButton: newTeam ? <Skip /> : undefined,
         title: (
           <ModalTitle
-            title={Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
+            title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
             teamID={teamID}
           />
         ),
@@ -72,7 +68,7 @@ const AddFromWhere = () => {
     >
       <Kb.Box2
         direction="vertical"
-        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
         style={styles.body}
         fullWidth={true}
       >
@@ -91,7 +87,7 @@ const AddFromWhere = () => {
           description="Enter one or multiple email addresses."
           onClick={onContinueEmail}
         />
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.RichButton
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"
@@ -110,20 +106,24 @@ const AddFromWhere = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {borderRadius: 4},
   }),
-  body: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xlarge),
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.xlarge
+      ),
       borderBottomRadius: 4,
     },
     isMobile: {
-      ...Styles.globalStyles.flexOne,
-      ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexOne,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     },
   }),
 }))

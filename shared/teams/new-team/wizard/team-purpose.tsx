@@ -1,28 +1,26 @@
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
-import {ModalTitle} from '../../common'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as Types from '../../../constants/types/teams'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import {ModalTitle} from '@/teams/common'
+import * as T from '@/constants/types'
 
 const TeamPurpose = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = (teamType: Types.TeamWizardTeamType) =>
-    dispatch(TeamsGen.createSetTeamWizardTeamType({teamType}))
+  const onBack = () => nav.safeNavigateUp()
+  const setTeamWizardTeamType = C.useTeamsState(s => s.dispatch.setTeamWizardTeamType)
+  const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Cancel
           </Kb.Text>
         ) : undefined,
-        title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
+        title: <ModalTitle teamID={T.Teams.noTeamID} title="New team" />,
       }}
       allowOverflow={true}
       backgroundStyle={styles.bg}
@@ -31,7 +29,7 @@ const TeamPurpose = () => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
         <Kb.RichButton
@@ -66,22 +64,22 @@ const TeamPurpose = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {borderRadius: 4},
   }),
-  body: Styles.platformStyles({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  wordBreak: Styles.platformStyles({
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

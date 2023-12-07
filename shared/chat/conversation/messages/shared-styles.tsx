@@ -1,14 +1,13 @@
-import * as Styles from '../../../styles'
-
+import * as Kb from '@/common-adapters'
 // TODO remove
-export const sharedStyles = Styles.styleSheetCreate(() => {
+export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
   const editing = {
     borderRadius: 2,
-    color: Styles.globalColors.blackOrBlack,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    color: Kb.Styles.globalColors.blackOrBlack,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   }
-  const sent = Styles.platformStyles({
+  const sent = Kb.Styles.platformStyles({
     isElectron: {
       // Make text selectable. On mobile we implement that differently.
       cursor: 'text',
@@ -18,7 +17,7 @@ export const sharedStyles = Styles.styleSheetCreate(() => {
       wordBreak: 'break-word',
     } as const,
     isMobile: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
     },
   })
   const sentEditing = {
@@ -35,7 +34,7 @@ export const sharedStyles = Styles.styleSheetCreate(() => {
   return {
     editing,
     highlighted: {
-      color: Styles.globalColors.blackOrBlack,
+      color: Kb.Styles.globalColors.blackOrBlack,
     },
     pendingFail,
     pendingFailEditing,

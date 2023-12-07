@@ -1,23 +1,17 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ConfigGen from '../../actions/config-gen'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import useFixStatusbar from '../../common-adapters/use-fix-statusbar.native'
 
 const ChatPDF = (props: Props) => {
-  const {message, url} = props.route.params ?? {}
+  const {ordinal, url} = props
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
-
-  useFixStatusbar()
-
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-  const onShare = () =>
-    dispatch(ConfigGen.createShowShareActionSheet({filePath: url, mimeType: 'application/pdf'}))
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
+  const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const onShare = () => showShareActionSheet?.(url ?? '', '', 'application/pdf')
   const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -42,12 +36,12 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   progressContainer: {
     justifyContent: 'center',
     position: 'absolute',
   },
-  webViewContainer: {margin: Styles.globalMargins.xtiny},
+  webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default ChatPDF

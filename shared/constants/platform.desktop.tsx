@@ -1,14 +1,15 @@
-import KB2 from '../util/electron.desktop'
-import * as Path from '../util/path'
+import capitalize from 'lodash/capitalize'
+import KB2 from '@/util/electron.desktop'
+
 const {env, platform} = KB2.constants
 
+export const isNewArch = false
 export const androidIsTestDevice = false
 export const isMobile = false
 export const isPhone = false
 export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = true
-export const isIPhoneX = false
 export const isTablet = false
 export const windowHeight = 0 // not implemented on desktop
 export const isDebuggingInChrome = true
@@ -23,19 +24,26 @@ export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
 export const isMac = isDarwin && !isIOS
 
+export const isDeviceSecureAndroid = false
 export const isAndroidNewerThanN = false
+export const isAndroidNewerThanM = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName = ''
 
 export const defaultUseNativeFrame = isDarwin || isLinux
 
 // For storyshots, we only want to test macOS
-export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
+export const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
 const runMode = env.KEYBASE_RUN_MODE
 const homeEnv = env.HOME
 
-if (__DEV__ && !__STORYBOOK__) {
+const join = (...args: Array<string>) => {
+  return [...args].join(pathSep).replace(new RegExp(`${pathSep}+`, 'g'), pathSep)
+}
+const joinAddSep = (...args: Array<string>) => join(...args) + pathSep
+
+if (__DEV__) {
   console.log(`Run mode: ${runMode}`)
 }
 
@@ -45,7 +53,7 @@ const getLinuxPaths = () => {
   const useXDG = (runMode !== 'devel' || env.KEYBASE_DEVEL_USE_XDG) && !env.KEYBASE_XDG_OVERRIDE
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && env.XDG_CONFIG_HOME) || Path.join(homeEnv, '.config')
+  const homeConfigDir = (useXDG && env.XDG_CONFIG_HOME) || join(homeEnv, '.config')
   const runtimeDir = (useXDG && env.XDG_RUNTIME_DIR) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
@@ -57,41 +65,41 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = (useXDG && env.XDG_CACHE_HOME) || Path.join(homeEnv, '.cache', appName)
+  const logDir = (useXDG && env.XDG_CACHE_HOME) || join(homeEnv, '.cache', appName)
 
   return {
     cacheRoot: logDir,
-    dataRoot: (useXDG && env.XDG_DATA_HOME) || Path.join(homeEnv, '.local/share', appName),
-    guiConfigFilename: Path.join(homeConfigDir, appName, 'gui_config.json'),
+    dataRoot: (useXDG && env.XDG_DATA_HOME) || join(homeEnv, '.local/share', appName),
+    guiConfigFilename: join(homeConfigDir, appName, 'gui_config.json'),
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: Path.join(socketDir, appName, socketName),
+    socketPath: join(socketDir, appName, socketName),
   }
 }
 
 const getWindowsPaths = () => {
-  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  const appName = `Keybase${runMode === 'prod' ? '' : capitalize(runMode)}`
   let appdata = env.LOCALAPPDATA || ''
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
   const dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
-  const logDir = Path.joinAddSep(env.LOCALAPPDATA, appName)
+  const logDir = joinAddSep(env.LOCALAPPDATA, appName)
   return {
-    cacheRoot: Path.joinAddSep(env.APPDATA, appName),
-    dataRoot: Path.joinAddSep(env.LOCALAPPDATA, appName),
-    guiConfigFilename: Path.join(env.LOCALAPPDATA, appName, 'gui_config.json'),
+    cacheRoot: joinAddSep(env.APPDATA, appName),
+    dataRoot: joinAddSep(env.LOCALAPPDATA, appName),
+    guiConfigFilename: join(env.LOCALAPPDATA, appName, 'gui_config.json'),
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: Path.join(dir, socketName),
+    socketPath: join(dir, socketName),
   }
 }
 
 const getDarwinPaths = () => {
-  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  const appName = `Keybase${runMode === 'prod' ? '' : capitalize(runMode)}`
   const libraryDir = `${homeEnv}/Library/`
   const logDir = `${libraryDir}Logs/`
 
@@ -102,12 +110,14 @@ const getDarwinPaths = () => {
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: Path.join(`${libraryDir}Group Containers/keybase/Library/Caches`, appName, socketName),
+    socketPath: join(`${libraryDir}Group Containers/keybase/Library/Caches`, appName, socketName),
   }
 }
 
 const paths =
-  (isLinux && getLinuxPaths()) || (isWindows && getWindowsPaths()) || (isDarwin && getDarwinPaths())
+  (isLinux ? getLinuxPaths() : undefined) ||
+  (isWindows ? getWindowsPaths() : undefined) ||
+  (isDarwin ? getDarwinPaths() : undefined)
 if (!paths) {
   throw new Error('Unknown OS')
 }
@@ -115,7 +125,7 @@ if (!paths) {
 export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
   paths
 
-export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFolder
+export const downloadFolder = env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFolder
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

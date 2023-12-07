@@ -1,23 +1,20 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
-import {memoize} from '../../../util/memoize'
-import shallowEqual from 'shallowequal'
+import {memoize} from '@/util/memoize'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<Types.ChatInboxRowItem>
+  rows: Array<T.Chat.ChatInboxRowItem>
   showButton: boolean
   toggle: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
-const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Types.ChatInboxRowItem>) => {
+const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
 
@@ -33,23 +30,23 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const {badges, smallTeamBadgeCount, totalSmallTeams} = Container.useSelector(state => {
-    const badges = state.chat2.badgeMap
-    const smallTeamBadgeCount = state.chat2.smallTeamBadgeCount
-    const totalSmallTeams = state.chat2.inboxLayout?.totalSmallTeams ?? 0
-    return {badges, smallTeamBadgeCount, totalSmallTeams}
-  }, shallowEqual)
+  const smallTeamBadgeCount = C.useChatState(s => s.smallTeamBadgeCount)
+  const totalSmallTeams = C.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
+  const badges = React.useMemo(() => {
+    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
   badgeCount += smallTeamBadgeCount
   hiddenCount += totalSmallTeams
-  if (!Styles.isMobile) {
+  if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
-  const loadMore = async () => RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
+  const loadMore = async () => T.RPCChat.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
   badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)
@@ -57,7 +54,10 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([reallyShow ? styles.containerButton : styles.containerNoButton, style])}
+      style={Kb.Styles.collapseStyles([
+        reallyShow ? styles.containerButton : styles.containerNoButton,
+        style,
+      ])}
       gap="tiny"
       gapStart={true}
       gapEnd={true}
@@ -81,31 +81,31 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
         alignSelf: 'center',
-        bottom: Styles.globalMargins.tiny,
+        bottom: Kb.Styles.globalMargins.tiny,
         position: 'relative',
         width: undefined,
       },
-      containerButton: Styles.platformStyles({
+      containerButton: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           flexShrink: 0,
           height: RowSizes.dividerHeight(true),
           justifyContent: 'center',
           width: '100%',
         },
-        isElectron: {backgroundColor: Styles.globalColors.blueGrey},
+        isElectron: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       containerNoButton: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: RowSizes.dividerHeight(false),
         justifyContent: 'center',
@@ -113,10 +113,10 @@ const styles = Styles.styleSheetCreate(
       },
       dividerText: {
         alignSelf: 'flex-start',
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default TeamsDivider

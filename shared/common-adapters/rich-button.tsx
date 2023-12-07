@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 import {Box2} from './box'
 import ClickableBox from './clickable-box'

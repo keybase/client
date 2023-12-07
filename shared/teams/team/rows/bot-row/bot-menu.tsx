@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   canManageBots: boolean
   onEdit: () => void
   onRemove: () => void

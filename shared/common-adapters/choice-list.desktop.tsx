@@ -1,16 +1,23 @@
-import {Box, Text, Icon, type IconType} from '.'
-import * as Styles from '../styles'
+import {Box} from './box'
+import Text from './text'
+import Icon, {type IconType} from './icon'
+import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 import './choice-list.css'
 
+const Kb = {
+  Box,
+  Icon,
+  Text,
+}
+
 const ChoiceList = ({options}: Props) => {
   return (
-    <Box>
+    <Kb.Box>
       {options.map((op, idx) => {
-        // TODO is this okay?
-        const iconType: IconType = op.icon as IconType
+        const iconType = op.icon as IconType
         return (
-          <Box
+          <Kb.Box
             style={Styles.collapseStyles([
               Styles.globalStyles.flexBoxRow,
               Styles.desktopStyles.clickable,
@@ -20,26 +27,26 @@ const ChoiceList = ({options}: Props) => {
             className="cl-entry"
             onClick={() => op.onClick()}
           >
-            <Box
+            <Kb.Box
               style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.iconContainer])}
               className="cl-icon-container"
             >
               {typeof op.icon === 'string' ? (
-                <Icon style={styles.icon} type={iconType} className="cl-icon" />
+                <Kb.Icon style={styles.icon} type={iconType} className="cl-icon" />
               ) : (
-                <Box style={styles.icon} className="cl-icon">
+                <Kb.Box style={styles.icon} className="cl-icon">
                   {op.icon}
-                </Box>
+                </Kb.Box>
               )}
-            </Box>
-            <Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.infoContainer])}>
+            </Kb.Box>
+            <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.infoContainer])}>
               <Text type="BodyBigLink">{op.title}</Text>
               <Text type="Body">{op.description}</Text>
-            </Box>
-          </Box>
+            </Kb.Box>
+          </Kb.Box>
         )
       })}
-    </Box>
+    </Kb.Box>
   )
 }
 

@@ -1,26 +1,30 @@
-import * as Container from '../../../util/container'
-import * as ProfileGen from '../../../actions/profile-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import ProofsList from '.'
-import * as Styles from '../../../styles'
 
-type OwnProps = {}
-export default Container.connect(
-  state => ({_proofSuggestions: state.tracker2.proofSuggestions}),
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key, reason: 'profile'})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onCancel: dispatchProps.onCancel,
-    providerClicked: dispatchProps.providerClicked,
-    providers: stateProps._proofSuggestions.map(s => ({
+const Container = () => {
+  const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const providerClicked = (key: string) => {
+    addProof(key, 'profile')
+  }
+  const props = {
+    onCancel: onCancel,
+    providerClicked: providerClicked,
+    providers: _proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
-      icon: Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
+      icon: Kb.Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
       key: s.assertionKey,
       name: s.pickerText,
       new: s.metas.some(({label}) => label === 'new'),
     })),
     title: 'Prove your...',
-  })
-)(ProofsList)
+  }
+  return <ProofsList {...props} />
+}
+
+export default Container

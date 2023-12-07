@@ -1,14 +1,13 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 import {SiteIcon} from '../shared'
-import type {SiteIconSet} from '../../../constants/types/tracker2'
+import type * as T from '@/constants/types'
 
 type InputProps = {
   error: boolean
   onChangeUsername: (arg0: string) => void
   onEnterKeyDown: () => void
-  serviceIcon: SiteIconSet
+  serviceIcon: T.Tracker.SiteIconSet
   serviceSuffix: string
   username: string
 }
@@ -21,12 +20,12 @@ type InputState = {
 class EnterUsernameInput extends React.Component<InputProps, InputState> {
   state = {focus: false, username: this.props.username}
 
-  _onChangeUsername = username => {
+  _onChangeUsername = (username: string) => {
     this.props.onChangeUsername(username)
     this.setState({username})
   }
 
-  _setFocus = focus => this.setState(s => (s.focus === focus ? null : {focus}))
+  _setFocus = (focus: boolean) => this.setState(s => (s.focus === focus ? null : {focus}))
   _onFocus = () => this._setFocus(true)
   _onBlur = () => this._setFocus(false)
 
@@ -37,7 +36,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
     return (
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.inputBox,
           this.state.username && styles.inputBoxSmall,
           this.state.focus && styles.borderBlue,
@@ -72,7 +71,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
               <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
                 <Kb.Text
                   type="BodySemibold"
-                  style={Styles.collapseStyles([
+                  style={Kb.Styles.collapseStyles([
                     styles.placeholder,
                     !!this.state.username && styles.invisible,
                   ])}
@@ -91,18 +90,18 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   }
 }
 
-const Unreachable = props => (
+const Unreachable = (props: any) => (
   <Kb.Box2
     direction="horizontal"
     gap="xtiny"
     alignItems="flex-start"
-    style={Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
-    fullWidth={Styles.isMobile}
+    style={Kb.Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
+    fullWidth={Kb.Styles.isMobile}
   >
     <SiteIcon
       set={props.serviceIcon}
       full={false}
-      style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
+      style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
     <Kb.Box2 direction="vertical" style={styles.flexOne}>
       <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
@@ -111,11 +110,11 @@ const Unreachable = props => (
         </Kb.Text>
         {props.serviceSuffix}
       </Kb.Text>
-      <Kb.Meta title="unreachable" backgroundColor={Styles.globalColors.red} />
+      <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
     <Kb.Icon
       type="iconfont-proof-broken"
-      color={Styles.globalColors.red}
+      color={Kb.Styles.globalColors.red}
       boxStyle={styles.marginLeftAuto}
       style={styles.inlineIcon}
     />
@@ -129,8 +128,8 @@ type Props = {
   onChangeUsername: (arg0: string) => void
   onContinue: () => void
   onSubmit: () => void
-  serviceIcon: SiteIconSet
-  serviceIconFull: SiteIconSet
+  serviceIcon: T.Tracker.SiteIconSet
+  serviceIconFull: T.Tracker.SiteIconSet
   serviceName: string
   serviceSub: string
   serviceSuffix: string
@@ -141,10 +140,6 @@ type Props = {
 }
 
 class EnterUsername extends React.Component<Props> {
-  static navigationOptions = {
-    gesturesEnabled: false,
-  }
-
   _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {
@@ -162,7 +157,7 @@ class EnterUsername extends React.Component<Props> {
     return (
       <Kb.PopupWrapper onCancel={props.onCancel}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-          {!props.unreachable && !Styles.isMobile && (
+          {!props.unreachable && !Kb.Styles.isMobile && (
             <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
           )}
           <Kb.Box2
@@ -222,7 +217,7 @@ class EnterUsername extends React.Component<Props> {
               </Kb.Text>
             )}
             <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-              {!Styles.isMobile && !props.unreachable && (
+              {!Kb.Styles.isMobile && !props.unreachable && (
                 <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
               )}
               {props.unreachable ? (
@@ -238,7 +233,6 @@ class EnterUsername extends React.Component<Props> {
                   onClick={props.onSubmit}
                   label={props.submitButtonLabel}
                   style={styles.buttonBig}
-                  waitingKey={null}
                   key={this._waitingButtonKey}
                 />
               )}
@@ -250,32 +244,36 @@ class EnterUsername extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
-      borderBlue: {borderColor: Styles.globalColors.blue},
-      borderRed: {borderColor: Styles.globalColors.red},
+      backButton: {
+        left: Kb.Styles.globalMargins.small,
+        position: 'absolute',
+        top: Kb.Styles.globalMargins.small,
+      },
+      borderBlue: {borderColor: Kb.Styles.globalColors.blue},
+      borderRed: {borderColor: Kb.Styles.globalColors.red},
       buttonBar: {
-        ...Styles.padding(
-          Styles.globalMargins.small,
-          Styles.globalMargins.medium,
-          Styles.globalMargins.medium
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.medium
         ),
       },
-      buttonBarWarning: {backgroundColor: Styles.globalColors.yellow},
+      buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
-      colorBlue: {color: Styles.globalColors.blueDark},
-      colorRed: {color: Styles.globalColors.redDark},
-      container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
+      colorBlue: {color: Kb.Styles.globalColors.blueDark},
+      colorRed: {color: Kb.Styles.globalColors.redDark},
+      container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
       flexOne: {flex: 1},
       inlineIcon: {
         position: 'relative',
         top: 1,
       },
-      input: Styles.platformStyles({
-        common: {marginRight: Styles.globalMargins.medium},
+      input: Kb.Styles.platformStyles({
+        common: {marginRight: Kb.Styles.globalMargins.medium},
         isAndroid: {
           top: 1,
         },
@@ -284,18 +282,21 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputBox: {
-        ...Styles.padding(Styles.globalMargins.xsmall),
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
+        borderColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
-        padding: Styles.globalMargins.xsmall,
+        padding: Kb.Styles.globalMargins.xsmall,
       },
       inputBoxSmall: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       inputContainer: {
-        ...Styles.padding(0, Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium),
+        ...Kb.Styles.padding(
+          0,
+          Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.medium
+        ),
         flex: 1,
         justifyContent: 'center',
       },
@@ -308,7 +309,7 @@ const styles = Styles.styleSheetCreate(
       invisible: {
         // opacity doesn't work in nested Text on android
         // see here: https://github.com/facebook/react-native/issues/18057
-        color: Styles.globalColors.transparent,
+        color: Kb.Styles.globalColors.transparent,
       },
       marginLeftAuto: {marginLeft: 'auto'},
       opacity40: {
@@ -317,12 +318,12 @@ const styles = Styles.styleSheetCreate(
       opacity75: {
         opacity: 0.75,
       },
-      paddingRightTiny: {paddingRight: Styles.globalMargins.tiny},
+      paddingRightTiny: {paddingRight: Kb.Styles.globalMargins.tiny},
       placeholder: {
-        color: Styles.globalColors.black_35,
+        color: Kb.Styles.globalColors.black_35,
       },
       placeholderService: {
-        color: Styles.globalColors.black_20,
+        color: Kb.Styles.globalColors.black_20,
       },
       positionRelative: {
         position: 'relative',
@@ -332,35 +333,35 @@ const styles = Styles.styleSheetCreate(
         width: 64,
       },
       serviceIconHeaderContainer: {
-        paddingTop: Styles.globalMargins.medium,
+        paddingTop: Kb.Styles.globalMargins.medium,
       },
-      serviceMeta: Styles.platformStyles({
+      serviceMeta: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       serviceProofIcon: {
-        bottom: -Styles.globalMargins.tiny,
+        bottom: -Kb.Styles.globalMargins.tiny,
         position: 'absolute',
-        right: -Styles.globalMargins.tiny,
+        right: -Kb.Styles.globalMargins.tiny,
       },
-      unreachableBox: Styles.platformStyles({
-        common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
+      unreachableBox: Kb.Styles.platformStyles({
+        common: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall)},
         isElectron: {width: 360},
       }),
-      unreachablePlaceholder: Styles.platformStyles({
-        common: {color: Styles.globalColors.black_35},
+      unreachablePlaceholder: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black_35},
         isElectron: {
           wordBreak: 'break-all',
         },
       }),
-      warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
-    } as const)
+      warningText: {color: Kb.Styles.globalColors.brown_75, marginTop: Kb.Styles.globalMargins.small},
+    }) as const
 )
 
 export default EnterUsername

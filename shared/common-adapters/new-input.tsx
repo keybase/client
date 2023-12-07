@@ -3,7 +3,7 @@ import PlainInput, {type PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType} from './icon'
 import Text, {getStyle as getTextStyle} from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import './input.css'
 
 export type _Props = {

@@ -1,16 +1,11 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import * as WalletConstants from '../../../../constants/wallets'
-import type * as WalletTypes from '../../../../constants/types/wallets'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
-  _paymentID: null,
+  _paymentID: undefined,
   action: '',
   amount: '',
   approxWorth: '',
@@ -29,8 +24,13 @@ const loadingProps = {
   sourceAmount: '',
 } as const
 
+const failedProps = {
+  ...loadingProps,
+  loading: false,
+}
+
 // Get action phrase for sendPayment msg
-const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
+const makeSendPaymentVerb = (status: T.Wallets.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
     case 'pending':
       return 'sending'
@@ -45,25 +45,38 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
 }
 
 type OwnProps = {
-  message: Types.MessageSendPayment | Types.MessageRequestPayment
+  message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
 }
 
-const ConnectedAccountPayment = Container.connect(
-  (state, ownProps: OwnProps) => {
-    const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
-    const you = state.config.username
+const getRequestMessageInfo = (
+  accountsInfoMap: C.Chat.ConvoState['accountsInfoMap'],
+  message: T.Chat.MessageRequestPayment
+) => {
+  const maybeRequestInfo = accountsInfoMap.get(message.id)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
+  )
+}
+
+const ConnectedAccountPayment = (ownProps: OwnProps) => {
+  const you = C.useCurrentUserState(s => s.username)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+
+  const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+        const paymentInfo = C.Chat.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps
         }
-
-        // find the other participant's username
-        const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
-        const theirUsername = participantInfo.name.find(p => p !== you) || ''
 
         const cancelable = paymentInfo.status === 'claimable'
         const pending = cancelable || paymentInfo.status === 'pending'
@@ -71,10 +84,6 @@ const ConnectedAccountPayment = Container.connect(
         const completed = paymentInfo.status === 'completed'
         const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
         const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
-        const balanceChangeAmount =
-          paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
-            ? sourceAmountDesc
-            : paymentInfo.amountDescription
 
         const amountDescription = paymentInfo.sourceAmount
           ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
@@ -85,18 +94,13 @@ const ConnectedAccountPayment = Container.connect(
           action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
           amount,
           approxWorth: paymentInfo.worthAtSendTime,
-          balanceChange: completed
-            ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
-            : '',
-          balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-          cancelButtonInfo: paymentInfo.showCancel ? WalletConstants.makeCancelButtonInfo(theirUsername) : '',
+          balanceChange: '',
+          balanceChangeColor: Kb.Styles.globalColors.black,
+          cancelButtonInfo: '',
           cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
           canceled,
-          claimButtonLabel:
-            !youAreSender && cancelable && !acceptedDisclaimer
-              ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
-              : '',
-          icon: pending ? ('iconfont-clock' as const) : null,
+          claimButtonLabel: '',
+          icon: pending ? ('iconfont-clock' as const) : undefined,
           loading: false,
           memo: paymentInfo.note.stringValue(),
           pending: pending || canceled,
@@ -107,14 +111,14 @@ const ConnectedAccountPayment = Container.connect(
       }
       case 'requestPayment': {
         const message = ownProps.message
-        const requestInfo = Constants.getRequestMessageInfo(state, message)
+        const requestInfo = getRequestMessageInfo(accountsInfoMap, message)
         if (!requestInfo) {
           // waiting for service to load it
           return loadingProps
         }
         const {amountDescription, asset, canceled, done} = requestInfo
         return {
-          _paymentID: null,
+          _paymentID: undefined,
           action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
           amount: amountDescription,
           approxWorth: requestInfo.worthAtRequestTime,
@@ -136,20 +140,11 @@ const ConnectedAccountPayment = Container.connect(
         }
       }
       default:
-        // @ts-ignore message is type `never` correctly
-        throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
+        return failedProps
     }
-  },
-  (dispatch, {message: {conversationIDKey, ordinal}}) => ({
-    _onCancel: (paymentID: WalletTypes.PaymentID | null) => {
-      if (paymentID) {
-        dispatch(WalletsGen.createCancelPayment({paymentID}))
-      }
-    },
-    onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
-    onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  })()
+
+  const props = {
     action: stateProps.action,
     amount: stateProps.amount,
     approxWorth: stateProps.approxWorth,
@@ -162,13 +157,11 @@ const ConnectedAccountPayment = Container.connect(
     icon: stateProps.icon,
     loading: stateProps.loading,
     memo: stateProps.memo,
-    onCancel: () => dispatchProps._onCancel(stateProps._paymentID),
-    onClaim: dispatchProps.onClaim,
-    onSend: dispatchProps.onSend,
     pending: stateProps.pending,
     sendButtonLabel: stateProps.sendButtonLabel || '',
     showCoinsIcon: stateProps.showCoinsIcon,
     sourceAmount: stateProps.sourceAmount,
-  })
-)(AccountPayment)
+  }
+  return <AccountPayment {...props} />
+}
 export default ConnectedAccountPayment

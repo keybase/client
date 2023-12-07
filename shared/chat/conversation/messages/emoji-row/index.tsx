@@ -1,26 +1,23 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
-import type * as RPCTypes from '../../../../constants/types/rpc-gen'
-import {EmojiPickerDesktop} from '../../../emoji-picker/container'
-import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {
   className?: string
-  conversationIDKey: Types.ConversationIDKey
-  emojis: Array<RPCTypes.UserReacji>
+  emojis: Array<T.RPCGen.UserReacji>
   onForward?: () => void
   onReact: (arg0: string) => void
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
-  ordinal: Types.Ordinal
-  style?: Styles.StylesCrossPlatform
-  tooltipPosition?: Styles.Position
+  ordinal: T.Chat.Ordinal
+  style?: Kb.Styles.StylesCrossPlatform
+  tooltipPosition?: Kb.Styles.Position
 }
 
 class HoverEmoji extends React.Component<
-  {emoji: RPCTypes.UserReacji; onClick: () => void},
+  {emoji: T.RPCGen.UserReacji; onClick: () => void},
   {hovering: boolean}
 > {
   state = {hovering: false}
@@ -32,8 +29,8 @@ class HoverEmoji extends React.Component<
         onClick={this.props.onClick}
         onMouseOver={this._setHovering}
         onMouseLeave={this._setNotHovering}
-        underlayColor={Styles.globalColors.transparent}
-        hoverColor={Styles.globalColors.transparent}
+        underlayColor={Kb.Styles.globalColors.transparent}
+        hoverColor={Kb.Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
         {renderEmoji({
@@ -50,20 +47,19 @@ class HoverEmoji extends React.Component<
 
 class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
-  _attachmentRef = React.createRef<Kb.Box2>()
+  popupAnchor = React.createRef<Kb.MeasureRef>()
   _setShowingPicker = (showingPicker: boolean) => {
     this.props.onShowingEmojiPicker?.(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }
   _showPicker = () => this._setShowingPicker(true)
   _hidePicker = () => this._setShowingPicker(false)
-  _getAttachmentRef = () => this._attachmentRef.current
   render() {
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
-        ref={this._attachmentRef}
-        style={Styles.collapseStyles([styles.container, this.props.style])}
+        ref={this.popupAnchor}
+        style={Kb.Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
       >
         <Kb.Box2 direction="horizontal" gap="tiny">
@@ -95,71 +91,67 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         {this.state.showingPicker && (
           <Kb.FloatingBox
-            attachTo={this._getAttachmentRef}
+            attachTo={this.popupAnchor}
             containerStyle={styles.pickerContainer}
             position="top right"
             onHidden={this._hidePicker}
             propagateOutsideClicks={false}
           >
-            <EmojiPickerDesktop
-              conversationIDKey={this.props.conversationIDKey}
-              onPickAddToMessageOrdinal={this.props.ordinal}
-              onDidPick={this._hidePicker}
-            />
+            <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
           </Kb.FloatingBox>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall),
         },
         isElectron: {
-          backgroundColor: Styles.globalColors.blueLighter3,
-          height: Styles.globalMargins.medium,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          height: Kb.Styles.globalMargins.medium,
         },
       }),
       divider: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginLeft: Styles.globalMargins.xsmall,
-        marginRight: Styles.globalMargins.xtiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
+        marginRight: Kb.Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       emojiBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        height: Styles.globalMargins.small,
+        height: Kb.Styles.globalMargins.small,
         justifyContent: 'center',
-        marginRight: Styles.globalMargins.xxtiny,
-        width: Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.xxtiny,
+        width: Kb.Styles.globalMargins.small,
       },
       hoverEmoji: {position: 'absolute'},
       icon: {
         position: 'relative',
         top: 1,
       },
-      iconContainer: Styles.platformStyles({
+      iconContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          ...Styles.desktopStyles.clickable,
+          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
-      pickerContainer: Styles.platformStyles({
+      pickerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-          borderRadius: Styles.borderRadius,
-          margin: Styles.globalMargins.tiny,
+          ...Kb.Styles.desktopStyles.boxShadow,
+          borderRadius: Kb.Styles.borderRadius,
+          margin: Kb.Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default EmojiRow

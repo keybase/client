@@ -2,8 +2,8 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-import type {TypedActions} from '../actions/typed-actions-gen'
-import type * as RPCTypes from '../constants/types/rpc-gen'
+import type {Actions} from '../actions/remote-gen'
+import type * as RPCTypes from '@/constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -63,7 +63,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (buff: unknown) => void
+    engineSend?: (buff: Uint8Array) => void
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
@@ -76,7 +76,8 @@ export type KB2 = {
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
-    mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => void
+    mainWindowDispatch: (action: Actions) => void
+    mainWindowDispatchEngineIncoming: (data: Uint8Array) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void
@@ -96,11 +97,11 @@ export type KB2 = {
       windowPositionBottomRight?: boolean
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
-    readImageFromClipboard?: () => Promise<Buffer | null>
+    readImageFromClipboard?: () => Promise<Uint8Array | undefined>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
     showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
-    showTray?: (desktopAppBadgeCount: number, icon: string) => void
+    showTray?: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => void
     showInactive?: () => void
     showMainWindow?: () => void
     toggleMaximizeWindow?: () => void
@@ -119,7 +120,7 @@ export type KB2 = {
     uninstallDokanDialog?: () => Promise<void>
     selectFilesToUploadDialog?: (
       type: 'file' | 'directory' | 'both',
-      parent: string | null
+      parent?: string
     ) => Promise<Array<string>>
   }
 }
@@ -127,7 +128,8 @@ export type KB2 = {
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  if (!kb2 || !kb2?.constants?.assetRoot) {
+  // eslint-disable-next-line
+  if (!kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
 

@@ -1,15 +1,9 @@
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as Kbfs from '../../fs/common'
-import * as Styles from '../../styles'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ChatConstants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import type * as ChatTypes from '../../constants/types/chat2'
-import HiddenString from '../../util/hidden-string'
+import * as Constants from '@/constants/fs'
+import * as Kb from '@/common-adapters'
+import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -19,18 +13,13 @@ type Props = {
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
-type RoutableProps = Container.RouteProps<'sendToChat'>
 
-const MobileSendToChatRoutable = (props: RoutableProps) => {
-  const {params} = props.route
-  const canBack = params?.canBack ?? false
-  const isFromShareExtension = params?.isFromShareExtension ?? undefined
-  const sendPaths = params?.sendPaths ?? undefined
-  const text = params?.text ?? undefined
-
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+const MobileSendToChatRoutable = (props: Props) => {
+  const {canBack, isFromShareExtension, sendPaths, text} = props
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onCancel = () => clearModals()
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
 
   return (
     <Kb.Modal
@@ -61,74 +50,63 @@ const MobileSendToChatRoutable = (props: RoutableProps) => {
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const dispatch = Container.useDispatch()
-
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
-    text && dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const fileContext = C.useFSState(s => s.fileContext)
+  const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
+    const {dispatch} = C.getConvoState(conversationIDKey)
+    text && dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                conversationIDKey,
-                pathAndOutboxIDs: sendPaths.map(p => ({
-                  outboxID: null,
-                  path: p,
-                })),
-                selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
-                tlfName,
-              },
-              selected: 'chatAttachmentGetTitles',
-            },
-          ],
-        })
-      )
-    } else {
-      dispatch(
-        Chat2Gen.createNavigateToThread({
+      navigateAppend({
+        props: {
           conversationIDKey,
-          reason: isFromShareExtension ? 'extension' : 'files',
-        })
-      )
+          pathAndOutboxIDs: sendPaths.map(p => ({
+            path: Kb.Styles.normalizePath(p),
+            url: fileContext.get(p)?.url,
+          })),
+          selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
+          tlfName,
+        },
+        selected: 'chatAttachmentGetTitles',
+      })
+    } else {
+      dispatch.navigateToThread(isFromShareExtension ? 'extension' : 'files')
     }
   }
 
   return <ConversationList {...props} onSelect={onSelect} />
 }
 
-const DesktopSendToChat = (props: RoutableProps) => {
-  const sendPaths = props.route.params?.sendPaths ?? []
+const noPaths = new Array<string>()
+const DesktopSendToChat = (props: Props) => {
+  const sendPaths = props.sendPaths ?? noPaths
   const [title, setTitle] = React.useState('')
-  const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
+  const [conversationIDKey, setConversationIDKey] = React.useState(C.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = Container.useSelector(state => state.config.username)
-  const dispatch = Container.useDispatch()
+  const username = C.useCurrentUserState(s => s.username)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
+  const onSelect = (convID: T.Chat.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
   const onSend = () => {
-    sendPaths?.forEach(path =>
-      dispatch(
-        Chat2Gen.createAttachmentsUpload({
-          conversationIDKey,
-          paths: [{outboxID: null, path: Types.pathToString(path)}],
-          titles: [title],
-          tlfName: `${username},${convName.split('#')[0]}`,
-        })
+    const {dispatch} = C.getConvoState(conversationIDKey)
+    sendPaths.forEach(path =>
+      dispatch.attachmentsUpload(
+        [{path: T.FS.pathToString(path)}],
+        [title],
+        `${username},${convName.split('#')[0]}`
       )
     )
-    dispatch(RouteTreeGen.createClearModals())
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
+    clearModals()
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>
       <DesktopSendToChatRender
-        enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
+        enabled={conversationIDKey !== C.noConversationIDKey}
         convName={convName}
         // If we ever support sending multiples from desktop this will need to
         // change.
@@ -146,12 +124,12 @@ const DesktopSendToChat = (props: RoutableProps) => {
 type DesktopSendToChatRenderProps = {
   enabled: boolean
   convName: string
-  path: Types.Path
+  path: T.FS.Path
   title: string
   setTitle: (title: string) => void
   onSend: () => void
   onCancel: () => void
-  onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
+  onSelect: (convID: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
@@ -170,7 +148,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             gap="tiny"
           >
             <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-            <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+            <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
           </Kb.Box2>
           <ChooseConversation
             convName={props.convName}
@@ -193,40 +171,40 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
   )
 }
 
-const SendToChat = Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
+const SendToChat = Kb.Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
 
 export default SendToChat
 
-const desktopStyles = Styles.styleSheetCreate(
+const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       belly: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
         alignItems: 'center',
-        marginBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.large,
-        paddingRight: Styles.globalMargins.large,
+        marginBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.large,
+        paddingRight: Kb.Styles.globalMargins.large,
       },
       buttonBar: {alignItems: 'center'},
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           maxHeight: 560,
           width: 400,
         },
       }),
       dropdown: {
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.mediumLarge,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.mediumLarge,
         width: '100%',
       },
       header: {
-        paddingTop: Styles.globalMargins.mediumLarge,
+        paddingTop: Kb.Styles.globalMargins.mediumLarge,
       },
       input: {
         width: '100%',
       },
       pathItem: {
-        marginTop: Styles.globalMargins.mediumLarge,
+        marginTop: Kb.Styles.globalMargins.mediumLarge,
       },
-    } as const)
+    }) as const
 )

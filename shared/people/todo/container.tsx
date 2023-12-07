@@ -1,32 +1,27 @@
-import * as Container from '../../util/container'
-import * as PeopleGen from '../../actions/people-gen'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SettingsTabs from '../../constants/settings'
-import * as Tabs from '../../constants/tabs'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
-import openURL from '../../util/open-url'
-import type * as Types from '../../constants/types/people'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
+import * as C from '@/constants'
+import * as React from 'react'
+import openURL from '@/util/open-url'
+import type * as T from '@/constants/types'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {TaskButton} from '../item'
 import {Task} from '.'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
-import {todoTypes} from '../../constants/people'
 
 type TodoOwnProps = {
   badged: boolean
   confirmLabel: string
   icon: IconType
   instructions: string
-  metadata: Types.TodoMeta
-  todoType: Types.TodoType
+  metadata: T.People.TodoMeta
+  todoType: T.People.TodoType
 }
 
 const installLinkURL = 'https://keybase.io/download'
-const onSkipTodo = (type: Types.TodoType, dispatch: Container.TypedDispatch) => () =>
-  dispatch(PeopleGen.createSkipTodo({type}))
+const useOnSkipTodo = (type: T.People.TodoType) => {
+  const skipTodo = C.usePeopleState(s => s.dispatch.skipTodo)
+  return React.useCallback(() => {
+    skipTodo(type)
+  }, [skipTodo, type])
+}
 
 function makeDefaultButtons(
   onConfirm: () => void,
@@ -51,131 +46,129 @@ function makeDefaultButtons(
 }
 
 const AddEmailConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
+    navigateAppend('settingsAddEmail')
   }
-  const onDismiss = onSkipTodo('addEmail', dispatch)
+  const onDismiss = useOnSkipTodo('addEmail')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const AddPhoneNumberConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
+    navigateAppend('settingsAddPhone')
   }
-  const onDismiss = onSkipTodo('addPhoneNumber', dispatch)
+  const onDismiss = useOnSkipTodo('addPhoneNumber')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const AvatarTeamConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(C.teamsTab)
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
 
 const AvatarUserConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(ProfileGen.createEditAvatar())
+  const editAvatar = C.useProfileState(s => s.dispatch.editAvatar)
+  const onConfirm = editAvatar
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
 
 const BioConnector = (props: TodoOwnProps) => {
-  const myUsername = Container.useSelector(state => state.config.username)
-  const dispatch = Container.useDispatch()
+  const myUsername = C.useCurrentUserState(s => s.username)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
+    showUser(username, false)
   }
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
 
 const ProofConnector = (props: TodoOwnProps) => {
-  const myUsername = Container.useSelector(state => state.config.username)
-  const dispatch = Container.useDispatch()
-  const onConfirm = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
-  const onDismiss = onSkipTodo('proof', dispatch)
+  const myUsername = C.useCurrentUserState(s => s.username)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onConfirm = showUserProfile
+  const onDismiss = useOnSkipTodo('proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const DeviceConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
   const onConfirm = () => openURL(installLinkURL)
-  const onDismiss = onSkipTodo('device', dispatch)
+  const onDismiss = useOnSkipTodo('device')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const FollowConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
   const onConfirm = () => {
-    dispatch(appendPeopleBuilder())
+    appendPeopleBuilder()
   }
-  const onDismiss = onSkipTodo('follow', dispatch)
+  const onDismiss = useOnSkipTodo('follow')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const ChatConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
-  const onDismiss = onSkipTodo('chat', dispatch)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(C.chatTab)
+  const onDismiss = useOnSkipTodo('chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const PaperKeyConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {highlight: ['paper key']}, selected: 'deviceAdd'}],
-      })
-    )
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onConfirm = () => navigateAppend({props: {highlight: ['paper key']}, selected: 'deviceAdd'})
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
 
 const TeamConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
-    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    switchTab(C.teamsTab)
+    launchNewTeamWizardOrModal()
   }
-  const onDismiss = onSkipTodo('team', dispatch)
+  const onDismiss = useOnSkipTodo('team')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const FolderConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
-  const onDismiss = onSkipTodo('folder', dispatch)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(C.fsTab)
+  const onDismiss = useOnSkipTodo('folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const GitRepoConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
-    if (Container.isMobile) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+    if (C.isMobile) {
+      navigateAppend({props: {}, selected: C.settingsGitTab})
     } else {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
+      switchTab(C.gitTab)
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam}, selected: 'gitNewRepo'}]}))
+    navigateAppend({props: {isTeam}, selected: 'gitNewRepo'})
   }
-  const onDismiss = onSkipTodo('gitRepo', dispatch)
+  const onDismiss = useOnSkipTodo('gitRepo')
   const buttons: Array<TaskButton> = [
     {
       label: 'Create a personal repo',
@@ -195,23 +188,26 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 }
 
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
-  const onDismiss = onSkipTodo('teamShowcase', dispatch)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(C.teamsTab)
+  const onDismiss = useOnSkipTodo('teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = Container.useSelector(state => state.settings.email.addingEmail)
-  const dispatch = Container.useDispatch()
+  const addingEmail = C.useSettingsEmailState(s => s.addingEmail)
+  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
-    dispatch(SettingsGen.createEditEmail({email, verify: true}))
-    dispatch(PeopleGen.createSetResentEmail({email}))
+    editEmail({email, verify: true})
+    setResentEmail(email)
   }
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -241,14 +237,16 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (phoneNumber: string) => {
-    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    resendVerificationForPhone(phoneNumber)
+    navigateAppend('settingsVerifyPhone')
   }
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -273,13 +271,15 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 }
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
-    dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
+    editEmail({email, makeSearchable: true})
   }
-  const onDismiss = onSkipTodo('legacyEmailVisibility', dispatch)
+  const onDismiss = useOnSkipTodo('legacyEmailVisibility')
   const buttons: Array<TaskButton> = [
     ...(props.metadata
       ? [
@@ -305,39 +305,39 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    case todoTypes.addEmail:
+    case C.todoTypes.addEmail:
       return <AddEmailConnector {...props} />
-    case todoTypes.addPhoneNumber:
+    case C.todoTypes.addPhoneNumber:
       return <AddPhoneNumberConnector {...props} />
-    case todoTypes.avatarTeam:
+    case C.todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
-    case todoTypes.avatarUser:
+    case C.todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
-    case todoTypes.bio:
+    case C.todoTypes.bio:
       return <BioConnector {...props} />
-    case todoTypes.proof:
+    case C.todoTypes.proof:
       return <ProofConnector {...props} />
-    case todoTypes.device:
+    case C.todoTypes.device:
       return <DeviceConnector {...props} />
-    case todoTypes.follow:
+    case C.todoTypes.follow:
       return <FollowConnector {...props} />
-    case todoTypes.chat:
+    case C.todoTypes.chat:
       return <ChatConnector {...props} />
-    case todoTypes.paperkey:
+    case C.todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
-    case todoTypes.team:
+    case C.todoTypes.team:
       return <TeamConnector {...props} />
-    case todoTypes.folder:
+    case C.todoTypes.folder:
       return <FolderConnector {...props} />
-    case todoTypes.gitRepo:
+    case C.todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
-    case todoTypes.legacyEmailVisibility:
+    case C.todoTypes.legacyEmailVisibility:
       return <LegacyEmailVisibilityConnector {...props} />
-    case todoTypes.teamShowcase:
+    case C.todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
-    case todoTypes.verifyAllEmail:
+    case C.todoTypes.verifyAllEmail:
       return <VerifyAllEmailConnector {...props} />
-    case todoTypes.verifyAllPhoneNumber:
+    case C.todoTypes.verifyAllPhoneNumber:
       return <VerifyAllPhoneNumberConnector {...props} />
     default:
       return null

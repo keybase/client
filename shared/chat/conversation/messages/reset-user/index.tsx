@@ -1,6 +1,4 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   allowChatWithoutThem: boolean
@@ -12,7 +10,7 @@ type Props = {
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
+    <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
     <Kb.Box2 direction="vertical" style={styles.textContainer}>
       <Kb.Text center={true} type="BodySemibold" negative={true}>
         <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
@@ -24,10 +22,10 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
         </Kb.Text>
       </Kb.Text>
       <Kb.Box style={styles.bullet}>
-        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
+        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
           1. Be satisfied with their new proofs, or
         </Kb.Text>
-        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
+        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Kb.Styles.globalMargins.tiny}}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box>
@@ -63,47 +61,47 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bullet: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         maxWidth: 320,
       },
       buttonContainer: {
         alignItems: 'center',
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       container: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
-        marginBottom: -Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
-        padding: Styles.globalMargins.small,
+        backgroundColor: Kb.Styles.globalColors.red,
+        marginBottom: -Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       lastSentence: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
         textAlign: 'center',
       },
-      skullIcon: Styles.platformStyles({
-        common: {margin: Styles.globalMargins.medium},
+      skullIcon: Kb.Styles.platformStyles({
+        common: {margin: Kb.Styles.globalMargins.medium},
         isElectron: {height: 48, width: 48},
         isMobile: {height: 64, width: 64},
       }),
-      textContainer: Styles.platformStyles({
+      textContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
           width: '100%',
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.large,
-          paddingRight: Styles.globalMargins.large,
+          paddingLeft: Kb.Styles.globalMargins.large,
+          paddingRight: Kb.Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ResetUser

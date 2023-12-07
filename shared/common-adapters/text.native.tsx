@@ -1,31 +1,33 @@
 import * as React from 'react'
-import openURL from '../util/open-url'
+import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import shallowEqual from 'shallowequal'
-import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
 import type {Props, TextType} from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
+import {Text as NativeText, Alert} from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 
-const modes = ['positive', 'negative']
+const modes = ['positive', 'negative'] as const
 
-const styles = Styles.styleSheetCreate(() =>
-  Object.keys(metaData()).reduce<any>(
-    (map, type) => {
-      const meta = metaData()[type as TextType]
-      modes.forEach(mode => {
-        map[`${type}:${mode}`] = {
-          ...fontSizeToSizeStyle(meta.fontSize),
-          color: meta.colorForBackground[mode] || Styles.globalColors.black,
-          ...meta.styleOverride,
-        }
-      })
-      return map
-    },
-    {
+const styles2 = Styles.styleSheetCreate(
+  () =>
+    ({
       center: {textAlign: 'center'},
       fixOverdraw: {backgroundColor: Styles.globalColors.fastBlank},
-    }
-  )
+    }) as const
+)
+const styles = Styles.styleSheetCreate(() =>
+  Object.keys(metaData()).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
+    const meta = metaData()[type as TextType]
+    modes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackground[mode] || Styles.globalColors.black,
+        ...meta.styleOverride,
+      } as Styles._StylesCrossPlatform
+    })
+    return map
+  }, {})
 )
 
 // Init common styles for perf
@@ -34,7 +36,7 @@ class Text extends React.Component<Props> {
   static defaultProps = {
     allowFontScaling: false,
   }
-  _nativeText: any
+  _nativeText: null | {focus: () => void} = null
 
   highlightText() {
     // ignored
@@ -50,15 +52,17 @@ class Text extends React.Component<Props> {
     this.props.onClickURL && openURL(this.props.onClickURL)
   }
 
-  _urlCopy = (url: string | null) => {
+  _urlCopy = (url?: string) => {
     if (!url) return
-    NativeClipboard.setString(url)
+    Clipboard.setStringAsync(url)
+      .then(() => {})
+      .catch(() => {})
   }
 
   _urlChooseOption = () => {
     const url = this.props.onLongPressURL
     if (!url) return
-    NativeAlert.alert('', url, [
+    Alert.alert('', url, [
       {style: 'cancel', text: 'Cancel'},
       {onPress: () => openURL(url), text: 'Open Link'},
       {onPress: () => this._urlCopy(url), text: 'Copy Link'},
@@ -66,7 +70,7 @@ class Text extends React.Component<Props> {
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj: unknown, oth: unknown, key: unknown) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
@@ -77,31 +81,30 @@ class Text extends React.Component<Props> {
     })
   }
 
+  private setRef = (r: typeof this._nativeText) => {
+    this._nativeText = r
+  }
+
   render() {
-    const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
-    const dynamicStyle = this.props.negative
-      ? _getStyle(
-          this.props.type,
-          this.props.negative,
-          this.props.lineClamp,
-          !!this.props.onClick,
-          !!this.props.underline
-        )
+    const baseStyle: Styles.StylesCrossPlatform =
+      styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
+    const dynamicStyle: Styles._StylesCrossPlatform = this.props.negative
+      ? _getStyle(this.props.type, this.props.negative, !!this.props.underline)
       : {}
 
-    let style
+    let style: Array<Styles.StylesCrossPlatform> | Styles.StylesCrossPlatform
     if (!Object.keys(dynamicStyle).length) {
       style =
         this.props.style || this.props.center || this.props.fixOverdraw
           ? [
               baseStyle,
-              this.props.center && styles.center,
-              this.props.fixOverdraw && styles.fixOverdraw,
+              this.props.center && styles2.center,
+              this.props.fixOverdraw && styles2.fixOverdraw,
               this.props.style,
             ]
           : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles2.center, this.props.style]
     }
 
     const onPress =
@@ -116,12 +119,10 @@ class Text extends React.Component<Props> {
 
     return (
       <NativeText
-        ref={ref => {
-          this._nativeText = ref
-        }}
+        ref={this.setRef}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy ?? 'simple'}
-        style={style}
+        style={style as any}
         {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
@@ -134,29 +135,21 @@ class Text extends React.Component<Props> {
 }
 
 // external things call this so leave the original alone
-function _getStyle(
-  type: TextType,
-  negative?: boolean,
-  _?: number | null,
-  __?: boolean | null,
-  // @ts-ignore the order of these parameters because this is used in a lot
-  // of places
-  forceUnderline: boolean
-) {
+function _getStyle(type: TextType, negative?: boolean, forceUnderline?: boolean) {
   if (!negative) {
-    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+    return forceUnderline ? ({textDecorationLine: 'underline'} as const) : {}
   }
   // negative === true
   const meta = metaData()[type]
   const colorStyle = {color: meta.colorForBackground.negative}
-  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
+  const textDecoration = meta.isLink ? ({textDecorationLine: 'underline'} as const) : {}
 
   return {
     ...colorStyle,
     ...textDecoration,
   }
 }
-function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
+function getStyle(type: TextType, negative?: boolean) {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

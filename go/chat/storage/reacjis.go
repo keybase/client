@@ -25,10 +25,6 @@ func init() {
 }
 
 const (
-	minScoringMinutes = 1           // one minute
-	maxScoringMinutes = 7 * 24 * 60 // one week
-	frequencyWeight   = 2
-	mtimeWeight       = 1
 	reacjiDiskVersion = 3
 )
 
@@ -69,25 +65,6 @@ type ReacjiInternalStorage struct {
 	FrequencyMap map[string]int
 	MtimeMap     map[string]gregor1.Time
 	SkinTone     keybase1.ReacjiSkinTone
-}
-
-func (i ReacjiInternalStorage) score(name string) float64 {
-	freq := i.FrequencyMap[name]
-	mtime, ok := i.MtimeMap[name]
-	// if we are missing an mtime just backdate to a week ago
-	if !ok {
-		mtime = gregor1.ToTime(time.Now().Add(-time.Hour * 24 * 7))
-	}
-	minutes := time.Since(mtime.Time()).Minutes()
-	var mtimeScore float64
-	if minutes > maxScoringMinutes {
-		mtimeScore = 0
-	} else if minutes < minScoringMinutes {
-		mtimeScore = 1
-	} else {
-		mtimeScore = 1 - minutes/(maxScoringMinutes-minScoringMinutes)
-	}
-	return float64(freq*frequencyWeight) + mtimeScore*mtimeWeight
 }
 
 func NewReacjiInternalStorage() ReacjiInternalStorage {
@@ -359,7 +336,8 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 
 	pairs := make([]reacjiPair, 0, len(cache.FrequencyMap))
 	for name, freq := range cache.FrequencyMap {
-		score := cache.score(name)
+		mtime := cache.MtimeMap[name]
+		score := ScoreByFrequencyAndMtime(freq, mtime)
 		pairs = append(pairs, newReacjiPair(name, freq, score))
 	}
 	// sort by frequency and then alphabetically

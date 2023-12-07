@@ -1,19 +1,23 @@
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
 // Also protects it with an error boundary
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as ReactDOM from 'react-dom/client'
+import * as Kb from '@/common-adapters'
+import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
-import {disableDragDrop} from '../../util/drag-drop.desktop'
-import ErrorBoundary from '../../common-adapters/error-boundary'
-import {initDesktopStyles} from '../../styles/index.desktop'
-import {enableMapSet} from 'immer'
-import KB2 from '../../util/electron.desktop'
+import {disableDragDrop} from '@/util/drag-drop.desktop'
+import ErrorBoundary from '@/common-adapters/error-boundary'
+import {initDesktopStyles} from '@/styles/index.desktop'
+import KB2 from '@/util/electron.desktop'
+import {type Store} from 'redux'
+
+import {setServiceDecoration} from '@/common-adapters/markdown/react'
+import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+setServiceDecoration(ServiceDecoration)
 
 const {closeWindow, showInactive} = KB2.functions
 
-enableMapSet()
 disableDragDrop()
 
 module.hot?.accept()
@@ -22,15 +26,15 @@ type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
 type Props = {
   children: React.ReactNode
-  deserialize: (arg0: any, arg1: any) => any
+  deserialize: (arg0: unknown, arg1: unknown) => unknown
   name: RemoteComponents
   params: string
   showOnProps: boolean
-  style: Styles.StylesDesktop | null
+  style?: Kb.Styles.StylesDesktop
 }
 
 class RemoteComponentLoader extends React.Component<Props> {
-  _store: any
+  _store: Store<unknown, any>
 
   constructor(props: Props) {
     super(props)
@@ -54,17 +58,19 @@ class RemoteComponentLoader extends React.Component<Props> {
     return (
       <div id="RemoteComponentRoot" style={this.props.style || (styles.container as any)}>
         <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-          <Root store={this._store}>{this.props.children}</Root>
+          <Provider store={this._store}>
+            <Root>{this.props.children}</Root>
+          </Provider>
         </ErrorBoundary>
       </div>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       display: 'block' as const,
       height: '100%',
       overflow: 'hidden',
@@ -72,19 +78,19 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   errorFallback: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
   },
   loading: {
-    backgroundColor: Styles.globalColors.greyDark,
+    backgroundColor: Kb.Styles.globalColors.greyDark,
   },
 }))
 
-export default function (options: {
+export default function Loader(options: {
   child: React.ReactNode
-  deserialize: (arg0: any, arg1: any) => any
+  deserialize: (arg0: any, arg1: any) => unknown
   name: RemoteComponents
   params?: string
-  style?: Styles.StylesDesktop
+  style?: Kb.Styles.StylesDesktop
   showOnProps?: boolean
 }) {
   initDesktopStyles()
@@ -94,7 +100,7 @@ export default function (options: {
       <RemoteComponentLoader
         name={options.name}
         params={options.params || ''}
-        style={options.style || null}
+        style={options.style}
         showOnProps={options.showOnProps ?? true}
         deserialize={options.deserialize}
       >

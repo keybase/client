@@ -1,11 +1,12 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import Rm from 'react-measure'
+import * as Kb from '@/common-adapters'
+import Rm, {type ContentRect} from 'react-measure'
 import type {Props} from '.'
 
 class Measure extends React.Component<Props, {width: number}> {
   _width = 0
-  _onResize = contentRect => {
+  _onResize = (contentRect: ContentRect) => {
+    if (contentRect.bounds === undefined) return
     if (this._width !== contentRect.bounds.width) {
       this._width = contentRect.bounds.width
       this.props.onMeasured(this._width)
@@ -21,7 +22,7 @@ class Measure extends React.Component<Props, {width: number}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {width: '100%'},
 }))
 

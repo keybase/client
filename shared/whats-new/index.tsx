@@ -1,21 +1,15 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import type * as Types from '../constants/types/whats-new'
-import type * as Tabs from '../constants/tabs'
+import * as Kb from '@/common-adapters'
+import type * as C from '@/constants'
+import {currentVersion, lastVersion, lastLastVersion} from '@/constants/whats-new'
 import type {VersionProps} from './versions'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
 
 type Props = {
   onBack: () => void
-  onNavigate: (props: NavigateAppendPayload['payload']) => void
+  onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: Tabs.AppTab) => void
+  onSwitchTab: (tab: C.AppTab) => void
   seenVersions: {[key: string]: boolean}
-  currentVersion: Types.CurrentVersion
-  lastVersion: Types.LastVersion
-  lastLastVersion: Types.LastLastVersion
-  noVersion: string
   Current?: React.ComponentType<VersionProps>
   Last?: React.ComponentType<VersionProps>
   LastLast?: React.ComponentType<VersionProps>
@@ -28,17 +22,17 @@ const Wrapper = ({children}: {children: React.ReactNode}) => (
     alignItems="flex-start"
     alignSelf="flex-start"
     fullHeight={true}
-    style={!Styles.isMobile && styles.popupContainer}
+    style={!Kb.Styles.isMobile && styles.popupContainer}
   >
     <Kb.Box2
       direction="vertical"
       alignItems="flex-start"
       alignSelf="flex-start"
       fullHeight={true}
-      fullWidth={!Styles.isMobile}
+      fullWidth={!Kb.Styles.isMobile}
       style={styles.contentBackground}
     >
-      {Styles.isMobile ? (
+      {Kb.Styles.isMobile ? (
         <Kb.ScrollView style={styles.scrollView}>
           <Kb.Box2
             direction="vertical"
@@ -62,29 +56,29 @@ class WhatsNew extends React.PureComponent<Props> {
   }
 
   render() {
-    const {currentVersion, lastVersion, lastLastVersion, noVersion, Current, Last} = this.props
+    const {Current, Last} = this.props
     const {LastLast, seenVersions, onNavigate, onNavigateExternal, onSwitchTab} = this.props
     return (
       <Wrapper>
         {Current && (
           <Current
-            seen={seenVersions[currentVersion]}
+            seen={seenVersions[currentVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}
           />
         )}
-        {lastVersion && lastVersion !== noVersion && Last && (
+        {lastVersion && Last && (
           <Last
-            seen={seenVersions[lastVersion]}
+            seen={seenVersions[lastVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}
           />
         )}
-        {lastLastVersion && lastLastVersion !== noVersion && LastLast && (
+        {lastLastVersion && LastLast && (
           <LastLast
-            seen={seenVersions[lastLastVersion]}
+            seen={seenVersions[lastLastVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}
@@ -97,18 +91,18 @@ class WhatsNew extends React.PureComponent<Props> {
 
 const modalWidth = 288
 const modalHeight = 500
-const styles = Styles.styleSheetCreate(() => ({
-  contentBackground: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  contentBackground: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      ...Styles.globalStyles.rounded,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      ...Kb.Styles.globalStyles.rounded,
     },
     isElectron: {
       // Align menu edge with icon on desktop
-      marginRight: Styles.globalMargins.xtiny,
+      marginRight: Kb.Styles.globalMargins.xtiny,
     },
   }),
-  popupContainer: Styles.platformStyles({
+  popupContainer: Kb.Styles.platformStyles({
     isElectron: {
       height: modalHeight,
       maxHeight: modalHeight,
@@ -116,26 +110,26 @@ const styles = Styles.styleSheetCreate(() => ({
       width: modalWidth,
     },
   }),
-  scrollView: Styles.platformStyles({
+  scrollView: Kb.Styles.platformStyles({
     common: {
       width: '100%',
     },
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.tiny),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
     },
   }),
-  scrollViewInner: Styles.platformStyles({
+  scrollViewInner: Kb.Styles.platformStyles({
     isMobile: {
-      marginBottom: Styles.globalMargins.small,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
+      marginBottom: Kb.Styles.globalMargins.small,
+      marginLeft: Kb.Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
+      marginTop: Kb.Styles.globalMargins.small,
     },
   }),
   versionTitle: {
-    color: Styles.globalColors.black_50,
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.xsmall,
+    color: Kb.Styles.globalColors.black_50,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.xsmall,
   },
 }))
 

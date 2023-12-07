@@ -18,8 +18,8 @@ export type AssertionMeta = {
 }
 
 export type SiteIcon = {
-  readonly path: string // https://keybase.io/_/icons/twitter.png,
-  readonly width: number
+  path: string // https://keybase.io/_/icons/twitter.png,
+  width: number
 }
 export type SiteIconSet = Array<SiteIcon>
 export type Assertion = {
@@ -27,7 +27,7 @@ export type Assertion = {
   belowFold: boolean // suggestion in 'Other identities' dialog,
   color: AssertionColor
   kid: string // used to revoke pgp keys,
-  metas: ReadonlyArray<AssertionMeta>
+  metas: Array<AssertionMeta>
   pickerText: string // Text + subtext for 'Other identities' dialog,
   pickerSubtext: string
   priority: number // sort order,
@@ -82,6 +82,10 @@ export type NonUserDetails = {
   assertionValue: string
   description: string
   bio?: string
+  followers?: Set<string>
+  followersCount?: number
+  following?: Set<string>
+  followingCount?: number
   fullName?: string
   location?: string
   pictureUrl?: string
@@ -102,11 +106,4 @@ export type WebOfTrustEntry = {
   status: RPCTypes.WotStatusType
   verificationType: WebOfTrustVerificationType
   vouchedAt: number
-}
-
-export type State = {
-  readonly showTrackerSet: Set<string>
-  readonly usernameToDetails: Map<string, Details>
-  readonly usernameToNonUserDetails: Map<string, NonUserDetails>
-  readonly proofSuggestions: ReadonlyArray<Assertion>
 }

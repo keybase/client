@@ -1,5 +1,4 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   bio?: string
@@ -17,7 +16,7 @@ export type Props = {
   sbsDescription?: string
 }
 
-const FollowText = ({followThem, followsYou}) => {
+const FollowText = ({followThem, followsYou}: {followThem?: boolean; followsYou?: boolean}) => {
   let text: string = ''
   if (followThem) {
     if (followsYou) {
@@ -39,7 +38,7 @@ const Bio = (p: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <FollowText followThem={p.followThem} followsYou={p.followsYou} />
-    {p.followersCount !== null && (
+    {p.followersCount !== undefined && (
       <Kb.Text type="BodySmall">
         <Kb.Text type="BodySmall">
           <Kb.Text type="BodySmall" style={styles.bold}>
@@ -111,47 +110,47 @@ const Bio = (p: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       blockedBackgroundText: {
-        backgroundColor: Styles.globalColors.red_20,
-        borderRadius: Styles.borderRadius,
-        margin: Styles.globalMargins.small,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.red_20,
+        borderRadius: Kb.Styles.borderRadius,
+        margin: Kb.Styles.globalMargins.small,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      bold: {...Styles.globalStyles.fontBold},
-      container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
-      floatingContainer: Styles.platformStyles({
+      bold: {...Kb.Styles.globalStyles.fontBold},
+      container: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
+      floatingContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.purple,
+          backgroundColor: Kb.Styles.globalColors.purple,
         },
         isElectron: {
           maxWidth: 200,
         },
       }),
-      fullName: Styles.platformStyles({
+      fullName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'} as const,
       }),
       fullNameContainer: {
-        paddingLeft: Styles.globalMargins.mediumLarge,
-        paddingRight: Styles.globalMargins.mediumLarge,
+        paddingLeft: Kb.Styles.globalMargins.mediumLarge,
+        paddingRight: Kb.Styles.globalMargins.mediumLarge,
       },
-      learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
-      star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
-      text: Styles.platformStyles({
+      learnButton: {alignSelf: 'center', marginTop: Kb.Styles.globalMargins.tiny},
+      star: {alignSelf: 'center', marginBottom: Kb.Styles.globalMargins.tiny},
+      text: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Styles.globalMargins.mediumLarge,
-          paddingRight: Styles.globalMargins.mediumLarge,
+          paddingLeft: Kb.Styles.globalMargins.mediumLarge,
+          paddingRight: Kb.Styles.globalMargins.mediumLarge,
         },
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default Bio

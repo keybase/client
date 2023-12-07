@@ -1,50 +1,47 @@
-import * as Constants from '../../constants/settings'
-import * as SettingsGen from '../../actions/settings-gen'
-import type * as Types from '../../constants/types/settings'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
+import type {PendingInvite} from '@/constants/settings-invites'
 import Invites from '.'
-import {createShowUserProfile} from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
 
-type OwnProps = {}
+const Container = () => {
+  const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
+  const error = C.useSettingsInvitesState(s => s.error)
+  const inviteEmail = ''
+  const inviteMessage = ''
+  const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
+  const showMessageField = false
+  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
 
-export default Container.connect(
-  state => ({
-    acceptedInvites: state.settings.invites.acceptedInvites,
-    error: state.settings.invites.error,
-    inviteEmail: '',
-    inviteMessage: '',
-    pendingInvites: state.settings.invites.pendingInvites,
-    showMessageField: false,
-    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
-  }),
-  dispatch => ({
-    onClearError: () => dispatch(SettingsGen.createInvitesClearError()),
-    onGenerateInvitation: (email: string, message: string) =>
-      dispatch(SettingsGen.createInvitesSend({email, message})),
-    onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
-    onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
-    onSelectPendingInvite: (invite: Types.PendingInvite) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}],
-        })
-      ),
-    onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    acceptedInvites: stateProps.acceptedInvites,
-    error: stateProps.error,
-    inviteEmail: stateProps.inviteEmail,
-    inviteMessage: stateProps.inviteMessage,
-    onClearError: dispatchProps.onClearError,
-    onGenerateInvitation: dispatchProps.onGenerateInvitation,
-    onReclaimInvitation: dispatchProps.onReclaimInvitation,
-    onRefresh: dispatchProps.onRefresh,
-    onSelectPendingInvite: dispatchProps.onSelectPendingInvite,
-    onSelectUser: dispatchProps.onSelectUser,
-    pendingInvites: stateProps.pendingInvites,
-    showMessageField: stateProps.showMessageField,
-    waitingForResponse: stateProps.waitingForResponse,
-  })
-)(Invites)
+  const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
+  const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)
+  const reclaimInvite = C.useSettingsInvitesState(s => s.dispatch.reclaimInvite)
+  const loadInvites = C.useSettingsInvitesState(s => s.dispatch.loadInvites)
+  const onClearError = resetError
+  const onGenerateInvitation = sendInvite
+  const onReclaimInvitation = reclaimInvite
+  const onRefresh = loadInvites
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSelectPendingInvite = (invite: PendingInvite) => {
+    navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
+  }
+
+  const onSelectUser = C.useProfileState(s => s.dispatch.showUserProfile)
+  const props = {
+    acceptedInvites: acceptedInvites,
+    error: error,
+    inviteEmail: inviteEmail,
+    inviteMessage: inviteMessage,
+    onClearError: onClearError,
+    onGenerateInvitation: onGenerateInvitation,
+    onReclaimInvitation: onReclaimInvitation,
+    onRefresh: onRefresh,
+    onSelectPendingInvite: onSelectPendingInvite,
+    onSelectUser: onSelectUser,
+    pendingInvites: pendingInvites,
+    showMessageField: showMessageField,
+    waitingForResponse: waitingForResponse,
+  }
+  return <Invites {...props} />
+}
+
+export default Container

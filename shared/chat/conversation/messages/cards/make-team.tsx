@@ -1,21 +1,10 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import type * as Chat2Types from '../../../../constants/types/chat2'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 
-type Props = {
-  conversationIDKey: Chat2Types.ConversationIDKey
-}
-
-const MakeTeam = ({conversationIDKey}: Props) => {
-  const dispatch = Container.useDispatch()
+const MakeTeam = () => {
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowNewTeamDialog = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}],
-      })
-    )
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}))
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
@@ -38,7 +27,7 @@ const MakeTeam = ({conversationIDKey}: Props) => {
               Enter a team name
             </Kb.Text>
             <Kb.Icon
-              color={Styles.globalColors.greenLight}
+              color={Kb.Styles.globalColors.greenLight}
               sizeType="Tiny"
               type="iconfont-arrow-right"
               className="hover_contained_color_white"
@@ -52,30 +41,30 @@ const MakeTeam = ({conversationIDKey}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.green,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.green,
+          borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
           height: 100,
-          marginTop: Styles.globalMargins.xsmall,
+          marginTop: Kb.Styles.globalMargins.xsmall,
           maxWidth: 400,
         },
         isMobile: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.small,
           width: 288,
         },
       }),
       header: {
-        maxWidth: Styles.isMobile ? 126 : undefined,
+        maxWidth: Kb.Styles.isMobile ? 126 : undefined,
       },
-      icon: Styles.platformStyles({
+      icon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'block',
           marginTop: 4,
@@ -83,11 +72,11 @@ const styles = Styles.styleSheetCreate(
       }),
       image: {
         alignSelf: 'center',
-        paddingRight: Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      link: {color: Styles.isMobile ? Styles.globalColors.greenLight : undefined},
-      textContainer: {padding: Styles.globalMargins.medium},
-    } as const)
+      link: {color: Kb.Styles.isMobile ? Kb.Styles.globalColors.greenLight : undefined},
+      textContainer: {padding: Kb.Styles.globalMargins.medium},
+    }) as const
 )
 
 export default MakeTeam

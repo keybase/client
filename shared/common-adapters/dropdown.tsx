@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -7,20 +7,22 @@ import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import Icon from './icon'
 import {smallHeight, regularHeight} from './button'
-import {usePopup} from './use-popup'
-import * as Styles from '../styles'
+import {usePopup2, type Popup2Parms} from './use-popup'
+import * as Styles from '@/styles'
 import './dropdown.css'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   Icon,
   Overlay,
   ProgressIndicator,
   ScrollView,
   Text,
-  usePopup,
+  usePopup2,
 }
 
 type DropdownButtonProps = {
@@ -28,7 +30,7 @@ type DropdownButtonProps = {
   selected?: React.ReactNode
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
-  popupAnchor?: React.MutableRefObject<Box | null>
+  popupAnchor?: React.MutableRefObject<MeasureRef | null>
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
   loading?: boolean
@@ -38,33 +40,36 @@ export const DropdownButton = (props: DropdownButtonProps) => (
     onClick={!props.disabled ? props.toggleOpen : undefined}
     style={Styles.collapseStyles([styles.dropdownBoxContainer, props.style])}
   >
-    <Kb.Box
-      ref={props.popupAnchor as any}
+    <Kb.Box2Measure
+      direction="vertical"
+      ref={props.popupAnchor}
       className={Styles.classNames('dropdown_border', {
         hover: !props.disabled,
       })}
-      style={{
-        ...Styles.globalStyles.flexBoxRow,
-        ...(props.disabled ? {opacity: 0.3} : {}),
-        alignItems: 'center',
-        ...(Styles.isMobile
-          ? {
-              borderColor: Styles.globalColors.black_10,
-              color: Styles.globalColors.black_50,
-            }
-          : {}),
-        borderRadius: Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
-        cursor: !props.disabled ? 'pointer' : undefined,
-        paddingRight: props.inline
-          ? Styles.globalMargins.tiny
-          : Styles.isMobile
-          ? Styles.globalMargins.large
-          : Styles.globalMargins.small,
-        width: props.inline ? undefined : '100%',
-        ...(Styles.isTablet ? {maxWidth: 460} : {}),
-      }}
+      style={
+        {
+          ...Styles.globalStyles.flexBoxRow,
+          ...(props.disabled ? {opacity: 0.3} : {}),
+          alignItems: 'center',
+          ...(Styles.isMobile
+            ? {
+                borderColor: Styles.globalColors.black_10,
+                color: Styles.globalColors.black_50,
+              }
+            : {}),
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          cursor: !props.disabled ? 'pointer' : undefined,
+          paddingRight: props.inline
+            ? Styles.globalMargins.tiny
+            : Styles.isMobile
+              ? Styles.globalMargins.large
+              : Styles.globalMargins.small,
+          width: props.inline ? undefined : '100%',
+          ...(Styles.isTablet ? {maxWidth: 460} : {}),
+        } as any
+      }
     >
       <Kb.Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
         {props.loading ? <Kb.ProgressIndicator type="Small" /> : props.selected}
@@ -75,7 +80,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
         sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 2 : -8}}
       />
-    </Kb.Box>
+    </Kb.Box2Measure>
   </Kb.ClickableBox>
 )
 
@@ -83,7 +88,6 @@ type Props<N> = {
   disabled?: boolean
   itemBoxStyle?: Styles.StylesCrossPlatform
   items: Array<N>
-  onChanged?: (selected: N) => void
   onChangedIdx?: (selectedIdx: number) => void
   overlayStyle?: Styles.StylesCrossPlatform
   position?: Styles.Position
@@ -92,52 +96,56 @@ type Props<N> = {
   style?: Styles.StylesCrossPlatform
 }
 
-function Dropdown<N>(p: Props<N>) {
+function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
-  const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
+  const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
 
-  const {toggleShowingPopup, showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<Box>(
-    attachTo => (
-      <Kb.Overlay
-        style={Styles.collapseStyles([styles.overlay, overlayStyle])}
-        attachTo={attachTo}
-        visible={showingPopup}
-        onHidden={toggleOpen}
-        position={position || 'center center'}
-      >
-        <Kb.ScrollView style={styles.scrollView}>
-          {items.map((i: N, idx) => (
-            <Kb.ClickableBox
-              key={idx}
-              onClick={evt => {
-                evt?.stopPropagation?.()
-                evt?.preventDefault?.()
-                // Bug in flow that doesn't let us just call this function
-                // onSelect(i)
-                onChanged?.(i)
-                onChangedIdx?.(idx)
-                setShowingPopup(false)
-              }}
-              style={styles.itemClickBox}
-            >
-              <Kb.Box
-                style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
-                className="hover_background_color_blueLighter2"
+  const makePopup = React.useCallback(
+    (p: Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay
+          style={Styles.collapseStyles([styles.overlay, overlayStyle])}
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          position={position || 'center center'}
+        >
+          <Kb.ScrollView style={styles.scrollView}>
+            {items.map((i: N, idx) => (
+              <Kb.ClickableBox
+                key={idx}
+                onClick={evt => {
+                  evt.stopPropagation()
+                  evt.preventDefault()
+                  // Bug in flow that doesn't let us just call this function
+                  // onSelect(i)
+                  onChangedIdx?.(idx)
+                  toggleShowingPopup()
+                }}
+                style={styles.itemClickBox}
               >
-                {i}
-              </Kb.Box>
-            </Kb.ClickableBox>
-          ))}
-        </Kb.ScrollView>
-      </Kb.Overlay>
-    )
+                <Kb.Box
+                  style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
+                  className="hover_background_color_blueLighter2"
+                >
+                  {i}
+                </Kb.Box>
+              </Kb.ClickableBox>
+            ))}
+          </Kb.ScrollView>
+        </Kb.Overlay>
+      )
+    },
+    [items, onChangedIdx, overlayStyle, position, itemBoxStyle]
   )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const toggleOpen = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation?.()
-      evt?.preventDefault?.()
+      evt?.stopPropagation()
+      evt?.preventDefault()
       toggleShowingPopup()
     },
     [toggleShowingPopup]
@@ -189,8 +197,8 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
       loading={props.loading}
       style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
       toggleOpen={e => {
-        e.stopPropagation && e.stopPropagation()
-        props.onPress && props.onPress()
+        e.stopPropagation()
+        props.onPress()
       }}
       selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, props.style])}
       selected={selected}

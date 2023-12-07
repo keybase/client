@@ -1,68 +1,23 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
-import * as FsConstants from '../../constants/fs'
-import * as FsTypes from '../../constants/types/fs'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Kb from '../../common-adapters'
 import capitalize from 'lodash/capitalize'
-import * as Styles from '../../styles'
-import {pluralize} from '../../util/string'
+import * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   visible: boolean
 }
 
-const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
-  const {teamname, role, memberCount} = Constants.getTeamMeta(state, teamID)
-  const yourOperations = Constants.getCanPerformByID(state, teamID)
-  const isBigTeam = Constants.isBigTeam(state, teamID)
-  return {
-    canCreateSubteam: yourOperations.manageSubteams,
-    canDeleteTeam: yourOperations.deleteTeam,
-    canInvite: yourOperations.manageMembers,
-    canLeaveTeam: !Constants.isLastOwner(state, teamID) && role !== 'none',
-    canManageChat: yourOperations.renameChannel,
-    canViewFolder: !yourOperations.joinTeam,
-    isBigTeam,
-    memberCount,
-    role,
-    teamname,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
-  onAddOrInvitePeople: () => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
-  onCopyInviteLink: () => {}, // TODO
-  onCreateSubteam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID})),
-  onDeleteTeam: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamDeleteTeam'}],
-      })
-    ),
-  onLeaveTeam: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
-      })
-    ),
-  onManageChat: () => dispatch(TeamsGen.createManageChatChannels({teamID})),
-  onOpenFolder: (teamname: string) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
-})
-
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   items: Kb.MenuItems
   teamname: string
   memberCount: number
-  role: Types.TeamRoleType
+  role: T.Teams.TeamRoleType
   onHidden: () => void
   visible: boolean
 }
@@ -86,7 +41,7 @@ const TeamMenu = (props: Props) => {
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
           {(role === 'admin' || role === 'owner') && (
             <Kb.Icon
-              color={role === 'owner' ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+              color={role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
               fontSize={10}
               type="iconfont-crown-owner"
             />
@@ -109,63 +64,84 @@ const TeamMenu = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.xtiny),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
+      paddingBottom: Kb.Styles.globalMargins.tiny,
       paddingTop: 20,
     },
   }),
 }))
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const items: Kb.MenuItems = ['Divider']
-    if (stateProps.canInvite) {
-      items.push({
-        icon: 'iconfont-new',
-        onClick: dispatchProps.onAddOrInvitePeople,
-        title: 'Add/Invite people',
-      })
-    }
-    if (stateProps.canViewFolder) {
-      items.push({
-        icon: 'iconfont-folder-open',
-        onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
-        title: 'Open team folder',
-      })
-    }
-    if (items.length > 0 && (stateProps.canLeaveTeam || stateProps.canDeleteTeam)) {
-      items.push('Divider')
-    }
+const Container = (ownProps: OwnProps) => {
+  const {teamID} = ownProps
+  const {teamname, role, memberCount} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
+  const canDeleteTeam = yourOperations.deleteTeam
+  const canInvite = yourOperations.manageMembers
+  const canLeaveTeam = C.useTeamsState(s => !C.Teams.isLastOwner(s, teamID) && role !== 'none')
+  const canViewFolder = !yourOperations.joinTeam
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const onAddOrInvitePeople = () => {
+    startAddMembersWizard(teamID)
+  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onDeleteTeam = () => {
+    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+  }
+  const onLeaveTeam = () => {
+    navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
+  }
+  const onOpenFolder = (teamname: string) => {
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+  }
+
+  const items: Kb.MenuItems = ['Divider']
+  if (canInvite) {
+    items.push({
+      icon: 'iconfont-new',
+      onClick: onAddOrInvitePeople,
+      title: 'Add/Invite people',
+    })
+  }
+  if (canViewFolder) {
+    items.push({
+      icon: 'iconfont-folder-open',
+      onClick: () => onOpenFolder(teamname),
+      title: 'Open team folder',
+    })
+  }
+  if (items.length > 0 && (canLeaveTeam || canDeleteTeam)) {
+    items.push('Divider')
+  }
+  items.push({
+    danger: true,
+    icon: 'iconfont-team-leave',
+    onClick: onLeaveTeam,
+    title: 'Leave team',
+  })
+  if (canDeleteTeam) {
     items.push({
       danger: true,
-      icon: 'iconfont-team-leave',
-      onClick: dispatchProps.onLeaveTeam,
-      title: 'Leave team',
+      icon: 'iconfont-trash',
+      onClick: onDeleteTeam,
+      title: 'Delete team',
     })
-    if (stateProps.canDeleteTeam) {
-      items.push({
-        danger: true,
-        icon: 'iconfont-trash',
-        onClick: dispatchProps.onDeleteTeam,
-        title: 'Delete team',
-      })
-    }
-
-    return {
-      attachTo: ownProps.attachTo,
-      items,
-      memberCount: stateProps.memberCount,
-      onHidden: ownProps.onHidden,
-      role: stateProps.role as Types.TeamRoleType,
-      teamname: stateProps.teamname,
-      visible: ownProps.visible,
-    }
   }
-)(TeamMenu) as any
+
+  const props = {
+    attachTo: ownProps.attachTo,
+    items,
+    memberCount: memberCount,
+    onHidden: ownProps.onHidden,
+    role: role as T.Teams.TeamRoleType,
+    teamname: teamname,
+    visible: ownProps.visible,
+  }
+  return <TeamMenu {...props} />
+}
+
+export default Container

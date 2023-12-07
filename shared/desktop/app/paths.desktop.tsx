@@ -1,6 +1,6 @@
 import os from 'os'
 import path from 'path'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import {app} from 'electron'
 const {env} = KB2.constants
 
@@ -13,7 +13,7 @@ export function keybaseBinPath() {
     }
     if (!guiAppPath) {
       console.log('No keybase bin path')
-      return null
+      return
     }
     const kbPath = path.resolve(guiAppPath, '..', '..', '..')
     console.log(`expected path to keybase binaries is ${kbPath}`)
@@ -22,6 +22,6 @@ export function keybaseBinPath() {
   if (os.platform() === 'darwin') {
     return path.resolve(app.getAppPath(), '..', '..', '..', 'Contents', 'SharedSupport', 'bin', 'keybase')
   } else {
-    return null
+    return
   }
 }

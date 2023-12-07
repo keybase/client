@@ -1,20 +1,23 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Shared from './shim.shared'
-import * as Container from '../util/container'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import {useHeaderHeight} from '@react-navigation/elements'
 import {View} from 'react-native'
+import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 
-export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
-  Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
+export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
+  Shared._shim(routes, platformShim, isModal, isLoggedOut)
 
-export const getOptions = Shared.getOptions
+export const getOptions = Shared._getOptions
 
-const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
+export const platformShim = (
+  Original: React.JSXElementConstructor<GetOptionsParams>,
+  isModal: boolean,
+  isLoggedOut: boolean,
+  getOptions?: GetOptions
+) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
+  return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
@@ -25,9 +28,9 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     if (isModal || isLoggedOut) {
       wrap = (
         <Kb.KeyboardAvoidingView2 extraOffset={40}>
-          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
             <Kb.SafeAreaView
-              style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+              style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
             >
               {wrap}
             </Kb.SafeAreaView>
@@ -41,26 +44,14 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     }
     return wrap
   })
-  Container.hoistNonReactStatic(ShimmedNew, Original)
-  return ShimmedNew
-}
-
-const useSafeHeaderHeight = () => {
-  try {
-    return useHeaderHeight()
-  } catch {
-    return 0
-  }
 }
 
 const ModalWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p
-  const headerHeight = useSafeHeaderHeight()
-  const paddingBottom = headerHeight
-  return <View style={[styles.modal, {paddingBottom}]}>{children}</View>
+  return <View style={styles.modal}>{children}</View>
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
@@ -69,10 +60,10 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       modal: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )

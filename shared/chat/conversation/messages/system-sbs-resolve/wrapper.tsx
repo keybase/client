@@ -1,17 +1,14 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import {ConvoIDContext} from '../ids-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemSBSResolvedType from './container'
 import type SystemJoinedType from '../system-joined/container'
 
 const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
   const {ordinal} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const common = useCommon(ordinal)
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const you = Container.useSelector(state => state.config.username)
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
+  const you = C.useCurrentUserState(s => s.username)
 
   if (message?.type !== 'systemSBSResolved') return null
 

@@ -1,8 +1,6 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../util/container'
-import * as Styles from '../styles'
-import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as Styles from '@/styles'
 import Text, {
   type TextType,
   type Background,
@@ -12,8 +10,8 @@ import Text, {
   type TextTypeBold,
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
-import shallowEqual from 'shallowequal'
 import isArray from 'lodash/isArray'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 export type User = {
   username: string
@@ -35,12 +33,12 @@ export type Props = {
   lineClamp?: LineClampType
   notFollowingColorOverride?: AllowedColors
   onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
-  prefix?: string | null
+  prefix?: string
   selectable?: boolean
   showAnd?: boolean
   skipSelf?: boolean
   style?: StylesTextCrossPlatform
-  suffix?: string | null
+  suffix?: string
   suffixType?: TextType
   title?: string
   underline?: boolean
@@ -85,33 +83,32 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const {inline, style, lineClamp, selectable, type, backgroundMode, showAnd, underline} = p
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
   const you = p.you === username
-  const following = Container.useSelector(state => colorFollowing && state.config.following.has(username))
-  const broken = Container.useSelector(
-    state => (colorBroken && state.users.infoMap.get(username)?.broken) ?? false
-  )
 
-  const dispatch = Container.useDispatch()
+  const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
+  const broken = C.useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
-    (evt: any) => {
+    (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     },
-    [dispatch, username]
+    [showUserProfile, username]
   )
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
-    (evt: any) => {
+    (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     },
-    [dispatch, username]
+    [showUser, username]
   )
   const onPassThrough = React.useCallback(() => {
     if (typeof onUsernameClicked === 'function') {
       onUsernameClicked(username)
     }
   }, [username, onUsernameClicked])
-  let onClicked: undefined | ((evt?: any) => void)
+  let onClicked: undefined | ((evt?: React.BaseSyntheticEvent) => void)
   switch (onUsernameClicked) {
     case 'tracker':
       onClicked = onOpenTracker
@@ -125,7 +122,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
       }
   }
 
-  let userStyle = Styles.platformStyles({
+  let userStyle: Styles.StylesCrossPlatform = Styles.platformStyles({
     common: {
       ...(colorFollowing && !you
         ? ({
@@ -148,7 +145,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   // Make sure onClick is undefined when _onUsernameClicked is, so
   // as to not override any existing onClick handler from containers
   // on native. (See DESKTOP-3963.)
-  const isNegative = backgroundModeIsNegative(backgroundMode || null)
+  const isNegative = backgroundModeIsNegative(backgroundMode)
   const renderText = (onLongPress?: () => void) => (
     // type is set to Body here to prevent unwanted hover behaviors
     // line height is unset to prevent some text clipping issues
@@ -219,7 +216,11 @@ type UsernamesTextProps = {
 const UsernamesText = (p: UsernamesTextProps) => {
   const {showAnd, inlineGrammar, users, joinerStyle, commaColor, ...rest} = p
   const derivedJoinerStyle = React.useMemo(() => {
-    return Styles.collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
+    return Styles.collapseStyles([
+      joinerStyle,
+      styles.joinerStyle,
+      {color: commaColor},
+    ]) as StylesTextCrossPlatform
   }, [commaColor, joinerStyle])
 
   const lastIdx = users.length - 1
@@ -257,13 +258,13 @@ const Usernames = React.memo(
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = Container.useSelector(state => state.config.username)
+    const you = C.useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline
       ? (styles.inlineStyle as any)
       : (styles.nonInlineStyle as any)
-    const bgMode = backgroundMode || null
+    const bgMode = backgroundMode
     const isNegative = backgroundModeIsNegative(bgMode)
 
     const names = React.useMemo(() => {
@@ -324,9 +325,9 @@ const Usernames = React.memo(
     )
   },
   (p, n) => {
-    return shallowEqual(p, n, (v, o) => {
+    return C.shallowEqual(p, n, (v: unknown, o: unknown) => {
       if (isArray(v) && isArray(o)) {
-        return shallowEqual(v, o)
+        return C.shallowEqual(v, o)
       }
       return undefined
     })
@@ -343,7 +344,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
-      const {e164ToDisplay} = require('../util/phone-numbers')
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

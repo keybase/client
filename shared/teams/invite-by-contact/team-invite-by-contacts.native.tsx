@@ -1,30 +1,28 @@
-import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
 import * as React from 'react'
-import * as SettingsConstants from '../../constants/settings'
-import * as TeamsGen from '../../actions/teams-gen'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '@/constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
-const extractPhoneNumber = (name: string, region: string): string | null => {
+const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
-  const maybeNumber = matches && matches[1] && matches[1].replace(/[^0-9+]/g, '')
-  return maybeNumber ? SettingsConstants.getE164(maybeNumber, region) : null
+  const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
+  return (maybeNumber && C.getE164(maybeNumber, region)) ?? ''
 }
 
 // Extract either emails or phone numbers from team invites, to match to
 // contacts and show whether the contact is invited already or not. Returns a
 // mapping of potential contact values to invite IDs.
 const mapExistingInvitesToValues = (
-  invites: Types.TeamDetails['invites'],
+  invites: T.Teams.TeamDetails['invites'],
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
-  invites?.forEach(invite => {
+  invites.forEach(invite => {
     if (invite.email) {
       // Email invite - just use email as the key.
       ret.set(invite.email, invite.id)
@@ -41,76 +39,66 @@ const mapExistingInvitesToValues = (
 }
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const invites = Container.useSelector(state => Constants.getTeamDetails(state, teamID).invites)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 
-  const loadingInvites = Container.useSelector(s => Constants.getTeamLoadingInvites(s, teamname))
-
+  const loadingInvites = C.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
+  const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
-    dispatch(nav.safeNavigateUpPayload())
-    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-  }, [dispatch, nav])
+    nav.safeNavigateUp()
+    resetErrorInEmailInvite()
+  }, [resetErrorInEmailInvite, nav])
 
   const onRoleChange = React.useCallback(
-    (role: Types.TeamRoleType) => {
+    (role: T.Teams.TeamRoleType) => {
       setSelectedRole(role)
     },
     [setSelectedRole]
   )
+  const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
+  const inviteToTeamByPhone = C.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
 
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
-      dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-      if (contact.type === 'email') {
-        dispatch(
-          TeamsGen.createInviteToTeamByEmail({
-            invitees: contact.value,
-            loadingKey: contact.value,
-            role: selectedRole,
+      resetErrorInEmailInvite()
+      switch (contact.type) {
+        case 'email':
+          inviteToTeamByEmail(contact.value, selectedRole, teamID, teamname, contact.value)
+          break
+        case 'phone':
+          inviteToTeamByPhone(
             teamID,
             teamname,
-          })
-        )
-      } else if (contact.type === 'phone') {
-        dispatch(
-          TeamsGen.createInviteToTeamByPhone({
-            fullName: contact.name,
-            loadingKey: contact.value,
-            phoneNumber: contact.valueFormatted || contact.value,
-            role: selectedRole,
-            teamID,
-            teamname,
-          })
-        )
+            selectedRole,
+            contact.valueFormatted || contact.value,
+            contact.name,
+            contact.value
+          )
+          break
       }
     },
-    [dispatch, selectedRole, teamID, teamname]
+    [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
-      dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-      dispatch(
-        TeamsGen.createRemovePendingInvite({
-          inviteID,
-          teamID,
-        })
-      )
+      resetErrorInEmailInvite()
+      removePendingInvite(teamID, inviteID)
     },
-    [dispatch, teamID]
+    [resetErrorInEmailInvite, removePendingInvite, teamID]
   )
 
   // ----
@@ -125,7 +113,7 @@ const TeamInviteByContact = (props: Props) => {
     // `loadingKey` is inviteID when invite already (so loading is canceling the
     // invite), or contact.value when loading is adding an invite.
     const loadingKey = inviteID || contact.value
-    const loading = loadingInvites.get(loadingKey) ?? false
+    const loading = loadingInvites?.get(loadingKey) ?? false
 
     const onClick = inviteID ? () => onCancelInvite(inviteID) : () => onInviteContact(contact)
 

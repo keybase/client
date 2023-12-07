@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {NativeAnimated, NativeEasing} from '../../common-adapters/mobile.native'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './download-wrapper'
 
 type State = {

@@ -1,18 +1,12 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
-
-const ReplyPreview = (props: Props) => {
-  const {conversationIDKey} = props
-  const message = Container.useSelector(state => {
-    const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
-    return ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
+const ReplyPreview = () => {
+  const rordinal = C.useChatContext(s => s.replyTo)
+  const message = C.useChatContext(s => {
+    return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
   if (message) {
@@ -26,7 +20,7 @@ const ReplyPreview = (props: Props) => {
       default:
     }
   }
-  let attachment: Types.MessageAttachment | undefined
+  let attachment: T.Chat.MessageAttachment | undefined
   if (message && message.type === 'attachment') {
     if (message.attachmentType === 'image') {
       attachment = message
@@ -36,13 +30,11 @@ const ReplyPreview = (props: Props) => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-
-  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : null
-
-  const dispatch = Container.useDispatch()
+  const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : null
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    setReplyTo(0)
+  }, [setReplyTo])
 
   return (
     <Kb.Box style={styles.outerContainer}>
@@ -62,7 +54,7 @@ const ReplyPreview = (props: Props) => {
               {!!imageURL && (
                 <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                   <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+                    <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
                   </Kb.Box>
                 </Kb.Box2>
               )}
@@ -78,36 +70,36 @@ const ReplyPreview = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       close: {alignSelf: 'flex-start'},
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-          borderRadius: Styles.borderRadius,
+          ...Kb.Styles.desktopStyles.boxShadow,
+          borderRadius: Kb.Styles.borderRadius,
         },
       }),
-      contentContainer: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({
         isMobile: {flex: 1},
       }),
-      outerContainer: Styles.platformStyles({
+      outerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.xtiny,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
           position: 'relative',
         },
       }),
       replyContainer: {
         justifyContent: 'space-between',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       replyImageContainer: {
         overflow: 'hidden',
         position: 'relative',
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {
           contain: 'strict',
           display: 'inline',
@@ -120,14 +112,14 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       title: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       username: {alignSelf: 'center'},
-    } as const)
+    }) as const
 )
 
 export default ReplyPreview

@@ -1,17 +1,16 @@
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Common from '../router-v2/common'
-import * as Constants from '../constants/settings'
-import * as Shim from '../router-v2/shim'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Common from '@/router-v2/common'
+import {shim, getOptions} from '@/router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import {sharedNewRoutes} from './routes.shared'
+import {sharedNewRoutes} from './routes'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,
 }
 
-function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
+function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}: any) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -32,7 +31,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key].render()}
+                {descriptors[route.key]?.render()}
               </Kb.Box2>
             ) : null
           })}
@@ -42,28 +41,29 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
-  nav: {width: Styles.isTablet ? 200 : 180},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  box: {backgroundColor: Kb.Styles.globalColors.white},
+  nav: {width: Kb.Styles.isTablet ? 200 : 180},
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
 
-const shimmed = Shim.shim(settingsSubRoutes, false, false)
+const shimmed = shim(settingsSubRoutes, false, false)
+const shimKeys = Object.keys(shimmed) as Array<keyof typeof settingsSubRoutes>
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={Constants.accountTab} backBehavior="none">
-    {Object.keys(shimmed).map(name => (
+  <TabNavigator.Navigator initialRouteName={C.settingsAccountTab} backBehavior="none">
+    {shimKeys.map(name => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={settingsSubRoutes[name].getScreen}
+        getComponent={settingsSubRoutes[name].getScreen as any}
         options={({route, navigation}) => {
-          const no = settingsSubRoutes[name].getScreen().navigationOptions
+          const no = getOptions(settingsSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
@@ -71,9 +71,5 @@ const SettingsSubNavigator = () => (
     ))}
   </TabNavigator.Navigator>
 )
-
-SettingsSubNavigator.navigationOptions = {
-  title: 'Settings',
-}
 
 export default SettingsSubNavigator

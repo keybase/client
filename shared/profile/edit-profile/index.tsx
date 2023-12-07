@@ -1,7 +1,6 @@
-import * as Constants from '../../constants/tracker2'
-import * as Kb from '../../common-adapters'
+import * as Constants from '@/constants/tracker2'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 
 const maxBio = 255
 
@@ -39,9 +38,9 @@ class EditProfile extends React.Component<Props, State> {
     )
   }
 
-  _updateFullname = fullname => this.setState({fullname})
-  _updateBio = bio => this.setState({bio})
-  _updateLocation = location => this.setState({location})
+  _updateFullname = (fullname: string) => this.setState({fullname})
+  _updateBio = (bio: string) => this.setState({bio})
+  _updateLocation = (location: string) => this.setState({location})
 
   _submit = () => {
     this.props.onSubmit(this.state.bio, this.state.fullname, this.state.location)
@@ -53,7 +52,7 @@ class EditProfile extends React.Component<Props, State> {
       <Kb.PopupWrapper onCancel={this.props.onCancel} title={this.props.title}>
         <Kb.ScrollView>
           <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-            {Styles.isMobile ? null : (
+            {Kb.Styles.isMobile ? null : (
               <Kb.Text type="Header" style={styles.header}>
                 Edit Profile
               </Kb.Text>
@@ -99,21 +98,21 @@ class EditProfile extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   bio: {
     maxHeight: undefined,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      padding: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.small,
     },
     isElectron: {
       height: 450,
       width: 350,
     },
   }),
-  gap: {flexGrow: 1, minHeight: Styles.globalMargins.small},
-  header: {marginBottom: Styles.globalMargins.small},
+  gap: {flexGrow: 1, minHeight: Kb.Styles.globalMargins.small},
+  header: {marginBottom: Kb.Styles.globalMargins.small},
 }))
 
 export default EditProfile

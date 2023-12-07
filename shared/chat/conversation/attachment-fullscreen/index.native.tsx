@@ -1,72 +1,38 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters/mobile.native'
-import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/chat2'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
 import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
-import logger from '../../../logger'
+import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
-import {type LayoutEvent} from '../../../common-adapters/box'
-
-const AutoMaxSizeImage = (p: {
-  height: number
-  source: {uri: string}
-  onLoad: () => void
-  opacity: number
-}) => {
-  const {source, onLoad, opacity} = p
-  const pheight = p.height
-  const {uri} = source
-  const [width, setWidth] = React.useState(0)
-  const [height, setHeight] = React.useState(0)
-
-  React.useEffect(() => {
-    Kb.NativeImage.getSize(uri, (width, height) => {
-      const clamped = Constants.clampImageSize(width, height, Styles.dimensionWidth, pheight)
-      setWidth(clamped.width)
-      setHeight(clamped.height)
-    })
-  }, [uri, pheight])
-
-  return (
-    <Kb.ZoomableBox
-      contentContainerStyle={[
-        styles.zoomableBoxContainer,
-        {height, maxHeight: height, maxWidth: width, width},
-      ]}
-      maxZoom={10}
-      style={styles.zoomableBox}
-      showsHorizontalScrollIndicator={false}
-      showsVerticalScrollIndicator={false}
-    >
-      <Kb.NativeFastImage
-        onLoad={onLoad}
-        source={source}
-        resizeMode={ResizeMode.CONTAIN}
-        style={[styles.fastImage, {height, opacity, width}]}
-      />
-    </Kb.ZoomableBox>
-  )
-}
+import {useData} from './hooks'
 
 const Fullscreen = (p: Props) => {
-  const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
+  const data = useData(p.ordinal)
+  const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
+  const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
-
-  const [height, setHeight] = React.useState(0)
-
-  const onLayout = React.useCallback((e: LayoutEvent) => {
-    setHeight(e.nativeEvent.layout.height)
-  }, [])
+  const {id} = message
 
   const {toggleShowingPopup, popup} = useMessagePopup({
-    conversationIDKey: message.conversationIDKey,
-    ordinal: message.id,
+    ordinal: id,
   })
+
+  const onSwipe = React.useCallback(
+    (left: boolean) => {
+      if (left) {
+        onNextAttachment()
+      } else {
+        onPreviousAttachment()
+      }
+    },
+    [onNextAttachment, onPreviousAttachment]
+  )
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
+
   if (path) {
     if (isVideo) {
       content = (
@@ -94,17 +60,10 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = height ? (
-        <AutoMaxSizeImage
-          source={{uri: `${path}`}}
-          onLoad={() => setLoaded(true)}
-          opacity={loaded ? 1 : 0}
-          height={height}
-        />
-      ) : null
+      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} />
     }
   }
-  if (!loaded) {
+  if (!loaded && isVideo) {
     spinner = (
       <Kb.Box2
         direction="vertical"
@@ -135,7 +94,7 @@ const Fullscreen = (p: Props) => {
           All media
         </Kb.Text>
       </Kb.Box2>
-      <Kb.BoxGrow onLayout={onLayout}>{content}</Kb.BoxGrow>
+      <Kb.BoxGrow>{content}</Kb.BoxGrow>
       <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={toggleShowingPopup} />
       {popup}
     </Kb.Box2>
@@ -201,7 +160,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default Fullscreen

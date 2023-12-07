@@ -1,16 +1,15 @@
 import * as React from 'react'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as C from '@/constants'
 import KextPermissionPopup from './kext-permission-popup'
 
 const KPPContainer = () => {
-  const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
-  const dispatch = Container.useDispatch()
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const openSecurityPreferencesDesktop = C.useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = navigateUp
   const openSecurityPrefs = React.useCallback(
-    () => dispatch(FsGen.createOpenSecurityPreferences()),
-    [dispatch]
+    () => openSecurityPreferencesDesktop?.(),
+    [openSecurityPreferencesDesktop]
   )
   return (
     <KextPermissionPopup

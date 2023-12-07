@@ -1,9 +1,8 @@
 import * as React from 'react'
-import * as Constants from '../../constants/login'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as ConfigConstants from '@/constants/config'
+import * as Kb from '@/common-adapters'
 import UserCard from '../user-card'
-import {errorBanner, SignupScreen} from '../../signup/common'
+import {errorBanner, SignupScreen} from '@/signup/common'
 import type {Props} from '.'
 
 type State = {
@@ -12,7 +11,7 @@ type State = {
 
 const other = 'Someone else...'
 
-const UserRow = ({user, hasStoredSecret}) => (
+const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="xtiny">
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
@@ -32,13 +31,14 @@ class Login extends React.Component<Props, State> {
     this.setState(prevState => ({open: !prevState.open}))
   }
 
-  _onClickUser = (selected: React.ReactElement) => {
-    if (selected.props.user === other) {
+  _onClickUserIdx = (selected: number) => {
+    const user = this.props.users.at(selected)
+    if (!user) {
       this._toggleOpen()
       this.props.onSomeoneElse()
     } else {
       this._toggleOpen()
-      this.props.selectedUserChange(selected.props.user)
+      this.props.selectedUserChange(user.username)
       if (this._inputRef.current) {
         this._inputRef.current.focus()
       }
@@ -56,7 +56,7 @@ class Login extends React.Component<Props, State> {
         banners={errorBanner(this.props.error)}
         headerStyle={styles.header}
         onRightAction={this.props.onSignup}
-        rightActionLabel="Create an account"
+        rightActionLabel="Create account"
         title="Log in"
       >
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
@@ -66,7 +66,7 @@ class Login extends React.Component<Props, State> {
             style={styles.userContainer}
           >
             <Kb.Dropdown
-              onChanged={this._onClickUser}
+              onChangedIdx={this._onClickUserIdx}
               selected={userRows[selectedIdx]}
               items={userRows}
               overlayStyle={styles.userOverlayStyle}
@@ -104,7 +104,7 @@ class Login extends React.Component<Props, State> {
               <Kb.WaitingButton
                 disabled={this.props.needPassword && !this.props.password}
                 fullWidth={true}
-                waitingKey={Constants.waitingKey}
+                waitingKey={ConfigConstants.loginWaitingKey}
                 style={styles.loginSubmitButton}
                 label="Log in"
                 onClick={this.props.onSubmit}
@@ -117,11 +117,11 @@ class Login extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
@@ -130,10 +130,10 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         flexGrow: 1,
         maxWidth: 460,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       forgotPassword: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       forgotPasswordContainer: {
         flex: 1,
@@ -145,7 +145,7 @@ const styles = Styles.styleSheetCreate(
       inputRow: {
         flex: 1,
         marginBottom: 0,
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
       loginSubmitButton: {
@@ -157,27 +157,27 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         justifyContent: 'flex-end',
       },
-      other: {color: Styles.globalColors.black},
-      provisioned: {color: Styles.globalColors.orange},
+      other: {color: Kb.Styles.globalColors.black},
+      provisioned: {color: Kb.Styles.globalColors.orange},
       userContainer: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         flex: 1,
       },
       userDropdown: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: '100%',
       },
       userOverlayStyle: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: 348,
       },
       userRow: {
         alignItems: 'center',
-        marginLeft: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
         minHeight: 40,
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default Login

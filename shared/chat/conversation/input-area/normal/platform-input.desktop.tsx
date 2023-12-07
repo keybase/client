@@ -1,81 +1,75 @@
-/* eslint-env browser */
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Styles from '../../../../styles'
-import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
+import SetExplodingMessagePopup from '@/chat/conversation/messages/set-explode-popup/container'
 import Typing from './typing'
-import WalletsIcon from './wallets-icon'
-import type * as Types from '../../../../constants/types/chat2'
 import type {Props} from './platform-input'
-import {EmojiPickerDesktop} from '../../../emoji-picker/container'
-import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
-import {formatDurationShort} from '../../../../util/timestamp'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
+import {ScrollContext} from '@/chat/conversation/normal/context'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
 
-type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds' | 'conversationIDKey'> & {
+type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
 }
 const ExplodingButton = (p: ExplodingButtonProps) => {
-  const {explodingModeSeconds, conversationIDKey, focusInput} = p
+  const {explodingModeSeconds, focusInput} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
         <SetExplodingMessagePopup
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           onAfterSelect={focusInput}
           onHidden={toggleShowingPopup}
           visible={true}
         />
       )
     },
-    [conversationIDKey, focusInput]
+    [focusInput]
   )
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box
-      className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
+    <Kb.ClickableBox2
+      className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      forwardedRef={popupAnchor}
-      style={Styles.collapseStyles([
+      ref={popupAnchor}
+      style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
-        styles.explodingIconContainerClickable,
         !!explodingModeSeconds && {
-          backgroundColor: Styles.globalColors.black,
+          backgroundColor: Kb.Styles.globalColors.black,
         },
       ] as any)}
     >
       {popup}
-      {explodingModeSeconds ? (
-        <Kb.Text type="BodyTinyBold" negative={true}>
-          {formatDurationShort(explodingModeSeconds * 1000)}
-        </Kb.Text>
-      ) : (
-        <Kb.WithTooltip tooltip="Timer">
-          <Kb.Icon
-            className={Styles.classNames('timer-icon', 'hover_color_black')}
-            colorOverride={null}
-            onClick={toggleShowingPopup}
-            padding="xtiny"
-            type="iconfont-timer"
-          />
-        </Kb.WithTooltip>
-      )}
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" style={styles.explodingInsideWrapper}>
+        {explodingModeSeconds ? (
+          <Kb.Text type="BodyTinyBold" negative={true}>
+            {formatDurationShort(explodingModeSeconds * 1000)}
+          </Kb.Text>
+        ) : (
+          <Kb.WithTooltip tooltip="Timer">
+            <Kb.Icon
+              className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
+              onClick={toggleShowingPopup}
+              padding="xtiny"
+              type="iconfont-timer"
+            />
+          </Kb.WithTooltip>
+        )}
+      </Kb.Box2>
+    </Kb.ClickableBox2>
   )
 }
 
-type EmojiButtonProps = Pick<Props, 'conversationIDKey'> & {inputRef: InputRefType}
+type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = (p: EmojiButtonProps) => {
-  const {inputRef, conversationIDKey} = p
+  const {inputRef} = p
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
@@ -92,45 +86,39 @@ const EmojiButton = (p: EmojiButtonProps) => {
     [inputRef]
   )
 
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
-    return (
-      <Kb.Overlay
-        attachTo={attachTo}
-        visible={showingPopup}
-        onHidden={toggleShowingPopup}
-        position="top right"
-      >
-        <EmojiPickerDesktop
-          conversationIDKey={conversationIDKey}
-          onPickAction={insertEmoji}
-          onDidPick={toggleShowingPopup}
-        />
-      </Kb.Overlay>
-    )
-  })
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
+          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={toggleShowingPopup} />
+        </Kb.Overlay>
+      )
+    },
+    [insertEmoji]
+  )
+
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
     <>
       <Kb.WithTooltip tooltip="Emoji">
-        <Kb.Box style={styles.icon} ref={popupAnchor}>
+        <Kb.Box2Measure direction="vertical" style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
-            color={showingPopup ? Styles.globalColors.black : null}
+            color={showingPopup ? Kb.Styles.globalColors.black : undefined}
             onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
-        </Kb.Box>
+        </Kb.Box2Measure>
       </Kb.WithTooltip>
       {popup}
     </>
   )
 }
 
-const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
-  const onGiphyToggle = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+const GiphyButton = () => {
+  const toggleGiphyPrefill = C.useChatContext(s => s.dispatch.toggleGiphyPrefill)
+  const onGiphyToggle = toggleGiphyPrefill
 
   return (
     <Kb.WithTooltip tooltip="GIF">
@@ -148,27 +136,26 @@ const fileListToPaths = (f: any): Array<string> =>
     return f.path
   }) as any
 
-const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef: HtmlInputRefType}) => {
-  const {htmlInputRef, conversationIDKey} = p
-  const dispatch = Container.useDispatch()
+const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
+  const {htmlInputRef} = p
+  const navigateAppend = C.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
-    const pathAndOutboxIDs = paths.reduce<Array<{outboxID: null; path: string}>>((arr, path: string) => {
-      path && arr.push({outboxID: null, path})
+    const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
+      path && arr.push({path})
       return arr
     }, [])
     if (pathAndOutboxIDs.length) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
     }
 
     if (htmlInputRef.current) {
       htmlInputRef.current.value = ''
     }
-  }, [htmlInputRef, dispatch, conversationIDKey])
+  }, [htmlInputRef, navigateAppend])
 
   const filePickerOpen = React.useCallback(() => {
     htmlInputRef.current?.click()
@@ -184,10 +171,10 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
   )
 }
 
-const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () => void}) => {
+const Footer = (p: {focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
-      <Typing conversationIDKey={p.conversationIDKey} />
+      <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
       </Kb.Text>
@@ -195,15 +182,7 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
   )
 }
 
-type UseKeyboardProps = Pick<
-  Props,
-  | 'conversationIDKey'
-  | 'isEditing'
-  | 'onChangeText'
-  | 'onRequestScrollDown'
-  | 'onRequestScrollUp'
-  | 'showReplyPreview'
-> & {
+type UseKeyboardProps = Pick<Props, 'isEditing' | 'onChangeText' | 'showReplyPreview'> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
   onKeyDown?: (evt: React.KeyboardEvent) => void
@@ -211,13 +190,14 @@ type UseKeyboardProps = Pick<
   onCancelEditing: () => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, conversationIDKey, onCancelEditing} = p
-  const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
+  const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
+  const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
-  const dispatch = Container.useDispatch()
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    setReplyTo(0)
+  }, [setReplyTo])
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
@@ -239,10 +219,10 @@ const useKeyboard = (p: UseKeyboardProps) => {
         htmlInputRef.current?.click()
         return true
       } else if (e.key === 'PageDown') {
-        onRequestScrollDown()
+        scrollDown()
         return true
       } else if (e.key === 'PageUp') {
-        onRequestScrollUp()
+        scrollUp()
         return true
       }
 
@@ -256,8 +236,8 @@ const useKeyboard = (p: UseKeyboardProps) => {
       onEditLastMessage,
       onCancelEditing,
       onCancelReply,
-      onRequestScrollDown,
-      onRequestScrollUp,
+      scrollDown,
+      scrollUp,
     ]
   )
 
@@ -309,39 +289,40 @@ const useKeyboard = (p: UseKeyboardProps) => {
   return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
 
-type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'cannotWrite'> & {
+type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
   htmlInputRef: HtmlInputRefType
   inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, conversationIDKey, cannotWrite, showWalletsIcon, inputRef} = p
+  const {htmlInputRef, cannotWrite, inputRef} = p
   return (
-    <>
-      {!cannotWrite && showWalletsIcon && (
-        <Kb.WithTooltip tooltip="Lumens">
-          <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
-        </Kb.WithTooltip>
-      )}
+    <Kb.Box2 direction="horizontal" style={styles.sideButtons}>
       {!cannotWrite && (
         <>
-          <GiphyButton conversationIDKey={conversationIDKey} />
-          <EmojiButton inputRef={inputRef} conversationIDKey={conversationIDKey} />
-          <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
+          <GiphyButton />
+          <EmojiButton inputRef={inputRef} />
+          <FileButton htmlInputRef={htmlInputRef} />
         </>
       )}
-    </>
+    </Kb.Box2>
   )
 }
 
-const getYou = (state: Container.TypedState) => state.config.username
-
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
-  const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
-  const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
-  const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
+  const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
+  const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const conversationIDKey = C.useChatContext(s => s.id)
+
+  // keep focus
+  C.useCIDChanged(conversationIDKey, () => {
+    inputRef.current?.focus()
+  })
+  React.useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const checkEnterOnKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -358,7 +339,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
-    conversationIDKey,
     expanded: false,
     inputRef,
     onChangeText: p.onChangeText,
@@ -372,20 +352,12 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const dispatch = Container.useDispatch()
-  const you = Container.useSelector(getYou)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey,
-        editLastUser: you,
-        ordinal: null,
-      })
-    )
-  }, [dispatch, conversationIDKey, you])
+    setEditing(true)
+  }, [setEditing])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
-    conversationIDKey,
     focusInput,
     htmlInputRef,
     isEditing,
@@ -393,10 +365,18 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     onChangeText: onChangeTextSuggestors,
     onEditLastMessage,
     onKeyDown,
-    onRequestScrollDown,
-    onRequestScrollUp,
     showReplyPreview,
   })
+
+  const setRefs = React.useCallback(
+    (ref: null | Kb.PlainInput) => {
+      // from normal/index
+      inputSetRef.current = ref
+      // from suggestors/index
+      inputRef.current = ref
+    },
+    [inputRef, inputSetRef]
+  )
 
   return (
     <>
@@ -404,18 +384,14 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
       <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
         <Kb.Box style={styles.container}>
           <Kb.Box
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               styles.inputWrapper,
               isEditing && styles.inputWrapperEditing,
               explodingModeSeconds && styles.inputWrapperExplodingMode,
             ])}
           >
             {!isEditing && !cannotWrite && (
-              <ExplodingButton
-                explodingModeSeconds={explodingModeSeconds}
-                conversationIDKey={conversationIDKey}
-                focusInput={focusInput}
-              />
+              <ExplodingButton explodingModeSeconds={explodingModeSeconds} focusInput={focusInput} />
             )}
             {isEditing && (
               <Kb.Button
@@ -426,19 +402,14 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
+            <Kb.Box2 direction="horizontal" style={styles.inputBox}>
               <Kb.PlainInput
                 allowKeyboardEvents={true}
-                disabled={cannotWrite ?? false}
+                disabled={cannotWrite}
                 autoFocus={false}
-                ref={(ref: null | Kb.PlainInput) => {
-                  // from normal/index
-                  inputSetRef.current = ref
-                  // from suggestors/index
-                  inputRef.current = ref
-                }}
+                ref={setRefs}
                 placeholder={hintText}
-                style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
+                style={Kb.Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -446,67 +417,62 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons
-              cannotWrite={cannotWrite}
-              conversationIDKey={conversationIDKey}
-              showWalletsIcon={showWalletsIcon}
-              htmlInputRef={htmlInputRef}
-              inputRef={inputRef}
-            />
+            <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
           </Kb.Box>
-          <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
+          <Footer focusInput={focusInput} />
         </Kb.Box>
       </KeyEventHandler>
     </>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      cancelEditingBtn: {margin: Styles.globalMargins.xtiny},
+      cancelEditingBtn: {margin: Kb.Styles.globalMargins.xtiny},
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: '100%',
       },
-      emojiPickerContainer: Styles.platformStyles({
+      emojiPickerContainer: Kb.Styles.platformStyles({
         common: {
           borderRadius: 4,
           bottom: 32,
           position: 'absolute',
           right: -64,
         },
-        isElectron: {...Styles.desktopStyles.boxShadow},
+        isElectron: {...Kb.Styles.desktopStyles.boxShadow},
       }),
-      emojiPickerContainerWrapper: {...Styles.globalStyles.fillAbsolute},
+      emojiPickerContainerWrapper: {...Kb.Styles.globalStyles.fillAbsolute},
       emojiPickerRelative: {position: 'relative'},
-      explodingIconContainer: Styles.platformStyles({
+      explodingIconContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           alignSelf: 'stretch',
           borderBottomLeftRadius: 3,
           borderTopLeftRadius: 3,
-          justifyContent: 'center',
+          justifyContent: 'flex-end',
           textAlign: 'center',
           width: 32,
         },
-        isElectron: {borderRight: `1px solid ${Styles.globalColors.black_20}`},
+        isElectron: {
+          borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          ...Kb.Styles.desktopStyles.clickable,
+        },
       }),
-      explodingIconContainerClickable: Styles.platformStyles({
-        isElectron: {...Styles.desktopStyles.clickable},
-      }),
+      explodingInsideWrapper: {alignItems: 'center', height: 32, justifyContent: 'center'},
       footer: {
         alignSelf: 'flex-end',
-        color: Styles.globalColors.black_20,
-        marginBottom: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.medium + 2,
+        color: Kb.Styles.globalColors.black_20,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.medium + 2,
         marginTop: 2,
         textAlign: 'right',
       },
       footerContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-start',
         justifyContent: 'space-between',
       },
@@ -514,12 +480,12 @@ const styles = Styles.styleSheetCreate(
       icon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
-        marginRight: Styles.globalMargins.xtiny,
-        padding: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.xtiny,
       },
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.transparent,
+          backgroundColor: Kb.Styles.globalColors.transparent,
           height: 22,
           // Line height change is so that emojis (unicode characters inside
           // textarea) are not clipped at the top. This change is accompanied by
@@ -529,39 +495,41 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputBox: {
-        flex: 1,
-        paddingBottom: Styles.globalMargins.xtiny,
+        flexGrow: 1,
+        flexShrink: 0,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
-        paddingTop: Styles.globalMargins.tiny - 2,
+        paddingTop: Kb.Styles.globalMargins.tiny - 2,
         textAlign: 'left',
       },
-      inputEditing: {color: Styles.globalColors.blackOrBlack},
+      inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
       inputWrapper: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-end',
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_20,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
-      inputWrapperExplodingMode: {borderColor: Styles.globalColors.black},
+      inputWrapperEditing: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt},
+      inputWrapperExplodingMode: {borderColor: Kb.Styles.globalColors.black},
+      sideButtons: {alignSelf: 'flex-end'},
       suggestionSpinnerStyle: {
-        bottom: Styles.globalMargins.tiny,
+        bottom: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
-        right: Styles.globalMargins.medium,
+        right: Kb.Styles.globalMargins.medium,
       },
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default PlatformInput

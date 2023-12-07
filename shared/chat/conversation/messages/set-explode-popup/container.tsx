@@ -1,43 +1,38 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import SetExplodeTime from '.'
 
-const makeItems = (meta: Types.ConversationMeta) => {
-  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+const makeItems = (meta: T.Chat.ConversationMeta) => {
+  const convRetention = C.Chat.getEffectiveRetentionPolicy(meta)
   if (convRetention.type !== 'explode') {
-    return Constants.messageExplodeDescriptions
+    return C.Chat.messageExplodeDescriptions
   }
   const {seconds, title} = convRetention
-  const items = Constants.messageExplodeDescriptions.filter(ed => ed.seconds < seconds)
+  const items = C.Chat.messageExplodeDescriptions.filter(ed => ed.seconds < seconds)
   items.splice(0, 1, {seconds, text: `${title} (Chat policy)`})
   return items
 }
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
-  conversationIDKey: Types.ConversationIDKey
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onAfterSelect?: (s: number) => void
   onHidden: () => void
   visible: boolean
 }
 
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
-  const {onHidden, visible, attachTo, conversationIDKey, onAfterSelect} = p
-  const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const selected = Container.useSelector(state =>
-    Constants.getConversationExplodingMode(state, conversationIDKey)
-  )
-
-  const dispatch = Container.useDispatch()
+  const {onHidden, visible, attachTo, onAfterSelect} = p
+  const _meta = C.useChatContext(s => s.meta)
+  const selected = C.useChatContext(s => s.getExplodingMode())
+  const setExplodingMode = C.useChatContext(s => s.dispatch.setExplodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
-      dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds}))
+      setExplodingMode(seconds)
       onAfterSelect?.(seconds)
     },
-    [dispatch, onAfterSelect, conversationIDKey]
+    [setExplodingMode, onAfterSelect]
   )
 
   const items = React.useMemo(() => makeItems(_meta), [_meta])

@@ -1,8 +1,9 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
-import openURL from '../util/open-url'
+import openURL from '@/util/open-url'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
@@ -33,14 +34,7 @@ const KBWebViewBase = (props: WebViewProps) => {
   const {showLoadingStateUntilLoaded} = props
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
-  const isMounted = React.useRef<Boolean>(true)
-  React.useEffect(
-    () => () => {
-      isMounted.current = false
-    },
-    []
-  )
-
+  const isMounted = C.useIsMounted()
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
   const [opacity, api] = useSpring(() => ({
     from: {opacity: isLoaded ? 1 : 0},
@@ -86,9 +80,9 @@ const KBWebViewBase = (props: WebViewProps) => {
               props.showLoadingStateUntilLoaded && loading && styles.absolute,
             ]),
           ]}
-          onLoadStart={() => isMounted.current && setLoading(true)}
-          onLoadEnd={() => isMounted.current && setLoading(false)}
-          onLoadProgress={({nativeEvent}) => isMounted.current && setProgress(nativeEvent.progress)}
+          onLoadStart={() => isMounted() && setLoading(true)}
+          onLoadEnd={() => isMounted() && setLoading(false)}
+          onLoadProgress={({nativeEvent}) => isMounted() && setProgress(nativeEvent.progress)}
           onError={
             onError ? (syntheticEvent: any) => onError(syntheticEvent.nativeEvent.description) : undefined
           }

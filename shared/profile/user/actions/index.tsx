@@ -1,12 +1,10 @@
-import * as Constants from '../../../constants/tracker2'
-import * as BotsGen from '../../../actions/bots-gen'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/tracker2'
+import type * as T from '@/constants/types'
 import FollowButton from './follow-button'
-import ChatButton from '../../../chat/chat-button'
+import ChatButton from '@/chat/chat-button'
 
 type Props = {
   followThem: boolean
@@ -23,11 +21,9 @@ type Props = {
   onInstallBot: () => void
   onOpenPrivateFolder: () => void
   onReload: () => void
-  onRequestLumens: () => void
-  onSendLumens: () => void
   onUnfollow: () => void
   onManageBlocking: () => void
-  state: Types.DetailsState
+  state: T.Tracker.DetailsState
   username: string
 }
 
@@ -38,8 +34,6 @@ type DropdownProps = Pick<
   | 'onOpenPrivateFolder'
   | 'onBrowsePublicFolder'
   | 'onInstallBot'
-  | 'onSendLumens'
-  | 'onRequestLumens'
   | 'onManageBlocking'
 > & {
   blockedOrHidFromFollowers: boolean
@@ -47,12 +41,12 @@ type DropdownProps = Pick<
 }
 
 const Actions = (p: Props) => {
-  const dispatch = Container.useDispatch()
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
   // load featured bots on first render
   React.useEffect(() => {
     // TODO likely don't do this all the time, just once
-    dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [dispatch])
+    getFeaturedBots()
+  }, [getFeaturedBots])
   if (p.blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
@@ -71,15 +65,13 @@ const Actions = (p: Props) => {
 
   const dropdown = (
     <DropdownButton
-      blockedOrHidFromFollowers={p.blocked || p.hidFromFollowers}
+      blockedOrHidFromFollowers={p.hidFromFollowers}
       key="dropdown"
       isBot={p.isBot}
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
       onBrowsePublicFolder={p.onBrowsePublicFolder}
       onInstallBot={p.onInstallBot}
-      onSendLumens={p.onSendLumens}
-      onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
       onManageBlocking={p.onManageBlocking}
     />
@@ -174,41 +166,57 @@ const Actions = (p: Props) => {
 }
 
 const DropdownButton = (p: DropdownProps) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      closeOnSelect={true}
-      attachTo={attachTo}
-      items={items}
-      onHidden={toggleShowingPopup}
-      position="bottom right"
-      visible={showingPopup}
-    />
-  ))
-  const items: Kb.MenuItems = [
-    p.isBot
-      ? {icon: 'iconfont-nav-2-robot', onClick: p.onInstallBot, title: 'Install bot in team or chat'}
-      : {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
-    {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    {
-      danger: true,
-      icon: 'iconfont-remove',
-      onClick: p.onManageBlocking,
-      title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+  const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
+  const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const items: Kb.MenuItems = [
+        isBot
+          ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
+          : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
+        {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
+        {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
+        onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
+        {
+          danger: true,
+          icon: 'iconfont-remove',
+          onClick: onManageBlocking,
+          title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+        },
+      ].reduce<Kb.MenuItems>((arr, i) => {
+        i && arr.push(i as Kb.MenuItem)
+        return arr
+      }, [])
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          attachTo={attachTo}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="bottom right"
+          visible={true}
+        />
+      )
     },
-  ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i as Kb.MenuItem)
-    return arr
-  }, [])
+    [
+      blockedOrHidFromFollowers,
+      isBot,
+      onAddToTeam,
+      onBrowsePublicFolder,
+      onInstallBot,
+      onManageBlocking,
+      onOpenPrivateFolder,
+      onUnfollow,
+    ]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}
@@ -216,8 +224,8 @@ const DropdownButton = (p: DropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
 }))
 

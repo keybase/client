@@ -1,11 +1,10 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {subtitle} from '../../util/platforms'
+import * as Kb from '@/common-adapters'
+import {subtitle} from '@/util/platforms'
 import Modal from '../modal'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import type * as T from '@/constants/types'
 
 type Props = {
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   isPending: boolean
   platformIconOverlayColor: string
   username: string
@@ -14,7 +13,7 @@ type Props = {
 
 const ConfirmOrPending = (props: Props) => {
   const message =
-    messageMap[props.platform] ||
+    messageMap.get(props.platform) ||
     (props.isPending
       ? 'Some proofs can take a few hours to recognize. Check back later.'
       : 'Leave your proof up so other users can identify you!')
@@ -61,18 +60,25 @@ const ConfirmOrPending = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  blue: {color: Styles.globalColors.blueDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  blue: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.blueDark},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   center: {alignSelf: 'center'},
-  grey: {color: Styles.globalColors.black_20},
+  grey: {color: Kb.Styles.globalColors.black_20},
 }))
 
-const messageMap: {[K in string]: string | null} = {
-  btc: 'Your Bitcoin address has now been signed onto your profile.',
-  dns: 'DNS proofs can take a few hours to recognize. Check back later.',
-  hackernews:
+const messageMap = new Map([
+  ['btc', 'Your Bitcoin address has now been signed onto your profile.'],
+  ['dns', 'DNS proofs can take a few hours to recognize. Check back later.'],
+  [
+    'hackernews',
     'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.',
-  zcash: 'Your Zcash address has now been signed onto your profile.',
-}
+  ],
+  ['zcash', 'Your Zcash address has now been signed onto your profile.'],
+])
 
 export default ConfirmOrPending

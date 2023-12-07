@@ -1,11 +1,12 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as C from '@/constants'
+import * as Styles from '@/styles'
 import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import logger from '../logger'
+import logger from '@/logger'
 import type {Props} from './drag-and-drop'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {isDirectory} = KB2.functions
 
@@ -16,38 +17,40 @@ type State = {
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
-  _onDrop = async e => {
-    if (!this._validDrag(e)) return
-    const fileList = e.dataTransfer.files
-    const paths: Array<string> = fileList.length
-      ? (Array.prototype.map.call(fileList, f => f.path) as any)
-      : []
-    if (paths.length) {
-      if (!this.props.allowFolders) {
-        for (const path of paths) {
-          // Check if any file is a directory and bail out if not
-          try {
-            const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
-            if (isDir) {
-              // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
-              this.setState({showDropOverlay: false})
-              return
+  _onDrop = (e: React.DragEvent) => {
+    const f = async () => {
+      if (!this._validDrag(e)) return
+      const fileList = e.dataTransfer.files
+      const paths: Array<string> = fileList.length
+        ? (Array.prototype.map.call(fileList, f => f.path) as any)
+        : []
+      if (paths.length) {
+        if (!this.props.allowFolders) {
+          for (const path of paths) {
+            // Check if any file is a directory and bail out if not
+            try {
+              const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
+              if (isDir) {
+                // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
+                this.setState({showDropOverlay: false})
+                return
+              }
+              // delegate to handler for any errors
+            } catch (error) {
+              logger.warn(`Error stating dropped attachment: ${String(error)}`)
             }
-            // delegate to handler for any errors
-          } catch (error_) {
-            const error = error_ as any
-            logger.warn(`Error stating dropped attachment: ${error.code}`)
           }
         }
+        this.props.onAttach && this.props.onAttach(paths)
       }
-      this.props.onAttach && this.props.onAttach(paths)
+      this.setState({showDropOverlay: false})
     }
-    this.setState({showDropOverlay: false})
+    C.ignorePromise(f())
   }
 
-  _validDrag = e => e.dataTransfer.types.includes('Files') && !this.props.disabled
+  _validDrag = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && !this.props.disabled
 
-  _onDragOver = e => {
+  _onDragOver = (e: React.DragEvent) => {
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
       this.setState({showDropOverlay: true})
@@ -122,7 +125,7 @@ const styles = Styles.styleSheetCreate(
         height: 48,
         width: 48,
       },
-    } as const)
+    }) as const
 )
 
 export default DragAndDrop

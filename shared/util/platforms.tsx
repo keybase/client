@@ -1,11 +1,11 @@
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type * as T from '@/constants/types'
+import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
-export function subtitle(platform: PlatformsExpandedType): string | null {
+export function subtitle(platform: T.More.PlatformsExpandedType): string {
   switch (platform) {
     case 'zcash':
     case 'btc':
-      return null
+      return ''
     case 'dns':
     case 'http':
     case 'https':
@@ -70,14 +70,14 @@ export function parseUserId(id: UserId): {
   const matches = /^\[([^[\]]+)\]@([^@[\]]+)$/.exec(id)
   if (matches) {
     return {
-      serviceId: serviceIdFromString(matches[2]),
-      username: matches[1],
+      serviceId: serviceIdFromString(matches[2] ?? ''),
+      username: matches[1] ?? '',
     }
   }
   const [username, maybeServiceId] = id.split('@')
-  const serviceId = serviceIdFromString(maybeServiceId)
+  const serviceId = serviceIdFromString(maybeServiceId ?? '')
   return {
     serviceId,
-    username,
+    username: username ?? '',
   }
 }

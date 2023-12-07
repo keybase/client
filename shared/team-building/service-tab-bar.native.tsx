@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/mobile.native'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {
@@ -15,7 +14,7 @@ import {
   Extrapolation,
   type SharedValue,
   createAnimatedComponent,
-} from '../common-adapters/reanimated'
+} from '@/common-adapters/reanimated'
 
 export const labelHeight = 34
 
@@ -33,9 +32,9 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
   return containerWidth / n
 }
 
-const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
+const smallWidth = serviceMinWidthWhenSmall(Kb.Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = createAnimatedComponent(Kb.Box2)
+const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
@@ -60,7 +59,7 @@ const TabletBottomBorderExtension = React.memo(
           style={[
             {
               borderBottomWidth: 1,
-              borderColor: Styles.globalColors.black_10,
+              borderColor: Kb.Styles.globalColors.black_10,
               bottom: 0,
               height: 2,
               position: 'absolute',
@@ -75,7 +74,7 @@ const TabletBottomBorderExtension = React.memo(
 
 const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   const {offset, isActive, service, label, onClick} = props
-  const color = isActive ? serviceIdToAccentColor(service) : Styles.globalColors.black
+  const color = isActive ? serviceIdToAccentColor(service) : Kb.Styles.globalColors.black
 
   const animatedWidth = useAnimatedStyle(() => {
     const width = offset
@@ -127,13 +126,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {label.map((label, i) => (
-                <Kb.Text
-                  key={i}
-                  center={true}
-                  type="BodyTiny"
-                  // @ts-ignore: we need to allow any color here for various services
-                  style={{color}}
-                >
+                <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
                   {label}
                 </Kb.Text>
               ))}
@@ -158,7 +151,7 @@ export const ServiceTabBar = (props: Props) => {
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
   const onClick = React.useCallback(
-    (service: ServiceIdWithContact) => {
+    (service: T.TB.ServiceIdWithContact) => {
       onChangeService(service)
     },
     [onChangeService]
@@ -197,7 +190,10 @@ export const ServiceTabBar = (props: Props) => {
       scrollEventThrottle={16}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={Styles.collapseStyles([{height: '100%'}, Styles.isTablet && {width: '100%'}])}
+      contentContainerStyle={Kb.Styles.collapseStyles([
+        {height: '100%'},
+        Kb.Styles.isTablet && {width: '100%'},
+      ])}
       style={[styles.scroll, animatedStyles]}
     >
       {services.map(service => (
@@ -210,18 +206,18 @@ export const ServiceTabBar = (props: Props) => {
           isActive={selectedService === service}
         />
       ))}
-      {Styles.isTablet ? (
+      {Kb.Styles.isTablet ? (
         <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
       ) : null}
     </AnimatedScrollView>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activeTabBar: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
         bottom: 0,
         height: 2,
         position: 'absolute',
@@ -233,16 +229,16 @@ const styles = Styles.styleSheetCreate(
         top: -2,
         zIndex: 1, // above the service icon
       },
-      badgeStyle: {backgroundColor: Styles.globalColors.blue},
+      badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
       inactiveTabBar: {
         borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
+        borderColor: Kb.Styles.globalColors.black_10,
         bottom: 0,
         height: 2,
         position: 'absolute',
       },
       labelContainer: {
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
         overflow: 'hidden',
       },
       pendingAnimation: {height: 17, width: 17},
@@ -254,15 +250,15 @@ const styles = Styles.styleSheetCreate(
       serviceIconContainer: {
         alignSelf: 'center',
         height: '100%',
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'relative',
       },
       tabBarContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         shadowOffset: {height: 3, width: 0},
         shadowRadius: 2,
       },
-    } as const)
+    }) as const
 )
 
 export default ServiceTabBar

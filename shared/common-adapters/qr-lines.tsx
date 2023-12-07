@@ -1,5 +1,5 @@
 import {Box} from './box'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const long = 22
 const small = 4
@@ -9,7 +9,7 @@ const BadLines = () => null
 
 // Note: duplicating the lines here vs a series of maps / permutations so its more readable
 const GoodLines = ({color}: {color: Styles.Color}) => {
-  const s = [styles.common, {backgroundColor: color}] as any
+  const s = [styles.common, {backgroundColor: color}]
   return (
     <>
       <Box style={Styles.collapseStyles([...s, {height: long, left: padding, top: padding, width: small}])} />

@@ -1,27 +1,30 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
-import DragHeader from '../desktop/remote/drag-header.desktop'
-import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import type {State, Device} from '../constants/types/unlock-folders'
+import type * as Constants from '@/constants/unlock-folders'
 
 export type Props = {
   darkMode: boolean
-  phase: State['phase']
-  devices: Array<Device>
+  phase: Constants.State['phase']
+  devices: C.ConfigStore['unlockFoldersDevices']
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void
   onContinueFromPaperKey: (paperkey: string) => void
-  paperkeyError?: string
+  paperkeyError: string
   waiting: boolean
   onFinish: () => void
 }
 
 const UnlockFolders = (props: Props) => {
-  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  const {darkMode} = props
+  React.useEffect(() => {
+    C.useDarkModeState.getState().dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+  }, [darkMode])
 
   let innerComponent: React.ReactNode
 
@@ -59,7 +62,7 @@ const UnlockFolders = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
@@ -72,7 +75,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default UnlockFolders

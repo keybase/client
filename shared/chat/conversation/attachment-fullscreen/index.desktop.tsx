@@ -1,8 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import type {Props} from '.'
+import {useData} from './hooks'
 
 type ArrowProps = {
   left: boolean
@@ -14,7 +15,7 @@ const Arrow = (props: ArrowProps) => {
   return (
     <Kb.Box
       className="hover_background_color_black background_color_black_50 fade-background-color"
-      onClick={(e: React.MouseEvent) => {
+      onClick={e => {
         e.stopPropagation()
         onClick()
       }}
@@ -30,15 +31,17 @@ const Arrow = (props: ArrowProps) => {
 }
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
-  const {path, title, message, progress, progressLabel} = p
-  const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
+  const data = useData(p.ordinal)
+  const {message, ordinal, path, title, progress} = data
+  const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
+  const {onDownloadAttachment, onShowInFinder, isVideo} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
-  const onZoomed = React.useCallback((zoomed: boolean) => {
+  const onIsZoomed = React.useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed)
   }, [])
 
-  const vidRef = React.useRef(null)
+  const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']
   const onHotKey = (cmd: string) => {
     cmd === 'left' && onPreviousAttachment()
@@ -47,8 +50,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const isDownloadError = !!message.transferErrMsg
 
   const {toggleShowingPopup, popup, popupAnchor} = useMessagePopup({
-    conversationIDKey: message.conversationIDKey,
-    ordinal: message.id,
+    ordinal,
   })
 
   return (
@@ -60,7 +62,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             {title}
           </Kb.Markdown>
           <Kb.Icon
-            ref={popupAnchor as any}
+            ref={popupAnchor}
             type="iconfont-ellipsis"
             style={Styles.platformStyles({
               common: {marginLeft: Styles.globalMargins.tiny},
@@ -94,7 +96,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                     <style>{showPlayButton}</style>
                   </video>
                 ) : (
-                  <Kb.ZoomableImage src={path} onZoomed={onZoomed} />
+                  <Kb.ZoomableImage src={path} onIsZoomed={onIsZoomed} />
                 )}
               </Kb.Box2>
               {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
@@ -224,7 +226,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-    } as const)
+    }) as const
 )
 
 const showPlayButton = `

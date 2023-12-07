@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   onBack: () => void
@@ -7,12 +6,12 @@ type Props = {
 }
 
 const StartNewChat = (props: Props) => {
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box style={styles.container}>
         <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} hoverColor="inital" />
-          <Kb.Text type="BodyBigLink" style={{margin: Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
           </Kb.Text>
         </Kb.ClickableBox>
@@ -26,58 +25,60 @@ const StartNewChat = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       backButton: {
         left: 0,
         position: 'absolute',
-        top: Styles.globalMargins.xxtiny,
+        top: Kb.Styles.globalMargins.xxtiny,
       },
-      button: Styles.platformStyles({
+      button: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
       buttonIcon: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       clickableBox: {
         alignItems: 'center',
         flexDirection: 'row',
       },
       container: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.isMobile ? Styles.globalColors.fastBlank : Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.isMobile
+          ? Kb.Styles.globalColors.fastBlank
+          : Kb.Styles.globalColors.blueGrey,
         justifyContent: 'center',
         minHeight: 48,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
         position: 'relative',
       },
-      iconCompose: Styles.platformStyles({
+      iconCompose: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.blueDark,
+          color: Kb.Styles.globalColors.blueDark,
         },
         isElectron: {
           fontSize: 16,
         },
         isMobile: {
           fontSize: 20,
-          padding: Styles.globalMargins.xtiny,
+          padding: Kb.Styles.globalMargins.xtiny,
         },
       }),
       rabbitEmoji: {
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
       },
       startNewChatText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
-    } as const)
+    }) as const
 )
 
 export default StartNewChat

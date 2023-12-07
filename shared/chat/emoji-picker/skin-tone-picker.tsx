@@ -1,19 +1,18 @@
 import * as React from 'react'
 import * as Kb from './../../common-adapters'
-import * as Styles from './../../styles'
-import * as Types from './../../constants/types/chat2'
+import * as T from './../../constants/types'
 import {useSpring, animated} from 'react-spring'
 import {skinTones} from './../../util/emoji'
 
-const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
+const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
     <Kb.Box style={{position: 'relative'}}>
       {outerCircle && <Kb.Box style={styles.circleOuter} />}
       <Kb.Box
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
           isExpanded && styles.circleExpanded,
-          {backgroundColor: Types.SkinToneToDotColor(skinTone)},
+          {backgroundColor: T.Chat.SkinToneToDotColor(skinTone)},
         ])}
       ></Kb.Box>
     </Kb.Box>
@@ -21,13 +20,13 @@ const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, 
 }
 
 type Props = {
-  currentSkinTone?: Types.EmojiSkinTone
+  currentSkinTone?: T.Chat.EmojiSkinTone
   onExpandChange?: (expanded: boolean) => void
-  setSkinTone: (skinTone: undefined | Types.EmojiSkinTone) => void
+  setSkinTone: (skinTone: undefined | T.Chat.EmojiSkinTone) => void
 }
 
 const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
-  if (Styles.isMobile || !currentSkinTone) return skinTones
+  if (Kb.Styles.isMobile || !currentSkinTone) return skinTones
   const idx = skinTones.indexOf(currentSkinTone)
   if (idx === -1) return skinTones
   const rest = [...skinTones]
@@ -52,7 +51,7 @@ const SkinTonePicker = (props: Props) => {
         setExpanded(false)
       }}
     >
-      {circle(skinTone, true, Styles.isMobile && skinTone === props.currentSkinTone)}
+      {circle(skinTone, true, Kb.Styles.isMobile && skinTone === props.currentSkinTone)}
     </Kb.ClickableBox>
   ))
 
@@ -62,7 +61,7 @@ const SkinTonePicker = (props: Props) => {
     to: {height: 126},
   })
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     expanded ? (
       <Kb.Box2
         direction="horizontal"
@@ -100,60 +99,60 @@ const SkinTonePicker = (props: Props) => {
 
 export default SkinTonePicker
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},
   circleCollapsed: {
-    borderRadius: Styles.globalMargins.small / 2,
-    height: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
+    borderRadius: Kb.Styles.globalMargins.small / 2,
+    height: Kb.Styles.globalMargins.small,
+    width: Kb.Styles.globalMargins.small,
   },
-  circleExpanded: Styles.platformStyles({
+  circleExpanded: Kb.Styles.platformStyles({
     isElectron: {
-      borderRadius: Styles.globalMargins.small / 2,
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
+      borderRadius: Kb.Styles.globalMargins.small / 2,
+      height: Kb.Styles.globalMargins.small,
+      width: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      borderRadius: (Styles.globalMargins.small + Styles.globalMargins.xtiny) / 2,
-      height: Styles.globalMargins.small + Styles.globalMargins.xtiny,
-      width: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+      borderRadius: (Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny) / 2,
+      height: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
+      width: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
     },
   }),
   circleOuter: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: (Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny) / 2,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderColor: Kb.Styles.globalColors.black_10,
+    borderRadius: (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2,
     borderStyle: 'solid',
     borderWidth: 1,
-    height: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+    height: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
     left: -5,
     position: 'absolute',
     top: -5,
-    width: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+    width: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
   },
   dotContainerDesktop: {
-    padding: Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
   },
   dotContainerExpanded: {
-    padding: Styles.globalMargins.xxtiny,
+    padding: Kb.Styles.globalMargins.xxtiny,
   },
   dotPlaceholder: {
-    height: Styles.globalMargins.small * 2,
-    width: Styles.globalMargins.small * 2,
+    height: Kb.Styles.globalMargins.small * 2,
+    width: Kb.Styles.globalMargins.small * 2,
   },
   optionSkinTonesContainerMobile: {
     justifyContent: 'space-between',
   },
   popupContainer: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.globalMargins.small,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderColor: Kb.Styles.globalColors.black_10,
+    borderRadius: Kb.Styles.globalMargins.small,
     borderStyle: 'solid',
     borderWidth: 1,
-    marginLeft: Styles.globalMargins.xtiny - 1,
-    marginTop: Styles.globalMargins.xtiny - 1,
+    marginLeft: Kb.Styles.globalMargins.xtiny - 1,
+    marginTop: Kb.Styles.globalMargins.xtiny - 1,
     overflow: 'hidden',
-    padding: Styles.globalMargins.xxtiny,
+    padding: Kb.Styles.globalMargins.xxtiny,
     position: 'absolute',
     zIndex: 1,
   },

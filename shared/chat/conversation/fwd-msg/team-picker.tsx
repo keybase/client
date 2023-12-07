@@ -1,35 +1,33 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
-import {Avatars, TeamAvatar} from '../../avatars'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as T from '@/constants/types'
+import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
-import logger from '../../../logger'
+import logger from '@/logger'
 
-type Props = Container.RouteProps<'chatForwardMsgPick'>
+type Props = {
+  ordinal: T.Chat.Ordinal
+}
 
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = props.route.params?.srcConvID ?? ''
-  const ordinal = props.route.params?.ordinal ?? 0
-  const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
+  const srcConvID = C.useChatContext(s => s.id)
+  const ordinal = props.ordinal
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
-  const dstConvIDRef = React.useRef<Buffer | undefined>()
-  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
+  const dstConvIDRef = React.useRef<Uint8Array | undefined>()
+  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
-  const submit = Container.useRPC(RPCChatTypes.localForwardMessageConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
-  const doSearch = React.useCallback(() => {
+  const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
+  const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
+  const [lastTerm, setLastTerm] = React.useState('init')
+  if (lastTerm !== term) {
+    setLastTerm(term)
     setWaiting(true)
     submit(
       [{term}],
@@ -43,10 +41,11 @@ const TeamPicker = (props: Props) => {
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-  }, [term, submit])
+  }
 
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
 
   const [title, setTitle] = React.useState('')
@@ -60,30 +59,34 @@ const TeamPicker = (props: Props) => {
   if (message?.type === 'attachment') {
     switch (message.attachmentType) {
       case 'image':
-        {
-          if (message.inlineVideoPlayable) {
-            const url = `${message.fileURL}&contentforce=true`
-            preview = url ? <Kb.Video autoPlay={false} allowFile={true} url={url} muted={true} /> : null
-          } else {
-            const src = message.fileURL ?? message.previewURL
-            preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
-          }
+        if (message.inlineVideoPlayable) {
+          const url = `${message.fileURL}&contentforce=true`
+          preview = url ? <Kb.Video autoPlay={false} allowFile={true} url={url} muted={true} /> : null
+        } else {
+          const src = message.fileURL || message.previewURL
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
         }
         break
+      default:
     }
   }
 
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()
     if (!dstConvIDRef.current || !message) return
+    previewConversation({
+      conversationIDKey: T.Chat.conversationIDToKey(dstConvIDRef.current),
+      reason: 'forward',
+    })
     fwdMsg(
       [
         {
           dstConvID: dstConvIDRef.current,
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           msgID: message.id,
-          srcConvID: Types.keyToConversationID(srcConvID),
+          srcConvID: T.Chat.keyToConversationID(srcConvID),
           title,
         },
       ],
@@ -96,16 +99,10 @@ const TeamPicker = (props: Props) => {
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-    dispatch(RouteTreeGen.createClearModals())
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
-        reason: 'forward',
-      })
-    )
+    clearModals()
   }
 
-  const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {
+  const onSelect = (dstConvID: T.RPCChat.ConversationID) => {
     if (!message) {
       setError('Something went wrong, please try again.')
       return
@@ -121,11 +118,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
-  React.useEffect(() => {
-    doSearch()
-  }, [doSearch])
-
-  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
+  const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
@@ -134,7 +127,7 @@ const TeamPicker = (props: Props) => {
               isHovered={false}
               isMuted={false}
               isSelected={false}
-              teamname={item.name.split('#')[0]}
+              teamname={item.name.split('#')[0] ?? ''}
             />
           ) : (
             <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
@@ -289,7 +282,7 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default TeamPicker

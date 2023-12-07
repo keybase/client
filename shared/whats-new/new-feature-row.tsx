@@ -1,7 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import type {IconType} from '../common-adapters/icon.constants-gen'
+import * as Kb from '@/common-adapters'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 type Props = {
   children?: React.ReactNode
@@ -13,7 +12,7 @@ type Props = {
   onPrimaryButtonClick?: () => void
   onSecondaryButtonClick?: () => void
   image?: IconType
-  imageStyle?: Styles.StylesCrossPlatform
+  imageStyle?: Kb.Styles.StylesCrossPlatform
   unwrapped?: boolean
 }
 
@@ -44,9 +43,9 @@ const NewFeature = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.rowContainer,
-        props.noSeparator ? {marginTop: 0} : {marginTop: Styles.globalMargins.tiny},
+        props.noSeparator ? {marginTop: 0} : {marginTop: Kb.Styles.globalMargins.tiny},
       ])}
     >
       {/* Badging */}
@@ -68,7 +67,7 @@ const NewFeature = (props: Props) => {
         )}
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.Icon type={props.image} style={Styles.collapseStyles([styles.image, props.imageStyle])} />
+            <Kb.Icon type={props.image} style={Kb.Styles.collapseStyles([styles.image, props.imageStyle])} />
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny">
@@ -80,35 +79,35 @@ const NewFeature = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badgeContainerStyle: {
-        color: Styles.globalColors.transparent,
+        color: Kb.Styles.globalColors.transparent,
       },
       badgeStyle: {
-        backgroundColor: Styles.globalColors.blue,
-        marginRight: Styles.globalMargins.xsmall,
+        backgroundColor: Kb.Styles.globalColors.blue,
+        marginRight: Kb.Styles.globalMargins.xsmall,
         marginTop: 13,
       },
       buttonRowContainer: {
-        ...Styles.globalStyles.flexWrap,
+        ...Kb.Styles.globalStyles.flexWrap,
         alignSelf: 'flex-start',
         justifyContent: 'space-between',
       },
       buttons: {
         // Apply margins to buttons so that when they wrap there is vertical space between them
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Kb.Styles.globalMargins.xsmall,
       },
-      contentContainer: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.rounded,
-          backgroundColor: Styles.globalColors.white,
+          ...Kb.Styles.globalStyles.rounded,
+          backgroundColor: Kb.Styles.globalColors.white,
           flexShrink: 1,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isTablet: {
           maxWidth: 460,
@@ -119,15 +118,15 @@ const styles = Styles.styleSheetCreate(
         maxHeight: 150,
         maxWidth: 300,
       },
-      imageContainer: Styles.platformStyles({
+      imageContainer: Kb.Styles.platformStyles({
         common: {
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       rowContainer: {
         alignSelf: 'flex-start',
       },
-    } as const)
+    }) as const
 )
 
 export default NewFeature

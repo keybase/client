@@ -1,9 +1,8 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as PhoneUtil from '../../util/phone-numbers'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as PhoneUtil from '@/util/phone-numbers'
 
 type Props = {
   address: string
@@ -16,9 +15,9 @@ type Props = {
 
 const getIcon = (props: Props) => {
   if (props.type === 'email') {
-    return Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
+    return Kb.Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
   }
-  return Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
+  return Kb.Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
 }
 const getPrompt = (props: Props) =>
   props.type === 'email' ? (
@@ -61,27 +60,32 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = Container.RouteProps<'settingsDeleteAddress'>
+type OwnProps = {
+  address: string
+  searchable: boolean
+  type: 'email' | 'phone'
+  lastEmail?: boolean
+}
 
 const DeleteModal = (props: OwnProps) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const {params} = props.route
-  const itemAddress = params?.address ?? ''
-  const itemType = params?.type ?? 'email'
-  const itemSearchable = params?.searchable ?? false
-  const lastEmail = params?.lastEmail ?? false
+  const itemAddress = props.address
+  const itemType = props.type
+  const itemSearchable = props.searchable
+  const lastEmail = props.lastEmail ?? false
 
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = React.useCallback(() => {
     if (itemType === 'phone') {
-      dispatch(SettingsGen.createEditPhone({delete: true, phone: itemAddress}))
+      editPhone(itemAddress, true)
     } else {
-      dispatch(SettingsGen.createEditEmail({delete: true, email: itemAddress}))
+      editEmail({delete: true, email: itemAddress})
     }
 
-    dispatch(nav.safeNavigateUpPayload())
-  }, [dispatch, itemAddress, itemType, nav])
+    nav.safeNavigateUp()
+  }, [editEmail, editPhone, itemAddress, itemType, nav])
 
   return (
     <ConfirmDeleteAddress

@@ -1,5 +1,4 @@
-import * as Container from '../../../util/container'
-import * as ProfileGen from '../../../actions/profile-gen'
+import * as C from '@/constants'
 import Friend from '.'
 
 type OwnProps = {
@@ -7,16 +6,18 @@ type OwnProps = {
   width: number
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    fullname: (state.users.infoMap.get(ownProps.username) || {fullname: ''}).fullname,
-    username: ownProps.username,
-  }),
-  dispatch => ({_onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))}),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    fullname: stateProps.fullname || '',
-    onClick: () => dispatchProps._onClick(stateProps.username),
-    username: stateProps.username,
+const Container = (ownProps: OwnProps) => {
+  const fullname = C.useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
+  const username = ownProps.username
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const _onClick = showUserProfile
+  const props = {
+    fullname: fullname || '',
+    onClick: () => _onClick(username),
+    username: username,
     width: ownProps.width,
-  })
-)(Friend)
+  }
+  return <Friend {...props} />
+}
+
+export default Container

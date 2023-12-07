@@ -1,36 +1,32 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {SignupScreen} from '../../signup/common'
-import {addTicker, removeTicker} from '../../util/second-timer'
-import * as Constants from '../../constants/autoreset'
-import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
+import * as Kb from '@/common-adapters'
+import {SignupScreen} from '@/signup/common'
+import {addTicker, removeTicker} from '@/util/second-timer'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
-type Props = Container.RouteProps<'resetWaiting'>
+type Props = {pipelineStarted: boolean}
+
+const formatTimeLeft = (endTime: number) => {
+  return formatDuration(endTime - Date.now())
+}
 
 const Waiting = (props: Props) => {
-  const pipelineStarted = props.route.params?.pipelineStarted ?? false
-  const endTime = Container.useSelector(state => state.autoreset.endTime)
+  const {pipelineStarted} = props
+  const endTime = C.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  // const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
-  const onClose = React.useCallback(
-    () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
-    [dispatch, nav]
-  )
-
+  const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
+  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
-    dispatch(AutoresetGen.createResetAccount({}))
-  }, [dispatch])
-  const _sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
+    resetAccount()
+  }, [resetAccount])
+  const _sendAgainWaiting = C.useAnyWaiting(C.enterPipelineWaitingKey)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaiting = Container.usePrevious(sendAgainWaiting)
   React.useEffect(() => {
@@ -44,12 +40,12 @@ const Waiting = (props: Props) => {
       return
     }
     function tick() {
-      const newFormattedTime = Constants.formatTimeLeft(endTime)
+      const newFormattedTime = formatTimeLeft(endTime)
       if (formattedTime !== newFormattedTime) {
         setFormattedTime(newFormattedTime)
       }
       if (endTime < Date.now()) {
-        dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword'], replace: true}))
+        nav.safeNavigateAppend('resetEnterPassword', true)
       }
     }
 
@@ -57,7 +53,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, dispatch, nav])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav])
 
   return (
     <SignupScreen
@@ -82,7 +78,7 @@ const Waiting = (props: Props) => {
       >
         <Kb.Icon
           type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
-          color={Styles.globalColors.black}
+          color={Kb.Styles.globalColors.black}
           fontSize={24}
         />
         <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
@@ -95,10 +91,6 @@ const Waiting = (props: Props) => {
                 The reset has been initiated. For security reasons, nothing will happen in the next{' '}
                 {formattedTime}. We will notify you once you can proceed with the reset.
               </Kb.Text>
-              {/* <Kb.Text type="Body">Unless you would like to</Kb.Text>
-              <Kb.Text type="BodyPrimaryLink" onClick={onCancelReset}>
-                cancel the reset.
-              </Kb.Text> */}
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -123,26 +115,21 @@ const Waiting = (props: Props) => {
   )
 }
 
-Waiting.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 export default Waiting
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   mainText: {
-    ...Styles.padding(0, Styles.globalMargins.xsmall),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
     maxWidth: 300,
   },
   positionRelative: {
     position: 'relative',
   },
   progressContainer: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.white_40OrBlack_60,
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.white_40OrBlack_60,
   },
-  topGap: Styles.platformStyles({
+  topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
       marginTop: '20%',

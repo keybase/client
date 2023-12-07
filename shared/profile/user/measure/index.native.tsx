@@ -1,18 +1,18 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters/mobile.native'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
+import {View} from 'react-native'
 
 class Measure extends React.Component<Props> {
-  _onLayout = e => {
+  _onLayout = (e: any) => {
     this.props.onMeasured(e.nativeEvent.layout.width)
   }
   render() {
-    return <Kb.NativeView style={styles.container} onLayout={this._onLayout} />
+    return <View style={styles.container} onLayout={this._onLayout} />
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {width: '100%'},
 }))
 

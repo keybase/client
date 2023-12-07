@@ -1,21 +1,22 @@
 import * as Electron from 'electron'
+import * as RemoteGen from '@/actions/remote-gen'
+import * as R from '@/constants/remote'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {ctlQuit} from './ctl.desktop'
-import {isDarwin} from '../../constants/platform'
-import logger from '../../logger'
+import {isDarwin} from '@/constants/platform'
+import logger from '@/logger'
 import zlib from 'zlib'
-import type {TypedActions} from '../../actions/typed-actions-gen'
-import * as FsGen from '../../actions/fs-gen'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
 const loadHasPrompted = () => {
   try {
     const data = fs.readFileSync(file, 'utf8')
-    return JSON.parse(data)?.promptedForCLI
+    const p = JSON.parse(data) as undefined | {promptedForCLI: unknown}
+    return !!p?.promptedForCLI
   } catch (error_) {
     const error = error_ as {code?: string} | undefined
     if (error?.code === 'ENOENT') {
@@ -54,12 +55,7 @@ type ResultType =
     }
   | undefined
 
-const checkErrors = (
-  dispatch: (action: TypedActions) => void,
-  result: ResultType,
-  errors: Array<string>,
-  errorTypes: ErrorTypes
-) => {
+const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: ErrorTypes) => {
   // Copied from old constants/favorite.js
   // See Installer.m: KBExitFuseKextError
   const ExitCodeFuseKextError = 4
@@ -96,7 +92,7 @@ const checkErrors = (
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
       logger.info('[Installer] fuse critical update, setting badge')
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
-      dispatch(FsGen.createSetCriticalUpdate({val: true}))
+      R.remoteDispatch(RemoteGen.createSetCriticalUpdate({critical: true}))
       return
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
       errorTypes.fuse = true
@@ -121,7 +117,7 @@ const checkErrors = (
 }
 
 type CB = (err: Error | null) => void
-const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) => {
+const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
   if (!keybaseBin) {
@@ -137,25 +133,23 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
 
   const logOutput = async (stdout: string, stderr: string) =>
     Promise.all([
-      new Promise((resolve, reject) =>
+      new Promise<Buffer>((resolve, reject) => {
         zlib.gzip(stdout, (error, res) => (error ? reject(error) : resolve(res)))
-      ),
-      new Promise((resolve, reject) =>
+      }),
+      new Promise<Buffer>((resolve, reject) => {
         zlib.gzip(stderr, (error, res) => (error ? reject(error) : resolve(res)))
-      ),
+      }),
     ])
       .then(([zStdout, zStderr]) =>
         logger.info(
           '[Installer]: got result from install-auto. To read, pipe the base64 strings to "| base64 -d | gzip -d".',
-          // @ts-ignore codemode issue
           `stdout=${zStdout.toString('base64')}`,
-          // @ts-ignore codemode issue
           `stderr=${zStderr.toString('base64')}`
         )
       )
       .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err: {code: number} | undefined, _, stdout: string, stderr: string) => {
+  const handleResults = (err: {code?: number} | null, _: unknown, stdout: string, stderr: string) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
     const errorTypes: ErrorTypes = {
@@ -169,7 +163,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       try {
         const result = JSON.parse(stdout) as ResultType
         if (result) {
-          checkErrors(dispatch, result, errors, errorTypes)
+          checkErrors(result, errors, errorTypes)
         } else {
           errors.push(`There was an error trying to run the install. No output.`)
         }
@@ -231,5 +225,5 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
   )
 }
 
-const install = isDarwin ? darwinInstall : (_: unknown, callback: CB) => callback(null) // nothing on other platforms
+const install = isDarwin ? darwinInstall : (callback: CB) => callback(null) // nothing on other platforms
 export default install

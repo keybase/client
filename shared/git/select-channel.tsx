@@ -1,39 +1,28 @@
-import * as Constants from '../constants/teams'
-import * as Container from '../util/container'
-import * as GitGen from '../actions/git-gen'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
+import type * as T from '@/constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
-type OwnProps = Container.RouteProps<'gitSelectChannel'>
+type OwnProps = {
+  teamID: T.Teams.TeamID
+  repoID: string
+  selected: string
+}
 
 const SelectChannel = (ownProps: OwnProps) => {
-  const {params} = ownProps.route
-  const teamID = params?.teamID ?? ''
-  const _selected = params?.selected ?? ''
-  const repoID = params?.repoID ?? ''
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
-
+  const {teamID, repoID} = ownProps
+  const _selected = ownProps.selected
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
-  const waiting = channelMetas === null
-  const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
-
+  const waiting = channelMetas.size === 0 // TODO fix this?
+  const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const onSubmit = (channelName: string) =>
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        channelName,
-        chatDisabled: false,
-        repoID: repoID,
-        teamname: teamname,
-      })
-    )
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
+  const onCancel = () => nav.safeNavigateUp()
 
   const submit = () => {
     onSubmit(selected)
@@ -68,24 +57,24 @@ const SelectChannel = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    width: Styles.isMobile ? '100%' : 300,
+    width: Kb.Styles.isMobile ? '100%' : 300,
   },
   innerContainer: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   radioButton: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginLeft: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    ...Styles.globalStyles.flexBoxRow,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  scrollContainer: {padding: Styles.globalMargins.small},
+  scrollContainer: {padding: Kb.Styles.globalMargins.small},
 }))
 
 export default SelectChannel

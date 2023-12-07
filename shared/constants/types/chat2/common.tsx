@@ -17,6 +17,8 @@ export const noConversationIDKey = stringToConversationIDKey('EMPTY')
 export const pendingWaitingConversationIDKey = stringToConversationIDKey('PENDING-WAITING')
 // We tried to create a conversation but it failed with an error
 export const pendingErrorConversationIDKey = stringToConversationIDKey('PENDING-ERROR')
+// used for providers where we may or may not have a convo id and that's ok
+export const dummyConversationIDKey = stringToConversationIDKey('DUMMY')
 
 export const isValidConversationIDKey = (id: ConversationIDKey): boolean =>
   !!id &&

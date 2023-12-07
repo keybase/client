@@ -1,54 +1,41 @@
-import type * as Types from '../../../constants/types/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigGen from '../../../actions/config-gen'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import CommandStatus from '.'
-
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
 
 const empty = {
   actions: [],
   displayText: '',
-  displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+  displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const info = state.chat2.commandStatusMap.get(ownProps.conversationIDKey)
-  return {
-    _info: info || empty,
+const Container = () => {
+  const info = C.useChatContext(s => s.commandStatus)
+  const _info = info || empty
+
+  const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const setCommandStatusInfo = C.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  const onCancel = () => {
+    setCommandStatusInfo()
   }
+  const props = {
+    actions: _info.actions.map((a: T.RPCChat.UICommandStatusActionTyp) => {
+      switch (a) {
+        case T.RPCChat.UICommandStatusActionTyp.appsettings:
+          return {
+            displayText: 'View App Settings',
+            onClick: () => onOpenAppSettings?.(),
+          }
+        default:
+          return {
+            displayText: '???',
+            onClick: () => {},
+          }
+      }
+    }),
+    displayText: _info.displayText,
+    displayType: _info.displayType,
+    onCancel,
+  }
+  return <CommandStatus {...props} />
 }
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  _onOpenAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
-  onCancel: () =>
-    dispatch(Chat2Gen.createClearCommandStatusInfo({conversationIDKey: ownProps.conversationIDKey})),
-})
-
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>
-) => ({
-  actions: (stateProps._info.actions || []).map((a: RPCChatTypes.UICommandStatusActionTyp) => {
-    switch (a) {
-      case RPCChatTypes.UICommandStatusActionTyp.appsettings:
-        return {
-          displayText: 'View App Settings',
-          onClick: dispatchProps._onOpenAppSettings,
-        }
-      default:
-        return {
-          displayText: '???',
-          onClick: () => {},
-        }
-    }
-  }),
-  displayText: stateProps._info.displayText,
-  displayType: stateProps._info.displayType,
-  onCancel: dispatchProps.onCancel,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(CommandStatus)
+export default Container

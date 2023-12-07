@@ -1,42 +1,27 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import * as C from '@/constants'
 import ResetUser from '.'
-import {connect} from '../../../../util/container'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
-
-export default connect(
-  (state, {conversationIDKey}: OwnProps) => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const _participants = participantInfo.all
-    const _resetParticipants = meta.resetParticipants
-    return {_conversationIDKey: conversationIDKey, _participants, _resetParticipants}
-  },
-  dispatch => ({
-    _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
-    _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
-    _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const {_resetParticipants, _participants, _conversationIDKey} = stateProps
-    const {_chatWithoutThem, _letThemIn, _viewProfile} = dispatchProps
-    const username = (_resetParticipants && [..._resetParticipants][0]) || ''
-    const nonResetUsers = new Set(_participants)
-    _resetParticipants.forEach(r => nonResetUsers.delete(r))
-    const allowChatWithoutThem = nonResetUsers.size > 1
-    return {
-      allowChatWithoutThem,
-      chatWithoutThem: () => _chatWithoutThem(_conversationIDKey),
-      letThemIn: () => _letThemIn(username, _conversationIDKey),
-      username,
-      viewProfile: () => _viewProfile(username),
-    }
+const Container = () => {
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const resetChatWithoutThem = C.useChatContext(s => s.dispatch.resetChatWithoutThem)
+  const resetLetThemIn = C.useChatContext(s => s.dispatch.resetLetThemIn)
+  const _participants = participantInfo.all
+  const _resetParticipants = meta.resetParticipants
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const _viewProfile = showUserProfile
+  const username = [..._resetParticipants][0] || ''
+  const nonResetUsers = new Set(_participants)
+  _resetParticipants.forEach(r => nonResetUsers.delete(r))
+  const allowChatWithoutThem = nonResetUsers.size > 1
+  const props = {
+    allowChatWithoutThem,
+    chatWithoutThem: resetChatWithoutThem,
+    letThemIn: () => resetLetThemIn(username),
+    username,
+    viewProfile: () => _viewProfile(username),
   }
-)(ResetUser)
+
+  return <ResetUser {...props} />
+}
+export default Container

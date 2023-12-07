@@ -1,19 +1,26 @@
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as C from '@/constants'
 import ProveWebsiteChoice from '.'
-import {connect} from '../../util/container'
 
-type OwnProps = {}
+const Container = () => {
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onCancel = () => {
+    cancelAddProof?.()
+    clearModals()
+  }
+  const onDNS = () => {
+    addProof('dns', 'profile')
+  }
+  const onFile = () => {
+    addProof('web', 'profile')
+  }
+  const props = {
+    onCancel,
+    onDNS,
+    onFile,
+  }
+  return <ProveWebsiteChoice {...props} />
+}
 
-export default connect(
-  () => ({}),
-  dispatch => ({
-    onCancel: () => {
-      dispatch(ProfileGen.createCancelAddProof())
-      dispatch(RouteTreeGen.createClearModals())
-    },
-    onDNS: () => dispatch(ProfileGen.createAddProof({platform: 'dns', reason: 'profile'})),
-    onFile: () => dispatch(ProfileGen.createAddProof({platform: 'web', reason: 'profile'})),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ProveWebsiteChoice)
+export default Container

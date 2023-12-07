@@ -1,62 +1,58 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
-import * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 
-type Props = Container.RouteProps<'teamEditTeamInfo'>
+type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-
+  const {teamID} = props
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
-  const _leafName = isSubteam ? teamname.substr(lastDot + 1) : teamname
-  const parentTeamNameWithDot = isSubteam ? teamname.substr(0, lastDot + 1) : undefined
+  const _leafName = isSubteam ? teamname.substring(lastDot + 1) : teamname
+  const parentTeamNameWithDot = isSubteam ? teamname.substring(0, lastDot + 1) : undefined
 
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [description, setDescription] = React.useState(teamDetails.description)
+  const [description, setDescription] = React.useState(teamDetails?.description ?? '')
 
   const saveDisabled =
-    (description === teamDetails.description && newName === _leafName) || newName.length < 3
-  const waiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey)
+    (description === teamDetails?.description && newName === _leafName) || newName.length < 3
+  const waiting = C.useAnyWaiting([C.Teams.teamWaitingKey(teamID), C.Teams.teamRenameWaitingKey])
 
   const errors = {
-    desc: Container.useSelector(state => state.teams.errorInEditDescription),
-    rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
+    desc: C.useTeamsState(s => s.errorInEditDescription),
+    rename: C.useAnyErrors(C.Teams.teamRenameWaitingKey)?.message,
   }
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
+  const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
+  const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {
-      dispatch(TeamsGen.createRenameTeam({newName: parentTeamNameWithDot + newName, oldName: teamname}))
+      renameTeam(teamname, parentTeamNameWithDot + newName)
     }
-    if (description !== teamDetails.description) {
-      dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
+    if (description !== teamDetails?.description) {
+      editTeamDescription(teamID, description)
     }
   }
   const onEditAvatar = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {sendChatNotification: true, showBack: true, teamID}, selected: 'profileEditAvatar'}],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {sendChatNotification: true, showBack: true, teamID},
+      selected: 'profileEditAvatar',
+    })
   return (
     <Kb.Modal
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
+        leftButton: Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
         title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
       }}
       footer={{
@@ -73,9 +69,9 @@ const TeamInfo = (props: Props) => {
       banners={
         <>
           {Object.keys(errors).map(k =>
-            errors[k] ? (
+            errors[k as keyof typeof errors] ? (
               <Kb.Banner color="red" key={k}>
-                {errors[k]}
+                {errors[k as keyof typeof errors] ?? ''}
               </Kb.Banner>
             ) : null
           )}
@@ -132,26 +128,26 @@ const TeamInfo = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   faded: {opacity: 0.5},
-  subteamNameInput: Styles.padding(Styles.globalMargins.tiny),
-  wordBreak: Styles.platformStyles({
+  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

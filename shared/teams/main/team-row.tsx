@@ -1,48 +1,46 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import type * as Types from '../../constants/types/teams'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {Activity} from '../common'
 
 type Props = {
   firstItem: boolean
   showChat?: boolean // default true
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
-  const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
   const activity = <Activity level={activityLevel} />
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
-  const {popup, popupAnchor, toggleShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <TeamMenu
-      teamID={teamID}
-      attachTo={getAttachmentRef}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
-
-  const badgeCount = Container.useSelector(s =>
-    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, s.teams.teamIDToResetUsers, teamID)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    },
+    [teamID]
   )
-  const isNew = Container.useSelector(s => s.teams.newTeams.has(teamID))
+  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+
+  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
+  const badgeCount = C.useTeamsState(s =>
+    C.Teams.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
+  )
+  const isNew = C.useTeamsState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'
@@ -55,7 +53,10 @@ const TeamRow = (props: Props) => {
       <Kb.Icon
         type={crownIconType}
         sizeType="Tiny"
-        style={Styles.collapseStyles([styles.crownIcon, teamMeta.role === 'admin' && styles.darkerAdminIcon])}
+        style={Kb.Styles.collapseStyles([
+          styles.crownIcon,
+          teamMeta.role === 'admin' && styles.darkerAdminIcon,
+        ])}
       />
     </Kb.Box2>
   ) : null
@@ -80,7 +81,7 @@ const TeamRow = (props: Props) => {
         }
         style={styles.white}
         innerStyle={styles.white}
-        height={Styles.isPhone ? 72 : undefined}
+        height={Kb.Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
             <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
@@ -97,7 +98,7 @@ const TeamRow = (props: Props) => {
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
-                      backgroundColor={Styles.globalColors.green}
+                      backgroundColor={Kb.Styles.globalColors.green}
                       style={styles.alignSelfCenter}
                     />
                   )}
@@ -106,7 +107,7 @@ const TeamRow = (props: Props) => {
                   {isNew && (
                     <Kb.Meta
                       title="new"
-                      backgroundColor={Styles.globalColors.orange}
+                      backgroundColor={Kb.Styles.globalColors.orange}
                       style={styles.alignSelfCenter}
                     />
                   )}
@@ -114,10 +115,10 @@ const TeamRow = (props: Props) => {
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>
-                {Styles.isPhone && activity}
+                {Kb.Styles.isPhone && activity}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && (
+            {!Kb.Styles.isPhone && (
               <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyRight}>
                 {activity}
               </Kb.Box2>
@@ -125,7 +126,7 @@ const TeamRow = (props: Props) => {
           </Kb.Box2>
         }
         action={
-          <Kb.Box2 direction="horizontal" gap={Styles.isPhone ? 'tiny' : 'xtiny'}>
+          <Kb.Box2 direction="horizontal" gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}>
             {showChat && (
               <Kb.Button
                 type="Dim"
@@ -154,16 +155,16 @@ const TeamRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
-  avatarContainer: Styles.platformStyles({
+  avatarContainer: Kb.Styles.platformStyles({
     common: {
-      marginTop: Styles.globalMargins.xxtiny,
+      marginTop: Kb.Styles.globalMargins.xxtiny,
       position: 'relative',
     },
-    isPhone: {marginTop: Styles.globalMargins.small},
+    isPhone: {marginTop: Kb.Styles.globalMargins.small},
   }),
   badge: {
     position: 'absolute',
@@ -171,21 +172,21 @@ const styles = Styles.styleSheetCreate(() => ({
     top: -5,
   },
   bodyContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
   bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
     flex: 0.7,
   },
-  crownIcon: Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
-  crownIconBox: Styles.platformStyles({
+  crownIcon: Kb.Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
+  crownIconBox: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: 100,
       height: 17,
       position: 'absolute',
@@ -194,11 +195,11 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {bottom: -5, right: -5},
     isMobile: {bottom: 4, right: -5},
   }),
-  darkerAdminIcon: {color: Styles.globalColors.greyDark},
+  darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
   openMeta: {
     alignSelf: 'center',
   },
-  white: {backgroundColor: Styles.globalColors.white},
+  white: {backgroundColor: Kb.Styles.globalColors.white},
 }))
 
 export default TeamRow

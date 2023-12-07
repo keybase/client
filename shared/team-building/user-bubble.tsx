@@ -1,16 +1,15 @@
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
-import {e164ToDisplay} from '../util/phone-numbers'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 export type Props = {
   username: string
-  service: ServiceIdWithContact
+  service: T.TB.ServiceIdWithContact
   tooltip: string
   onRemove: () => void
 }
 
-const removeSize = Styles.isMobile ? 22 : 16
+const removeSize = Kb.Styles.isMobile ? 22 : 16
 
 const UserBubble = (props: Props) => {
   const isKeybase = props.service === 'keybase'
@@ -54,50 +53,50 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
   <Kb.ClickableBox onClick={onRemove}>
     <Kb.Icon
       type="iconfont-close"
-      color={Styles.globalColors.black_50_on_white}
-      fontSize={Styles.isMobile ? 14 : 12}
+      color={Kb.Styles.globalColors.black_50_on_white}
+      fontSize={Kb.Styles.isMobile ? 14 : 12}
       style={styles.removeIcon}
       className="hover_color_black"
     />
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      bubble: Styles.platformStyles({
+      bubble: Kb.Styles.platformStyles({
         common: {
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           flexShrink: 1,
         },
       }),
-      bubbleContainer: Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
-      container: Styles.platformStyles({
+      bubbleContainer: Kb.Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
+      container: Kb.Styles.platformStyles({
         common: {
-          marginBottom: Styles.globalMargins.xtiny,
-          marginLeft: Styles.globalMargins.tiny,
-          marginTop: Styles.globalMargins.xtiny,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.xtiny,
         },
       }),
-      generalService: Styles.platformStyles({
+      generalService: Kb.Styles.platformStyles({
         isElectron: {
           lineHeight: '35px',
         },
       }),
       // TODO: the service icons are too high without this - are they right?
-      iconBox: Styles.platformStyles({
+      iconBox: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: -3,
           marginTop: 3,
         },
       }),
-      remove: Styles.platformStyles({
+      remove: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 100,
           height: removeSize,
           justifyContent: 'center',
@@ -107,7 +106,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           cursor: 'pointer',
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
           right: -4,
         },
         isMobile: {
@@ -118,8 +117,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      userBubbleTitle: {color: Styles.globalColors.black},
-    } as const)
+      userBubbleTitle: {color: Kb.Styles.globalColors.black},
+    }) as const
 )
 
 export default UserBubble

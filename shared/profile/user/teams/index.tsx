@@ -1,45 +1,96 @@
-import * as Kb from '../../../common-adapters'
-import type * as Types from '../../../constants/types/tracker2'
-import * as Styles from '../../../styles'
-import type {TeamID} from '../../../constants/types/teams'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import OpenMeta from './openmeta'
-import TeamInfo from './teaminfo'
+import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 
-export type Props = {
-  // lint totally confused
-  teamShowcase: ReadonlyArray<Types.TeamShowcase>
-  teamMeta: {
-    [K in string]: {
-      inTeam: boolean
-      teamID: TeamID
-    }
+type OwnProps = {username: string}
+
+const noTeams = new Array<T.Tracker.TeamShowcase>()
+
+const Container = (ownProps: OwnProps) => {
+  const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))
+  const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
+  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
+  const _teamNameToID = C.useTeamsState(s => s.teamNameToID)
+  const _youAreInTeams = C.useTeamsState(s => s.teamnames.size > 0)
+  const teamShowcase = d.teamShowcase || noTeams
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onEdit = () => {
+    navigateAppend('profileShowcaseTeamOffer')
   }
-  onJoinTeam: (teamname: string) => void
-  onViewTeam: (teamname: string) => void
-  onEdit?: () => void
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const onJoinTeam = joinTeam
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onViewTeam = (teamname: string) => {
+    clearModals()
+    showTeamByName(teamname)
+  }
+  const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined
+  const teamMeta = teamShowcase.reduce<{
+    [key: string]: {
+      inTeam: boolean
+      teamID: T.Teams.TeamID
+    }
+  }>((map, t) => {
+    const teamID = _teamNameToID.get(t.name) || T.Teams.noTeamID
+    map[t.name] = {
+      inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
+      teamID,
+    }
+    return map
+  }, {})
+
+  return onEdit || teamShowcase.length > 0 ? (
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
+        {!!onEdit && <Kb.Icon type="iconfont-edit" onClick={onEdit} />}
+      </Kb.Box2>
+      {!!onEdit && !teamShowcase.length && <ShowcaseTeamsOffer onEdit={onEdit} />}
+      {teamShowcase.map(t => (
+        <TeamShowcase
+          key={t.name}
+          {...t}
+          onJoinTeam={onJoinTeam}
+          onViewTeam={() => onViewTeam(t.name)}
+          inTeam={teamMeta[t.name]?.inTeam ?? false}
+        />
+      ))}
+    </Kb.Box2>
+  ) : null
 }
 
-const TeamShowcase = p => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <TeamInfo {...p} attachTo={attachTo} onHidden={toggleShowingPopup} visible={showingPopup} />
-  ))
+const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
+  const {name, isOpen} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamInfo {...props} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    },
+    [props]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.ClickableBox ref={popupAnchor} onClick={toggleShowingPopup}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
         <>
           {popup}
-          <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
         </>
         <Kb.Text type="BodySemiboldLink" style={styles.link}>
-          {p.name}
+          {name}
         </Kb.Text>
-        <OpenMeta isOpen={p.isOpen} />
+        <OpenMeta isOpen={isOpen} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
-const ShowcaseTeamsOffer = p => (
+const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
@@ -52,43 +103,23 @@ const ShowcaseTeamsOffer = p => (
   </Kb.Box2>
 )
 
-const Teams = (p: Props) =>
-  p.onEdit || p.teamShowcase.length > 0 ? (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-        {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
-      </Kb.Box2>
-      {!!p.onEdit && !p.teamShowcase.length && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
-      {p.teamShowcase.map(t => (
-        <TeamShowcase
-          key={t.name}
-          {...t}
-          onJoinTeam={p.onJoinTeam}
-          onViewTeam={() => p.onViewTeam(t.name)}
-          inTeam={p.teamMeta[t.name].inTeam}
-        />
-      ))}
-    </Kb.Box2>
-  ) : null
-
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      link: {color: Styles.globalColors.black},
-      placeholderTeam: {borderRadius: Styles.borderRadius},
+      link: {color: Kb.Styles.globalColors.black},
+      placeholderTeam: {borderRadius: Kb.Styles.borderRadius},
       showcase: {alignItems: 'center'},
       showcases: {
         alignItems: 'flex-start',
         flexShrink: 0,
-        paddingBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       youFeatureTeam: {
         alignSelf: 'center',
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
       },
-    } as const)
+    }) as const
 )
 
-export default Teams
+export default Container

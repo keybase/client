@@ -1,30 +1,28 @@
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as FsGen from '../../actions/fs-gen'
-import * as Styles from '../../styles'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
-const styles = Styles.styleSheetCreate(() => ({headerIcon: {padding: Styles.globalMargins.tiny}} as const))
+const styles = Kb.Styles.styleSheetCreate(
+  () => ({headerIcon: {padding: Kb.Styles.globalMargins.tiny}}) as const
+)
 
 const NewFolder = (op: OwnProps) => {
   const {path} = op
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const canCreateNewFolder = pathItem.type === Types.PathType.Folder && pathItem.writable
-  const dispatch = Container.useDispatch()
-  const onNewFolder = React.useCallback(
-    () => dispatch(FsGen.createNewFolderRow({parentPath: path})),
-    [dispatch, path]
-  )
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const canCreateNewFolder = pathItem.type === T.FS.PathType.Folder && pathItem.writable
+  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
+  const onNewFolder = React.useCallback(() => {
+    newFolderRow(path)
+  }, [newFolderRow, path])
   return (
     canCreateNewFolder && (
       <Kb.WithTooltip tooltip="New Folder">
         <Kb.Icon
           type="iconfont-folder-new"
-          color={Styles.globalColors.black_50}
+          color={Kb.Styles.globalColors.black_50}
           fontSize={16}
           onClick={onNewFolder}
           style={styles.headerIcon}

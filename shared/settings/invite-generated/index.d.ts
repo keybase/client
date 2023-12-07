@@ -1,10 +1,9 @@
-import {Component} from 'react'
-
+import type * as React from 'react'
 export type Props = {
-  email: string | null
+  email?: string
   link: string
   onClose: () => void
 }
-
-export default class InviteGenerated extends Component<Props> {}
-export class InviteGeneratedRender extends Component<Props> {}
+export declare const InviteGeneratedRender: (p: Props) => React.ReactNode
+declare const InviteGenerated: (p: Props) => React.ReactNode
+export default InviteGenerated

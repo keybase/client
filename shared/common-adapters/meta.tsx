@@ -2,7 +2,7 @@ import {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
 import type {IconType} from './icon.constants-gen'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 type Props = {
   title: string | number

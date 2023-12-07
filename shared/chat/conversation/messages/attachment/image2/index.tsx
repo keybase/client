@@ -1,6 +1,5 @@
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
 import ImageImpl from './imageimpl'
 import {
   ShowToastAfterSaving,
@@ -23,7 +22,7 @@ const Image2 = React.memo(function Image2(p: Props) {
   const collapseIcon = useCollapseIcon(false)
 
   const filename = React.useMemo(() => {
-    return Styles.isMobile || !fileName ? null : (
+    return Kb.Styles.isMobile || !fileName ? null : (
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{fileName}</Kb.Text>
         {collapseIcon}
@@ -64,15 +63,15 @@ const Image2 = React.memo(function Image2(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => {
+const styles = Kb.Styles.styleSheetCreate(() => {
   return {
     container: {
       alignSelf: 'center',
     },
     contentContainer: {
-      backgroundColor: Styles.globalColors.black_05_on_white,
-      borderRadius: Styles.borderRadius,
-      maxWidth: Styles.isMobile ? '100%' : 330,
+      backgroundColor: Kb.Styles.globalColors.black_05_on_white,
+      borderRadius: Kb.Styles.borderRadius,
+      maxWidth: Kb.Styles.isMobile ? '100%' : 330,
       padding: 3,
       position: 'relative',
     },

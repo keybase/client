@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
-import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as T from '@/constants/types'
 import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
@@ -19,7 +18,7 @@ type Props = {
   showBadge: boolean
   showBold: boolean
   snippet?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
+  snippetDecoration: T.RPCChat.SnippetDecoration
   teamname: string
   usernameColor: string
 }
@@ -54,12 +53,16 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           fullHeight={true}
-          className={Styles.classNames('hover_background_color_blueGreyDark', {
+          className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
             background_color_blue: props.isSelected,
           })}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.rowContainer,
-            {backgroundColor: this.props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+            {
+              backgroundColor: this.props.isSelected
+                ? Kb.Styles.globalColors.blue
+                : Kb.Styles.globalColors.white,
+            },
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
@@ -82,7 +85,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               participantTwo={props.participants[1]}
             />
           )}
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
             <FilteredTopLine
               isSelected={props.isSelected}
               numSearchHits={props.numSearchHits}
@@ -93,7 +96,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
             />
             {!props.numSearchHits && (
               <SnippetContext.Provider value={props.snippet ?? ''}>
-                <BottomLine isDecryptingSnippet={false} isSelected={props.isSelected} />
+                <BottomLine isSelected={props.isSelected} />
               </SnippetContext.Provider>
             )}
           </Kb.Box2>
@@ -104,29 +107,29 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-export const rowHeight = Styles.isMobile ? 64 : 56
+export const rowHeight = Kb.Styles.isMobile ? 64 : 56
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {
-    backgroundColor: Styles.globalColors.orange,
+    backgroundColor: Kb.Styles.globalColors.orange,
     borderRadius: 6,
     flexShrink: 0,
-    height: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.tiny,
+    height: Kb.Styles.globalMargins.tiny,
+    width: Kb.Styles.globalMargins.tiny,
   },
   container: {
     flexShrink: 0,
     height: rowHeight,
   },
-  rowContainer: Styles.platformStyles({
+  rowContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.clickable,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
+      ...Kb.Styles.desktopStyles.clickable,
+      paddingLeft: Kb.Styles.globalMargins.xsmall,
+      paddingRight: Kb.Styles.globalMargins.xsmall,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
   spinner: {

@@ -1,40 +1,38 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps<'teamEditTeamDescription'>
+type Props = {teamID: T.Teams.TeamID}
 
 const EditTeamDescription = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const teamID = props.teamID
 
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID))
-  const waitingKey = Constants.teamWaitingKey(teamID)
-  const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.errorInEditDescription)
-  const origDescription = Container.useSelector(state => Constants.getTeamDetails(state, teamID).description)
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID))
+  const waitingKey = C.teamWaitingKey(teamID)
+  const waiting = C.useAnyWaiting(waitingKey)
+  const error = C.useTeamsState(s => s.errorInEditDescription)
+  const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
-  if (teamID === Types.noTeamID || teamname === null) {
+  if (teamID === T.Teams.noTeamID || teamname === undefined) {
     throw new Error(
       `There was a problem loading the description page, please report this error (teamID: ${teamID}, teamname: ${teamname}).`
     )
   }
 
   const [description, setDescription] = React.useState(origDescription)
+  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onSave = () => dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onSave = () => editTeamDescription(teamID, description)
+  const onClose = () => nav.safeNavigateUp()
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
-  }, [waiting, wasWaiting, nav, dispatch, error])
+    if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
+  }, [waiting, wasWaiting, nav, error])
 
   return (
     <Kb.Modal
@@ -79,16 +77,16 @@ const EditTeamDescription = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
   },
-  headerIcon: Styles.padding(Styles.globalMargins.tiny, 0, 0),
+  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
   title: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

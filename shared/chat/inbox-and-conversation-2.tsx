@@ -1,108 +1,75 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as Constants from '../constants/chat2'
-import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Common from '../router-v2/common'
-import Header from './header'
+import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
-import InboxSearch from './inbox-search/container'
-import InfoPanel from './conversation/info-panel/container'
+import InboxSearch from './inbox-search'
+import InfoPanel from './conversation/info-panel'
 
-type Props = Container.RouteProps<'chatRoot'>
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
-const InboxAndConversation = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
-  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
-  const needSelectConvoID = Container.useSelector(state => {
-    if (validConvoID) {
+const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
+  const conversationIDKey = props?.conversationIDKey ?? C.noConversationIDKey
+  const navKey = props?.navKey ?? ''
+  const inboxSearch = C.useChatState(s => s.inboxSearch)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
+  const validConvoID = conversationIDKey && conversationIDKey !== C.noConversationIDKey
+  const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
+  const selectNextConvo = C.useChatState(s => {
+    if (seenValidCIDRef.current) {
       return null
     }
-    const first = state.chat2.inboxLayout?.smallTeams?.[0]
+    const first = s.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey: string = props.route.key
 
-  // only on initial mount, auto select a convo if nothing comes in, including pending
-  React.useEffect(() => {
-    if (needSelectConvoID) {
-      // hack to select the convo after we render, TODO move this elsewhere maybe
-      setTimeout(() => {
-        dispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: needSelectConvoID,
-            reason: 'findNewestConversationFromLayout',
-          })
-        )
-      }, 1)
-    }
-    // we only want to run this oncer per mount ever
-    // eslint-disable-next-line
-  }, [])
+  if (selectNextConvo) {
+    seenValidCIDRef.current = selectNextConvo
+    // need to defer render navs outside of render
+    setTimeout(() => {
+      C.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+    }, 1)
+  }
 
   return (
-    <Kb.KeyboardAvoidingView2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
-        {!Container.isTablet && inboxSearch ? (
-          <InboxSearch />
-        ) : (
-          <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
-        )}
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
-          <Conversation navigation={props.navigation} route={props.route as any} />
-        </Kb.Box2>
-        {infoPanelShowing ? (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <InfoPanel conversationIDKey={conversationIDKey} />
+    <C.ChatProvider id={conversationIDKey} canBeNull={true}>
+      <Kb.KeyboardAvoidingView2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
+          {!C.isTablet && inboxSearch ? (
+            <InboxSearch />
+          ) : (
+            <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
+          )}
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
+            <Conversation />
           </Kb.Box2>
-        ) : null}
-      </Kb.Box2>
-    </Kb.KeyboardAvoidingView2>
+          {infoPanelShowing ? (
+            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+              <InfoPanel />
+            </Kb.Box2>
+          ) : null}
+        </Kb.Box2>
+      </Kb.KeyboardAvoidingView2>
+    </C.ChatProvider>
   )
-}
+})
 
-export const getOptions = ({navigation, route}) => {
-  if (Styles.isTablet) {
-    return {
-      headerLeft: null,
-      headerLeftContainerStyle: {maxWidth: 0},
-      headerRight: null,
-      headerRightContainerStyle: {maxWidth: 0},
-      headerStyle: {},
-      headerTitle: () => (
-        <Common.TabletWrapper>
-          <Header navigation={navigation} route={route} />
-        </Common.TabletWrapper>
-      ),
-      headerTitleContainerStyle: {},
-    }
-  } else {
-    return {headerTitle: () => <Header navigation={navigation} route={route} />}
-  }
-}
-
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {position: 'relative'},
       conversation: {flexGrow: 1},
       infoPanel: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         position: 'absolute',
         right: 0,
         top: 0,
         width: 320,
       },
-    } as const)
+    }) as const
 )
 
-const Memoed = React.memo(InboxAndConversation)
-Container.hoistNonReactStatic(Memoed, InboxAndConversation)
-export default Memoed
+export default InboxAndConversation

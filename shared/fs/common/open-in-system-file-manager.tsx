@@ -1,39 +1,35 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
-import * as FsGen from '../../actions/fs-gen'
-import {fileUIName} from '../../constants/platform'
-import * as Container from '../../util/container'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
-type Props = {
-  path: Types.Path
-}
+type Props = {path: T.FS.Path}
 
 const OpenInSystemFileManager = ({path}: Props) => {
-  const dispatch = Container.useDispatch()
-  const openInSystemFileManager = () => dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+  const openPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
+  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
   return (
-    <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
+    <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
       <Kb.Icon
         type="iconfont-finder"
         padding="tiny"
         onClick={openInSystemFileManager}
-        color={Styles.globalColors.black_50}
-        hoverColor={Styles.globalColors.black}
+        color={Kb.Styles.globalColors.black_50}
+        hoverColor={Kb.Styles.globalColors.black}
       />
     </Kb.WithTooltip>
   )
 }
 
 const OpenInSFM = (props: Props) => {
-  const shouldHideFileManagerIcon = Container.useSelector(
-    state =>
-      state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
-      state.fs.settings.sfmiBannerDismissed
+  const sfmiBannerDismissed = C.useFSState(s => s.settings.sfmiBannerDismissed)
+  const shouldHideFileManagerIcon = C.useFSState(
+    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed
   )
-  const showOpenInSystemFileManager = Container.useSelector(
-    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+  const showOpenInSystemFileManager = C.useFSState(
+    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
   )
 
   if (shouldHideFileManagerIcon) return null

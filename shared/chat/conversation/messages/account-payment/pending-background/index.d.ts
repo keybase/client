@@ -1,9 +1,10 @@
-import * as React from 'react'
-import * as Styles from '../../../../../styles'
+import type * as React from 'react'
+import type * as Kb from '@/common-adapters'
 
 export type Props = {
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
   children: React.ReactNode
 }
 
-export default class PendingPaymentBackground extends React.Component<Props> {}
+declare const PendingPaymentBackground: (p: Props) => React.ReactNode
+export default PendingPaymentBackground

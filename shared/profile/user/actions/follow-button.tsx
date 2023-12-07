@@ -1,6 +1,11 @@
 import * as React from 'react'
-import WaitingButton from '../../../common-adapters/waiting-button'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
+import WaitingButton from '@/common-adapters/waiting-button'
+
+const Kb = {
+  Styles,
+  WaitingButton,
+}
 
 type Props = {
   disabled?: boolean
@@ -19,13 +24,13 @@ const FollowButton = (props: Props) => {
 
   if (following) {
     return (
-      <WaitingButton
+      <Kb.WaitingButton
         type="Success"
         mode="Secondary"
         label={mouseOver ? 'Unfollow' : 'Following'}
         onClick={onUnfollow}
-        onMouseEnter={Styles.isMobile ? undefined : () => setMouseover(true)}
-        onMouseLeave={Styles.isMobile ? undefined : () => setMouseover(false)}
+        onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
+        onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
         waitingKey={waitingKey}
         style={props.small ? style : {...styleButton, ...style}}
         {...otherProps}
@@ -33,7 +38,7 @@ const FollowButton = (props: Props) => {
     )
   } else {
     return (
-      <WaitingButton
+      <Kb.WaitingButton
         type="Success"
         label={followsYou ? 'Follow back' : 'Follow'}
         onClick={onFollow}
@@ -45,7 +50,7 @@ const FollowButton = (props: Props) => {
   }
 }
 
-const styleButton = Styles.platformStyles({
+const styleButton = Kb.Styles.platformStyles({
   isElectron: {width: 125},
 })
 

@@ -1,11 +1,8 @@
-import type IncomingShareChat from '.'
+import type * as C from '@/constants'
+import incomingShareNew from './page'
 
 export const newModalRoutes = {
-  incomingShareNew: {
-    getScreen: (): typeof IncomingShareChat => require('.').default,
-  },
+  incomingShareNew,
 }
 
-export type RootParamListIncomingShare = {
-  incomingShareNew: undefined
-}
+export type RootParamListIncomingShare = C.PagesToParams<typeof newModalRoutes>

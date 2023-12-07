@@ -1,18 +1,15 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '@/constants/types'
 import {YouAdded, OthersAdded} from '.'
 
-type OwnProps = {message: Types.MessageSystemUsersAddedToConversation}
+type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
   const {message} = p
   const {usernames, author, timestamp} = message
-  const channelname = Container.useSelector(
-    state => Constants.getMeta(state, message.conversationIDKey).channelname
-  )
-  const you = Container.useSelector(state => state.config.username)
+  const channelname = C.useChatContext(s => s.meta.channelname)
+  const you = C.useCurrentUserState(s => s.username)
 
   const props = {
     author,

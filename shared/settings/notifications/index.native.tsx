@@ -1,13 +1,11 @@
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters/mobile.native'
-import * as PushGen from '../../actions/push-gen'
-import * as Styles from '../../styles'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import Notifications from './render'
 import type {Props} from '.'
 
 const MobileNotifications = (props: Props) => {
   return (
-    <Kb.ScrollView style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+    <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
       <TurnOnNotifications />
       <Notifications {...props} />
     </Kb.ScrollView>
@@ -15,15 +13,15 @@ const MobileNotifications = (props: Props) => {
 }
 
 const TurnOnNotifications = () => {
-  const dispatch = Container.useDispatch()
-  const mobileHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
+  const requestPermissions = C.usePushState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
-  const onEnable = () => dispatch(PushGen.createRequestPermissions())
+  const onEnable = requestPermissions
   return (
     <Kb.Box
       style={{
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.red,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Kb.Styles.globalColors.red,
         height: 330,
         overflow: 'hidden',
         position: 'relative',
@@ -31,7 +29,13 @@ const TurnOnNotifications = () => {
       }}
     >
       <Kb.Box
-        style={{height: 270, left: Styles.globalMargins.medium, position: 'absolute', top: -20, width: 250}}
+        style={{
+          height: 270,
+          left: Kb.Styles.globalMargins.medium,
+          position: 'absolute',
+          top: -20,
+          width: 250,
+        }}
       >
         <Kb.Icon type="illustration-turn-on-notifications" />
       </Kb.Box>
@@ -40,10 +44,10 @@ const TurnOnNotifications = () => {
         center={true}
         negative={true}
         style={{
-          bottom: Styles.globalMargins.medium,
-          left: Styles.globalMargins.small,
+          bottom: Kb.Styles.globalMargins.medium,
+          left: Kb.Styles.globalMargins.small,
           position: 'absolute',
-          right: Styles.globalMargins.small,
+          right: Kb.Styles.globalMargins.small,
         }}
       >
         You turned off native notifications for Keybase. It’s{' '}

@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 
 // A list so the order of the elements is fixed
-const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
+const proxyTypeList = ['noProxy', 'httpConnect', 'socks'] as const
 const proxyTypeToDisplayName = {
   httpConnect: 'HTTP(s) Connect',
   noProxy: 'No proxy',
@@ -14,25 +13,25 @@ const proxyTypeToDisplayName = {
 type State = {
   address: string
   port: string
-  proxyType: string
+  proxyType: 'noProxy' | 'httpConnect' | 'socks'
 }
 
 type Props = {
-  _loadProxyData: () => void
-  _resetCertPinningToggle: () => void
+  loadProxyData: () => void
+  resetCertPinningToggle: () => void
   allowTlsMitmToggle?: boolean
   onBack: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
-  proxyData?: RPCTypes.ProxyData
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => void
+  proxyData?: T.RPCGen.ProxyData
+  saveProxyData: (proxyData: T.RPCGen.ProxyData) => void
 }
 
 class ProxySettings extends React.Component<Props, State> {
-  state = {
+  state: State = {
     address: '',
     port: '',
-    proxyType: 'noProxy',
+    proxyType: 'noProxy' as const,
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -41,24 +40,23 @@ class ProxySettings extends React.Component<Props, State> {
         return
       }
       const addressPort = this.props.proxyData.addressWithPort.split(':')
-      if (!addressPort) return
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
       let port = '8080'
       if (addressPort.length >= 2) {
-        port = addressPort[addressPort.length - 1]
+        port = addressPort.at(-1) ?? ''
       }
 
-      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
+      const proxyType = T.RPCGen.ProxyType[this.props.proxyData.proxyType] as State['proxyType']
       this.setState({address, port, proxyType})
     }
   }
 
   componentDidMount() {
-    this.props._loadProxyData()
+    this.props.loadProxyData()
   }
 
   componentWillUnmount() {
-    this.props._resetCertPinningToggle()
+    this.props.resetCertPinningToggle()
   }
 
   toggleCertPinning = () => {
@@ -73,13 +71,13 @@ class ProxySettings extends React.Component<Props, State> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: RPCTypes.ProxyType[this.state.proxyType] as unknown as RPCTypes.ProxyType,
+      proxyType: T.RPCGen.ProxyType[this.state.proxyType],
     }
     this.props.saveProxyData(proxyData)
   }
 
   certPinning = (): boolean => {
-    if (this.props.allowTlsMitmToggle === null) {
+    if (this.props.allowTlsMitmToggle === undefined) {
       if (this.props.proxyData) {
         return this.props.proxyData.certPinning
       } else {
@@ -90,7 +88,7 @@ class ProxySettings extends React.Component<Props, State> {
     }
   }
 
-  proxyTypeSelected = (proxyType: string) => {
+  proxyTypeSelected = (proxyType: State['proxyType']) => {
     let cb = () => {}
     if (proxyType === 'noProxy') {
       // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
@@ -144,7 +142,7 @@ class ProxySettings extends React.Component<Props, State> {
 
 // TODO liklely use PopupWrapper
 const ProxySettingsPopup = (props: Props) => {
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.HeaderHocWrapper onBack={props.onBack}>
         <Kb.Box style={styles.popupBox}>
@@ -167,37 +165,37 @@ const ProxySettingsPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   divider: {
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   flexButtons: {
     display: 'flex',
     flexShrink: 0,
     flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
   popupBox: {
     minHeight: '40%',
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   proxyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.medium,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.medium,
   },
   proxySetting: {
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
   },
   proxySettingPopupBox: {
-    padding: Styles.globalMargins.xlarge,
+    padding: Kb.Styles.globalMargins.xlarge,
   },
   radioButton: {
-    marginRight: Styles.globalMargins.medium,
+    marginRight: Kb.Styles.globalMargins.medium,
   },
-  text: Styles.platformStyles({
+  text: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },

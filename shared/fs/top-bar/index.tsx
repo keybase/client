@@ -1,13 +1,12 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as RowTypes from '../browser/rows/types'
 import Loading from './loading'
 import Sort from './sort-container'
 import SyncToggle from './sync-toggle-container'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   mode?: 'offline' | 'default'
 }
 
@@ -21,28 +20,28 @@ const TopBar = (props: Props) => (
     gapEnd={true}
     alignItems="center"
   >
-    {!Styles.isMobile && <Sort path={props.path} />}
+    {!Kb.Styles.isMobile && <Sort path={props.path} />}
     <Loading path={props.path} />
     <Kb.Box style={styles.flex} />
-    {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
+    {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )
 
-export const height = Styles.isMobile ? 40 : 32
+export const height = Kb.Styles.isMobile ? 40 : 32
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
         height,
       },
       flex: {flex: 1},
-    } as const)
+    }) as const
 )
 
 export default TopBar
-export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [
+export const asRows = (path: T.FS.Path): Array<RowTypes.HeaderRowItem> => [
   {
     height,
     key: 'top-bar',

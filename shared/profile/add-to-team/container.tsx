@@ -1,20 +1,14 @@
-import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as WaitingConstants from '../../constants/waiting'
-import AddToTeam, {type AddToTeamProps} from './index'
-import type * as Types from '../../constants/types/teams'
-import {memoize} from '../../util/memoize'
-import {sendNotificationFooter} from '../../teams/role-picker'
-
-type OwnProps = Container.RouteProps<'profileAddToTeam'>
+import AddToTeam, {type AddToTeamProps} from '.'
+import type * as T from '@/constants/types'
+import {memoize} from '@/util/memoize'
+import {sendNotificationFooter} from '@/teams/role-picker'
 
 const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
   return [...selected]
     .map(teamName => {
-      if (Constants.isSubteam(teamName)) {
+      if (C.Teams.isSubteam(teamName)) {
         return `${teamName} is a subteam which cannot have owners.`
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
@@ -27,22 +21,20 @@ const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) =
 type ExtraProps = {
   clearAddUserToTeamsResults: () => void
   loadTeamList: () => void
-  onAddToTeams: (role: Types.TeamRoleType, teams: Array<string>) => void
-  _teamNameToRole: Map<string, Types.MaybeTeamRoleType>
+  onAddToTeams: (role: T.Teams.TeamRoleType, teams: Array<string>) => void
+  _teamNameToRole: Map<string, T.Teams.MaybeTeamRoleType>
 }
 
 type SelectedTeamState = Set<string>
 
 type State = {
   rolePickerOpen: boolean
-  selectedRole: Types.TeamRoleType
+  selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
   selectedTeams: SelectedTeamState
 }
 
 export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
-  static navigationOptions = AddToTeam.navigationOptions
-
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer' as const,
@@ -109,51 +101,50 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
   }
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _roles: state.teams.teamRoleMap.roles,
-    _teams: state.teams.teamMeta,
-    _them: ownProps.route.params?.username ?? '',
-    addUserToTeamsResults: state.teams.addUserToTeamsResults,
-    addUserToTeamsState: state.teams.addUserToTeamsState,
-    teamProfileAddList: state.teams.teamProfileAddList,
-    teamnames: Constants.getSortedTeamnames(state),
-    waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    _onAddToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => {
-      dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-    },
-    clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
-    loadTeamList: () =>
-      dispatch(TeamsGen.createGetTeamProfileAddList({username: ownProps.route.params?.username ?? ''})),
-    onBack: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: []}))
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const {teamProfileAddList, _them} = stateProps
-    const title = `Add ${_them} to...`
-
-    // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-    const _teamNameToRole = [...stateProps._teams.values()].reduce<Map<string, Types.MaybeTeamRoleType>>(
-      (res, curr) => res.set(curr.teamname, stateProps._roles.get(curr.id)?.role || 'none'),
-      new Map()
-    )
-    return {
-      _teamNameToRole,
-      addUserToTeamsResults: stateProps.addUserToTeamsResults,
-      addUserToTeamsState: stateProps.addUserToTeamsState,
-      clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
-      loadTeamList: dispatchProps.loadTeamList,
-      onAddToTeams: (role: Types.TeamRoleType, teams: Array<string>) =>
-        dispatchProps._onAddToTeams(role, teams, stateProps._them),
-      onBack: dispatchProps.onBack,
-      teamProfileAddList: teamProfileAddList,
-      them: _them,
-      title,
-      waiting: stateProps.waiting,
-    }
+type OwnProps = {username: string}
+const Container = (ownProps: OwnProps) => {
+  const _them = ownProps.username
+  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
+  const _teams = C.useTeamsState(s => s.teamMeta)
+  const addUserToTeamsResults = C.useTeamsState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = C.useTeamsState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
+  const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
+  const waiting = C.useAnyWaiting(C.Teams.teamProfileAddListWaitingKey)
+  const _onAddToTeams = addUserToTeams
+  const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
+  const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
+  const loadTeamList = () => {
+    getTeamProfileAddList(_them)
   }
-)(AddToTeamStateWrapper)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+    resetTeamProfileAddList()
+  }
+
+  const title = `Add ${_them} to...`
+
+  // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
+  const _teamNameToRole = [..._teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
+    (res, curr) => res.set(curr.teamname, _roles.get(curr.id)?.role || 'none'),
+    new Map()
+  )
+  const props = {
+    _teamNameToRole,
+    addUserToTeamsResults,
+    addUserToTeamsState,
+    clearAddUserToTeamsResults,
+    loadTeamList,
+    onAddToTeams: (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, _them),
+    onBack,
+    teamProfileAddList,
+    them: _them,
+    title,
+    waiting,
+  }
+  return <AddToTeamStateWrapper {...props} />
+}
+
+export default Container

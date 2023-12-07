@@ -1,10 +1,10 @@
-import {Component} from 'react'
-import {StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type Props = {
   style?: StylesCrossPlatform
   vertical?: boolean
 }
 
-declare class Divider extends Component<Props> {}
+declare const Divider: (p: Props) => React.ReactNode
 export default Divider

@@ -1,57 +1,53 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as RPCGen from '../../constants/types/rpc-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as SettingsGen from '../../actions/settings-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
 
-  const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   React.useEffect(() => {
     if (!defaultCountry) {
-      dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+      loadDefaultPhoneCountry()
     }
-  }, [defaultCountry, dispatch])
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: '', phoneNumbers: phoneNumbers.map(pn => pn.phoneNumber)}, waitingKey],
       r =>
         r?.length
-          ? dispatch(
-              TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  ...(m.foundUser
-                    ? {assertion: m.username, resolvedFrom: m.assertion}
-                    : {assertion: m.assertion}),
-                  role: 'writer',
-                })),
-              })
+          ? addMembersWizardPushMembers(
+              r.map(m => ({
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
+                role: 'writer',
+              }))
             )
           : setError('You must enter at least one valid phone number.'),
       err => setError(err.message)
     )
   }
 
-  const maybeSubmit = (evt?: any) => {
+  const maybeSubmit = (evt?: React.KeyboardEvent) => {
     if (!disabled && evt && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       onContinue()
     }
@@ -104,19 +100,19 @@ const AddPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      ...Styles.globalStyles.flexOne,
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexOne,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  wordBreak: Styles.platformStyles({
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

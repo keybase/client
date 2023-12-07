@@ -1,5 +1,4 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   url: string
@@ -12,17 +11,17 @@ const AVPreview = (props: Props) => (
 )
 export default AVPreview
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      video: Styles.platformStyles({
+      video: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.medium,
-          marginTop: Styles.globalMargins.medium,
+          marginBottom: Kb.Styles.globalMargins.medium,
+          marginTop: Kb.Styles.globalMargins.medium,
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.blueLighter3,
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
         },
       }),
-    } as const)
+    }) as const
 )

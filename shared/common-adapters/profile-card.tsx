@@ -1,13 +1,11 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Platforms from '../util/platforms'
-import * as Container from '../util/container'
-import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Constants from '../constants/tracker2'
-import * as Tracker2Gen from '../actions/tracker2-gen'
-import type * as Tracker2Types from '../constants/types/tracker2'
+import * as Styles from '@/styles'
+import * as Platforms from '@/util/platforms'
+import * as TrackerConstants from '@/constants/tracker2'
+import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
@@ -18,12 +16,16 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
-import FollowButton from '../profile/user/actions/follow-button'
-import ChatButton from '../chat/chat-button'
+import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
+import type ChatButtonType from '../chat/chat-button'
+import type {MeasureRef} from './measure-ref'
+
+const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -46,10 +48,10 @@ type Props = {
 const maxIcons = 4
 
 type ServiceIconsProps = {
-  userDetailsAssertions?: Map<string, Tracker2Types.Assertion>
+  userDetailsAssertions?: Map<string, T.Tracker.Assertion>
 }
 
-const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | null => {
+const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | undefined => {
   switch (assertionType) {
     case 'facebook':
     case 'github':
@@ -59,7 +61,7 @@ const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | 
     case 'twitter':
       return assertionType
     default:
-      return null
+      return undefined
   }
 }
 
@@ -85,7 +87,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       centerChildren={true}
     >
       {serviceIdsShowing.map(serviceId => {
-        const assertion = services.get(serviceId) || Tracker2Constants.noAssertion
+        const assertion = services.get(serviceId) || TrackerConstants.noAssertion
         return (
           <Kb.WithTooltip
             key={serviceId}
@@ -130,22 +132,24 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
-  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
-  const isSelf = Container.useSelector(state => state.config.username === username)
+  const ChatButton = require('../chat/chat-button').default as typeof ChatButtonType
+  const userDetails = C.useTrackerState(s => TrackerConstants.getDetails(s, username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
+  const isSelf = C.useCurrentUserState(s => s.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'
   )
   const [showFollowButton, setShowFollowButton] = React.useState(false)
-  React.useEffect(() => {
+  if (!showFollowButton) {
+    const shouldShowFollowButton = !isSelf && !hasBrokenProof && !followThem && userDetails.state === 'valid'
     // Don't show follow button for self; additionally if any proof is broken
     // don't show follow button. If we are aleady following, don't "invite" to
     // unfollow. But dont' hide the button if user has just followed the user.
-    !isSelf && !hasBrokenProof && !followThem && userDetails.state === 'valid' && setShowFollowButton(true)
-  }, [isSelf, hasBrokenProof, followThem, userDetails])
-
-  const dispatch = Container.useDispatch()
+    if (shouldShowFollowButton) {
+      setShowFollowButton(true)
+    }
+  }
 
   const {
     state: userDetailsState,
@@ -153,10 +157,10 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   React.useEffect(() => {
-    userDetailsState === 'unknown' &&
-      dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
-  }, [dispatch, username, userDetailsState])
+    userDetailsState === 'unknown' && showUser(username, false, true)
+  }, [showUser, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
     onLayoutChange?.()
@@ -169,15 +173,19 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
+  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
   const _changeFollow = React.useCallback(
-    (follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID})),
-    [dispatch, userDetails]
+    (follow: boolean) => changeFollow(userDetails.guiID, follow),
+    [changeFollow, userDetails]
   )
 
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const openProfile = React.useCallback(() => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
+    showUserProfile(username)
     onHide?.()
-  }, [dispatch, onHide, username])
+  }, [showUserProfile, onHide, username])
+
+  const FollowButton = require('../profile/user/actions/follow-button').default as typeof FollowButtonType
 
   return (
     <Kb.Box2
@@ -214,7 +222,7 @@ const ProfileCard = ({
             key="unfollow"
             following={true}
             onUnfollow={() => _changeFollow(false)}
-            waitingKey={Tracker2Constants.waitingKey}
+            waitingKey={TrackerConstants.waitingKey}
             small={true}
             style={styles.button}
           />
@@ -224,7 +232,7 @@ const ProfileCard = ({
             following={false}
             followsYou={followsYou}
             onFollow={() => _changeFollow(true)}
-            waitingKey={Tracker2Constants.waitingKey}
+            waitingKey={TrackerConstants.waitingKey}
             small={true}
             style={styles.button}
           />
@@ -241,11 +249,12 @@ type WithProfileCardPopupProps = {
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
-  const ref = React.useRef(null)
+  const popupAnchor = React.useRef<MeasureRef>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
-  const isSelf = Container.useSelector(state => state.config.username === username)
+  const you = C.useCurrentUserState(s => s.username)
+  const isSelf = you === username
   const onShow = React.useCallback(() => {
     setShowing(true)
   }, [])
@@ -258,11 +267,11 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popup = showing && (
     <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
       <Kb.FloatingMenu
-        attachTo={() => ref.current}
+        attachTo={popupAnchor}
         closeOnSelect={true}
         onHidden={() => setShowing(false)}
         position="top center"
-        positionFallbacks={['top center', 'bottom center']}
+        positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!Styles.isMobile}
         remeasureHint={remeasureHint}
         visible={showing}
@@ -285,15 +294,16 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       {popup}
     </>
   ) : (
-    <Kb.Box
+    <Kb.Box2Measure
+      direction="vertical"
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
       onMouseLeave={onHide}
-      ref={ref}
+      ref={popupAnchor}
     >
       {children()}
       {popup}
-    </Kb.Box>
+    </Kb.Box2Measure>
   )
 }
 

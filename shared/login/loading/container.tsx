@@ -1,40 +1,42 @@
-import * as Constants from '../../constants/config'
-import * as ConfigGen from '../../actions/config-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as C from '@/constants'
 import Splash from '.'
-import {connect, isMobile} from '../../util/container'
 
-type OwnProps = {}
+const SplashContainer = () => {
+  const failedReason = C.useDaemonState(s => s.handshakeFailedReason)
+  const retriesLeft = C.useDaemonState(s => s.handshakeRetriesLeft)
+  const startHandshake = C.useDaemonState(s => s.dispatch.startHandshake)
 
-export default connect(
-  state => ({
-    _failedReason: state.config.daemonHandshakeFailedReason,
-    _retriesLeft: state.config.daemonHandshakeRetriesLeft,
-  }),
-  dispatch => ({
-    _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    _onRetry: () => dispatch(ConfigGen.createStartHandshake()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    let status = ''
-    let failed = ''
-
-    // Totally failed
-    if (stateProps._retriesLeft === 0) {
-      failed = stateProps._failedReason
-    } else if (stateProps._retriesLeft === Constants.maxHandshakeTries) {
-      // First try
-      status = 'Loading...'
-    } else {
-      const failed = stateProps._failedReason ? `: ${stateProps._failedReason}` : ''
-      status = `Loading...  (still trying${failed})`
-    }
-
-    return {
-      failed,
-      onFeedback: isMobile ? dispatchProps._onFeedback : null,
-      onRetry: stateProps._retriesLeft === 0 ? dispatchProps._onRetry : null,
-      status,
-    }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onFeedback = () => {
+    navigateAppend({props: {}, selected: 'feedback'})
   }
-)(Splash)
+
+  const onRetry = () => {
+    startHandshake()
+  }
+
+  let status = ''
+  let failed = ''
+
+  // Totally failed
+  if (retriesLeft === 0) {
+    failed = failedReason
+  } else if (retriesLeft === C.maxHandshakeTries) {
+    // First try
+    status = 'Loading...'
+  } else {
+    const failedText = failedReason ? `: ${failedReason}` : ''
+    status = `Loading...  (still trying${failedText})`
+  }
+
+  return (
+    <Splash
+      failed={failed}
+      onFeedback={C.isMobile ? onFeedback : undefined}
+      onRetry={retriesLeft === 0 ? onRetry : undefined}
+      status={status}
+    />
+  )
+}
+
+export default SplashContainer

@@ -1,5 +1,5 @@
-import {printOutstandingTimerListeners} from '../local-debug'
-import logger from '../logger'
+import {printOutstandingTimerListeners} from '@/local-debug'
+import logger from '@/logger'
 
 /**
  * A synchronized clock that ticks once every second

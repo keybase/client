@@ -1,0 +1,58 @@
+{
+  "prelude": [
+    "import type HiddenString from '@/util/hidden-string'",
+    "import type * as Tabs from '@/constants/tabs'"
+  ],
+  "actions": {
+    "openChatFromWidget": {"conversationIDKey": "string"},
+    "previewConversation": {"participant": "string"},
+    "inboxRefresh": {},
+    "engineConnection": {"connected": "boolean"},
+    "switchTab": {"tab": "Tabs.AppTab"},
+    "setCriticalUpdate": {"critical": "boolean"},
+    "userFileEditsLoad": {},
+    "openFilesFromWidget": {"path": "string"},
+    "openPathInSystemFileManager": {"path": "string"},
+    "closeUnlockFolders": {},
+    "unlockFoldersSubmitPaperKey": {"paperKey": "string"},
+    "stop": {"exitCode": "RPCTypes.ExitCode"},
+    "link": {"link": "string"},
+    "saltpackFileOpen": {"path": "string | HiddenString"},
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
+    },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
+    "showMain": {},
+    "updateNow": {},
+    "setSystemDarkMode": {"dark": "boolean"},
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
+    },
+    "updateWindowShown": {"component": "string"},
+    "updateWindowMaxState": {"max": "boolean"},
+    "updateWindowState": {
+      "_description": "main electron window wants to store its state",
+      "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
+    },
+    "powerMonitorEvent": {"event": "string"},
+    "pinentryOnSubmit": {"password": "string"},
+    "pinentryOnCancel": {},
+    "trackerChangeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "trackerIgnore": {"guiID": "string"},
+    "trackerCloseTracker": {"guiID": "string"},
+    "trackerLoad": {
+      "assertion": "string",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
+      "inTracker": "boolean"
+    }
+  }
+}

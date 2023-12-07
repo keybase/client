@@ -1,14 +1,12 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import {ConvoIDContext, HighlightedContext, OrdinalContext} from '../ids-context'
+import * as Kb from '@/common-adapters'
+import {HighlightedContext, OrdinalContext} from '../ids-context'
 
 export const useEdited = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const hasBeenEdited = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const hasBeenEdited = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     const hasBeenEdited = message?.hasBeenEdited ?? false
     return hasBeenEdited
   })
@@ -30,10 +28,10 @@ export const useEdited = () => {
   return edited
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      edited: {color: Styles.globalColors.black_20},
-      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
-    } as const)
+      edited: {color: Kb.Styles.globalColors.black_20},
+      editedHighlighted: {color: Kb.Styles.globalColors.black_20OrBlack},
+    }) as const
 )

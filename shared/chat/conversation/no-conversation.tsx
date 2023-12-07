@@ -1,5 +1,4 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 const NoConversation = () => (
   <Kb.Box2 direction="vertical" gap="xsmall" centerChildren={true} style={styles.noConvoText}>
@@ -8,7 +7,7 @@ const NoConversation = () => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       noConvoText: {
@@ -16,7 +15,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         justifyContent: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default NoConversation

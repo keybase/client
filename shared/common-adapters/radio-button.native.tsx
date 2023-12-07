@@ -1,7 +1,7 @@
 import * as React from 'react'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './radio-button'
 
 const Kb = {

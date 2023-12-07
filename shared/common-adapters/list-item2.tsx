@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
 import BoxGrow from './box-grow'
@@ -27,7 +27,7 @@ type Props = {
   // If 'grow' is used, the width of action cannot exceed 64. If larger width
   // is needed, bump the `maxWidth: 64` below to a larger value. Note that if
   // it's too large, the animation would also seem much faster.
-  onlyShowActionOnHover?: 'fade' | 'grow' | null
+  onlyShowActionOnHover?: 'fade' | 'grow'
   onClick?: () => void
   onMouseDown?: (evt: React.BaseSyntheticEvent) => void // desktop only
   height?: number // optional, for non-standard heights

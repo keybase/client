@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {formatDurationShort} from '../../../../../util/timestamp'
-import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
-import * as Container from '../../../../../util/container'
+import * as Kb from '@/common-adapters'
+import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
+import {formatDurationShort} from '@/util/timestamp'
+import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
+import * as Container from '@/util/container'
 import {animationDuration} from '../exploding-height-retainer'
 import {HighlightedContext} from '../../ids-context'
 
@@ -154,43 +153,41 @@ class ExplodingMeta2 extends React.Component<Props2> {
 
   render() {
     const backgroundColor = this.props.pending
-      ? Styles.globalColors.black
+      ? Kb.Styles.globalColors.black
       : this.props.explodesAt - Date.now() < oneMinuteInMs
-      ? Styles.globalColors.red
-      : Styles.globalColors.black
+      ? Kb.Styles.globalColors.red
+      : Kb.Styles.globalColors.black
     let children: React.ReactNode
     const m = this.props.pending ? 'countdown' : this.props.mode
     switch (m) {
       case 'countdown':
-        {
-          children = (
-            <Kb.Box2 direction="horizontal" gap="xtiny">
-              <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
-                <Kb.Box2
-                  className="explodingTimeContainer"
-                  direction="horizontal"
-                  style={Styles.collapseStyles([
-                    styles.countdownContainer,
-                    {backgroundColor},
-                    this.props.isParentHighlighted && styles.countdownContainerHighlighted,
-                    this.props.pending && styles.hidden,
+        children = (
+          <Kb.Box2 direction="horizontal" gap="xtiny">
+            <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
+              <Kb.Box2
+                className="explodingTimeContainer"
+                direction="horizontal"
+                style={Kb.Styles.collapseStyles([
+                  styles.countdownContainer,
+                  {backgroundColor},
+                  this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                  this.props.pending && styles.hidden,
+                ])}
+              >
+                <Kb.Text
+                  className="explodingTimeText"
+                  type="Body"
+                  style={Kb.Styles.collapseStyles([
+                    styles.countdown,
+                    this.props.isParentHighlighted && styles.countdownHighlighted,
                   ])}
                 >
-                  <Kb.Text
-                    className="explodingTimeText"
-                    type="Body"
-                    style={Styles.collapseStyles([
-                      styles.countdown,
-                      this.props.isParentHighlighted && styles.countdownHighlighted,
-                    ])}
-                  >
-                    {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
-                  </Kb.Text>
-                </Kb.Box2>
-              </Kb.WithTooltip>
-            </Kb.Box2>
-          )
-        }
+                  {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.WithTooltip>
+          </Kb.Box2>
+        )
         break
       case 'boom':
         children = (
@@ -198,10 +195,14 @@ class ExplodingMeta2 extends React.Component<Props2> {
             className="explodingTimeIcon"
             type="iconfont-boom"
             color={
-              this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black
+              this.props.isParentHighlighted
+                ? Kb.Styles.globalColors.blackOrBlack
+                : Kb.Styles.globalColors.black
             }
           />
         )
+        break
+      default:
     }
 
     return (
@@ -254,16 +255,16 @@ const getLoopInterval = (diff: number) => {
   return deltaMS + halfNearestUnit
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         height: 20,
         position: 'relative',
       },
-      countdown: Styles.platformStyles({
-        common: {color: Styles.globalColors.white, fontWeight: 'bold'},
+      countdown: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.white, fontWeight: 'bold'},
         isElectron: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
         isMobile: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
       }),
@@ -275,16 +276,16 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       countdownContainerHighlighted: {
-        backgroundColor: Styles.globalColors.blackOrBlack,
+        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
       },
       countdownHighlighted: {
-        color: Styles.globalColors.whiteOrWhite,
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
       explodingTooltip: {
-        marginRight: -Styles.globalMargins.xxtiny,
+        marginRight: -Kb.Styles.globalMargins.xxtiny,
       },
       hidden: {opacity: 0},
-      progressContainer: Styles.platformStyles({
+      progressContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
           justifyContent: 'center',
@@ -295,7 +296,7 @@ const styles = Styles.styleSheetCreate(
           width: 32,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ExplodingMeta

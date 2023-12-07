@@ -1,7 +1,7 @@
 import type {FeatureFlags} from './feature-flags'
-import {featureFlagsOverride} from '../local-debug.native'
+import {featureFlagsOverride} from '@/local-debug.native'
 
-const features = featureFlagsOverride && featureFlagsOverride.split(',')
+const features = featureFlagsOverride.split(',')
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
@@ -10,7 +10,8 @@ const ff: FeatureFlags = {
 }
 
 // load overrides
-Object.keys(ff).forEach(k => {
+Object.keys(ff).forEach(_k => {
+  const k: keyof FeatureFlags = _k as any
   ff[k] = featureOn(k as keyof FeatureFlags) || ff[k] || false
 })
 

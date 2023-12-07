@@ -1,11 +1,9 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as Kbfs from '../common'
-import * as FsGen from '../../actions/fs-gen'
-import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
 
@@ -18,19 +16,21 @@ import MainBanner from './main-banner/container'
  */
 
 type Props = {
-  onBack?: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const MaybePublicTag = ({path}) =>
-  Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
+const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
+  Constants.hasPublicTag(path) ? (
+    <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
+  ) : null
 
 const NavMobileHeader = (props: Props) => {
-  const expanded = null !== Container.useSelector(state => state.fs.folderViewFilter)
+  const expanded = C.useFSState(s => s.folderViewFilter !== undefined)
+  const {pop} = C.useNav()
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
 
-  const dispatch = Container.useDispatch()
-  const filterDone = () => dispatch(FsGen.createSetFolderViewFilter({filter: null}))
-  const triggerFilterMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: ''}))
+  const filterDone = setFolderViewFilter
+  const triggerFilterMobile = () => setFolderViewFilter('')
 
   // Clear if path changes; or it's a new layer of mount (important on Android
   // since it keeps old mount around after navigateAppend).
@@ -40,8 +40,8 @@ const NavMobileHeader = (props: Props) => {
   // anything for me at this point. So just use the fact that a new such thing
   // has been mounted as a proxy.
   React.useEffect(() => {
-    dispatch(FsGen.createSetFolderViewFilter({filter: null}))
-  }, [dispatch, props.path])
+    filterDone()
+  }, [filterDone, props.path])
 
   return props.path === Constants.defaultPath ? (
     <Kb.SafeAreaViewTop>
@@ -57,13 +57,9 @@ const NavMobileHeader = (props: Props) => {
           <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            {props.onBack && (
-              <Kb.BackButton
-                badgeNumber={0 /* TODO KBFS-4109 */}
-                onClick={props.onBack}
-                style={styles.backButton}
-              />
-            )}
+            {pop ? (
+              <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
+            ) : null}
             <Kb.Box style={styles.gap} />
             <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
           </Kb.Box2>
@@ -87,77 +83,66 @@ const NavMobileHeader = (props: Props) => {
   )
 }
 
-const getBaseHeight = (path: Types.Path) => {
+const getBaseHeight = (path: T.FS.Path) => {
   return (
     44 +
     (path === Constants.defaultPath
-      ? Styles.headerExtraHeight
-      : (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
+      ? Kb.Styles.headerExtraHeight
+      : (Kb.Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
   )
 }
 
-export const useHeaderHeight = (path: Types.Path) => {
-  const bannerType = Container.useSelector(state =>
-    Constants.getMainBannerType(state.fs.kbfsDaemonStatus, state.fs.overallSyncStatus)
-  )
+export const useHeaderHeight = (path: T.FS.Path) => {
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const bannerType = C.useFSState(s => Constants.getMainBannerType(kbfsDaemonStatus, s.overallSyncStatus))
   const base = getBaseHeight(path)
   switch (bannerType) {
-    case Types.MainBannerType.None:
-    case Types.MainBannerType.TryingToConnect:
+    case T.FS.MainBannerType.None:
+    case T.FS.MainBannerType.TryingToConnect:
       return base
-    case Types.MainBannerType.Offline:
+    case T.FS.MainBannerType.Offline:
       return base + 40
-    case Types.MainBannerType.OutOfSpace:
+    case T.FS.MainBannerType.OutOfSpace:
       return base + 73
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Styles.platformStyles({
+      backButton: Kb.Styles.platformStyles({
         common: {
           opacity: 1,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isAndroid: {
-          paddingRight: Styles.globalMargins.small,
-        },
+        isAndroid: {paddingRight: Kb.Styles.globalMargins.small},
       }),
       expandedTitleContainer: {
-        backgroundColor: Styles.globalColors.white,
-        padding: Styles.globalMargins.tiny,
-        paddingBottom: Styles.globalMargins.xsmall + Styles.globalMargins.xxtiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        padding: Kb.Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
-      expandedTopContainer: Styles.platformStyles({
+      expandedTopContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          paddingRight: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
-        isAndroid: {
-          height: 56,
-        },
-        isIOS: {
-          height: 44,
-        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
       }),
-      filename: {
-        marginLeft: Styles.globalMargins.xtiny,
-      },
-      gap: {
-        flex: 1,
-      },
+      filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
+      gap: {flex: 1},
       headerContainer: {
-        backgroundColor: Styles.globalColors.white,
-        borderBottomColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
         minHeight: 44,
       },
-    } as const)
+    }) as const
 )
 
 export default NavMobileHeader

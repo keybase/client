@@ -1,13 +1,13 @@
 import * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
-import Box from '../../box'
-import Divider from '../../divider'
-import Icon from '../../icon'
-import Text from '../../text'
-import Meta from '../../meta'
-import Badge from '../../badge'
-import ProgressIndicator from '../../progress-indicator'
-import * as Styles from '../../../styles'
+import Box from '@/common-adapters/box'
+import Divider from '@/common-adapters/divider'
+import Icon from '@/common-adapters/icon'
+import Text from '@/common-adapters/text'
+import Meta from '@/common-adapters/meta'
+import Badge from '@/common-adapters/badge'
+import ProgressIndicator from '@/common-adapters/progress-indicator'
+import * as Styles from '@/styles'
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   private renderDivider = (index: number) => (
@@ -33,8 +33,8 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
         className={hoverClassName}
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
         onClick={() => {
-          item.onClick && item.onClick()
-          if (this.props.closeOnClick && this.props.onHidden) {
+          item.onClick?.()
+          if (this.props.closeOnClick) {
             this.props.onHidden()
           }
         }}
@@ -101,7 +101,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     `
 
     const items = this.props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
-      if (item === 'Divider' && arr.length && arr[arr.length - 1] === 'Divider') {
+      if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
         return arr
       }
       item && arr.push(item)
@@ -110,7 +110,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 
     return (
       <Box
-        onClick={event => {
+        onClick={(event: any) => {
           // never allow a click to go through
           event.stopPropagation()
         }}
@@ -190,7 +190,7 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default MenuLayout

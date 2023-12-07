@@ -1,5 +1,5 @@
-import {Box, Text} from '../../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../../styles'
+import {Box, Text} from '@/common-adapters'
+import {globalMargins, globalStyles} from '@/styles'
 
 const None = () => (
   <Box

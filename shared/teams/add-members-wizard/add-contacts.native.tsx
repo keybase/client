@@ -1,18 +1,16 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RPCGen from '../../constants/types/rpc-gen'
-import {pluralize} from '../../util/string'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
 
 const AddContacts = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const onBack = () => nav.safeNavigateUp()
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -30,7 +28,10 @@ const AddContacts = () => {
   }
 
   const [waiting, setWaiting] = React.useState(false)
-  const toAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const toAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+
   const onDone = () => {
     if (waiting) {
       return
@@ -40,15 +41,13 @@ const AddContacts = () => {
       [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
       r => {
         if (r?.length) {
-          dispatch(
-            TeamsGen.createAddMembersWizardPushMembers({
-              members: r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
-                role: 'writer',
-              })),
-            })
+          addMembersWizardPushMembers(
+            r.map(m => ({
+              ...(m.foundUser
+                ? {assertion: m.username, resolvedFrom: m.assertion}
+                : {assertion: m.assertion}),
+              role: 'writer',
+            }))
           )
         }
       },
@@ -67,19 +66,23 @@ const AddContacts = () => {
         hideBorder: true,
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: (
-          <Kb.Box2 direction="horizontal" style={Styles.globalStyles.positionRelative}>
+          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Text
               type="BodyBigLink"
               onClick={onDone}
-              style={Styles.collapseStyles([
-                noneSelected && Styles.globalStyles.opacity0,
+              style={Kb.Styles.collapseStyles([
+                noneSelected && Kb.Styles.globalStyles.opacity0,
                 waiting && styles.opacity40,
               ])}
             >
               Done
             </Kb.Text>
             {waiting && (
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+              <Kb.Box2
+                direction="horizontal"
+                centerChildren={true}
+                style={Kb.Styles.globalStyles.fillAbsolute}
+              >
                 <Kb.ProgressIndicator />
               </Kb.Box2>
             )}
@@ -107,7 +110,7 @@ const AddContacts = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   opacity40: {opacity: 0.4},
 }))
 

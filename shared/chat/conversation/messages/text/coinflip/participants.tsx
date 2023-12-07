@@ -1,12 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import type * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
-  participants?: Array<RPCChatTypes.UICoinFlipParticipant>
+  participants?: Array<T.RPCChat.UICoinFlipParticipant>
   visible: boolean
 }
 
@@ -54,34 +53,34 @@ const CoinFlipParticipants = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xsmall,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingTop: Kb.Styles.globalMargins.xsmall,
         },
       }),
       partContainer: {
         maxHeight: 200,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       participants: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
-      title: Styles.platformStyles({
+      title: Kb.Styles.platformStyles({
         isElectron: {
-          paddingTop: Styles.globalMargins.xtiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CoinFlipParticipants

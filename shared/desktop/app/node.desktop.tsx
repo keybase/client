@@ -1,7 +1,7 @@
 // Entry point for the node part of the electron app
 // order of modules is important here
 import '../renderer/preload.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import {configOverload} from './dynamic-config'
 
 // This isn't ideal. In order to load the config overload from the disk we need paths

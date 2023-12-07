@@ -1,6 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
+import {PortalHost, Portal} from '@/common-adapters/portal.native'
+import * as Styles from '@/styles'
 import AudioPlayer from './audio-player'
 import type {AmpTracker} from './amptracker'
 
@@ -18,7 +19,7 @@ export const ShowAudioSendContext = React.createContext({
 })
 
 export const AudioSendWrapper = () => {
-  return <Kb.PortalHost name="audioSend" />
+  return <PortalHost name="audioSend" />
 }
 
 // This is created and driven by the AudioRecorder button but its ultimately rendered
@@ -39,7 +40,7 @@ const AudioSend = (props: Props) => {
     />
   )
   return (
-    <Kb.Portal hostName="audioSend" useFullScreenOverlay={false}>
+    <Portal hostName="audioSend" useFullScreenOverlay={false}>
       <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="horizontal" alignItems="center">
           <Kb.Box style={styles.icon}>
@@ -49,7 +50,7 @@ const AudioSend = (props: Props) => {
         </Kb.Box2>
         <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
       </Kb.Box2>
-    </Kb.Portal>
+    </Portal>
   )
 }
 

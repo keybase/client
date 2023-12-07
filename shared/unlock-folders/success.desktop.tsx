@@ -1,10 +1,9 @@
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>
     <Kb.Icon type="icon-folder-success-48" />
-    <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
       <Kb.Text center={true} type="BodySemibold">
         Success!
       </Kb.Text>
@@ -19,11 +18,11 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   </div>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         bottom: 30,
         justifyContent: 'space-between',
@@ -32,7 +31,7 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: 40,
       },
-    } as const)
+    }) as const
 )
 
 export default PaperKeyInput

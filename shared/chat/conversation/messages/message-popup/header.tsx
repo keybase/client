@@ -1,10 +1,9 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import type {DeviceType} from '../../../../constants/types/devices'
+import * as Kb from '@/common-adapters'
+import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
+import type * as T from '@/constants/types'
 
-const iconNameForDeviceType = Styles.isMobile
-  ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
+const iconNameForDeviceType = Kb.Styles.isMobile
+  ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
@@ -33,53 +32,40 @@ const iconNameForDeviceType = Styles.isMobile
       }
     }
 
-const headerIconHeight = Styles.isMobile ? 96 : 72
+const headerIconHeight = Kb.Styles.isMobile ? 96 : 48
 
-const MessagePopupHeader = (props: {
+type Props = {
   author: string
   botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
-  deviceType: DeviceType
+  deviceType: T.Devices.DeviceType
   isLast?: boolean
   isLocation: boolean
   timestamp: number
   yourMessage: boolean
-}) => {
-  const {
-    author,
-    botUsername,
-    deviceName,
-    deviceRevokedAt,
-    deviceType,
-    isLast,
-    isLocation,
-    timestamp,
-    yourMessage,
-  } = props
+}
+const MessagePopupHeader = (props: Props) => {
+  const {author, botUsername, deviceName, deviceRevokedAt, deviceType} = props
+  const {isLast, isLocation, timestamp, yourMessage} = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
     <Kb.Box style={styles.headerContainer}>
-      <Kb.Icon type={iconName} style={styles.headerIcon} />
-      <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-        <Kb.Text
-          type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark}}
-        >
-          ENCRYPTED
-        </Kb.Text>
-        <Kb.Text
-          type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark}}
-        >
-          &nbsp;& SIGNED
-        </Kb.Text>
-      </Kb.Box>
+      {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
+      {Kb.Styles.isMobile ? null : (
+        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+          <Kb.Text
+            type="BodySmall"
+            style={{
+              color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
+            }}
+          >
+            ENCRYPTED & SIGNED
+          </Kb.Text>
+        </Kb.Box>
+      )}
       <Kb.Box2 direction="horizontal">
-        <Kb.Text type="BodySmall" style={styles.colorBlack40}>
-          by
-        </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
@@ -90,14 +76,9 @@ const MessagePopupHeader = (props: {
             underline={true}
             type="BodySmallBold"
           />
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box style={styles.headerDetailsContainer}>
-        <Kb.Text center={true} type="BodySmall">
-          from device&nbsp;
-          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
-        </Kb.Text>
-      </Kb.Box>
       {botUsername && (
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
@@ -123,62 +104,59 @@ const MessagePopupHeader = (props: {
           fullWidth={true}
           gapStart={true}
           direction="vertical"
-          style={Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
+          style={Kb.Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.blue}
+          >
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
           </Kb.PopupHeaderText>
         </Kb.Box2>
       )}
+      <Kb.Divider style={{width: '100%'}} />
     </Kb.Box>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alignItemsCenter: {alignItems: 'center'},
-      colorBlack40: {color: Styles.globalColors.black_50},
-      headerContainer: Styles.platformStyles({
+      colorBlack40: {color: Kb.Styles.globalColors.black_50},
+      headerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           width: '100%',
         },
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.small,
-        },
-        isMobile: {
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       headerDetailsContainer: {
-        ...Styles.globalStyles.flexBoxRow,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      headerIcon: Styles.platformStyles({
+      headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,
-          marginBottom: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
-        isElectron: {marginTop: Styles.globalMargins.tiny},
-        isMobile: {
-          marginTop: Styles.globalMargins.small,
-        },
+        isElectron: {marginTop: 0},
+        isMobile: {marginTop: Kb.Styles.globalMargins.small},
       }),
       revokedAtContainerLast: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,
-        marginBottom: -Styles.globalMargins.small,
+        marginBottom: -Kb.Styles.globalMargins.small,
         overflow: 'hidden',
       },
-    } as const)
+    }) as const
 )
 
 export default MessagePopupHeader

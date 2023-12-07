@@ -1,9 +1,8 @@
-import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
-import * as Kb from '../../../common-adapters'
-import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
+import * as Kb from '@/common-adapters'
+import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
 
 type TlfProps = StillCommonProps & {
   loadPathMetadata?: boolean
@@ -21,12 +20,12 @@ const Content = (props: TlfProps) => (
       direction="vertical"
       fullWidth={true}
       fullHeight={true}
-      style={Styles.collapseStyles([styles.leftBox, props.disabled && rowStyles.opacity30])}
+      style={Kb.Styles.collapseStyles([styles.leftBox, props.disabled && rowStyles.opacity30])}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
-          type={Constants.pathTypeToTextType(Types.PathType.Folder)}
-          style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
+          type={C.pathTypeToTextType(T.FS.PathType.Folder)}
+          style={Kb.Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
           path={props.path}
         />
       </Kb.Box2>
@@ -36,7 +35,7 @@ const Content = (props: TlfProps) => (
 )
 const Avatars = (props: TlfProps) => (
   <Kb.Box style={styles.avatarBox}>
-    {Constants.isTeamPath(props.path) ? (
+    {C.isTeamPath(props.path) ? (
       <Kb.Avatar size={32} isTeam={true} teamname={props.usernames[0]} />
     ) : (
       <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames} />
@@ -44,7 +43,7 @@ const Avatars = (props: TlfProps) => (
   </Kb.Box>
 )
 
-const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
+const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
   useFsPathMetadata(path)
   return null
 }
@@ -59,14 +58,14 @@ const Tlf = (props: TlfProps) => (
       mixedMode={props.mixedMode}
       writingToJournal={false}
       body={
-        Styles.isMobile ? (
+        Kb.Styles.isMobile ? (
           <Kb.Box style={rowStyles.itemBox}>
             <Content {...props} />
           </Kb.Box>
         ) : undefined
       }
       content={
-        !Styles.isMobile ? (
+        !Kb.Styles.isMobile ? (
           <>
             <Content {...props} />
             <Avatars {...props} />
@@ -77,14 +76,14 @@ const Tlf = (props: TlfProps) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarBox: {marginRight: Styles.globalMargins.xsmall},
+      avatarBox: {marginRight: Kb.Styles.globalMargins.xsmall},
       kerning: {letterSpacing: 0.2},
       leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
       minWidth: {minWidth: 0},
-    } as const)
+    }) as const
 )
 
 export default Tlf

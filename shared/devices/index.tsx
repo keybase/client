@@ -1,11 +1,92 @@
-import type * as Types from '../constants/types/devices'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import DeviceRow from './row/container'
-import * as Styles from '../styles'
+import DeviceRow, {NewContext} from './row'
+import partition from 'lodash/partition'
+import type * as T from '@/constants/types'
+import {intersect} from '@/util/set'
+import {useFocusEffect} from '@react-navigation/core'
+import {useLocalBadging} from '@/util/use-local-badging'
 
-export type Item =
-  | {key: string; id: Types.DeviceID; type: 'device'}
+const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
+  if (a.currentDevice) return -1
+  if (b.currentDevice) return 1
+  return a.name.localeCompare(b.name)
+}
+
+const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
+const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
+  partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
+
+const ReloadableDevices = () => {
+  const deviceMap = C.useDevicesState(s => s.deviceMap)
+  const waiting = C.useAnyWaiting(C.devicesWaitingKey)
+  const {load, clearBadges} = C.useDevicesState(s => s.dispatch)
+  const storeSet = C.useDevicesState(s => s.isNew)
+  const {badged} = useLocalBadging(storeSet, clearBadges)
+
+  const newlyChangedItemIds = badged
+
+  useFocusEffect(
+    React.useCallback(() => {
+      load()
+    }, [load])
+  )
+
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
+    // We don't have navigateAppend in upgraded routes
+    navigateAppend({props: {highlight}, selected: 'deviceAdd'})
+  }
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+  }
+
+  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, items} = React.useMemo(() => {
+    const [revoked, normal] = splitAndSortDevices(deviceMap)
+    const revokedItems = revoked.map(deviceToItem)
+    const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), newlyChangedItemIds)
+    const hasNewlyRevoked = newlyRevokedIds.size > 0
+    const showPaperKeyNudge = !!deviceMap.size && ![...deviceMap.values()].some(v => v.type === 'backup')
+    const items = normal.map(deviceToItem) as Array<Item>
+    return {
+      hasNewlyRevoked,
+      items,
+      revokedItems,
+      showPaperKeyNudge,
+    }
+  }, [deviceMap, newlyChangedItemIds])
+
+  const np = {
+    hasNewlyRevoked,
+    items,
+    loadDevices: load,
+    onAddDevice,
+    onBack,
+    revokedItems,
+    showPaperKeyNudge,
+    title: 'Devices',
+    waiting,
+  }
+
+  return (
+    <Kb.Reloadable
+      onBack={C.isMobile ? onBack : undefined}
+      waitingKeys={C.devicesWaitingKey}
+      onReload={load}
+      reloadOnMount={true}
+      title={''}
+    >
+      <NewContext.Provider value={badged}>
+        <Devices {...np} />
+      </NewContext.Provider>
+    </Kb.Reloadable>
+  )
+}
+
+type Item =
+  | {key: string; id: T.Devices.DeviceID; type: 'device'}
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
 
@@ -14,7 +95,7 @@ type State = {
 }
 
 export type Props = {
-  _stateOverride: State | null
+  _stateOverride?: State
   items: Array<Item>
   loadDevices: () => void
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
@@ -28,7 +109,7 @@ export type Props = {
 
 class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
-  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
+  state = {revokedExpanded: this.props._stateOverride?.revokedExpanded ?? false}
 
   componentDidMount() {
     this.props.loadDevices()
@@ -73,110 +154,119 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {Styles.isMobile && <DeviceHeader onAddNew={() => this.props.onAddDevice()} />}
+        {Kb.Styles.isMobile && <DeviceHeader onAddNew={() => this.props.onAddDevice()} />}
         {this.props.showPaperKeyNudge && (
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List bounces={false} items={items} renderItem={this.renderItem} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
+          <Kb.List2
+            bounces={false}
+            items={items}
+            renderItem={this.renderItem}
+            itemHeight={{
+              height: 48,
+              type: 'fixed',
+            }}
+          />
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        position: 'relative',
-      },
+      container: {position: 'relative'},
       progress: {
         left: 12,
         position: 'absolute',
-        top: Styles.isMobile ? 22 : 14,
+        top: Kb.Styles.isMobile ? 22 : 14,
         width: 20,
       },
       revokedNote: {
-        padding: Styles.globalMargins.medium,
+        padding: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
-const DeviceHeader = ({onAddNew}) => (
+const DeviceHeader = ({onAddNew}: any) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
     <Kb.Button label="Add a device or paper key" fullWidth={true} />
   </Kb.ClickableBox>
 )
-const headerStyles = Styles.styleSheetCreate(() => ({
+const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: Styles.isMobile ? 64 : 48,
+    height: Kb.Styles.isMobile ? 64 : 48,
     justifyContent: 'center',
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
   icon: {
     alignSelf: 'center',
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 
-const RevokedHeader = ({onToggleExpanded, expanded}) => (
+const RevokedHeader = ({onToggleExpanded, expanded}: any) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
 )
 
-const PaperKeyNudge = ({onAddDevice}) => (
+const PaperKeyNudge = ({onAddDevice}: any) => (
   <Kb.ClickableBox onClick={onAddDevice}>
     <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
-        <Kb.Icon type={Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'} />
+        <Kb.Icon
+          type={Kb.Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
+        />
         <Kb.Box2 direction="vertical" style={paperKeyNudgeStyles.flexOne}>
           <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-          <Kb.Text type={Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+          <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
             A paper key can be used to access your account in case you lose all your devices. Keep one in a
             safe place (like a wallet) to keep your data safe.
           </Kb.Text>
         </Kb.Box2>
-        {!Styles.isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
+        {!Kb.Styles.isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>
 )
-const paperKeyNudgeStyles = Styles.styleSheetCreate(
+const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      border: Styles.platformStyles({
+      border: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.black_05,
-          borderRadius: Styles.borderRadius,
+          borderColor: Kb.Styles.globalColors.black_05,
+          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
           flex: 1,
         },
         isElectron: {
-          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
       }),
-      desc: Styles.platformStyles({
+      desc: Kb.Styles.platformStyles({
         isElectron: {
           maxWidth: 450,
         },
       }),
       flexOne: {flex: 1},
-    } as const)
+    }) as const
 )
-
-export default Devices
+export default ReloadableDevices

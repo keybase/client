@@ -1,16 +1,16 @@
 import Icon from './icon'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
+import Image2 from './image2'
 import Box from './box'
-import {NativeImage} from './native-image.native'
 import type {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
   Box,
   ClickableBox,
   Icon,
-  NativeImage,
+  Image2,
 }
 
 const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
@@ -44,32 +44,19 @@ const Avatar = React.memo(function Avatar(props: Props) {
           </Kb.Box>
         )}
         {!!props.url && (
-          <Kb.NativeImage
-            source={props.url}
-            style={[
+          <Kb.Image2
+            showLoadingStateUntilLoaded={false}
+            src={props.url}
+            style={Styles.collapseStyles([
               imageStyles[props.size],
               {
                 borderRadius,
                 opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
               },
-            ]}
+            ])}
           />
         )}
-        {(!!props.borderColor || props.isTeam) &&
-          false && ( // looks better off i think
-            <Kb.Box
-              style={[
-                styles.borderBase,
-                {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
-              ]}
-            />
-          )}
-        {props.followIconType && (
-          <Kb.Icon
-            type={props.followIconType}
-            style={Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])}
-          />
-        )}
+        {props.followIconType && <Kb.Icon type={props.followIconType} style={props.followIconStyle} />}
         {props.editable && (
           <Kb.Icon
             color={props.isTeam ? Styles.globalColors.white : undefined}
@@ -85,24 +72,32 @@ const Avatar = React.memo(function Avatar(props: Props) {
 })
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
-const iconStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeIconStyle(128),
-  [16]: makeIconStyle(16),
-  [32]: makeIconStyle(32),
-  [48]: makeIconStyle(48),
-  [64]: makeIconStyle(64),
-  [96]: makeIconStyle(96),
-}))
+const iconStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      128: makeIconStyle(128),
+      16: makeIconStyle(16),
+      24: makeIconStyle(24),
+      32: makeIconStyle(32),
+      48: makeIconStyle(48),
+      64: makeIconStyle(64),
+      96: makeIconStyle(96),
+    }) as const
+)
 
 const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' as const, width: size})
-const boxStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeBoxStyle(128),
-  [16]: makeBoxStyle(16),
-  [32]: makeBoxStyle(32),
-  [48]: makeBoxStyle(48),
-  [64]: makeBoxStyle(64),
-  [96]: makeBoxStyle(96),
-}))
+const boxStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      128: makeBoxStyle(128),
+      16: makeBoxStyle(16),
+      24: makeBoxStyle(24),
+      32: makeBoxStyle(32),
+      48: makeBoxStyle(48),
+      64: makeBoxStyle(64),
+      96: makeBoxStyle(96),
+    }) as const
+)
 
 const makeImageStyle = (size: AvatarSize) =>
   ({
@@ -114,15 +109,19 @@ const makeImageStyle = (size: AvatarSize) =>
     right: 0,
     top: 0,
     width: size,
-  } as const)
-const imageStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeImageStyle(128),
-  [16]: makeImageStyle(16),
-  [32]: makeImageStyle(32),
-  [48]: makeImageStyle(48),
-  [64]: makeImageStyle(64),
-  [96]: makeImageStyle(96),
-}))
+  }) as const
+const imageStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      128: makeImageStyle(128),
+      16: makeImageStyle(16),
+      24: makeImageStyle(24),
+      32: makeImageStyle(32),
+      48: makeImageStyle(48),
+      64: makeImageStyle(64),
+      96: makeImageStyle(96),
+    }) as const
+)
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -160,7 +159,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -6,
       } as const,
-    } as const)
+    }) as const
 )
 
 export default Avatar

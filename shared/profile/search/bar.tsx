@@ -1,20 +1,18 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
-import {useDispatch} from 'react-redux'
+import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
-  const dispatch = useDispatch()
-  const onSearch = React.useCallback(() => dispatch(appendPeopleBuilder()), [dispatch])
+  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
+  const onSearch = appendPeopleBuilder
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.SearchFilter
         hotkey="k"
         icon="iconfont-search"
-        onFocus={Styles.isMobile ? undefined : onSearch}
-        onClick={!Styles.isMobile ? undefined : onSearch}
-        placeholderText={`Search${Styles.isMobile ? '' : ' people'}`}
+        onFocus={Kb.Styles.isMobile ? undefined : onSearch}
+        onClick={!Kb.Styles.isMobile ? undefined : onSearch}
+        placeholderText={`Search${Kb.Styles.isMobile ? '' : ' people'}`}
         size="full-width"
         style={styles.filter}
       />
@@ -22,15 +20,15 @@ const ProfileSearch = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     isElectron: {width: '100%'},
     isMobile: {width: 215},
   }),
-  filter: Styles.platformStyles({
+  filter: Kb.Styles.platformStyles({
     isElectron: {
-      marginLeft: Styles.globalMargins.xsmall,
-      marginRight: Styles.globalMargins.xsmall,
+      marginLeft: Kb.Styles.globalMargins.xsmall,
+      marginRight: Kb.Styles.globalMargins.xsmall,
     },
     isMobile: {
       height: 40,

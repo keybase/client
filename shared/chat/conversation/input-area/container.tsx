@@ -1,37 +1,17 @@
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import type * as Types from '../../../constants/types/chat2'
+import * as C from '@/constants'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
-import shallowEqual from 'shallowequal'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-  focusInputCounter: number
-  jumpToRecent: () => void
-  onRequestScrollDown: () => void
-  onRequestScrollToBottom: () => void
-  onRequestScrollUp: () => void
-}
-
-const InputAreaContainer = (p: OwnProps) => {
-  const {conversationIDKey, focusInputCounter, jumpToRecent} = p
-  const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
-  const {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy} = Container.useSelector(
-    state => {
-      const meta = Constants.getMeta(state, conversationIDKey)
-      const {membershipType, resetParticipants, wasFinalizedBy} = meta
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
-      return {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy}
-    },
-    shallowEqual
-  )
+const InputAreaContainer = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
+  const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(s => s.meta)
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (
-    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-    conversationIDKey === Constants.pendingErrorConversationIDKey
+    conversationIDKey === C.Chat.pendingWaitingConversationIDKey ||
+    conversationIDKey === C.Chat.pendingErrorConversationIDKey
   ) {
     noInput = true
   }
@@ -42,20 +22,11 @@ const InputAreaContainer = (p: OwnProps) => {
     return null
   }
   if (isPreview) {
-    return <Preview conversationIDKey={p.conversationIDKey} />
+    return <Preview />
   }
-  if (showThreadSearch && Container.isMobile) {
-    return <ThreadSearch conversationIDKey={p.conversationIDKey} />
+  if (showThreadSearch && C.isMobile) {
+    return <ThreadSearch />
   }
-  return (
-    <Normal
-      focusInputCounter={focusInputCounter}
-      jumpToRecent={jumpToRecent}
-      onRequestScrollDown={onRequestScrollDown}
-      onRequestScrollToBottom={onRequestScrollToBottom}
-      onRequestScrollUp={onRequestScrollUp}
-      conversationIDKey={conversationIDKey}
-    />
-  )
+  return <Normal />
 }
 export default InputAreaContainer

@@ -1,23 +1,17 @@
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
-import type * as Types from '../../../../constants/types/chat2'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
+import type * as T from '@/constants/types'
 
-export const useReply = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const showReplyTo = Container.useSelector(
-    state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
-  )
+export const useReply = (ordinal: T.Chat.Ordinal) => {
+  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)
   return showReplyTo ? <Reply /> : null
 }
 
-const emptyMessage = Constants.makeMessageText()
+const emptyMessage = C.Chat.makeMessageText()
 
-const ReplyToContext = React.createContext<Types.Message>(emptyMessage)
+const ReplyToContext = React.createContext<T.Chat.Message>(emptyMessage)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
@@ -29,7 +23,7 @@ const AvatarHolder = () => {
         type="BodySmallBold"
         style={
           showCenteredHighlight
-            ? Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
+            ? Kb.Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
             : styles.replyUsername
         }
       >
@@ -46,11 +40,11 @@ const ReplyImage = () => {
   const imageHeight = replyTo.previewHeight
   const imageURL = replyTo.previewURL
   const imageWidth = replyTo.previewWidth
-  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : undefined
+  const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
     <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
       <Kb.Box style={sizing?.margins}>
-        <Kb.Image src={imageURL} style={sizing?.dims} />
+        <Kb.Image2 src={imageURL} style={sizing?.dims} />
       </Kb.Box>
     </Kb.Box2>
   )
@@ -95,7 +89,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
         gap="tiny"
         fullWidth={true}
         style={styles.replyContainer}
-        className={Styles.classNames('ReplyBox')}
+        className={Kb.Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
@@ -126,19 +120,16 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 })
 
 const Reply = React.memo(function Reply() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const replyTo = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const replyTo = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.replyTo ?? emptyMessage
   })
 
-  const dispatch = Container.useDispatch()
-  const getIds = React.useContext(GetIdsContext)
-  const onClick = Container.useEvent(() => {
-    const {conversationIDKey} = getIds()
+  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
+  const onClick = C.useEvent(() => {
     const id = replyTo.id
-    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
+    id && replyJump(id)
   })
 
   if (!replyTo.id) return null
@@ -154,20 +145,20 @@ const Reply = React.memo(function Reply() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       quoteContainer: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.grey,
-        paddingLeft: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.grey,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
       },
       replyContainer: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
       replyContentContainer: {flex: 1},
-      replyEdited: {color: Styles.globalColors.black_35},
+      replyEdited: {color: Kb.Styles.globalColors.black_35},
       replyImageContainer: {
         overflow: 'hidden',
         position: 'relative',
@@ -189,7 +180,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       replyUsername: {alignSelf: 'center'},
-      replyUsernameHighlighted: {color: Styles.globalColors.blackOrBlack},
-      textHighlighted: {color: Styles.globalColors.black_50OrBlack_50},
-    } as const)
+      replyUsernameHighlighted: {color: Kb.Styles.globalColors.blackOrBlack},
+      textHighlighted: {color: Kb.Styles.globalColors.black_50OrBlack_50},
+    }) as const
 )

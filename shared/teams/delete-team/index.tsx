@@ -1,11 +1,9 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as WaitingGen from '../../actions/waiting-gen'
-import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import {pluralize} from '../../util/string'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '../subscriber'
 
 export type Props = {
@@ -13,7 +11,7 @@ export type Props = {
   onBack: () => void
   onDelete: () => void
   subteamNames?: Array<string>
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
 }
 
@@ -63,7 +61,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const {deleteWaiting, onBack, teamID} = props
-  const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
+  const error = C.useAnyErrors(C.Teams.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
     if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
@@ -72,19 +70,19 @@ const ReallyDeleteTeam = (props: Props) => {
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
 
-  const dispatch = Container.useDispatch()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)}))
+      dispatchClearWaiting(C.Teams.deleteTeamWaitingKey(teamID))
     }
-  }, [dispatch, teamID])
+  }, [dispatchClearWaiting, teamID])
   useTeamDetailsSubscribe(teamID)
 
   if (props.subteamNames) {
     return (
       <Kb.ConfirmModal
         content={
-          <Kb.Text type="Body" center={true} style={{marginTop: Styles.globalMargins.medium}}>
+          <Kb.Text type="Body" center={true} style={{marginTop: Kb.Styles.globalMargins.medium}}>
             Before you can delete <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>, delete its{' '}
             {props.subteamNames.length} {pluralize('subteam', props.subteamNames.length)}:{' '}
             <Kb.Text type="BodySemibold">{props.subteamNames.join(', ')}</Kb.Text>.
@@ -92,7 +90,7 @@ const ReallyDeleteTeam = (props: Props) => {
         }
         header={<Header {...props} />}
         prompt={
-          <Kb.Text type="Header" center={true} style={Styles.padding(0, Styles.globalMargins.small)}>
+          <Kb.Text type="Header" center={true} style={Kb.Styles.padding(0, Kb.Styles.globalMargins.small)}>
             You can't delete {props.teamname} because it has subteams.
           </Kb.Text>
         }
@@ -120,7 +118,7 @@ const ReallyDeleteTeam = (props: Props) => {
       onCancel={props.onBack}
       onConfirm={disabled ? undefined : props.onDelete}
       prompt={`Delete ${props.teamname}?`}
-      waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
+      waitingKey={C.Teams.deleteTeamWaitingKey(props.teamID)}
     />
   )
 }

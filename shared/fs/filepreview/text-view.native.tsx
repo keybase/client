@@ -1,5 +1,4 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from './text-view'
 
 const TextView = (props: Props) => (
@@ -15,7 +14,7 @@ const TextView = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       progressContainer: {
@@ -26,7 +25,7 @@ const styles = Styles.styleSheetCreate(
         height: '100%',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 // We need to do the spacing in the guest content of the webView rather than
@@ -35,21 +34,21 @@ const styles = Styles.styleSheetCreate(
 // provides the top and bottom margin that blends with the rest of the app.
 const webviewCSS = `
 html{
-  background-color: ${Styles.globalColors.blueLighter3};
-  padding-top: ${Styles.globalMargins.mediumLarge};
-  padding-bottom: ${Styles.globalMargins.mediumLarge}; 
+  background-color: ${Kb.Styles.globalColors.blueLighter3};
+  padding-top: ${Kb.Styles.globalMargins.mediumLarge};
+  padding-bottom: ${Kb.Styles.globalMargins.mediumLarge};
   margin: 0;
 }
 body{
-  background-color: ${Styles.globalColors.white};
-  padding: ${Styles.globalMargins.medium};
+  background-color: ${Kb.Styles.globalColors.white};
+  padding: ${Kb.Styles.globalMargins.medium};
   margin: 0;
-  color: ${Styles.globalColors.black};
+  color: ${Kb.Styles.globalColors.black};
   font-size: 15;
   line-height: 1.6;
 }
 pre{
-  font-family: "${Styles.globalStyles.fontTerminal.fontFamily}", monospace;
+  font-family: "${Kb.Styles.globalStyles.fontTerminal.fontFamily}", monospace;
 }
 `
 

@@ -1,22 +1,23 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import Banner from './index'
-import * as FsGen from '../../../actions/fs-gen'
-import * as Container from '../../../util/container'
 
 type OwnProps = {
-  alwaysShow?: boolean | null
+  alwaysShow?: boolean
 }
 
 const SFMIContainer = (op: OwnProps) => {
-  const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
-  const settings = Container.useSelector(state => state.fs.settings)
-  const dispatch = Container.useDispatch()
-  const onDisable = React.useCallback(() => dispatch(FsGen.createDriverDisable()), [dispatch])
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const setSfmiBannerDismissedDesktop = C.useFSState(s => s.dispatch.dynamic.setSfmiBannerDismissedDesktop)
+  const settings = C.useFSState(s => s.settings)
+  const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
   const onDismiss = React.useCallback(
-    () => dispatch(FsGen.createSetSfmiBannerDismissed({dismissed: true})),
-    [dispatch]
+    () => setSfmiBannerDismissedDesktop?.(true),
+    [setSfmiBannerDismissedDesktop]
   )
-  const onEnable = React.useCallback(() => dispatch(FsGen.createDriverEnable({})), [dispatch])
+  const onEnable = driverEnable
   return (
     <Banner
       alwaysShow={op.alwaysShow}

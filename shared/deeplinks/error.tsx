@@ -1,7 +1,5 @@
-import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Styles from '../styles'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 
 type KeybaseLinkErrorBodyProps = {
   message: string
@@ -22,36 +20,19 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   )
 }
 
-// type OwnProps = Container.RouteProps<'keybaseLinkError'>
-
-const KeybaseLinkError = (/*props: OwnProps*/) => {
-  // const errorSource = props.route.params?.errorSource ?? 'app'
-  const message = Container.useSelector(s => {
-    /*
-    switch (errorSource) {
-      case 'app':
-                */
-    return s.deeplinks.keybaseLinkError
-    /*
-      case 'sep7':
-        return s.wallets.sep7ConfirmError
-      case 'sep6':
-        return s.wallets.sep6Message
-      default:
-        return 'unknown'
-    }*/
-  })
-  // const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
-  const isError = true // errorSource !== 'sep6' || sep6Error
-  const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
+const KeybaseLinkError = () => {
+  const deepError = C.useDeepLinksState(s => s.keybaseLinkError)
+  const message = deepError
+  const isError = true
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onClose = () => navigateUp()
   return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
     },
     isElectron: {
       height: 560,

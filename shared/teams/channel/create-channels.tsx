@@ -1,30 +1,32 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as TeamsTypes from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Container from '../../util/container'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
-type Props = Container.RouteProps<'teamCreateChannels'>
+type Props = {teamID: T.Teams.TeamID}
 
 const CreateChannels = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? TeamsTypes.noTeamID
-  const dispatch = Container.useDispatch()
+  const teamID = props.teamID
+  const setChannelCreationError = C.useTeamsState(s => s.dispatch.setChannelCreationError)
   React.useEffect(
     () => () => {
-      dispatch(TeamsGen.createSetChannelCreationError({error: ''}))
+      setChannelCreationError('')
     },
-    [teamID, dispatch]
+    [teamID, setChannelCreationError]
   )
-  const waiting = Container.useSelector(s => s.teams.creatingChannels)
-  const error = Container.useSelector(s => s.teams.errorInChannelCreation)
+  const waiting = C.useTeamsState(s => s.creatingChannels)
+  const error = C.useTeamsState(s => s.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
 
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const createChannels = C.useTeamsState(s => s.dispatch.createChannels)
   React.useEffect(() => {
     if (prevWaiting === true && !waiting) {
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      loadTeamChannelList(teamID)
     }
-  }, [dispatch, prevWaiting, teamID, waiting])
+  }, [loadTeamChannelList, prevWaiting, teamID, waiting])
 
   const success = prevWaiting && !waiting && !error
 
@@ -43,12 +45,7 @@ const CreateChannels = (props: Props) => {
   )
 
   const onSubmitChannels = (channels: Array<string>) => {
-    dispatch(
-      TeamsGen.createCreateChannels({
-        channelnames: channels,
-        teamID,
-      })
-    )
+    createChannels(teamID, channels)
   }
   return (
     <CreateChannelsModal

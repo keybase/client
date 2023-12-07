@@ -1,5 +1,4 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   onCancel: () => void
@@ -8,15 +7,19 @@ type Props = {
 
 const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <Kb.MaybePopup onClose={onCancel}>
-    {Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
+    {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
     <Kb.Box
-      style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box] as const)}
+      style={Kb.Styles.collapseStyles([
+        Kb.Styles.globalStyles.flexBoxColumn,
+        styles.padding,
+        styles.box,
+      ] as const)}
     >
-      <Kb.Icon type={Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-      <Kb.Text style={{padding: Styles.globalMargins.small}} type="Header">
+      <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+      <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
         Delete conversation history?
       </Kb.Text>
-      <Kb.Text center={Styles.isMobile} style={styles.text} type="Body">
+      <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Kb.Text>
       <Kb.Box style={styles.buttonBox}>
@@ -25,61 +28,61 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
           style={styles.button}
           onClick={onCancel}
           label="Cancel"
-          fullWidth={Styles.isMobile}
+          fullWidth={Kb.Styles.isMobile}
         />
         <Kb.Button
           type="Danger"
           style={styles.button}
           onClick={onDeleteHistory}
           label="Yes, clear for everyone"
-          fullWidth={Styles.isMobile}
+          fullWidth={Kb.Styles.isMobile}
         />
       </Kb.Box>
     </Kb.Box>
   </Kb.MaybePopup>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      box: Styles.platformStyles({
+      box: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           justifyContent: 'center',
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           width: '100%',
         },
       }),
-      button: Styles.platformStyles({
-        isElectron: {marginLeft: Styles.globalMargins.tiny},
-        isMobile: {marginTop: Styles.globalMargins.tiny},
+      button: Kb.Styles.platformStyles({
+        isElectron: {marginLeft: Kb.Styles.globalMargins.tiny},
+        isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
       }),
-      buttonBox: Styles.platformStyles({
-        common: {marginTop: Styles.globalMargins.xlarge},
-        isElectron: {...Styles.globalStyles.flexBoxRow},
+      buttonBox: Kb.Styles.platformStyles({
+        common: {marginTop: Kb.Styles.globalMargins.xlarge},
+        isElectron: {...Kb.Styles.globalStyles.flexBoxRow},
         isMobile: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'stretch',
           flex: 1,
           flexDirection: 'column-reverse',
-          paddingTop: Styles.globalMargins.xlarge,
+          paddingTop: Kb.Styles.globalMargins.xlarge,
           width: '100%',
         },
       }),
-      padding: Styles.platformStyles({
+      padding: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: 40,
           marginLeft: 80,
           marginRight: 80,
           marginTop: 40,
         },
-        isMobile: {paddingTop: Styles.globalMargins.xlarge},
+        isMobile: {paddingTop: Kb.Styles.globalMargins.xlarge},
       }),
-      text: {padding: Styles.globalMargins.small},
-    } as const)
+      text: {padding: Kb.Styles.globalMargins.small},
+    }) as const
 )
 
 export default DeleteHistoryWarning

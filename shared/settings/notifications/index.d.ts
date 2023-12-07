@@ -1,9 +1,9 @@
-import * as React from 'react'
-import type * as Types from '../../constants/types/settings'
+import type * as React from 'react'
+import type {NotificationsGroupState} from '@/constants/settings-notifications'
 
 export type Props = {
   allowEdit: boolean
-  groups: Map<string, Types.NotificationsGroupState>
+  groups: Map<string, NotificationsGroupState>
   onBack?: () => void
   onClickYourAccount: () => void
   onToggle: (groupName: string, name: string) => void
@@ -14,4 +14,5 @@ export type Props = {
   onToggleSound?: (sound: boolean) => void
 }
 
-export default class Notifications extends React.Component<Props> {}
+declare const Notifications: (p: Props) => React.ReactNode
+export default Notifications

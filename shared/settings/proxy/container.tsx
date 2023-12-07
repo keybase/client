@@ -1,52 +1,50 @@
-import * as SettingsGen from '../../actions/settings-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import * as C from '@/constants'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
-type OwnProps = {}
-
-const mapStateToProps = (state: Container.TypedState) => {
-  return {
-    allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
-    proxyData: state.settings.proxyData,
+const useConnect = () => {
+  const allowTlsMitmToggle = C.useSettingsState(s => s.didToggleCertificatePinning)
+  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
+  const proxyData = C.useSettingsState(s => s.proxyData)
+  const saveProxyData = C.useSettingsState(s => s.dispatch.setProxyData)
+  const loadProxyData = C.useSettingsState(s => s.dispatch.loadProxyData)
+  const resetCertPinningToggle = () => {
+    setDidToggleCertificatePinning()
   }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _loadProxyData: () => dispatch(SettingsGen.createLoadProxyData()),
-  _resetCertPinningToggle: () => dispatch(SettingsGen.createCertificatePinningToggled({})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['login']})),
-  onDisableCertPinning: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
-  onEnableCertPinning: () => dispatch(SettingsGen.createCertificatePinningToggled({toggled: false})),
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(SettingsGen.createSaveProxyData({proxyData})),
-})
-
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  _: OwnProps
-) => {
-  return {
-    _loadProxyData: dispatchProps._loadProxyData,
-    _resetCertPinningToggle: dispatchProps._resetCertPinningToggle,
-    allowTlsMitmToggle: stateProps.allowTlsMitmToggle,
-    onBack: dispatchProps.onBack,
-    onDisableCertPinning: dispatchProps.onDisableCertPinning,
-    onEnableCertPinning: dispatchProps.onEnableCertPinning,
-    proxyData: stateProps.proxyData,
-    saveProxyData: dispatchProps.saveProxyData,
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onBack = () => {
+    navigateAppend('login')
   }
+  const onDisableCertPinning = () => {
+    navigateAppend('disableCertPinningModal')
+  }
+  const onEnableCertPinning = () => {
+    setDidToggleCertificatePinning(false)
+  }
+  const props = {
+    allowTlsMitmToggle,
+    loadProxyData,
+    onBack,
+    onDisableCertPinning,
+    onEnableCertPinning,
+    proxyData,
+    resetCertPinningToggle,
+    saveProxyData,
+  }
+
+  return props
 }
 
 // Export the popup as the default export so it is easy to make a route pointing to it
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProxySettingsPopup)
+const Container = () => {
+  const props = useConnect()
+  return <ProxySettingsPopup {...props} />
+}
 
 // The proxy settings component used in the advanced settings screen
-const ProxySettings = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(ProxySettingsComponent)
+const ProxySettings = () => {
+  const props = useConnect()
+  return <ProxySettingsComponent {...props} />
+}
 export {ProxySettings}
+
+export default Container

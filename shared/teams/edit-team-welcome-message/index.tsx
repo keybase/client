@@ -1,47 +1,43 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
-import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {computeWelcomeMessageTextRaw} from '@/chat/conversation/messages/cards/team-journey/util'
 
-type Props = Container.RouteProps<'teamEditWelcomeMessage'>
+type Props = {teamID: T.Teams.TeamID}
 
 // welcomeMessageMaxLen is duplicated at
 // go/chat/server.go:welcomeMessageMaxLen; keep the values in sync!
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const teamID = props.teamID
 
-  if (teamID === Types.noTeamID) {
+  if (teamID === T.Teams.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
 
-  const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
-  const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Container.useSelector(
-    state => Constants.getTeamWelcomeMessageByID(state, teamID)!
-  )
+  const waitingKey = C.Teams.setWelcomeMessageWaitingKey(teamID)
+  const waiting = C.useAnyWaiting(waitingKey)
+  const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
+  const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
 
   const [welcomeMessage, setWelcomeMessage] = React.useState({
-    raw: origWelcomeMessage.raw,
-    set: origWelcomeMessage.set,
+    raw: origWelcomeMessage?.raw ?? '',
+    set: origWelcomeMessage?.set ?? true,
   })
   const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
-  const dispatch = Container.useDispatch()
+  const _setWelcomeMessage = C.useTeamsState(s => s.dispatch.setWelcomeMessage)
   const nav = Container.useSafeNavigation()
-  const onSave = () => dispatch(TeamsGen.createSetWelcomeMessage({message: welcomeMessage, teamID}))
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)
+  const onClose = () => nav.safeNavigateUp()
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
-  }, [waiting, wasWaiting, nav, dispatch, error])
+    if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
+  }, [waiting, wasWaiting, nav, error])
 
   return (
     <Kb.Modal
@@ -61,7 +57,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
             <Kb.Button
               style={styles.button}
               disabled={
-                welcomeMessage.raw === origWelcomeMessage.raw && welcomeMessage.set === origWelcomeMessage.set
+                welcomeMessage.raw === origWelcomeMessage?.raw &&
+                welcomeMessage.set === origWelcomeMessage.set
               }
               label="Save"
               onClick={onSave}
@@ -81,14 +78,14 @@ const EditTeamWelcomeMessage = (props: Props) => {
           value={computeWelcomeMessageTextRaw(welcomeMessage, false /* cannotWrite */)}
           multiline={true}
           rowsMin={3}
-          rowsMax={Styles.isMobile ? 8 : 3}
+          rowsMax={Kb.Styles.isMobile ? 8 : 3}
           maxLength={welcomeMessageMaxLen}
           autoFocus={true}
         />
-        {(!Styles.isMobile || showNoWelcomeMessage) && (
+        {(!Kb.Styles.isMobile || showNoWelcomeMessage) && (
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               styles.info,
               !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden' as const},
             ] as any)}
@@ -101,7 +98,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     width: '50%',
   },
@@ -110,17 +107,17 @@ const styles = Styles.styleSheetCreate(() => ({
     minHeight: undefined,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
-    paddingBottom: Styles.globalMargins.large,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    paddingBottom: Kb.Styles.globalMargins.large,
     width: '100%',
   },
   info: {
-    paddingTop: Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   title: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

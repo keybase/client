@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
+index f726405..77a45bb 100644
+--- a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
++++ b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
+@@ -50,6 +50,7 @@ export function isWindowAvailable() {
+ }
+ 
+ export function isReducedMotion() {
++return false;
+   return isWeb()
+     ? isWindowAvailable()
+       ? // @ts-ignore Fallback if `window` is undefined.

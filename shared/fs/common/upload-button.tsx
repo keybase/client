@@ -1,77 +1,49 @@
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as FsGen from '../../actions/fs-gen'
-import * as Platforms from '../../constants/platform'
-import type * as Styles from '../../styles'
+import * as React from 'react'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as Styles from '@/styles'
 
 type OwnProps = {
-  path: Types.Path
-  style?: Styles.StylesCrossPlatform | null
+  path: T.FS.Path
+  style?: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  openAndUploadBoth: Platforms.isDarwin
-    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
-    : null,
-  openAndUploadDirectory:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(
-            FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory})
-          )
-      : null,
-  openAndUploadFile:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
-      : null,
-  pickAndUploadMixed: Platforms.isIOS
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
-    : null,
-  pickAndUploadPhoto: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
-    : null,
-  pickAndUploadVideo: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
-    : null,
-})
-
-const mergeProps = (
-  s: ReturnType<typeof mapStateToProps>,
-  d: ReturnType<typeof mapDispatchToProps>,
-  o: OwnProps
-) => ({
-  canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
-  style: o.style,
-  ...d,
-})
-
-type UploadButtonProps = ReturnType<typeof mergeProps>
+type UploadButtonProps = {
+  canUpload: boolean
+  openAndUploadBoth?: () => void
+  openAndUploadDirectory?: () => void
+  openAndUploadFile?: () => void
+  pickAndUploadMixed?: () => void
+  pickAndUploadPhoto?: () => void
+  pickAndUploadVideo?: () => void
+  style: Styles.StylesCrossPlatform
+}
 
 const UploadButton = (props: UploadButtonProps) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      items={[
-        ...(props.pickAndUploadPhoto ? [{onClick: props.pickAndUploadPhoto, title: 'Upload photo'}] : []),
-        ...(props.pickAndUploadVideo ? [{onClick: props.pickAndUploadVideo, title: 'Upload video'}] : []),
-        ...(props.openAndUploadDirectory
-          ? [{onClick: props.openAndUploadDirectory, title: 'Upload directory'}]
-          : []),
-        ...(props.openAndUploadFile ? [{onClick: props.openAndUploadFile, title: 'Upload file'}] : []),
-      ]}
-      position="bottom left"
-      closeOnSelect={true}
-    />
-  ))
+  const {pickAndUploadPhoto, pickAndUploadVideo, openAndUploadDirectory, openAndUploadFile} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          items={[
+            ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
+            ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
+            ...(openAndUploadDirectory ? [{onClick: openAndUploadDirectory, title: 'Upload directory'}] : []),
+            ...(openAndUploadFile ? [{onClick: openAndUploadFile, title: 'Upload file'}] : []),
+          ]}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      )
+    },
+    [openAndUploadDirectory, openAndUploadFile, pickAndUploadPhoto, pickAndUploadVideo]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (!props.canUpload) {
     return null
@@ -87,7 +59,7 @@ const UploadButton = (props: UploadButtonProps) => {
   // dialog. In both cases a menu is needed.
   return (
     <>
-      {Platforms.isMobile ? (
+      {C.isMobile ? (
         <Kb.Icon type="iconfont-upload" padding="tiny" onClick={toggleShowingPopup} />
       ) : (
         <Kb.Button onClick={toggleShowingPopup} label="Upload" ref={popupAnchor} style={props.style} />
@@ -97,4 +69,46 @@ const UploadButton = (props: UploadButtonProps) => {
   )
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(UploadButton)
+const Container = (ownProps: OwnProps) => {
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
+  const openAndUploadDesktop = C.useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
+  const pickAndUploadMobile = C.useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
+  const _openAndUploadBoth = () => {
+    openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
+  }
+  const openAndUploadBoth = C.isDarwin ? _openAndUploadBoth : undefined
+  const _openAndUploadDirectory = () => {
+    openAndUploadDesktop?.(T.FS.OpenDialogType.Directory, ownProps.path)
+  }
+  const openAndUploadDirectory = C.isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
+  const _openAndUploadFile = () => {
+    openAndUploadDesktop?.(T.FS.OpenDialogType.File, ownProps.path)
+  }
+  const openAndUploadFile = C.isElectron && !C.isDarwin ? _openAndUploadFile : undefined
+  const _pickAndUploadMixed = () => {
+    pickAndUploadMobile?.(T.FS.MobilePickType.Mixed, ownProps.path)
+  }
+  const pickAndUploadMixed = C.isIOS ? _pickAndUploadMixed : undefined
+  const _pickAndUploadPhoto = () => {
+    pickAndUploadMobile?.(T.FS.MobilePickType.Photo, ownProps.path)
+  }
+  const pickAndUploadPhoto = C.isAndroid ? _pickAndUploadPhoto : undefined
+  const _pickAndUploadVideo = () => {
+    pickAndUploadMobile?.(T.FS.MobilePickType.Video, ownProps.path)
+  }
+  const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
+
+  const props = {
+    canUpload: _pathItem.type === 'folder' && _pathItem.writable,
+    openAndUploadBoth,
+    openAndUploadDirectory,
+    openAndUploadFile,
+    pickAndUploadMixed,
+    pickAndUploadPhoto,
+    pickAndUploadVideo,
+    style: ownProps.style,
+  }
+  return <UploadButton {...props} />
+}
+
+export default Container

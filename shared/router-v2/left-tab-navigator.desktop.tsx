@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 
@@ -58,28 +58,39 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
     [renderedRef]
   )
 
+  const hasModals = C.useRouterState(s => C.Router2.getModalStack(s.navState).length > 0)
+
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
-        <TabBar state={state} navigation={navigation} />
+        <TabBar state={state} navigation={navigation as any} />
         <Kb.BoxGrow>
-          {state.routes.map((route, i) => (
-            <RouteBox
-              shouldRender={shouldRender}
-              key={route.name}
-              selected={i === state.index}
-              route={route}
-              desc={descriptors[route.key]}
-            />
-          ))}
+          {state.routes.map((route, i) => {
+            const d = descriptors[route.key]
+            return d ? (
+              <RouteBox
+                shouldRender={shouldRender}
+                key={route.name}
+                selected={i === state.index}
+                route={route}
+                desc={d}
+              />
+            ) : null
+          })}
         </Kb.BoxGrow>
+        <ModalBackdrop hasModals={hasModals} />
       </Kb.Box2>
     </NavigationContent>
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
+const ModalBackdrop = React.memo(function ModalBackdrop(p: {hasModals: boolean}) {
+  const {hasModals} = p
+  return <div className={Kb.Styles.classNames({'has-modals': hasModals, 'modal-backdrop': true})} />
+})
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  box: {backgroundColor: Kb.Styles.globalColors.white},
   hidden: {display: 'none'},
 }))
 

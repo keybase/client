@@ -1,18 +1,12 @@
-import * as Kbfs from '../fs/common'
-import * as FsConstants from '../constants/fs'
-import * as Styles from '../styles'
-import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from '../actions/config-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Constants from '../constants/router2'
-import * as Container from '../util/container'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
+import * as Kbfs from '@/fs/common'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import logger from '@/logger'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
-import {isDarkMode} from '../styles/dark-mode'
-import {colors, darkColors, themed} from '../styles/colors'
-import type {NavState} from '../constants/types/route-tree'
+import {colors, darkColors, themed} from '@/styles/colors'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -21,34 +15,33 @@ export enum AppState {
 }
 
 const useConnectNavToRedux = () => {
-  const dispatch = Container.useDispatch()
   const setNavOnce = React.useRef(false)
+  const setNavigatorExists = C.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
-      if (Constants.navigationRef_.isReady()) {
+      if (C.Router2.navigationRef_.isReady()) {
         setNavOnce.current = true
-        dispatch(ConfigGen.createSetNavigator({navigator}))
+        setNavigatorExists()
 
         if (__DEV__) {
-          // @ts-ignore
-          window.DEBUGNavigator = Constants.navigationRef_.current
-          // @ts-ignore
-          window.DEBUGRouter2 = Constants
+          window.DEBUGNavigator = C.Router2.navigationRef_.current
+          window.DEBUGRouter2 = C.Router2
+          window.KBCONSTANTS = require('@/constants')
         }
       }
     }
-  }, [setNavOnce, dispatch])
+  }, [setNavigatorExists, setNavOnce])
 }
 
 // if dark mode changes we should redraw
 // on ios if dark mode changes and we're on system, ignore as it will thrash and we don't want that
 const useDarkNeedsRedraw = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
 
-  if (Styles.isIOS) {
+  if (Kb.Styles.isIOS) {
     if (darkModePreferenceChanged) {
       return true
     }
@@ -68,7 +61,7 @@ const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
 }
 
 const useIsDarkChanged = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
   return darkChanged
 }
@@ -76,8 +69,8 @@ const useIsDarkChanged = () => {
 const useInitialState = () => {
   const darkChanged = useIsDarkChanged()
   return darkChanged
-    ? Constants.navigationRef_?.isReady()
-      ? Constants.navigationRef_?.getRootState()
+    ? C.Router2.navigationRef_.isReady()
+      ? C.Router2.navigationRef_.getRootState()
       : undefined
     : undefined
 }
@@ -86,11 +79,9 @@ export const useShared = () => {
   useConnectNavToRedux()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
-  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const dispatch = Container.useDispatch()
+  const loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
+  const loggedIn = C.useConfigState(s => s.loggedIn)
   const navContainerKey = React.useRef(1)
-  const oldNavState = React.useRef<NavState | undefined>(undefined)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
 
@@ -98,22 +89,28 @@ export const useShared = () => {
     appState.current = AppState.NEEDS_INIT
   }
 
+  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
-    const old = oldNavState.current
-    const ns = Constants.getRootState()
-    ns &&
-      dispatch(
-        RouteTreeGen.createOnNavChanged({
-          navAction: undefined,
-          next: ns,
-          prev: old,
-        })
-      )
-    oldNavState.current = ns
-  }, [oldNavState, dispatch])
+    const ns = C.Router2.getRootState()
+    setNavState(ns)
+  }, [setNavState])
 
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()
+
+  const onUnhandledAction = React.useCallback(
+    (
+      a: Readonly<{
+        type: string
+        payload?: object | undefined
+        source?: string | undefined
+        target?: string | undefined
+      }>
+    ) => {
+      logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+    },
+    []
+  )
   return {
     appState,
     initialState,
@@ -121,6 +118,7 @@ export const useShared = () => {
     loggedInLoaded,
     navKey,
     onStateChange,
+    onUnhandledAction,
   }
 }
 
@@ -139,27 +137,27 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
       fullHeight={true}
       fullWidth={true}
       style={{
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
       }}
     >
-      <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+      <Loading allowFeedback={false} failed="" status="" />
     </Kb.Box2>
   )
 })
 
 export const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
+  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   fsBadgeIconUpload: {
-    bottom: Styles.globalMargins.tiny,
-    height: Styles.globalMargins.small,
+    bottom: Kb.Styles.globalMargins.tiny,
+    height: Kb.Styles.globalMargins.small,
     position: 'absolute',
-    right: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
+    right: Kb.Styles.globalMargins.small,
+    width: Kb.Styles.globalMargins.small,
   },
 }))
 
@@ -167,13 +165,13 @@ const styles = Styles.styleSheetCreate(() => ({
 export const theme: Theme = {
   colors: {
     get background() {
-      return themed.fastBlank as string
+      return themed.white
     },
     get border() {
       return themed.black_10 as string
     },
     get card() {
-      return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get notification() {
       return themed.black as string
@@ -182,7 +180,7 @@ export const theme: Theme = {
       return themed.black as string
     },
     get text() {
-      return (isDarkMode() ? darkColors.black : colors.black) as string
+      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
     },
   },
   dark: false,

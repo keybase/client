@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {formatDuration} from '../../util/timestamp'
+import {formatDuration} from '@/util/timestamp'
 
 export type UploadCountdownHOCProps = {
   endEstimate?: number
   files: number
-  fileName: string | null
+  fileName?: string
   isOnline: boolean
   totalSyncingBytes: number
   debugToggleShow?: () => void

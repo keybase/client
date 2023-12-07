@@ -1,5 +1,5 @@
-import type {OpenDialogOptions, SaveDialogOptions} from '../../util/electron.desktop'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type {OpenDialogOptions, SaveDialogOptions} from '@/util/electron.desktop'
+import type * as RPCTypes from '@/constants/types/rpc-gen'
 
 export type Action =
   | {type: 'appStartedUp'}
@@ -62,7 +62,7 @@ export type Action =
   | {type: 'relaunchApp'}
   | {type: 'uninstallKBFSDialog'}
   | {type: 'uninstallDokanDialog'}
-  | {type: 'selectFilesToUploadDialog'; payload: {parent: string | null; type: 'file' | 'directory' | 'both'}}
+  | {type: 'selectFilesToUploadDialog'; payload: {parent?: string; type: 'file' | 'directory' | 'both'}}
   | {type: 'ctlQuit'}
   | {
       type: 'windowsCheckMountFromOtherDokanInstall'
@@ -77,4 +77,4 @@ export type Action =
   | {type: 'clipboardAvailableFormats'}
   | {type: 'installCachedDokan'}
   | {type: 'uninstallDokan'; payload: {execPath: string}}
-  | {type: 'engineSend'; payload: {buf: Buffer}}
+  | {type: 'engineSend'; payload: {buf: Uint8Array}}

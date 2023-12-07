@@ -1,13 +1,15 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 
 export type Info = {
   type: 'image' | 'file' | 'video'
   title: string
   filename: string
-  outboxID: RPCChatTypes.OutboxID | null
+  outboxID?: T.RPCChat.OutboxID
+  url?: string
 }
 
 type PathAndInfo = {
@@ -41,7 +43,7 @@ class GetTitles extends React.Component<Props, State> {
   _onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
 
-    const {info} = this.props.pathAndInfos[this.state.index]
+    const {info} = this.props.pathAndInfos[this.state.index] ?? {}
     if (!info) return
 
     const nextIndex = this.state.index + 1
@@ -84,24 +86,22 @@ class GetTitles extends React.Component<Props, State> {
     let preview: React.ReactNode = null
     switch (info.type) {
       case 'image':
-        preview = <Kb.ZoomableImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+        preview = path ? <Kb.ZoomableImage src={info.url ?? path} style={styles.image} /> : null
         break
       case 'video':
-        preview = (
-          <Kb.Video
-            autoPlay={false}
-            allowFile={true}
-            muted={true}
-            url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
-          />
-        )
+        preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
         break
-      default:
-        preview = (
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.Icon type="icon-file-uploading-48" />
-          </Kb.Box2>
-        )
+      default: {
+        if (C.isMobile && path?.toLowerCase().endsWith('.heic')) {
+          preview = <Kb.ZoomableImage src={path} style={styles.image} />
+        } else {
+          preview = (
+            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+              <Kb.Icon type="icon-file-uploading-48" />
+            </Kb.Box2>
+          )
+        }
+      }
     }
 
     return (
@@ -138,18 +138,11 @@ class GetTitles extends React.Component<Props, State> {
               <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
             )}
             {this._isLast() ? (
-              <Kb.WaitingButton
-                fullWidth={!this._multiUpload()}
-                waitingKey={null}
-                onClick={this._onSubmit}
-                label="Send"
-              />
+              <Kb.WaitingButton fullWidth={!this._multiUpload()} onClick={this._onSubmit} label="Send" />
             ) : (
               <Kb.Button fullWidth={!this._multiUpload()} onClick={this._onNext} label="Next" />
             )}
-            {this._multiUpload() ? (
-              <Kb.WaitingButton waitingKey={null} onClick={this._onSubmit} label="Send All" />
-            ) : null}
+            {this._multiUpload() ? <Kb.WaitingButton onClick={this._onSubmit} label="Send All" /> : null}
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.PopupWrapper>
@@ -248,7 +241,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {borderRadius: Styles.borderRadius},
       }),
-    } as const)
+    }) as const
 )
 
 export default GetTitles

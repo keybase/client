@@ -1,20 +1,15 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ConfigGen from '../../actions/config-gen'
-import * as Container from '../../util/container'
-import * as WalletsType from '../../constants/types/wallets'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/tracker2'
-import {SiteIcon} from '../../profile/generic/shared'
-import {formatTimeForAssertionPopup} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {SiteIcon} from '@/profile/generic/shared'
+import {formatTimeForAssertionPopup} from '@/util/timestamp'
 
 type Props = {
-  color: Types.AssertionColor
+  color: T.Tracker.AssertionColor
   isSuggestion: boolean
   isYours: boolean
-  metas: ReadonlyArray<Types.AssertionMeta>
+  metas: ReadonlyArray<T.Tracker.AssertionMeta>
   notAUser: boolean
   onHideStellar: (hidden: boolean) => void
   onRecheck?: () => void
@@ -23,12 +18,12 @@ type Props = {
   onShowSite?: () => void
   onCreateProof?: () => void
   proofURL: string
-  siteIcon?: Types.SiteIconSet
-  siteIconDarkmode?: Types.SiteIconSet
-  siteIconFull?: Types.SiteIconSet
-  siteIconFullDarkmode?: Types.SiteIconSet
+  siteIcon?: T.Tracker.SiteIconSet
+  siteIconDarkmode?: T.Tracker.SiteIconSet
+  siteIconFull?: T.Tracker.SiteIconSet
+  siteIconFullDarkmode?: T.Tracker.SiteIconSet
   siteURL: string
-  state: Types.AssertionState
+  state: T.Tracker.AssertionState
   stellarHidden: boolean
   timestamp: number
   type: string
@@ -45,7 +40,7 @@ const proofTypeToDesc = (proofType: string) => {
   }
 }
 
-const stateToIcon = (state: Types.AssertionState) => {
+const stateToIcon = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'iconfont-proof-pending'
@@ -63,7 +58,7 @@ const stateToIcon = (state: Types.AssertionState) => {
 }
 
 // alternate versions of the ones from `stateToIcon` for the popup menu header
-const stateToDecorationIcon = (state: Types.AssertionState) => {
+const stateToDecorationIcon = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'icon-proof-pending'
@@ -80,7 +75,7 @@ const stateToDecorationIcon = (state: Types.AssertionState) => {
   }
 }
 
-const stateToValueTextStyle = (state: Types.AssertionState) => {
+const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'revoked':
       return styles.strikeThrough
@@ -94,133 +89,114 @@ const stateToValueTextStyle = (state: Types.AssertionState) => {
   }
 }
 
-const assertionColorToTextColor = (c: Types.AssertionColor) => {
+const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
-      return Styles.globalColors.blueDark
+      return Kb.Styles.globalColors.blueDark
     case 'red':
-      return Styles.globalColors.redDark
+      return Kb.Styles.globalColors.redDark
     case 'black':
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     case 'green':
-      return Styles.globalColors.greenDark
+      return Kb.Styles.globalColors.greenDark
     case 'gray':
-      return Styles.globalColors.black_50
+      return Kb.Styles.globalColors.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Styles.globalColors.redDark
+      return Kb.Styles.globalColors.redDark
   }
 }
 
-const assertionColorToColor = (c: Types.AssertionColor) => {
+const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
-      return Styles.globalColors.blue
+      return Kb.Styles.globalColors.blue
     case 'red':
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
     case 'black':
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     case 'green':
-      return Styles.globalColors.green
+      return Kb.Styles.globalColors.green
     case 'gray':
-      return Styles.globalColors.black_50
+      return Kb.Styles.globalColors.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
   }
 }
 
 const StellarValue = (p: Props) => {
   const {value, color} = p
-  const dispatch = Container.useDispatch()
 
-  const onCopyAddress = () => {
-    dispatch(ConfigGen.createCopyToClipboard({text: value}))
-  }
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const onCopyAddress = React.useCallback(() => {
+    copyToClipboard(value)
+  }, [copyToClipboard, value])
 
-  const onWhatIsStellar = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
-  }
+  const menuItems: Kb.MenuItems = React.useMemo(
+    () => [{onClick: onCopyAddress, title: 'Copy address'}],
+    [onCopyAddress]
+  )
 
-  const onRequestLumens = () => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: true,
-        recipientType: 'keybaseUser',
-        to: value.split('*')[0],
-      })
-    )
-  }
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom center"
+        />
+      )
+    },
+    [menuItems]
+  )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const onSendLumens = () => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: false,
-        recipientType: 'keybaseUser',
-        to: value.split('*')[0],
-      })
-    )
-  }
-
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom center"
-    />
-  ))
-
-  const menuItems: Kb.MenuItems = [
-    {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
-    {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
-    {onClick: onCopyAddress, title: 'Copy address'},
-    'Divider' as const,
-    {onClick: onWhatIsStellar, title: 'What is Stellar?'},
-  ]
-
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Text
       type="BodyPrimaryLink"
-      style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+      style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
       {value}
     </Kb.Text>
   ) : (
-    <Kb.Box ref={popupAnchor} style={styles.tooltip}>
-      <Kb.WithTooltip tooltip={Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
+    <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
+      <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
           onClick={toggleShowingPopup}
-          style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+          style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
         >
           {value}
         </Kb.Text>
       </Kb.WithTooltip>
       {popup}
-    </Kb.Box>
+    </Kb.Box2Measure>
   )
 }
 
 const Value = (p: Props) => {
-  let content: JSX.Element | null = null
+  let content: React.JSX.Element | null = null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
-    let style: Styles.StylesCrossPlatform = styles.username
+    let style: Kb.Styles.StylesCrossPlatform = styles.username
 
     if (!p.isSuggestion) {
       switch (p.type) {
         case 'pgp': {
-          const last = p.value.substr(p.value.length - 16).toUpperCase()
-          str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+          const last = p.value.substring(p.value.length - 16).toUpperCase()
+          str = `${last.substring(0, 4)} ${last.substring(4, 4)} ${last.substring(8, 4)} ${last.substring(
+            12,
+            4
+          )}`
           break
         }
         case 'btc': // fallthrough
@@ -234,7 +210,7 @@ const Value = (p: Props) => {
       <Kb.Text
         type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
         onClick={p.onCreateProof || p.onShowSite}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
           {color: assertionColorToTextColor(p.color)},
@@ -271,20 +247,20 @@ type SIProps = {
 const AssertionSiteIcon = (p: SIProps) => {
   const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
   const {onCreateProof, onShowProof, isSuggestion} = p
-  const isDarkMode = React.useContext(Styles.DarkModeContext)
+  const isDarkMode = React.useContext(Kb.Styles.DarkModeContext)
   const set = full
     ? isDarkMode
       ? siteIconFullDarkmode
       : siteIconFull
     : isDarkMode
-    ? siteIconDarkmode
-    : siteIcon
+      ? siteIconDarkmode
+      : siteIcon
   if (!set) return null
   let child = <SiteIcon full={full} set={set} />
   if (full) {
     return child
   }
-  if (!Styles.isMobile && isSuggestion) {
+  if (!Kb.Styles.isMobile && isSuggestion) {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (
@@ -298,8 +274,7 @@ class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
   _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
   _hideMenu = () => this.setState({showingMenu: false})
-  _ref: React.RefObject<any> = React.createRef()
-  _getRef = () => this._ref.current
+  _ref: React.RefObject<Kb.MeasureRef> = React.createRef()
   _getMenu = () => {
     const p = this.props
     if (!p.isYours || p.isSuggestion) {
@@ -321,7 +296,10 @@ class Assertion extends React.PureComponent<Props, State> {
     if (p.metas.find(m => m.label === 'unreachable')) {
       return {
         header: (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.red}
+          >
             Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
           </Kb.PopupHeaderText>
         ),
@@ -346,7 +324,10 @@ class Assertion extends React.PureComponent<Props, State> {
       }
       return {
         header: pendingMessage ? (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.blue}
+          >
             {pendingMessage}
           </Kb.PopupHeaderText>
         ) : null,
@@ -394,8 +375,8 @@ class Assertion extends React.PureComponent<Props, State> {
     const {header, items} = this._getMenu()
 
     return (
-      <Kb.Box2
-        className={p.notAUser ? null : 'hover-container'}
+      <Kb.Box2Measure
+        className={p.notAUser ? undefined : 'hover-container'}
         ref={this._ref}
         direction="vertical"
         style={styles.container}
@@ -434,7 +415,7 @@ class Assertion extends React.PureComponent<Props, State> {
                   type={stateToIcon(p.state)}
                   fontSize={20}
                   hoverColor={assertionColorToColor(p.color)}
-                  color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
+                  color={p.isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(p.color)}
                 />
                 {items ? (
                   <>
@@ -443,7 +424,7 @@ class Assertion extends React.PureComponent<Props, State> {
                       closeOnSelect={true}
                       visible={this.state.showingMenu}
                       onHidden={this._hideMenu}
-                      attachTo={this._getRef}
+                      attachTo={this._ref}
                       position="bottom right"
                       containerStyle={styles.floatingMenu}
                       header={header}
@@ -464,49 +445,49 @@ class Assertion extends React.PureComponent<Props, State> {
             ))}
           </Kb.Box2>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
-      crypto: Styles.platformStyles({
+      crypto: Kb.Styles.platformStyles({
         isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
       }),
       floatingMenu: {
         maxWidth: 240,
         minWidth: 196,
       },
-      halfOpacity: Styles.platformStyles({
+      halfOpacity: Kb.Styles.platformStyles({
         isMobile: {opacity: 0.5}, // desktop is handled by emotion
       }),
       menuHeader: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
-      metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
       positionRelative: {position: 'relative'},
-      site: {color: Styles.globalColors.black_20},
+      site: {color: Kb.Styles.globalColors.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
-      statusContainer: Styles.platformStyles({
+      statusContainer: Kb.Styles.platformStyles({
         isMobile: {position: 'relative', top: -2},
       }),
       strikeThrough: {textDecorationLine: 'line-through'},
-      textContainer: Styles.platformStyles({
+      textContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
-        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+        isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       }),
-      tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
-      username: Styles.platformStyles({
+      tooltip: Kb.Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
+      username: Kb.Styles.platformStyles({
         common: {letterSpacing: 0.2},
         isElectron: {wordBreak: 'break-all'},
       }),
-    } as const)
+    }) as const
 )
 
 export default Assertion

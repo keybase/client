@@ -1,13 +1,11 @@
 import * as React from 'react'
-import type * as Types from './../../constants/types/chat2'
-import type * as RPCTypes from './../../constants/types/rpc-gen'
-import * as Data from './../../util/emoji'
-import * as Kb from './../../common-adapters'
-import * as Styles from './../../styles'
+import type * as T from '@/constants/types'
+import * as Data from '@/util/emoji'
+import * as Kb from '@/common-adapters'
 import debounce from 'lodash/debounce'
-import {isMobile} from './../../constants/platform'
+import {isMobile} from '@/constants/platform'
 import chunk from 'lodash/chunk'
-import {memoize} from './../../util/memoize'
+import {memoize} from '@/util/memoize'
 import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
@@ -17,21 +15,23 @@ import {
   RPCToEmojiData,
 } from './../../util/emoji'
 import type {Section as _Section} from './../../common-adapters/section-list'
-import type * as RPCChatGen from './../../constants/types/rpc-chat-gen'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
-  const categories = require('../../util/emoji').categories as typeof Data.categories
-  const emojiSearch = require('../../util/emoji').emojiSearch as typeof Data.emojiSearch
-  const emojiNameMap = require('../../util/emoji').emojiNameMap as typeof Data.emojiNameMap
-  const emojiSkinTones = require('../../util/emoji').skinTones as typeof Data.skinTones
+  const utilEmoji = require('@/util/emoji') as {
+    categories: typeof Data.categories
+    emojiSearch: typeof Data.emojiSearch
+    emojiNameMap: typeof Data.emojiNameMap
+    skinTones: typeof Data.skinTones
+  }
+  const {categories, emojiSearch, emojiNameMap, skinTones: emojiSkinTones} = utilEmoji
   return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
 }
 
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
-  chunk(emojis, emojisPerLine).map((c: any, idx: number) => ({
+  chunk(emojis, emojisPerLine).map((c, idx) => ({
     emojis: c,
-    key: (c && c.length && c[0] && c[0].short_name) || String(idx),
+    key: c[0]?.short_name || String(idx),
   }))
 
 // Remove those that have been obsolete and have a replacement. But it doens't
@@ -41,17 +41,20 @@ const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsol
 
 const getEmojiSections = memoize(
   (emojisPerLine: number): Array<Section> =>
-    _getData().categories.map(c => ({
-      data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
-      key: c.category,
-      title: c.category,
-    }))
+    _getData().categories.map(
+      c =>
+        ({
+          data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
+          key: c.category,
+          title: c.category,
+        }) as const
+    )
 )
 
 const getFrequentSection = memoize(
   (
-    topReacjis: Array<RPCTypes.UserReacji>,
-    customEmojiGroups: Array<RPCChatGen.EmojiGroup>,
+    topReacjis: Array<T.RPCGen.UserReacji>,
+    customEmojiGroups: Array<T.RPCChat.EmojiGroup>,
     emojisPerLine: number
   ): Section => {
     const {emojiNameMap} = _getData()
@@ -82,7 +85,7 @@ type Row = {emojis: Array<EmojiData>; key: string}
 type Section = _Section<
   Row,
   {
-    // enforce string keys so we can easily refernece it for coveredSectionKeys
+    // enforce string keys so we can easily reference it for coveredSectionKeys
     key: string
     title: string
   }
@@ -90,13 +93,13 @@ type Section = _Section<
 
 type Props = {
   addEmoji: () => void
-  topReacjis: Array<RPCTypes.UserReacji>
+  topReacjis: Array<T.RPCGen.UserReacji>
   filter?: string
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
-  skinTone?: Types.EmojiSkinTone
-  customEmojiGroups?: RPCChatGen.EmojiGroup[]
+  skinTone?: T.Chat.EmojiSkinTone
+  customEmojiGroups?: T.RPCChat.EmojiGroup[]
   width: number
   waitingForEmoji?: boolean
 }
@@ -112,7 +115,7 @@ type Bookmark = {
 }
 
 const emojiGroupsToEmojiArrayArray = (
-  emojiGroups: Array<RPCChatGen.EmojiGroup>
+  emojiGroups: Array<T.RPCChat.EmojiGroup>
 ): Array<{emojis: Array<EmojiData>; name: string}> =>
   emojiGroups.map(emojiGroup => ({
     emojis:
@@ -123,15 +126,15 @@ const emojiGroupsToEmojiArrayArray = (
   }))
 
 const getCustomEmojiSections = memoize(
-  (emojiGroups: Array<RPCChatGen.EmojiGroup>, emojisPerLine: number): Array<Section> =>
+  (emojiGroups: Array<T.RPCChat.EmojiGroup>, emojisPerLine: number): Array<Section> =>
     emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
       data: chunkEmojis(group.emojis, emojisPerLine),
       key: group.name,
       title: group.name,
-    })) || []
+    }))
 )
 
-const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
+const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) => {
   const mapper = new Map<string, EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
@@ -144,17 +147,21 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
   // at that point.
   return {
     filter: (filter: string): Array<EmojiData> =>
-      // @ts-ignore ts doesn't know Boolean filters out undefined.
-      keys
-        .filter(k => k.includes(filter))
-        .map(key => mapper.get(key))
-        .filter(Boolean),
+      keys.reduce((result, key) => {
+        if (key.includes(filter)) {
+          const value = mapper.get(key)
+          if (value) {
+            result.push(value)
+          }
+        }
+        return result
+      }, new Array<EmojiData>()),
     get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
 })
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
-const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
+const getResultFilter = (emojiGroups?: Array<T.RPCChat.EmojiGroup>) => {
   const {emojiSearch} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
@@ -167,9 +174,9 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = memoize(
   (
     width: number,
-    topReacjis: Array<RPCTypes.UserReacji>,
+    topReacjis: Array<T.RPCGen.UserReacji>,
     hideTopReacjis: boolean,
-    customEmojiGroups?: RPCChatGen.EmojiGroup[]
+    customEmojiGroups?: T.RPCChat.EmojiGroup[]
   ) => {
     if (!width) {
       return {bookmarks: [], sections: []}
@@ -190,7 +197,8 @@ const getSectionsAndBookmarks = memoize(
     }
 
     getEmojiSections(emojisPerLine).forEach(section => {
-      const categoryIcon = Data.categoryIcons[section.title]
+      const cat = Data.categoryIcons as {[key: string]: Kb.IconType}
+      const categoryIcon = cat[section.title]
       categoryIcon &&
         bookmarks.push({
           coveredSectionKeys: new Set([section.key]),
@@ -232,7 +240,7 @@ const EmojiRow = React.memo(function EmojiRow(p: {
   return (
     <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
       {row.emojis.map(mapper)}
-      {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+      {[...Array(emojisPerLine - row.emojis.length)].map((_: unknown, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
   )
 })
@@ -245,7 +253,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     this.mounted = false
   }
 
-  private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+  private getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
@@ -269,7 +277,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={this.mapper} />
     )
 
-  private sectionListRef = React.createRef<any>()
+  private sectionListRef = React.createRef<Kb.SectionList<Section>>()
 
   private getBookmarkBar = (bookmarks: Array<Bookmark>) => {
     const content = (
@@ -287,9 +295,10 @@ class EmojiPicker extends React.PureComponent<Props, State> {
               <Kb.Icon
                 type={bookmark.iconType}
                 padding="tiny"
-                color={isActive ? Styles.globalColors.blue : Styles.globalColors.black_50}
+                color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
                 onClick={() =>
                   this.sectionListRef.current?.scrollToLocation({
+                    animated: true,
                     itemIndex: 0,
                     sectionIndex: bookmark.sectionIndex,
                   })
@@ -300,7 +309,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         })}
       </Kb.Box2>
     )
-    return Styles.isMobile ? (
+    return Kb.Styles.isMobile ? (
       <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
         {content}
       </Kb.ScrollView>
@@ -316,7 +325,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   )
 
   private onSectionChange = debounce(
-    section => this.mounted && this.setState({activeSectionKey: section.key}),
+    (section: Section) => this.mounted && this.setState({activeSectionKey: section.key}),
     200
   )
 
@@ -341,13 +350,12 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   _sections = new Array<Section>()
   private getSectionHeaderHeight = (sectionIndex: number) => {
-    return this._sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+    return this._sections[sectionIndex]?.key === 'not-found' ? notFoundHeight : 32
   }
 
   _emojisPerLine = 1
-  private renderItem = ({item}: {item: Row; index: number}) => this.getEmojiRow(item, this._emojisPerLine)
 
-  private renderSectionHeader = ({section}) => {
+  private renderSectionHeader = ({section}: {section: Section}) => {
     return section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
   }
 
@@ -378,16 +386,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           fullWidth={true}
           centerChildren={true}
           alignItems="flex-start"
-          style={{...Styles.globalStyles.flexGrow, overflow: 'hidden'}}
+          style={{...Kb.Styles.globalStyles.flexGrow, overflow: 'hidden'}}
         >
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+            style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
             {this.getSectionHeader('Search results')}
             {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_: unknown, index) =>
               makeEmojiPlaceholder(index)
             )}
             {this.makeNotFound()}
@@ -398,7 +406,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
-    return sections ? (
+    return (
       <>
         {this.getBookmarkBar(bookmarks)}
         <Kb.Box2
@@ -407,7 +415,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           fullWidth={true}
           style={styles.sectionListContainer}
         >
-          <Kb.SectionList
+          <Kb.SectionList<Section>
             ref={this.sectionListRef}
             getItemHeight={this.getEmojiWidthWithPadding}
             getSectionHeaderHeight={this.getSectionHeaderHeight}
@@ -416,16 +424,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={true}
-            renderItem={this.renderItem}
+            renderItem={({item}) => this.getEmojiRow(item, this._emojisPerLine)}
             renderSectionHeader={this.renderSectionHeader}
           />
         </Kb.Box2>
       </>
-    ) : null
+    )
   }
 }
 
-export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {
     const {emojiSkinTones} = _getData()
     const idx = emojiSkinTones.indexOf(skinTone)
@@ -438,23 +446,23 @@ const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activeBookmark: {
-        backgroundColor: Styles.globalColors.blue_10,
+        backgroundColor: Kb.Styles.globalColors.blue_10,
       },
       bookmarkContainer: {
         height: 44,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       bookmarkScrollView: {
         flexShrink: 0,
       },
       emoji: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         borderRadius: 2,
         height: emojiWidthWithPadding,
@@ -475,22 +483,22 @@ const styles = Styles.styleSheetCreate(
       notFoundContainer: {
         height: notFoundHeight,
         justifyContent: 'space-between',
-        ...Styles.padding(Styles.globalMargins.medium, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         height: 32,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       sectionListContainer: {
         flexGrow: 1,
         flexShrink: 1,
         overflow: 'hidden',
       },
-    } as const)
+    }) as const
 )
 
 export default EmojiPicker
 
-const emptyArray = []
+const emptyArray = new Array<T.RPCChat.EmojiGroup>()

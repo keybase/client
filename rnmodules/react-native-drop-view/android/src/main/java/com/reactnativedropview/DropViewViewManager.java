@@ -1,27 +1,25 @@
 package com.reactnativedropview;
 
 import android.graphics.Color;
-import android.view.View;
-import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import com.facebook.react.uimanager.SimpleViewManager;
-import com.facebook.react.uimanager.ViewGroupManager;
+import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
-public class DropViewViewManager extends ViewGroupManager<FrameLayout> {
-    public static final String REACT_CLASS = "DropView";
+@ReactModule(name = DropViewViewManager.NAME)
+public class DropViewViewManager extends DropViewViewManagerSpec<DropViewView> {
 
-    @Override
-    @NonNull
-    public String getName() {
-        return REACT_CLASS;
-    }
+  public static final String NAME = "DropViewView";
 
-    @Override
-      public FrameLayout createViewInstance(ThemedReactContext reactContext) {
-        return new FrameLayout(reactContext);
-      }
+  @Override
+  public String getName() {
+    return NAME;
+  }
+
+  @Override
+  public DropViewView createViewInstance(ThemedReactContext context) {
+    return new DropViewView(context);
+  }
 }

@@ -1,5 +1,4 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 const Rover = () => (
   <Kb.Box2 direction="vertical" style={styles.container}>
@@ -9,7 +8,7 @@ const Rover = () => (
   </Kb.Box2>
 )
 
-const shared = Styles.isTablet
+const shared = Kb.Styles.isTablet
   ? ({
       bottom: 0,
       position: 'absolute',
@@ -21,17 +20,17 @@ const shared = Styles.isTablet
       position: 'absolute',
     } as const)
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   background: {...shared, bottom: 10},
   container: shared,
   foreground: shared,
-  rover: Styles.platformStyles({
+  rover: Kb.Styles.platformStyles({
     common: {
       ...shared,
       bottom: 80,
     },
     isPhone: {
-      left: Styles.dimensionWidth - 50,
+      left: Kb.Styles.dimensionWidth - 50,
     },
     isTablet: {
       right: 50,

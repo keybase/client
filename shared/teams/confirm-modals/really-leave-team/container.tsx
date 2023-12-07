@@ -1,50 +1,36 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as TeamsGen from '../../../actions/teams-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
-import {anyWaiting} from '../../../constants/waiting'
-import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
+import {useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
 
-type OwnProps = Container.RouteProps<'teamReallyLeaveTeam'>
+type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
-  const teamID = op.route.params?.teamID ?? Types.noTeamID
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const {settings, members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const teamID = op.teamID
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails)
   const open = settings.open
-  const lastOwner = Container.useSelector(state => Constants.isLastOwner(state, teamID))
+  const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
-  const leaving = Container.useSelector(state => anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)))
-  const error = Container.useSelector(state =>
-    Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname))
-  )
-
-  const dispatch = Container.useDispatch()
+  const leaving = C.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
+  const error = C.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamDeleteTeam'}],
-      })
-    )
-  }, [dispatch, teamID])
+    navigateUp()
+    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+  }, [navigateUp, navigateAppend, teamID])
+  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
   const _onLeave = React.useCallback(
     (permanent: boolean) => {
-      dispatch(
-        TeamsGen.createLeaveTeam({
-          context: 'teams',
-          permanent,
-          teamname,
-        })
-      )
+      leaveTeam(teamname, permanent, 'teams')
     },
-    [dispatch, teamname]
+    [leaveTeam, teamname]
   )
-  const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
   const onLeave = Container.useSafeSubmit(_onLeave, !leaving)
 

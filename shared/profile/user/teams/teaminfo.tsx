@@ -1,25 +1,27 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/tracker2'
+import * as Constants from '@/constants/tracker2'
+import * as Styles from '@/styles'
 import OpenMeta from './openmeta'
-import FloatingMenu from '../../../common-adapters/floating-menu'
-import ConnectedUsernames from '../../../common-adapters/usernames'
-import NameWithIcon from '../../../common-adapters/name-with-icon'
-import Text from '../../../common-adapters/text'
-import {Box2} from '../../../common-adapters/box'
-import WaitingButton from '../../../common-adapters/waiting-button'
+import FloatingMenu from '@/common-adapters/floating-menu'
+import ConnectedUsernames from '@/common-adapters/usernames'
+import NameWithIcon from '@/common-adapters/name-with-icon'
+import Text from '@/common-adapters/text'
+import {Box2} from '@/common-adapters/box'
+import WaitingButton from '@/common-adapters/waiting-button'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 const Kb = {
   Box2,
   ConnectedUsernames,
   FloatingMenu,
   NameWithIcon,
+  Styles,
   Text,
   WaitingButton,
 }
 
-type Props = {
-  attachTo?: () => React.Component<any> | null
+export type Props = {
+  attachTo?: React.RefObject<MeasureRef>
   description: string
   inTeam: boolean
   isOpen: boolean
@@ -133,10 +135,10 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      description: Styles.platformStyles({
+      description: Kb.Styles.platformStyles({
         common: {
           textAlign: 'center',
         },
@@ -147,12 +149,12 @@ const styles = Styles.styleSheetCreate(
       }),
       infoPopup: {
         maxWidth: 225,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
-      publicAdmins: Styles.platformStyles({
+      publicAdmins: Kb.Styles.platformStyles({
         isElectron: {display: 'unset'},
       }),
-    } as const)
+    }) as const
 )
 
 export default TeamInfo

@@ -1,7 +1,6 @@
-import type * as Types from '../../../constants/types/teams'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type {Tab as TabType} from '../../../common-adapters/tabs'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type TeamTabsProps = {
   admin: boolean
@@ -13,18 +12,18 @@ type TeamTabsProps = {
   numRequests: number
   numSubteams: number
   resetUserCount: number
-  selectedTab?: Types.TabKey
-  setSelectedTab: (arg0: Types.TabKey) => void
+  selectedTab?: T.Teams.TabKey
+  setSelectedTab: (arg0: T.Teams.TabKey) => void
   showSubteams: boolean
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const tabs: Array<TabType<Types.TabKey>> = [
+  const tabs: Array<TabType<T.Teams.TabKey>> = [
     {badgeNumber: props.resetUserCount, title: 'members' as const},
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
     ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
     ...(props.isBig ? [{title: 'emoji' as const}] : []),
-    {icon: Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
+    {icon: Kb.Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
     // TODO: should we not show bots if there are no bots and you have no permissions?
     {title: 'bots' as const},
     ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
@@ -44,7 +43,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box style={styles.container}>
-        {Styles.isMobile ? (
+        {Kb.Styles.isMobile ? (
           <Kb.ScrollView
             horizontal={true}
             contentContainerStyle={{minWidth: '100%'}}
@@ -61,30 +60,30 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  clickableBox: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  clickableBox: Kb.Styles.platformStyles({
     isElectron: {flex: 1},
     isMobile: {
       flexGrow: 1,
     },
   }),
-  container: {backgroundColor: Styles.globalColors.white},
+  container: {backgroundColor: Kb.Styles.globalColors.white},
   inlineProgressIndicator: {
     height: 17,
     position: 'absolute',
-    right: Styles.globalMargins.small,
-    top: Styles.globalMargins.small,
+    right: Kb.Styles.globalMargins.small,
+    top: Kb.Styles.globalMargins.small,
     width: 17,
   },
-  tab: Styles.platformStyles({
+  tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
     },
   }),
   tabContainer: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: '100%',
     marginTop: 0,
   },

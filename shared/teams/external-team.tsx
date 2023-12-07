@@ -1,23 +1,20 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
-import * as Constants from '../constants/teams'
-import * as RPCGen from '../constants/types/rpc-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as ProfileGen from '../actions/profile-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {useTeamLinkPopup} from './common'
-import {pluralize} from '../util/string'
-import {memoize} from '../util/memoize'
+import {pluralize} from '@/util/string'
+import {memoize} from '@/util/memoize'
 import capitalize from 'lodash/capitalize'
 
-type Props = Container.RouteProps<'teamExternalTeam'>
+type Props = {teamname: string}
 
 const ExternalTeam = (props: Props) => {
-  const teamname = props.route.params?.teamname ?? ''
+  const teamname = props.teamname
 
-  const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
-  const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | null>(null)
+  const getTeamInfo = C.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
+  const [teamInfo, setTeamInfo] = React.useState<T.RPCGen.UntrustedTeamInfo | undefined>()
   const [waiting, setWaiting] = React.useState(false)
 
   React.useEffect(() => {
@@ -34,7 +31,7 @@ const ExternalTeam = (props: Props) => {
       },
       _ => {
         setWaiting(false)
-        setTeamInfo(null)
+        setTeamInfo(undefined)
       }
     )
   }, [getTeamInfo, teamname])
@@ -52,7 +49,7 @@ const ExternalTeam = (props: Props) => {
       {waiting ? (
         <Kb.Box2
           direction="horizontal"
-          gap={Styles.isMobile ? 'small' : 'tiny'}
+          gap={Kb.Styles.isMobile ? 'small' : 'tiny'}
           fullWidth={true}
           alignItems="center"
         >
@@ -67,18 +64,12 @@ const ExternalTeam = (props: Props) => {
     </Kb.Box2>
   )
 }
-ExternalTeam.navigationOptions = {
-  header: undefined,
-  headerBottomStyle: {height: undefined},
-  headerHideBorder: true,
-  title: ' ', // hack: trick router shim so it doesn't add a safe area around us
-}
 
 type ExternalTeamProps = {
-  info: RPCGen.UntrustedTeamInfo
+  info: T.RPCGen.UntrustedTeamInfo
 }
 
-const orderMembers = memoize((members?: Array<RPCGen.TeamMemberRole>) =>
+const orderMembers = memoize((members?: Array<T.RPCGen.TeamMemberRole>) =>
   (members || []).sort((memberA, memberB) =>
     memberB.role === memberA.role
       ? memberA.username.localeCompare(memberB.username)
@@ -96,7 +87,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
     {
       data: members.length ? members : ['empty'],
       key: 'membersSection',
-      renderItem: ({item, index}) => {
+      renderItem: ({item, index}: any) => {
         return item === 'empty' ? (
           <Kb.Box2
             direction="vertical"
@@ -114,7 +105,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
       },
     },
   ]
-  const renderSectionHeader = ({section}) => {
+  const renderSectionHeader = ({section}: any) => {
     if (section.key === 'membersSection') {
       return (
         <Kb.Tabs
@@ -137,21 +128,15 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 }
 
 const Header = ({info}: ExternalTeamProps) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
-      })
-    )
-
+    nav.safeNavigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
   const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
-    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'small' : 'tiny'}>
+      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'xtiny' : 'xxtiny'}>
         {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
@@ -171,7 +156,7 @@ const Header = ({info}: ExternalTeamProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Styles.globalColors.green} />
+  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Kb.Styles.globalColors.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
@@ -179,28 +164,28 @@ const Header = ({info}: ExternalTeamProps) => {
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="Header">{teamname}</Kb.Text>
-            {!Styles.isMobile && openMeta}
+            {!Kb.Styles.isMobile && openMeta}
           </Kb.Box2>
-          {Styles.isMobile && openMeta}
-          {!Styles.isMobile && metaInfo}
+          {Kb.Styles.isMobile && openMeta}
+          {!Kb.Styles.isMobile && metaInfo}
         </Kb.Box2>
       </Kb.Box2>
-      {Styles.isMobile && metaInfo}
+      {Kb.Styles.isMobile && metaInfo}
     </Kb.Box2>
   )
 }
 
-const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const dispatch = Container.useDispatch()
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [member.username], reason: 'teamMember'}))
-  const roleString = Constants.teamRoleByEnum[member.role]
+const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
+  const roleString = C.Teams.teamRoleByEnum[member.role]
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <Kb.ListItem2
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
-      onClick={() => dispatch(ProfileGen.createShowUserProfile({username: member.username}))}
+      onClick={() => showUserProfile(member.username)}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
@@ -215,7 +200,7 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
                 •
               </Kb.Text>
             )}
-            {[RPCGen.TeamRole.admin, RPCGen.TeamRole.owner].includes(member.role) && (
+            {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon
                 type={`iconfont-crown-${roleString}` as Kb.IconType}
                 sizeType="Small"
@@ -232,40 +217,40 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  contentContainer: Styles.platformStyles({
+  contentContainer: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.small,
+      paddingBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {
-      paddingTop: Styles.globalMargins.tiny,
+      paddingTop: Kb.Styles.globalMargins.tiny,
     },
   }),
-  crownIcon: Styles.platformStyles({
-    common: {marginRight: Styles.globalMargins.xtiny},
+  crownIcon: Kb.Styles.platformStyles({
+    common: {marginRight: Kb.Styles.globalMargins.xtiny},
   }),
-  error: {color: Styles.globalColors.redDark},
+  error: {color: Kb.Styles.globalColors.redDark},
   headerContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
   memberBody: {
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  meta: Styles.platformStyles({
+  meta: Kb.Styles.platformStyles({
     isElectron: {
       alignSelf: 'center',
     },
   }),
   middot: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
   tabs: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     width: '100%',
   },
 }))

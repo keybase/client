@@ -1,57 +1,43 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import * as TeamConstants from '../../../../constants/teams'
+import type * as T from '@/constants/types'
 import SystemAddedToTeam from '.'
-import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {
-  message: Types.MessageSystemAddedToTeam
+  message: T.Chat.MessageSystemAddedToTeam
 }
 
-const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
+const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
-  const {conversationIDKey, addee, adder, author, bulkAdds, role, timestamp} = message
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {addee, adder, author, bulkAdds, role, timestamp} = message
+  const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = Container.useSelector(state =>
-    TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin')
-  )
-  const authorIsOwner = Container.useSelector(state =>
-    TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner')
-  )
-  const you = Container.useSelector(state => state.config.username)
+  const authorIsAdmin = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
+  const authorIsOwner = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
+  const you = C.useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 
-  const dispatch = Container.useDispatch()
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
-  }, [dispatch, conversationIDKey])
+    showInfoPanel(true, 'settings')
+  }, [showInfoPanel])
 
+  const navigateAppend = C.useChatNavigateAppend()
   const onViewBot = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: addee, conversationIDKey: conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
-  }, [dispatch, conversationIDKey, addee])
+    navigateAppend(conversationIDKey => ({
+      props: {botUsername: addee, conversationIDKey},
+      selected: 'chatInstallBot',
+    }))
+  }, [navigateAppend, addee])
 
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+      navigateAppend(() => ({props: {teamID}, selected: 'team'}))
     } else {
-      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
+      showInfoPanel(true, 'settings')
     }
-  }, [dispatch, conversationIDKey, teamID])
+  }, [navigateAppend, showInfoPanel, teamID])
 
   const props = {
     addee,

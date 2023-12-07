@@ -1,4 +1,4 @@
-*.d.ts
+override-d.ts/**
 babel.config.js
 coverage
 desktop/build/**
@@ -6,7 +6,6 @@ desktop/dist/**
 desktop/release/**
 desktop/renderer/renderer-load.desktop.js
 desktop/webpack.config.babel.js
-fixme/**
 markdown/parser.js
 metro.config.js
 node_modules
@@ -14,9 +13,3 @@ react-native/react-native-contacts
 react-native/wipe-cache.js
 rn-cli.config.js
 rn-transformer.js
-storybook/index.native.js
-storybook/webpack.config.js
-test/setupTestFrameworkScriptFile.js
-common-adapters/swipeable.native.tsx
-common-adapters/index-impl.tsx
-common-adapters/mobile.native.native.tsx

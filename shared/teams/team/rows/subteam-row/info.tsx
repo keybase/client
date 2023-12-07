@@ -1,5 +1,4 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 
 const SubteamRow = () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
@@ -12,10 +11,10 @@ const SubteamRow = () => (
 )
 export default SubteamRow
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.medium),
-    backgroundColor: Styles.globalColors.blueGrey,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.large, Kb.Styles.globalMargins.medium),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
   },
   text: {
     maxWidth: 326,

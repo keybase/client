@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
@@ -25,7 +24,7 @@ const UserResult = React.memo(function UserResult(props: ResultProps) {
             inTeam={props.inTeam}
             onAdd={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              props?.onAdd(props.userId)
+              props.onAdd(props.userId)
             }}
             onRemove={() => {
               props.onRemove(props.userId)
@@ -36,7 +35,7 @@ const UserResult = React.memo(function UserResult(props: ResultProps) {
     />
   )
 })
-const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
+const actionButtonSize = Kb.Styles.isMobile ? 22 : Kb.Styles.globalMargins.small
 
 const ActionButton = (props: {
   inTeam: boolean
@@ -50,7 +49,7 @@ const ActionButton = (props: {
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
-        style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
+        style={Kb.Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
       >
         <Icon />
       </Kb.Box2>
@@ -63,35 +62,35 @@ const AddButton = () => (
     className="hover_contained_color_blue"
     type="iconfont-circle"
     fontSize={actionButtonSize}
-    color={Styles.globalColors.black_20}
+    color={Kb.Styles.globalColors.black_20}
   />
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Styles.globalColors.blue} />
+  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Kb.Styles.globalColors.blue} />
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  actionButton: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
+      height: Kb.Styles.globalMargins.small,
+      width: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.tiny,
-      width: Styles.globalMargins.large,
+      height: Kb.Styles.globalMargins.large,
+      marginRight: Kb.Styles.globalMargins.tiny,
+      width: Kb.Styles.globalMargins.large,
     },
   }),
   rowContainer: {
-    ...Styles.padding(
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.xsmall
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.medium,
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.xsmall
     ),
   },
 }))

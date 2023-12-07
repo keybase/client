@@ -1,19 +1,34 @@
 import * as React from 'react'
-import {RefreshControlProps} from 'react-native'
-import {StylesCrossPlatform} from '../styles'
+import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: React.UIEventHandler<any> | null
-  className?: string | null
-  ref?: React.Ref<any> | null
+  onScroll?: (
+    e: Partial<
+      React.BaseSyntheticEvent<{
+        contentSize: {
+          height: number
+          width: number
+        }
+        zoomScale: number
+        contentOffset: {
+          x: number
+          y: number
+        }
+      }>
+    >
+  ) => void
+  className?: string
+  ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean
   showsHorizontalScrollIndicator?: boolean
   // mobile only
   bounces?: boolean
   centerContent?: boolean
+  zoomScale?: number
   minimumZoomScale?: number
   maximumZoomScale?: number
   onLayout?: Function
@@ -25,6 +40,8 @@ export type Props = {
   horizontal?: boolean
   snapToInterval?: number
   refreshControl?: React.ReactElement<RefreshControlProps>
+  onTouchStart?: (e: GestureResponderEvent) => void
+  onTouchEnd?: (e: GestureResponderEvent) => void
 }
 
 export default class ScrollView extends React.Component<Props> {

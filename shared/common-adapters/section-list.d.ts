@@ -1,12 +1,18 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as ReactNative from 'react-native'
+import type * as Styles from '@/styles'
+import type * as ReactNative from 'react-native'
 
 export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
   item: ItemT
   section: Section<ItemT, ExtraT>
-}) => React.ReactNode
+
+  separators: {
+    highlight: () => void
+    unhighlight: () => void
+    updateProps: (select: 'leading' | 'trailing', newProps: any) => void
+  }
+}) => React.ReactElement | null // ;React.ReactNode
 
 /**
  * Section is the type for a section in a sectionlist. ItemT is the type of the
@@ -15,15 +21,16 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
  */
 export type Section<ItemT, ExtraT = {}> = {
   data: ReadonlyArray<ItemT>
-  key?: React.Key
+  key?: string | undefined
   renderItem?: SectionListRenderItem<ItemT, ExtraT>
-  // There exist mobile-only keyExtractor and ItemSeparatorComponent here, not
-  // included because I think they would create more confusion than usefulness
-  // and a mobile-only situation can import the native sectionlist anyway.
+  ItemSeparatorComponent?: React.ComponentType<any> | null | undefined
 } & ExtraT
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ItemTFromSectionT<SectionT> = SectionT extends Section<infer ItemT, infer _ExtraT> ? ItemT : SectionT
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExtraTFromSectionT<SectionT> = SectionT extends Section<infer _ItemT, infer ExtraT> ? ExtraT : SectionT
+
 // This type is missing a lot of features from the native sectionlist on purpose
 // - if you need those in a mobile-only context, you should import the
 // NativeSectionList instead. Otherwise, add them to this type.
@@ -62,7 +69,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * default extractor checks `item.key`, then falls back to using the index,
    * like React does.
    */
-  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => React.Key
+  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => string
 
   /**
    * Called once when the scroll position gets within onEndReachedThreshold of
@@ -144,6 +151,6 @@ export type Props<SectionT extends Section<any, any>> = {
   desktopItemSizeEstimatorOverride?: () => number
 }
 
-export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
+export default class SectionList<T extends Section<any, any>> extends React.Component<Props<T>> {
   scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
 }

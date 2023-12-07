@@ -1,9 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '@/constants/types'
 
 export type Props = {
   errorMessage: string
@@ -11,7 +10,7 @@ export type Props = {
   name: string
   onClearInviteError: () => void
   onClose: () => void
-  onInvite: (invitees: string, role: TeamRoleType) => void
+  onInvite: (invitees: string, role: T.Teams.TeamRoleType) => void
   waitingKey: string
 }
 
@@ -19,10 +18,10 @@ const _makeDropdownItem = (item: string) => (
   <Kb.Box
     key={item}
     style={{
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     }}
   >
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
@@ -32,7 +31,7 @@ const _makeDropdownItem = (item: string) => (
 type State = {
   invitees: string
   malformedEmails: Set<string>
-  role: TeamRoleType
+  role: T.Teams.TeamRoleType
   isRolePickerOpen: boolean
 }
 
@@ -41,7 +40,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     invitees: '',
     isRolePickerOpen: false,
     malformedEmails: this.props.malformedEmails,
-    role: 'reader' as TeamRoleType,
+    role: 'reader' as T.Teams.TeamRoleType,
   }
 
   componentDidUpdate(_: Props, prevState: State) {
@@ -60,7 +59,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({isRolePickerOpen: false})
   }
 
-  onConfirmRolePicker = role => {
+  onConfirmRolePicker = (role: T.Teams.TeamRoleType) => {
     this.setState({isRolePickerOpen: false, role})
   }
 
@@ -76,7 +75,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({invitees: [...malformedEmails].join('\n'), malformedEmails})
   }
 
-  _setRole = (role: TeamRoleType) => this.setState({role})
+  _setRole = (role: T.Teams.TeamRoleType) => this.setState({role})
 
   _onInvite = () => this.props.onInvite(this.state.invitees, this.state.role)
 
@@ -84,12 +83,12 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     const props = this.props
     return (
       <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
-        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+        <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
           <Kb.Box
             style={{
-              ...Styles.globalStyles.flexBoxColumn,
+              ...Kb.Styles.globalStyles.flexBoxColumn,
               alignItems: 'center',
-              margin: Styles.globalMargins.medium,
+              margin: Kb.Styles.globalMargins.medium,
             }}
           >
             <Kb.Text style={styles.header} type="Header">
@@ -97,12 +96,12 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
             </Kb.Text>
             <Kb.Box
               style={{
-                ...Styles.globalStyles.flexBoxRow,
+                ...Kb.Styles.globalStyles.flexBoxRow,
                 alignItems: 'center',
-                margin: Styles.globalMargins.tiny,
+                margin: Kb.Styles.globalMargins.tiny,
               }}
             >
-              <Kb.Text style={{margin: Styles.globalMargins.tiny}} type="Body">
+              <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
                 Add these team members to {props.name} as:
               </Kb.Text>
               <FloatingRolePicker
@@ -133,7 +132,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 value={this.state.invitees}
               />
               {!!props.errorMessage && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+                <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
                   {props.errorMessage}
                 </Kb.Text>
               )}
@@ -148,30 +147,30 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignSelf: 'center',
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: 5,
     },
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
+      ...Kb.Styles.desktopStyles.boxShadow,
     },
   }),
   cover: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  floatingRolePicker: Styles.platformStyles({
+  floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -32,
     },
   }),
   header: {
-    padding: Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
   },
 }))
 

@@ -3,26 +3,32 @@
 import * as React from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
-import {NativeTextInput} from './native-wrappers.native'
-import * as Styles from '../styles'
-import {isIOS, isAndroid} from '../constants/platform'
-import type {TextInput} from 'react-native'
+import * as Styles from '@/styles'
+import {isIOS, isAndroid} from '@/constants/platform'
+import {
+  TextInput,
+  type NativeSyntheticEvent,
+  type TextInputContentSizeChangeEventData,
+  type TextInputSelectionChangeEventData,
+} from 'react-native'
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean
-  height: number | null
+  height?: number
 }
 
 class Input extends React.Component<Props, State> {
   state: State
   private input = React.createRef<TextInput>()
-  private lastNativeText: string | null = null
-  private lastNativeSelection: {
-    start: number | null
-    end: number | null
-  } | null = null
+  private lastNativeText: string | undefined
+  private lastNativeSelection:
+    | {
+        start: number | null
+        end: number | null
+      }
+    | undefined
 
   private timeoutIds: Array<ReturnType<typeof setTimeout>>
 
@@ -37,7 +43,7 @@ class Input extends React.Component<Props, State> {
 
     this.state = {
       focused: false,
-      height: null,
+      height: undefined,
     }
 
     this.timeoutIds = []
@@ -73,10 +79,10 @@ class Input extends React.Component<Props, State> {
     this.input.current?.setNativeProps(nativeProps)
   }
 
-  private onContentSizeChange = (event?: {nativeEvent?: {contentSize?: {width: number; height: number}}}) => {
+  private onContentSizeChange = (event?: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
     if (
       this.props.multiline &&
-      event?.nativeEvent?.contentSize?.height &&
+      event?.nativeEvent.contentSize.height &&
       event.nativeEvent.contentSize.width
     ) {
       let height = event.nativeEvent.contentSize.height
@@ -181,7 +187,7 @@ class Input extends React.Component<Props, State> {
       return Styles.globalColors.transparent
     }
 
-    if (this.props.errorText && this.props.errorText.length) {
+    if (this.props.errorText?.length) {
       return Styles.globalColors.red
     }
 
@@ -210,14 +216,7 @@ class Input extends React.Component<Props, State> {
         }
   }
 
-  private onSelectionChange = (event: {
-    nativeEvent: {
-      selection: {
-        start: number
-        end: number
-      }
-    }
-  }) => {
+  private onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
@@ -238,7 +237,7 @@ class Input extends React.Component<Props, State> {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this.containerStyle(underlineColor)
 
-    const singlelineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
+    const singlelineStyle = Styles.collapseStyles([
       styles.commonInput,
       {
         lineHeight: lineHeight,
@@ -249,7 +248,7 @@ class Input extends React.Component<Props, State> {
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
     ])
 
-    const multilineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
+    const multilineStyle = Styles.collapseStyles([
       styles.commonInput,
       {
         height: undefined,
@@ -260,23 +259,19 @@ class Input extends React.Component<Props, State> {
         ...(this.props.rowsMax ? {maxHeight: this.rowsToHeight(this.props.rowsMax)} : null),
       },
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
+      // Override height if we received an onContentSizeChange() earlier.
+      isIOS && this.state.height && {height: this.state.height},
     ])
-
-    // Override height if we received an onContentSizeChange() earlier.
-    if (isIOS && this.state.height) {
-      // @ts-ignore we shouldn't reach in here
-      multilineStyle.height = this.state.height
-    }
 
     const value = this.getValueImpl()
 
     const floatingHintText =
       !!value.length &&
-      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
+      (Object.hasOwn(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    let keyboardType: KeyboardType | null = this.props.keyboardType || null
+    let keyboardType: KeyboardType | undefined = this.props.keyboardType
     if (!keyboardType) {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'
@@ -291,10 +286,9 @@ class Input extends React.Component<Props, State> {
     // https://github.com/facebook/react-native/issues/18316 .
     const commonProps = {
       autoCapitalize: this.props.autoCapitalize || 'none',
-      autoCorrect: Object.prototype.hasOwnProperty.call(this.props, 'autoCorrect') && this.props.autoCorrect,
+      autoCorrect: Object.hasOwn(this.props, 'autoCorrect') && this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
-      editable: Object.prototype.hasOwnProperty.call(this.props, 'editable') ? this.props.editable : true,
-      keyboardAppearance: Styles.isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
+      editable: Object.hasOwn(this.props, 'editable') ? this.props.editable : true,
       keyboardType,
       onBlur: this.onBlur,
       onChangeText: this.onChangeText,
@@ -311,12 +305,8 @@ class Input extends React.Component<Props, State> {
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
+      ...(this.props.uncontrolled ? null : {value}),
     } as const
-
-    if (!this.props.uncontrolled) {
-      // @ts-ignore it's ok to add this
-      commonProps.value = value
-    }
 
     const singlelineProps = {
       ...commonProps,
@@ -355,7 +345,7 @@ class Input extends React.Component<Props, State> {
               : [styles.inputContainer, {borderBottomColor: underlineColor}]
           }
         >
-          <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
+          <TextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!this.props.small && (
@@ -373,10 +363,10 @@ class Input extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => {
-  const _headerTextStyle: any = getTextStyle('Header')
-  const _bodyTextStyle: any = getTextStyle('Body')
-  const _bodySmallTextStyle: any = getTextStyle('BodySmall')
-  const _bodyErrorTextStyle: any = getTextStyle('BodySmallError')
+  const _headerTextStyle = getTextStyle('Header')
+  const _bodyTextStyle = getTextStyle('Body')
+  const _bodySmallTextStyle = getTextStyle('BodySmall')
+  const _bodyErrorTextStyle = getTextStyle('BodySmallError')
   return {
     commonInput: {
       backgroundColor: Styles.globalColors.fastBlank,

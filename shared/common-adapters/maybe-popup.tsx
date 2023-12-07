@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {collapseStyles, globalColors, isMobile} from '../styles'
+import * as Styles from '@/styles'
 
 type Props = {
   onClose: () => void
@@ -10,12 +10,12 @@ type Props = {
   onMouseMove?: (e: React.MouseEvent) => void
   children: React.ReactNode
   cover?: boolean
-  styleCover?: any
-  styleClipContainer?: any
-  styleContainer?: any
+  styleCover?: Styles.StylesCrossPlatform
+  styleClipContainer?: Styles.StylesCrossPlatform
+  styleContainer?: Styles.StylesCrossPlatform
 }
 
-const MaybePopup = isMobile
+const MaybePopup = Styles.isMobile
   ? (props: Props) => <Box style={{height: '100%', width: '100%'}} children={props.children} />
   : (props: Props) => (
       <PopupDialog
@@ -23,7 +23,7 @@ const MaybePopup = isMobile
         onMouseUp={props.onMouseUp}
         onMouseDown={props.onMouseDown}
         onMouseMove={props.onMouseMove}
-        styleCover={collapseStyles([props.cover && _styleCover, props.styleCover])}
+        styleCover={Styles.collapseStyles([props.cover && _styleCover, props.styleCover])}
         styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
         styleClipContainer={props.styleClipContainer}
         children={props.children}
@@ -32,12 +32,11 @@ const MaybePopup = isMobile
 
 const _styleCover = {
   alignItems: 'stretch',
-  backgroundColor: globalColors.black,
-  justifyContent: 'stretch',
-}
+  backgroundColor: Styles.globalColors.black,
+} as const
 
 const _styleContainer = {
   height: '100%',
-}
+} as const
 
 export {MaybePopup}

@@ -1,18 +1,17 @@
-import * as Constants from '../../constants/teams'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Constants from '@/constants/teams'
+import * as Kb from '@/common-adapters'
 import type {Props} from './index'
 
 const CreateChannel = (props: Props) => (
   <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
-    <Kb.Box style={{...styles.box, paddingTop: Styles.globalMargins.medium}}>
+    <Kb.Box style={{...styles.box, paddingTop: Kb.Styles.globalMargins.medium}}>
       <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
-      <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
+      <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
         {props.teamname}
       </Kb.Text>
       <Kb.Text
         type="Header"
-        style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
+        style={{marginBottom: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         New chat channel
       </Kb.Text>
@@ -64,24 +63,24 @@ const CreateChannel = (props: Props) => (
   </Kb.PopupDialog>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       back: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         left: 32,
         position: 'absolute',
         top: 32,
       },
       backIcon: {
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
       box: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.large,
-        paddingRight: Styles.globalMargins.large,
+        paddingLeft: Kb.Styles.globalMargins.large,
+        paddingRight: Kb.Styles.globalMargins.large,
       },
       buttonBar: {alignItems: 'center'},
       container: {
@@ -95,7 +94,7 @@ const styles = Styles.styleSheetCreate(
       input: {
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default CreateChannel

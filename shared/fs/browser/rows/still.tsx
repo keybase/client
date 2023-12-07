@@ -1,26 +1,25 @@
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Styles from '../../../styles'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
-import * as Kb from '../../../common-adapters'
-import {LastModifiedLine, Filename} from '../../common'
+import * as Kb from '@/common-adapters'
+import {LastModifiedLine, Filename} from '@/fs/common'
 
 type StillProps = StillCommonProps & {
   dismissUploadError?: () => void
-  intentIfDownloading?: Types.DownloadIntent | null
+  intentIfDownloading?: T.FS.DownloadIntent
   isEmpty: boolean
-  type: Types.PathType
+  type: T.FS.PathType
   uploading: boolean
   writingToJournal: boolean
 }
 
-const getDownloadingText = (intent: Types.DownloadIntent) => {
+const getDownloadingText = (intent: T.FS.DownloadIntent) => {
   switch (intent) {
-    case Types.DownloadIntent.None:
+    case T.FS.DownloadIntent.None:
       return 'Downloading...'
-    case Types.DownloadIntent.CameraRoll:
+    case T.FS.DownloadIntent.CameraRoll:
       return 'Saving...'
-    case Types.DownloadIntent.Share:
+    case T.FS.DownloadIntent.Share:
       return 'Preparing...'
     default:
       return ''
@@ -36,16 +35,12 @@ const Still = (props: StillProps) => (
     uploadErrored={!!props.dismissUploadError}
     content={
       <>
-        <Filename
-          path={props.path}
-          type={Constants.pathTypeToTextType(props.type)}
-          style={rowStyles.rowText}
-        />
+        <Filename path={props.path} type={C.pathTypeToTextType(props.type)} style={rowStyles.rowText} />
         {props.isEmpty && (
           <Kb.Meta
             title="empty"
-            backgroundColor={Styles.globalColors.greyDark}
-            style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
+            backgroundColor={Kb.Styles.globalColors.greyDark}
+            style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xxtiny}}
           />
         )}
       </>
@@ -68,11 +63,11 @@ const Still = (props: StillProps) => (
       ) : props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : props.writingToJournal ? (
-        <Kb.Meta title="Encrypting" backgroundColor={Styles.globalColors.blue} />
+        <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
       ) : props.uploading ? (
         <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
       ) : (
-        props.type !== Types.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
+        props.type !== T.FS.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
       )
     }
   />
@@ -80,6 +75,6 @@ const Still = (props: StillProps) => (
 
 export default Still
 
-const styles = Styles.styleSheetCreate(() => ({
-  redDark: {color: Styles.globalColors.redDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  redDark: {color: Kb.Styles.globalColors.redDark},
 }))

@@ -1,24 +1,23 @@
-import type * as Types from '../../constants/types/people'
-import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
-import * as Styles from '../../styles'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 
-export type FollowSuggestion = Types.FollowSuggestion
+export type FollowSuggestion = T.People.FollowSuggestion
 
 export type Props = {
   suggestions: Array<FollowSuggestion>
 }
 
 const FollowSuggestions = (props: Props) => (
-  <Box style={styles.container}>
-    <Text type="BodySmallSemibold" style={styles.text}>
+  <Kb.Box style={styles.container}>
+    <Kb.Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
-    </Text>
-    <ScrollView
-      {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+    </Kb.Text>
+    <Kb.ScrollView
+      {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
-        <ConnectedNameWithIcon
+        <Kb.ConnectedNameWithIcon
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
@@ -29,29 +28,29 @@ const FollowSuggestions = (props: Props) => (
           containerStyle={styles.suggestionContainer}
         />
       ))}
-    </ScrollView>
-  </Box>
+    </Kb.ScrollView>
+  </Kb.Box>
 )
 export default FollowSuggestions
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.fastBlank,
-    paddingTop: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Kb.Styles.globalColors.fastBlank,
+    paddingTop: Kb.Styles.globalMargins.tiny,
     position: 'relative',
   },
   meta: {
     paddingLeft: 2,
     paddingRight: 2,
   },
-  scrollViewContainer: Styles.platformStyles({
+  scrollViewContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
-      backgroundColor: Styles.globalColors.fastBlank,
+      ...Kb.Styles.globalStyles.flexBoxRow,
+      backgroundColor: Kb.Styles.globalColors.fastBlank,
       borderBottomWidth: 1,
-      borderColor: Styles.globalColors.black_10,
-      paddingBottom: Styles.globalMargins.small,
+      borderColor: Kb.Styles.globalColors.black_10,
+      paddingBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {
       borderBottomStyle: 'solid',
@@ -67,7 +66,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 112,
   },
   text: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginLeft: Kb.Styles.globalMargins.small,
   },
 }))

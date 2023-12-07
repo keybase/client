@@ -13,28 +13,30 @@ type FileDesc = {
   actions: Actions
 }
 
-type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
+type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) => string
 
 const reservedPayloadKeys = ['_description']
 const typeMap: Array<string> = []
 const cleanName = (c: string) => c.replace(/-/g, '')
 
-const payloadHasType = (payload: ActionDesc, toFind: RegExp) => {
-  return Object.keys(payload).some(param => {
-    const ps = payload[param]
-    if (Array.isArray(ps)) {
-      return ps.some(p => toFind.exec(p))
-    } else {
-      return toFind.exec(ps)
-    }
-  })
+const payloadHasType = (payload: ActionDesc | undefined, toFind: RegExp) => {
+  return payload
+    ? Object.keys(payload).some(param => {
+        const ps = payload[param]
+        if (Array.isArray(ps)) {
+          return ps.some(p => toFind.test(p))
+        } else {
+          return toFind.test(ps ?? '')
+        }
+      })
+    : false
 }
 const actionHasType = (actions: Actions, toFind: RegExp) =>
   Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import type * as RPCTypes from '../constants/types/rpc-gen'"
+    ? "import type * as RPCTypes from '@/constants/types/rpc-gen'"
     : ''
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -74,15 +76,19 @@ export type Actions =
 `
 }
 
-function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {
+function compileActions(
+  ns: ActionNS,
+  actions: Actions,
+  compileActionFn: CompileActionFn | undefined
+): string {
   return Object.keys(actions)
-    .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
+    .map((actionName: ActionName) => compileActionFn?.(ns, actionName, actions[actionName]))
     .sort()
     .join('\n')
 }
 
 function capitalize(s: string): string {
-  return s[0].toUpperCase() + s.slice(1)
+  return (s[0]?.toUpperCase() ?? '') + s.slice(1)
 }
 
 function payloadKeys(p: ActionDesc) {
@@ -111,67 +117,79 @@ function compileActionPayloads(_: ActionNS, actionName: ActionName) {
   return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
-function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: ActionDesc | undefined) {
+  // don't make action creators for this
+  const allowCreate = ns !== 'engine-gen'
+  const desc = _desc ?? {}
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
-  const comment = desc._description
+  const comment = desc['_description']
     ? `/**
-     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
+     * ${Array.isArray(desc['_description']) ? desc['_description'].join('\n* ') : desc['_description']}
      */
     `
     : ''
   const payload = hasPayload
     ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
     : 'payload?: undefined'
-  return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  return `${comment}${allowCreate ? 'export ' : ''}const create${capitalize(actionName)} = (${payload}) => (
   {payload, type: ${actionName} as typeof ${actionName}}
 )`
 }
 
-function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: ActionDesc) {
+function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName) {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-function makeTypedActions(created: Array<string>) {
-  return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-  ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
+// function makeTypedActions(created: Array<string>) {
+//   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+//   ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
 
-  export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
+//   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
-  type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
-  type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
-  export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
-`
-}
+//   type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
+//   type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
+//   export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
+// `
+// }
 
-function main() {
+async function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created: Array<string> = []
-  files
+  const proms = files
     .filter(file => path.extname(file) === '.json')
-    .forEach(file => {
-      const ns = path.basename(file, '.json')
-      created.push(ns)
-      console.log(`Generating ${ns}`)
-      const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
-      const outPath = path.join(root, '..', ns + '-gen.tsx')
-      const generated: string = prettier.format(compile(ns, desc), {
-        ...prettier.resolveConfig.sync(outPath),
-        parser: 'typescript',
-      })
-      fs.writeFileSync(outPath, generated)
-      compileActionMap(ns, desc.actions)
+    .map(async file => {
+      try {
+        const ns = path.basename(file, '.json')
+        created.push(ns)
+        console.log(`Generating ${ns}`)
+        const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+        const outPath = path.join(root, '..', ns + '-gen.tsx')
+        const generated: string = await prettier.format(compile(ns, desc), {
+          ...(await prettier.resolveConfig(outPath)),
+          parser: 'typescript',
+        })
+        fs.writeFileSync(outPath, generated)
+        compileActionMap(ns, desc.actions)
+      } catch (e) {
+        console.error('Error generating', file, e)
+      }
     })
+  await Promise.all(proms)
 
-  console.log(`Generating typed-actions-gen`)
-  const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
-  const typedActions = makeTypedActions(created)
-  const generated: string = prettier.format(typedActions, {
-    ...prettier.resolveConfig.sync(outPath),
-    parser: 'typescript',
-  })
-  fs.writeFileSync(outPath, generated)
+  // console.log(`Generating typed-actions-gen`)
+  // const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
+  // const typedActions = makeTypedActions(created)
+  // const generated: string = await prettier.format(typedActions, {
+  //   ...(await prettier.resolveConfig(outPath)),
+  //   parser: 'typescript',
+  // })
+  // fs.writeFileSync(outPath, generated)
 }
 
 main()
+  .then(() => {})
+  .catch(e => {
+    console.error('Error generating', e)
+  })

@@ -1,15 +1,14 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 import PeopleItem from '../item'
 
 type Props = {
   badged: boolean
-  confirmLabel: string | null
-  iconUrl: string | null
+  confirmLabel?: string
+  iconUrl?: string
   onConfirm: () => void
-  onDismiss: (() => void) | null
+  onDismiss?: () => void
   text: string
-  url: string | null
+  url?: string
 }
 
 const Announcement = (props: Props) => {
@@ -18,7 +17,7 @@ const Announcement = (props: Props) => {
       badged={props.badged}
       icon={
         props.iconUrl ? (
-          <Kb.Image src={props.iconUrl} style={styles.icon} />
+          <Kb.Image2 src={props.iconUrl} style={styles.icon} />
         ) : (
           <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
         )
@@ -39,12 +38,12 @@ const Announcement = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {alignSelf: 'flex-start'},
       icon: {flexShrink: 0, height: 32, width: 32},
-    } as const)
+    }) as const
 )
 
 export default Announcement

@@ -1,27 +1,24 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
-import * as RPCGen from '../../../constants/types/rpc-gen'
-import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {useTeamDetailsSubscribe} from '../../subscriber'
-import {ModalTitle} from '../../common'
-import {FloatingRolePicker} from '../../role-picker'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {pluralize} from '../../../util/string'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {ModalTitle} from '@/teams/common'
+import {FloatingRolePicker} from '@/teams/role-picker'
+import {InlineDropdown} from '@/common-adapters/dropdown'
+import {pluralize} from '@/util/string'
 import {InviteItem} from './invite-item'
 
-type Props = Container.RouteProps<'teamInviteLinksGenerate'>
+type Props = {teamID: T.Teams.TeamID}
 
 type RolePickerProps = {
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onOpenRolePicker: () => void
-  teamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | null}
+  teamRole: T.Teams.TeamRoleType
+  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string | undefined}
 }
 
 const capitalize = (str: string) => {
@@ -64,51 +61,53 @@ const validityValuesMap = {
 }
 
 const GenerateLinkModal = (props: Props) => {
+  const teamID = props.teamID
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
+  const [teamRole, setTeamRole] = React.useState<T.Teams.TeamRoleType>('reader')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
-  const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
+  const inviteLink = [...(inviteLinks || [])].find(i => i.url === inviteLinkURL)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const onBack = () => nav.safeNavigateUp()
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onClose = () => clearModals()
 
-  const menuItems = [
-    {onClick: () => setValidity(validityOneUse), title: validityOneUse},
-    {onClick: () => setValidity(validityOneYear), title: validityOneYear},
-    {onClick: () => setValidity(validityForever), title: validityForever},
-  ]
+  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+    const {attachTo, toggleShowingPopup} = p
+    const menuItems = [
+      {onClick: () => setValidity(validityOneUse), title: validityOneUse},
+      {onClick: () => setValidity(validityOneYear), title: validityOneYear},
+      {onClick: () => setValidity(validityForever), title: validityForever},
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={toggleShowingPopup}
+        visible={true}
+      />
+    )
+  }, [])
 
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
-  const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
+  const generateLinkRPC = C.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
-    const expireAfter = validityValuesMap[validity]
-    const maxUses = expireAfter == null ? 1 : -1
+    const expireAfter = validityValuesMap[validity as keyof typeof validityValuesMap] ?? ''
+    const maxUses = !expireAfter ? 1 : -1
 
     generateLinkRPC(
       [
         {
           expireAfter,
           maxUses,
-          role: RPCGen.TeamRole[teamRole],
+          role: T.RPCGen.TeamRole[teamRole],
           teamname,
         },
         waitingKey,
@@ -121,11 +120,11 @@ const GenerateLinkModal = (props: Props) => {
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
       admin: `You can't invite admins via invte link.`,
-      owner: null, //don't even show
+      owner: undefined, //don't even show
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),
-    onConfirmRolePicker: role => {
+    onConfirmRolePicker: (role: T.Teams.TeamRoleType) => {
       setRolePickerOpen(false)
       setTeamRole(role)
     },
@@ -133,7 +132,7 @@ const GenerateLinkModal = (props: Props) => {
     teamRole: teamRole,
   }
 
-  if (inviteLink != null || inviteLink != undefined) {
+  if (inviteLink !== undefined) {
     return (
       <Kb.Modal
         onClose={onClose}
@@ -159,7 +158,7 @@ const GenerateLinkModal = (props: Props) => {
           direction="vertical"
           fullWidth={true}
           style={styles.body}
-          gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+          gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
         >
           <Kb.Text type="Body" style={styles.infoText}>
             Here is your link. Share it cautiously as anyone who has it can join the team.
@@ -205,16 +204,16 @@ const GenerateLinkModal = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="Body" style={styles.infoText}>
           Invite people to {teamname} by sharing a link:
         </Kb.Text>
 
-        <Kb.Box2
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+        <Kb.Box2Measure
+          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
           fullWidth={true}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
         >
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Validity
@@ -228,9 +227,9 @@ const GenerateLinkModal = (props: Props) => {
             style={styles.dropdownStyle}
             selectedStyle={styles.inlineSelectedStyle}
           />
-        </Kb.Box2>
+        </Kb.Box2Measure>
 
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
+        <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Invite as
           </Kb.Text>
@@ -241,20 +240,20 @@ const GenerateLinkModal = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, height: 96},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  banner: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  body: Styles.platformStyles({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   dropdownButton: {
     alignSelf: 'center',
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   dropdownStyle: {
@@ -262,17 +261,17 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 0,
   },
   infoText: {
-    marginBottom: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
   },
   inlineSelectedStyle: {
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
     paddingRight: 0,
     width: '100%',
   },
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
+  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
   rowTitle: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.xtiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
     width: 62,
   },
 }))

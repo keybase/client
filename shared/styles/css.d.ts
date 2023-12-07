@@ -1,7 +1,9 @@
 import type {CSSProperties} from 'react'
 import type {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
-export type Color = null | string
+export type DimensionValue = number | 'auto' | `${number}%`
+
+export type Color = undefined | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
@@ -44,6 +46,7 @@ type StyleKeys =
   | 'bottom'
   | 'boxShadow'
   | 'color'
+  | 'columnGap'
   | 'contain'
   | 'cursor'
   | 'direction'
@@ -88,6 +91,7 @@ type StyleKeys =
   | 'position'
   | 'resize'
   | 'right'
+  | 'rowGap'
   | 'textAlign'
   | 'textDecoration'
   | 'textDecorationColor'
@@ -118,7 +122,7 @@ type _StylesMobileOverride = {
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign' | 'transform'> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -129,6 +133,7 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
+  transform?: Array<{translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number}>
 }
 
 export type _StylesCrossPlatform = {

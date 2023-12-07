@@ -1,14 +1,14 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-
+import * as Styles from '@/styles'
+import type {MeasureRef} from './measure-ref'
 import type {Props as _Props, Props2} from './clickable-box'
-import type {_StylesCrossPlatform} from '../styles/css'
+import type {_StylesCrossPlatform} from '@/styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableBox(
+const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
   props: Props,
-  forwardedRef: React.Ref<HTMLDivElement>
+  ref: React.Ref<MeasureRef>
 ) {
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
@@ -24,44 +24,36 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
   const onMouseEnter = needMouseEnterLeaveHandlers
     ? (e: React.MouseEvent): void => {
         setMouseIn(true)
-        props.onMouseEnter && props.onMouseEnter(e)
+        props.onMouseEnter?.(e)
       }
     : undefined
   const onMouseLeave = needMouseEnterLeaveHandlers
     ? (e: React.MouseEvent) => {
         setMouseIn(false)
-        props.onMouseLeave && props.onMouseLeave(e)
+        props.onMouseLeave?.(e)
       }
     : undefined
   const onMouseDown = (e: React.MouseEvent) => {
     setMouseDown(true)
-    props.onMouseDown && props.onMouseDown(e)
+    props.onMouseDown?.(e)
   }
   const onMouseUp = (e: React.MouseEvent) => {
     setMouseDown(false)
-    props.onMouseUp && props.onMouseUp(e)
+    props.onMouseUp?.(e)
   }
 
   const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = props
 
   // filter out native-only calls
-  const {
-    onPress,
-    onLongPress,
-    onPressIn,
-    onPressOut,
-    activeOpacity,
-    pointerEvents,
-    feedback,
-    ...passThroughProps
-  } = otherProps
+  const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, ...passThroughProps} =
+    otherProps
 
   let underlay: React.ReactNode
 
   if (mouseIn && props.onClick && (props.feedback || props.feedback === undefined)) {
     let borderRadius = 0
     if (style && typeof style === 'object') {
-      borderRadius = (style as _StylesCrossPlatform).borderRadius || 0
+      borderRadius = ((style as _StylesCrossPlatform).borderRadius as number) || 0
     }
     // Down or hover
     const backgroundColor = mouseDown
@@ -78,9 +70,24 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
     )
   }
 
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useImperativeHandle(
+    ref,
+    () => {
+      return {
+        divRef,
+        measure() {
+          return divRef.current?.getBoundingClientRect()
+        },
+      }
+    },
+    []
+  )
+
   return (
     <div
-      ref={forwardedRef}
+      ref={divRef}
       {...passThroughProps}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
@@ -88,11 +95,13 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
       onMouseUp={onMouseUp}
       onDoubleClick={onDoubleClick}
       onClick={onClick}
-      style={Styles.collapseStyles([
-        _containerStyle,
-        onClick || props.onMouseDown ? Styles.desktopStyles.clickable : null,
-        style,
-      ] as any)}
+      style={
+        Styles.collapseStyles([
+          styles.container,
+          onClick || props.onMouseDown ? styles.click : null,
+          style,
+        ]) as React.CSSProperties
+      }
     >
       {underlay}
       {children}
@@ -100,33 +109,59 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
   )
 })
 
-const _containerStyle = {
-  alignItems: 'stretch',
-  borderRadius: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  height: undefined,
-  lineHeight: 0,
-  minWidth: undefined,
-  position: 'relative',
-  textAlign: 'left',
-  transform: 'none',
-  transition: 'none',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      click: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      container: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'stretch',
+          borderRadius: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: undefined,
+          lineHeight: 0,
+          minWidth: undefined,
+          position: 'relative',
+          textAlign: 'left',
+          transform: 'none',
+          transition: 'none',
+        },
+      }),
+    }) as const
+)
 
 export default ClickableBox
 
-export const ClickableBox2 = (p: Props2) => {
+export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function ClickableBox2(
+  p: Props2,
+  ref: React.Ref<MeasureRef>
+) {
   const {onClick, children, style, className, onMouseOver} = p
   const collapsed = Styles.useCollapseStyles(style, true)
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useImperativeHandle(ref, () => {
+    return {
+      divRef,
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  })
   return (
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
-      style={collapsed}
+      style={collapsed as any}
+      ref={divRef}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}
     </div>
   )
-}
+})

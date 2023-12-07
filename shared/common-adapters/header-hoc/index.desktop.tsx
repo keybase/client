@@ -1,11 +1,13 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import Text from '../text'
+import * as Styles from '@/styles'
 import BackButton from '../back-button'
-import Box from '../box'
-import Icon from '../icon'
-import * as Styles from '../../styles'
+import Box from '@/common-adapters/box'
+import Icon from '@/common-adapters/icon'
+import Text from '@/common-adapters/text'
 import type {Props, LeftActionProps} from '.'
-import {useNavigation} from '@react-navigation/core'
+
+const Kb = {BackButton, Box, Icon, Text}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -16,23 +18,23 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
+  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
     {customComponent}
     {onCancel && (
-      <Icon
+      <Kb.Icon
         style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]] as any)}
         type="iconfont-close"
         onClick={onCancel}
       />
     )}
     {title && (
-      <Box style={_titleStyle}>
-        <Text type="Header">{title}</Text>
-      </Box>
+      <Kb.Box style={_titleStyle}>
+        <Kb.Text type="Header">{title}</Kb.Text>
+      </Kb.Box>
     )}
     {titleComponent}
     {(rightActions || []).map(a => (a ? a.custom : null))}
-  </Box>
+  </Kb.Box>
 )
 
 // TODO use LeftAction above
@@ -47,31 +49,28 @@ export const LeftAction = ({
   onLeftAction,
   theme,
 }: LeftActionProps) => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
+  <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction && leftAction === 'cancel' ? (
-      <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+      <Kb.Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
-      </Text>
-    ) : (
-      onLeftAction ||
-      (leftAction === 'back' && (
-        <BackButton
-          badgeNumber={badgeNumber}
-          hideBackLabel={hideBackLabel}
-          iconColor={
-            disabled
-              ? Styles.globalColors.black_10
-              : theme === 'dark'
-              ? Styles.globalColors.white
-              : Styles.globalColors.black_50
-          }
-          style={styles.action}
-          textStyle={disabled ? styles.disabledText : undefined}
-          onClick={disabled ? undefined : onLeftAction ?? undefined}
-        />
-      ))
-    )}
-  </Box>
+      </Kb.Text>
+    ) : onLeftAction || leftAction === 'back' ? (
+      <Kb.BackButton
+        badgeNumber={badgeNumber}
+        hideBackLabel={hideBackLabel}
+        iconColor={
+          disabled
+            ? Styles.globalColors.black_10
+            : theme === 'dark'
+            ? Styles.globalColors.white
+            : Styles.globalColors.black_50
+        }
+        style={styles.action}
+        textStyle={disabled ? styles.disabledText : undefined}
+        onClick={disabled ? undefined : onLeftAction}
+      />
+    ) : null}
+  </Kb.Box>
 )
 
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
@@ -162,7 +161,7 @@ export const HeaderLeftBlank = () => (
   <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
 
-export const HeaderLeftArrow = hp =>
+export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -172,7 +171,7 @@ export const HeaderLeftArrow = hp =>
     />
   ) : null
 
-export const HeaderLeftCancel = hp =>
+export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -182,14 +181,9 @@ export const HeaderLeftCancel = hp =>
     />
   ) : null
 
-export const HeaderLeftCancel2 = hp => {
-  const navigation = useNavigation()
-  const onBack = React.useCallback(() => {
-    // @ts-ignore
-    navigation.pop()
-  }, [navigation])
-
+export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor?: string}) => {
+  const {pop} = C.useNav()
   return hp.canGoBack ?? true ? (
-    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
   ) : null
 }

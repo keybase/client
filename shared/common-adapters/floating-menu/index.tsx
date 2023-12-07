@@ -6,43 +6,74 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
+import {Box2} from '@/common-adapters/box'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+} from '@/common-adapters/bottom-sheet'
+import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
+import {FloatingModalContext} from './context'
+import {FullWindowOverlay} from 'react-native-screens'
+
+const Kb = {
+  Box2,
+  Overlay,
+  useSafeAreaInsets,
+}
 
 export type MenuItems = _MenuItems
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
   containerStyle?: Styles.StylesCrossPlatform
   header?: React.ReactNode
-  items: ReadonlyArray<_MenuItems[0]>
+  items: ReadonlyArray<_MenuItems[number]>
   listStyle?: Object
   onHidden: () => void
   position?: Styles.Position
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean
   remeasureHint?: number
   textColor?: Styles.Color
   visible: boolean
   // mobile only
   safeProviderStyle?: Styles.StylesCrossPlatform
+  snapPoints?: Array<string | number>
+}
+
+const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
+  return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
+})
+
+const FullWindow = ({children}: {children?: React.ReactNode}) => {
+  return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
 const FloatingMenu = (props: Props) => {
+  const {snapPoints, items} = props
   const isModal = React.useContext(FloatingModalContext)
+  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
+  React.useEffect(() => {
+    bottomSheetModalRef.current?.present()
+  }, [])
 
-  if (!props.visible && !isModal) {
+  if (!props.visible && isModal === false) {
     return null
   }
 
   const contents = (
     <MenuLayout
+      isModal={isModal}
       header={props.header}
       onHidden={props.onHidden}
-      items={props.items}
+      items={items}
       closeOnClick={props.closeOnSelect}
       closeText={props.closeText}
       listStyle={props.listStyle}
@@ -52,26 +83,57 @@ const FloatingMenu = (props: Props) => {
     />
   )
 
-  if (isModal) {
+  if (isModal === true) {
     return contents
   }
 
+  if (Styles.isMobile && isModal === 'bottomsheet') {
+    return (
+      <BottomSheetModal
+        containerComponent={FullWindow}
+        snapPoints={snapPoints}
+        enableDynamicSizing={true}
+        ref={bottomSheetModalRef}
+        handleStyle={styles.handleStyle}
+        handleIndicatorStyle={styles.handleIndicatorStyle}
+        style={styles.modalStyle}
+        backdropComponent={Backdrop}
+      >
+        {contents}
+      </BottomSheetModal>
+    )
+  }
+
   return (
-    <Overlay
+    <Kb.Overlay
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
       remeasureHint={props.remeasureHint}
-      style={Styles.collapseStyles([props.containerStyle])}
+      style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
       {contents}
-    </Overlay>
+    </Kb.Overlay>
   )
 }
-export default FloatingMenu
 
-// escape hatch to make a floating to a modal
-export const FloatingModalContext = React.createContext(false)
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
+      handleStyle: {backgroundColor: Styles.globalColors.white},
+      modalStyle: {
+        backgroundColor: Styles.globalColors.white,
+        elevation: 17,
+        shadowColor: Styles.globalColors.black_50OrBlack_40,
+        shadowOffset: {height: 5, width: 0},
+        shadowOpacity: 1,
+        shadowRadius: 10,
+      },
+    }) as const
+)
+
+export default FloatingMenu

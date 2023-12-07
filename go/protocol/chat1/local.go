@@ -6537,6 +6537,13 @@ func (o EmojiFetchOpts) DeepCopy() EmojiFetchOpts {
 	}
 }
 
+type TrackGiphySelectRes struct {
+}
+
+func (o TrackGiphySelectRes) DeepCopy() TrackGiphySelectRes {
+	return TrackGiphySelectRes{}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -7245,6 +7252,11 @@ type ToggleEmojiAnimationsArg struct {
 	Enabled bool `codec:"enabled" json:"enabled"`
 }
 
+type TrackGiphySelectArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Result    GiphySearchResult `codec:"result" json:"result"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -7369,6 +7381,7 @@ type LocalInterface interface {
 	RemoveEmoji(context.Context, RemoveEmojiArg) (RemoveEmojiRes, error)
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 	ToggleEmojiAnimations(context.Context, bool) error
+	TrackGiphySelect(context.Context, TrackGiphySelectArg) (TrackGiphySelectRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -9170,6 +9183,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"trackGiphySelect": {
+				MakeArg: func() interface{} {
+					var ret [1]TrackGiphySelectArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TrackGiphySelectArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TrackGiphySelectArg)(nil), args)
+						return
+					}
+					ret, err = i.TrackGiphySelect(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -9823,5 +9851,10 @@ func (c LocalClient) UserEmojis(ctx context.Context, __arg UserEmojisArg) (res U
 func (c LocalClient) ToggleEmojiAnimations(ctx context.Context, enabled bool) (err error) {
 	__arg := ToggleEmojiAnimationsArg{Enabled: enabled}
 	err = c.Cli.Call(ctx, "chat.1.local.toggleEmojiAnimations", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) TrackGiphySelect(ctx context.Context, __arg TrackGiphySelectArg) (res TrackGiphySelectRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.trackGiphySelect", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -1,12 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as FsTypes from '../constants/types/fs'
-import {Filename} from '../fs/common'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {Filename} from '@/fs/common'
 
 type FileUpdateProps = {
-  path: FsTypes.Path
-  tlfType: FsTypes.TlfType
+  path: T.FS.Path
+  tlfType: T.FS.TlfType
   uploading: boolean
   onClick: () => void
 }
@@ -18,9 +17,9 @@ type FileUpdatesProps = {
 export type UserTlfUpdateRowProps = {
   onClickAvatar: () => void
   onSelectPath: () => void
-  path: FsTypes.Path
+  path: T.FS.Path
   writer: string
-  tlfType: FsTypes.TlfType
+  tlfType: T.FS.TlfType
   participants: Array<string>
   teamname: string
   timestamp: string
@@ -92,7 +91,7 @@ const defaultNumFileOptionsShown = 3
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
+      <FileUpdate key={T.FS.pathToString(u.path)} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
       <FileUpdatesShowAll
@@ -138,7 +137,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           ) : props.tlfType === 'public' ? (
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               {props.participants.join(',')}
-              <Kb.Meta backgroundColor={Styles.globalColors.green} size="Small" title="PUBLIC" />
+              <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} size="Small" title="PUBLIC" />
             </Kb.Box2>
           ) : (
             `${props.participants.join(',')}`
@@ -165,15 +164,15 @@ export const FilesPreview = (props: FilesPreviewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonContainer: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       fileUpdateRow: {
-        marginTop: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.large,
+        marginTop: Kb.Styles.globalMargins.xtiny,
+        paddingRight: Kb.Styles.globalMargins.large,
       },
       fullWidth: {
         // needed to avoid icon being pinched
@@ -193,62 +192,62 @@ const styles = Styles.styleSheetCreate(
       iconStyle: {
         flexShrink: 0,
         height: 16,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         position: 'relative',
         top: 1,
         width: 16,
       },
       tlfContainer: {
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        color: Kb.Styles.globalColors.black,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       tlfParticipants: {
         fontSize: 12,
       },
       tlfRowAvatar: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       tlfRowContainer: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       tlfSectionHeader: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        color: Styles.globalColors.black_50,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        color: Kb.Styles.globalColors.black_50,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
       tlfSectionHeaderContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       tlfTime: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       tlfTopLine: {
         justifyContent: 'space-between',
       },
-      toggleButton: Styles.platformStyles({
+      toggleButton: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black_05,
-          borderRadius: Styles.borderRadius,
-          marginTop: Styles.globalMargins.xtiny,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.black_05,
+          borderRadius: Kb.Styles.borderRadius,
+          marginTop: Kb.Styles.globalMargins.xtiny,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
         isElectron: {
-          marginRight: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      wordWrapFilename: Styles.platformStyles({
+      wordWrapFilename: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
         },
       }),
-    } as const)
+    }) as const
 )

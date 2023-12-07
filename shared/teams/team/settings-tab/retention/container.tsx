@@ -1,95 +1,76 @@
-import * as Constants from '../../../../constants/teams'
-import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import type * as TeamsTypes from '../../../../constants/types/teams'
-import RetentionPicker, {type RetentionEntityType, type Props} from '.'
-import type {ConversationIDKey} from '../../../../constants/types/chat2'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
-import type {StylesCrossPlatform} from '../../../../styles'
-import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import RetentionPicker, {type RetentionEntityType} from '.'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type OwnProps = {
-  conversationIDKey?: ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
   containerStyle?: StylesCrossPlatform
   dropdownStyle?: StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {entityType, conversationIDKey, teamID} = ownProps
+const Container = (ownProps: OwnProps) => {
+  const {entityType, conversationIDKey: _cid, teamID} = ownProps
 
-    let loading = false
-    let policy: RetentionPolicy = Constants.retentionPolicies.policyRetain
-    let teamPolicy: RetentionPolicy | undefined = undefined
-    if (ownProps.conversationIDKey) {
-      policy = getConversationRetentionPolicy(state, conversationIDKey!)
-    } else if (!entityType.endsWith('team')) {
-      throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
-    }
-    if (entityType !== 'adhoc') {
-      const tempPolicy = Constants.getTeamRetentionPolicyByID(state, teamID)
-      loading = !tempPolicy
-      if (tempPolicy) {
-        if (entityType === 'channel') {
-          teamPolicy = tempPolicy
-        } else {
-          policy = tempPolicy
-        }
-      }
-    }
+  let loading = false
+  let teamPolicy: T.Retention.RetentionPolicy | undefined
 
-    return {
-      canSetPolicy: entityType === 'adhoc' || Constants.getCanPerformByID(state, teamID).setRetentionPolicy,
-      entityType, // used only to display policy to non-admins
-      loading,
-      policy,
-      policyIsExploding:
-        policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode'),
-      showInheritOption: entityType === 'channel',
-      showOverrideNotice: entityType === 'big team',
-      teamPolicy,
-    }
-  },
-  (dispatch, {conversationIDKey, entityType, teamID}: OwnProps) => ({
-    _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {entityType, onCancel, onConfirm, policy},
-              selected: 'retentionWarning',
-            },
-          ],
-        })
-      )
-    },
-    saveRetentionPolicy: (policy: RetentionPolicy) => {
-      if (['small team', 'big team'].includes(entityType)) {
-        dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID}))
-      } else if (['adhoc', 'channel'].includes(entityType)) {
-        // we couldn't get here without throwing an error for !conversationIDKey
-        dispatch(createSetConvRetentionPolicy({conversationIDKey: conversationIDKey!, policy}))
-      } else {
-        throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
-      }
-    },
-  }),
-  (s, d, o: OwnProps) => {
-    const {_onShowWarning, ...dRest} = d
-    const p: {
-      entityType: RetentionEntityType
-    } & Props = {
-      ...o,
-      ...s,
-      ...dRest,
-      onShowWarning: (policy: any, onConfirm: any, onCancel: any) =>
-        _onShowWarning(policy, onConfirm, onCancel),
-    }
-    return p
+  if (_cid) {
+  } else if (!entityType.endsWith('team')) {
+    throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-)(RetentionPicker)
+  const conversationIDKey = _cid ?? C.noConversationIDKey
+  let policy = C.useConvoState(conversationIDKey, s =>
+    _cid ? s.meta.retentionPolicy : C.Teams.retentionPolicies.policyRetain
+  )
+  const tempPolicy = C.useTeamsState(s => C.Teams.getTeamRetentionPolicyByID(s, teamID))
+  if (entityType !== 'adhoc') {
+    loading = !tempPolicy
+    if (tempPolicy) {
+      if (entityType === 'channel') {
+        teamPolicy = tempPolicy
+      } else {
+        policy = tempPolicy
+      }
+    }
+  }
+
+  const canSetPolicy = C.useTeamsState(
+    s => entityType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).setRetentionPolicy
+  )
+  const policyIsExploding =
+    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
+  const showInheritOption = entityType === 'channel'
+  const showOverrideNotice = entityType === 'big team'
+  const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
+  const setConvRetentionPolicy = C.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
+  const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
+    if (['small team', 'big team'].includes(entityType)) {
+      setTeamRetentionPolicy(teamID, policy)
+    } else if (['adhoc', 'channel'].includes(entityType)) {
+      // we couldn't get here without throwing an error for !conversationIDKey
+      setConvRetentionPolicy(policy)
+    } else {
+      throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
+    }
+  }
+  const props = {
+    canSetPolicy,
+    entityType,
+    loading,
+    policy,
+    policyIsExploding,
+    saveRetentionPolicy,
+    showInheritOption,
+    showOverrideNotice,
+    showSaveIndicator: ownProps.showSaveIndicator,
+    teamID,
+    teamPolicy,
+  }
+  return <RetentionPicker {...props} />
+}
+
+export default Container

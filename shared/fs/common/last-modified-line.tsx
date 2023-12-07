@@ -1,6 +1,5 @@
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import {formatTimeForFS} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import {formatTimeForFS} from '@/util/timestamp'
 
 export type LastModifiedLineProps = {
   lastModifiedTimestamp?: number
@@ -9,7 +8,7 @@ export type LastModifiedLineProps = {
 }
 
 const Username = ({mode, lastWriter}: {mode: LastModifiedLineProps['mode']; lastWriter: string}) =>
-  mode === 'row' && Styles.isMobile ? (
+  mode === 'row' && Kb.Styles.isMobile ? (
     <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
   ) : (
     <Kb.ConnectedUsernames

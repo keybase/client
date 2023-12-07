@@ -1,9 +1,10 @@
-import {Box2, FloatingBox} from '..'
+import {Box2} from '@/common-adapters/box'
+import FloatingBox from '../floating-box'
 import type {Props} from '.'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 
 const Overlay = (props: Props) => {
-  if (Object.prototype.hasOwnProperty.call(props, 'visible') && !props.visible) {
+  if (Object.hasOwn(props, 'visible') && !props.visible) {
     return null
   }
   return (

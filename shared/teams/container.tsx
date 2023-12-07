@@ -1,65 +1,52 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
-import * as GregorGen from '../actions/gregor-gen'
-import * as TeamsGen from '../actions/teams-gen'
-import * as Styles from '../styles'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import Teams, {type OwnProps as MainOwnProps} from './main'
-import {HeaderRightActions} from './main/header'
-import openURL from '../util/open-url'
-import * as Constants from '../constants/teams'
-import * as WaitingConstants from '../constants/waiting'
-import type * as Types from '../constants/types/teams'
-import {memoize} from '../util/memoize'
+import openURL from '@/util/open-url'
+import {memoize} from '@/util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 
-type OwnProps = {}
-
 // share some between headerRightActions on desktop and component on mobile
-type HeaderActionProps = {
-  onCreateTeam: () => void
-  onJoinTeam: () => void
-}
-const useHeaderActions = (): HeaderActionProps => {
-  const dispatch = Container.useDispatch()
+const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
-    onJoinTeam: () => dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']})),
+    onCreateTeam: () => launchNewTeamWizardOrModal(),
+    onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
   }
 }
 
 const orderTeamsImpl = (
-  teams: Map<string, Types.TeamMeta>,
-  newRequests: Types.State['newTeamRequests'],
-  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
-  newTeams: Types.State['newTeams'],
-  sortOrder: Types.TeamListSort,
-  activityLevels: Types.ActivityLevels,
+  teams: Map<string, T.Teams.TeamMeta>,
+  newRequests: C.Teams.State['newTeamRequests'],
+  teamIDToResetUsers: C.Teams.State['teamIDToResetUsers'],
+  newTeams: C.Teams.State['newTeams'],
+  sortOrder: T.Teams.TeamListSort,
+  activityLevels: T.Teams.ActivityLevels,
   filter: string
-): Array<Types.TeamMeta> => {
+): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()
   const teamsFiltered = filter
     ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
     : [...teams.values()]
   return teamsFiltered.sort((a, b) => {
     const sizeDiff =
-      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
-      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
+      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
+      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
     if (sizeDiff !== 0) return sizeDiff
     const newTeamsDiff = (newTeams.has(b.id) ? 1 : 0) - (newTeams.has(a.id) ? 1 : 0)
     if (newTeamsDiff !== 0) return newTeamsDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
     switch (sortOrder) {
       case 'role':
-        return Constants.compareTeamRoles(a.role, b.role) || nameCompare
+        return C.Teams.compareTeamRoles(a.role, b.role) || nameCompare
       case 'activity': {
         const activityA = activityLevels.teams.get(a.id)
         const activityB = activityLevels.teams.get(b.id)
-        return Constants.compareActivityLevels(activityA, activityB) || nameCompare
+        return C.Teams.compareActivityLevels(activityA, activityB) || nameCompare
       }
       default:
         return nameCompare
@@ -72,8 +59,8 @@ const orderTeams = memoize(orderTeamsImpl)
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
 const Reloadable = (props: ReloadableProps) => {
-  const dispatch = Container.useDispatch()
-  const loadTeams = React.useCallback(() => dispatch(TeamsGen.createGetTeams()), [dispatch])
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const loadTeams = getTeams
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -83,97 +70,62 @@ const Reloadable = (props: ReloadableProps) => {
   const headerActions = useHeaderActions()
 
   const nav = Container.useSafeNavigation()
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
-    onViewTeam: (teamID: Types.TeamID) =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
+    onManageChat: (teamID: T.Teams.TeamID) => manageChatChannels(teamID),
+    onViewTeam: (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
   }
 
   return (
-    <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.Teams.teamsLoadedWaitingKey} onReload={loadTeams}>
       <Teams {...props} {...headerActions} {...otherActions} />
     </Kb.Reloadable>
   )
 }
 
-const TeamsFilter = () => {
-  const dispatch = Container.useDispatch()
-  const filterValue = Container.useSelector(s => s.teams.teamListFilter)
-  const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
-  const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
-  return numTeams >= 20 ? (
-    <Kb.SearchFilter
-      value={filterValue}
-      valueControlled={true}
-      onChange={setFilter}
-      size="small"
-      placeholderText="Filter"
-      hotkey="k"
-      icon="iconfont-filter"
-      style={filterStyles.filter}
-    />
-  ) : null
-}
-const filterStyles = Styles.styleSheetCreate(() => ({
-  filter: {
-    alignSelf: 'flex-end',
-    marginBottom: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xsmall,
-  },
-}))
+const Connected = () => {
+  const _teams = C.useTeamsState(s => s.teamMeta)
+  const activityLevels = C.useTeamsState(s => s.activityLevels)
+  const deletedTeams = C.useTeamsState(s => s.deletedTeams)
+  const filter = C.useTeamsState(s => s.teamListFilter)
+  const loaded = !C.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
+  const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
+  const newTeams = C.useTeamsState(s => s.newTeams)
+  const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)
+  const sortOrder = C.useTeamsState(s => s.teamListSort)
+  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
 
-Reloadable.navigationOptions = {
-  headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
-}
-
-const Connected = Container.connect(
-  (state: Container.TypedState) => ({
-    _teams: state.teams.teamMeta,
-    activityLevels: state.teams.activityLevels,
-    deletedTeams: state.teams.deletedTeams,
-    filter: state.teams.teamListFilter,
-    loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-    newTeamRequests: state.teams.newTeamRequests,
-    newTeams: state.teams.newTeams,
-    sawChatBanner: state.teams.sawChatBanner || false,
-    sortOrder: state.teams.teamListSort,
-    teamIDToResetUsers: state.teams.teamIDToResetUsers,
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    onHideChatBanner: () =>
-      dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
-    onOpenFolder: (teamname: Types.Teamname) =>
-      dispatch(
-        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
-      ),
-    onReadMore: () => {
-      openURL('https://keybase.io/blog/introducing-keybase-teams')
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    deletedTeams: stateProps.deletedTeams,
-    loaded: stateProps.loaded,
-    newTeamRequests: stateProps.newTeamRequests,
-    newTeams: stateProps.newTeams,
-    sawChatBanner: stateProps.sawChatBanner,
-    teamresetusers: stateProps.teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
+  const onHideChatBanner = () => {
+    updateGregorCategory('sawChatBanner', 'true')
+  }
+  const onOpenFolder = (teamname: T.Teams.Teamname) => {
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+  }
+  const onReadMore = () => {
+    openURL('https://keybase.io/blog/introducing-keybase-teams')
+  }
+  const props = {
+    deletedTeams: deletedTeams,
+    loaded: loaded,
+    newTeamRequests: newTeamRequests,
+    newTeams: newTeams,
+    onHideChatBanner,
+    onOpenFolder,
+    onReadMore,
+    sawChatBanner,
+    teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
     teams: orderTeams(
-      stateProps._teams,
-      stateProps.newTeamRequests,
-      stateProps.teamIDToResetUsers,
-      stateProps.newTeams,
-      stateProps.sortOrder,
-      stateProps.activityLevels,
-      stateProps.filter
+      _teams,
+      newTeamRequests,
+      teamIDToResetUsers,
+      newTeams,
+      sortOrder,
+      activityLevels,
+      filter
     ),
-    ...dispatchProps,
-  })
-)(Reloadable)
-
-const ConnectedHeaderRightActions = (_: {}) => {
-  const actions = useHeaderActions()
-  return <HeaderRightActions {...actions} />
+  }
+  return <Reloadable {...props} />
 }
 
 export default Connected

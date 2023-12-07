@@ -1,27 +1,26 @@
-import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
-import * as Styles from '../styles'
-import openURL from '../util/open-url'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import openURL from '@/util/open-url'
 
-type PunycodeLinkWarningProps = Container.RouteProps<'chatConfirmNavigateExternal'>
+type PunycodeLinkWarningProps = {
+  display: string
+  punycode: string
+  url: string
+}
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
-  const {params} = props.route
-  const url = params?.url ?? ''
-  const display = params?.display ?? ''
-  const punycode = params?.punycode ?? ''
-  const dispatch = Container.useDispatch()
+  const {url, display, punycode} = props
   const nav = Container.useSafeNavigation()
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCancel = () => nav.safeNavigateUp()
   const onConfirm = () => {
     openURL(url)
-    dispatch(nav.safeNavigateUpPayload())
+    nav.safeNavigateUp()
   }
   const description = `The link you clicked on appears to be ${display}, but actually points to ${punycode}.`
   return (
     <Kb.ConfirmModal
       icon="iconfont-open-browser"
-      iconColor={Styles.globalColors.red}
+      iconColor={Kb.Styles.globalColors.red}
       prompt={'Open URL?'}
       description={description}
       onCancel={onCancel}

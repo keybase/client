@@ -1,8 +1,8 @@
 import * as React from 'react'
 import noop from 'lodash/noop'
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
+import * as Kb from '@/common-adapters/index'
+import * as Container from '@/util/container'
+import type {NativeSyntheticEvent} from 'react-native'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -59,7 +59,7 @@ const Input = (props: Props) => {
   const prevFocusCounter = Container.usePrevious(focusCounter)
   React.useEffect(() => {
     if (
-      !Styles.isMobile &&
+      !Kb.Styles.isMobile &&
       prevFocusCounter !== undefined &&
       focusCounter > prevFocusCounter &&
       ref.current
@@ -69,7 +69,7 @@ const Input = (props: Props) => {
   }, [focusCounter, prevFocusCounter])
 
   const onKeyDown = React.useCallback(
-    e => {
+    (e: React.KeyboardEvent) => {
       handleKeyDown(
         () => e.preventDefault(),
         e.ctrlKey,
@@ -83,7 +83,7 @@ const Input = (props: Props) => {
   )
 
   const onKeyPress = React.useCallback(
-    e => {
+    (e: NativeSyntheticEvent<{key: string}>) => {
       handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
     },
     [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]
@@ -109,10 +109,10 @@ const Input = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       justifyContent: 'flex-start',

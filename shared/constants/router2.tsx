@@ -1,16 +1,39 @@
-import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
-import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Tabs from '../constants/tabs'
+import * as C from '.'
+import type * as T from './types'
+import {
+  createNavigationContainerRef,
+  StackActions,
+  CommonActions,
+  type NavigationContainerRef,
+  type NavigationState,
+} from '@react-navigation/core'
+import * as Z from '@/util/zustand'
+import {produce} from 'immer'
+import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
-import logger from '../logger'
-import shallowEqual from 'shallowequal'
-import type {NavState, Route} from './types/route-tree'
-import type {ConversationIDKey} from './types/chat2/common'
+import logger from '@/logger'
+import type {NavigateAppendType, RouteKeys} from '@/router-v2/route-params'
+export type PathParam = NavigateAppendType
+type Route = NavigationState['routes'][0]
+// still a little paranoid about some things being missing in this type
+export type NavState = Partial<Route['state']>
+export type Navigator = NavigationContainerRef<any>
 
-export const navigationRef_ = createNavigationContainerRef()
+const DEBUG_NAV = __DEV__ && (false as boolean)
+
+export const navigationRef_: ReturnType<typeof createNavigationContainerRef> & {
+  navigate: (s: string) => void
+} = createNavigationContainerRef()
 export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
+}
+
+export const logState = () => {
+  const rs = getRootState()
+  const safePaths = (ps: Array<{key?: string; name?: string}>) => ps.map(p => ({key: p.key, name: p.name}))
+  const modals = safePaths(getModalStack(rs))
+  const visible = safePaths(getVisiblePath(rs))
+  return {loggedIn: _isLoggedIn(rs), modals, visible}
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -22,7 +45,7 @@ const _isLoggedIn = (s: NavState) => {
   if (!s) {
     return false
   }
-  return s?.routes?.[0]?.name === 'loggedIn'
+  return s.routes?.[0]?.name === 'loggedIn'
 }
 
 // Public API
@@ -31,10 +54,10 @@ export const getVisiblePath = (navState?: NavState) => {
   const rs = navState || getRootState()
 
   const findVisibleRoute = (arr: Array<Route>, s: NavState, depth: number): Array<Route> => {
-    if (!s || !s.routes || s.index === undefined) {
+    if (!s?.routes || s.index === undefined) {
       return arr
     }
-    let childRoute: Route = s.routes[s.index] as Route
+    let childRoute = s.routes[s.index] as Route | undefined
     if (!childRoute) {
       return arr
     }
@@ -78,126 +101,19 @@ export const getModalStack = (navState?: NavState) => {
 
 export const getVisibleScreen = (navState?: NavState) => {
   const visible = getVisiblePath(navState)
-  return visible[visible.length - 1]
+  return visible.at(-1)
 }
 
-// Helper to convert old route tree actions to new actions. Likely goes away as we make
-// actual routing actions (or make RouteTreeGen append/up the only action)
-const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAppendDupe?: boolean) => {
-  switch (action.type) {
-    case RouteTreeGen.setParams: {
-      return [{...CommonActions.setParams(action.payload.params), source: action.payload.key}]
-    }
-    case RouteTreeGen.navigateAppend: {
-      if (!navigationState) {
-        return
-      }
-      const p = action.payload.path[action.payload.path.length - 1]
-      if (!p) {
-        return
-      }
-      let routeName: string | null = null
-      let params: any | undefined
-
-      if (typeof p === 'string') {
-        routeName = p
-      } else {
-        routeName = p.selected
-        params = p.props
-      }
-
-      if (!routeName) {
-        return
-      }
-
-      const path = getVisiblePath(navigationState)
-      const visible = path[path.length - 1]
-      if (visible) {
-        if (!allowAppendDupe && routeName === visible.name && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
-        }
-      }
-
-      if (action.payload.fromKey) {
-        const {fromKey} = action.payload
-        if (fromKey !== visible.key) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
-
-      if (action.payload.replace) {
-        if (visible?.name === routeName) {
-          return [CommonActions.setParams(params)]
-        } else {
-          return [StackActions.replace(routeName, params)]
-        }
-      }
-
-      return [StackActions.push(routeName, params)]
-    }
-    case RouteTreeGen.switchTab: {
-      return [
-        {
-          ...CommonActions.navigate({name: action.payload.tab, params: action.payload.params}),
-          target: navigationState.routes[0]?.state?.key,
-        },
-      ]
-    }
-    case RouteTreeGen.switchLoggedIn: {
-      // no longer used
-      return []
-    }
-    case RouteTreeGen.clearModals: {
-      if (_isLoggedIn(navigationState) && navigationState?.routes?.length > 1) {
-        return [{...StackActions.popToTop(), target: navigationState.key}]
-      }
-      return []
-    }
-    case RouteTreeGen.navigateUp:
-      return [{...CommonActions.goBack(), source: action.payload.fromKey}]
-    case RouteTreeGen.navUpToScreen: {
-      const {name, params} = action.payload
-      // find with matching params
-      // const path = _getVisiblePathForNavigator(navigationState)
-      // const p = path.find(p => p.name === name)
-      // return [CommonActions.navigate(name, params ?? p?.params)]
-
-      const rs = _getNavigator()?.getRootState()
-      // some kind of unknown race, just bail
-      if (!rs) {
-        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-        return
-      }
-      if (!rs.routes) {
-        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-        return
-      }
-
-      const nextState = Container.produce(rs, draft => {
-        navUpHelper(draft as DeepWriteable<NavState>, name, params)
-      })
-
-      return [CommonActions.reset(nextState)]
-    }
-    case RouteTreeGen.popStack: {
-      return [StackActions.popToTop()]
-    }
-    default:
-      return undefined
-  }
-}
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
 
-const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
-  const route = s?.routes[s?.index ?? -1] as DeepWriteable<Route>
+const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
+  const route = s?.routes?.[s.index ?? -1] as DeepWriteable<Route> | undefined
   if (!route) {
     return
   }
 
   // found?
-  if (route.name === name && isEqual(route.params, params)) {
+  if (route.name === name) {
     // selected a root stack? choose just the root item
     if (route.state?.type === 'stack') {
       route.state.routes.length = 1
@@ -211,7 +127,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
 
   // search stack for target
   if (route.state?.type === 'stack') {
-    const idx = route.state.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    const idx = route.state.routes.findIndex((r: {name: string}) => r.name === name)
     // found
     if (idx !== -1) {
       route.state.index = idx
@@ -221,55 +137,32 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
   }
   // try the incoming s
   if (s?.type === 'stack') {
-    const idx = s.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    const idx: number = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
     // found
-    if (idx !== -1) {
+    if (idx !== -1 && s.routes) {
       s.index = idx
       s.routes.length = idx + 1
       return
     }
   }
 
-  navUpHelper(route.state, name, params)
+  navUpHelper(route.state, name)
 }
 
-type RTGActions =
-  | RouteTreeGen.SetParamsPayload
-  | RouteTreeGen.NavigateAppendPayload
-  | RouteTreeGen.NavigateUpPayload
-  | RouteTreeGen.SwitchLoggedInPayload
-  | RouteTreeGen.ClearModalsPayload
-  | RouteTreeGen.NavUpToScreenPayload
-  | RouteTreeGen.SwitchTabPayload
-  | RouteTreeGen.PopStackPayload
-
-export const dispatchOldAction = (action: RTGActions) => {
-  const rs = getRootState()
-  if (!rs) {
-    return
-  }
-  const actions = oldActionToNewActions(action, rs) || []
-  try {
-    actions.forEach(a => {
-      navigationRef_.dispatch(a)
-    })
-  } catch (e) {
-    logger.error('Nav error', e)
-  }
-}
-
-export const getTab = (navState: NavState | null) => {
+export const getTab = (navState?: NavState): undefined | C.Tab => {
   const s = navState || getRootState()
-  const loggedInRoute = s?.routes[0]
+  const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
-    return loggedInRoute.state?.routes?.[loggedInRoute.state?.index ?? 0]?.name
+    // eslint-disable-next-line
+    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as C.Tab
   }
   return undefined
 }
 
-const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
+const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
-export const navToThread = (conversationIDKey: ConversationIDKey) => {
+export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
@@ -281,13 +174,13 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     return
   }
 
-  const nextState = Container.produce(rs, draft => {
-    const loggedInRoute = draft.routes[0]
+  const nextState = produce(rs, draft => {
+    const loggedInRoute = draft.routes?.[0]
     const loggedInTabs = loggedInRoute?.state?.routes
     if (!loggedInTabs) {
       return
     }
-    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    const chatTabIdx = loggedInTabs.findIndex((r: {name: string}) => r.name === Tabs.chatTab)
     const chatStack = loggedInTabs[chatTabIdx]
 
     if (!chatStack) {
@@ -297,53 +190,55 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
     // select tabs
     draft.index = 0
     // remove modals
-    draft.routes.length = 1
+    if (draft.routes) {
+      draft.routes.length = 1
+    }
 
     // select chat tab
     if (loggedInRoute.state) {
       loggedInRoute.state.index = chatTabIdx
     }
 
-    if (isSplit) {
-      // set inbox + convo
-      chatStack.state = chatStack.state ?? {index: 0, routes: []}
-      chatStack.state.index = 0
+    // setup root
+    chatStack.state = {
+      index: 0,
+      routes: [{key: chatStack.state?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
+    }
 
-      let chatRoot = chatStack.state?.routes?.[0]
+    if (isSplit) {
+      chatStack.state.index = 0
+      const _chatRoot = chatStack.state.routes[0]
       // key is required or you'll run into issues w/ the nav
-      chatRoot = {
-        key: chatRoot?.key || `chatRoot-${conversationIDKey}`,
+      const chatRoot = {
+        key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
         name: 'chatRoot',
         params: {conversationIDKey},
-      }
-      // @ts-ignore
+      } as const
       chatStack.state.routes = [chatRoot]
     } else {
-      // set inbox + convo
-      chatStack.state = chatStack.state ?? {index: 0, routes: []}
-      chatStack.state.index = 1
       // key is required or you'll run into issues w/ the nav
-      let convoRoute: any = {
+      let convoRoute = {
         key: `chatConversation-${conversationIDKey}`,
         name: 'chatConversation',
         params: {conversationIDKey},
-      }
+      } as const
       // reuse visible route if it's the same
-      const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+      const visible = chatStack.state.routes.at(-1)
       if (visible) {
-        // @ts-ignore TODO better route types
-        if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
-          convoRoute = visible
+        const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
+        if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
+          convoRoute = visible as typeof convoRoute
         }
       }
 
-      const chatRoot = chatStack.state.routes?.[0]
-      chatStack.state.routes = [chatRoot, convoRoute]
+      const chatRoot = chatStack.state.routes[0]
+      chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
+      chatStack.state.index = 1
     }
   })
 
   if (!isEqual(rs, nextState)) {
-    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState as any), target: rs.key})
   }
 }
 
@@ -354,3 +249,289 @@ export const getRouteTab = (route: Array<Route>) => {
 export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
 }
+
+type Store = {
+  // only used for subscribing
+  navState?: NavState
+}
+
+const initialStore: Store = {
+  navState: undefined,
+}
+
+export type State = Store & {
+  dispatch: {
+    clearModals: () => void
+    dynamic: {
+      tabLongPress?: (tab: string) => void
+    }
+    navigateAppend: (path: PathParam, replace?: boolean, fromKey?: string) => void
+    navigateUp: () => void
+    navUpToScreen: (name: RouteKeys) => void
+    popStack: () => void
+    resetState: () => void
+    setNavState: (ns: NavState) => void
+    switchTab: (tab: Tabs.AppTab) => void
+  }
+  appendEncryptRecipientsBuilder: () => void
+  appendNewChatBuilder: () => void
+  appendNewTeamBuilder: (teamID: T.Teams.TeamID) => void
+  appendPeopleBuilder: () => void
+}
+
+export const _useState = Z.createZustand<State>((set, get) => {
+  const dispatch: State['dispatch'] = {
+    clearModals: () => {
+      DEBUG_NAV && console.log('[Nav] clearModals')
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
+        n.dispatch({...StackActions.popToTop(), target: ns?.key})
+      }
+    },
+    dynamic: {
+      tabLongPress: undefined,
+    },
+    navUpToScreen: name => {
+      DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      // some kind of unknown race, just bail
+      if (!ns) {
+        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+        return
+      }
+      if (!ns.routes) {
+        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+        return
+      }
+
+      const nextState = produce(ns, draft => {
+        navUpHelper(draft as DeepWriteable<NavState>, name)
+      })
+      n.dispatch(CommonActions.reset(nextState as any))
+    },
+    navigateAppend: (path, replace, fromKey) => {
+      DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
+      const n = _getNavigator()
+      if (!n) {
+        return
+      }
+      const ns = getRootState()
+      if (!ns) {
+        return
+      }
+      let routeName: string | undefined
+      let params: object | undefined
+      if (typeof path === 'string') {
+        routeName = path
+      } else {
+        routeName = path.selected
+        params = path.props as object
+      }
+      if (!routeName) {
+        DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
+        return
+      }
+      const vp = getVisiblePath(ns)
+      const visible = vp.at(-1)
+      if (visible) {
+        if (routeName === visible.name && C.shallowEqual(visible.params, params)) {
+          console.log('Skipping append dupe')
+          return
+        }
+      }
+      if (fromKey) {
+        if (fromKey !== visible?.key) {
+          logger.warn('Skipping append on wrong screen')
+          return
+        }
+      }
+      if (replace) {
+        if (visible?.name === routeName) {
+          n.dispatch(CommonActions.setParams(params as object))
+          return
+        } else {
+          n.dispatch(StackActions.replace(routeName, params))
+          return
+        }
+      }
+      n.dispatch(StackActions.push(routeName, params))
+    },
+    navigateUp: () => {
+      DEBUG_NAV && console.log('[Nav] navigateUp')
+      const n = _getNavigator()
+      return n?.dispatch(CommonActions.goBack())
+    },
+    popStack: () => {
+      DEBUG_NAV && console.log('[Nav] popStack')
+      const n = _getNavigator()
+      n?.dispatch(StackActions.popToTop())
+    },
+    resetState: () => {
+      DEBUG_NAV && console.log('[Nav] resetState')
+      set(s => ({
+        ...s,
+        dispatch: s.dispatch,
+      }))
+    },
+    setNavState: next => {
+      DEBUG_NAV && console.log('[Nav] setNavState')
+      const prev = get().navState
+      if (prev === next) return
+      set(s => {
+        s.navState = next
+      })
+
+      const updateTeamBuilding = () => {
+        const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+        const namespaceToRoute = new Map([
+          ['chat2', 'chatNewChat'],
+          ['crypto', 'cryptoTeamBuilder'],
+          ['teams', 'teamsTeamBuilder'],
+          ['people', 'peopleTeamBuilder'],
+        ])
+        for (const namespace of namespaces) {
+          const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+          if (wasTeamBuilding) {
+            // team building or modal on top of that still
+            const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+            if (!isTeamBuilding) {
+              C.TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+            }
+          }
+        }
+      }
+      updateTeamBuilding()
+
+      const updateFS = () => {
+        const {criticalUpdate, dispatch} = C.useFSState.getState()
+        // Clear critical update when we nav away from tab
+        if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
+          dispatch.setCriticalUpdate(false)
+        }
+        const fsRrouteNames = ['fsRoot', 'barePreview']
+        const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
+        const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+        if (wasScreen !== isScreen) {
+          if (wasScreen) {
+            dispatch.userOut()
+          } else {
+            dispatch.userIn()
+          }
+        }
+      }
+      updateFS()
+
+      const updateSignup = () => {
+        // Clear "just signed up email" when you leave the people tab after signup
+        if (
+          C.useSignupState.getState().justSignedUpEmail &&
+          prev &&
+          getTab(prev) === Tabs.peopleTab &&
+          next &&
+          getTab(next) !== Tabs.peopleTab
+        ) {
+          C.useSignupState.getState().dispatch.clearJustSignedUpEmail()
+        }
+      }
+      updateSignup()
+
+      const updatePeople = () => {
+        if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
+          C.usePeopleState.getState().dispatch.markViewed()
+        }
+      }
+      updatePeople()
+
+      const updateTeams = () => {
+        if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+          C.useTeamsState.getState().dispatch.clearNavBadges()
+        }
+      }
+      updateTeams()
+
+      const updateSettings = () => {
+        // Clear "check your inbox" in settings when you leave the settings tab
+        if (
+          C.useSettingsEmailState.getState().addedEmail &&
+          prev &&
+          getTab(prev) === Tabs.settingsTab &&
+          next &&
+          getTab(next) !== Tabs.settingsTab
+        ) {
+          C.useSettingsEmailState.getState().dispatch.resetAddedEmail()
+        }
+      }
+      updateSettings()
+
+      C.useChatState.getState().dispatch.onRouteChanged(prev, next)
+    },
+    switchTab: name => {
+      DEBUG_NAV && console.log('[Nav] switchTab', {name})
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      if (!ns) return
+      n.dispatch({
+        ...CommonActions.navigate({name}),
+        target: ns.routes?.[0]?.state?.key,
+      })
+    },
+  }
+
+  const appendPeopleBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        namespace: 'people',
+        title: '',
+      },
+      selected: 'peopleTeamBuilder',
+    })
+  }
+
+  const appendNewChatBuilder = () => {
+    C.useRouterState
+      .getState()
+      .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+  }
+
+  // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
+  const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID,
+        title: '',
+      },
+      selected: 'teamsTeamBuilder',
+    })
+  }
+
+  const appendEncryptRecipientsBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        goButtonLabel: 'Add',
+        namespace: 'crypto',
+        recommendedHideYourself: true,
+        title: 'Recipients',
+      },
+      selected: 'cryptoTeamBuilder',
+    })
+  }
+
+  return {
+    ...initialStore,
+    appendEncryptRecipientsBuilder,
+    appendNewChatBuilder,
+    appendNewTeamBuilder,
+    appendPeopleBuilder,
+    dispatch,
+  }
+})

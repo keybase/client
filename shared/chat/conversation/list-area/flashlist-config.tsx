@@ -1,1 +1,1 @@
-export const usingFlashList = false
+export const usingFlashList = false as boolean

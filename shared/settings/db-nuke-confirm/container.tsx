@@ -1,20 +1,18 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as C from '@/constants'
 import DBNukeConfirm from '.'
-import {createDbNuke} from '../../actions/settings-gen'
-import * as Container from '../../util/container'
 
-type OwnProps = {}
+const Container = () => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const dbNuke = C.useSettingsState(s => s.dispatch.dbNuke)
+  const onDBNuke = () => {
+    navigateUp()
+    dbNuke()
+  }
+  const props = {onCancel, onDBNuke}
+  return <DBNukeConfirm {...props} />
+}
 
-export default Container.connect(
-  () => ({}),
-  dispatch => ({
-    onCancel: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onDBNuke: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(createDbNuke())
-    },
-  }),
-  (_, d, __: OwnProps) => d
-)(DBNukeConfirm)
+export default Container

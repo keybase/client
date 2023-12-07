@@ -1,10 +1,11 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {getStyle as getTextStyle} from './text.desktop'
 import pick from 'lodash/pick'
-import logger from '../logger'
+import logger from '@/logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
+import {stringToUint8Array} from 'uint8array-extras'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -30,7 +31,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _onChange = ({target: {value = ''}}) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
-      if (Buffer.byteLength(value) > maxBytes) {
+      if (stringToUint8Array(value).byteLength > maxBytes) {
         return
       }
     }
@@ -197,6 +198,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       placeholder: this.props.placeholder,
       placeholderColor: this.props.placeholderColor,
       ref: this._input,
+      spellCheck: this.props.spellCheck,
       ...(this.props.disabled ? {readOnly: true} : {}),
     }
     return commonProps
@@ -204,21 +206,21 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle: any = getTextStyle(this.props.textType)
-    const heightStyles: any = {
+    const textStyle = getTextStyle(this.props.textType)
+    const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
       minHeight:
-        rows * (maybeParseInt(textStyle.lineHeight, 10) || 20) +
+        rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
         (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
     }
     if (this.props.rowsMax) {
-      heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
+      heightStyles.maxHeight =
+        this.props.rowsMax *
+        (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
 
-    const paddingStyles: any = this.props.padding
-      ? Styles.padding(Styles.globalMargins[this.props.padding])
-      : {}
+    const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
     return {
       ...this._getCommonProps(),
       rows,
@@ -231,7 +233,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         this.props.resize && styles.resize,
         this.props.growAndScroll && styles.growAndScroll,
         this.props.style,
-      ]),
+      ]) as React.CSSProperties,
     }
   }
 
@@ -244,7 +246,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         styles.noChrome, // noChrome comes after to unset lineHeight in singleline
         this.props.flexable && styles.flexable,
         this.props.style,
-      ]),
+      ]) as React.CSSProperties,
       type: this.props.type,
     }
   }
@@ -270,9 +272,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _registerBodyEvents = (add: boolean) => {
     const body = document.body
-    if (!body) {
-      return
-    }
     if (add) {
       body.addEventListener('keydown', this._globalKeyDownHandler)
       body.addEventListener('keypress', this._globalKeyDownHandler)
@@ -321,9 +320,9 @@ input::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
       <>
         <style>{realCSS}</style>
         {this.props.multiline ? (
-          <textarea {...inputProps} ref={ref as any} />
+          <textarea {...inputProps} ref={ref as any as React.RefObject<HTMLTextAreaElement>} />
         ) : (
-          <input {...inputProps} ref={ref as any} />
+          <input {...inputProps} ref={ref as any as React.RefObject<HTMLInputElement>} />
         )}
       </>
     )

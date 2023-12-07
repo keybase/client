@@ -1,21 +1,21 @@
-import * as React from 'react'
-import * as Styles from '../../../styles'
-import {IconType, IconStyle} from '../../icon'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
+import type {IconType, IconStyle} from '@/common-adapters/icon'
 
 export type MenuItem = {
   backgroundColor?: Styles.Color
   danger?: boolean
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
-  icon?: IconType | null
+  icon?: IconType
   iconIsVisible?: boolean
   iconStyle?: IconStyle
   isBadged?: boolean
   isSelected?: boolean
   inProgress?: boolean
-  newTag?: boolean | null
-  onClick?: ((evt?: React.SyntheticEvent) => void) | null
-  onPress?: void
+  newTag?: boolean
+  onClick?: (evt?: React.SyntheticEvent) => void
+  onPress?: never
   progressIndicator?: boolean
   style?: Object
   subTitle?: string
@@ -24,10 +24,11 @@ export type MenuItem = {
   view?: React.ReactNode
 }
 
-type _InnerMenuItem = MenuItem | 'Divider' | null
+export type _InnerMenuItem = MenuItem | 'Divider' | undefined
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
+  isModal: boolean | 'bottomsheet'
   backgroundColor?: Styles.Color
   items: ReadonlyArray<_InnerMenuItem>
   header?: React.ReactNode
@@ -36,9 +37,10 @@ export type MenuLayoutProps = {
   style?: Object
   listStyle?: Object
   hoverColor?: string
-  closeText?: string | null // mobile only; default to "Close"
+  closeText?: string // mobile only; default to "Close"
   textColor?: Styles.Color
   safeProviderStyle?: Styles.StylesCrossPlatform
 }
 
-export default class MenuLayout extends React.Component<MenuLayoutProps> {}
+declare const MenuLayout: (p: MenuLayoutProps) => React.ReactNode
+export default MenuLayout

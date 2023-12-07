@@ -1,35 +1,27 @@
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '@/constants/types'
 
 // Weights for sorting team members
 // 2 is neutral
 // lower values come earlier
 
-const order = {admin: 3, owner: 2, reader: 5, writer: 4}
-
 const getWeights = (manageMembers: boolean) => {
-  // only weigh actionable statuses higher if we can effect them
-  const statusWeights = manageMembers
-    ? {
-        active: 2,
-        deleted: 0,
-        reset: 1,
-      }
-    : {
-        active: 2,
-        deleted: 2,
-        reset: 2,
-      }
-  return {
-    ...order,
-    ...statusWeights,
-  }
+  return new Map([
+    ['admin', 3],
+    ['owner', 2],
+    ['reader', 5],
+    ['writer', 4],
+    ['active', 2],
+    // only weigh actionable statuses higher if we can effect them
+    ['deleted', manageMembers ? 0 : 2],
+    ['reset', manageMembers ? 1 : 2],
+  ])
 }
 
 export const getOrderedMemberArray = (
-  memberInfo: Map<string, Types.MemberInfo> | undefined,
-  you: string | null,
-  yourOperations: Types.TeamOperations
-): Array<Types.MemberInfo> =>
+  memberInfo: Map<string, T.Teams.MemberInfo> | undefined,
+  you: string | undefined,
+  yourOperations: T.Teams.TeamOperations
+): Array<T.Teams.MemberInfo> =>
   memberInfo
     ? [...memberInfo.values()]
         .sort((a, b) => {
@@ -42,8 +34,8 @@ export const getOrderedMemberArray = (
 
           const weights = getWeights(yourOperations.manageMembers)
           // Diff the statuses then types. If they're both the same sort alphabetically
-          const diff1 = weights[a.status] - weights[b.status]
-          const diff2 = weights[a.type] - weights[b.type]
+          const diff1 = (weights.get(a.status) ?? 0) - (weights.get(b.status) ?? 0)
+          const diff2 = (weights.get(a.type) ?? 0) - (weights.get(b.type) ?? 0)
           return diff1 || diff2 || a.username.localeCompare(b.username)
         })
         .filter(
@@ -55,12 +47,12 @@ export const getOrderedMemberArray = (
         )
     : []
 
-export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | undefined) =>
+export const getOrderedBotsArray = (memberInfo: Map<string, T.Teams.MemberInfo> | undefined) =>
   memberInfo
     ? [...memberInfo.values()]
         .sort((a, b) => a.username.localeCompare(b.username))
         .filter(m => m.type === 'restrictedbot' || m.type === 'bot')
     : []
 
-export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
+export const sortInvites = (a: T.Teams.InviteInfo, b: T.Teams.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')

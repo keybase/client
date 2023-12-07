@@ -1,45 +1,52 @@
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import Sort from './sort'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
+import * as T from '@/constants/types'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
-  _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
-  _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
-})
+const Container = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {path}: OwnProps) => ({
-  sortByNameAsc:
-    path === Constants.defaultPath
-      ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.NameAsc})),
-  sortByNameDesc:
-    path === Constants.defaultPath
-      ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.NameDesc})),
-  sortByTimeAsc:
-    path === Constants.defaultPath
-      ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.TimeAsc})),
-  sortByTimeDesc:
-    path === Constants.defaultPath
-      ? undefined
-      : () => dispatch(FsGen.createSortSetting({path, sortSetting: Types.SortSetting.TimeDesc})),
-})
+  const setSorting = C.useFSState(s => s.dispatch.setSorting)
+  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, path).sort)
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, {path}: OwnProps) => ({
-    sortSetting: Constants.showSortSetting(path, stateProps._pathItem, stateProps._kbfsDaemonStatus)
-      ? stateProps._sortSetting
-      : undefined,
-    ...dispatchProps,
-  })
-)(Sort)
+  const sortByNameAsc =
+    path === C.defaultPath
+      ? undefined
+      : () => {
+          setSorting(path, T.FS.SortSetting.NameAsc)
+        }
+  const sortByNameDesc =
+    path === C.defaultPath
+      ? undefined
+      : () => {
+          setSorting(path, T.FS.SortSetting.NameDesc)
+        }
+  const sortByTimeAsc =
+    path === C.defaultPath
+      ? undefined
+      : () => {
+          setSorting(path, T.FS.SortSetting.TimeAsc)
+        }
+  const sortByTimeDesc =
+    path === C.defaultPath
+      ? undefined
+      : () => {
+          setSorting(path, T.FS.SortSetting.TimeDesc)
+        }
+  const props = {
+    sortByNameAsc,
+    sortByNameDesc,
+    sortByTimeAsc,
+    sortByTimeDesc,
+    sortSetting: Constants.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined,
+  }
+  return <Sort {...props} />
+}
+
+export default Container

@@ -1,35 +1,28 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import ReallyDeleteTeam from '.'
-import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'teamDeleteTeam'>
+type OwnProps = {teamID: T.Teams.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
-  const teamID = op.route.params?.teamID ?? Types.noTeamID
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const deleteWaiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.deleteTeamWaitingKey(teamID))
-  )
-  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
-  const subteamNames = teamDetails.subteams.size
+  const teamID = op.teamID
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const deleteWaiting = C.useAnyWaiting(C.Teams.deleteTeamWaitingKey(teamID))
+  const teamMetas = C.useTeamsState(s => s.teamMeta)
+  const subteamNames = teamDetails?.subteams.size
     ? [...teamDetails.subteams]
         .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')
         .filter(name => !!name)
     : undefined
 
-  const dispatch = Container.useDispatch()
-  const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const _onBack = navigateUp
   const onBack = deleteWaiting ? () => {} : _onBack
-  const _onDelete = React.useCallback(
-    () => () => dispatch(TeamsGen.createDeleteTeam({teamID})),
-    [dispatch, teamID]
-  )
+  const deleteTeam = C.useTeamsState(s => s.dispatch.deleteTeam)
+  const _onDelete = React.useCallback(() => () => deleteTeam(teamID), [deleteTeam, teamID])
   const onDelete = Container.useSafeSubmit(_onDelete, !deleteWaiting)
 
   return (

@@ -1,9 +1,9 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import {isDarwin} from '../../constants/platform'
+import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
+import {backgroundURL} from '@/styles/index.desktop'
 import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
@@ -29,7 +29,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   }, [showing])
 
   // this is due to the fact that the parent container has a marginTop of -13 on darwin
-  const offset = smallMode && isDarwin ? 13 : 0
+  const offset = smallMode && C.isDarwin ? 13 : 0
 
   return (
     <>
@@ -37,7 +37,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
         <Kb.Button
           onClick={debugToggleShow}
           label="Toggle"
-          style={Styles.collapseStyles([styles.toggleButton, {bottom: height}])}
+          style={Kb.Styles.collapseStyles([styles.toggleButton, {bottom: height}])}
         />
       )}
       {drawState !== 'hidden' && (
@@ -46,7 +46,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
           centerChildren={true}
           className="upload-animation-loop"
           fullWidth={true}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.stylesBox,
             {bottom: showing ? offset : offset - height, height, maxHeight: height},
           ])}
@@ -73,7 +73,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                   ? 'Encrypting and updating items...'
                   : 'Done!'}
               </Kb.Text>
-              {!!(timeLeft && timeLeft.length) && (
+              {!!timeLeft.length && (
                 <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
               )}
             </>
@@ -84,24 +84,24 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      stylesBox: Styles.platformStyles({
+      stylesBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundImage: Styles.backgroundURL('upload-pattern-80.png'),
+          backgroundImage: backgroundURL('upload-pattern-80.png'),
           flexShrink: 0, // need this to be whole in menubar
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
           position: 'absolute',
         },
       }),
       stylesText: {
-        color: Styles.globalColors.whiteOrWhite,
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
-      textOverflow: Styles.platformStyles({
+      textOverflow: Kb.Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.whiteOrWhite,
+          color: Kb.Styles.globalColors.whiteOrWhite,
           maxWidth: '100%',
           overflow: 'hidden',
           textAlign: 'center',
@@ -110,7 +110,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       toggleButton: {position: 'absolute'},
-    } as const)
+    }) as const
 )
 
 export default Upload

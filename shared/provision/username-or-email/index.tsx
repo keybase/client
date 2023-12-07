@@ -1,9 +1,8 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import UserCard from '../../login/user-card'
-import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen, errorBanner} from '../../signup/common'
+import * as Kb from '@/common-adapters'
+import UserCard from '@/login/user-card'
+import {SignupScreen, errorBanner} from '@/signup/common'
 
 type Props = {
   error: string
@@ -14,39 +13,44 @@ type Props = {
   onForgotUsername: () => void
   onGoToSignup: (username: string) => void
   onSubmit: (username: string) => void
-  resetBannerUser: string | null
-  submittedUsername: string
+  resetBannerUser?: string
   waiting: boolean
 }
 
 const Username = (props: Props) => {
-  const [username, setUsername] = React.useState(props.initialUsername)
-  const _onSubmit = props.onSubmit
+  const {initialUsername, onSubmit: _onSubmit, onGoToSignup: _onGoToSignup, waiting} = props
+  const {resetBannerUser, inlineSignUpLink, error, onBack, onForgotUsername} = props
+  const [username, setUsername] = React.useState(initialUsername)
   const onSubmit = React.useCallback(() => {
     _onSubmit(username)
   }, [_onSubmit, username])
+  const onGoToSignup = React.useCallback(() => {
+    _onGoToSignup(username)
+  }, [_onGoToSignup, username])
 
   return (
     <SignupScreen
+      onRightAction={onGoToSignup}
+      rightActionLabel="Create account"
       banners={
         <>
-          {props.resetBannerUser ? (
+          {resetBannerUser ? (
             <Kb.Banner color="green" key="resetBanner">
               <Kb.BannerParagraph
                 bannerColor="green"
-                content={`You have successfully reset your account, ${props.resetBannerUser}. You can now log in as usual.`}
+                content={`You have successfully reset your account, ${resetBannerUser}. You can now log in as usual.`}
               />
             </Kb.Banner>
           ) : null}
-          {errorBanner(props.error)}
-          {props.inlineSignUpLink ? (
+          {errorBanner(error)}
+          {inlineSignUpLink ? (
             <Kb.Banner key="usernameTaken" color="blue">
               <Kb.BannerParagraph
                 bannerColor="blue"
                 content={[
                   "This username doesn't exist. Did you mean to ",
                   {
-                    onClick: () => props.onGoToSignup(username),
+                    onClick: onGoToSignup,
                     text: 'create a new account',
                   },
                   '?',
@@ -62,10 +66,10 @@ const Username = (props: Props) => {
           label: 'Log in',
           onClick: onSubmit,
           type: 'Default',
-          waiting: props.waiting,
+          waiting: waiting,
         },
       ]}
-      onBack={props.onBack}
+      onBack={onBack}
       title="Log in"
       contentContainerStyle={styles.contentContainer}
     >
@@ -85,17 +89,13 @@ const Username = (props: Props) => {
             <Kb.LabeledInput
               autoFocus={true}
               placeholder="Username"
-              maxLength={maxUsernameLength}
+              maxLength={C.maxUsernameLength}
               onEnterKeyDown={onSubmit}
               onChangeText={setUsername}
               value={username}
               textType="BodySemibold"
             />
-            <Kb.Text
-              style={styles.forgotUsername}
-              type="BodySmallSecondaryLink"
-              onClick={props.onForgotUsername}
-            >
+            <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?
             </Kb.Text>
           </Kb.Box2>
@@ -105,13 +105,13 @@ const Username = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      card: Styles.platformStyles({
+      card: Kb.Styles.platformStyles({
         common: {
           alignItems: 'stretch',
-          backgroundColor: Styles.globalColors.transparent,
+          backgroundColor: Kb.Styles.globalColors.transparent,
         },
         isMobile: {
           paddingLeft: 0,
@@ -121,36 +121,31 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'center',
         },
       }),
-      contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
-      fill: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
+      fill: Kb.Styles.platformStyles({
         isMobile: {height: '100%', width: '100%'},
         isTablet: {width: 410},
       }),
       forgotUsername: {
         alignSelf: 'flex-end',
       },
-      outerCard: {
-        flex: 1,
-        height: Styles.isMobile ? undefined : 'unset',
-      },
+      outerCard: Kb.Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: {height: 'unset'},
+      }),
       outerCardAvatar: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
       },
-      scrollContentContainer: Styles.platformStyles({
+      scrollContentContainer: Kb.Styles.platformStyles({
         isElectron: {
           margin: 'auto',
         },
-        isMobile: {...Styles.padding(Styles.globalMargins.small)},
+        isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
       }),
       wrapper: {
-        width: Styles.globalStyles.mediumWidth,
+        width: Kb.Styles.globalStyles.mediumWidth,
       },
-    } as const)
+    }) as const
 )
-
-Username.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
 
 export default Username

@@ -1,18 +1,14 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
-import * as Platform from '../../constants/platform'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
-import * as SettingsGen from '../../actions/settings-gen'
-import {EnterEmailBody} from '../../signup/email'
-import {EnterPhoneNumberBody} from '../../signup/phone-number'
-import {VerifyBody} from '../../signup/phone-number/verify'
-import {e164ToDisplay} from '../../util/phone-numbers'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as Platform from '@/constants/platform'
+import {EnterEmailBody} from '@/signup/email'
+import {EnterPhoneNumberBody} from '@/signup/phone-number'
+import {VerifyBody} from '@/signup/phone-number/verify'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 export const Email = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
@@ -21,54 +17,60 @@ export const Email = () => {
   const emailTrimmed = email.trim()
   const disabled = !emailTrimmed
 
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const emailError = Container.useSelector(state => state.settings.email.error)
-  const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
+  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const emailError = C.useSettingsEmailState(s => s.error)
+  const waiting = C.useAnyWaiting(C.addEmailWaitingKey)
+
+  const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
+  const resetAddingEmail = C.useSettingsEmailState(s => s.dispatch.resetAddingEmail)
 
   // clean on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     },
-    [dispatch]
+    [resetAddingEmail]
   )
+
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+
   // watch for + nav away on success
   React.useEffect(() => {
-    if (addedEmail === addEmailInProgress) {
+    if (addedEmail && addedEmail === addEmailInProgress) {
       // success
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
     }
-  }, [addEmailInProgress, addedEmail, dispatch])
+  }, [addEmailInProgress, addedEmail, clearModals])
   // clean on edit
   React.useEffect(() => {
     if (emailTrimmed !== addEmailInProgress && emailError) {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     }
-  }, [addEmailInProgress, dispatch, emailError, emailTrimmed])
+  }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
-  const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onClose = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
     }
     onAddEmailInProgress(emailTrimmed)
-    dispatch(SettingsGen.createAddEmail({email: emailTrimmed, searchable: searchable}))
-  }, [disabled, waiting, emailTrimmed, dispatch, searchable])
+    addEmail(emailTrimmed, searchable)
+  }, [addEmail, disabled, waiting, emailTrimmed, searchable])
   return (
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onClose}>
             Close
           </Kb.Text>
         ) : null,
-        title: Styles.isMobile ? 'Add email address' : 'Add an email address',
+        title: Kb.Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
             <Kb.Button
@@ -99,7 +101,7 @@ export const Email = () => {
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
           iconType={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? Platform.isLargeScreen
                 ? 'icon-email-add-96'
                 : 'icon-email-add-64'
@@ -116,7 +118,6 @@ export const Email = () => {
   )
 }
 export const Phone = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
@@ -124,40 +125,42 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const error = C.useSettingsPhoneState(s => s.error)
+  const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
+  const waiting = C.useAnyWaiting(C.addPhoneNumberWaitingKey)
 
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+  const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   // clean only errors on unmount so verify screen still has info
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberErrors())
+      clearPhoneNumberErrors()
     },
-    [dispatch]
+    [clearPhoneNumberErrors]
   )
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
-      dispatch(nav.safeNavigateAppendPayload({path: ['settingsVerifyPhone']}))
+      nav.safeNavigateAppend('settingsVerifyPhone')
     }
-  }, [dispatch, error, nav, pendingVerification])
+  }, [error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
-    dispatch(nav.safeNavigateUpPayload())
-  }, [dispatch, nav])
+    clearPhoneNumberAdd()
+    nav.safeNavigateUp()
+  }, [clearPhoneNumberAdd, nav])
 
-  const onContinue = React.useCallback(
-    () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
-    [dispatch, disabled, waiting, searchable, phoneNumber]
-  )
+  const addPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
+  const onContinue = React.useCallback(() => {
+    disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
+  }, [addPhoneNumber, disabled, waiting, searchable, phoneNumber])
 
   const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
     onChangeNumber(phoneNumber)
@@ -168,17 +171,17 @@ export const Phone = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onClose}>
             Close
           </Kb.Text>
         ) : null,
-        title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
+        title: Kb.Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
             <Kb.Button
@@ -208,7 +211,7 @@ export const Phone = () => {
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
           iconType={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? Platform.isLargeScreen
                 ? 'icon-phone-number-add-96'
                 : 'icon-phone-number-add-64'
@@ -225,44 +228,43 @@ export const Phone = () => {
   )
 }
 export const VerifyPhone = () => {
-  const dispatch = Container.useDispatch()
-
   const [code, onChangeCode] = React.useState('')
 
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
-  const resendWaiting = Container.useAnyWaiting(
-    Constants.addPhoneNumberWaitingKey,
-    Constants.resendVerificationForPhoneWaitingKey
-  )
-  const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
+  const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
+  const error = C.useSettingsPhoneState(s => s.error)
+  const verificationState = C.useSettingsPhoneState(s => s.verificationState)
+  const resendWaiting = C.useAnyWaiting([C.addPhoneNumberWaitingKey, C.resendVerificationForPhoneWaitingKey])
+  const verifyWaiting = C.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
+  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   // clean everything on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberAdd())
+      clearPhoneNumberAdd()
     },
-    [dispatch]
+    [clearPhoneNumberAdd]
   )
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
     }
-  }, [verificationState, error, dispatch])
+  }, [verificationState, error, clearModals])
 
-  const onResend = React.useCallback(
-    () => dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber: pendingVerification})),
-    [dispatch, pendingVerification]
-  )
+  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
+  const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
+
+  const onResend = React.useCallback(() => {
+    resendVerificationForPhone(pendingVerification)
+  }, [resendVerificationForPhone, pendingVerification])
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
-    dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+    clearPhoneNumberAdd()
+    clearModals()
+  }, [clearPhoneNumberAdd, clearModals])
   const onContinue = React.useCallback(
-    () => dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber: pendingVerification})),
-    [dispatch, code, pendingVerification]
+    () => verifyPhoneNumber(pendingVerification, code),
+    [verifyPhoneNumber, code, pendingVerification]
   )
   const disabled = !code
 
@@ -272,8 +274,10 @@ export const VerifyPhone = () => {
       onClose={onClose}
       header={{
         hideBorder: true,
-        leftButton: Styles.isMobile ? (
-          <Kb.BackButton onClick={onClose} iconColor={Styles.globalColors.white} />
+        leftButton: Kb.Styles.isMobile ? (
+          <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
+            <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
+          </Kb.Styles.CanFixOverdrawContext.Provider>
         ) : null,
         style: styles.blueBackground,
         title: (
@@ -302,10 +306,10 @@ export const VerifyPhone = () => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.blueBackground,
           styles.verifyContainer,
-          Styles.globalStyles.flexOne,
+          Kb.Styles.globalStyles.flexOne,
         ])}
         fullWidth={true}
         fullHeight={true}
@@ -327,7 +331,7 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
@@ -337,15 +341,15 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       blueBackground: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
       },
       body: {
-        ...Styles.padding(
-          Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
-          Styles.globalMargins.small,
+        ...Kb.Styles.padding(
+          Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xlarge,
+          Kb.Styles.globalMargins.small,
           0
         ),
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
         position: 'relative',
       },
@@ -353,10 +357,10 @@ const styles = Styles.styleSheetCreate(
         minHeight: undefined,
       },
       footer: {
-        ...Styles.padding(Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
       verifyContainer: {
-        ...Styles.padding(0, Styles.globalMargins.small),
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       },
-    } as const)
+    }) as const
 )

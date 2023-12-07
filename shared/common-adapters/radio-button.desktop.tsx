@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Text from './text'
 import type {Props} from './radio-button'
 import './radio-button.css'
@@ -13,7 +13,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <div className={Styles.classNames('radio-button', {disabled, selected})}>
-      <div style={styles.radio} />
+      <div style={styles.radio as any} />
     </div>
     <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}
@@ -26,16 +26,18 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
-  radio: {
-    ...Styles.transition('opacity'),
-    border: `solid 3px ${Styles.globalColors.white}`,
-    borderRadius: 100,
-    color: Styles.globalColors.white,
-    hoverColor: Styles.globalColors.white,
-    left: 3,
-    position: 'absolute',
-    top: 3,
-  },
+  radio: Styles.platformStyles({
+    isElectron: {
+      ...Styles.transition('opacity'),
+      border: `solid 3px ${Styles.globalColors.white}`,
+      borderRadius: 100,
+      color: Styles.globalColors.white,
+      hoverColor: Styles.globalColors.white,
+      left: 3,
+      position: 'absolute',
+      top: 3,
+    },
+  }),
 }))
 
 export default RadioButton

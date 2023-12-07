@@ -1,49 +1,33 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../actions/config-gen'
-import * as Constants from '../../../../constants/chat2'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import LocationMap from '../../../location-map'
-import HiddenString from '../../../../util/hidden-string'
-import {watchPositionForMap} from '../../../../actions/platform-specific'
-import shallowEqual from 'shallowequal'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import LocationMap from '@/chat/location-map'
+import {watchPositionForMap} from '@/constants/platform-specific'
 
-type Props = Container.RouteProps<'chatLocationPreview'>
-
-const LocationPopup = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const {httpSrvAddress, httpSrvToken, location, locationDenied, username} = Container.useSelector(state => {
-    const {httpSrvAddress, httpSrvToken, username} = state.config
-    const location = state.chat2.lastCoord
-    const locationDenied =
-      state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
-      RPCChatTypes.UICommandStatusDisplayTyp.error
-    return {httpSrvAddress, httpSrvToken, location, locationDenied, username}
-  }, shallowEqual)
+const LocationPopup = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const username = C.useCurrentUserState(s => s.username)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const location = C.useChatState(s => s.lastCoord)
+  const locationDenied = C.useChatContext(
+    s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
+  )
   const [mapLoaded, setMapLoaded] = React.useState(false)
-  const dispatch = Container.useDispatch()
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
-  const onSettings = () => {
-    dispatch(ConfigGen.createOpenAppSettings())
-  }
+  const onSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onLocationShare = (duration: string) => {
     onClose()
-    dispatch(
-      Chat2Gen.createMessageSend({
-        conversationIDKey,
-        text: duration ? new HiddenString(`/location live ${duration}`) : new HiddenString('/location'),
-      })
-    )
+    messageSend(duration ? `/location live ${duration}` : '/location')
   }
+
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
-    watchPositionForMap(dispatch, conversationIDKey)
+    watchPositionForMap(conversationIDKey)
       .then(unsub => {
         unwatch = unsub
       })
@@ -51,12 +35,12 @@ const LocationPopup = (props: Props) => {
     return () => {
       unwatch?.()
     }
-  }, [dispatch, conversationIDKey])
+  }, [conversationIDKey])
 
-  const width = Math.ceil(Styles.dimensionWidth)
-  const height = Math.ceil(Styles.dimensionHeight - 320)
+  const width = Math.ceil(Kb.Styles.dimensionWidth)
+  const height = Math.ceil(Kb.Styles.dimensionHeight - 320)
   const mapSrc = location
-    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
+    ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
   return (
     <Kb.Modal
@@ -132,24 +116,24 @@ const LocationPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       accuracy: {
-        color: Styles.globalColors.white_75,
+        color: Kb.Styles.globalColors.white_75,
       },
       denied: {
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         justifyContent: 'center',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       deniedText: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
       liveButton: {
         height: 53,
       },
-    } as const)
+    }) as const
 )
 
 export default LocationPopup

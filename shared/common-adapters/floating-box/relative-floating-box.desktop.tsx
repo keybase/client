@@ -1,13 +1,14 @@
-import logger from '../../logger'
+import logger from '@/logger'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import throttle from 'lodash/throttle'
 import includes from 'lodash/includes'
 import without from 'lodash/without'
-import Box from '../box'
+import Box from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
-import {EscapeHandler} from '../../util/key-event-handler.desktop'
+import {EscapeHandler} from '../key-event-handler.desktop'
 import isEqual from 'lodash/isEqual'
+import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
 const Kb = {
   Box,
@@ -69,10 +70,10 @@ const positions: Array<Styles.Position> = [
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
-  coords: ClientRect,
-  popupCoords: ClientRect,
+  coords: MeasureDesktop,
+  popupCoords: MeasureDesktop,
   matchDimension: boolean,
-  offset: number | null
+  offset?: number
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute'}
 
@@ -83,7 +84,7 @@ function _computePopupStyle(
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   if (includes(position, 'right')) {
     style.right = Math.round(clientWidth - (coords.right + pageXOffset))
@@ -135,7 +136,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -143,7 +144,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boole
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   const element = {
     height: popupCoords.height,
@@ -159,12 +160,16 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boole
   }
 
   // hidden on top
-  if (typeof element.top === 'number' && element.top < pageYOffset) return false
+  if (typeof element.top === 'number' && element.top < pageYOffset) {
+    return false
+  }
   // hidden on the bottom
   if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight)
     return false
   // hidden the left
-  if (typeof element.left === 'number' && element.left < pageXOffset) return false
+  if (typeof element.left === 'number' && element.left < pageXOffset) {
+    return false
+  }
   // hidden on the right
   if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth)
     return false
@@ -172,7 +177,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boole
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop) {
   const {
     pageYOffset,
     pageXOffset,
@@ -180,7 +185,7 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   const element = {
     height: popupCoords.height,
@@ -240,18 +245,18 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
 
 function computePopupStyle(
   position: Styles.Position,
-  coords: ClientRect,
-  popupCoords: ClientRect,
+  coords: MeasureDesktop,
+  popupCoords: DOMRect,
   matchDimension: boolean,
-  offset: number | null,
+  offset?: number,
   // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
 ): ComputedStyle {
   let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
   const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, matchDimension, offset)
+    style = _computePopupStyle(positionsShuffled[i]!, coords, popupCoords, matchDimension, offset)
   }
   if (!isStyleInViewport(style, popupCoords)) {
     style = pushStyleIntoViewport(style, popupCoords)
@@ -260,9 +265,9 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect: ClientRect | null
+  targetRect?: MeasureDesktop
   position: Styles.Position
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
@@ -274,18 +279,18 @@ type ModalPositionRelativeProps = {
 type Snapshot = {width?: number; height?: number}
 export class RelativeFloatingBox extends React.PureComponent<
   ModalPositionRelativeProps,
-  {style: any},
+  {style: Styles.StylesCrossPlatform},
   Snapshot
 > {
   popupNode: HTMLElement | null = null
   down: undefined | {x: number; y: number}
   state: {style: {}}
-  constructor(props) {
+  constructor(props: ModalPositionRelativeProps) {
     super(props)
     this.state = {style: {}}
   }
 
-  _computeStyle = (targetRect: ClientRect | null) => {
+  _computeStyle = (targetRect: MeasureDesktop | undefined) => {
     if (!targetRect) return
     const popupNode = this.popupNode
     if (!(popupNode instanceof HTMLElement)) {
@@ -299,7 +304,7 @@ export class RelativeFloatingBox extends React.PureComponent<
         targetRect,
         popupNode.getBoundingClientRect(),
         !!this.props.matchDimension,
-        null,
+        undefined,
         this.props.positionFallbacks
       ),
       this.props.style,
@@ -333,10 +338,15 @@ export class RelativeFloatingBox extends React.PureComponent<
         ? this.popupNode.getBoundingClientRect()
         : {height: -1, width: -1}
       if (snapshot.width !== width || snapshot.height !== height) {
-        this._computeStyle(this.props.targetRect)
+        // need to defer this until it actually renders
+        clearTimeout(this._timeout)
+        this._timeout = setTimeout(() => {
+          this._computeStyle(this.props.targetRect)
+        }, 10)
       }
     }
   }
+  _timeout: NodeJS.Timeout | undefined
 
   _handleDown = (e: MouseEvent) => {
     this.down = {x: e.clientX, y: e.clientY}
@@ -373,18 +383,16 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentDidMount() {
     const node = document.body
-    if (!__STORYBOOK__ && node) {
-      node.addEventListener('mousedown', this._handleDown, false)
-      node.addEventListener('mouseup', this._handleUp, false)
-    }
+    node.addEventListener('mousedown', this._handleDown, false)
+    node.addEventListener('mouseup', this._handleUp, false)
   }
 
   componentWillUnmount() {
+    clearTimeout(this._timeout)
+    this._timeout = undefined
     const node = document.body
-    if (!__STORYBOOK__ && node) {
-      node.removeEventListener('mousedown', this._handleDown, false)
-      node.removeEventListener('mouseup', this._handleUp, false)
-    }
+    node.removeEventListener('mousedown', this._handleDown, false)
+    node.removeEventListener('mouseup', this._handleUp, false)
   }
 
   _setRef = (r: HTMLElement | null) => {
@@ -397,12 +405,9 @@ export class RelativeFloatingBox extends React.PureComponent<
     return (
       <Modal setNode={this._setRef}>
         <Kb.Box style={this.state.style}>
-          {this.props.onClosePopup && (
-            <EscapeHandler onESC={this.props.onClosePopup}>
-              <Kb.Box> {this.props.children} </Kb.Box>
-            </EscapeHandler>
-          )}
-          {!this.props.onClosePopup && <Kb.Box>{this.props.children}</Kb.Box>}
+          <EscapeHandler onESC={this.props.onClosePopup}>
+            <Kb.Box className="fade-in-generic"> {this.props.children} </Kb.Box>
+          </EscapeHandler>
         </Kb.Box>
       </Modal>
     )

@@ -1,15 +1,12 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
-import type * as Types from '../../constants/types/teams'
-import * as RPCGen from '../../constants/types/rpc-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {ModalTitle} from '../common'
 
 type Props = {
-  teamID: Types.TeamID
-  errorMessage: string
+  errorMessage?: string
 }
 
 const waitingKey = 'emailLookup'
@@ -17,32 +14,27 @@ const waitingKey = 'emailLookup'
 const AddEmail = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
   const [error, setError] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-
+  const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-
-  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: invitees}, waitingKey],
       r =>
         r?.length
-          ? dispatch(
-              TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  ...(m.foundUser
-                    ? {assertion: m.username, resolvedFrom: m.assertion}
-                    : {assertion: m.assertion}),
-                  role: 'writer',
-                })),
-              })
+          ? addMembersWizardPushMembers(
+              r.map(m => ({
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
+                role: 'writer',
+              }))
             )
           : setError('You must enter at least one valid email address.'),
       err => setError(err.message)
@@ -50,7 +42,7 @@ const AddEmail = (props: Props) => {
   }
 
   const maybeSubmit = (evt: React.KeyboardEvent) => {
-    if (!disabled && evt && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+    if (!disabled && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       onContinue()
     }
   }
@@ -86,7 +78,7 @@ const AddEmail = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
@@ -114,20 +106,20 @@ const AddEmail = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
       flex: 1,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  errorText: {color: Styles.globalColors.redDark},
-  wordBreak: Styles.platformStyles({
+  errorText: {color: Kb.Styles.globalColors.redDark},
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

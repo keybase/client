@@ -1,5 +1,4 @@
-import * as React from 'react'
-import type * as Container from '../../util/container'
-
-export type OwnProps = Container.RouteProps<'teamInviteByContact'>
-export default class InviteByContact extends React.Component<OwnProps> {}
+import type * as React from 'react'
+export type OwnProps = {teamID: string}
+declare const InviteByContact: (p: OwnProps) => React.ReactNode
+export default InviteByContact

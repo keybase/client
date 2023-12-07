@@ -1,43 +1,27 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/teams'
-import * as Teams from '../../../../constants/teams'
-import * as Container from '../../../../util/container'
-import type * as ChatTypes from '../../../../constants/types/chat2'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 
 type OwnProps = {
-  teamID: Types.TeamID
-  convID: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  convID: T.Chat.ConversationIDKey
   filter: string
-  reloadEmojis: () => void
   setFilter: (filter: string) => void
 }
-const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) => {
+const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const nav = Container.useSafeNavigation()
-  const dispatch = Container.useDispatch()
-  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
+  const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: convID, onChange: reloadEmojis, teamID},
-            selected: 'teamAddEmoji',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {conversationIDKey: convID, teamID},
+      selected: 'teamAddEmoji',
+    })
   const onAddAlias = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: convID, onChange: reloadEmojis},
-            selected: 'teamAddEmojiAlias',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {conversationIDKey: convID},
+      selected: 'teamAddEmojiAlias',
+    })
   // clear filter on unmount
   return !canManageEmoji ? null : (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
@@ -57,7 +41,7 @@ const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) =
           style={styles.headerButton}
         />
       </Kb.Box2>
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"
@@ -72,22 +56,22 @@ const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) =
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
-    ...Styles.padding(6, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
+    ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
   },
   filterInput: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
     maxWidth: 148,
   },
-  headerButton: Styles.platformStyles({
+  headerButton: Kb.Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
     },
   }),
-  text: {padding: Styles.globalMargins.xtiny},
+  text: {padding: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default AddEmoji

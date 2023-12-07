@@ -1,9 +1,13 @@
-import * as ChatConstants from '../constants/chat2'
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
-import * as Container from '../util/container'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as Styles from '@/styles'
+import WaitingButton from '@/common-adapters/waiting-button'
+import Icon from '@/common-adapters/icon'
+
+// pulled in from common-adapters/profile-card
+const Kb = {
+  Icon,
+  WaitingButton,
+}
 
 type Props = {
   small?: boolean
@@ -13,17 +17,18 @@ type Props = {
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
-  const dispatch = Container.useDispatch()
+  const showMain = C.useConfigState(s => s.dispatch.showMain)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const chat = () => {
     afterClick?.()
-    dispatch(ConfigGen.createShowMain())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
+    showMain()
+    previewConversation({participants: [username], reason: 'tracker'})
   }
   return (
     <Kb.WaitingButton
       key="Chat"
       label="Chat"
-      waitingKey={ChatConstants.waitingKeyCreating}
+      waitingKey={C.Chat.waitingKeyCreating}
       onClick={chat}
       small={small}
       style={style}

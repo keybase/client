@@ -1,6 +1,5 @@
 import PeopleItem, {type TaskButton} from '../item'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   badged: boolean
@@ -22,12 +21,12 @@ export const Task = (props: Props) => (
   </PeopleItem>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   instructions: {marginTop: 2},
   search: {
     alignSelf: undefined,
     flexGrow: 0,
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
   },
 }))

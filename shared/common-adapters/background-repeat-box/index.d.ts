@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../../styles/css'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '@/styles/css'
 
 // Cross platform Box with a repeating background image
 
@@ -11,5 +11,5 @@ export type Props = {
   skipBackground?: boolean // don't add any styles or background image,
   style?: StylesCrossPlatform
 }
-declare class BackgroundRepeatBox extends React.Component<Props> {}
+declare const BackgroundRepeatBox: (p: Props) => React.ReactNode
 export default BackgroundRepeatBox

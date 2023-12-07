@@ -19,7 +19,7 @@ export const gotStat = (method: string, incoming: boolean) => {
   }
 
   const i = _stats[inKey][method]
-  i.count++
+  i && i.count++
 }
 
 export const gotEOF = () => {

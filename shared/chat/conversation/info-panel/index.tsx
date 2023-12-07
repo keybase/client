@@ -1,16 +1,61 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
+import type * as T from '@/constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
-import type {MaybeTeamRoleType} from 'constants/types/teams'
-import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
-import type {Tab as TabType} from '../../../common-adapters/tabs'
+import type {Tab as TabType} from '@/common-adapters/tabs'
+
+type Props = {
+  tab?: 'settings' | 'members' | 'attachments' | 'bots'
+}
+
+const InfoPanelConnector = (props: Props) => {
+  const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
+  const initialTab = props.tab ?? storeSelectedTab
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
+  const yourRole = C.useTeamsState(s => C.Teams.getRole(s, meta.teamID))
+  const isPreview = meta.membershipType === 'youArePreviewing'
+  const channelname = meta.channelname
+  const smallTeam = meta.teamType !== 'big'
+  const teamname = meta.teamname
+
+  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
+  const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
+
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = C.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
+  const onCancel = () => {
+    showInfoPanel(false, undefined)
+    clearAttachmentView()
+  }
+  const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+
+  if (lastSNO !== shouldNavigateOut) {
+    setLastSNO(shouldNavigateOut)
+    if (!lastSNO && shouldNavigateOut) {
+      onGoToInbox()
+    }
+  }
+
+  const p = {
+    channelname,
+    isPreview,
+    onCancel,
+    onSelectTab,
+    selectedTab: selectedTab ?? 'members',
+    smallTeam,
+    teamname,
+    yourRole,
+  }
+  return <_InfoPanel {...p} conversationIDKey={conversationIDKey} />
+}
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -18,19 +63,16 @@ type InfoPanelProps = {
   isPreview: boolean
   onCancel?: () => void
   onSelectTab: (p: Panel) => void
-  selectedConversationIDKey: Types.ConversationIDKey
   selectedTab: Panel
   smallTeam: boolean
   teamname?: string
-  yourRole: MaybeTeamRoleType
+  yourRole: T.Teams.MaybeTeamRoleType
 }
 
-export class InfoPanel extends React.PureComponent<InfoPanelProps> {
+class _InfoPanel extends React.PureComponent<InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}> {
   private getTabs = (): Array<TabType<Panel>> => {
     const showSettings =
-      !this.props.isPreview ||
-      TeamConstants.isAdmin(this.props.yourRole) ||
-      TeamConstants.isOwner(this.props.yourRole)
+      !this.props.isPreview || C.Teams.isAdmin(this.props.yourRole) || C.Teams.isOwner(this.props.yourRole)
 
     return [
       {title: 'members' as const},
@@ -62,23 +104,19 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
       key: 'header-section',
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {this.props.teamname && this.props.channelname ? (
-            <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
-          ) : (
-            <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
-          )}
+          {this.props.teamname && this.props.channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
     },
   ]
 
   render() {
-    if (!this.props.selectedConversationIDKey) {
+    if (!this.props.conversationIDKey) {
       // if we dont have a valid conversation ID, just render a spinner
       return (
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
+          style={Kb.Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
           fullWidth={true}
           centerChildren={true}
         >
@@ -92,7 +130,6 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
       case 'settings':
         sectionList = (
           <SettingsList
-            conversationIDKey={this.props.selectedConversationIDKey}
             isPreview={this.props.isPreview}
             renderTabs={this.renderTabs}
             commonSections={this.commonSections}
@@ -100,36 +137,18 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
         )
         break
       case 'members':
-        sectionList = (
-          <MembersList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <MembersList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       case 'attachments':
-        sectionList = (
-          <AttachmentsList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <AttachmentsList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       case 'bots':
-        sectionList = (
-          <BotsList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <BotsList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       default:
         sectionList = null
     }
-    if (Styles.isTablet) {
+    if (Kb.Styles.isTablet) {
       // Use a View to make the left border.
       return (
         <Kb.Box2
@@ -147,7 +166,7 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
     } else {
       return (
         <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-          {Styles.isMobile && (
+          {Kb.Styles.isMobile && (
             <Kb.HeaderHocHeader
               onLeftAction={this.props.onCancel}
               leftAction="cancel"
@@ -163,36 +182,36 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
 
 const tabletContainerBorderSize = 1
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      clickableTabStyle: Styles.platformStyles({
+      clickableTabStyle: Kb.Styles.platformStyles({
         isMobile: {width: undefined},
       }),
-      container: Styles.platformStyles({
-        common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
+      container: Kb.Styles.platformStyles({
+        common: {alignItems: 'stretch', paddingBottom: Kb.Styles.globalMargins.tiny},
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderLeft: `1px solid ${Kb.Styles.globalColors.black_10}`,
           width: infoPanelWidthElectron,
         },
         isTablet: {
-          paddingTop: Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
           width: infoPanelWidthTablet,
         },
       }),
       containerBorder: {
-        backgroundColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.black_10,
         width: tabletContainerBorderSize,
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       tab: {
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
       },
-      tabContainer: Styles.platformStyles({
+      tabContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
         },
         // TODO: this is less than ideal
         isElectron: {
@@ -203,5 +222,7 @@ const styles = Styles.styleSheetCreate(
           marginTop: 0,
         },
       }),
-    } as const)
+    }) as const
 )
+
+export default InfoPanelConnector

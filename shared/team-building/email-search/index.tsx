@@ -1,37 +1,29 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as TeamBuildingGen from '../../actions/team-building-gen'
-import * as Constants from '../../constants/team-building'
-import type * as Types from '../../constants/types/team-building'
-import type {AllowedNamespace} from '../../constants/types/team-building'
-import {validateEmailAddress} from '../../util/email-address'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'email') => void
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const dispatch = Container.useDispatch()
-
-  const user: Types.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
+  const waiting = C.useAnyWaiting(C.tbSearchWaitingKey)
+  const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(
-    text => {
+    (_text: string) => {
       // Remove leading or trailing whitespace
-      text = text.trim()
+      const text = _text.trim()
       setEmailString(text)
       const valid = validateEmailAddress(text)
       setEmailValidity(valid)
@@ -42,15 +34,16 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
     [search]
   )
 
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
+
   const onSubmit = React.useCallback(() => {
     if (!user || !canSubmit) {
       return
     }
-
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+    addUsersToTeamSoFar([user])
     // Clear input
     onChange('')
-  }, [dispatch, canSubmit, user, namespace, onChange])
+  }, [addUsersToTeamSoFar, canSubmit, user, onChange])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
@@ -75,16 +68,16 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
         ) : (
           <Kb.Box2
             alignSelf="center"
-            centerChildren={!Styles.isMobile}
+            centerChildren={!Kb.Styles.isMobile}
             direction="vertical"
             fullWidth={true}
             gap="tiny"
             style={styles.emptyContainer}
           >
-            {!Styles.isMobile && (
-              <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
+            {!Kb.Styles.isMobile && (
+              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
-            {namespace == 'chat2' ? (
+            {namespace === 'chat2' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>
                 Start a chat with any email contact, then tell them to install Keybase. Your messages will
                 unlock after they sign up.
@@ -104,14 +97,14 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      background: Styles.platformStyles({
+      background: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,
@@ -120,7 +113,7 @@ const styles = Styles.styleSheetCreate(
       bottomContainer: {
         flexGrow: 1,
       },
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -131,29 +124,29 @@ const styles = Styles.styleSheetCreate(
       flexGrow: {
         flex: 1,
       },
-      helperText: Styles.platformStyles({
+      helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {},
         isElectron: {
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
           height: 38,
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
           height: 48,
         },
       }),
       userMatchMention: {
         alignSelf: 'flex-start',
-        marginLeft: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default EmailSearch

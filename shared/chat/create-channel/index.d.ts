@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as TeamsTypes from '../../constants/types/teams'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
 
 export type Props = {
   channelname: string
@@ -10,8 +10,8 @@ export type Props = {
   onSubmit: () => void
   onDescriptionChange: (description: string) => void
   onChannelnameChange: (channelname: string) => void
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
 }
-export declare class CreateChannel extends React.Component<Props> {}
+declare const CreateChannel: (p: Props) => React.ReactNode
 export default CreateChannel

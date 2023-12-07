@@ -1,16 +1,17 @@
-import logger from '../../logger'
-import * as Kb from '../../common-adapters/mobile.native'
+import logger from '@/logger'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import type {ConfiguredAccount} from '../../constants/types/config'
+import type * as T from '@/constants/types'
+import {Picker} from '@react-native-picker/picker'
+import {TouchableWithoutFeedback, Modal} from 'react-native'
 
 type Props = {
   type: 'Username'
-  options: Array<ConfiguredAccount>
+  options: Array<T.Config.ConfiguredAccount>
   onClick: (option: string, index: number) => void
-  onPress?: void
+  onPress?: () => void
   onOther?: () => void
-  value?: string | null
+  value?: string
   style?: Object
 }
 
@@ -27,7 +28,7 @@ const pickItemValue = 'pickItemValue'
 
 type State = {
   modalVisible: boolean
-  value: string | null
+  value: string
 }
 
 class Dropdown extends React.Component<Props, State> {
@@ -57,10 +58,10 @@ class Dropdown extends React.Component<Props, State> {
         logger.warn('otherValue selected, yet no onOther handler')
       }
       this.setState({value: (this.props.options[0] || {username: ''}).username})
-    } else if (this.props.onClick) {
+    } else {
       this.props.onClick(
         this.state.value || '',
-        (this.props.options || []).findIndex(u => u.username === this.state.value)
+        this.props.options.findIndex(u => u.username === this.state.value)
       )
     }
   }
@@ -76,12 +77,12 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   _ensureSelected() {
-    if (!this.state.value && this.props.options && this.props.options.length) {
+    if (!this.state.value && this.props.options.length) {
       this.setState({value: (this.props.options[0] || {username: ''}).username})
     }
   }
 
-  _label(value: string | null): string {
+  _label(value: string): string {
     if (!value) {
       return ''
     }
@@ -100,7 +101,7 @@ class Dropdown extends React.Component<Props, State> {
         <Kb.Text key="text" type="Header" style={styles.orangeText}>
           {this._label(this.state.value)}
         </Kb.Text>
-        {Styles.isAndroid ? null : (
+        {Kb.Styles.isAndroid ? null : (
           <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
         )}
       </>
@@ -112,7 +113,7 @@ class Dropdown extends React.Component<Props, State> {
       ? [{key: pickItemValue, label: this._label(pickItemValue), value: pickItemValue}]
       : []
 
-    const actualItems = (this.props.options || []).map(o => ({
+    const actualItems = this.props.options.map(o => ({
       key: o.username,
       label: o.hasStoredSecret ? `${o.username} (Signed in)` : o.username,
       value: o.username,
@@ -122,7 +123,7 @@ class Dropdown extends React.Component<Props, State> {
       : []
     const items = pickItem.concat(actualItems).concat(otherItem)
 
-    const onValueChange = value => {
+    const onValueChange = (value: string) => {
       if (value === this.state.value) {
         return
       }
@@ -135,16 +136,16 @@ class Dropdown extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.NativePicker
+      <Picker
         style={style}
         selectedValue={this.state.value}
         onValueChange={onValueChange}
         itemStyle={styles.item}
       >
         {items.map(i => (
-          <Kb.NativePicker.Item {...i} key={i.label} />
+          <Picker.Item {...i} key={i.label} />
         ))}
-      </Kb.NativePicker>
+      </Picker>
     )
   }
 
@@ -163,69 +164,69 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderIOS() {
     return (
-      <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
+      <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Kb.Box style={{...styles.container, ...this.props.style}}>
-          <Kb.NativeModal
+          <Modal
             animationType="slide"
             transparent={true}
             visible={this.state.modalVisible}
             onRequestClose={() => this._showModal(false)}
           >
             <Kb.Box style={styles.pickerContainer}>
-              <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
+              <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Kb.Box style={{flex: 1}} />
-              </Kb.NativeTouchableWithoutFeedback>
+              </TouchableWithoutFeedback>
               {this._renderPicker(styles.pickerIOS, false)}
             </Kb.Box>
-          </Kb.NativeModal>
+          </Modal>
           {this._renderLabelAndCaret()}
         </Kb.Box>
-      </Kb.NativeTouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
     )
   }
 
   render() {
-    return Styles.isIOS ? this._renderIOS() : this._renderAndroid()
+    return Kb.Styles.isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
         borderWidth: 1,
         height: 48,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       icon: {width: 10},
-      item: {color: Styles.globalColors.black},
+      item: {color: Kb.Styles.globalColors.black},
       orangeText: {
-        color: Styles.globalColors.orange,
+        color: Kb.Styles.globalColors.orange,
         flex: 1,
         lineHeight: 28,
       },
       pickerAndroid: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         bottom: 0,
-        color: Styles.globalColors.transparent,
+        color: Kb.Styles.globalColors.transparent,
         left: 0,
         position: 'absolute',
         right: 0,
         top: 0,
       },
       pickerContainer: {
-        backgroundColor: Styles.globalColors.black_50OrBlack_60,
+        backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
         flex: 1,
         justifyContent: 'flex-end',
       },
-      pickerIOS: {backgroundColor: Styles.globalColors.white},
-    } as const)
+      pickerIOS: {backgroundColor: Kb.Styles.globalColors.white},
+    }) as const
 )
 
 export default Dropdown

@@ -1,41 +1,41 @@
-import * as ProvisionGen from '../../actions/provision-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SignupGen from '../../actions/signup-gen'
-import * as LoginGen from '../../actions/login-gen'
+import * as C from '@/constants'
 import Intro from '.'
-import * as Container from '../../util/container'
 
-type OwnProps = {}
+const Container = () => {
+  const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
+  const justRevokedSelf = C.useConfigState(s => s.justRevokedSelf)
+  const bannerMessage = justDeletedSelf
+    ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
+    : justRevokedSelf
+    ? `${justRevokedSelf} was revoked successfully`
+    : ''
 
-export default Container.connect(
-  state => {
-    let bannerMessage: string | null = null
+  const isOnline = C.useConfigState(s => s.isOnline)
+  const loadIsOnline = C.useConfigState(s => s.dispatch.loadIsOnline)
 
-    if (state.config.justDeletedSelf) {
-      bannerMessage = `Your Keybase account ${state.config.justDeletedSelf} has been deleted. Au revoir!`
-    } else if (state.devices.justRevokedSelf) {
-      bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
-    }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onFeedback = () => {
+    navigateAppend({props: {}, selected: 'feedback'})
+  }
+  const checkIsOnline = loadIsOnline
+  const onLogin = C.useProvisionState(s => s.dispatch.startProvision)
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
+  const onSignup = () => {
+    requestAutoInvite()
+  }
+  const showProxySettings = () => {
+    navigateAppend('proxySettingsModal')
+  }
+  const props = {
+    bannerMessage,
+    checkIsOnline,
+    isOnline,
+    onFeedback: C.isMobile ? _onFeedback : undefined,
+    onLogin,
+    onSignup,
+    showProxySettings,
+  }
+  return <Intro {...props} />
+}
 
-    return {
-      bannerMessage,
-      isOnline: state.login.isOnline,
-    }
-  },
-  dispatch => ({
-    _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
-    onLogin: () => dispatch(ProvisionGen.createStartProvision()),
-    onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-    showProxySettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    bannerMessage: stateProps.bannerMessage,
-    checkIsOnline: dispatchProps.checkIsOnline,
-    isOnline: stateProps.isOnline,
-    onFeedback: Container.isMobile ? dispatchProps._onFeedback : null,
-    onLogin: dispatchProps.onLogin,
-    onSignup: dispatchProps.onSignup,
-    showProxySettings: dispatchProps.showProxySettings,
-  })
-)(Intro)
+export default Container

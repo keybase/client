@@ -1,14 +1,9 @@
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
-import type * as ChatTypes from '../../constants/types/chat2'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {pluralize} from '../../util/string'
+import type * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
+import {pluralize} from '@/util/string'
 import {useFocusEffect} from '@react-navigation/core'
 
 type UnselectableTab = string
@@ -16,15 +11,15 @@ type TeamSelectableTab = 'teamMembers' | 'teamChannels'
 type ChannelSelectableTab = 'channelMembers'
 
 type TeamActionsProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 type TeamProps = TeamActionsProps & {
   selectedTab: TeamSelectableTab
 }
 
 type ChannelActionsProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
 }
 type ChannelProps = ChannelActionsProps & {
   selectedTab: ChannelSelectableTab
@@ -41,21 +36,11 @@ const isChannel = (props: Props): props is ChannelProps => ['channelMembers'].in
 const isTeam = (props: Props): props is TeamProps =>
   ['teamChannels', 'teamMembers'].includes(props.selectedTab)
 
-const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
-  const {selectedTab, teamID} = props
-  switch (selectedTab) {
-    case 'teamChannels':
-      return state.teams.teamSelectedChannels.get(teamID)?.size ?? 0
-    case 'teamMembers':
-      return state.teams.teamSelectedMembers.get(teamID)?.size ?? 0
-  }
-}
-
-const getChannelSelectedCount = (state: Container.TypedState, props: ChannelProps) => {
+const getChannelSelectedCount = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
   switch (selectedTab) {
-    case 'channelMembers':
-      return state.teams.channelSelectedMembers.get(conversationIDKey)?.size ?? 0
+    default:
+      return C.useTeamsState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
   }
 }
 
@@ -93,43 +78,43 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // For boosting the list to scroll not behind the popup on mobile
   const [height, setHeight] = React.useState(0)
   const {bottom} = Kb.useSafeAreaInsets()
-  if (!onSelectableTab || (Styles.isMobile && !selectedCount) || !focused) {
+  if (!onSelectableTab || (Kb.Styles.isMobile && !selectedCount) || !focused) {
     return null
   }
   const popup = (
     <Kb.Box2
-      fullWidth={Styles.isMobile}
-      direction={Styles.isPhone ? 'vertical' : 'horizontal'}
+      fullWidth={Kb.Styles.isMobile}
+      direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'}
       alignItems="center"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.container,
-        selectedCount && !Styles.isMobile ? styles.containerShowing : null,
+        selectedCount && !Kb.Styles.isMobile ? styles.containerShowing : null,
       ])}
-      gap={Styles.isPhone ? 'tiny' : undefined}
+      gap={Kb.Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
-      onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
+      onLayout={Kb.Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
-      {Styles.isPhone && (
+      {Kb.Styles.isPhone && (
         <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
         {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
-        {!Styles.isPhone && (
+        {!Kb.Styles.isPhone && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onCancel}>
             Unselect
           </Kb.Text>
         )}
       </Kb.Text>
 
-      {!Styles.isPhone && <Kb.BoxGrow />}
+      {!Kb.Styles.isPhone && <Kb.BoxGrow />}
       {children}
       {/* bottom safe area */}
-      {Styles.isPhone && <Kb.Box style={{height: bottom}} />}
+      {Kb.Styles.isPhone && <Kb.Box style={{height: bottom}} />}
     </Kb.Box2>
   )
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <>
       {<Kb.Box style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
       <Kb.FloatingBox>{popup}</Kb.FloatingBox>
@@ -141,30 +126,23 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
-  const selectedCount = Container.useSelector(state => getTeamSelectedCount(state, props))
-  const dispatch = Container.useDispatch()
+
+  const selectedCount = C.useTeamsState(s =>
+    selectedTab === 'teamChannels'
+      ? s.teamSelectedChannels.get(teamID)?.size ?? 0
+      : s.teamSelectedMembers.get(teamID)?.size ?? 0
+  )
+
+  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
+  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onCancel = () => {
     switch (selectedTab) {
       case 'teamChannels':
-        dispatch(
-          TeamsGen.createSetChannelSelected({
-            channel: '',
-            clearAll: true,
-            selected: false,
-            teamID: teamID,
-          })
-        )
+        setChannelSelected(teamID, '', false, true)
         return
       case 'teamMembers':
-        dispatch(
-          TeamsGen.createTeamSetMemberSelected({
-            clearAll: true,
-            selected: false,
-            teamID: teamID,
-            username: '',
-          })
-        )
+        setMemberSelected(teamID, '', false, true)
         return
     }
   }
@@ -184,20 +162,12 @@ const TeamSelectionPopup = (props: TeamProps) => {
 
 const ChannelSelectionPopup = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab, teamID} = props
-  const selectedCount = Container.useSelector(state => getChannelSelectedCount(state, props))
-  const dispatch = Container.useDispatch()
-
+  const selectedCount = getChannelSelectedCount(props)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const onCancel = () => {
     switch (selectedTab) {
       case 'channelMembers':
-        dispatch(
-          TeamsGen.createChannelSetMemberSelected({
-            clearAll: true,
-            conversationIDKey,
-            selected: false,
-            username: '',
-          })
-        )
+        channelSetMemberSelected(conversationIDKey, '', false, true)
         return
     }
   }
@@ -222,15 +192,15 @@ const SelectionPopup = (props: Props) =>
     <TeamSelectionPopup {...props} />
   ) : null
 
-const ActionsWrapper = ({children}) => (
-  <Kb.Box2 fullWidth={Styles.isPhone} direction={Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
+const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 fullWidth={Kb.Styles.isPhone} direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const dispatch = Container.useDispatch()
-  const membersSet = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
-  const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
+  const membersSet = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
+  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered
     return null
@@ -239,17 +209,9 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
 
   // Members tab functions
   const onAddToChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
-      })
-    )
+    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
   const onRemoveFromTeam = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: members, teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
+    navigateAppend({props: {members: members, teamID}, selected: 'teamReallyRemoveMember'})
 
   return (
     <ActionsWrapper>
@@ -258,7 +220,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
           label="Add to channels"
           mode="Secondary"
           onClick={onAddToChannel}
-          fullWidth={Styles.isPhone}
+          fullWidth={Kb.Styles.isPhone}
         />
       )}
       <EditRoleButton teamID={teamID} members={members} />
@@ -266,7 +228,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         label="Remove from team"
         type="Danger"
         onClick={onRemoveFromTeam}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
       />
     </ActionsWrapper>
   )
@@ -278,19 +240,17 @@ function allSameOrNull<T>(arr: T[]): T | null {
     return null
   }
   const first = arr[0]
-  return arr.some(r => r !== first) ? null : first
+  return (arr.some(r => r !== first) ? null : first) ?? null
 }
-const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
-  const dispatch = Container.useDispatch()
-
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const roles = members.map(username => teamDetails.members.get(username)?.type)
-  const currentRole = allSameOrNull(roles)
+const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const roles = members.map(username => teamDetails?.members.get(username)?.type)
+  const currentRole = allSameOrNull(roles) ?? undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const waiting = Container.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
-  const teamWaiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(C.Teams.editMembershipWaitingKey(teamID, ...members))
+  const teamWaiting = C.useAnyWaiting(C.Teams.teamWaitingKey(teamID))
 
   // We wait for the teamLoaded
   React.useEffect(() => {
@@ -299,12 +259,10 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     }
   }, [showingPicker, teamWaiting])
 
-  const disabledReasons = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, teamID, members)
-  )
+  const disabledReasons = C.useTeamsState(s => C.Teams.getDisabledReasonsForRolePicker(s, teamID, members))
   const disableButton = disabledReasons.admin !== undefined
-  const onChangeRoles = (role: Types.TeamRoleType) =>
-    dispatch(TeamsGen.createEditMembership({role, teamID, usernames: members}))
+  const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
+  const onChangeRoles = (role: T.Teams.TeamRoleType) => editMembership(teamID, members, role)
 
   return (
     <FloatingRolePicker
@@ -322,7 +280,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
         mode="Secondary"
         disabled={disableButton}
         onClick={() => setShowingPicker(!showingPicker)}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
         tooltip={disableButton ? disabledReasons.admin : undefined}
       />
     </FloatingRolePicker>
@@ -330,31 +288,25 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
 }
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
-  const dispatch = Container.useDispatch()
-
   // Channels tab functions
-  const onDelete = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamDeleteChannel'}],
-      })
-    )
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
 
   return (
     <ActionsWrapper>
-      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Kb.Styles.isMobile} />
     </ActionsWrapper>
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const dispatch = Container.useDispatch()
-  const membersSet = Container.useSelector(
-    s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
+  const membersSet = C.useTeamsState(
+    s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  if (!membersSet) {
+  if (!membersSet.size) {
     // we shouldn't be rendered
     return null
   }
@@ -362,22 +314,12 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
 
   // Members tab functions
   const onAddToChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
-      })
-    )
+    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
   const onRemoveFromChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, members: [...members], teamID},
-            selected: 'teamReallyRemoveChannelMember',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {conversationIDKey, members: [...members], teamID},
+      selected: 'teamReallyRemoveChannelMember',
+    })
 
   return (
     <ActionsWrapper>
@@ -385,7 +327,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         label="Add to channels"
         mode="Secondary"
         onClick={onAddToChannel}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
       />
       <EditRoleButton teamID={teamID} members={members} />
       {channelname !== 'general' && (
@@ -393,7 +335,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
           label="Remove from channel"
           type="Danger"
           onClick={onRemoveFromChannel}
-          fullWidth={Styles.isPhone}
+          fullWidth={Kb.Styles.isPhone}
         />
       )}
     </ActionsWrapper>
@@ -405,22 +347,22 @@ const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamA
   teamMembers: TeamMembersActions,
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       position: 'absolute',
     },
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.padding(6, Styles.globalMargins.xsmall),
+      ...Kb.Styles.desktopStyles.boxShadow,
+      ...Kb.Styles.padding(6, Kb.Styles.globalMargins.xsmall),
       borderRadius: 4,
       bottom: -48,
-      left: Styles.globalMargins.tiny,
-      right: Styles.globalMargins.tiny,
+      left: Kb.Styles.globalMargins.tiny,
+      right: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       bottom: 0,
       shadowOffset: {height: 2, width: 0},
       shadowOpacity: 0.8,
@@ -428,11 +370,11 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   containerShowing: {
-    bottom: Styles.globalMargins.small,
+    bottom: Kb.Styles.globalMargins.small,
   },
   topLink: {
     alignSelf: 'flex-start',
-    paddingBottom: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

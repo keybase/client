@@ -2,6 +2,7 @@ import * as React from 'react'
 import Box from './box'
 import lottie from 'lottie-web'
 import type {Props, AnimationType} from './animation'
+import type {default as AnimationData} from './animation-data.json'
 
 const defaultDimension = 16
 const _typeToData = new Map<AnimationType, unknown>()
@@ -11,7 +12,7 @@ const useAnimationData = (type: AnimationType) => {
   if (existing) {
     return existing
   }
-  const animationData = require('./animation-data.json')
+  const animationData = require('./animation-data.json') as typeof AnimationData
 
   const options = animationData[type]
   _typeToData.set(type, options)
@@ -21,7 +22,7 @@ const useAnimationData = (type: AnimationType) => {
 const Animation = React.memo(function Animation(props: Props) {
   const {style, width, height, animationType} = props
   const element = React.useRef<HTMLDivElement>(null)
-  const lottieInstance = React.useRef<any>()
+  const lottieInstance = React.useRef<null | ReturnType<typeof lottie.loadAnimation>>(null)
   const animationData = useAnimationData(animationType)
   React.useEffect(() => {
     if (element.current) {
@@ -39,8 +40,13 @@ const Animation = React.memo(function Animation(props: Props) {
   return (
     <Box className={props.className} style={props.containerStyle}>
       <div
-        // @ts-ignore
-        style={{height: height ?? defaultDimension, width: width ?? defaultDimension, ...style}}
+        style={
+          {
+            height: height ?? defaultDimension,
+            width: width ?? defaultDimension,
+            ...style,
+          } as React.CSSProperties
+        }
         ref={element}
       />
     </Box>

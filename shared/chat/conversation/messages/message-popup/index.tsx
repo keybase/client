@@ -1,59 +1,25 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import AttachmentMessage from './attachment/container'
-import ExplodingMessage from './exploding/container'
-import JourneycardMessage from './journeycard/container'
-import PaymentMessage from './payment/container'
-import TextMessage from './text/container'
-import type * as Types from '../../../../constants/types/chat2'
-import type {Position, StylesCrossPlatform} from '../../../../styles'
+import AttachmentMessage from './attachment'
+import JourneycardMessage from './journeycard'
+import TextMessage from './text'
+import type * as T from '@/constants/types'
 
 type Props = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
-  attachTo?: () => React.Component<any> | null
+  ordinal: T.Chat.Ordinal
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
-  position: Position
-  style?: StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
-  const {conversationIDKey, ordinal, attachTo, onHidden, position, style, visible} = p
-  const exploding = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
-  )
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const {ordinal, attachTo, onHidden, position, style, visible} = p
+  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
-      if (exploding) {
-        return (
-          <ExplodingMessage
-            conversationIDKey={conversationIDKey}
-            ordinal={ordinal}
-            attachTo={attachTo}
-            onHidden={onHidden}
-            position={position}
-            style={style}
-            visible={visible}
-          />
-        )
-      }
-      return (
-        <TextMessage
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          attachTo={attachTo}
-          onHidden={onHidden}
-          position={position}
-          style={style}
-          visible={visible}
-        />
-      )
     case 'setChannelname':
     case 'setDescription':
     case 'pin':
@@ -69,9 +35,8 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
     case 'systemUsersAddedToConversation':
       return (
         <TextMessage
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
+          attachTo={attachTo}
           onHidden={onHidden}
           position={position}
           style={style}
@@ -82,7 +47,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <JourneycardMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -91,23 +55,9 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
         />
       )
     case 'attachment':
-      if (exploding) {
-        return (
-          <ExplodingMessage
-            attachTo={attachTo}
-            conversationIDKey={conversationIDKey}
-            ordinal={ordinal}
-            onHidden={onHidden}
-            position={position}
-            style={style}
-            visible={visible}
-          />
-        )
-      }
       return (
         <AttachmentMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -115,97 +65,75 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
           visible={visible}
         />
       )
-    case 'sendPayment': // fallthrough
-    case 'requestPayment':
-      return (
-        <PaymentMessage
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          onHidden={onHidden}
-          position={position}
-          style={style}
-          visible={visible}
-        />
-      )
+    default:
+      return null
   }
-  return null
 })
 
 export default MessagePopup
 
 // Mobile only
-type ModalProps = Container.RouteProps<'chatMessagePopup'>
+type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {
-  const {conversationIDKey = '', ordinal = 0} = p.route.params ?? {}
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingModalContext.Provider value={true}>
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={p.navigation.pop}
-        position="top right"
-        visible={true}
-      />
-    </Kb.FloatingModalContext.Provider>
-  ))
-
+  const {ordinal} = p
+  const {pop} = C.useNav()
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo} = p
+      return pop ? (
+        <Kb.FloatingModalContext.Provider value={true}>
+          <MessagePopup
+            ordinal={ordinal}
+            key="popup"
+            attachTo={attachTo}
+            onHidden={pop}
+            position="top right"
+            visible={true}
+          />
+        </Kb.FloatingModalContext.Provider>
+      ) : null
+    },
+    [ordinal, pop]
+  )
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
     setShowingPopup(true)
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
+    <Kb.Box2Measure direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   )
 }
 
 export const useMessagePopup = (p: {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   shouldShow?: () => boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }) => {
-  const {conversationIDKey, ordinal, shouldShow, style} = p
-  const desktopPopup = Kb.usePopup(attachTo =>
-    shouldShow?.() ?? true ? (
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={desktopPopup.toggleShowingPopup}
-        position="top right"
-        style={style}
-        visible={desktopPopup.showingPopup}
-      />
-    ) : null
+  const {ordinal, shouldShow, style} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {toggleShowingPopup, attachTo} = p
+      return shouldShow?.() ?? true ? (
+        <C.ChatProvider id={conversationIDKey}>
+          <Kb.FloatingModalContext.Provider value="bottomsheet">
+            <MessagePopup
+              ordinal={ordinal}
+              key="popup"
+              attachTo={attachTo}
+              onHidden={toggleShowingPopup}
+              position="top right"
+              style={style}
+              visible={true}
+            />
+          </Kb.FloatingModalContext.Provider>
+        </C.ChatProvider>
+      ) : null
+    },
+    [ordinal, shouldShow, style, conversationIDKey]
   )
-
-  const dispatch = Container.useDispatch()
-
-  const mobilePopup: {
-    popup: React.ReactNode
-    popupAnchor: React.MutableRefObject<React.Component | null>
-    setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
-    showingPopup: boolean
-    toggleShowingPopup: () => void
-  } = {
-    popup: null,
-    popupAnchor: React.useRef<React.Component>(null),
-    setShowingPopup: () => {},
-    showingPopup: true,
-    toggleShowingPopup: Container.useEvent(() => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, ordinal}, selected: 'chatMessagePopup'}],
-        })
-      )
-    }),
-  }
-
-  return Styles.isMobile ? mobilePopup : desktopPopup
+  return Kb.usePopup2(makePopup)
 }

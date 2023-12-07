@@ -1,35 +1,29 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
-import * as SettingsGen from '../actions/settings-gen'
-import type * as Types from '../constants/types/team-building'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 
 const useContactsProps = () => {
-  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
-  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
-  const isImportPromptDismissed = Container.useSelector(
-    state => state.settings.contacts.importPromptDismissed
-  )
-  const numContactsImported = Container.useSelector(state => state.settings.contacts.importedCount || 0)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
+  const isImportPromptDismissed = C.useSettingsContactsState(s => s.importPromptDismissed)
+  const numContactsImported = C.useSettingsContactsState(s => s.importedCount || 0)
 
-  const dispatch = Container.useDispatch()
+  const importContactsLater = C.useSettingsContactsState(s => s.dispatch.importContactsLater)
+  const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
+  const editContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
+  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
 
-  const onAskForContactsLater = React.useCallback(() => {
-    dispatch(SettingsGen.createImportContactsLater())
-  }, [dispatch])
-
-  const onLoadContactsSetting = React.useCallback(() => {
-    dispatch(SettingsGen.createLoadContactImportEnabled())
-  }, [dispatch])
+  const onAskForContactsLater = importContactsLater
+  const onLoadContactsSetting = loadContactImportEnabled
 
   const onImportContactsPermissionsGranted = React.useCallback(() => {
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false}))
-  }, [dispatch])
+    editContactImportEnabled(true, false)
+  }, [editContactImportEnabled])
   const onImportContactsPermissionsNotGranted = React.useCallback(() => {
-    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true}))
-  }, [dispatch])
+    requestPermissions(true, false)
+  }, [requestPermissions])
 
   const onImportContacts =
     contactsPermissionStatus === 'denied'
@@ -50,11 +44,11 @@ const useContactsProps = () => {
 }
 
 export const ContactsBanner = (props: {
-  namespace: Types.AllowedNamespace
-  selectedService: Types.ServiceIdWithContact
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
   onRedoSearch: () => void
 }) => {
-  const {onRedoSearch, namespace, selectedService} = props
+  const {onRedoSearch, selectedService} = props
   const {
     contactsImported,
     contactsPermissionStatus,
@@ -65,11 +59,8 @@ export const ContactsBanner = (props: {
     onLoadContactsSetting,
   } = useContactsProps()
 
-  const dispatch = Container.useDispatch()
-
-  const onRedoRecs = React.useCallback(() => {
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
-  }, [dispatch, namespace])
+  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
+  const onRedoRecs = fetchUserRecs
   const prevNumContactsImported = Container.usePrevious(numContactsImported)
 
   // Redo search if # of imported contacts changes
@@ -151,43 +142,43 @@ export const ContactsImportButton = () => {
         style={styles.importContactsContainer}
       >
         <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
-          <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+          <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
         </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: Styles.platformStyles({
+      banner: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blue,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.blue,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
         isMobile: {zIndex: -1}, // behind ServiceTabBar
       }),
       bannerButtonContainer: {
         alignSelf: 'flex-start',
         flexWrap: 'wrap',
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       bannerIcon: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xsmall,
         maxHeight: 112,
       },
       bannerText: {
         flexWrap: 'wrap',
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       bannerTextContainer: {
         flex: 1,
@@ -195,15 +186,15 @@ const styles = Styles.styleSheetCreate(
       },
       iconContactBookContainer: {
         alignItems: 'center',
-        marginLeft: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
         width: 48,
       },
       importContactsButton: {
-        marginBottom: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
       },
       importContactsContainer: {
         height: 64,
         justifyContent: 'flex-start',
       },
-    } as const)
+    }) as const
 )

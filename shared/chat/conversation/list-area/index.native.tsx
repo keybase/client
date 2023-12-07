@@ -1,27 +1,27 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
 import * as Hooks from './hooks'
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '@/constants/types'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
-import {ConvoIDContext, SeparatorMapContext} from '../messages/ids-context'
-import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+import {SeparatorMapContext} from '../messages/ids-context'
+// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
-import shallowEqual from 'shallowequal'
-import {useChatDebugDump} from '../../../constants/chat2/debug'
+import {useChatDebugDump} from '@/constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
+import {ScrollContext} from '../normal/context'
+import noop from 'lodash/noop'
 
-const List = usingFlashList ? FlashList : FlatList
+// TODO if we bring flashlist back bring back the patch
+const List = /*usingFlashList ? FlashList :*/ FlatList
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -29,47 +29,41 @@ let markedInitiallyLoaded = false
 
 export const DEBUGDump = () => {}
 
-// not highly documented. keeps new content from shifting around the list if you're scrolled up
-const maintainVisibleContentPosition = {
-  autoscrollToTopThreshold: 1,
-  minIndexForVisible: 0,
-}
-
 const useScrolling = (p: {
-  centeredOrdinal: Types.Ordinal
-  messageOrdinals: Array<Types.Ordinal>
-  conversationIDKey: Types.ConversationIDKey
-  listRef: React.MutableRefObject<FlashList<ItemType> | FlatList<ItemType> | null>
-  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
+  centeredOrdinal: T.Chat.Ordinal
+  messageOrdinals: Array<T.Chat.Ordinal>
+  cidChanged: boolean
+  conversationIDKey: T.Chat.ConversationIDKey
+  listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
-  const dispatch = Container.useDispatch()
-  const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
-  const loadOlderMessages = Container.useEvent(() => {
+  const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
+  const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
+  const oldestOrdinal = messageOrdinals.at(-1) ?? -1
+  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+
+  const loadOlderMessages = C.useEvent(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
       return
     }
     lastLoadOrdinal.current = oldestOrdinal
-    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+    loadOlderMessagesDueToScroll()
   })
 
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
-  requestScrollToBottomRef.current = () => {
-    scrollToBottom()
-  }
+  const {scrollRef} = React.useContext(ScrollContext)
+  scrollRef.current = {scrollDown: noop, scrollToBottom, scrollUp: noop}
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
-  React.useEffect(() => {
+  if (cidChanged) {
     lastScrollToCentered.current = -1
-  }, [conversationIDKey])
+  }
 
-  const scrollToCentered = Container.useEvent(() => {
+  const scrollToCentered = C.useEvent(() => {
     setTimeout(() => {
       const list = listRef.current
       if (!list) {
@@ -97,58 +91,54 @@ const useScrolling = (p: {
 
 const emptyMap = new Map()
 
-const ConversationList = React.memo(function ConversationList(p: {
-  conversationIDKey: Types.ConversationIDKey
-  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
-}) {
+const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
       {usingFlashList ? 'FLASH' : 'old'}
     </Kb.Text>
   ) : null
 
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
+
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
+  const [lastED, setLastED] = React.useState(extraData)
 
-  const {conversationIDKey, requestScrollToBottomRef} = p
-  const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
-    const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
-    const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
-    return {_messageOrdinals, centeredOrdinal, messageTypeMap}
-  }, shallowEqual)
+  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
+  const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
+  const _messageOrdinals = C.useChatContext(s => s.messageOrdinals)
 
   const messageOrdinals = React.useMemo(() => {
-    return [..._messageOrdinals].reverse()
+    return [...(_messageOrdinals ?? [])].reverse()
   }, [_messageOrdinals])
 
   // map to help the sep know the previous value
   const separatorMap = React.useMemo(() => {
     if (usingFlashList) return emptyMap
-    const sm = new Map<Types.Ordinal, Types.Ordinal>()
+    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
     let p = 0
-    for (const o of _messageOrdinals) {
+    for (const o of _messageOrdinals ?? []) {
       sm.set(o, p)
       p = o
     }
     return sm
   }, [_messageOrdinals])
 
-  const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
+  const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
     return String(ordinal)
   }, [])
 
   const renderItem = React.useCallback(
-    (info: ListRenderItemInfo<ItemType> | null | undefined) => {
-      const index = info?.index ?? 0
+    (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
+      const index: number = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
         return null
       }
-      const type = messageTypeMap?.get(ordinal) ?? 'text'
-      if (!type) return null
+      const type = messageTypeMap.get(ordinal) ?? 'text'
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
@@ -156,46 +146,45 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, messageTypeMap]
   )
 
-  const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
-  React.useEffect(() => {
+  const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
+  if (cidChanged || lastED !== extraData) {
     recycleTypeRef.current = new Map()
-  }, [conversationIDKey, extraData])
-  const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
+    setLastED(extraData)
+  }
+  const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = Container.useEvent((ordinal: Types.Ordinal, idx: number) => {
+  const getItemType = C.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }
     if (numOrdinals - 1 === idx) {
       return 'sent'
     }
-    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap.get(ordinal) ?? 'text'
   })
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
+    cidChanged,
     conversationIDKey,
     listRef,
     messageOrdinals,
-    requestScrollToBottomRef,
   })
 
-  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   Container.useDepChangeEffect(() => {
     centeredOrdinal && scrollToCentered()
   }, [centeredOrdinal, scrollToCentered])
 
-  React.useEffect(() => {
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
-    }
-  }, [markInitiallyLoadedThreadAsRead])
+  if (!markedInitiallyLoaded) {
+    markedInitiallyLoaded = true
+    markInitiallyLoadedThreadAsRead()
+  }
 
   // We use context to inject a way for items to force the list to rerender when they notice something about their
   // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
@@ -212,29 +201,32 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   useChatDebugDump(
     'listArea',
-    Container.useEvent(() => {
+    C.useEvent(() => {
       if (!listRef.current) return ''
-      const {props, state} = listRef.current
+      const {props, state} = listRef.current as {props: {extraData?: {}; data?: [number]}; state: any}
       const {extraData, data} = props
 
-      // @ts-ignore
-      const layoutManager = state?.layoutProvider?._lastLayoutManager ?? ({} as any)
+      const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as any)) as {
+        _layouts?: [unknown]
+        _renderWindowSize: unknown
+        _totalHeight: unknown
+        _totalWidth: unknown
+      }
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-      // @ts-ignore
-      const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
+      // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
       // const reduxItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
 
       console.log(listRef.current)
 
-      const items = data?.map((ordinal, idx) => {
+      const items = data?.map((ordinal: number, idx: number) => {
         const layout = _layouts?.[idx]
-        const m = mm.get(ordinal) ?? ({} as any)
+        // const m = mm.get(ordinal) ?? ({} as any)
         return {
           idx,
           layout,
           ordinal,
-          rid: m.id,
-          rtype: m.type,
+          // rid: m.id,
+          // rtype: m.type,
         }
       })
 
@@ -253,44 +245,43 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   return (
     <Kb.ErrorBoundary>
-      <ConvoIDContext.Provider value={conversationIDKey}>
-        <SetRecycleTypeContext.Provider value={setRecycleType}>
-          <ForceListRedrawContext.Provider value={forceListRedraw}>
-            <SeparatorMapContext.Provider value={separatorMap}>
-              <Kb.Box style={styles.container}>
-                <List
-                  extraData={extraData}
-                  removeClippedSubviews={Styles.isAndroid}
-                  drawDistance={100}
-                  estimatedItemSize={100}
-                  ListHeaderComponent={SpecialBottomMessage}
-                  ListFooterComponent={SpecialTopMessage}
-                  ItemSeparatorComponent={Separator}
-                  overScrollMode="never"
-                  contentContainerStyle={styles.contentContainer}
-                  data={messageOrdinals}
-                  getItemType={getItemType}
-                  inverted={true}
-                  renderItem={renderItem}
-                  maintainVisibleContentPosition={maintainVisibleContentPosition}
-                  onEndReached={onEndReached}
-                  keyboardDismissMode="on-drag"
-                  keyboardShouldPersistTaps="handled"
-                  keyExtractor={keyExtractor}
-                  ref={listRef}
-                />
-                {jumpToRecent}
-                {debugWhichList}
-              </Kb.Box>
-            </SeparatorMapContext.Provider>
-          </ForceListRedrawContext.Provider>
-        </SetRecycleTypeContext.Provider>
-      </ConvoIDContext.Provider>
+      <SetRecycleTypeContext.Provider value={setRecycleType}>
+        <ForceListRedrawContext.Provider value={forceListRedraw}>
+          <SeparatorMapContext.Provider value={separatorMap}>
+            <Kb.Box style={styles.container}>
+              <List
+                onScrollToIndexFailed={noop}
+                extraData={extraData}
+                removeClippedSubviews={Kb.Styles.isAndroid}
+                // @ts-ignore part of FlashList so lets set it
+                drawDistance={100}
+                estimatedItemSize={100}
+                ListHeaderComponent={SpecialBottomMessage}
+                ListFooterComponent={SpecialTopMessage}
+                ItemSeparatorComponent={Separator}
+                overScrollMode="never"
+                contentContainerStyle={styles.contentContainer}
+                data={messageOrdinals}
+                getItemType={getItemType}
+                inverted={true}
+                renderItem={renderItem}
+                onEndReached={onEndReached}
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+                keyExtractor={keyExtractor}
+                ref={listRef}
+              />
+              {jumpToRecent}
+              {debugWhichList}
+            </Kb.Box>
+          </SeparatorMapContext.Provider>
+        </ForceListRedrawContext.Provider>
+      </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flex: 1, position: 'relative'},
@@ -298,7 +289,7 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: 0,
         paddingTop: mobileTypingContainerHeight,
       },
-    } as const)
+    }) as const
 )
 
 export default ConversationList

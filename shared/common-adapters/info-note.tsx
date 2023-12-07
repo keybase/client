@@ -1,12 +1,12 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 export type Props = {
   containerStyle?: Styles.StylesCrossPlatform
   children?: React.ReactNode
-  color?: string | null
+  color?: string
 }
 
 const InfoNote = (props: Props) => (

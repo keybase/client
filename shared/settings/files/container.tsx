@@ -1,50 +1,64 @@
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
-import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import {isMobile} from '../../constants/platform'
-import type {PickerItem} from '../../common-adapters/floating-picker'
+import type {PickerItem} from '@/common-adapters/floating-picker'
+import {isMobile} from '@/constants/platform'
 
-type OwnProps = {}
-const SettingsFiles = Container.connect(
-  state => ({
-    areSettingsLoading: state.fs.settings.isLoading,
-    driverStatus: state.fs.sfmi.driverStatus,
-    spaceAvailableNotificationThreshold: state.fs.settings.spaceAvailableNotificationThreshold,
-  }),
-  dispatch => ({
-    onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
-    onDisable: () => dispatch(FsGen.createDriverDisable()),
-    onDisableSyncNotifications: () =>
-      dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: 0})),
-    onEnable: () => dispatch(FsGen.createDriverEnable({})),
-    onSetSyncNotificationThreshold: (threshold: number) =>
-      dispatch(
-        FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: threshold})
-      ),
-    onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
-  }),
-
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...o,
-    ...d,
+const SettingsFiles = () => {
+  const areSettingsLoading = C.useFSState(s => s.settings.isLoading)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const setSpaceAvailableNotificationThreshold = C.useFSState(
+    s => s.dispatch.setSpaceAvailableNotificationThreshold
+  )
+  const spaceAvailableNotificationThreshold = C.useFSState(
+    s => s.settings.spaceAvailableNotificationThreshold
+  )
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = isMobile
+    ? () => {
+        navigateUp()
+      }
+    : undefined
+  const onDisable = driverDisable
+  const onDisableSyncNotifications = () => {
+    setSpaceAvailableNotificationThreshold(0)
+  }
+  const onEnable = () => {
+    driverEnable()
+  }
+  const onSetSyncNotificationThreshold = setSpaceAvailableNotificationThreshold
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onShowKextPermissionPopup = () => {
+    navigateAppend('kextPermission')
+  }
+  const props = {
     allowedThresholds: allowedNotificationThresholds.map(
       i =>
         ({
           label: Constants.humanizeBytes(i, 0),
           value: i,
-        } as PickerItem<number>)
+        }) as PickerItem<number>
     ),
+    areSettingsLoading,
+    driverStatus,
     humanizedNotificationThreshold: Constants.humanizeBytes(
-      s.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
+      spaceAvailableNotificationThreshold || defaultNotificationThreshold,
       0
     ),
+    onBack,
     onChangedSyncNotifications: (selectedIdx: number) =>
-      d.onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx]),
-    onEnableSyncNotifications: () => d.onSetSyncNotificationThreshold(defaultNotificationThreshold),
-  })
-)(Files)
+      onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0),
+    onDisable,
+    onDisableSyncNotifications,
+    onEnable,
+    onEnableSyncNotifications: () => onSetSyncNotificationThreshold(defaultNotificationThreshold),
+    onSetSyncNotificationThreshold,
+    onShowKextPermissionPopup,
+    spaceAvailableNotificationThreshold,
+  }
+  return <Files {...props} />
+}
 
 export default SettingsFiles

@@ -1,31 +1,28 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as FsGen from '../../../../actions/fs-gen'
-import * as Container from '../../../../util/container'
-import * as Styles from '../../../../styles'
-import * as Constants from '../../../../constants/chat2'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
-import AudioPlayer from '../../../audio/audio-player'
+import * as Kb from '@/common-adapters'
+import {OrdinalContext} from '../ids-context'
+import AudioPlayer from '@/chat/audio/audio-player'
 
-const missingMessage = Constants.makeMessageAttachment()
+const missingMessage = C.Chat.makeMessageAttachment()
 const AudioAttachment = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const dispatch = Container.useDispatch()
   // TODO not message
-  const message = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
-  const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(message.transferState)
-  const hasProgress = Constants.messageAttachmentHasProgress(message)
+  const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
+  const hasProgress = C.Chat.messageAttachmentHasProgress(message)
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = () => {
-    message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
-  const showInFinder = !!message.downloadPath && !Styles.isMobile
+  const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny">
@@ -49,7 +46,7 @@ const AudioAttachment = () => {
         )}
         {showInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
-            Show in {Styles.fileUIName}
+            Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -57,14 +54,14 @@ const AudioAttachment = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  error: {color: Styles.globalColors.redDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  error: {color: Kb.Styles.globalColors.redDark},
   linkStyle: {
-    color: Styles.globalColors.black_50,
+    color: Kb.Styles.globalColors.black_50,
   },
   progressLabelStyle: {
-    color: Styles.globalColors.black_50,
-    marginRight: Styles.globalMargins.tiny,
+    color: Kb.Styles.globalColors.black_50,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

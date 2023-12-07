@@ -1,11 +1,8 @@
-import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Constants from '../../constants/tracker2'
-import type * as Types from '../../constants/types/tracker2'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import type * as T from '@/constants/types'
 import Assertion from '.'
-import openUrl from '../../util/open-url'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import openUrl from '@/util/open-url'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -33,24 +30,22 @@ const notAUserAssertion = {
   timestamp: 0,
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    let a = Constants.noAssertion
-    let notAUser = false
-    let stellarHidden = false
-    const isYours = ownProps.username === state.config.username
+const Container = (ownProps: OwnProps) => {
+  let a = Constants.noAssertion
+  let notAUser = false as boolean
+  let stellarHidden = false
+  const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
+  a = C.useTrackerState(s => {
     if (ownProps.isSuggestion) {
-      a =
-        state.tracker2.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) ||
-        Constants.noAssertion
+      a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
     } else {
-      const d = Constants.getDetails(state, ownProps.username)
+      const d = Constants.getDetails(s, ownProps.username)
       if (isYours && d.stellarHidden) {
         stellarHidden = true
       }
       notAUser = d.state === 'notAUserYet'
       if (notAUser) {
-        const nonUserDetails = Constants.getNonUserDetails(state, ownProps.username)
+        const nonUserDetails = Constants.getNonUserDetails(s, ownProps.username)
         a = {
           ...notAUserAssertion,
           siteIcon: nonUserDetails.siteIcon,
@@ -65,79 +60,72 @@ export default Container.connect(
         a = d.assertions.get(ownProps.assertionKey) || Constants.noAssertion
       }
     }
-    return {
-      _metas: a.metas,
-      _sigID: a.sigID,
-      color: a.color,
-      isYours,
-      notAUser,
-      proofURL: a.proofURL,
-      siteIcon: a.siteIcon,
-      siteIconDarkmode: a.siteIconDarkmode,
-      siteIconFull: a.siteIconFull,
-      siteIconFullDarkmode: a.siteIconFullDarkmode,
-      siteURL: a.siteURL,
-      state: a.state,
-      stellarHidden,
-      timestamp: a.timestamp,
-      type: a.type,
-      value: a.value,
-    }
-  },
-  dispatch => ({
-    _onCreateProof: (type: string) =>
-      dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
-    _onHideStellar: (hidden: boolean) => dispatch(ProfileGen.createHideStellar({hidden})),
-    _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
-    _onRevokeProof: (type: PlatformsExpandedType, value: string, id: string, icon: Types.SiteIconSet) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {icon, platform: type, platformHandle: value, proofId: id},
-              selected: 'profileRevoke',
-            },
-          ],
-        })
-      ),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    return {
-      color: stateProps.color,
-      isSuggestion: !!ownProps.isSuggestion,
-      isYours: stateProps.isYours,
-      metas: stateProps._metas.map(({color, label}) => ({color, label})),
-      notAUser: stateProps.notAUser,
-      onCreateProof: stateProps.notAUser
-        ? undefined
-        : ownProps.isSuggestion
-        ? () => dispatchProps._onCreateProof(stateProps.type)
-        : undefined,
-      onHideStellar: (hidden: boolean) => dispatchProps._onHideStellar(hidden),
-      onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
-      onRevoke: () => {
-        if (stateProps.siteIconFull)
-          dispatchProps._onRevokeProof(
-            stateProps.type as PlatformsExpandedType,
-            stateProps.value,
-            stateProps._sigID,
-            stateProps.siteIconFull
-          )
-      },
-      onShowProof:
-        stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
-      onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
-      proofURL: stateProps.proofURL,
-      siteIcon: stateProps.siteIcon,
-      siteIconDarkmode: stateProps.siteIconDarkmode,
-      siteIconFull: stateProps.siteIconFull,
-      siteIconFullDarkmode: stateProps.siteIconFullDarkmode,
-      siteURL: stateProps.siteURL,
-      state: stateProps.state,
-      stellarHidden: stateProps.stellarHidden,
-      timestamp: stateProps.timestamp,
-      type: stateProps.type,
-      value: stateProps.value,
-    }
+    return a
+  })
+  const _metas = a.metas
+  const _sigID = a.sigID
+  const color = a.color
+  const proofURL = a.proofURL
+  const siteIcon = a.siteIcon
+  const siteIconDarkmode = a.siteIconDarkmode
+  const siteIconFull = a.siteIconFull
+  const siteIconFullDarkmode = a.siteIconFullDarkmode
+  const siteURL = a.siteURL
+  const state = a.state
+  const timestamp = a.timestamp
+  const type = a.type
+  const value = a.value
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const hideStellar = C.useProfileState(s => s.dispatch.hideStellar)
+  const recheckProof = C.useProfileState(s => s.dispatch.recheckProof)
+  const _onCreateProof = (type: string) => {
+    addProof(type, 'profile')
   }
-)(Assertion)
+  const _onHideStellar = (hidden: boolean) => {
+    hideStellar(hidden)
+  }
+  const _onRecheck = (sigID: string) => {
+    recheckProof(sigID)
+  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onRevokeProof = (
+    type: T.More.PlatformsExpandedType,
+    value: string,
+    id: string,
+    icon: T.Tracker.SiteIconSet
+  ) => {
+    navigateAppend({
+      props: {icon, platform: type, platformHandle: value, proofId: id},
+      selected: 'profileRevoke',
+    })
+  }
+  const props = {
+    color: color,
+    isSuggestion: !!ownProps.isSuggestion,
+    isYours: isYours,
+    metas: _metas.map(({color, label}) => ({color, label})),
+    notAUser: notAUser,
+    onCreateProof: notAUser ? undefined : ownProps.isSuggestion ? () => _onCreateProof(type) : undefined,
+    onHideStellar: (hidden: boolean) => _onHideStellar(hidden),
+    onRecheck: () => _onRecheck(_sigID),
+    onRevoke: () => {
+      _onRevokeProof(type as T.More.PlatformsExpandedType, value, _sigID, siteIconFull)
+    },
+    onShowProof: notAUser || !proofURL ? undefined : () => openUrl(proofURL),
+    onShowSite: notAUser || !siteURL ? undefined : () => openUrl(siteURL),
+    proofURL: proofURL,
+    siteIcon: siteIcon,
+    siteIconDarkmode: siteIconDarkmode,
+    siteIconFull: siteIconFull,
+    siteIconFullDarkmode: siteIconFullDarkmode,
+    siteURL: siteURL,
+    state: state,
+    stellarHidden: stellarHidden,
+    timestamp: timestamp,
+    type: type,
+    value: value,
+  }
+  return <Assertion {...props} />
+}
+
+export default Container

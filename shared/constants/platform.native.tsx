@@ -1,5 +1,4 @@
 import {Dimensions, Platform} from 'react-native'
-import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import Constants from 'expo-constants'
 import {
   androidIsDeviceSecure,
@@ -9,6 +8,8 @@ import {
 } from 'react-native-kb'
 
 export {version, androidIsTestDevice, uses24HourClock, fsCacheDir} from 'react-native-kb'
+
+export const isNewArch = !!global.__turboModuleProxy
 
 export const setSecureFlagSetting = androidSetSecureFlagSetting
 export const getSecureFlagSetting = androidGetSecureFlagSetting
@@ -21,7 +22,6 @@ export const pathSep = '/'
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
 export const isMobile = true
-export const isIPhoneX = iPhoneXHelper.isIphoneX()
 export const isTablet = Platform.OS === 'ios' && Platform.isPad
 export const isPhone = !isTablet
 

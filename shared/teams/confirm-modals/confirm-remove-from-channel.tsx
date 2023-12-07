@@ -1,51 +1,42 @@
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as Styles from '../../styles'
-import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 
-type Props = Container.RouteProps<'teamReallyRemoveChannelMember'>
+type Props = {
+  members: string[]
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
+}
 
 const ConfirmRemoveFromChannel = (props: Props) => {
-  const members = props.route.params?.members ?? []
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const members = props.members
+  const teamID = props.teamID
+  const conversationIDKey = props.conversationIDKey
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = Container.useSelector(state =>
-    Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
-  )
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
+  const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
     setWaiting(true)
     setTimeout(() => setWaiting(false), 1000)
     removeFromChannel(
-      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: members}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
-        dispatch(
-          TeamsGen.createChannelSetMemberSelected({
-            clearAll: true,
-            conversationIDKey,
-            selected: false,
-            username: '',
-          })
-        )
-        dispatch(nav.safeNavigateUpPayload())
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        channelSetMemberSelected(conversationIDKey, '', false, true)
+        nav.safeNavigateUp()
+        loadTeamChannelList(teamID)
       },
       err => {
         setWaiting(false)
@@ -54,7 +45,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     )
   }
 
-  const prompt = `Remove ${Constants.stringifyPeople(members)} from #${channelname}?`
+  const prompt = `Remove ${C.Teams.stringifyPeople(members)} from #${channelname}?`
   const header = (
     <Kb.Box style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
@@ -80,14 +71,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 }
 export default ConfirmRemoveFromChannel
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerIcon: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerIcon: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.red,
-      borderColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.red,
+      borderColor: Kb.Styles.globalColors.white,
       borderStyle: 'solid',
       borderWidth: 3,
-      color: Styles.globalColors.white,
+      color: Kb.Styles.globalColors.white,
       padding: 3,
     },
     isElectron: {

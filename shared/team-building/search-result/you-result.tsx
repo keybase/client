@@ -1,18 +1,16 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamBuildingGen from '../../actions/team-building-gen'
+import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = React.memo(function YouResult(props: ResultProps) {
-  const dispatch = Container.useDispatch()
+  const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
-    dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: 'chat2'}))
+    cancelTeamBuilding()
     // wait till modal is gone else we can thrash
     setTimeout(() => {
-      dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
+      previewConversation({participants: [props.username], reason: 'search'})
     }, 500)
   }
 
@@ -31,32 +29,33 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
       bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
       onAddOverride.onAdd = onSelfChat
       break
+    default:
   }
 
   return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  actionButton: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
+      height: Kb.Styles.globalMargins.small,
+      width: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.tiny,
-      width: Styles.globalMargins.large,
+      height: Kb.Styles.globalMargins.large,
+      marginRight: Kb.Styles.globalMargins.tiny,
+      width: Kb.Styles.globalMargins.large,
     },
   }),
   rowContainer: {
-    ...Styles.padding(
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.xsmall
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.medium,
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.xsmall
     ),
   },
 }))

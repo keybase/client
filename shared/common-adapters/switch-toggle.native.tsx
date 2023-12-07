@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './switch-toggle'
 
 class SwitchToggle extends React.PureComponent<Props> {
   _offset = new NativeAnimated.Value(this._getOffset())
-  _animation: any = null
+  _animation: NativeAnimated.CompositeAnimation | undefined
 
   _getOffset() {
     return this.props.on ? enabledOffset : disabledOffset

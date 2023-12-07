@@ -1,11 +1,8 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Platform from '../../constants/platform'
-import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
+import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../common'
-import type {ButtonType} from '../../common-adapters/button'
+import type {ButtonType} from '@/common-adapters/button'
 
 export type Props = {
   error: string
@@ -18,10 +15,10 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   // trigger a default phone number country rpc if it's not already loaded
   const {defaultCountry} = props
-  const dispatch = Container.useDispatch()
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
@@ -51,12 +48,12 @@ const EnterPhoneNumber = (props: Props) => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
-        autoFocus={!Styles.isMobile}
+        autoFocus={!Kb.Styles.isMobile}
         defaultCountry={props.defaultCountry}
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
-        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
+        iconType={C.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
       />
     </SignupScreen>
   )
@@ -77,7 +74,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      gap={Styles.isMobile ? 'small' : 'medium'}
+      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
       fullWidth={true}
       style={styles.container}
     >
@@ -94,7 +91,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
             checked={props.searchable}
-            onCheck={props.onChangeSearchable || null}
+            onCheck={props.onChangeSearchable}
             style={styles.checkbox}
           />
         ) : (
@@ -105,13 +102,13 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  container: Styles.platformStyles({
-    common: Styles.globalStyles.flexOne,
+  container: Kb.Styles.platformStyles({
+    common: Kb.Styles.globalStyles.flexOne,
     isTablet: {maxWidth: 386},
   }),
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {
       height: 38,
       width: 368,
@@ -121,7 +118,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  inputBox: Styles.platformStyles({
+  inputBox: Kb.Styles.platformStyles({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,

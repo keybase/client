@@ -1,100 +1,82 @@
-import * as Constants from '../../../../constants/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Tracker2Gen from '../../../../actions/tracker2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as UsersGen from '../../../../actions/users-gen'
-import type * as Types from '../../../../constants/types/teams'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import {TeamMemberRow} from '.'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {connect, isMobile} from '../../../../util/container'
-import {anyWaiting} from '../../../../constants/waiting'
 
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
   firstItem: boolean
 }
 
-const blankInfo = Constants.initialMemberInfo
+const blankInfo = C.Teams.initialMemberInfo
 
-export default connect(
-  (state, {teamID, username}: OwnProps) => {
-    const {members} = Constants.getTeamDetails(state, teamID)
-    const {teamname} = Constants.getTeamMeta(state, teamID)
-    const info = members.get(username) || blankInfo
+const Container = (ownProps: OwnProps) => {
+  const {teamID, firstItem, username} = ownProps
+  const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const info = members.get(username) || blankInfo
 
-    return {
-      following: state.config.following.has(username),
-      fullName: state.config.username === username ? 'You' : info.fullName,
-      needsPUK: info.needsPUK,
-      roleType: info.type,
-      status: info.status,
-      teamID,
-      teamname,
-      username: info.username,
-      waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
-      waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamID, username)),
-      you: state.config.username,
-      youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
+  const you = C.useCurrentUserState(s => s.username)
+  const fullName = you === username ? 'You' : info.fullName
+  const needsPUK = info.needsPUK
+  const roleType = info.type
+  const status = info.status
+  const waitingForAdd = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = C.useAnyWaiting(C.Teams.removeMemberWaitingKey(teamID, username))
+  const youCanManageMembers = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).manageMembers)
+  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
+  const onBlock = () => {
+    username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
+  }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => {
+    username && previewConversation({participants: [username], reason: 'teamMember'})
+  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onClick = () => {
+    navigateAppend({props: {teamID, username}, selected: 'teamMember'})
+  }
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onOpenProfile = () => {
+    username && showUserProfile(username)
+  }
+  const reAddToTeam = C.useTeamsState(s => s.dispatch.reAddToTeam)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const onReAddToTeam = () => {
+    reAddToTeam(teamID, username)
+  }
+  const onRemoveFromTeam = () => {
+    removeMember(teamID, username)
+  }
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const onShowTracker = () => {
+    if (C.isMobile) {
+      showUserProfile(username)
+    } else {
+      showUser(username, true)
     }
-  },
-  (dispatch, {teamID, username}: OwnProps) => ({
-    onBlock: () =>
-      username &&
-      dispatch(
-        UsersGen.createSetUserBlocks({
-          blocks: [
-            {
-              setChatBlock: true,
-              setFollowBlock: true,
-              username,
-            },
-          ],
-        })
-      ),
-    onChat: () =>
-      username &&
-      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'})),
-    onClick: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
-      ),
-    onOpenProfile: () => username && dispatch(ProfileGen.createShowUserProfile({username})),
-    onReAddToTeam: () =>
-      dispatch(
-        TeamsGen.createReAddToTeam({
-          teamID,
-          username,
-        })
-      ),
-    onRemoveFromTeam: () => dispatch(TeamsGen.createRemoveMember({teamID, username})),
-    onShowTracker: () =>
-      dispatch(
-        isMobile
-          ? ProfileGen.createShowUserProfile({username})
-          : Tracker2Gen.createShowUser({asTracker: true, username})
-      ),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    firstItem: ownProps.firstItem,
-    following: stateProps.following,
-    fullName: stateProps.fullName,
-    needsPUK: stateProps.needsPUK,
-    onBlock: dispatchProps.onBlock,
-    onChat: dispatchProps.onChat,
-    onClick: dispatchProps.onClick,
-    onOpenProfile: dispatchProps.onOpenProfile,
-    onReAddToTeam: dispatchProps.onReAddToTeam,
-    onRemoveFromTeam: dispatchProps.onRemoveFromTeam,
-    onShowTracker: dispatchProps.onShowTracker,
-    roleType: stateProps.roleType,
-    status: stateProps.status,
-    teamID: stateProps.teamID,
-    username: stateProps.username,
-    waitingForAdd: stateProps.waitingForAdd,
-    waitingForRemove: stateProps.waitingForRemove,
-    you: stateProps.you,
-    youCanManageMembers: stateProps.youCanManageMembers,
-  })
-)(TeamMemberRow)
+  }
+  const props = {
+    firstItem,
+    fullName: fullName,
+    needsPUK: needsPUK,
+    onBlock: onBlock,
+    onChat: onChat,
+    onClick: onClick,
+    onOpenProfile: onOpenProfile,
+    onReAddToTeam: onReAddToTeam,
+    onRemoveFromTeam: onRemoveFromTeam,
+    onShowTracker: onShowTracker,
+    roleType: roleType,
+    status: status,
+    teamID: teamID,
+    username: username,
+    waitingForAdd: waitingForAdd,
+    waitingForRemove: waitingForRemove,
+    you: you,
+    youCanManageMembers: youCanManageMembers,
+  }
+  return <TeamMemberRow {...props} />
+}
+
+export default Container

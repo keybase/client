@@ -1,5 +1,4 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 type YouAddedProps = {
@@ -66,11 +65,11 @@ const OthersAdded = (props: OthersAddedProps) => (
   </UserNotice>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},
-    } as const)
+    }) as const
 )
 
 export {OthersAdded, YouAdded, getAddedUsernames}

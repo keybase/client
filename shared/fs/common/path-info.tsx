@@ -1,20 +1,19 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type PathInfoProps = {
-  containerStyle?: Styles.StylesCrossPlatform
-  knownPathInfo?: Types.PathInfo
-  path: Types.Path
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  knownPathInfo?: T.FS.PathInfo
+  path: T.FS.Path
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = Container.useSelector(state => state.fs.sfmi)
+  const sfmi = C.useFSState(s => s.sfmi)
   const mount =
-    sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+    sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir
       : ''
   return mount && platformAfterMountPath && `${mount}${platformAfterMountPath}`
@@ -30,11 +29,7 @@ const PathInfo_ = (props: PathInfoProps) => {
       {pathInfo.deeplinkPath ? (
         <>
           <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
-          <Kb.CopyText
-            containerStyle={styles.copyPath}
-            multiline={Styles.isMobile ? 3 : 4}
-            text={pathInfo.deeplinkPath}
-          />
+          <Kb.CopyText containerStyle={styles.copyPath} multiline={1} text={pathInfo.deeplinkPath} />
         </>
       ) : null}
       {mountPointPath ? (
@@ -42,11 +37,7 @@ const PathInfo_ = (props: PathInfoProps) => {
           <Kb.Text type="BodySmallSemibold" style={styles.localPath}>
             Local path:
           </Kb.Text>
-          <Kb.CopyText
-            containerStyle={styles.copyPath}
-            multiline={Styles.isMobile ? 3 : 4}
-            text={mountPointPath}
-          />
+          <Kb.CopyText containerStyle={styles.copyPath} multiline={1} text={mountPointPath} />
         </>
       ) : null}
     </Kb.Box2>
@@ -55,14 +46,14 @@ const PathInfo_ = (props: PathInfoProps) => {
 
 export default PathInfo_
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       copyPath: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       localPath: {
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )

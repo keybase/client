@@ -1,14 +1,13 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
+import * as Kb from '@/common-adapters/index'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type * as T from '@/constants/types'
 import type {Props, IconProps} from './service-tab-bar'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
-  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Kb.Styles.globalColors.black
   return (
     <Kb.ClickableBox
       onClick={() => props.onClick(props.service)}
@@ -42,13 +41,7 @@ const ServiceIcon = (props: IconProps) => {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (
-              <Kb.Text
-                key={i}
-                center={true}
-                type="BodyTiny"
-                // @ts-ignore: we need to allow any color here for various services
-                style={{color}}
-              >
+              <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
                 {label}
               </Kb.Text>
             ))}
@@ -58,7 +51,7 @@ const ServiceIcon = (props: IconProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           props.isActive
             ? styles.activeTabBar
             : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
@@ -70,27 +63,36 @@ const ServiceIcon = (props: IconProps) => {
 }
 
 const MoreNetworksButton = (props: {
-  services: Array<ServiceIdWithContact>
-  onChangeService: (service: ServiceIdWithContact) => void
+  services: Array<T.TB.ServiceIdWithContact>
+  onChangeService: (service: T.TB.ServiceIdWithContact) => void
 }) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={props.services.map(service => ({
-        onClick: () => props.onChangeService(service),
-        title: service,
-        view: <MoreNetworkItem service={service} />,
-      }))}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const {services, onChangeService} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={services.map(service => ({
+            onClick: () => onChangeService(service),
+            title: service,
+            view: <MoreNetworkItem service={service} />,
+          }))}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [services, onChangeService]
+  )
+
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
-        <Kb.Box2
+        <Kb.Box2Measure
           direction="vertical"
           style={styles.moreNetworks1}
           fullHeight={true}
@@ -104,7 +106,7 @@ const MoreNetworksButton = (props: {
               </Kb.Text>
             </Kb.ClickableBox>
           </Kb.WithTooltip>
-        </Kb.Box2>
+        </Kb.Box2Measure>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
       {popup}
@@ -112,7 +114,7 @@ const MoreNetworksButton = (props: {
   )
 }
 
-const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
+const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
     <Kb.Icon
       style={styles.moreNetworkItemIcon}
@@ -124,11 +126,12 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
 )
 
 export const ServiceTabBar = (props: Props) => {
-  const [lastSelectedUnlockedService, setLastSelectedUnlockedService] =
-    React.useState<ServiceIdWithContact | null>(null)
+  const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<
+    T.TB.ServiceIdWithContact | undefined
+  >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
-    (service: ServiceIdWithContact) => {
+    (service: T.TB.ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
@@ -140,7 +143,7 @@ export const ServiceTabBar = (props: Props) => {
   let frontServices = lockedServices
   if (services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
-    if (lastSelectedUnlockedService === null) {
+    if (lastSelectedUnlockedService === undefined) {
       frontServices = services.slice(0, nLocked + 1)
     } else {
       frontServices = lockedServices.concat([lastSelectedUnlockedService])
@@ -168,11 +171,11 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activeTabBar: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
         height: 2,
       },
       badgeContainerStyle: {
@@ -180,19 +183,19 @@ const styles = Styles.styleSheetCreate(
         right: -4,
         top: 10,
       },
-      badgeStyle: {backgroundColor: Styles.globalColors.blue},
+      badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
       inactiveTabBar: {height: 2},
       label: {
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
         minWidth: 64,
       },
-      moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
+      moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
       moreNetworks0: {flex: 1},
       moreNetworks1: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       moreNetworks2: {
         alignItems: 'center',
@@ -206,7 +209,7 @@ const styles = Styles.styleSheetCreate(
       },
       moreNetworks3: {
         alignItems: 'center',
-        borderColor: Styles.globalColors.black_20,
+        borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
@@ -218,14 +221,14 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      moreText: {color: Styles.globalColors.black_50},
+      moreText: {color: Kb.Styles.globalColors.black_50},
       pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
         flex: 1,
         height: 70,
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         maxWidth: 72,
         minWidth: 40,
       },
@@ -235,13 +238,13 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 90,
       },
       tabBarContainer: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
         flexShrink: 0,
         minHeight: 30,
       },
-    } as const)
+    }) as const
 )
 
 export default ServiceTabBar

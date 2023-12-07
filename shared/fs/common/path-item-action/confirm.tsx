@@ -1,14 +1,13 @@
-import type * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import type {FloatingMenuProps} from './types'
 
 export type Props = {
   confirm: (() => void) | 'disabled'
   floatingMenuProps: FloatingMenuProps
   action: 'save-media' | 'send-to-other-app'
-  path: Types.Path
+  path: T.FS.Path
   size: number
 }
 
@@ -25,8 +24,8 @@ const ConfirmHeader = (props: Props) => (
     </Kb.Text>
     <Kb.Text type="Body" style={styles.confirmText}>
       {props.action === 'save-media'
-        ? `You are about to download a ${Constants.humanReadableFileSize(props.size)} file.`
-        : `The file will be downloaded and its size is ${Constants.humanReadableFileSize(props.size)}.`}
+        ? `You are about to download a ${C.humanReadableFileSize(props.size)} file.`
+        : `The file will be downloaded and its size is ${C.humanReadableFileSize(props.size)}.`}
     </Kb.Text>
   </Kb.Box2>
 )
@@ -41,40 +40,36 @@ const PathItemActionConfirm = (props: Props) => (
     onHidden={props.floatingMenuProps.hide}
     position="bottom right"
     header={<ConfirmHeader {...props} />}
-    items={
-      props.confirm
-        ? [
-            {
-              disabled: props.confirm === 'disabled',
-              icon: 'iconfont-check',
-              onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
-              title: 'Yes, continue',
-            },
-          ]
-        : []
-    }
+    items={[
+      {
+        disabled: props.confirm === 'disabled',
+        icon: 'iconfont-check',
+        onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
+        title: 'Yes, continue',
+      },
+    ]}
   />
 )
 export default PathItemActionConfirm
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       confirmText: {
         textAlign: 'center',
       },
       confirmTextBox: {
-        padding: Styles.globalMargins.medium,
+        padding: Kb.Styles.globalMargins.medium,
       },
       menuRowText: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
       },
       menuRowTextDisabled: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
         opacity: 0.6,
       },
       progressIndicator: {
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )

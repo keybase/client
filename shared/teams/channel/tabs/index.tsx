@@ -1,23 +1,21 @@
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import type {Tab as TabType} from '../../../common-adapters/tabs'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {Tab as TabType} from '@/common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
 export type Props = {
   admin: boolean
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
   selectedTab: TabKey
   setSelectedTab: (t: TabKey) => void
 }
 
 const ChannelTabs = (props: Props) => {
   const {selectedTab, setSelectedTab} = props
-  const error = Container.useSelector(state => state.teams.errorInAddToTeam)
+  const error = C.useTeamsState(s => s.errorInAddToTeam)
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},
@@ -42,22 +40,22 @@ const ChannelTabs = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   clickableBox: {
     flexGrow: 1,
   },
   container: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     width: '100%',
   },
-  tab: Styles.platformStyles({
+  tab: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
     },
   }),
   tabContainer: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: '100%',
     marginTop: 0,
   },

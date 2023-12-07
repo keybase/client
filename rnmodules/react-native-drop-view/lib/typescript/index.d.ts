@@ -1,13 +1,7 @@
+import { type Props } from './DropViewViewNativeComponent';
+import { View } from 'react-native';
 import * as React from 'react';
-import { View, ViewStyle } from 'react-native';
-export declare type DropItems = Array<{
-    originalPath?: string;
-    content?: string;
-}>;
-export declare type Props = {
-    children?: React.ReactNode;
-    onDropped: (items: DropItems) => void;
-    style?: ViewStyle;
-};
-declare const _default: ((p: Props) => JSX.Element) | typeof View;
+declare const _default: ((p: Props) => React.JSX.Element) | typeof View;
 export default _default;
+export type { DropItems } from './DropViewViewNativeComponent';
+//# sourceMappingURL=index.d.ts.map

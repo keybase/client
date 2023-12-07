@@ -1,14 +1,12 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Container from '../../util/container'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {memoize} from '../../util/memoize'
-import {pluralize} from '../../util/string'
+import {memoize} from '@/util/memoize'
+import {pluralize} from '@/util/string'
 
 type DeletedTeam = {
   teamName: string
@@ -18,15 +16,15 @@ type DeletedTeam = {
 export type OwnProps = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: Set<Types.TeamID>
+  newTeams: Set<T.Teams.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (teamID: Types.TeamID) => void
-  onOpenFolder: (teamID: Types.TeamID) => void
+  onManageChat: (teamID: T.Teams.TeamID) => void
+  onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
-  onViewTeam: (teamID: Types.TeamID) => void
-  teamresetusers: Map<Types.TeamID, Set<string>>
-  newTeamRequests: Map<Types.TeamID, Set<string>>
-  teams: Array<Types.TeamMeta>
+  onViewTeam: (teamID: T.Teams.TeamID) => void
+  teamresetusers: Map<T.Teams.TeamID, Set<string>>
+  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
+  teams: Array<T.Teams.TeamMeta>
 }
 
 type HeaderProps = {
@@ -75,19 +73,19 @@ export const TeamRow = React.memo<RowProps>(function TeamRow(props: RowProps) {
               {props.name}
             </Kb.Text>
             {props.isOpen && (
-              <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
+              <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
             )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-            {props.isNew && <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} />}
+            {props.isNew && <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} />}
             <Kb.Text type="BodySmall">{getMembersText(props.membercount)}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       }
       action={
-        Styles.isMobile ? null : (
+        Kb.Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
-            {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
+            <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />
             {props.onManageChat ? (
               <ChatIcon />
             ) : (
@@ -127,7 +125,7 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
         <Kb.Icon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
-    {props.empty && !Styles.isMobile && (
+    {props.empty && !Kb.Styles.isMobile && (
       <Kb.Text type="BodySmall" style={styles.emptyNote}>
         Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
         large communities.
@@ -142,32 +140,39 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const dispatch = Container.useDispatch()
-  const onChangeSort = (sortOrder: Types.TeamListSort) =>
-    dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
-  const {popup, toggleShowingPopup, popupAnchor, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      items={[
-        {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-        {
-          icon: 'iconfont-campfire',
-          onClick: () => onChangeSort('activity'),
-          title: sortOrderToTitle.activity,
-        },
-        {
-          icon: 'iconfont-sort-alpha',
-          onClick: () => onChangeSort('alphabetical'),
-          title: sortOrderToTitle.alphabetical,
-        },
-      ]}
-      closeOnSelect={true}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom left"
-    />
-  ))
-  const sortOrder = Container.useSelector(s => s.teams.teamListSort)
+  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onChangeSort = (sortOrder: T.Teams.TeamListSort) => setTeamListFilterSort(sortOrder)
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          items={[
+            {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+            {
+              icon: 'iconfont-campfire',
+              onClick: () => onChangeSort('activity'),
+              title: sortOrderToTitle.activity,
+            },
+            {
+              icon: 'iconfont-sort-alpha',
+              onClick: () => onChangeSort('alphabetical'),
+              title: sortOrderToTitle.alphabetical,
+            },
+          ]}
+          closeOnSelect={true}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom left"
+        />
+      )
+    },
+    [setTeamListFilterSort]
+  )
+
+  const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
+  const sortOrder = C.useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
@@ -186,7 +191,7 @@ const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${plura
 type Row = {key: React.Key} & (
   | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
   | {team: DeletedTeam; type: 'deletedTeam'}
-  | {team: Types.TeamMeta; type: 'team'}
+  | {team: T.Teams.TeamMeta; type: 'team'}
 )
 
 class Teams extends React.PureComponent<Props> {
@@ -233,7 +238,7 @@ class Teams extends React.PureComponent<Props> {
       }
       case 'team': {
         const team = item.team
-        return <TeamRowNew firstItem={index === 2} showChat={!Styles.isMobile} teamID={team.id} />
+        return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
       }
     }
   }
@@ -244,14 +249,14 @@ class Teams extends React.PureComponent<Props> {
         <Kb.List
           items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this.renderItem}
-          style={Styles.globalStyles.fullHeight}
+          style={Kb.Styles.globalStyles.fullHeight}
         />
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatarContainer: {position: 'relative'},
@@ -260,43 +265,43 @@ const styles = Styles.styleSheetCreate(
         right: -5,
         top: -5,
       },
-      bigButton: Styles.platformStyles({
+      bigButton: Kb.Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.black_10,
+          borderColor: Kb.Styles.globalColors.black_10,
           borderRadius: 8,
           borderStyle: 'solid',
           borderWidth: 1,
         },
-        isElectron: {padding: Styles.globalMargins.small},
+        isElectron: {padding: Kb.Styles.globalMargins.small},
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small, 0),
-          backgroundColor: Styles.globalColors.white,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small, 0),
+          backgroundColor: Kb.Styles.globalColors.white,
           width: 140,
         },
       }),
-      container: {backgroundColor: Styles.globalColors.blueGrey},
-      emptyNote: Styles.padding(60, 42, Styles.globalMargins.medium, Styles.globalMargins.medium),
+      container: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      emptyNote: Kb.Styles.padding(60, 42, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium),
       kerning: {letterSpacing: 0.2},
       maxWidth: {maxWidth: '100%'},
       openMeta: {alignSelf: 'center'},
       relative: {position: 'relative'},
-      sortHeader: Styles.platformStyles({
-        common: {backgroundColor: Styles.globalColors.blueGrey},
-        isElectron: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
-        isMobile: {...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.tiny)},
+      sortHeader: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+        isElectron: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
+        isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.tiny)},
       }),
       teamButtons: {
-        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
       teamPlus: {
         bottom: -2,
-        color: Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.blue,
         position: 'absolute',
         right: -1,
       },
-    } as const)
+    }) as const
 )
 
 export default Teams

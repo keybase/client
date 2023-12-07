@@ -1,72 +1,75 @@
-import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../../../constants/types/chat2'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
-import * as Teams from '../../../../constants/teams'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as React from 'react'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
-import type * as TeamTypes from '../../../../constants/types/teams'
-import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
-import useRPC from '../../../../util/use-rpc'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '@/util/emoji'
 import EmojiMenu from './emoji-menu'
+import {useEmojiState} from '@/teams/emojis/use-emoji'
 
 type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  emoji: RPCChatTypes.Emoji
+  conversationIDKey: T.Chat.ConversationIDKey
+  emoji: T.RPCChat.Emoji
   firstItem: boolean
-  reloadEmojis: () => void
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
-const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const username = Container.useSelector(s => s.config.username)
-  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const username = C.useCurrentUserState(s => s.username)
+  const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
+  const deleteOtherEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey, defaultSelected: emojiData, onChange: reloadEmojis},
-            selected: 'teamAddEmojiAlias',
-          },
-        ],
-      })
-    )
-  const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
+  const onAddAlias = C.useEvent(() => {
+    nav.safeNavigateAppend({
+      props: {conversationIDKey, defaultSelected: emojiData},
+      selected: 'teamAddEmojiAlias',
+    })
+  })
+  const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
-  const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
-  const doRemove = canRemove
-    ? () => {
-        removeRpc(
-          [
-            {
-              alias: emojiData.short_name,
-              convID: ChatTypes.keyToConversationID(conversationIDKey),
-            },
-          ],
-          () => reloadEmojis(),
-          err => {
-            throw err
+  const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
+  const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
+  const doRemove = React.useMemo(
+    () =>
+      canRemove
+        ? () => {
+            removeRpc(
+              [
+                {
+                  alias: emojiData.short_name,
+                  convID: T.Chat.keyToConversationID(conversationIDKey),
+                },
+              ],
+              () => refreshEmoji(),
+              err => {
+                throw err
+              }
+            )
           }
-        )
-      }
-    : undefined
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <EmojiMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onAddAlias={doAddAlias}
-      onRemove={doRemove}
-      onHidden={toggleShowingPopup}
-      isAlias={emoji.isAlias}
-    />
-  ))
+        : undefined,
+    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
+  )
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <EmojiMenu
+          attachTo={attachTo}
+          visible={true}
+          onAddAlias={doAddAlias}
+          onRemove={doRemove}
+          onHidden={toggleShowingPopup}
+          isAlias={emoji.isAlias}
+        />
+      )
+    },
+    [doAddAlias, doRemove, emoji.isAlias]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={styles.outerContainer}>
@@ -83,15 +86,15 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
             {renderEmoji({
               emoji: emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)),
               showTooltip: false,
-              size: Styles.isMobile ? 32 : 26,
+              size: Kb.Styles.isMobile ? 32 : 26,
             })}
             <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-            {!Styles.isMobile && emoji.creationInfo && (
+            {!Kb.Styles.isMobile && emoji.creationInfo && (
               <Kb.Text type="Body" style={styles.date}>
                 {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
               </Kb.Text>
             )}
-            {!Styles.isMobile && emoji.creationInfo && (
+            {!Kb.Styles.isMobile && emoji.creationInfo && (
               <Kb.NameWithIcon
                 colorFollowing={true}
                 colorBroken={true}
@@ -104,7 +107,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
             )}
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
+              style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
             >
               {popup}
               <Kb.Button
@@ -120,24 +123,24 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
         }
         firstItem={firstItem}
         fullDivider={true}
-        height={Styles.isMobile ? 48 : 42}
+        height={Kb.Styles.isMobile ? 48 : 42}
       />
     </Kb.Box>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alias: Styles.platformStyles({
+      alias: Kb.Styles.platformStyles({
         common: {
           marginRight: 'auto',
         },
         isElectron: {
-          marginLeft: Styles.globalMargins.large - Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.large - Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginLeft: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
         },
       }),
       container: {
@@ -147,15 +150,15 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 130,
         width: 130,
       },
-      outerContainer: Styles.platformStyles({
-        common: {backgroundColor: Styles.globalColors.white},
-        isElectron: Styles.padding(0, Styles.globalMargins.small),
+      outerContainer: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.white},
+        isElectron: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       }),
       username: {
         maxWidth: 210,
         width: 210,
       },
-    } as const)
+    }) as const
 )
 
 export default ItemRow

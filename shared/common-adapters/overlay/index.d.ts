@@ -1,6 +1,7 @@
-import * as React from 'react'
-import type {Position} from '../../styles'
-import type {StylesCrossPlatform} from '../../styles/css'
+import type * as React from 'react'
+import type {Position} from '@/styles'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {StylesCrossPlatform} from '@/styles/css'
 
 /**
  * Overlay is the generic form of
@@ -15,17 +16,18 @@ import type {StylesCrossPlatform} from '../../styles/css'
  */
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   children: React.ReactNode
   color?: string
   matchDimension?: boolean
   onHidden: () => void
   position?: Position
-  positionFallbacks?: Position[]
+  positionFallbacks?: ReadonlyArray<Position>
   propagateOutsideClicks?: boolean
   remeasureHint?: number
   style?: StylesCrossPlatform
   visible?: boolean
 }
 
-export default class extends React.Component<Props> {}
+declare const Overlay: (p: Props) => React.ReactNode
+export default Overlay

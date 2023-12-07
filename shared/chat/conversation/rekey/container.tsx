@@ -1,15 +1,7 @@
-import type * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
-import {connect} from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createOpenPopup} from '../../../actions/unlock-folders-gen'
-
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
 
 type Props = {
   onBack: () => void
@@ -27,23 +19,37 @@ const Rekey = (props: Props) =>
     <ParticipantRekey rekeyers={props.rekeyers} onShowProfile={props.onShowProfile} onBack={props.onBack} />
   )
 
-export default connect(
-  (state, {conversationIDKey}: OwnProps) => ({
-    _you: state.config.username,
-    rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['chatEnterPaperkey']})),
-    onRekey: () => dispatch(createOpenPopup()),
-    onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onBack: dispatchProps.onBack,
-    onEnterPaperkey: dispatchProps.onEnterPaperkey,
-    onRekey: dispatchProps.onRekey,
-    onShowProfile: dispatchProps.onShowProfile,
-    rekeyers: [...stateProps.rekeyers],
-    youRekey: stateProps.rekeyers.has(stateProps._you),
-  })
-)(Rekey)
+const Container = () => {
+  const _you = C.useCurrentUserState(s => s.username)
+  const rekeyers = C.useChatContext(s => s.meta.rekeyers)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onBack = () => {
+    navigateUp()
+  }
+  const onEnterPaperkey = () => {
+    navigateAppend('chatEnterPaperkey')
+  }
+
+  const rekeyShowPendingRekeyStatus = C.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
+
+  const onRekey = () => {
+    rekeyShowPendingRekeyStatus(
+      [],
+      () => {},
+      () => {}
+    )
+  }
+
+  const onShowProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const props = {
+    onBack,
+    onEnterPaperkey,
+    onRekey,
+    onShowProfile,
+    rekeyers: [...rekeyers],
+    youRekey: rekeyers.has(_you),
+  }
+  return <Rekey {...props} />
+}
+export default Container

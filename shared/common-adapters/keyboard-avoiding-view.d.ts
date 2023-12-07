@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export {KeyboardAvoidingView as default} from 'react-native'
 
@@ -10,4 +10,4 @@ export type Props = {
   extraPadding?: number
 }
 
-export declare class KeyboardAvoidingView2 extends React.Component<Props> {}
+export declare const KeyboardAvoidingView2: (p: Props) => React.ReactNode

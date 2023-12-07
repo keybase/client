@@ -1,20 +1,14 @@
+import * as C from '@/constants'
 import * as Common from './common'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import * as Waiting from '../../../../constants/waiting'
-import type * as Types from '../../../../constants/types/chat2'
 import {
   emojiSearch,
   emojiDataToRenderableEmoji,
   renderEmoji,
   type EmojiData,
   RPCToEmojiData,
-} from '../../../../util/emoji'
-import shallowEqual from 'shallowequal'
+} from '@/util/emoji'
 
 export const transformer = (
   emoji: EmojiData,
@@ -33,9 +27,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
       gap="small"
     >
@@ -47,19 +41,17 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
-const empty = []
+const empty = new Array<EmojiData>()
 
-export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+export const useDataSource = (filter: string) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
+  C.useCIDChanged(conversationIDKey, () => {
+    fetchUserEmoji(conversationIDKey)
+  })
 
-  const {userEmojis, userEmojisLoading} = Container.useSelector(state => {
-    const userEmojis = state.chat2.userEmojisForAutocomplete
-    const userEmojisLoading = Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
-    return {userEmojis, userEmojisLoading}
-  }, shallowEqual)
+  const userEmojisLoading = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
+  const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {
     return {
@@ -88,7 +80,6 @@ type ListProps = Pick<
   Common.ListProps<EmojiData>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -96,7 +87,7 @@ type ListProps = Pick<
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p
-  const {items, loading} = useDataSource(p.conversationIDKey, filter)
+  const {items, loading} = useDataSource(filter)
   return (
     <Common.List
       {...rest}

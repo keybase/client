@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
-import * as Styles from '../../styles'
-import type {Section as _Section} from '../../common-adapters/section-list'
+import * as Kb from '@/common-adapters'
+import type {Section as _Section} from '@/common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
-import {memoize} from '../../util/memoize'
-import {mapGetEnsureValue} from '../../util/map'
+import {memoize} from '@/util/memoize'
+import {mapGetEnsureValue} from '@/util/map'
 
 type Section = _Section<Contact, {title: string}>
 
@@ -12,7 +11,7 @@ const categorize = (contact: Contact): string => {
   if (!contact.name) {
     return '0-9'
   }
-  const firstLetter = contact.name[0].toUpperCase()
+  const firstLetter = contact.name[0]?.toUpperCase() ?? ''
   if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(firstLetter)) {
     return firstLetter
   } else if ('0123456789'.includes(firstLetter)) {
@@ -76,7 +75,7 @@ type ContactRowProps = {
 }
 const ContactRow = React.memo(
   ({item, disabled, disabledTooltip, index, onSelect, selected}: ContactRowProps) => {
-    const topText = item.name ?? item.valueFormatted ?? item.value
+    const topText = item.name || item.valueFormatted || item.value
     const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
     const onCheck = (check: boolean) => onSelect(item, check)
     const listItem = (
@@ -100,7 +99,7 @@ const ContactRow = React.memo(
         }
         icon={
           item.pictureUri ? (
-            <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
+            <Kb.Image2 style={styles.thumbnail} src={item.pictureUri} />
           ) : (
             <Kb.Avatar size={32} username="" />
           )
@@ -164,7 +163,7 @@ const ContactsList = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {
     marginRight: 24,
   },

@@ -1,8 +1,9 @@
-import * as React from 'react'
-import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '../styles/css'
+import type * as React from 'react'
+import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '@/styles/css'
 import {allTextTypes} from './text.shared'
-import type * as CSS from '../styles/css'
-import type colors from '../styles/colors'
+import type * as CSS from '@/styles/css'
+import type colors from '@/styles/colors'
+import type {MeasureRef} from './measure-ref'
 
 type Background =
   | 'Announcements'
@@ -13,6 +14,7 @@ type Background =
   | 'Success'
   | 'Terminal'
 
+type Values<T extends object> = T[keyof T]
 type TextType = keyof typeof allTextTypes
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.
@@ -47,9 +49,12 @@ export type AllowedColors =
 export type _StylesTextCrossPlatform = _CustomStyles<'color', {color?: AllowedColors}>
 export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
 
-export type LineClampType = 1 | 2 | 3 | 4 | 5 | null
+export type LineClampType = 1 | 2 | 3 | 4 | 5
 
 type Props = {
+  ref?: never
+  // TODO could make this ref if we make this a function component
+  textRef?: React.RefObject<TextMeasureRef | MeasureRef>
   allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
   center?: boolean
@@ -59,16 +64,16 @@ type Props = {
   lineClamp?: LineClampType
   negative?: boolean
   onClick?: ((e: React.BaseSyntheticEvent) => void) | null
-  onClickURL?: string | null
+  onClickURL?: string
   onLongPress?: () => void
-  onLongPressURL?: string | null
-  onPress?: void
+  onLongPressURL?: string
+  onPress?: never
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
   style?: StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
-  title?: string | null
+  title?: string
   type: TextType
   underline?: boolean
   underlineNever?: boolean
@@ -82,13 +87,17 @@ type MetaType = {
     negative: string
   }
   isLink?: true
-  styleOverride?: Object | null
+  styleOverride?: Object
   isTerminal?: true
 }
 
-declare class Text extends React.Component<Props> {
+export type TextMeasureRef = {
   highlightText: () => void
-}
+} & MeasureRef
+
+// if we fix the ref thing
+// export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
+export declare const Text: (p: Props) => React.ReactNode
 
 type TextStyle = {
   fontSize: number
@@ -105,12 +114,12 @@ type TextStyle = {
 
 declare function getStyle(
   type: TextType,
-  backgroundMode?: Background | null,
-  lineClamp?: number | null,
-  clickable?: boolean | null,
+  backgroundMode?: Background,
+  lineClamp?: number,
+  clickable?: boolean,
   selectable?: boolean
 ): TextStyle
 
 export {getStyle, allTextTypes}
-export {Background, MetaType, Props, TextType, TextTypeBold}
+export type {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text

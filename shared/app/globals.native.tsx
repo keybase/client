@@ -2,21 +2,11 @@
 // >>>>>>>>>>>>>>>>>>>>>>>      DO NOT REORDER ANYTHING in this file      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // This is supposed to bootstrap / polyfill / fixup the app. Do NOT add things here or change things unless you really know
 // what's happening
-//
-// Needed for purepack
-// @ts-ignore
-globalThis.buffer = global.Buffer = window.Buffer = require('buffer/').Buffer
-// const {NativeModules} = require('react-native')
+import 'fastestsmallesttextencoderdecoder'
+import {encode as btoa, decode as atob} from 'base-64'
 
-// __STORYBOOK__
-// if we're in storybook mode
-// if (typeof __STORYBOOK__ === 'undefined') {
-//   __STORYBOOK__ = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
-// }
-__STORYBOOK__ = false
-
-// We don't storyshot RN
-__STORYSHOT__ = false
-
+global.btoa = btoa
+global.atob = atob
 __FILE_SUFFIX__ = ''
 __PROFILE__ = false
+__HOT__ = false

@@ -1,28 +1,36 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import * as React from 'react'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import ConversationList from './conversation-list'
 
 type Props = {
   convName: string
-  dropdownButtonStyle?: Styles.StylesCrossPlatform
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  dropdownButtonStyle?: Kb.Styles.StylesCrossPlatform
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 const ChooseConversation = (props: Props) => {
+  const {onSelect} = props
   const text = !props.convName.length ? 'Choose a conversation' : props.convName
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.Overlay
-      attachTo={attachTo}
-      onHidden={toggleShowingPopup}
-      position="center center"
-      style={styles.overlay}
-      visible={showingPopup}
-    >
-      <ConversationList onSelect={props.onSelect} onDone={toggleShowingPopup} />
-    </Kb.Overlay>
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          position="center center"
+          style={styles.overlay}
+          visible={true}
+        >
+          <ConversationList onSelect={onSelect} onDone={toggleShowingPopup} />
+        </Kb.Overlay>
+      )
+    },
+    [onSelect]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -34,7 +42,7 @@ const ChooseConversation = (props: Props) => {
         }
         popupAnchor={popupAnchor}
         toggleOpen={toggleShowingPopup}
-        style={Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
+        style={Kb.Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
       />
       {popup}
     </>
@@ -43,20 +51,18 @@ const ChooseConversation = (props: Props) => {
 
 export default ChooseConversation
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      dropdownButton: {
-        width: 300,
-      },
+      dropdownButton: {width: 300},
       overlay: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         height: 360,
         width: 300,
       },
       selectedText: {
-        paddingLeft: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
-    } as const)
+    }) as const
 )

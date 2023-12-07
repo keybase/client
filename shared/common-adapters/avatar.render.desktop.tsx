@@ -1,9 +1,9 @@
 import Icon, {type IconType} from './icon'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props, AvatarSize} from './avatar.render'
-import {AVATAR_SIZE} from '../common-adapters/avatar'
+import {AVATAR_SIZE} from '@/common-adapters/avatar-size'
 
-const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
+const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128
     ? 'icon-poop-96'
     : s === 96
@@ -12,20 +12,18 @@ const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
     ? 'icon-poop-48'
     : s === 48 || s === 32
     ? 'icon-poop-32'
-    : null
+    : undefined
 
 const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
-  const avatarScaledWidth =
-    props.crop && props.crop.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
-
+  const avatarScaledWidth = props.crop?.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
   return (
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
       onClick={props.onClick}
-      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable])}
+      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
     >
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
@@ -40,7 +38,7 @@ const Avatar = (props: Props) => {
           <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
-      {!!props.url && props.crop == undefined && (
+      {!!props.url && props.crop === undefined && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={{
@@ -54,38 +52,38 @@ const Avatar = (props: Props) => {
           }}
         />
       )}
-      {!!props.url &&
-        props.crop &&
-        props.crop?.offsetLeft !== undefined &&
-        props.crop?.offsetTop !== undefined && (
-          <img
-            className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
-            style={{
-              backgroundImage: props.url,
-              backgroundPositionX: props.crop?.offsetLeft * scaledAvatarRatio,
-              backgroundPositionY: props.crop?.offsetTop * scaledAvatarRatio,
-              backgroundSize: `${avatarScaledWidth}px auto`,
-              opacity:
-                props.opacity === undefined || props.opacity === 1
-                  ? props.blocked
-                    ? 0.1
-                    : undefined
-                  : props.opacity,
-            }}
-          />
-        )}
+      {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
+        <img
+          loading="lazy"
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={{
+            backgroundImage: props.url,
+            backgroundPositionX: props.crop.offsetLeft * scaledAvatarRatio,
+            backgroundPositionY: props.crop.offsetTop * scaledAvatarRatio,
+            backgroundSize: `${avatarScaledWidth}px auto`,
+            opacity:
+              props.opacity === undefined || props.opacity === 1
+                ? props.blocked
+                  ? 0.1
+                  : undefined
+                : props.opacity,
+          }}
+        />
+      )}
       {(!!props.borderColor || props.isTeam) && (
         <div
-          style={Styles.collapseStyles([
-            props.isTeam && styles.borderTeam,
-            !props.isTeam && styles.border,
-            props.borderColor &&
-              ({
-                boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
-                  props.borderColor || Styles.globalColors.black_10
-                } ${props.isTeam ? 'inset' : ''}`,
-              } as const),
-          ] as any)}
+          style={
+            Styles.collapseStyles([
+              props.isTeam && styles.borderTeam,
+              !props.isTeam && styles.border,
+              props.borderColor &&
+                ({
+                  boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
+                    props.borderColor || Styles.globalColors.black_10
+                  } ${props.isTeam ? 'inset' : ''}`,
+                } as any),
+            ]) as React.CSSProperties
+          }
           className={Styles.classNames(
             {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
             avatarSizeClasName
@@ -137,7 +135,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         zIndex: 1,
       },
-    } as const)
+    }) as const
 )
 
 export default Avatar

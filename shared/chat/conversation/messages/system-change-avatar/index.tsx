@@ -1,15 +1,13 @@
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import type * as Types from '../../../../constants/types/chat2'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import UserNotice from '../user-notice'
 
 type Props = {
-  message: Types.MessageSystemChangeAvatar
+  message: T.Chat.MessageSystemChangeAvatar
 }
-const getUsername = (state: Container.TypedState) => state.config.username
 const SystemChangeAvatar = (props: Props) => {
-  const you = Container.useSelector(getUsername)
+  const you = C.useCurrentUserState(s => s.username)
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>
@@ -20,9 +18,9 @@ const SystemChangeAvatar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   text: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

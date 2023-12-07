@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 
 const LoadingRow = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.container} gap="tiny">
@@ -9,8 +8,8 @@ const LoadingRow = () => (
 )
 export default LoadingRow
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
 }))

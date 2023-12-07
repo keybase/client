@@ -7,10 +7,13 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import CircularDependencyPlugin from 'circular-dependency-plugin'
 
-// why did you render
-const enableWDYR = false
+const enableWDYR = require('../util/why-did-you-render-enabled')
+const elecVersion = require('../package.json').devDependencies.electron
+
+const enableCircularDepCheck = false
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -26,6 +29,7 @@ const config = (_, {mode}) => {
   const fileSuffix = isDev ? '.dev' : isProfile ? '.profile' : ''
 
   console.error('Flags: ', {isDev, isHot, isProfile})
+  console.error('Detected electron from package.json: ', elecVersion)
 
   const makeRules = nodeThread => {
     const babelRule = {
@@ -33,9 +37,13 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
-        plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
+        plugins: [
+          ['module-resolver', {alias: {'@': './'}}],
+          // ['module-resolver', {alias: {'@': path.resolve(__dirname, '..')}}],
+          ...(isHot && !nodeThread ? ['react-refresh/babel'] : []),
+        ],
         presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '19.0.4'}}],
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: elecVersion}}],
           [
             '@babel/preset-react',
             {
@@ -50,11 +58,11 @@ const config = (_, {mode}) => {
     }
 
     return [
-      ...(isDev
+      ...(isDev && enableWDYR
         ? []
         : [
             {
-              // Don't include why did you render
+              // Don't include why-did-you-render
               include: /welldone/,
               test: /\.(ts|js)x?$/,
               use: ['null-loader'],
@@ -86,7 +94,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|react-redux|react-gateway))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|react-redux))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -125,8 +133,6 @@ const config = (_, {mode}) => {
       __PROFILE__: isProfile,
       __DEV__: isDev,
       __HOT__: isHot,
-      __STORYBOOK__: false,
-      __STORYSHOT__: false,
       __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
     }
     console.warn('Injecting defines: ', defines)
@@ -158,7 +164,24 @@ const config = (_, {mode}) => {
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
-        ...(isDev ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash
+        ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash, but needed by why did
+        ...(isDev && enableCircularDepCheck
+          ? [
+              new CircularDependencyPlugin({
+                // exclude detection of files based on a RegExp
+                exclude: /node_modules/,
+                // include specific files based on a RegExp
+                // include: /dir/,
+                // add errors to webpack instead of warnings
+                failOnError: true,
+                // allow import cycles that include an asyncronous import,
+                // e.g. via import(/* webpackMode: "weak" */ './file.js')
+                allowAsyncCycles: false,
+                // set the current working directory for displaying module paths
+                cwd: process.cwd(),
+              }),
+            ]
+          : []),
       ],
       resolve: {
         alias,
@@ -253,7 +276,7 @@ const config = (_, {mode}) => {
     </head>
     <body>
         <div id="root">
-            <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
+            <div title="loading..." style="flex: 1"></div>
         </div>
         <div id="modal-root"></div>
         ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>

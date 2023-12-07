@@ -1,6 +1,6 @@
+import {useIsMounted} from '@/constants/react'
 import * as React from 'react'
 import type {RPCError} from './errors'
-import {useMemo} from './memoize'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<infer U>
   ? U
@@ -14,31 +14,24 @@ setResult is only called if you're still mounted
 function useRPC<
   C extends (...r: Array<any>) => any,
   RET = RPCPromiseType<C>,
-  ARGS extends Array<any> = Parameters<C>
+  ARGS extends Array<any> = Parameters<C>,
 >(call: C) {
-  const isMounted = React.useRef<Boolean>(true)
-
-  React.useEffect(() => {
-    return () => {
-      isMounted.current = false
-    }
-  }, [])
-
-  const submit = useMemo(
+  const isMounted = useIsMounted()
+  const submit = React.useMemo(
     () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
       call(...args)
         .then((result: RET) => {
-          if (isMounted.current) {
+          if (isMounted()) {
             setResult(result)
           }
         })
         .catch((error: RPCError) => {
-          if (isMounted.current) {
+          if (isMounted()) {
             setError(error)
           }
         })
     },
-    [call]
+    [call, isMounted]
   )
   return submit
 }

@@ -1,5 +1,4 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   onBack: () => void
@@ -39,9 +38,14 @@ const ReallyLeaveTeam = (props: Props) => (
         style={styles.container}
         centerChildren={true}
       >
-        <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} style={Styles.globalStyles.flexBoxCenter}>
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
-            <Kb.Avatar teamname={props.name} size={Styles.isMobile ? 96 : 64} />
+        <Kb.Box2
+          direction="vertical"
+          gap="medium"
+          fullWidth={true}
+          style={Kb.Styles.globalStyles.flexBoxCenter}
+        >
+          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
+            <Kb.Avatar teamname={props.name} size={Kb.Styles.isMobile ? 96 : 64} />
             <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
           </Kb.Box2>
           <Kb.Text type="Header" center={true} style={styles.headerText}>
@@ -60,37 +64,37 @@ const ReallyLeaveTeam = (props: Props) => (
   </Kb.Modal>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyText: Styles.platformStyles({isElectron: {maxWidth: 430}}),
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bodyText: Kb.Styles.platformStyles({isElectron: {maxWidth: 430}}),
   buttonBar: {
     minHeight: undefined,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     isElectron: {
       height: '100%',
       marginBottom: 48, // footer height
       width: '100%',
     },
     isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
+      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       paddingBottom: 64, // footer height
     },
   }),
   footer: {
     borderStyle: 'solid',
-    borderTopColor: Styles.globalColors.black_10,
+    borderTopColor: Kb.Styles.globalColors.black_10,
     borderTopWidth: 1,
     padding: 0,
   },
   headerText: {maxWidth: 380},
-  leaveIcon: Styles.platformStyles({
+  leaveIcon: Kb.Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.red,
-      borderColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.red,
+      borderColor: Kb.Styles.globalColors.white,
       borderStyle: 'solid',
       bottom: -10,
-      color: Styles.globalColors.white,
+      color: Kb.Styles.globalColors.white,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',

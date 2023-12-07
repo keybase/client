@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   channelname: string
@@ -9,11 +8,11 @@ type Props = {
 }
 
 type State = {
-  clicked: null | 'join' | 'leave'
+  clicked: undefined | 'join' | 'leave'
 }
 
 export default class ChannelPreview extends React.Component<Props, State> {
-  state = {clicked: null}
+  state: State = {clicked: undefined}
   _onClick = (join: boolean) =>
     this.setState(
       {clicked: join ? 'join' : 'leave'},
@@ -45,15 +44,15 @@ export default class ChannelPreview extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blue,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.blue,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )

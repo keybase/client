@@ -1,21 +1,18 @@
-import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '@/actions/remote-gen'
+import * as R from '@/constants/remote'
 import * as Electron from 'electron'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import flags from '../../util/feature-flags'
+import * as RPCTypes from '@/constants/types/rpc-gen'
+import flags from '@/util/feature-flags'
 import {closeWindows} from './main-window.desktop'
-import {isDarwin, isLinux} from '../../constants/platform'
+import {isDarwin, isLinux} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
-import KB2 from '../../util/electron.desktop'
-
-const {mainWindowDispatch} = KB2.functions
 
 const reallyQuit = () => {
   closeWindows()
   if (isLinux) {
-    mainWindowDispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+    R.remoteDispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
   } else {
-    mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+    R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
   }
   setTimeout(() => {
     ctlQuit()
@@ -166,7 +163,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
                 s =>
                   new Electron.MenuItem({
                     click(_, w) {
-                      w?.webContents?.replaceMisspelling(s)
+                      w?.webContents.replaceMisspelling(s)
                     },
                     label: s,
                   })

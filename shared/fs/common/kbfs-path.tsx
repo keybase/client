@@ -1,27 +1,24 @@
 import * as React from 'react'
-import type * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
 type Props = {
-  knownPathInfo?: Types.PathInfo
+  knownPathInfo?: T.FS.PathInfo
   rawPath: string
-  standardPath: Types.Path
+  standardPath: T.FS.Path
 }
 
 type PopupProps = Props & {
-  attachRef: React.RefObject<Kb.Text>
+  attachRef: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   visible: boolean
 }
 
-const useOpenInFilesTab = (path: Types.Path) => {
-  const dispatch = Container.useDispatch()
-  return React.useCallback(() => dispatch(Constants.makeActionForOpenPathInFilesTab(path)), [path, dispatch])
+const useOpenInFilesTab = (path: T.FS.Path) => {
+  return React.useCallback(() => C.makeActionForOpenPathInFilesTab(path), [path])
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
@@ -30,7 +27,7 @@ const KbfsPathPopup = (props: PopupProps) => {
     <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
       <PathItemInfo
         path={props.standardPath}
-        containerStyle={Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
+        containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
       />
       <Kb.Divider />
       <PathInfo
@@ -44,13 +41,13 @@ const KbfsPathPopup = (props: PopupProps) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
-      attachTo={() => props.attachRef.current}
+      attachTo={props.attachRef}
       onHidden={props.onHidden}
       position="top center"
-      propagateOutsideClicks={!Styles.isMobile}
+      propagateOutsideClicks={!Kb.Styles.isMobile}
       header={header}
       items={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? [
               'Divider',
               {
@@ -68,7 +65,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
-  const textRef = React.useRef<Kb.Text>(null)
+  const textRef = React.useRef<Kb.MeasureRef>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
     <Kb.Text
@@ -76,7 +73,7 @@ const KbfsPath = (props: Props) => {
       onClick={openInFilesTab}
       onLongPress={() => setShowing(true)}
       allowFontScaling={true}
-      ref={textRef}
+      textRef={textRef}
     >
       {props.rawPath}
     </Kb.Text>
@@ -84,7 +81,7 @@ const KbfsPath = (props: Props) => {
   const popup = showing ? (
     <KbfsPathPopup attachRef={textRef} visible={showing} onHidden={() => setShowing(false)} {...props} />
   ) : null
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <>
       {text}
       {popup}
@@ -101,30 +98,30 @@ const KbfsPath = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
           maxWidth: 280,
         },
       }),
       noBottomPadding: {paddingBottom: 0},
-      sectionContainer: Styles.platformStyles({
+      sectionContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.large,
+          paddingBottom: Kb.Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
-      textContainer: Styles.platformStyles({
+      textContainer: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default KbfsPath

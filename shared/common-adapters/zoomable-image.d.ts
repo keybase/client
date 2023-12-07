@@ -1,10 +1,17 @@
-import * as React from 'react'
-import * as Styles from '../styles'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 export type Props = {
   src: string
   style?: Styles.StylesCrossPlatform
-  onZoomed?: (z: boolean) => void // desktop only
+  zoomRatio?: number
+  onLoaded?: () => void
+  onIsZoomed?: (z: boolean) => void // desktop only
+  dragPan?: boolean // desktop only, pan on drag only
+  onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
+  // mobile only, called if swiping while not zoomed
+  onSwipe?: (left: boolean) => void
 }
 
-export default class ZoomableImage extends React.Component<Props> {}
+export declare const ZoomableImage: (p: Props) => React.ReactNode
+export default ZoomableImage

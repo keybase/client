@@ -1,18 +1,17 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/teams'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
 
 type Props = {
-  channels: Array<Types.ChannelNameID>
+  channels: Array<T.Teams.ChannelNameID>
   disableGeneral?: boolean
-  disabledChannels?: Array<Types.ChannelNameID>
-  onAddChannel: (toAdd: Array<Types.ChannelNameID>) => void
-  onRemoveChannel: (toRemove: Types.ChannelNameID) => void
-  teamID: Types.TeamID
+  disabledChannels?: Array<T.Teams.ChannelNameID>
+  onAddChannel: (toAdd: Array<T.Teams.ChannelNameID>) => void
+  onRemoveChannel: (toRemove: T.Teams.ChannelNameID) => void
+  teamID: T.Teams.TeamID
 }
 
 // always shows #general
@@ -41,10 +40,10 @@ export const ChannelsWidget = (props: Props) => (
 
 type ChannelInputProps = {
   disableGeneral?: boolean
-  disabledChannels?: Array<Types.ChannelNameID>
-  onAdd: (toAdd: Array<Types.ChannelNameID>) => void
-  selected: Array<Types.ChannelNameID>
-  teamID: Types.TeamID
+  disabledChannels?: Array<T.Teams.ChannelNameID>
+  onAdd: (toAdd: Array<T.Teams.ChannelNameID>) => void
+  selected: Array<T.Teams.ChannelNameID>
+  teamID: T.Teams.TeamID
 }
 
 const ChannelInputDesktop = (props: ChannelInputProps) => {
@@ -69,7 +68,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   )
 
   const onSelect = React.useCallback(
-    (value: Unpacked<typeof channelItems>['value']) => {
+    (value: T.Unpacked<typeof channelItems>['value']) => {
       onAdd([value])
       setFilter('')
     },
@@ -81,14 +80,13 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   return (
     <>
       <Kb.SearchFilter
-        // @ts-ignore complaining that popupAnchor is missing properties that SearchFilter has
-        ref={popupAnchor}
+        measureRef={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
         placeholderText="Add channels"
         icon="iconfont-search"
         onChange={setFilter}
-        size={Styles.isMobile ? 'full-width' : 'small'}
+        size={Kb.Styles.isMobile ? 'full-width' : 'small'}
         onKeyDown={onKeyDown}
         value={filter}
         valueControlled={true}
@@ -101,7 +99,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
 const ChannelInputMobile = (props: ChannelInputProps) => {
   const {disableGeneral, disabledChannels, onAdd, selected, teamID} = props
   const [showingPopup, setShowingPopup] = React.useState(false)
-  const onComplete = (channels: Array<Types.ChannelNameID>) => {
+  const onComplete = (channels: Array<T.Teams.ChannelNameID>) => {
     setShowingPopup(false)
     onAdd(channels)
   }
@@ -114,7 +112,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
         centerChildren={true}
         style={styles.channelDummyInput}
       >
-        <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} sizeType="Small" />
+        <Kb.Icon type="iconfont-search" color={Kb.Styles.globalColors.black_50} sizeType="Small" />
         <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
           Add channels
         </Kb.Text>
@@ -132,37 +130,39 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
   )
 }
 
-const ChannelInput = Styles.isMobile ? ChannelInputMobile : ChannelInputDesktop
+const ChannelInput = Kb.Styles.isMobile ? ChannelInputMobile : ChannelInputDesktop
 
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
-    <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
-    {onRemove && <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Styles.globalColors.black_20} />}
+    <Kb.Text type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
+    {onRemove && (
+      <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
+    )}
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   channelDummyInput: {
-    backgroundColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.black_10,
+    borderRadius: Kb.Styles.borderRadius,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
-  channelDummyInputText: {color: Styles.globalColors.black_50},
+  channelDummyInputText: {color: Kb.Styles.globalColors.black_50},
   container: {
-    ...Styles.padding(Styles.globalMargins.tiny),
-    backgroundColor: Styles.globalColors.blueGrey,
-    borderRadius: Styles.borderRadius,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    borderRadius: Kb.Styles.borderRadius,
   },
-  pill: Styles.platformStyles({
+  pill: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderRadius: Kb.Styles.borderRadius,
+      marginBottom: Kb.Styles.globalMargins.xtiny,
     },
     isMobile: {
-      borderColor: Styles.globalColors.black_20,
+      borderColor: Kb.Styles.globalColors.black_20,
       borderStyle: 'solid',
       borderWidth: 1,
     },

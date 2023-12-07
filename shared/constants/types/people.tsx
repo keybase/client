@@ -1,6 +1,5 @@
 import type * as RPCTypes from './rpc-gen'
-import type * as TeamBuildingTypes from './team-building'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = keyof typeof RPCTypes.HomeScreenItemType
@@ -19,7 +18,7 @@ export type TodoMetaEmail = {
 }
 export type TodoMetaPhone = {type: 'phone'; phone: string}
 
-export type TodoMeta = TodoMetaEmail | TodoMetaPhone | null
+export type TodoMeta = TodoMetaEmail | TodoMetaPhone | undefined
 
 export type Todo = {
   type: 'todo'
@@ -46,15 +45,15 @@ export type FollowedNotificationItem = {
 }
 
 export type Announcement = {
-  appLink: RPCTypes.AppLinkType | null
+  appLink?: RPCTypes.AppLinkType
   badged: boolean
-  confirmLabel: string | null
+  confirmLabel?: string
   dismissable: boolean
   id: RPCTypes.HomeScreenAnnouncementID
-  iconUrl: string | null
+  iconUrl?: string
   text: string
   type: 'announcement'
-  url: string | null
+  url?: string
 }
 
 export type WotUpdate = {
@@ -66,20 +65,8 @@ export type WotUpdate = {
 export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type FollowSuggestion = {
-  username: string
-  fullName: string | null
   followsMe: boolean
+  fullName?: string
   iFollow: boolean
-}
-
-export type State = {
-  readonly lastViewed: Date
-  readonly version: number
-  readonly newItems: Array<PeopleScreenItem>
-  readonly oldItems: Array<PeopleScreenItem>
-  readonly wotUpdates: Map<string, WotUpdate>
-  readonly followSuggestions: Array<FollowSuggestion>
-  readonly resentEmail: string
-  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  readonly inviteCounts: RPCTypes.InviteCounts | null
+  username: string
 }

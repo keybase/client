@@ -1,7 +1,6 @@
 import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
-import {TextType} from './text'
-import {TextContentType} from './plain-input'
+import type {StylesCrossPlatform} from '@/styles'
+import type {TextContentType} from './plain-input'
 
 /**
  * DEPRECATED
@@ -24,6 +23,7 @@ export type KeyboardType =
   | 'visible-password'
 
 export type Props = {
+  ref?: never
   // if true we use a smarter algorithm to decide when we need to recalculate our height
   // might be safe to use this everywhere but I wanted to limit it to just chat short term
   smartAutoresize?: boolean
@@ -31,29 +31,28 @@ export type Props = {
   className?: string
   editable?: boolean
   errorStyle?: StylesCrossPlatform
-  errorText?: string | null
+  errorText?: string
   errorTextComponent?: React.ReactNode
-  floatingHintTextOverride?: string | null // if undefined will use hintText. Use this to override hintText,
+  floatingHintTextOverride?: string // if undefined will use hintText. Use this to override hintText,
   hideUnderline?: boolean
   hintText?: string
   key?: string
   inputStyle?: StylesCrossPlatform
   multiline?: boolean
   onBlur?: () => void
-  onClick?: (event: Event) => void
+  onClick?: (event: React.MouseEvent) => void
   onChangeText?: (text: string) => void
   onFocus?: () => void
   rowsMax?: number
   maxLength?: number
   rowsMin?: number
   hideLabel?: boolean
-  ref?: React.Ref<Input>
   small?: boolean
   smallLabel?: string
   smallLabelStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
   type?: 'password' | 'text' | 'passwordVisible'
-  value?: string | null
+  value?: string
   selectTextOnFocus?: boolean
   // Incrememnt this to clear the text (avoids having to deal with refs)
   clearTextCounter?: number

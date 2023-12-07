@@ -1,33 +1,21 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/autoreset'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
-type Props = {}
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 
-const ConfirmReset = (_: Props) => {
-  const hasWallet = Container.useSelector(state => state.autoreset.hasWallet)
-  const error = Container.useSelector(state => state.autoreset.error)
-
-  const dispatch = Container.useDispatch()
-
-  const onContinue = React.useCallback(
-    () =>
-      dispatch(
-        RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.confirmReset})
-      ),
-    [dispatch]
-  )
+const ConfirmReset = () => {
+  const hasWallet = C.useAutoResetState(s => s.hasWallet)
+  const error = C.useAutoResetState(s => s.error)
+  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const onContinue = React.useCallback(() => {
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
+  }, [submitResetPassword])
   const onCancelReset = React.useCallback(() => {
-    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.cancelReset}))
-  }, [dispatch])
-  const onClose = React.useCallback(
-    () =>
-      dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.nothing})),
-    [dispatch]
-  )
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.cancelReset)
+  }, [submitResetPassword])
+  const onClose = React.useCallback(() => {
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.nothing)
+  }, [submitResetPassword])
 
   const [checks, setChecks] = React.useState({
     checkData: false,
@@ -44,7 +32,7 @@ const ConfirmReset = (_: Props) => {
 
   return (
     <Kb.Modal
-      header={Styles.isMobile ? {title: 'Account reset'} : undefined}
+      header={Kb.Styles.isMobile ? {title: 'Account reset'} : undefined}
       fullscreen={true}
       footer={{
         content: (
@@ -55,7 +43,7 @@ const ConfirmReset = (_: Props) => {
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
-              waitingKey={Constants.actuallyResetWaitingKey}
+              waitingKey={C.actuallyResetWaitingKey}
             />
             <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>
@@ -77,7 +65,7 @@ const ConfirmReset = (_: Props) => {
         alignItems="center"
         style={styles.container}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="Header">Go ahead with reset?</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall" alignItems="flex-start">
@@ -102,7 +90,7 @@ const ConfirmReset = (_: Props) => {
             {hasWallet && (
               <Kb.Checkbox
                 labelComponent={
-                  <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body" style={Kb.Styles.globalStyles.flexOne}>
                     You will <Kb.Text type="BodyExtrabold">lose access to your wallet funds</Kb.Text> if you
                     haven't backed up your Stellar private keys outside of Keybase.
                   </Kb.Text>
@@ -129,26 +117,23 @@ const ConfirmReset = (_: Props) => {
     </Kb.Modal>
   )
 }
-ConfirmReset.navigationOptions = {
-  gesturesEnabled: false,
-}
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {
     alignItems: 'center',
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'center',
-      padding: Styles.globalMargins.medium,
+      padding: Kb.Styles.globalMargins.medium,
     },
     isElectron: {
-      width: 368 + Styles.globalMargins.medium * 2,
+      width: 368 + Kb.Styles.globalMargins.medium * 2,
     },
   }),
-  footer: Styles.platformStyles({
+  footer: Kb.Styles.platformStyles({
     isMobile: {
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
     },
   }),
 }))

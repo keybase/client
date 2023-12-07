@@ -1,22 +1,20 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/teams'
-import * as GregorGen from '../../../../actions/gregor-gen'
-import {Box, Icon, Text} from '../../../../common-adapters'
-import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
-import type {TeamID} from '../../../../constants/types/teams'
+import {Box, Icon, Text} from '@/common-adapters'
+import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '@/styles'
+import type * as T from '@/constants/types'
 
 export type Props = {
-  teamID: TeamID
+  teamID: T.Teams.TeamID
 }
 
 const Banner = ({teamID}: Props) => {
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const shouldRender = Container.useSelector(state => !state.teams.sawSubteamsBanner)
-  const dispatch = Container.useDispatch()
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const shouldRender = C.useTeamsState(s => !s.sawSubteamsBanner)
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHide = React.useCallback(
-    () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawSubteamsBanner'})),
-    [dispatch]
+    () => updateGregorCategory('sawSubteamsBanner', 'true'),
+    [updateGregorCategory]
   )
   if (!shouldRender) {
     return null

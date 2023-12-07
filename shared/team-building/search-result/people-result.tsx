@@ -1,14 +1,7 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as FsConstants from '../../constants/fs'
-import * as FsTypes from '../../constants/types/fs'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as WalletsType from '../../constants/types/wallets'
-import * as ChatConstants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import CommonResult, {type ResultProps} from './common-result'
 
 /*
@@ -19,70 +12,41 @@ import CommonResult, {type ResultProps} from './common-result'
  */
 
 const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
-  const keybaseUsername: string | null = props.services['keybase'] || null
+  const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
 
   // action button specific definitions
-  const dispatch = Container.useDispatch()
-  const myUsername = Container.useSelector(state => state.config.username)
-  const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
+  const myUsername = C.useCurrentUserState(s => s.username)
+  const blocked = C.useUsersState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
-  const onMenuAddToTeam = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
-      })
-    )
-  const onOpenPrivateFolder = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
-      )
-    )
-  }
-  const onBrowsePublicFolder = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
-      )
-    )
-  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onMenuAddToTeam = React.useCallback(() => {
+    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'profileAddToTeam'})
+  }, [navigateAppend, keybaseUsername])
 
-  const onManageBlocking = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-      })
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onOpenPrivateFolder = React.useCallback(() => {
+    navigateUp()
+    C.makeActionForOpenPathInFilesTab(
+      T.FS.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
-  const onChat = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }
-  const onSendLumens = () =>
-    keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: false,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
-  const onRequestLumens = () =>
-    keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: true,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
+  }, [navigateUp, decoratedUsername, myUsername])
+
+  const onBrowsePublicFolder = React.useCallback(() => {
+    navigateUp()
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
+  }, [navigateUp, decoratedUsername])
+
+  const onManageBlocking = React.useCallback(() => {
+    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})
+  }, [navigateAppend, keybaseUsername])
+
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = React.useCallback(() => {
+    navigateUp()
+    previewConversation({participants: [decoratedUsername], reason: 'search'})
+  }, [navigateUp, previewConversation, decoratedUsername])
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
@@ -92,8 +56,6 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       onBrowsePublicFolder={onBrowsePublicFolder}
       onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
       onOpenPrivateFolder={onOpenPrivateFolder}
-      onRequestLumens={onRequestLumens}
-      onSendLumens={onSendLumens}
       blocked={blocked}
     />
   ) : (
@@ -109,17 +71,17 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       key="Chat"
       label="Chat"
       small={true}
-      waitingKey={ChatConstants.waitingKeyCreating}
+      waitingKey={C.Chat.waitingKeyCreating}
       onClick={e => {
         e.stopPropagation() // instead of using onAdd, use onChat logic
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 
-  const rightButtons = Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
+  const rightButtons = Kb.Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
 })
@@ -127,53 +89,57 @@ type DropdownProps = {
   onAddToTeam?: () => void
   onOpenPrivateFolder?: () => void
   onBrowsePublicFolder?: () => void
-  onSendLumens?: () => void
-  onRequestLumens?: () => void
   onManageBlocking?: () => void
   blocked?: boolean
   onUnfollow?: () => void
 }
 
 const DropdownButton = (p: DropdownProps) => {
-  const items: Kb.MenuItems = [
-    p.onAddToTeam && {icon: 'iconfont-add', onClick: p.onAddToTeam, title: 'Add to team...'},
-    p.onSendLumens && {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    p.onRequestLumens && {
-      icon: 'iconfont-stellar-request',
-      onClick: p.onRequestLumens,
-      title: 'Request Lumens (XLM)',
-    },
-    p.onOpenPrivateFolder && {
-      icon: 'iconfont-folder-open',
-      onClick: p.onOpenPrivateFolder,
-      title: 'Open private folder',
-    },
-    p.onBrowsePublicFolder && {
-      icon: 'iconfont-folder-public',
-      onClick: p.onBrowsePublicFolder,
-      title: 'Browse public folder',
-    },
-    p.onManageBlocking && {
-      danger: true,
-      icon: 'iconfont-add',
-      onClick: p.onManageBlocking,
-      title: p.blocked ? 'Manage blocking' : 'Block',
-    },
-  ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i as Kb.MenuItem)
-    return arr
-  }, [])
+  const {onAddToTeam, onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
+  const items: Kb.MenuItems = React.useMemo(
+    () =>
+      [
+        onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
+        onOpenPrivateFolder && {
+          icon: 'iconfont-folder-open',
+          onClick: onOpenPrivateFolder,
+          title: 'Open private folder',
+        },
+        onBrowsePublicFolder && {
+          icon: 'iconfont-folder-public',
+          onClick: onBrowsePublicFolder,
+          title: 'Browse public folder',
+        },
+        onManageBlocking && {
+          danger: true,
+          icon: 'iconfont-add',
+          onClick: onManageBlocking,
+          title: blocked ? 'Manage blocking' : 'Block',
+        },
+      ].reduce<Kb.MenuItems>((arr, i) => {
+        i && arr.push(i as Kb.MenuItem)
+        return arr
+      }, []),
+    [blocked, onAddToTeam, onBrowsePublicFolder, onManageBlocking, onOpenPrivateFolder]
+  )
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      closeOnSelect={true}
-      attachTo={attachTo}
-      items={items}
-      onHidden={toggleShowingPopup}
-      position="bottom right"
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          attachTo={attachTo}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="bottom right"
+          visible={true}
+        />
+      )
+    },
+    [items]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox
@@ -185,7 +151,7 @@ const DropdownButton = (p: DropdownProps) => {
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}
@@ -193,17 +159,17 @@ const DropdownButton = (p: DropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-  highlighted: Styles.platformStyles({
+  highlighted: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter2,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.blueLighter2,
+      borderRadius: Kb.Styles.borderRadius,
     },
   }),
   rowContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
   },
 }))
 

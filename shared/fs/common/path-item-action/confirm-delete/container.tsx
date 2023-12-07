@@ -1,41 +1,38 @@
-import * as Constants from '../../../../constants/fs'
-import * as Container from '../../../../util/container'
-import * as FsGen from '../../../../actions/fs-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as C from '@/constants'
+import * as React from 'react'
+import type * as T from '@/constants/types'
 import ReallyDelete from '.'
 
-type OwnProps = Container.RouteProps<'confirmDelete'>
+type OwnProps = {
+  path: T.FS.Path
+  mode: 'row' | 'screen'
+}
 
-export default Container.connect(
-  () => ({}),
-  (dispatch, ownProps: OwnProps) => {
-    const {params} = ownProps.route
-    const path = params?.path ?? null
-    const mode = params?.mode ?? 'row'
-    return {
-      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-      onDelete: () => {
-        if (path !== Constants.defaultPath) {
-          dispatch(FsGen.createDeleteFile({path}))
-        }
-        // If this is a screen menu, then we're deleting the folder we're in,
-        // and we need to navigate up twice.
-        if (mode === 'screen') {
-          dispatch(RouteTreeGen.createNavigateUp())
-          dispatch(RouteTreeGen.createNavigateUp())
-        } else {
-          dispatch(RouteTreeGen.createNavigateUp())
-        }
-      },
+const Container = (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+  const deleteFile = C.useFSState(s => s.dispatch.deleteFile)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = navigateUp
+  const onDelete = React.useCallback(() => {
+    if (path !== C.defaultPath) {
+      deleteFile(path)
     }
-  },
-  (_, dispatchProps, ownProps: OwnProps) => {
-    const path = ownProps.route.params?.path ?? null
-    return {
-      onBack: dispatchProps.onBack,
-      onDelete: dispatchProps.onDelete,
-      path: path,
-      title: 'Confirmation',
+    // If this is a screen menu, then we're deleting the folder we're in,
+    // and we need to navigate up twice.
+    if (mode === 'screen') {
+      navigateUp()
+      navigateUp()
+    } else {
+      navigateUp()
     }
+  }, [deleteFile, navigateUp, mode, path])
+  const props = {
+    onBack,
+    onDelete,
+    path,
+    title: 'Confirmation',
   }
-)(ReallyDelete)
+  return <ReallyDelete {...props} />
+}
+
+export default Container

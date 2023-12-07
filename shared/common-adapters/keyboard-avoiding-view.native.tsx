@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {
   AccessibilityInfo,
   Dimensions,
@@ -16,7 +16,7 @@ import {
 import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
-import {getKeyboardUp} from '../styles/keyboard-state'
+import {getKeyboardUp} from '@/styles/keyboard-state'
 
 type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 
@@ -63,7 +63,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   async _relativeKeyboardHeight(keyboardFrame: KeyboardMetrics): Promise<number> {
     const frame = this._frame
-    if (!frame || !keyboardFrame) {
+    if (!frame) {
       return 0
     }
 
@@ -72,7 +72,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     if (
       Platform.OS === 'ios' &&
       keyboardFrame.screenY === 0 &&
-      // @ts-ignore actually exists but not in the api until 71
       (await AccessibilityInfo.prefersCrossFadeTransitions())
     ) {
       return 0
@@ -104,36 +103,46 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       .catch(() => {})
   }
 
-  _onLayout = async (event: LayoutChangeEvent) => {
-    const wasFrameNull = this._frame == null
-    this._frame = event.nativeEvent.layout
-    if (!this._initialFrameHeight) {
-      // save the initial frame height, before the keyboard is visible
-      this._initialFrameHeight = this._frame.height
-    }
+  _onLayout = (event: LayoutChangeEvent) => {
+    const f = async () => {
+      const wasFrameNull = !this._frame
+      this._frame = event.nativeEvent.layout
+      if (!this._initialFrameHeight) {
+        // save the initial frame height, before the keyboard is visible
+        this._initialFrameHeight = this._frame.height
+      }
 
-    if (wasFrameNull) {
-      await this._updateBottomIfNecessary()
-    }
+      if (wasFrameNull) {
+        await this._updateBottomIfNecessary()
+      }
 
-    if (this.props.onLayout) {
-      this.props.onLayout(event)
+      if (this.props.onLayout) {
+        this.props.onLayout(event)
+      }
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
+  }
+
+  // Avoid unnecessary renders if the KeyboardAvoidingView is disabled.
+  _setBottom = (value: number) => {
+    const enabled = this.props.enabled ?? true
+    this._bottom = value
+    if (enabled) {
+      this.setState({bottom: value + (this.props.extraPadding ?? 0)})
     }
   }
 
   _updateBottomIfNecessary = async () => {
     if (!this._keyboardEvent) {
-      this._bottom = 0
-      this.setState({bottom: 0})
+      this._setBottom(0)
 
       if (getKeyboardUp()) {
-        // @ts-ignore actually exists but not in the api until 71
         const h = Keyboard.metrics()?.height ?? 0
-        this._bottom = h
-        this.setState({bottom: h + (this.props.extraPadding ?? 0)})
+        this._setBottom(h)
       } else {
-        this._bottom = 0
-        this.setState({bottom: 0})
+        this._setBottom(0)
       }
       return
     }
@@ -141,24 +150,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     const {duration, easing, endCoordinates} = this._keyboardEvent
     const height = await this._relativeKeyboardHeight(endCoordinates)
 
-    // do NOT use state here as its async and we can race
     if (this._bottom === height) {
       return
     }
 
-    if (duration && easing) {
+    const enabled = this.props.enabled ?? true
+    // eslint-disable-next-line
+    if (enabled && duration && easing) {
       LayoutAnimation.configureNext({
         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
         duration: duration > 10 ? duration : 10,
         update: {
           duration: duration > 10 ? duration : 10,
+          // eslint-disable-next-line
           type: LayoutAnimation.Types[easing] || 'keyboard',
         },
       })
     }
-    this._bottom = height
-    this.setState({bottom: height + (this.props.extraPadding ?? 0)})
+    this._setBottom(height)
   }
+
+  // componentDidUpdate(_: Props, prevState: State): void {
+  // const enabled = this.props.enabled ?? true
+  // if (enabled && this._bottom !== prevState.bottom) {
+  //   this.setState({bottom: this._bottom})
+  // }
+  // }
 
   componentDidMount(): void {
     if (Platform.OS === 'ios') {
@@ -192,7 +209,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     switch (behavior) {
       case 'height': {
         let heightStyle: ViewStyle | undefined
-        if (this._frame != null && this.state.bottom > 0) {
+        if (!!this._frame && this.state.bottom > 0) {
           // Note that we only apply a height change when there is keyboard present,
           // i.e. this.state.bottom is greater than 0. If we remove that condition,
           // this.frame.height will never go back to its original value.
@@ -256,7 +273,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export const KeyboardAvoidingView2 = (p: KAVProps) => {

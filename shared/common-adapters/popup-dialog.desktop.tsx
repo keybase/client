@@ -1,32 +1,28 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import Icon from './icon'
-import {EscapeHandler} from '../util/key-event-handler.desktop'
-import * as Styles from '../styles'
+import {EscapeHandler} from './key-event-handler.desktop'
+import * as Styles from '@/styles'
 import type {Props} from './popup-dialog'
 
-function stopBubbling(ev) {
+const Kb = {
+  Box2,
+  EscapeHandler,
+  Icon,
+}
+
+function stopBubbling(ev: any) {
   ev.stopPropagation()
 }
 
-export function PopupDialog({
-  children,
-  onClose,
-  onMouseUp,
-  onMouseDown,
-  onMouseMove,
-  fill,
-  immuneToEscape,
-  styleCover,
-  styleContainer,
-  styleClose,
-  styleClipContainer,
-  allowClipBubbling,
-}: Props) {
+export function PopupDialog(p: Props) {
+  const {children, onClose, onMouseUp, onMouseDown, onMouseMove, fill} = p
+  const {immuneToEscape, styleCover, styleContainer, styleClose, styleClipContainer, allowClipBubbling} = p
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
-      <Box
+    <Kb.EscapeHandler onESC={!immuneToEscape ? onClose || undefined : undefined}>
+      <Kb.Box2
+        direction="vertical"
         style={Styles.collapseStyles([styles.cover, styleCover])}
         onMouseUp={(e: React.MouseEvent) => {
           if (mouseDownOnCover) {
@@ -40,7 +36,8 @@ export function PopupDialog({
         }}
         onMouseMove={onMouseMove}
       >
-        <Box
+        <Kb.Box2
+          direction="vertical"
           style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
           onMouseDown={(e: React.BaseSyntheticEvent) => {
             setMouseDownOnCover(false)
@@ -49,7 +46,7 @@ export function PopupDialog({
           onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
         >
           {onClose && (
-            <Icon
+            <Kb.Icon
               type="iconfont-close"
               style={Styles.collapseStyles([styles.close, styleClose])}
               color={Styles.globalColors.whiteOrWhite_75}
@@ -57,15 +54,15 @@ export function PopupDialog({
               hoverColor={Styles.globalColors.white_40OrWhite_40}
             />
           )}
-          <Box
-            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
+          <div
+            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer]) as React.CSSProperties}
             onClick={allowClipBubbling ? undefined : stopBubbling}
           >
             {children}
-          </Box>
-        </Box>
-      </Box>
-    </EscapeHandler>
+          </div>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.EscapeHandler>
   )
 }
 
@@ -105,7 +102,8 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrBlack_60,
+    // bg handled up a level w css
+    // backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,

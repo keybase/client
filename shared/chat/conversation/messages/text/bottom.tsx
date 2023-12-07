@@ -1,11 +1,9 @@
-import * as Container from '../../../../util/container'
+import * as C from '@/constants'
 import * as React from 'react'
-import {ConvoIDContext} from '../ids-context'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '@/constants/types'
 import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   hasUnfurlPrompts: boolean
@@ -14,19 +12,18 @@ type Props = {
   toggleShowingPopup: () => void
 }
 
-export const useBottom = (ordinal: Types.Ordinal, toggleShowingPopup: () => void) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {hasUnfurlPrompts, hasCoinFlip, hasUnfurlList} = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
-    const hasUnfurlList = (message?.unfurls?.size ?? 0) > 0
+export const useBottom = (ordinal: T.Chat.Ordinal, toggleShowingPopup: () => void) => {
+  const {id, hasCoinFlip, hasUnfurlList} = C.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal)
+      const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
+      const hasUnfurlList = (message?.unfurls?.size ?? 0) > 0
+      const id = message?.id
+      return {hasCoinFlip, hasUnfurlList, id}
+    })
+  )
 
-    const id = message?.id
-    const hasUnfurlPrompts = id
-      ? (state.chat2.unfurlPromptMap.get(conversationIDKey)?.get(id)?.size ?? 0) > 0
-      : false
-    return {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts}
-  }, shallowEqual)
+  const hasUnfurlPrompts = C.useChatContext(s => !!id && !!s.unfurlPrompt.get(id)?.size)
 
   return React.useMemo(
     () => (

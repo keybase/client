@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 
@@ -10,7 +10,7 @@ type _Segment = {
   onClick?: () => void
   text: string
 }
-type Segment = _Segment | string | null | false
+type Segment = _Segment | string | undefined
 
 type BannerParagraphProps = {
   bannerColor: Color

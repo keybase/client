@@ -1,14 +1,13 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
 export type Props = {
   canChange: boolean
   explanation?: string
   onChange: () => void
-  policy: RetentionPolicy
-  teamPolicy: RetentionPolicy
+  policy: T.Retention.RetentionPolicy
+  teamPolicy: T.Retention.RetentionPolicy
 }
 
 const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
@@ -21,7 +20,7 @@ const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
   return (
     <Kb.Box style={styles.container}>
       <Kb.Box style={styles.iconBox}>
-        <Kb.Icon color={Styles.globalColors.black_20} fontSize={20} type={iconType} />
+        <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
       </Kb.Box>
       {!!props.explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
@@ -31,7 +30,7 @@ const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
       {props.canChange && (
         <Kb.Text
           type="BodySmallSemiboldPrimaryLink"
-          style={{color: Styles.globalColors.blueDark}}
+          style={{color: Kb.Styles.globalColors.blueDark}}
           onClick={props.onChange}
         >
           Change this
@@ -42,21 +41,21 @@ const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
 })
 export default RetentionNotice
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blueLighter3,
-        paddingBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.globalMargins.small,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.medium,
+        paddingRight: Kb.Styles.globalMargins.medium,
+        paddingTop: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       iconBox: {
-        marginBottom: Styles.globalMargins.xtiny,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )

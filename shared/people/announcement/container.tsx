@@ -1,88 +1,86 @@
+import * as C from '@/constants'
 import Announcement from '.'
-import * as PeopleGen from '../../actions/people-gen'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RouteTree from '../../actions/route-tree-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Tabs from '../../constants/tabs'
-import * as SettingsTabs from '../../constants/settings'
-import openURL from '../../util/open-url'
-import * as Container from '../../util/container'
+import * as T from '@/constants/types'
+import openURL from '@/util/open-url'
 
 type OwnProps = {
-  appLink: RPCTypes.AppLinkType | null
+  appLink?: T.RPCGen.AppLinkType
   badged: boolean
-  confirmLabel: string | null
+  confirmLabel?: string
   dismissable: boolean
-  iconUrl: string | null
-  id: RPCTypes.HomeScreenAnnouncementID
+  iconUrl?: string
+  id: T.RPCGen.HomeScreenAnnouncementID
   text: string
-  url: string | null
+  url?: string
 }
 
-const mapStateToProps = () => ({})
-
-// Really the saga should handle all of this and we shouldn't have any of these ownProps passed in but this
-// is how the other types work in this list. TODO change this to be more modern
-const mapDispatchToProps = dispatch => ({
-  _onConfirm: (id, appLink, url) => {
+const Container = (ownProps: OwnProps) => {
+  const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
+  const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
+  const dismissAnnouncement = C.usePeopleState(s => s.dispatch.dismissAnnouncement)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const onConfirm = () => {
     if (url) {
       openURL(url)
     }
 
     switch (appLink) {
-      case RPCTypes.AppLinkType.people:
+      case T.RPCGen.AppLinkType.people:
         break
-      case RPCTypes.AppLinkType.chat:
-        dispatch(Chat2Gen.createNavigateToInbox())
+      case T.RPCGen.AppLinkType.chat:
+        navigateToInbox()
         break
-      case RPCTypes.AppLinkType.files:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.fsTab}))
-        if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.fsTab]}))
+      case T.RPCGen.AppLinkType.files:
+        switchTab(C.isMobile ? C.settingsTab : C.fsTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsFsTab)
         }
         break
-      case RPCTypes.AppLinkType.wallet:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
-        if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.walletsTab]}))
+      case T.RPCGen.AppLinkType.wallet:
+        switchTab(C.isMobile ? C.settingsTab : C.walletsTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsWalletsTab)
         }
         break
-      case RPCTypes.AppLinkType.git:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.gitTab}))
-        if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+      case T.RPCGen.AppLinkType.git:
+        switchTab(C.isMobile ? C.settingsTab : C.gitTab)
+        if (C.isMobile) {
+          navigateAppend({props: {}, selected: C.settingsGitTab})
         }
         break
-      case RPCTypes.AppLinkType.devices:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab}))
-        if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.devicesTab]}))
+      case T.RPCGen.AppLinkType.devices:
+        switchTab(C.isMobile ? C.settingsTab : C.devicesTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsDevicesTab)
         }
         break
-      case RPCTypes.AppLinkType.settings:
-        dispatch(RouteTree.createSwitchTab({tab: Tabs.settingsTab}))
+      case T.RPCGen.AppLinkType.settings:
+        switchTab(C.settingsTab)
         break
-      case RPCTypes.AppLinkType.teams:
-        dispatch(RouteTree.createSwitchTab({tab: Tabs.teamsTab}))
+      case T.RPCGen.AppLinkType.teams:
+        switchTab(C.teamsTab)
         break
+      default:
     }
-    dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
-  },
-  _onDismiss: id => {
-    dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
-  },
-})
+    dismissAnnouncement(id)
+    loadPeople(true, 10)
+  }
+  const _onDismiss = () => {
+    dismissAnnouncement(id)
+    loadPeople(true, 10)
+  }
+  const props = {
+    badged,
+    confirmLabel,
+    iconUrl,
+    onConfirm,
+    onDismiss: dismissable ? _onDismiss : undefined,
+    text,
+    url,
+  }
+  return <Announcement {...props} />
+}
 
-const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
-  badged: ownProps.badged,
-  confirmLabel: ownProps.confirmLabel,
-  iconUrl: ownProps.iconUrl,
-  onConfirm: () => dispatchProps._onConfirm(ownProps.id, ownProps.appLink, ownProps.url),
-  onDismiss: ownProps.dismissable ? () => dispatchProps._onDismiss(ownProps.id) : null,
-  text: ownProps.text,
-  url: ownProps.url,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Announcement)
+export default Container

@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {formatTimeForPeopleItem} from '../../util/timestamp'
-import type {Props as ButtonProps} from '../../common-adapters/button'
+import * as Kb from '@/common-adapters'
+import {formatTimeForPeopleItem} from '@/util/timestamp'
+import type {Props as ButtonProps} from '@/common-adapters/button'
 
 type NonReactTaskButton = {
   label: string
@@ -21,14 +20,14 @@ export type Props = {
   when?: Date
   contentStyle?: any
   format?: 'single' | 'multi'
-  iconContainerStyle?: Styles.StylesCrossPlatform
+  iconContainerStyle?: Kb.Styles.StylesCrossPlatform
   buttons?: Array<TaskButton>
 }
 
 const PeopleItem = (props: Props) => (
-  <Kb.Box style={Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
+  <Kb.Box style={Kb.Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
-      <Kb.Box key="icon" style={Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+      <Kb.Box key="icon" style={Kb.Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
         {props.icon}
       </Kb.Box>
     )}
@@ -36,7 +35,7 @@ const PeopleItem = (props: Props) => (
     <Kb.Box2
       direction="vertical"
       gap="xtiny"
-      style={Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
+      style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
       {props.children}
       <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
@@ -59,63 +58,63 @@ const PeopleItem = (props: Props) => (
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.timestampContainer,
         props.format === 'multi' && styles.timestampContainerMulti,
       ])}
     >
       {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
       {props.badged && (
-        <Kb.Badge badgeStyle={styles.badge} height={Styles.globalMargins.tiny} leftRightPadding={0} />
+        <Kb.Badge badgeStyle={styles.badge} height={Kb.Styles.globalMargins.tiny} leftRightPadding={0} />
       )}
     </Kb.Box>
   </Kb.Box>
 )
 export default PeopleItem
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   actionContainer: {
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
   },
   badge: {
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
-  button: {marginBottom: Styles.globalMargins.xtiny, marginRight: Styles.globalMargins.tiny},
+  button: {marginBottom: Kb.Styles.globalMargins.xtiny, marginRight: Kb.Styles.globalMargins.tiny},
   childrenContainer: {
     flex: 1,
     overflow: 'hidden',
     position: 'relative',
     width: 'auto',
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
-      backgroundColor: Styles.globalColors.white,
-      borderBottomColor: Styles.globalColors.black_10,
+      ...Kb.Styles.globalStyles.flexBoxRow,
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
+      paddingBottom: Kb.Styles.globalMargins.xsmall,
+      paddingTop: Kb.Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {borderStyle: 'solid'},
   }),
   containerBadged: {
-    backgroundColor: Styles.globalColors.blueLighter2,
-    borderBottomColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.blueLighter2,
+    borderBottomColor: Kb.Styles.globalColors.white,
   },
   iconContainer: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.xsmall,
+    marginLeft: Kb.Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.xsmall,
     width: 48,
   },
-  timestampContainer: Styles.platformStyles({
+  timestampContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       alignSelf: 'center',
       marginLeft: 'auto',
-      marginRight: Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
       marginTop: 6,
     },
     isElectron: {alignSelf: 'baseline'},

@@ -1,28 +1,29 @@
-import * as TeamsGen from '../actions/teams-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ChatConstants from '../constants/chat2'
-import * as Container from '../util/container'
+import * as C from '@/constants'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps<'chatShowNewTeamDialog'>
+const Container = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const baseTeam = ''
+  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onCancel = () => {
+    navigateUp()
+  }
+  const resetErrorInTeamCreation = C.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeamFromConversation = C.useTeamsState(s => s.dispatch.createNewTeamFromConversation)
+  const onClearError = resetErrorInTeamCreation
+  const onSubmit = (teamname: string) => {
+    createNewTeamFromConversation(conversationIDKey, teamname)
+  }
+  const props = {
+    baseTeam,
+    errorText,
+    onCancel,
+    onClearError,
+    onSubmit,
+  }
+  return <NewTeamDialog {...props} />
+}
 
-export default Container.connect(
-  state => ({
-    baseTeam: '',
-    errorText: upperFirst(state.teams.errorInTeamCreation),
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClearError: () => dispatch(TeamsGen.createSetTeamCreationError({error: ''})),
-    onSubmit: (teamname: string) => {
-      dispatch(
-        TeamsGen.createCreateNewTeamFromConversation({
-          conversationIDKey: ownProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey,
-          teamname,
-        })
-      )
-    },
-  }),
-  (s, d) => ({...s, ...d})
-)(NewTeamDialog)
+export default Container

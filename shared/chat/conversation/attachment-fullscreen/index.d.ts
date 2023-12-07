@@ -1,19 +1,8 @@
-import * as React from 'react'
-import {MessageAttachment} from '../../../constants/types/chat2'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
+
 export type Props = {
-  path: string
-  previewHeight: number
-  previewWidth: number
-  title: string
-  message: MessageAttachment
-  progress: number
-  progressLabel?: string
-  onAllMedia: () => void
-  onNextAttachment: () => void
-  onPreviousAttachment: () => void
-  onClose: () => void
-  onDownloadAttachment?: () => void
-  onShowInFinder?: () => void
-  isVideo: boolean
+  ordinal: T.Chat.Ordinal
 }
-export default class Fullscreen extends React.Component<Props> {}
+declare const Fullscreen: (p: Props) => React.ReactNode
+export default Fullscreen

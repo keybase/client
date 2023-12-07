@@ -1,20 +1,27 @@
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as ProfileGen from '../../../actions/profile-gen'
+import * as C from '@/constants'
 import Success from '.'
 
-export default Container.connect(
-  state => ({
-    errorText: state.profile.errorCode !== null ? state.profile.errorText || 'Failed to verify proof' : '',
-    proofUsername: state.profile.username + state.profile.platformGenericParams?.suffix ?? '@unknown',
-    serviceIcon: state.profile.platformGenericParams?.logoFull ?? [],
-  }),
-  dispatch => ({
-    onClose: () => {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(ProfileGen.createBackToProfile())
-      dispatch(ProfileGen.createClearPlatformGeneric())
-    },
-  }),
-  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
-)(Success)
+const Container = () => {
+  const errorText = C.useProfileState(s =>
+    s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
+  )
+  const proofUsername = C.useProfileState(s => s.username + (s.platformGenericParams?.suffix ?? '@unknown'))
+  const serviceIcon = C.useProfileState(s => s.platformGenericParams?.logoFull ?? [])
+  const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
+  const clearPlatformGeneric = C.useProfileState(s => s.dispatch.clearPlatformGeneric)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const onClose = () => {
+    clearModals()
+    backToProfile()
+    clearPlatformGeneric()
+  }
+  const props = {
+    errorText,
+    onClose,
+    proofUsername,
+    serviceIcon,
+  }
+  return <Success {...props} />
+}
+
+export default Container

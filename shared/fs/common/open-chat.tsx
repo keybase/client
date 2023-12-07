@@ -1,21 +1,19 @@
-import * as Container from '../../util/container'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as Styles from '../../styles'
-import * as Util from '../../util/kbfs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import * as Util from '@/util/kbfs'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const OpenChat = props =>
+const OpenChat = (props: any) =>
   props.onChat && (
     <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon
         type="iconfont-chat"
-        color={Styles.globalColors.black_50}
+        color={Kb.Styles.globalColors.black_50}
         fontSize={16}
         onClick={props.onChat}
         style={styles.headerIcon}
@@ -23,30 +21,34 @@ const OpenChat = props =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       headerIcon: {
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
-const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  isTeam: Constants.isTeamPath(path),
-  onChat: Constants.canChat(path)
-    ? () =>
-        dispatch(
-          Chat2Gen.createPreviewConversation({
-            reason: 'files',
-            // tlfToParticipantsOrTeamname will route both public and private
-            // folders to a private chat, which is exactly what we want.
-            ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
-          })
-        )
-    : null,
-})
+const Container = (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const isTeam = C.isTeamPath(path)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const _onChat = () => {
+    previewConversation({
+      reason: 'files',
+      // tlfToParticipantsOrTeamname will route both public and private
+      // folders to a private chat, which is exactly what we want.
+      ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
+    })
+  }
 
-const mergeProps = (_, d) => d
+  const onChat = Constants.canChat(path) ? _onChat : null
+  const props = {
+    isTeam,
+    onChat,
+  }
+  return <OpenChat {...props} />
+}
 
-export default Container.connect(() => ({}), mapDispatchToProps, mergeProps)(OpenChat)
+export default Container

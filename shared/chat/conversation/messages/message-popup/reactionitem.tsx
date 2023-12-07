@@ -1,7 +1,6 @@
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {
   onHidden: () => void
@@ -10,7 +9,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
-  const _topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
+  const _topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()
@@ -26,7 +25,7 @@ const ReactionItem = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
       {topReacjis.map((r, idx) => (
-        <Kb.ClickableBox key={r.name ?? idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
+        <Kb.ClickableBox key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
           {renderEmoji({emoji: RPCUserReacjiToRenderableEmoji(r, true), showTooltip: false, size: 28})}
         </Kb.ClickableBox>
       ))}
@@ -36,7 +35,7 @@ const ReactionItem = (props: Props) => {
     </Kb.Box2>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       clickableBox: {
@@ -49,10 +48,10 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         flex: 1,
         justifyContent: 'space-between',
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default ReactionItem

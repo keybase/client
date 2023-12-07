@@ -1,15 +1,15 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import Avatar, {type AvatarSize} from '../avatar'
-import {Box} from '../box'
+import {Box} from '@/common-adapters/box'
 import ClickableBox from '../clickable-box'
-import Icon, {type IconType} from '../icon'
+import Icon, {type IconType} from '@/common-adapters/icon'
 import Text, {
   type TextType,
   type StylesTextCrossPlatform,
   type AllowedColors,
   type TextTypeBold,
-} from '../text'
+} from '@/common-adapters/text'
 import ConnectedUsernames from '../usernames'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
@@ -52,20 +52,23 @@ export type NameWithIconProps = {
 
 // If lineclamping isn't working, try adding a static width in containerStyle
 const NameWithIcon = (props: NameWithIconProps) => {
-  const _onClickWrapper = (event: React.SyntheticEvent) => {
-    if (!event.defaultPrevented && props.onClick) {
-      props.username && props.onClick(props.username)
-    }
-  }
+  const {onClick, username = '', teamname, size} = props
+  const _onClickWrapper = onClick
+    ? (event: React.BaseSyntheticEvent) => {
+        if (!event.defaultPrevented) {
+          username && onClick(username)
+        }
+      }
+    : undefined
 
-  if (props.username && props.teamname) {
+  if (username && teamname) {
     throw new Error('Can only use username or teamname in NameWithIcon; got both')
   }
 
-  const isAvatar = !!(props.username || props.teamname) && !props.icon
-  const commonHeight = props.size === 'big' ? 64 : Styles.isMobile ? 48 : 32
-  const BoxComponent = props.onClick ? ClickableBox : Box
-  const adapterProps = getAdapterProps(props.size || 'default')
+  const isAvatar = !!(username || teamname) && !props.icon
+  const commonHeight = size === 'big' ? 64 : Styles.isMobile ? 48 : 32
+  const BoxComponent = onClick ? ClickableBox : Box
+  const adapterProps = getAdapterProps(size || 'default')
 
   let avatarOrIcon
   if (isAvatar) {
@@ -76,11 +79,11 @@ const NameWithIcon = (props: NameWithIconProps) => {
         onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
         size={props.avatarSize || (props.horizontal ? commonHeight : (adapterProps.iconSize as any))}
         showFollowingStatus={props.horizontal ? undefined : !props.hideFollowingOverlay}
-        username={props.username}
-        teamname={props.teamname}
+        username={username}
+        teamname={teamname}
         style={Styles.collapseStyles([
           props.horizontal ? styles.hAvatarStyle : {},
-          props.horizontal && props.size === 'big' ? styles.hbAvatarStyle : {},
+          props.horizontal && size === 'big' ? styles.hbAvatarStyle : {},
           props.avatarStyle,
         ])}
       />
@@ -92,7 +95,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
         type={props.icon}
         style={
           props.horizontal
-            ? props.size === 'big'
+            ? size === 'big'
               ? styles.hbIconStyle
               : styles.hIconStyle
             : {height: adapterProps.iconSize, width: adapterProps.iconSize}
@@ -101,7 +104,6 @@ const NameWithIcon = (props: NameWithIconProps) => {
       />
     )
   }
-  const username = props.username || ''
   const usernames = React.useMemo(() => [username], [username])
   const title = props.title || ''
   const usernameOrTitle = title ? (
@@ -112,11 +114,11 @@ const NameWithIcon = (props: NameWithIconProps) => {
     />
   ) : (
     <ConnectedUsernames
-      onUsernameClicked={props.clickType === 'onClick' ? props.onClick : 'profile'}
+      onUsernameClicked={props.clickType === 'onClick' ? onClick : 'profile'}
       type={props.horizontal ? 'BodyBold' : adapterProps.titleType}
       containerStyle={Styles.collapseStyles([
         !props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
-        props.size === 'smaller' && styles.smallerWidthTextContainer,
+        size === 'smaller' && styles.smallerWidthTextContainer,
       ] as const)}
       inline={!props.horizontal}
       underline={props.underline}
@@ -126,28 +128,28 @@ const NameWithIcon = (props: NameWithIconProps) => {
       colorFollowing={props.colorFollowing}
       colorYou={props.notFollowingColorOverride || true}
       notFollowingColorOverride={props.notFollowingColorOverride}
-      style={props.size === 'smaller' ? {} : (styles.fullWidthText as any)}
+      style={size === 'smaller' ? {} : (styles.fullWidthText as any)}
       withProfileCardPopup={props.withProfileCardPopup}
     />
   )
   const metaOne = (
     <TextOrComponent
       textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-      val={props.metaOne || null}
+      val={props.metaOne}
       style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const metaTwo = (
     <TextOrComponent
       textType="BodySmall"
-      val={props.metaTwo || null}
+      val={props.metaTwo}
       style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const botAlias = (
     <TextOrComponent
       textType="Header"
-      val={props.botAlias || null}
+      val={props.botAlias}
       style={props.horizontal ? styles.botAlias : (styles.fullWidthText as any)}
     />
   )
@@ -166,11 +168,10 @@ const NameWithIcon = (props: NameWithIconProps) => {
 
   return (
     <BoxComponent
-      // @ts-ignore TODO fix
-      onClick={props.onClick ? _onClickWrapper : undefined}
+      onClick={_onClickWrapper}
       style={Styles.collapseStyles([
         props.horizontal
-          ? props.size === 'big'
+          ? size === 'big'
             ? styles.hbContainerStyle
             : styles.hContainerStyle
           : styles.vContainerStyle,
@@ -183,17 +184,17 @@ const NameWithIcon = (props: NameWithIconProps) => {
           props.horizontal
             ? Styles.collapseStyles([
                 Styles.globalStyles.flexBoxColumn,
-                props.size === 'big' && styles.textContainer,
+                size === 'big' && styles.textContainer,
                 props.metaStyle,
               ])
             : Styles.collapseStyles([
                 Styles.globalStyles.flexBoxRow,
                 styles.metaStyle,
-                props.size === 'smaller' && styles.smallerWidthTextContainer,
-                props.size !== 'smaller' && styles.fullWidthTextContainer,
+                size === 'smaller' && styles.smallerWidthTextContainer,
+                size !== 'smaller' && styles.fullWidthTextContainer,
                 {marginTop: adapterProps.metaMargin},
                 props.metaStyle,
-                props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
+                size === 'smaller' ? styles.smallerWidthTextContainer : {},
               ] as const)
         }
       >
@@ -210,7 +211,7 @@ const TextOrComponent = (props: {
   val: string | React.ReactNode
   textType: TextType
   style?: StylesTextCrossPlatform
-}): React.ReactElement => {
+}) => {
   if (typeof props.val === 'string') {
     return (
       <Text style={props.style} lineClamp={1} type={props.textType}>
@@ -218,7 +219,6 @@ const TextOrComponent = (props: {
       </Text>
     )
   }
-  // @ts-ignore to fix wrap in fragment
   return props.val
 }
 
@@ -338,13 +338,13 @@ const getAdapterProps = (
         metaOneType: 'BodySemibold',
         titleType: 'HeaderBig',
       }
-  }
-  // default
-  return {
-    iconSize: 64,
-    metaMargin: Styles.globalMargins.tiny,
-    metaOneType: 'BodySemibold',
-    titleType: 'BodyBold',
+    default:
+      return {
+        iconSize: 64,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'BodyBold',
+      }
   }
 }
 
