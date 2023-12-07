@@ -5,7 +5,7 @@ import StartNewChat from './row/start-new-chat'
 
 type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
 
-export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
+export default React.memo(function InboxSearchRow(ownProps: OwnProps) {
   const {headerContext} = ownProps
   const hasLoadedEmptyInbox = C.useChatState(
     s =>

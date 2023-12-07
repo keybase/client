@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
-import ChatInboxHeader from './header'
+import SearchRow from './search-row'
 import InboxSearch from '../inbox-search'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
@@ -256,7 +256,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
     return {index, length, offset}
   }
 
-  private HeadComponent = (<ChatInboxHeader headerContext="inbox-header" />)
+  private HeadComponent = (<SearchRow headerContext="inbox-header" />)
   private viewabilityConfig = {
     minimumViewTime: 100,
     viewAreaCoveragePercentThreshold: 30,

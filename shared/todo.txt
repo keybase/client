@@ -1,5 +1,6 @@
 Some short term todos:
 swipeable2 slow
 
-android audio not working
-ipad
+ipad:
+sanity check
+chat headers break on orientation change

@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import ChatInboxHeader from './inbox/header'
+import SearchRow from './inbox/search-row'
+import NewChatButton from './inbox/new-chat-button'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 const Header = (props: Props) => {
@@ -114,8 +115,9 @@ const Header2 = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="vertical" style={styles.left}>
-        <ChatInboxHeader headerContext="chat-header" />
+      <Kb.Box2 direction="horizontal" style={styles.left}>
+        {Kb.Styles.isMobile ? null : <SearchRow headerContext="chat-header" />}
+        <NewChatButton />
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"
@@ -260,7 +262,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       left: Kb.Styles.platformStyles({
-        common: {width: Kb.Styles.globalStyles.mediumSubNavWidth},
+        common: {
+          height: Kb.Styles.isTablet ? 36 : 32,
+          width: Kb.Styles.globalStyles.mediumSubNavWidth,
+        },
         isTablet: {
           paddingLeft: Kb.Styles.globalMargins.small,
         },
