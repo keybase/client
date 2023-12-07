@@ -3,4 +3,3 @@ swipeable2 slow
 
 ipad:
 sanity check
-chat headers break on orientation change
