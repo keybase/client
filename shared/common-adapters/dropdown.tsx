@@ -64,8 +64,8 @@ export const DropdownButton = (props: DropdownButtonProps) => (
           paddingRight: props.inline
             ? Styles.globalMargins.tiny
             : Styles.isMobile
-            ? Styles.globalMargins.large
-            : Styles.globalMargins.small,
+              ? Styles.globalMargins.large
+              : Styles.globalMargins.small,
           width: props.inline ? undefined : '100%',
           ...(Styles.isTablet ? {maxWidth: 460} : {}),
         } as any
@@ -88,7 +88,6 @@ type Props<N> = {
   disabled?: boolean
   itemBoxStyle?: Styles.StylesCrossPlatform
   items: Array<N>
-  onChanged?: (selected: N) => void
   onChangedIdx?: (selectedIdx: number) => void
   overlayStyle?: Styles.StylesCrossPlatform
   position?: Styles.Position
@@ -99,7 +98,7 @@ type Props<N> = {
 
 function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
-  const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
+  const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
 
   const makePopup = React.useCallback(
@@ -122,7 +121,6 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
                   evt.preventDefault()
                   // Bug in flow that doesn't let us just call this function
                   // onSelect(i)
-                  onChanged?.(i)
                   onChangedIdx?.(idx)
                   toggleShowingPopup()
                 }}
@@ -140,7 +138,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
         </Kb.Overlay>
       )
     },
-    [items, onChanged, onChangedIdx, overlayStyle, position, itemBoxStyle]
+    [items, onChangedIdx, overlayStyle, position, itemBoxStyle]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 

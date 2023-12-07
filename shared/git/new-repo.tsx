@@ -130,12 +130,12 @@ class NewRepo extends React.Component<Props, State> {
     )
   }
 
-  _dropdownChanged = (node: React.ReactElement) => {
-    if (node.key === NewTeamSentry) {
+  _dropdownChanged = (idx: number) => {
+    const t = this.props.teams?.at(idx)
+    if (!t) {
       this.props.onNewTeam()
     } else {
-      const selectedTeam: string = node.key ?? ''
-      this.setState({selectedTeam})
+      this.setState({selectedTeam: t})
     }
   }
 
@@ -179,7 +179,7 @@ class NewRepo extends React.Component<Props, State> {
               <Kb.Dropdown
                 items={this._makeDropdownItems()}
                 selected={this._makeDropdownItem(this.state.selectedTeam)}
-                onChanged={this._dropdownChanged}
+                onChangedIdx={this._dropdownChanged}
                 style={styles.dropdown}
               />
             )}
