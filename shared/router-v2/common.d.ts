@@ -21,4 +21,3 @@ export function useSubnavTabAction(
   navigation: NavigationContainerRef<{}>,
   state: NavState
 ): (t: string) => void
-export declare const TabletWrapper: (p: {children: React.ReactNode}) => React.ReactNode

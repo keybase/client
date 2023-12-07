@@ -66,7 +66,6 @@ export default React.memo(function InboxSearchRow(ownProps: OwnProps) {
       {!!showStartNewChat && <StartNewChat onBack={onBack} onNewChat={onNewChat} />}
       {!!showFilter && (
         <ChatFilterRow
-          onNewChat={onNewChat}
           onSelectUp={onSelectUp}
           onSelectDown={onSelectDown}
           onEnsureSelection={onEnsureSelection}

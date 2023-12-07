@@ -113,8 +113,9 @@ const Header2 = (props: Props) => {
       </Kb.Markdown>
     )
   }
+
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" style={styles.container}>
       <Kb.Box2 direction="horizontal" style={styles.left}>
         {Kb.Styles.isMobile ? null : <SearchRow headerContext="chat-header" />}
         <NewChatButton />
@@ -233,6 +234,8 @@ const styles = Kb.Styles.styleSheetCreate(
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
+        flexShrink: 0,
+        width: '100%',
         height: 40 - 1,
       },
       desc: {
