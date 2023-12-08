@@ -250,7 +250,7 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
 
   if (locationRefs === 1) {
     try {
-      logger.info('location start')
+      logger.info('location start due to ', T.Chat.conversationIDToKey(action.payload.params.convID))
       await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
         deferredUpdatesDistance: 65,
         pausesUpdatesAutomatically: true,
