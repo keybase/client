@@ -50,6 +50,7 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'space-between',
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )
