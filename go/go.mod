@@ -73,14 +73,14 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.17.0
-	golang.org/x/crypto v0.4.0
-	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+	golang.org/x/crypto v0.16.0
+	golang.org/x/image v0.14.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/mobile v0.0.0-20221110043201-43a038452099
-	golang.org/x/net v0.4.0
-	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.3.0
-	golang.org/x/text v0.5.0
+	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
+	golang.org/x/net v0.19.0
+	golang.org/x/sync v0.5.0
+	golang.org/x/sys v0.15.0
+	golang.org/x/text v0.14.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -300,8 +300,8 @@ require (
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/tools v0.16.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect

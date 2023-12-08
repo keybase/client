@@ -255,9 +255,11 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
         '[location] location watch start due to ',
         T.Chat.conversationIDToKey(action.payload.params.convID)
       )
+      ensureBackgroundTask()
       await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
         deferredUpdatesDistance: 65,
         pausesUpdatesAutomatically: true,
+        showsBackgroundLocationIndicator: true,
       })
       logger.info('[location] start success')
     } catch {
@@ -272,6 +274,7 @@ const onChatClearWatch = async () => {
   if (locationRefs <= 0) {
     try {
       logger.info('[location] end start')
+      ensureBackgroundTask()
       await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
       logger.info('[location] end success')
     } catch {
@@ -282,27 +285,36 @@ const onChatClearWatch = async () => {
 
 const locationTaskName = 'background-location-task'
 let locationRefs = 0
-ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
-  if (error) {
-    // check `error.message` for more details.
-    return
-  }
+let madeBackgroundTask = false
 
-  if (!data) {
-    return
-  }
-  const d = data as {locations?: Array<ExpoLocation.LocationObject>}
-  const locations = d.locations
-  if (!locations?.length) {
-    return
-  }
-  const pos = locations.at(-1)
-  C.useChatState.getState().dispatch.updateLastCoord({
-    accuracy: Math.floor(pos?.coords.accuracy ?? 0),
-    lat: pos?.coords.latitude ?? 0,
-    lon: pos?.coords.longitude ?? 0,
+const ensureBackgroundTask = () => {
+  if (madeBackgroundTask) return
+  madeBackgroundTask = true
+
+  ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
+    if (error) {
+      // check `error.message` for more details.
+      return
+    }
+
+    if (!data) {
+      return
+    }
+    const d = data as {locations?: Array<ExpoLocation.LocationObject>}
+    const locations = d.locations
+    if (!locations?.length) {
+      return
+    }
+    const pos = locations.at(-1)
+    const coord = {
+      accuracy: Math.floor(pos?.coords.accuracy ?? 0),
+      lat: pos?.coords.latitude ?? 0,
+      lon: pos?.coords.longitude ?? 0,
+    }
+
+    C.useChatState.getState().dispatch.updateLastCoord(coord)
   })
-})
+}
 
 export const watchPositionForMap = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   try {

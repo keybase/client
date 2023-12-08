@@ -1,14 +1,17 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 
 const Popup = React.lazy(async () => import('./map-popup'))
-type OwnProps = C.ViewPropsToPageProps<typeof Popup>
+type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Popup>>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Popup {...p.route.params} />
-  </React.Suspense>
-)
+const Screen = (p: OwnProps) => {
+  const {conversationIDKey, ...rest} = p.route.params
+  return (
+    <C.ProviderScreen rp={p}>
+      <Popup {...rest} />
+    </C.ProviderScreen>
+  )
+}
 
 const Page = {getScreen: () => Screen}
 export default Page
