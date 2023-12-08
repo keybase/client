@@ -40,6 +40,7 @@ export const requestPermissionsToWrite = async () => {
 
 export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionPerm) => {
   if (isIOS) {
+    logger.info('[location] Requesting location perms', mode)
     switch (mode) {
       case T.RPCChat.UIWatchPositionPerm.base:
         {
@@ -250,14 +251,17 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
 
   if (locationRefs === 1) {
     try {
-      logger.info('location start due to ', T.Chat.conversationIDToKey(action.payload.params.convID))
+      logger.info(
+        '[location] location watch start due to ',
+        T.Chat.conversationIDToKey(action.payload.params.convID)
+      )
       await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
         deferredUpdatesDistance: 65,
         pausesUpdatesAutomatically: true,
       })
-      logger.info('location start success')
+      logger.info('[location] start success')
     } catch {
-      logger.info('location start failed')
+      logger.info('[location] start failed')
       locationRefs--
     }
   }
@@ -267,11 +271,11 @@ const onChatClearWatch = async () => {
   locationRefs--
   if (locationRefs <= 0) {
     try {
-      logger.info('location end start')
+      logger.info('[location] end start')
       await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
-      logger.info('location end success')
+      logger.info('[location] end success')
     } catch {
-      logger.info('location end failed')
+      logger.info('[location] end failed')
     }
   }
 }
@@ -302,7 +306,7 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
 
 export const watchPositionForMap = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   try {
-    logger.info('location perms check')
+    logger.info('[location] perms check due to map')
     await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
   } catch (_error) {
     const error = _error as {message?: string}
