@@ -190,11 +190,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
 
-      if (C.useCurrentUserState.getState().username) {
-        // ready loaded, can bail
-        return
-      }
-
       const f = async () => {
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch
         const {setDefaultUsername} = C.useConfigState.getState().dispatch
