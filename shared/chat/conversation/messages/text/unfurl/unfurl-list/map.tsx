@@ -28,11 +28,13 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
         time: 0,
       }
       const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
+      const {id} = s
 
       return {
         author,
         coord,
         height,
+        id,
         imageURL,
         isLiveLocationDone,
         liveLocationEndTime,
@@ -49,11 +51,12 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   }
 
   const {author, url, coord, isLiveLocationDone, liveLocationEndTime} = data
-  const {height, width, imageURL, youAreAuthor, time} = data
+  const {height, width, imageURL, youAreAuthor, time, id} = data
   const onViewMap = () => {
     navigateAppend({
       props: {
         author,
+        conversationIDKey: id,
         coord,
         isAuthor: youAreAuthor,
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,

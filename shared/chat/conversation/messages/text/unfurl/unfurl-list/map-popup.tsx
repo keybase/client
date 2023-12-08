@@ -31,8 +31,8 @@ const UnfurlMapPopup = (props: Props) => {
     messageSend('/location stop')
   }
 
-  const width = Math.ceil(Kb.Styles.dimensionWidth)
-  const height = Math.ceil(Kb.Styles.dimensionHeight)
+  const width = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionWidth) : 300
+  const height = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionHeight) : 300
   const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
     <Kb.Modal

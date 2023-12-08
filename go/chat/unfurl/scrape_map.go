@@ -53,16 +53,21 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	if len(skey) > 0 {
 		siteName = "Live Location Share"
 		if liveLocationDone {
-			// if we're done sharing location, replace coordinates with false data
+			// if we're done sharing location
 			linkURL = "https://google.com/maps"
 			return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
 				Title:               "Location share ended",
 				Url:                 linkURL,
 				SiteName:            siteName,
 				ImageUrl:            mapURL,
-				LiveLocationDone:    liveLocationDone,
+				LiveLocationDone:    true,
 				LiveLocationEndTime: liveLocationEndTime,
 				Time:                gregor1.ToTime(now),
+				Coord: chat1.Coordinate{
+					Lat:      lat,
+					Lon:      lon,
+					Accuracy: acc,
+				},
 			}), nil
 		}
 		key := types.LiveLocationKey(skey)

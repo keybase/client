@@ -17,18 +17,20 @@ const LocationMap = (props: Props) => {
     !!props.onLoad && props.onLoad()
   }
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && <Kb.Image2 src={mapSrc} style={{height, width}} onLoad={onLoad} />}
-      {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
-      <Kb.Banner color="white" style={styles.banner}>
-        <Kb.BannerParagraph
-          bannerColor="white"
-          content={[
-            'Your location is protected. ',
-            {onClick: () => openURL('https://book.keybase.io/docs/chat/location'), text: 'Learn more'},
-          ]}
-        />
-      </Kb.Banner>
+    <Kb.Box2 direction="vertical" style={styles.outer}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
+        {!!mapSrc && <Kb.Image2 src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+        {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
+        <Kb.Banner color="white" style={styles.banner}>
+          <Kb.BannerParagraph
+            bannerColor="white"
+            content={[
+              'Your location is protected. ',
+              {onClick: () => openURL('https://book.keybase.io/docs/chat/location'), text: 'Learn more'},
+            ]}
+          />
+        </Kb.Banner>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -48,6 +50,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
+        alignItems: 'center',
         justifyContent: 'center',
       },
       learn: {
@@ -64,6 +67,10 @@ const styles = Kb.Styles.styleSheetCreate(
         right: '50%',
         top: '50%',
         width: 24,
+      },
+      outer: {
+        height: 300,
+        width: 300,
       },
     }) as const
 )
