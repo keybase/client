@@ -114,11 +114,11 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
         >
           {name}
           {mutedIcon}
-          <Kb.Box style={styles.iconContainer}>
+          <Kb.Box2 direction="horizontal" alignSelf="center" alignItems="center" style={styles.iconContainer}>
             {draftIcon}
             {outboxIcon}
             {hasBadge && <Kb.Box style={styles.unread} />}
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -163,9 +163,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     margin: 3,
   },
   iconContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'stretch',
     flex: 1,
     justifyContent: 'flex-end',
   },

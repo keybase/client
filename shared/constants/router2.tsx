@@ -199,15 +199,16 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       loggedInRoute.state.index = chatTabIdx
     }
 
+    const oldChatState = chatStack.state
+
     // setup root
     chatStack.state = {
       index: 0,
-      routes: [{key: chatStack.state?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
+      routes: [{key: oldChatState?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
     }
 
     if (isSplit) {
-      chatStack.state.index = 0
-      const _chatRoot = chatStack.state.routes[0]
+      const _chatRoot = oldChatState?.routes[0]
       // key is required or you'll run into issues w/ the nav
       const chatRoot = {
         key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
@@ -223,7 +224,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         params: {conversationIDKey},
       } as const
       // reuse visible route if it's the same
-      const visible = chatStack.state.routes.at(-1)
+      const visible = oldChatState?.routes.at(-1)
       if (visible) {
         const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
         if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
