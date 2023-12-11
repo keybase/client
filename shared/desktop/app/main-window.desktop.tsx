@@ -115,7 +115,10 @@ let disableSpellCheck = false
 const loadWindowState = () => {
   let openAtLogin = true
   try {
-    const s = fs.readFileSync(guiConfigFilename, {encoding: 'utf8'})
+    let s: string = ''
+    try {
+      s = fs.readFileSync(guiConfigFilename, {encoding: 'utf8'})
+    } catch {}
     const guiConfig = JSON.parse(s) as
       | Partial<{
           openAtLogin: unknown
@@ -152,6 +155,9 @@ const loadWindowState = () => {
             break
         }
       }
+    } else {
+      darkModePreference = 'system'
+      isDarkMode = KB2.constants.startDarkMode
     }
 
     const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
@@ -292,7 +298,7 @@ const MainWindow = () => {
   loadWindowState()
 
   // pass to main window
-  htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}&isDarkMode=${isDarkMode ? 1 : 0}`
+  htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}`
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,
