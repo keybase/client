@@ -32,8 +32,29 @@ const getWaveWaitingKey = (recipient: string) => {
   return `settings:waveButton:${recipient}`
 }
 
-// A button that sends a wave emoji into a chat.
 export const WaveButton = (props: Props) => {
+  const hasContext = C.Chat.useHasContext()
+  if (props.username) {
+    if (hasContext) {
+      return <WaveButtonImpl {...props} />
+    } else {
+      return (
+        <C.ChatProvider key="wave" id="" canBeNull={true}>
+          <WaveButtonImpl {...props} />
+        </C.ChatProvider>
+      )
+    }
+  }
+  if (hasContext) {
+    return <WaveButtonImpl {...props} />
+  } else {
+    logger.warn('WaveButton: need one of username or conversationIDKey')
+    return null
+  }
+}
+
+// A button that sends a wave emoji into a chat.
+const WaveButtonImpl = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.useAnyWaiting(waitingKey)
@@ -45,7 +66,7 @@ export const WaveButton = (props: Props) => {
     } else if (props.conversationIDKey) {
       messageSend(':wave:', undefined, waitingKey)
     } else {
-      logger.warn('WaveButton: need one of username xor conversationIDKey')
+      logger.warn('WaveButton: need one of username or conversationIDKey')
       return
     }
     setWaved(true)

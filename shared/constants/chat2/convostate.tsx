@@ -3091,10 +3091,17 @@ export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }
 
+export function useHasContext() {
+  const store = React.useContext(Context)
+  return !!store
+}
+
 // use this if in doubt
 export function _useContext<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
-  if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
+  if (!store) {
+    throw new Error('Missing ConvoContext.Provider in the tree')
+  }
   return useStore(store, selector)
 }
 
