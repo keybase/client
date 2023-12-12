@@ -2671,7 +2671,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    s.threadSearchInfo.hits = [message]
+                    s.threadSearchInfo.hits.push(message)
                   })
                 }
               },
@@ -2692,7 +2692,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 }, [])
                 set(s => {
                   if (messages.length > 0) {
-                    s.threadSearchInfo.hits = messages
+                    s.threadSearchInfo.hits.push(...messages)
                   }
                 })
               },
