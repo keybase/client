@@ -6,14 +6,12 @@ import type * as T from '@/constants/types'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
 
-type RowProps = {
+type RowProps = Pick<DeserializeProps, 'conversationsToSend'> & {
   conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const RemoteSmallTeam = (props: RowProps) => {
-  const {conversationIDKey} = props
-  const state = C.useRemoteStore<DeserializeProps>()
-  const {conversationsToSend} = state
+  const {conversationsToSend, conversationIDKey} = props
   const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
   const onSelectConversation = () => {
     R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
@@ -32,10 +30,8 @@ const RemoteSmallTeam = (props: RowProps) => {
   )
 }
 
-const ChatPreview = (p: {convLimit?: number}) => {
-  const state = C.useRemoteStore<DeserializeProps>()
-  const {convLimit} = p
-  const {conversationsToSend} = state
+const ChatPreview = (p: Pick<DeserializeProps, 'conversationsToSend'> & {convLimit?: number}) => {
+  const {conversationsToSend, convLimit} = p
 
   const convRows = conversationsToSend
     .slice(0, convLimit ? convLimit : conversationsToSend.length)
@@ -45,7 +41,7 @@ const ChatPreview = (p: {convLimit?: number}) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
       {convRows.map(id => (
         <C.ChatProvider key={id} id={id}>
-          <RemoteSmallTeam conversationIDKey={id} />
+          <RemoteSmallTeam conversationIDKey={id} conversationsToSend={conversationsToSend} />
         </C.ChatProvider>
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>

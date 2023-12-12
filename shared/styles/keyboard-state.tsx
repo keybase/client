@@ -1,4 +1,4 @@
-// Keep track of keyboard state, ran by the ReduxHelper in main app
+// Keep track of keyboard state, ran by the StateHelper in main app
 // Keyboard.isVisible() internal bookkeeping is actually racy and can't be trusted
 let _up = false
 

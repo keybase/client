@@ -14,7 +14,7 @@ export enum AppState {
   INITED, // regular app now
 }
 
-const useConnectNavToRedux = () => {
+const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)
   const setNavigatorExists = C.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
@@ -76,7 +76,7 @@ const useInitialState = () => {
 }
 
 export const useShared = () => {
-  useConnectNavToRedux()
+  useConnectNavToState()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   const loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')

@@ -4,7 +4,7 @@ import ImageImpl from './imageimpl'
 import {
   ShowToastAfterSaving,
   Title,
-  useAttachmentRedux,
+  useAttachmentState,
   useCollapseIcon,
   Collapsed,
   Transferring,
@@ -17,7 +17,7 @@ type Props = {
 const Image2 = React.memo(function Image2(p: Props) {
   const {toggleMessageMenu} = p
   const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
-    useAttachmentRedux()
+    useAttachmentState()
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(false)
 

@@ -3,68 +3,60 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
-import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import KB2 from '@/util/electron.desktop'
-import {type Store} from 'redux'
-
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+
 setServiceDecoration(ServiceDecoration)
 
 const {closeWindow, showInactive} = KB2.functions
 
 disableDragDrop()
-
 module.hot?.accept()
 
 type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
-type Props = {
-  children: React.ReactNode
-  deserialize: (arg0: unknown, arg1: unknown) => unknown
+type Props<DeserializeProps, SerializeProps> = {
+  child: (p: DeserializeProps) => React.ReactNode
+  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
   name: RemoteComponents
   params: string
   showOnProps: boolean
   style?: Kb.Styles.StylesDesktop
 }
 
-class RemoteComponentLoader extends React.Component<Props> {
-  _store: Store<unknown, any>
-
-  constructor(props: Props) {
-    super(props)
-    const remoteStore = new RemoteStore({
-      deserialize: props.deserialize,
-      gotPropsCallback: this._onGotProps,
-      windowComponent: props.name,
-      windowParam: props.params,
+function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
+  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>()
+  if (!storeRef.current) {
+    storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
+      deserialize: p.deserialize,
+      gotPropsCallback: () => {
+        if (p.showOnProps) {
+          showInactive?.()
+        }
+      },
+      onUpdated: v => {
+        setValue(v)
+      },
+      windowComponent: p.name,
+      windowParam: p.params,
     })
-    this._store = remoteStore.getStore()
   }
 
-  _onGotProps = () => {
-    // Show when we get props, unless its the menubar
-    if (this.props.showOnProps) {
-      showInactive?.()
-    }
-  }
+  const [value, setValue] = React.useState(storeRef.current._value)
 
-  render() {
-    return (
-      <div id="RemoteComponentRoot" style={this.props.style || (styles.container as any)}>
-        <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-          <Provider store={this._store}>
-            <Root>{this.props.children}</Root>
-          </Provider>
-        </ErrorBoundary>
-      </div>
-    )
-  }
+  return (
+    <div id="RemoteComponentRoot" style={p.style || (styles.container as any)}>
+      <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
+        <Root>{p.child(value)}</Root>
+      </ErrorBoundary>
+    </div>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -77,17 +69,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  errorFallback: {
-    backgroundColor: Kb.Styles.globalColors.white,
-  },
-  loading: {
-    backgroundColor: Kb.Styles.globalColors.greyDark,
-  },
+  errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
+  loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
 }))
 
-export default function Loader(options: {
-  child: React.ReactNode
-  deserialize: (arg0: any, arg1: any) => unknown
+export default function Loader<DeserializeProps, SerializeProps>(options: {
+  child: (p: DeserializeProps) => React.ReactNode
+  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
   name: RemoteComponents
   params?: string
   style?: Kb.Styles.StylesDesktop
@@ -97,15 +85,14 @@ export default function Loader(options: {
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.createRoot(node).render(
-      <RemoteComponentLoader
+      <RemoteComponentLoader<DeserializeProps, SerializeProps>
         name={options.name}
         params={options.params || ''}
         style={options.style}
         showOnProps={options.showOnProps ?? true}
         deserialize={options.deserialize}
-      >
-        {options.child}
-      </RemoteComponentLoader>
+        child={options.child}
+      />
     )
   }
 }

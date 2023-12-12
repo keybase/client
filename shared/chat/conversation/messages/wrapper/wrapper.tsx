@@ -96,7 +96,7 @@ const hasSuccessfulInlinePayments = (
   )
 }
 
-const useRedux = (ordinal: T.Chat.Ordinal) => {
+const useState = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
     ordinals: Array<T.Chat.Ordinal>,
     hasReactions: boolean,
@@ -503,7 +503,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useRedux(ordinal)
+  const mdata = useState(ordinal)
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata

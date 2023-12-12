@@ -7,10 +7,10 @@ type NotifyActiveFunction = (isActive: boolean) => void
 type Reason = 'blur' | 'focus' | 'mouseKeyboard' | 'timeout'
 type State = 'appActive' | 'afterActiveCheck' | 'appInactive' | 'blurred' | 'focused'
 // State machine
-// appActive: User is active. Tell redux we're active. In 5 minutes go to 'afterActiveCheck'. If blur go 'appInactive' immediately
+// appActive: User is active. In 5 minutes go to 'afterActiveCheck'. If blur go 'appInactive' immediately
 // afterActiveCheck: User was 'appActive', in a window of 1 minute see if any keyboard / mouse happens. If so go to 'appInactive', else go appActive
-// appInactive: Wait for focus or keyboard/mouse, then go to 'appActive'. Tell redux we're inactive
-// blurred: App in background, wait for focus. Tell redux we're inactive
+// appInactive: Wait for focus or keyboard/mouse, then go to 'appActive'.
+// blurred: App in background, wait for focus.
 // focused: App in foreground but no input yet, wait for keyboard/mouse
 
 class InputMonitor {

@@ -162,8 +162,8 @@ const makeLinking = (options: OptionsType) => {
   }
 }
 
-// gets state from redux used to make the linking object
-export const useReduxToLinking = (appState: Shared.AppState) => {
+// gets state from store used to make the linking object
+export const useStateToLinking = (appState: Shared.AppState) => {
   const {startup} = C.useConfigState.getState()
   const {tab: startupTab, followUser: startupFollowUser} = startup
   let {conversation: startupConversation} = startup

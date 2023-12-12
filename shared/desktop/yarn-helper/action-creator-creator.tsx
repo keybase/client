@@ -46,7 +46,7 @@ ${prelude.join('\n')}
 // Constants
 export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
 export const typePrefix = '${ns}:'
-${compileActions(ns, actions, compileReduxTypeConstant)}
+${compileActions(ns, actions, compileStateTypeConstant)}
 
 // Action Creators
 ${compileActions(ns, actions, compileActionCreator)}
@@ -137,7 +137,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
 )`
 }
 
-function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName) {
+function compileStateTypeConstant(ns: ActionNS, actionName: ActionName) {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 

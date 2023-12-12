@@ -120,7 +120,7 @@ const Tracker = (props: Props) => {
       .dispatch.setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
   }
 
-  let assertions
+  let assertions: React.ReactNode
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
     const sorted = unsorted.sort(Constants.sortAssertionKeys)
@@ -130,7 +130,7 @@ const Tracker = (props: Props) => {
     assertions = null
   }
 
-  let backgroundColor
+  let backgroundColor: string
   if (['broken', 'error'].includes(props.state)) {
     backgroundColor = Kb.Styles.globalColors.red
   } else {

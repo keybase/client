@@ -1,0 +1,13 @@
+diff --git a/node_modules/immer/dist/immer.d.ts b/node_modules/immer/dist/immer.d.ts
+index e0ca4a7..792f18a 100644
+--- a/node_modules/immer/dist/immer.d.ts
++++ b/node_modules/immer/dist/immer.d.ts
+@@ -29,7 +29,7 @@ type IfAvailable<T, Fallback = void> = true | false extends (T extends never ? t
+  * Set
+  */
+ type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>;
+-type WritableDraft<T> = {
++export type WritableDraft<T> = {
+     -readonly [K in keyof T]: Draft<T[K]>;
+ };
+ /** Convert a readonly type into a mutable type, if possible */

@@ -94,7 +94,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|react-redux))|\/dist\/)/,
+        exclude: /\/dist\//,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },

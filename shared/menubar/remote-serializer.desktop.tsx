@@ -55,7 +55,7 @@ export type ProxyProps = {
   infoMap: Map<string, T.Users.UserInfo>
 }
 
-type SerializeProps = Omit<
+export type SerializeProps = Omit<
   ProxyProps,
   'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'windowShownCount'
 > & {
@@ -164,7 +164,9 @@ export const deserialize = (
   state: DeserializeProps = initialState,
   props?: Partial<SerializeProps>
 ): DeserializeProps => {
-  if (!props) return state
+  if (!props) {
+    return state
+  }
   const {avatarRefreshCounterArr, conversationsToSend, daemonHandshakeState, diskSpaceStatus} = props
   const {fileName, files, followersArr, followingArr, httpSrvAddress, httpSrvToken, infoMapArr} = props
   const {endEstimate, kbfsDaemonStatus, kbfsEnabled, loggedIn, navBadgesArr, darkMode, outOfDate} = props

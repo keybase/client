@@ -5,7 +5,7 @@ import * as React from 'react'
 import UnfurlImage from './image'
 import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {formatDurationForLocation} from '@/util/timestamp'
-import {getUnfurlInfo} from './use-redux'
+import {getUnfurlInfo} from './use-state'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {

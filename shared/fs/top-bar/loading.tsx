@@ -4,8 +4,7 @@ import * as Kb from '@/common-adapters'
 
 // The behavior is to only show spinner when user first time lands on a screen
 // and when don't have the data that drives it yet. Since RPCs happen
-// automatically, we are just relying on whether data is available from the
-// redux store.
+// automatically, we are just relying on whether data is available from the store.
 
 type OwnProps = {path: T.FS.Path}
 

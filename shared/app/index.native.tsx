@@ -72,7 +72,7 @@ const useKeyboardHookup = () => {
   }, [])
 }
 
-const ReduxHelper = (p: {children: React.ReactNode}) => {
+const StoreHelper = (p: {children: React.ReactNode}) => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
@@ -127,12 +127,12 @@ const Keybase = () => {
     <GestureHandlerRootView style={styles.gesture}>
       <PortalProvider>
         <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-          <ReduxHelper>
+          <StoreHelper>
             <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
               <Main />
               {unmountAll}
             </Kb.Styles.CanFixOverdrawContext.Provider>
-          </ReduxHelper>
+          </StoreHelper>
         </SafeAreaProvider>
       </PortalProvider>
     </GestureHandlerRootView>

@@ -1,12 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl'
-import {useRedux} from './use-redux'
+import {useState} from './use-state'
 
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
   const {openFullscreen, allowPlay} = p
-  const {previewURL, height, width, url, videoDuration} = useRedux()
+  const {previewURL, height, width, url, videoDuration} = useState()
   const [showPoster, setShowPoster] = React.useState(true)
   const [lastUrl, setLastUrl] = React.useState(url)
 
