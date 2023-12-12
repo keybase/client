@@ -178,7 +178,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = C.Chat.makeMessageDeleted({})
 
-const useReduxFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
+const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
   let trailingItem = _trailingItem
   let leadingItem = _leadingItem
   const sm = React.useContext(SeparatorMapContext)
@@ -203,7 +203,7 @@ const useReduxFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   )
 }
 
-const useRedux = (ordinal: T.Chat.Ordinal) => {
+const useState = (ordinal: T.Chat.Ordinal) => {
   const participantInfoNames = C.useChatContext(s => s.participants.name)
   const meta = C.useChatContext(s => s.meta)
   const d = C.useChatContext(
@@ -217,8 +217,8 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       const authorIsBot = meta.teamname
         ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
         : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-        ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-        : false
+          ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+          : false
       return {
         authorIsBot,
         authorRoleInTeam,
@@ -238,7 +238,7 @@ type SProps = {
 }
 const Separator = React.memo(function Separator(p: SProps) {
   const {ordinal, orangeLineAbove, showUsername} = p
-  const mdata = useRedux(ordinal)
+  const mdata = useState(ordinal)
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp, teamType} = mdata
 
   return (
@@ -272,7 +272,7 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem, leadingItem ?? 0)
+  const {ordinal, showUsername, orangeLineAbove} = useStateFast(trailingItem, leadingItem ?? 0)
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null

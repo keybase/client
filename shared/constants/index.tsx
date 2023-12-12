@@ -94,12 +94,6 @@ export const initListeners = () => {
   useConfigState.getState().dispatch.setupSubscriptions()
 }
 
-import {useSelector, shallowEqual} from 'react-redux'
-export function useRemoteStore<S>(): S {
-  // TODO this will warn you not to do this, could just pass in a selector later
-  return useSelector(s => s, shallowEqual) as any
-}
-
 // extracts the payload from pages used in routing
 export type PagesToParams<T> = {
   [K in keyof T]: T[K] extends {getScreen: infer U}

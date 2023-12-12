@@ -1,4 +1,4 @@
-// helpers for redux / zustand
+// helpers for zustand
 import * as React from 'react'
 import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'

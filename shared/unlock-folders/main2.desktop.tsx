@@ -3,7 +3,7 @@ import load from '../desktop/remote/component-loader.desktop'
 import {deserialize} from './remote-serializer.desktop'
 
 load({
-  child: <UnlockFolders />,
+  child: (p: any) => <UnlockFolders {...p} />,
   deserialize,
   name: 'unlock-folders',
 })

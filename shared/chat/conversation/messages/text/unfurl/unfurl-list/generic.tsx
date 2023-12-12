@@ -5,7 +5,7 @@ import * as React from 'react'
 import UnfurlImage from './image'
 import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {formatTimeForMessages} from '@/util/timestamp'
-import {getUnfurlInfo, useActions} from './use-redux'
+import {getUnfurlInfo, useActions} from './use-state'
 
 const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p

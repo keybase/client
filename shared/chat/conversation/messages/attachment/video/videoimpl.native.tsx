@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useRedux} from './use-redux'
+import {useState} from './use-state'
 import {ShowToastAfterSaving} from '../shared'
 import {Video, ResizeMode, type AVPlaybackStatus} from 'expo-av'
 import {Pressable} from 'react-native'
@@ -9,7 +9,7 @@ import type {Props} from './videoimpl'
 
 const VideoImpl = (p: Props) => {
   const {allowPlay, toggleMessageMenu} = p
-  const {previewURL, height, width, url, transferState, videoDuration} = useRedux()
+  const {previewURL, height, width, url, transferState, videoDuration} = useState()
   const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
 
   const ref = React.useRef<Video | null>(null)

@@ -5,7 +5,7 @@ import {maxWidth, maxHeight} from '../shared'
 
 const missingMessage = C.Chat.makeMessageAttachment()
 
-export const useRedux = () => {
+export const useState = () => {
   const ordinal = React.useContext(OrdinalContext)
   return C.useChatContext(
     C.useShallow(s => {

@@ -3,7 +3,7 @@ import * as React from 'react'
 import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {missingMessage, maxWidth, maxHeight} from '../shared'
 
-export const useRedux = () => {
+export const useState = () => {
   const ordinal = React.useContext(OrdinalContext)
   return C.useChatContext(
     C.useShallow(s => {

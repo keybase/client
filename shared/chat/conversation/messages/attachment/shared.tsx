@@ -168,7 +168,7 @@ const useCollapseIconMobile = (_isWhite: boolean) => null
 
 export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
-export const useAttachmentRedux = () => {
+export const useAttachmentState = () => {
   const ordinal = React.useContext(OrdinalContext)
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {

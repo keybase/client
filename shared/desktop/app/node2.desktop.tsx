@@ -726,7 +726,7 @@ const plumbEvents = () => {
         nodeEngine.listenersAreReady()
 
         if (startupURL) {
-          // Mac calls open-url for a launch URL before redux is up, so we
+          // Mac calls open-url for a launch URL before state is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
           R.remoteDispatch(RemoteGen.createLink({link: startupURL}))
           startupURL = undefined

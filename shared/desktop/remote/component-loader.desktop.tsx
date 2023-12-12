@@ -3,29 +3,26 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
-import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import KB2 from '@/util/electron.desktop'
-import {type Store} from 'redux'
-
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+
 setServiceDecoration(ServiceDecoration)
 
 const {closeWindow, showInactive} = KB2.functions
 
 disableDragDrop()
-
 module.hot?.accept()
 
 type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
 type Props = {
-  children: React.ReactNode
+  child: (p: unknown) => React.ReactNode
   deserialize: (arg0: unknown, arg1: unknown) => unknown
   name: RemoteComponents
   params: string
@@ -33,38 +30,33 @@ type Props = {
   style?: Kb.Styles.StylesDesktop
 }
 
-class RemoteComponentLoader extends React.Component<Props> {
-  _store: Store<unknown, any>
-
-  constructor(props: Props) {
-    super(props)
-    const remoteStore = new RemoteStore({
-      deserialize: props.deserialize,
-      gotPropsCallback: this._onGotProps,
-      windowComponent: props.name,
-      windowParam: props.params,
+const RemoteComponentLoader = (p: Props) => {
+  const storeRef = React.useRef<undefined | RemoteStore>()
+  if (!storeRef.current) {
+    storeRef.current = new RemoteStore({
+      deserialize: p.deserialize,
+      gotPropsCallback: () => {
+        if (p.showOnProps) {
+          showInactive?.()
+        }
+      },
+      onUpdated: v => {
+        setValue(v)
+      },
+      windowComponent: p.name,
+      windowParam: p.params,
     })
-    this._store = remoteStore.getStore()
   }
 
-  _onGotProps = () => {
-    // Show when we get props, unless its the menubar
-    if (this.props.showOnProps) {
-      showInactive?.()
-    }
-  }
+  const [value, setValue] = React.useState(storeRef.current._value)
 
-  render() {
-    return (
-      <div id="RemoteComponentRoot" style={this.props.style || (styles.container as any)}>
-        <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-          <Provider store={this._store}>
-            <Root>{this.props.children}</Root>
-          </Provider>
-        </ErrorBoundary>
-      </div>
-    )
-  }
+  return (
+    <div id="RemoteComponentRoot" style={p.style || (styles.container as any)}>
+      <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
+        <Root>{p.child(value)}</Root>
+      </ErrorBoundary>
+    </div>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -77,16 +69,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  errorFallback: {
-    backgroundColor: Kb.Styles.globalColors.white,
-  },
-  loading: {
-    backgroundColor: Kb.Styles.globalColors.greyDark,
-  },
+  errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
+  loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
 }))
 
 export default function Loader(options: {
-  child: React.ReactNode
+  child: (p: unknown) => React.ReactNode
   deserialize: (arg0: any, arg1: any) => unknown
   name: RemoteComponents
   params?: string
@@ -103,9 +91,8 @@ export default function Loader(options: {
         style={options.style}
         showOnProps={options.showOnProps ?? true}
         deserialize={options.deserialize}
-      >
-        {options.child}
-      </RemoteComponentLoader>
+        child={options.child}
+      />
     )
   }
 }

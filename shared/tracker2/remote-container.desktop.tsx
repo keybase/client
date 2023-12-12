@@ -22,10 +22,9 @@ const noDetails: T.Tracker.Details = {
   username: '',
 }
 
-const RemoteContainer = () => {
-  const state = C.useRemoteStore<DeserializeProps>()
-  const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
-  const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
+const RemoteContainer = (d: DeserializeProps) => {
+  const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = d
+  const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = d
   const {usernameToDetails} = tracker2
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details

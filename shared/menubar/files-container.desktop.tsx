@@ -5,11 +5,10 @@ import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '@/util/kbfs'
 import * as TimestampUtil from '@/util/timestamp'
 import {FilesPreview} from './files.desktop'
-import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
+import type {DeserializeProps} from './remote-serializer.desktop'
 
-const FilesContainer = () => {
-  const state = C.useRemoteStore<DeserializeProps>()
-  const {remoteTlfUpdates} = state
+const FilesContainer = (p: Pick<DeserializeProps, 'remoteTlfUpdates'>) => {
+  const {remoteTlfUpdates} = p
   const username = C.useCurrentUserState(s => s.username)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (

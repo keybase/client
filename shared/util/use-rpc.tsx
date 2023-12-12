@@ -6,7 +6,7 @@ type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF 
   ? U
   : RF
 
-/** A hook to make an RPC call. This entirely skips our redux layer and shouldn't be used if you need any side effects
+/** A hook to make an RPC call. This entirely skips our state layer and shouldn't be used if you need any side effects
 setResult is only called if you're still mounted
  @param call: the rpc function you intend to call
  @returns submit: ([rpcArgs], setResult: (rpcResult) => void, setError: (RPCError) => void) => void

@@ -164,7 +164,9 @@ export const deserialize = (
   state: DeserializeProps = initialState,
   props?: Partial<SerializeProps>
 ): DeserializeProps => {
-  if (!props) return state
+  if (!props) {
+    return state
+  }
   const {avatarRefreshCounterArr, conversationsToSend, daemonHandshakeState, diskSpaceStatus} = props
   const {fileName, files, followersArr, followingArr, httpSrvAddress, httpSrvToken, infoMapArr} = props
   const {endEstimate, kbfsDaemonStatus, kbfsEnabled, loggedIn, navBadgesArr, darkMode, outOfDate} = props

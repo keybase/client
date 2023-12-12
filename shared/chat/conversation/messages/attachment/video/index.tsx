@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import VideoImpl from './videoimpl'
-import {Title, useAttachmentRedux, Collapsed, useCollapseIcon, Transferring} from '../shared'
+import {Title, useAttachmentState, Collapsed, useCollapseIcon, Transferring} from '../shared'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -9,7 +9,7 @@ type Props = {
 
 const Video = React.memo(function Video(p: Props) {
   const {toggleMessageMenu} = p
-  const r = useAttachmentRedux()
+  const r = useAttachmentState()
   const {transferState, transferProgress, submitState} = r
   const {fileName, isCollapsed, showTitle, openFullscreen} = r
   const containerStyle = styles.container

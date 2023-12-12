@@ -214,7 +214,7 @@ const ConversationList = React.memo(function ConversationList() {
       }
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
       // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
-      // const reduxItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
+      // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
 
       console.log(listRef.current)
 

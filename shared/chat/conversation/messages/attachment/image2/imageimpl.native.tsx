@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useRedux} from './use-redux'
+import {useState} from './use-state'
 
 const Image2Impl = () => {
-  const {previewURL, height, width} = useRedux()
+  const {previewURL, height, width} = useState()
   return <Kb.Image2 src={previewURL} style={Kb.Styles.collapseStyles([styles.image, {height, width}])} />
 }
 

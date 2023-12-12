@@ -319,7 +319,7 @@ const RNApp = React.memo(function RNApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, appState, onStateChange} = s
   const {navKey, initialState, onUnhandledAction} = s
-  const goodLinking = RouterLinking.useReduxToLinking(appState.current)
+  const goodLinking = RouterLinking.useStateToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT

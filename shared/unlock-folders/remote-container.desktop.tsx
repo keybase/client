@@ -5,10 +5,9 @@ import * as RemoteGen from '../actions/remote-gen'
 import UnlockFolders from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 
-const RemoteContainer = () => {
-  const state = C.useRemoteStore<DeserializeProps>()
-  const {darkMode, devices, waiting, paperKeyError: _error} = state
-  C.useUFState(s => s.dispatch.replace)(state.devices)
+const RemoteContainer = (d: DeserializeProps) => {
+  const {darkMode, devices, waiting, paperKeyError: _error} = d
+  C.useUFState(s => s.dispatch.replace)(devices)
   const phase = C.useUFState(s => s.phase)
   const toPaperKeyInput = C.useUFState(s => s.dispatch.toPaperKeyInput)
   const onBackFromPaperKey = C.useUFState(s => s.dispatch.onBackFromPaperKey)

@@ -14,10 +14,11 @@ import {Loading} from '@/fs/simple-screens'
 import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
+import type {DeserializeProps} from './remote-serializer.desktop'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
-export type Props = {
+export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsToSend'> & {
   daemonHandshakeState: T.Config.DaemonHandshakeState
   darkMode: boolean
   diskSpaceStatus: T.FS.DiskSpaceStatus
@@ -228,7 +229,7 @@ const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab] as cons
 const badgesInMenu = [C.gitTab, C.devicesTab, C.settingsTab] as const
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
-  const {outOfDate, windowShownCount} = p
+  const {outOfDate, windowShownCount, conversationsToSend, remoteTlfUpdates} = p
 
   const refreshUserFileEdits = C.useThrottledCallback(() => {
     R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
@@ -242,9 +243,9 @@ const LoggedIn = (p: Props) => {
     <>
       <OutOfDate outOfDate={outOfDate} />
       <Kb.ScrollView style={styles.flexOne}>
-        <ChatContainer convLimit={5} />
+        <ChatContainer convLimit={5} conversationsToSend={conversationsToSend} />
         {kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected ? (
-          <FilesPreview />
+          <FilesPreview remoteTlfUpdates={remoteTlfUpdates} />
         ) : (
           <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
             <Loading />

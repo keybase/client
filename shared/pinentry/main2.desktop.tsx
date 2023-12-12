@@ -5,7 +5,7 @@ import {deserialize} from './remote-serializer.desktop'
 const sessionID = /\?param=(\w+)/.exec(window.location.search)
 
 load({
-  child: <Pinentry />,
+  child: (p: any) => <Pinentry {...p} />,
   deserialize,
   name: 'pinentry',
   params: sessionID?.[1] ?? '',
