@@ -21,19 +21,19 @@ module.hot?.accept()
 
 type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
-type Props = {
-  child: (p: unknown) => React.ReactNode
-  deserialize: (arg0: unknown, arg1: unknown) => unknown
+type Props<DeserializeProps, SerializeProps> = {
+  child: (p: DeserializeProps) => React.ReactNode
+  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
   name: RemoteComponents
   params: string
   showOnProps: boolean
   style?: Kb.Styles.StylesDesktop
 }
 
-const RemoteComponentLoader = (p: Props) => {
-  const storeRef = React.useRef<undefined | RemoteStore>()
+function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
+  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>()
   if (!storeRef.current) {
-    storeRef.current = new RemoteStore({
+    storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
       deserialize: p.deserialize,
       gotPropsCallback: () => {
         if (p.showOnProps) {
@@ -73,9 +73,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
 }))
 
-export default function Loader(options: {
-  child: (p: unknown) => React.ReactNode
-  deserialize: (arg0: any, arg1: any) => unknown
+export default function Loader<DeserializeProps, SerializeProps>(options: {
+  child: (p: DeserializeProps) => React.ReactNode
+  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
   name: RemoteComponents
   params?: string
   style?: Kb.Styles.StylesDesktop
@@ -85,7 +85,7 @@ export default function Loader(options: {
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.createRoot(node).render(
-      <RemoteComponentLoader
+      <RemoteComponentLoader<DeserializeProps, SerializeProps>
         name={options.name}
         params={options.params || ''}
         style={options.style}

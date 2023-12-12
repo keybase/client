@@ -1,11 +1,12 @@
 import * as T from '@/constants/types'
 import type * as Constants from '@/constants/pinentry'
+import {produce} from 'immer'
 
 export type ProxyProps = {
   darkMode: boolean
 } & Constants.Store
 
-type SerializeProps = ProxyProps
+export type SerializeProps = ProxyProps
 export type DeserializeProps = ProxyProps
 
 const initialState: DeserializeProps = {
@@ -24,12 +25,33 @@ const initialState: DeserializeProps = {
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
 
 export const deserialize = (
-  _state: DeserializeProps | undefined,
-  props: SerializeProps
+  state: DeserializeProps = initialState,
+  props?: Partial<SerializeProps>
 ): DeserializeProps => {
-  const state = _state ?? initialState
-  return {
-    ...state,
-    ...props,
-  }
+  if (!props) return state
+  const {darkMode, prompt, showTyping, type, windowTitle} = props
+  return produce(state, s => {
+    if (darkMode !== undefined) {
+      s.darkMode = darkMode
+    }
+    if (prompt !== undefined) {
+      s.prompt = prompt
+    }
+    if (showTyping !== undefined) {
+      if (s.showTyping) {
+        s.showTyping.allow = showTyping.allow
+        s.showTyping.defaultValue = showTyping.defaultValue
+        s.showTyping.label = showTyping.label
+        s.showTyping.readonly = showTyping.readonly
+      } else {
+        s.showTyping = showTyping
+      }
+    }
+    if (type !== undefined) {
+      s.type = type
+    }
+    if (windowTitle !== undefined) {
+      s.windowTitle = windowTitle
+    }
+  })
 }

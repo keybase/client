@@ -19,7 +19,7 @@ export type ProxyProps = {
 } & T.Tracker.Details &
   Pick<T.Waiting.State, WaitingHoistedProps>
 
-type SerializeProps = Omit<
+export type SerializeProps = Omit<
   ProxyProps,
   | 'avatarRefreshCounter'
   | 'assertions'

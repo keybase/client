@@ -55,7 +55,7 @@ export type ProxyProps = {
   infoMap: Map<string, T.Users.UserInfo>
 }
 
-type SerializeProps = Omit<
+export type SerializeProps = Omit<
   ProxyProps,
   'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'windowShownCount'
 > & {

@@ -8,11 +8,11 @@ import KB2 from '@/util/electron.desktop'
 
 const {ipcRendererOn} = KB2.functions
 
-class RemoteStore {
-  _value: any
+class RemoteStore<DeserializeProps, SerializeProps> {
+  _value: DeserializeProps
   _gotPropsCallback: (() => void) | undefined // let component know it loaded once so it can show itself. Set to null after calling once
-  _deserialize: (a: unknown, b: unknown) => unknown
-  _onUpdated: (a: unknown) => void
+  _deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
+  _onUpdated: (a: DeserializeProps) => void
 
   _registerForRemoteUpdate = () => {
     ipcRendererOn?.('KBprops', (_event, action) => {
@@ -30,8 +30,8 @@ class RemoteStore {
     windowComponent: string
     windowParam: string
     gotPropsCallback: () => void
-    deserialize: (a: unknown, b: unknown) => unknown
-    onUpdated: (v: unknown) => void
+    deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
+    onUpdated: (v: DeserializeProps) => void
   }) {
     this._onUpdated = props.onUpdated
     this._value = props.deserialize(undefined, undefined)
