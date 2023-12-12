@@ -14,7 +14,7 @@ const style = {
 } as const
 
 load<DeserializeProps, SerializeProps>({
-  child: (p: any) => <Menubar {...p} />,
+  child: (p: DeserializeProps) => <Menubar {...p} />,
   deserialize,
   name: 'menubar',
   showOnProps: false,
