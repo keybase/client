@@ -10,31 +10,40 @@ import {getMainWindow} from './main-window.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import type {BadgeType} from '@/constants/notifications'
 
-const getIcons = (iconType: BadgeType, isBadged: boolean) => {
-  const devMode = __DEV__ ? '-dev' : ''
-  let color = 'white'
-  const badged = isBadged ? 'badged-' : ''
-  let platform = ''
-
-  if (isDarwin) {
-    color = 'white'
-  } else if (isWindows) {
-    color = 'black'
-    platform = 'windows-'
-  }
-
+const getIcons = (iconType: BadgeType, badges: number) => {
   const size = isWindows ? 16 : 22
   const x = isLinux ? '' : '@2x'
-  return `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
+
+  if (badges > 0) {
+    if (badges < 5) {
+      return `icon-menubar-${badges}@2x.png`
+    } else {
+      return `icon-menubar-many@2x.png`
+    }
+  } else {
+    const devMode = __DEV__ ? '-dev' : ''
+    let color = 'white'
+    const badged = badges ? 'badged-' : ''
+    let platform = ''
+
+    if (isDarwin) {
+      color = 'white'
+    } else if (isWindows) {
+      color = 'black'
+      platform = 'windows-'
+    }
+    const file = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
+    return file
+  }
 }
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
 let badgeType: BadgeType = 'regular'
-let badged = false
+let badges = 0
 
 const getIcon = () => {
-  const path = getIcons(badgeType, badged)
+  const path = getIcons(badgeType, badges)
   const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', path))
   // template it always, else the color is just wrong, lose the orange sadly
   icon.setTemplateImage(true)
@@ -100,7 +109,7 @@ const MenuBar = () => {
     switch (action.type) {
       case 'showTray': {
         badgeType = action.payload.badgeType
-        badged = action.payload.desktopAppBadgeCount > 0
+        badges = action.payload.desktopAppBadgeCount
         updateIcon()
         const dock = Electron.app.dock
         if (dock.isVisible()) {
