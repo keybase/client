@@ -10,7 +10,7 @@ const SystemChangeAvatar = React.memo(function SystemChangeAvatar(p: Props) {
 
   if (message?.type !== 'systemChangeAvatar') return null
 
-  const SystemChangeAvatar = require('.').default as typeof SystemChangeAvatarType
+  const {default: SystemChangeAvatar} = require('.') as {default: typeof SystemChangeAvatarType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemChangeAvatar message={message} />

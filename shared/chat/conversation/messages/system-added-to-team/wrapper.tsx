@@ -10,7 +10,7 @@ const SystemAddedToTeam = React.memo(function SystemAddedToTeam(p: Props) {
 
   if (message?.type !== 'systemAddedToTeam') return null
 
-  const SystemAddedToTeam = require('./container').default as typeof SystemAddedToTeamType
+  const {default: SystemAddedToTeam} = require('./container') as {default: typeof SystemAddedToTeamType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemAddedToTeam message={message} />

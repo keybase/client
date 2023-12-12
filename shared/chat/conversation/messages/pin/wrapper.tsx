@@ -10,7 +10,7 @@ const Pin = React.memo(function Pin(p: Props) {
 
   if (message?.type !== 'pin') return null
 
-  const Pin = require('.').default as typeof PinType
+  const {default: Pin} = require('.') as {default: typeof PinType}
   return (
     <WrapperMessage {...p} {...common}>
       <Pin messageID={message.pinnedMessageID} />

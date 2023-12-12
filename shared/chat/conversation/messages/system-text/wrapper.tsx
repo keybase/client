@@ -10,7 +10,7 @@ const SystemText = React.memo(function SystemText(p: Props) {
 
   if (message?.type !== 'systemText') return null
 
-  const SystemText = require('./container').default as typeof SystemTextType
+  const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemText text={message.text.stringValue()} />

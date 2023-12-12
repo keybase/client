@@ -292,7 +292,7 @@ if (isRenderer) {
       throw e
     })
 } else {
-  const kb2consts = require('../app/kb2-impl.desktop').default as KB2['constants']
+  const {default: kb2consts} = require('../app/kb2-impl.desktop') as {default: KB2['constants']}
   const getMainWindow = (): Electron.BrowserWindow | undefined => {
     const w = require('electron')
       .BrowserWindow.getAllWindows()

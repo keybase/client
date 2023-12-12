@@ -10,7 +10,9 @@ const WrapperSystemSimpleToComplex = React.memo(function WrapperSystemSimpleToCo
 
   if (message?.type !== 'systemSimpleToComplex') return null
 
-  const SystemSimpleToComplex = require('./container').default as typeof SystemSimpleToComplexType
+  const {default: SystemSimpleToComplex} = require('./container') as {
+    default: typeof SystemSimpleToComplexType
+  }
 
   return (
     <WrapperMessage {...p} {...common}>

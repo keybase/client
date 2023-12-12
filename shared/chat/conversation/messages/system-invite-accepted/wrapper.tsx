@@ -10,7 +10,7 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
 
   if (message?.type !== 'systemInviteAccepted') return null
 
-  const SystemInviteAccepted = require('./container').default as typeof SystemInviteAcceptedType
+  const {default: SystemInviteAccepted} = require('./container') as {default: typeof SystemInviteAcceptedType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemInviteAccepted key="systemInviteAccepted" message={message} />

@@ -7,6 +7,7 @@ import logger from '@/logger'
 import * as T from './types'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean
@@ -182,7 +183,7 @@ const makeDescriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
     case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
-      const {e164ToDisplay} = require('@/util/phone-numbers')
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }

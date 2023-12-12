@@ -10,7 +10,7 @@ const SystemJoined = React.memo(function SystemJoined(p: Props) {
 
   if (message?.type !== 'systemJoined') return null
 
-  const SystemJoined = require('./container').default as typeof SystemJoinedType
+  const {default: SystemJoined} = require('./container') as {default: typeof SystemJoinedType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemJoined message={message} />

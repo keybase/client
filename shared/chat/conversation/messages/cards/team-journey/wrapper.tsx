@@ -7,7 +7,7 @@ type Props = {
 }
 const WrapperJourneyCard = React.memo(function WrapperJourneyCard(p: Props) {
   const {ordinal} = p
-  const TeamJourney = require('./container').default as typeof TeamJourneyType
+  const {default: TeamJourney} = require('./container') as {default: typeof TeamJourneyType}
   return <TeamJourney key="journey" ordinal={ordinal} />
 })
 

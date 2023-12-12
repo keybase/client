@@ -10,7 +10,7 @@ const WrapperPayment = React.memo(function WrapperPayment(p: Props) {
 
   if (message?.type !== 'requestPayment' && message?.type !== 'sendPayment') return null
 
-  const PaymentMessage = require('./container').default as typeof PaymentMessageType
+  const {default: PaymentMessage} = require('./container') as {default: typeof PaymentMessageType}
   return (
     <WrapperMessage {...p} {...common}>
       <PaymentMessage message={message} />

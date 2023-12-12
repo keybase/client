@@ -13,8 +13,8 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
   if (message?.type !== 'systemSBSResolved') return null
 
   const youAreAuthor = you === message.author
-  const SystemSBSResolved = require('./container').default as typeof SystemSBSResolvedType
-  const SystemJoined = require('../system-joined/container').default as typeof SystemJoinedType
+  const {default: SystemSBSResolved} = require('./container') as {default: typeof SystemSBSResolvedType}
+  const {default: SystemJoined} = require('../system-joined/container') as {default: typeof SystemJoinedType}
   const child = youAreAuthor ? (
     <SystemSBSResolved key="systemSbsResolved" message={message} />
   ) : (

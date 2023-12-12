@@ -14,6 +14,8 @@ import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 
+import type {default as NewMainType} from '../../app/main.desktop'
+
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 setServiceDecoration(ServiceDecoration)
@@ -138,7 +140,7 @@ const setupHMR = () => {
 
   const refreshMain = () => {
     try {
-      const NewMain = require('../../app/main.desktop').default
+      const {default: NewMain} = require('../../app/main.desktop') as {default: typeof NewMainType}
       render(NewMain)
     } catch (_) {}
   }
