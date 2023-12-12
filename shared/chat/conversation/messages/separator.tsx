@@ -118,6 +118,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
       type="BodySmallBold"
       usernames={showUsername}
       virtualText={true}
+      className="separator-text"
     />
   )
 
@@ -138,7 +139,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   ) : null
 
   const botAliasOrUsername = botAlias ? (
-    <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
+    <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1} className="separator-text">
       {botAlias} {' [' + showUsername + ']'}
     </Kb.Text>
   ) : (
@@ -147,7 +148,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
   const canFixOverdraw = React.useContext(Kb.Styles.CanFixOverdrawContext)
   const timestampNode = (
-    <Kb.Text type="BodyTiny" fixOverdraw={canFixOverdraw} virtualText={true}>
+    <Kb.Text type="BodyTiny" fixOverdraw={canFixOverdraw} virtualText={true} className="separator-text">
       {formatTimeForChat(timestamp)}
     </Kb.Text>
   )

@@ -9,6 +9,12 @@
   }
 
   &.highlighted {
+    .separator-text {
+      .darkMode &,
+      .darkMode & span {
+        color: rgba(0, 0, 0, 0.85) !important;
+      }
+    }
     &:hover {
       .explodingTimeContainer {
         .darkMode & {
