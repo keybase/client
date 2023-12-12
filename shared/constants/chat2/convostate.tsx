@@ -2350,7 +2350,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           s.editing = 0
         })
-        get().dispatch.resetUnsentText()
+        get().dispatch.injectIntoInput('')
         return
       }
 

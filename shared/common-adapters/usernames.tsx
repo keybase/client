@@ -22,6 +22,7 @@ export type User = {
 }
 
 export type Props = {
+  className?: string
   backgroundMode?: Background
   colorBroken?: boolean
   colorYou?: boolean | AllowedColors
@@ -250,7 +251,7 @@ const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
 const Usernames = React.memo(
   function Usernames(p: Props) {
-    const {backgroundMode, commaColor, inline, containerStyle} = p
+    const {backgroundMode, commaColor, inline, containerStyle, className} = p
     const {joinerStyle, lineClamp, notFollowingColorOverride, onUsernameClicked, prefix, selectable} = p
     const {showAnd, inlineGrammar, colorYou, skipSelf, style, suffix, suffixType, title} = p
     const {usernames, fixOverdraw, virtualText, type} = p
@@ -279,6 +280,7 @@ const Usernames = React.memo(
 
     return (
       <Text
+        className={className}
         type={type}
         negative={isNegative}
         fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : fixOverdraw ?? false}
