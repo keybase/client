@@ -4,6 +4,8 @@ import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
+// needed for tsc
+export type {WritableDraft} from 'immer'
 
 type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 
