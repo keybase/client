@@ -10,7 +10,7 @@ const SetDescription = React.memo(function SetDescription(p: Props) {
 
   if (message?.type !== 'setDescription') return null
 
-  const SetDescription = require('./container').default as typeof SetDescriptionType
+  const {default: SetDescription} = require('./container') as {default: typeof SetDescriptionType}
   return (
     <WrapperMessage {...p} {...common}>
       <SetDescription message={message} />

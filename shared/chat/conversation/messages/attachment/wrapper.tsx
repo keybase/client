@@ -8,7 +8,7 @@ import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 export const WrapperAttachmentAudio = React.memo(function WrapperAttachmentAudio(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const AudioAttachment = require('./audio').default as typeof AudioAttachmentType
+  const {default: AudioAttachment} = require('./audio') as {default: typeof AudioAttachmentType}
   return (
     <WrapperMessage {...p} {...common}>
       <AudioAttachment />
@@ -20,7 +20,7 @@ export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p
   const common = useCommon(ordinal)
   const {toggleShowingPopup} = common
 
-  const FileAttachment = require('./file/container').default as typeof FileAttachmentType
+  const {default: FileAttachment} = require('./file/container') as {default: typeof FileAttachmentType}
 
   return (
     <WrapperMessage {...p} {...common}>
@@ -32,7 +32,7 @@ export const WrapperAttachmentVideo = React.memo(function WrapperAttachmentVideo
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {toggleShowingPopup} = common
-  const VideoAttachment = require('./video').default as typeof VideoAttachmentType
+  const {default: VideoAttachment} = require('./video') as {default: typeof VideoAttachmentType}
 
   return (
     <WrapperMessage {...p} {...common}>
@@ -44,7 +44,7 @@ export const WrapperAttachmentImage = React.memo(function WrapperAttachmentImage
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {toggleShowingPopup} = common
-  const ImageAttachment = require('./image2').default as typeof ImageAttachmentType
+  const {default: ImageAttachment} = require('./image2') as {default: typeof ImageAttachmentType}
 
   return (
     <WrapperMessage {...p} {...common}>

@@ -10,6 +10,7 @@ import WithTooltip from './with-tooltip'
 import type {IconType} from './icon.constants-gen'
 import {Box, Box2} from './box'
 import type {MeasureRef} from './measure-ref'
+import type AnimationType from './animation'
 
 const Kb = {
   Badge,
@@ -74,7 +75,7 @@ type DefaultProps = {
 export type Props = DefaultProps & WithIconProps
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
-  const Animation = require('./animation').default
+  const {default: Animation} = require('./animation') as {default: typeof AnimationType}
   return (
     <Kb.Box style={styles.progressContainer}>
       <Animation

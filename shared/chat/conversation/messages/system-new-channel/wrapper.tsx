@@ -10,7 +10,7 @@ const SystemNewChannel = React.memo(function SystemNewChannel(p: Props) {
 
   if (message?.type !== 'systemNewChannel') return null
 
-  const SystemNewChannel = require('./container').default as typeof SystemNewChannelType
+  const {default: SystemNewChannel} = require('./container') as {default: typeof SystemNewChannelType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemNewChannel message={message} />

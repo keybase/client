@@ -132,7 +132,7 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const ChatButton = require('../chat/chat-button').default as typeof ChatButtonType
+  const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
   const userDetails = C.useTrackerState(s => TrackerConstants.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
@@ -185,7 +185,9 @@ const ProfileCard = ({
     onHide?.()
   }, [showUserProfile, onHide, username])
 
-  const FollowButton = require('../profile/user/actions/follow-button').default as typeof FollowButtonType
+  const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
+    default: typeof FollowButtonType
+  }
 
   return (
     <Kb.Box2

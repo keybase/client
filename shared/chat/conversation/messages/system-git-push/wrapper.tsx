@@ -10,7 +10,7 @@ const SystemGitPush = React.memo(function SystemGitPush(p: Props) {
 
   if (message?.type !== 'systemGitPush') return null
 
-  const SystemGitPush = require('./container').default as typeof SystemGitPushType
+  const {default: SystemGitPush} = require('./container') as {default: typeof SystemGitPushType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemGitPush message={message} />

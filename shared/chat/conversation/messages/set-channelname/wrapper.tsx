@@ -11,7 +11,7 @@ const SetChannelname = React.memo(function SetChannelname(p: Props) {
   if (message?.type !== 'setChannelname') return null
   if (message.newChannelname === 'general') return null
 
-  const SetChannelname = require('./container').default as typeof SetChannelnameType
+  const {default: SetChannelname} = require('./container') as {default: typeof SetChannelnameType}
   return (
     <WrapperMessage {...p} {...common}>
       <SetChannelname message={message} />

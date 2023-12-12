@@ -230,10 +230,11 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.emoji) {
-    const emojiDataToRenderableEmoji = require('@/util/emoji')
-      .emojiDataToRenderableEmoji as typeof emojiDataToRenderableEmojiType
-    const renderEmoji = require('@/util/emoji').renderEmoji as typeof renderEmojiType
-    const RPCToEmojiData = require('@/util/emoji').RPCToEmojiData as typeof RPCToEmojiDataType
+    const {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} = require('@/util/emoji') as {
+      emojiDataToRenderableEmoji: typeof emojiDataToRenderableEmojiType
+      renderEmoji: typeof renderEmojiType
+      RPCToEmojiData: typeof RPCToEmojiDataType
+    }
     return renderEmoji({
       customStyle: styleOverride.customEmoji,
       emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),

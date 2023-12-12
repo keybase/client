@@ -10,7 +10,9 @@ const SystemChangeRetention = React.memo(function SystemChangeRetention(p: Props
 
   if (message?.type !== 'systemChangeRetention') return null
 
-  const SystemChangeRetention = require('./container').default as typeof SystemChangeRetentionType
+  const {default: SystemChangeRetention} = require('./container') as {
+    default: typeof SystemChangeRetentionType
+  }
   return (
     <WrapperMessage {...p} {...common}>
       <SystemChangeRetention message={message} />

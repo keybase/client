@@ -43,15 +43,16 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const unfurlPrompts = (() => {
     if (hasUnfurlPrompts) {
-      const UnfurlPromptList = require('./unfurl/prompt-list/container')
-        .default as typeof UnfurlPromptListType
+      const {default: UnfurlPromptList} = require('./unfurl/prompt-list/container') as {
+        default: typeof UnfurlPromptListType
+      }
       return <UnfurlPromptList />
     }
     return null
   })()
 
   const unfurlList = (() => {
-    const UnfurlList = require('./unfurl/unfurl-list').default as typeof UnfurlListType
+    const {default: UnfurlList} = require('./unfurl/unfurl-list') as {default: typeof UnfurlListType}
     if (hasUnfurlList) {
       return <UnfurlList key="UnfurlList" />
     }
@@ -60,7 +61,7 @@ const WrapperTextBottom = function WrapperTextBottom(p: Props) {
 
   const coinflip = (() => {
     if (hasCoinFlip) {
-      const CoinFlip = require('./coinflip').default as typeof CoinFlipType
+      const {default: CoinFlip} = require('./coinflip') as {default: typeof CoinFlipType}
       return <CoinFlip key="CoinFlip" />
     }
     return null

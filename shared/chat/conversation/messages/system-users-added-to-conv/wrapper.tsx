@@ -10,7 +10,9 @@ const SystemUsersAddedToConv = React.memo(function SystemUsersAddedToConv(p: Pro
 
   if (message?.type !== 'systemUsersAddedToConversation') return null
 
-  const SystemUsersAddedToConv = require('./container').default as typeof SystemUsersAddedToConvType
+  const {default: SystemUsersAddedToConv} = require('./container') as {
+    default: typeof SystemUsersAddedToConvType
+  }
   return (
     <WrapperMessage {...p} {...common}>
       <SystemUsersAddedToConv message={message} />

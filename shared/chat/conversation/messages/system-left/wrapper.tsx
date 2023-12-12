@@ -10,7 +10,7 @@ const SystemLeft = React.memo(function SystemLeft(p: Props) {
 
   if (message?.type !== 'systemLeft') return null
 
-  const SystemLeft = require('./container').default as typeof SystemLeftType
+  const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (
     <WrapperMessage {...p} {...common}>
       <SystemLeft />
