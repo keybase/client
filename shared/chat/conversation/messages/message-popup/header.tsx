@@ -9,8 +9,8 @@ const iconNameForDeviceType = Kb.Styles.isMobile
           return isRevoked
             ? 'icon-fancy-revoked-phone-mobile-226-96'
             : isLocation
-            ? 'icon-fancy-location-phone-mobile-226-96'
-            : 'icon-fancy-encrypted-phone-mobile-226-96'
+              ? 'icon-fancy-location-phone-mobile-226-96'
+              : 'icon-fancy-encrypted-phone-mobile-226-96'
         default:
           return isRevoked
             ? 'icon-fancy-revoked-computer-mobile-226-96'
@@ -23,8 +23,8 @@ const iconNameForDeviceType = Kb.Styles.isMobile
           return isRevoked
             ? 'icon-fancy-revoked-phone-desktop-150-72'
             : isLocation
-            ? 'icon-fancy-location-phone-desktop-150-72'
-            : 'icon-fancy-encrypted-phone-desktop-150-72'
+              ? 'icon-fancy-location-phone-desktop-150-72'
+              : 'icon-fancy-encrypted-phone-desktop-150-72'
         default:
           return isRevoked
             ? 'icon-fancy-revoked-computer-desktop-150-72'
@@ -114,7 +114,7 @@ const MessagePopupHeader = (props: Props) => {
           </Kb.PopupHeaderText>
         </Kb.Box2>
       )}
-      <Kb.Divider style={{width: '100%'}} />
+      <Kb.Divider style={{marginBottom: Kb.Styles.globalMargins.tiny, width: '100%'}} />
     </Kb.Box>
   )
 }
@@ -128,12 +128,12 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
+          paddingTop: Kb.Styles.globalMargins.tiny,
           width: '100%',
         },
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
-          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       headerDetailsContainer: {

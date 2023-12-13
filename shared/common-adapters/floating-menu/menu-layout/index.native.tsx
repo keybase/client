@@ -13,6 +13,7 @@ import {useOnMountOnce} from '@/constants/react'
 import type {MenuItem, MenuLayoutProps} from '.'
 import {default as SafeAreaView, useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
+import noop from 'lodash/noop'
 
 const Kb = {
   Badge,
@@ -160,7 +161,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
           index={0}
           numItems={1}
           onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-          onHidden={() => {}}
+          onHidden={noop}
           textColor={props.textColor}
           backgroundColor={props.backgroundColor}
         />
@@ -168,12 +169,16 @@ const MenuLayout = (props: MenuLayoutProps) => {
     </>
   )
 
-  const {bottom: paddingBottom} = Kb.useSafeAreaInsets()
+  const {bottom: safeBottom} = Kb.useSafeAreaInsets()
 
   if (isModal === 'bottomsheet') {
     return (
       <BottomSheetScrollView style={styles.bottomSheetScrollView}>
-        <Kb.Box2 style={{paddingBottom}} direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          style={Styles.collapseStyles([styles.bottomSheetContainer, {marginBottom: 20 + safeBottom}])}
+          direction="vertical"
+          fullWidth={true}
+        >
           {props.header}
           {items}
           {close}
@@ -235,7 +240,15 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         marginLeft: Styles.globalMargins.tiny,
       },
-      bottomSheetScrollView: {backgroundColor: Styles.globalColors.white},
+      bottomSheetContainer: {
+        backgroundColor: Styles.globalColors.white,
+        borderRadius: Styles.borderRadius,
+        marginBottom: 20,
+      },
+      bottomSheetScrollView: {
+        backgroundColor: Styles.globalColors.black_05,
+        padding: 8,
+      },
       divider: {marginBottom: Styles.globalMargins.tiny},
       dividerInScrolleView: {
         marginBottom: Styles.globalMargins.tiny,
@@ -260,7 +273,6 @@ const styles = Styles.styleSheetCreate(
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
         height: itemContainerHeight,
         justifyContent: 'center',
         position: 'relative',

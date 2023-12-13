@@ -125,15 +125,16 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
-      handleStyle: {backgroundColor: Styles.globalColors.white},
-      modalStyle: {
-        backgroundColor: Styles.globalColors.white,
-        elevation: 17,
-        shadowColor: Styles.globalColors.black_50OrBlack_40,
-        shadowOffset: {height: 5, width: 0},
-        shadowOpacity: 1,
-        shadowRadius: 10,
-      },
+      handleStyle: {backgroundColor: Styles.globalColors.black_05},
+      modalStyle: Styles.platformStyles({
+        isAndroid: {
+          elevation: 17,
+          shadowColor: Styles.globalColors.black_50OrBlack_40,
+          shadowOffset: {height: 5, width: 0},
+          shadowOpacity: 1,
+          shadowRadius: 10,
+        },
+      }),
     }) as const
 )
 

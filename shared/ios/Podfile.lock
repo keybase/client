@@ -4,7 +4,7 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXApplication (5.3.1):
     - ExpoModulesCore
-  - EXAV (13.6.0):
+  - EXAV (13.5.1):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXBarCodeScanner (12.7.0):
@@ -869,7 +869,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 042aa2e3f05258a16962ea1a9914bf288db9c9a1
-  EXAV: 523cd6969ca53b3b2762f18fb5450b76f84df44f
+  EXAV: f48659990f6f3d00b5a7c31e3b73cdcc01373c80
   EXBarCodeScanner: 296dd50f6c03928d1d71d37ea17473b304cfdb00
   EXConstants: ce5bbea779da8031ac818c36bea41b10e14d04e1
   EXContacts: afd38f7adacef9a76d6d0bc479f30051736f068f
