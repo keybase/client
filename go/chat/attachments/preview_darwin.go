@@ -78,7 +78,9 @@ import (
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, &err, "previewVideo")()
-	C.MakeVideoThumbnail(C.CString(basename))
+	cbasename := C.CString(basename)
+	defer C.free(unsafe.Pointer(cbasename))
+	C.MakeVideoThumbnail(cbasename)
 	duration := int(C.VideoDuration())
 	if duration < 1 {
 		// clamp to 1 so we know it is a video, but also not to compute a duration for it
