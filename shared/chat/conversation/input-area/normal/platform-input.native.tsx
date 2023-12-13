@@ -193,10 +193,10 @@ const AnimatedExpand = (() => {
 type ChatFilePickerProps = {
   attachTo?: React.RefObject<Kb.MeasureRef>
   showingPopup: boolean
-  toggleShowingPopup: () => void
+  hidePopup: () => void
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
-  const {attachTo, showingPopup, toggleShowingPopup} = p
+  const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = C.useChatContext(s => s.id)
   const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = C.useChatNavigateAppend()
@@ -242,7 +242,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
     <FilePickerPopup
       attachTo={attachTo}
       visible={showingPopup}
-      onHidden={toggleShowingPopup}
+      onHidden={hidePopup}
       onSelect={launchNativeImagePicker}
     />
   )
@@ -350,29 +350,27 @@ const PlatformInput = (p: Props) => {
   }, [onQueueSubmit, insertText])
 
   const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
-    const {attachTo, toggleShowingPopup} = p
+    const {attachTo, hidePopup} = p
     switch (whichMenu.current) {
       case 'filepickerpopup':
-        return (
-          <ChatFilePicker attachTo={attachTo} showingPopup={true} toggleShowingPopup={toggleShowingPopup} />
-        )
+        return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
       case 'moremenu':
-        return <MoreMenuPopup onHidden={toggleShowingPopup} visible={true} />
+        return <MoreMenuPopup onHidden={hidePopup} visible={true} />
       default:
-        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={hidePopup} visible={true} />
     }
   }, [])
 
-  const {popup: menu, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
       // Hide the keyboard on mobile when showing the menu.
       Keyboard.dismiss()
       whichMenu.current = menu
-      toggleShowingPopup()
+      showPopup()
     },
-    [whichMenu, toggleShowingPopup]
+    [whichMenu, showPopup]
   )
 
   const openExplodingMenu = React.useCallback(() => {

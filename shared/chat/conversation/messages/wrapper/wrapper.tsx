@@ -61,19 +61,19 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
   }, [shouldShowPopup, type])
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
+  const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
   })
-  return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
+  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
 
 type WMProps = {
   children: React.ReactNode
   bottomChildren?: React.ReactNode
   showCenteredHighlight: boolean
-  toggleShowingPopup: () => void
+  showPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.RefObject<Kb.MeasureRef>
@@ -206,7 +206,7 @@ type TSProps = {
   showSendIndicator: boolean
   showingPicker: boolean
   showingPopup: boolean
-  toggleShowingPopup: () => void
+  showPopup: () => void
   type: T.Chat.MessageType
   you: string
 }
@@ -229,10 +229,10 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
-  const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
+  const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
-        onLongPress: decorate ? toggleShowingPopup : undefined,
+        onLongPress: decorate ? showPopup : undefined,
         style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
@@ -243,7 +243,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           // eslint-disable-next-line
           active: showingPopup || showingPicker,
         }),
-        onContextMenu: toggleShowingPopup,
+        onContextMenu: showPopup,
         // attach popups to the message itself
         ref: popupAnchor,
       }
@@ -283,7 +283,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
             reactionsPopupPosition={reactionsPopupPosition}
             hasReactions={hasReactions}
             bottomChildren={bottomChildren}
-            toggleShowingPopup={toggleShowingPopup}
+            showPopup={showPopup}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
           />
@@ -295,7 +295,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showExplodingCountdown={showExplodingCountdown}
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
-        toggleShowingPopup={toggleShowingPopup}
+        showPopup={showPopup}
       />
     </LongPressable>
   )
@@ -377,7 +377,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 })
 
 type BProps = {
-  toggleShowingPopup: () => void
+  showPopup: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
@@ -417,7 +417,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
 // Exploding, ... , sending, tombstone
 type RProps = {
-  toggleShowingPopup: () => void
+  showPopup: () => void
   showSendIndicator: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
@@ -425,11 +425,11 @@ type RProps = {
   botname: string
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
+  const {showPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
-  const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={toggleShowingPopup} /> : null
+  const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
@@ -460,7 +460,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
     >
       <Kb.Box style={styles.ellipsis}>
-        <Kb.Icon type="iconfont-ellipsis" onClick={toggleShowingPopup} />
+        <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
       </Kb.Box>
     </Kb.WithTooltip>
   )
@@ -500,7 +500,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const ordinalRef = React.useRef(ordinal)
   ordinalRef.current = ordinal
 
-  const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
+  const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
   const mdata = useState(ordinal)
@@ -528,11 +528,11 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     setShowingPicker,
     showCoinsIcon,
     showExplodingCountdown,
+    showPopup,
     showRevoked,
     showSendIndicator,
     showingPicker,
     showingPopup,
-    toggleShowingPopup,
     type,
     you,
   }

@@ -15,10 +15,16 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const attachTo = popupAnchor
 
   const toggleShowingPopup = React.useCallback(() => {
+    console.log('aaaa togglepopup')
     setShowingPopup(s => !s)
   }, [setShowingPopup])
   const hidePopup = React.useCallback(() => {
+    console.log('aaaa hidepopup')
     setShowingPopup(false)
+  }, [setShowingPopup])
+  const showPopup = React.useCallback(() => {
+    console.log('aaaa showpopup')
+    setShowingPopup(true)
   }, [setShowingPopup])
 
   if (showingPopup !== wasShowingPopupRef.current || makePopup !== wasMakePopupRef.current) {
@@ -32,6 +38,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     popup,
     popupAnchor,
     setShowingPopup,
+    showPopup,
     showingPopup,
     toggleShowingPopup,
   }
