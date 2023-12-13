@@ -9,6 +9,7 @@ type Props = {
   backgroundColor?: string
   isSelected?: boolean
   isInWidget?: boolean
+  allowBold?: boolean
 }
 
 const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: string}) => {
@@ -105,7 +106,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const {isSelected, backgroundColor, isInWidget, layoutSnippet} = p
+  const {allowBold, isSelected, backgroundColor, isInWidget, layoutSnippet} = p
 
   const isTypingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
@@ -146,6 +147,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {
+    allowBold,
     backgroundColor,
     draft,
     hasResetUsers,
@@ -162,6 +164,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
 })
 
 type IProps = {
+  allowBold?: boolean
   backgroundColor?: string
   draft: string
   hasResetUsers: boolean
@@ -174,7 +177,7 @@ type IProps = {
   isSelected?: boolean
 }
 const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
-  const {isDecryptingSnippet, draft, youAreReset, youNeedToRekey, isSelected} = p
+  const {isDecryptingSnippet, draft, youAreReset, youNeedToRekey, isSelected, allowBold = true} = p
   const {isTypingSnippet, hasResetUsers, hasUnread, participantNeedToRekey, backgroundColor} = p
 
   const subColor = isSelected
@@ -182,7 +185,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     : hasUnread
       ? Kb.Styles.globalColors.black
       : Kb.Styles.globalColors.black_50
-  const showBold = !isSelected && hasUnread
+  const showBold = allowBold && !isSelected && hasUnread
 
   let content: React.ReactNode
   const style = React.useMemo(

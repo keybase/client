@@ -96,7 +96,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
             />
             {!props.numSearchHits && (
               <SnippetContext.Provider value={props.snippet ?? ''}>
-                <BottomLine isSelected={props.isSelected} />
+                <BottomLine isSelected={props.isSelected} allowBold={false} />
               </SnippetContext.Provider>
             )}
           </Kb.Box2>
