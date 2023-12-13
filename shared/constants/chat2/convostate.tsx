@@ -981,10 +981,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             dispatch.messagesAdd(messages)
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-              dispatch.setMessageCenterOrdinal({
-                highlightMode: centeredMessageID.highlightMode,
-                ordinal,
-              })
+              dispatch.setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
             }
           }
         }
@@ -3045,7 +3042,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
     },
     isCaughtUp: () => {
-      return get().maxMsgIDSeen >= get().meta.maxVisibleMsgID
+      return get().maxMsgIDSeen === -1 || get().maxMsgIDSeen >= get().meta.maxVisibleMsgID
     },
     isMetaGood: () => {
       // fake meta doesn't have our actual id in it
