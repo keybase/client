@@ -116,7 +116,7 @@ export const useMessagePopup = (p: {
   const conversationIDKey = C.useChatContext(s => s.id)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {toggleShowingPopup, attachTo} = p
+      const {attachTo, hidePopup} = p
       return shouldShow?.() ?? true ? (
         <C.ChatProvider id={conversationIDKey}>
           <Kb.FloatingModalContext.Provider value="bottomsheet">
@@ -124,7 +124,7 @@ export const useMessagePopup = (p: {
               ordinal={ordinal}
               key="popup"
               attachTo={attachTo}
-              onHidden={toggleShowingPopup}
+              onHidden={hidePopup}
               position="top right"
               style={style}
               visible={true}

@@ -4,6 +4,7 @@ import type {MeasureRef} from './measure-ref'
 export type Popup2Parms = {
   attachTo?: React.RefObject<MeasureRef>
   toggleShowingPopup: () => void
+  hidePopup: () => void
 }
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
@@ -16,14 +17,18 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const toggleShowingPopup = React.useCallback(() => {
     setShowingPopup(s => !s)
   }, [setShowingPopup])
+  const hidePopup = React.useCallback(() => {
+    setShowingPopup(false)
+  }, [setShowingPopup])
 
   if (showingPopup !== wasShowingPopupRef.current || makePopup !== wasMakePopupRef.current) {
     wasShowingPopupRef.current = showingPopup
     wasMakePopupRef.current = makePopup
-    setPopup(showingPopup ? makePopup({attachTo, toggleShowingPopup}) : null)
+    setPopup(showingPopup ? makePopup({attachTo, hidePopup, toggleShowingPopup}) : null)
   }
 
   return {
+    hidePopup,
     popup,
     popupAnchor,
     setShowingPopup,
