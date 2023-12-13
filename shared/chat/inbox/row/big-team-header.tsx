@@ -21,7 +21,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <C.ChatProvider id={C.dummyConversationIDKey}>
+        <C.ChatProvider id="" canBeNull={true}>
           <TeamMenu
             attachTo={attachTo}
             visible={true}
