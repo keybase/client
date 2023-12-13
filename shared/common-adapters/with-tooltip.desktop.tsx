@@ -32,7 +32,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
       <Kb.Box2Measure
         direction="vertical"
         alignSelf="stretch"
-        alignItems="center"
+        alignItems="flex-start"
         style={containerStyle}
         ref={popupAnchor}
         onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
