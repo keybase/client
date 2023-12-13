@@ -15,22 +15,22 @@ const ChooseConversation = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.Overlay
           attachTo={attachTo}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="center center"
           style={styles.overlay}
           visible={true}
         >
-          <ConversationList onSelect={onSelect} onDone={toggleShowingPopup} />
+          <ConversationList onSelect={onSelect} onDone={hidePopup} />
         </Kb.Overlay>
       )
     },
     [onSelect]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -41,7 +41,7 @@ const ChooseConversation = (props: Props) => {
           </Kb.Text>
         }
         popupAnchor={popupAnchor}
-        toggleOpen={toggleShowingPopup}
+        toggleOpen={showPopup}
         style={Kb.Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
       />
       {popup}

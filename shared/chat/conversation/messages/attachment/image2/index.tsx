@@ -11,11 +11,11 @@ import {
 } from '../shared'
 
 type Props = {
-  toggleMessageMenu: () => void
+  showPopup: () => void
 }
 
 const Image2 = React.memo(function Image2(p: Props) {
-  const {toggleMessageMenu} = p
+  const {showPopup} = p
   const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
     useAttachmentState()
   const containerStyle = styles.container
@@ -42,11 +42,7 @@ const Image2 = React.memo(function Image2(p: Props) {
           gap="xxtiny"
         >
           <ShowToastAfterSaving transferState={transferState} />
-          <Kb.ClickableBox
-            onClick={openFullscreen}
-            onLongPress={toggleMessageMenu}
-            style={styles.imageContainer}
-          >
+          <Kb.ClickableBox onClick={openFullscreen} onLongPress={showPopup} style={styles.imageContainer}>
             <ImageImpl />
           </Kb.ClickableBox>
           {showTitle ? <Title /> : null}
@@ -54,7 +50,7 @@ const Image2 = React.memo(function Image2(p: Props) {
         </Kb.Box2>
       </>
     )
-  }, [filename, openFullscreen, toggleMessageMenu, showTitle, transferState, transferProgress])
+  }, [filename, openFullscreen, showPopup, showTitle, transferState, transferProgress])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
@@ -65,9 +61,7 @@ const Image2 = React.memo(function Image2(p: Props) {
 
 const styles = Kb.Styles.styleSheetCreate(() => {
   return {
-    container: {
-      alignSelf: 'center',
-    },
+    container: {alignSelf: 'center'},
     contentContainer: {
       backgroundColor: Kb.Styles.globalColors.black_05_on_white,
       borderRadius: Kb.Styles.borderRadius,
