@@ -15,9 +15,7 @@ const Fullscreen = (p: Props) => {
   const [loaded, setLoaded] = React.useState(false)
   const {id} = message
 
-  const {toggleShowingPopup, popup} = useMessagePopup({
-    ordinal: id,
-  })
+  const {toggleShowingPopup, popup} = useMessagePopup({ordinal: id})
 
   const onSwipe = React.useCallback(
     (left: boolean) => {

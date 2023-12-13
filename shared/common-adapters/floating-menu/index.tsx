@@ -98,6 +98,7 @@ const FloatingMenu = (props: Props) => {
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}
         backdropComponent={Backdrop}
+        onDismiss={props.onHidden}
       >
         {contents}
       </BottomSheetModal>
