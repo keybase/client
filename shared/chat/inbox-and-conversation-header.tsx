@@ -228,9 +228,7 @@ const Header2 = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      actionIcons: {
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-      },
+      actionIcons: {paddingBottom: Kb.Styles.globalMargins.tiny},
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
@@ -247,12 +245,8 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
       },
       descriptionTextContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          alignItems: 'baseline',
-        },
-        isTablet: {
-          alignItems: 'baseline',
-        },
+        isElectron: {alignItems: 'baseline'},
+        isTablet: {alignItems: 'baseline'},
       }),
       headerTitle: Kb.Styles.platformStyles({
         common: {
@@ -260,18 +254,14 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingBottom: Kb.Styles.globalMargins.xtiny,
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-        isTablet: {
-          flex: 1,
-        },
+        isTablet: {flex: 1},
       }),
       left: Kb.Styles.platformStyles({
         common: {
           height: Kb.Styles.isTablet ? 36 : 32,
           width: Kb.Styles.globalStyles.mediumSubNavWidth,
         },
-        isTablet: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-        },
+        isTablet: {paddingLeft: Kb.Styles.globalMargins.small},
       }),
       markdownOverride: Kb.Styles.platformStyles({
         common: {
@@ -295,13 +285,9 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.xsmall,
           paddingRight: Kb.Styles.globalMargins.xsmall,
         },
-        isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-        },
+        isMobile: {paddingLeft: Kb.Styles.globalMargins.tiny},
       }),
-      shhIconStyle: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-      },
+      shhIconStyle: {marginLeft: Kb.Styles.globalMargins.xtiny},
     }) as const
 )
 
