@@ -132,7 +132,7 @@ const Header = ({info}: ExternalTeamProps) => {
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
     nav.safeNavigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
-  const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(teamname || '')
+  const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
     <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'small' : 'tiny'}>
@@ -145,13 +145,7 @@ const Header = ({info}: ExternalTeamProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
         <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
-        <Kb.Button
-          mode="Secondary"
-          label="Share"
-          small={true}
-          ref={popupAnchor}
-          onClick={() => setShowingPopup(true)}
-        />
+        <Kb.Button mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
         {popup}
       </Kb.Box2>
     </Kb.Box2>

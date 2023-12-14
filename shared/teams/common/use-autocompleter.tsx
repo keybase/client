@@ -60,7 +60,7 @@ function useAutocompleter<U>(
     [onSelect, selected, itemsFiltered]
   )
 
-  const {popup, popupAnchor, showPopup, setShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup, hidePopup} = Kb.usePopup2(makePopup)
 
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]
@@ -92,7 +92,7 @@ function useAutocompleter<U>(
     [selected, setSelected, numItems, onSelect, selectedItem]
   )
 
-  return {onKeyDown, popup, popupAnchor, setShowingPopup, showPopup}
+  return {hidePopup, onKeyDown, popup, popupAnchor, showPopup}
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

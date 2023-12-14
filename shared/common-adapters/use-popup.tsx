@@ -37,7 +37,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     hidePopup,
     popup,
     popupAnchor,
-    setShowingPopup,
+    // setShowingPopup,
     showPopup,
     showingPopup,
     // toggleShowingPopup,

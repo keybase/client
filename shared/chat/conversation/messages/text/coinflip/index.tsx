@@ -48,13 +48,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     },
     [participants]
   )
-  const {setShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  const showPopup = React.useCallback(() => {
-    setShowingPopup(true)
-  }, [setShowingPopup])
-  const hidePopup = React.useCallback(() => {
-    setShowingPopup(false)
-  }, [setShowingPopup])
+  const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
     <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>

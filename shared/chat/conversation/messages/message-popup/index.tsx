@@ -95,9 +95,9 @@ export const MessagePopupModal = (p: ModalProps) => {
     },
     [ordinal, pop]
   )
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
-    setShowingPopup(true)
+    showPopup()
   }
 
   return (
