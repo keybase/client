@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
+import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, useBackBadge} from './index.native'
 import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
@@ -84,20 +84,7 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
 export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = ({...rest}: any) => {
-  const visiblePath = C.getVisiblePath()
-  const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const badgeNumber = React.useMemo(() => {
-    if (!onTopOfInbox) return 0
-    const badgeMap = C.useChatState.getState().getBadgeMap(badgeCountsChanged)
-    return [...badgeMap.entries()].reduce(
-      (res, [currentConvID, currentValue]) =>
-        // only show sum of badges that aren't for the current conversation
-        currentConvID !== conversationIDKey ? res + currentValue : res,
-      0
-    )
-  }, [badgeCountsChanged, onTopOfInbox, conversationIDKey])
+  const badgeNumber = useBackBadge()
   return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
 }
 

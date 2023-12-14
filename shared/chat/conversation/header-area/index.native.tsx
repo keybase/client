@@ -5,6 +5,24 @@ import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {Dimensions} from 'react-native'
 
+export const useBackBadge = () => {
+  const visiblePath = C.getVisiblePath()
+  const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const badgeNumber = React.useMemo(() => {
+    if (!onTopOfInbox) return 0
+    const badgeMap = C.useChatState.getState().getBadgeMap(badgeCountsChanged)
+    return [...badgeMap.entries()].reduce(
+      (res, [currentConvID, currentValue]) =>
+        // only show sum of badges that aren't for the current conversation
+        currentConvID !== conversationIDKey ? res + currentValue : res,
+      0
+    )
+  }, [badgeCountsChanged, onTopOfInbox, conversationIDKey])
+  return badgeNumber
+}
+
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
@@ -27,7 +45,8 @@ const ShhIcon = React.memo(function ShhIcon() {
 
 const useMaxWidthStyle = () => {
   const {width} = Dimensions.get('window')
-  return React.useMemo(() => ({maxWidth: width - 140}), [width])
+  const hasBadge = useBackBadge() > 0
+  return React.useMemo(() => ({maxWidth: width - 140 - (hasBadge ? 40 : 0)}), [width, hasBadge])
 }
 
 const ChannelHeader = () => {
