@@ -46,9 +46,13 @@ const empty = new Array<EmojiData>()
 export const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
-  C.useCIDChanged(conversationIDKey, () => {
-    fetchUserEmoji(conversationIDKey)
-  })
+  C.useCIDChanged(
+    conversationIDKey,
+    () => {
+      fetchUserEmoji(conversationIDKey)
+    },
+    true
+  )
 
   const userEmojisLoading = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
