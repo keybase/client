@@ -89,13 +89,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           closeOnSelect={true}
           items={menuItems}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
@@ -103,7 +103,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     [menuItems]
   )
 
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const bottomDescriptorsAndButtons = (
     <>
@@ -143,7 +143,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               icon="iconfont-ellipsis"
               iconColor={Kb.Styles.globalColors.blue}
               ref={popupAnchor}
-              onClick={toggleShowingPopup}
+              onClick={showPopup}
             />
           )}
         </Kb.Box2>

@@ -27,11 +27,11 @@ function useAutocompleter<U>(
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.Overlay
           attachTo={attachTo}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           matchDimension={true}
           position="top center"
           positionFallbacks={positionFallbacks}
@@ -60,7 +60,7 @@ function useAutocompleter<U>(
     [onSelect, selected, itemsFiltered]
   )
 
-  const {popup, popupAnchor, toggleShowingPopup, setShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup, setShowingPopup} = Kb.usePopup2(makePopup)
 
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]
@@ -92,7 +92,7 @@ function useAutocompleter<U>(
     [selected, setSelected, numItems, onSelect, selectedItem]
   )
 
-  return {onKeyDown, popup, popupAnchor, setShowingPopup, toggleShowingPopup}
+  return {onKeyDown, popup, popupAnchor, setShowingPopup, showPopup}
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

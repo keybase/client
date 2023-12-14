@@ -34,12 +34,12 @@ const Sort = (props: SortBarProps) => {
   const {sortSetting, sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="bottom left"
           closeOnSelect={true}
           items={[
@@ -53,10 +53,10 @@ const Sort = (props: SortBarProps) => {
     },
     [sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return sortSetting ? (
     <>
-      <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
           <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(sortSetting)}</Kb.Text>

@@ -125,13 +125,13 @@ const DropdownButton = (p: DropdownProps) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
           attachTo={attachTo}
           items={items}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="bottom right"
           visible={true}
         />
@@ -139,13 +139,13 @@ const DropdownButton = (p: DropdownProps) => {
     },
     [items]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox
       onClick={e => {
         e.stopPropagation()
-        toggleShowingPopup()
+        showPopup()
       }}
       ref={popupAnchor}
     >

@@ -3,7 +3,7 @@ import type {MeasureRef} from './measure-ref'
 
 export type Popup2Parms = {
   attachTo?: React.RefObject<MeasureRef>
-  toggleShowingPopup: () => void
+  showPopup: () => void
   hidePopup: () => void
 }
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
@@ -14,10 +14,10 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const popupAnchor = React.useRef<MeasureRef>(null)
   const attachTo = popupAnchor
 
-  const toggleShowingPopup = React.useCallback(() => {
-    console.log('aaaa togglepopup')
-    setShowingPopup(s => !s)
-  }, [setShowingPopup])
+  // const toggleShowingPopup = React.useCallback(() => {
+  //   console.log('aaaa togglepopup')
+  //   setShowingPopup(s => !s)
+  // }, [setShowingPopup])
   const hidePopup = React.useCallback(() => {
     console.log('aaaa hidepopup')
     setShowingPopup(false)
@@ -30,7 +30,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   if (showingPopup !== wasShowingPopupRef.current || makePopup !== wasMakePopupRef.current) {
     wasShowingPopupRef.current = showingPopup
     wasMakePopupRef.current = makePopup
-    setPopup(showingPopup ? makePopup({attachTo, hidePopup, toggleShowingPopup}) : null)
+    setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
   }
 
   return {
@@ -40,6 +40,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     setShowingPopup,
     showPopup,
     showingPopup,
-    toggleShowingPopup,
+    // toggleShowingPopup,
   }
 }

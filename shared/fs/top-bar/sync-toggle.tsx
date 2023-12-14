@@ -10,12 +10,12 @@ export type Props = {
   waiting: boolean
 }
 
-const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingPopup: () => void}) => {
-  const {toggleShowingPopup, waiting, disableSync} = props
+const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {showPopup: () => void}) => {
+  const {showPopup, waiting, disableSync} = props
   const wasWaiting = React.useRef(waiting)
   if (wasWaiting.current !== waiting) {
     wasWaiting.current = waiting
-    toggleShowingPopup()
+    showPopup()
   }
   return (
     <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
@@ -38,7 +38,7 @@ const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingP
             small={true}
             type="Dim"
             label="Cancel"
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
             disabled={waiting}
           />
           <Kb.Button
@@ -60,18 +60,16 @@ const SyncToggle = (props: Props) => {
   const {waiting, disableSync} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup, showPopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="bottom left"
           closeOnSelect={false}
           containerStyle={styles.floating}
-          header={
-            <Confirm waiting={waiting} disableSync={disableSync} toggleShowingPopup={toggleShowingPopup} />
-          }
+          header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
           items={
             Kb.Styles.isMobile
               ? [
@@ -92,12 +90,12 @@ const SyncToggle = (props: Props) => {
     },
     [disableSync, waiting]
   )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return props.syncConfig && !props.hideSyncToggle ? (
     <>
       <Kb.Switch
         align="right"
-        onClick={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
+        onClick={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled ? showPopup : props.enableSync}
         on={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled}
         color="green"
         label="Sync on this device"

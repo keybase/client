@@ -108,7 +108,7 @@ const EmailPhoneRow = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -116,7 +116,7 @@ const EmailPhoneRow = (props: Props) => {
           visible={true}
           position="bottom right"
           header={Kb.Styles.isMobile ? header : undefined}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           items={menuItems}
           closeOnSelect={true}
         />
@@ -125,7 +125,7 @@ const EmailPhoneRow = (props: Props) => {
     [menuItems, header]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   // Short circuit superseded phone numbers - they get their own banner instead
   if (superseded) {
@@ -176,7 +176,7 @@ const EmailPhoneRow = (props: Props) => {
         <>
           <Kb.ClickableBox
             className="hover_container"
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
             ref={popupAnchor}
             style={styles.gearIconContainer}
           >

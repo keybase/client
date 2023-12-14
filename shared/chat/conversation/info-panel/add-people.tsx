@@ -27,7 +27,7 @@ const _AddPeople = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       if (!isGeneralChannel) {
         // general channel & small teams don't need a menu
         const items: Kb.MenuItems = [
@@ -39,7 +39,7 @@ const _AddPeople = (props: Props) => {
             attachTo={attachTo}
             visible={true}
             items={items}
-            onHidden={toggleShowingPopup}
+            onHidden={hidePopup}
             position="bottom left"
             closeOnSelect={true}
           />
@@ -48,7 +48,7 @@ const _AddPeople = (props: Props) => {
     },
     [isGeneralChannel, onAddPeople, onAddToChannel]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -56,7 +56,7 @@ const _AddPeople = (props: Props) => {
       <Kb.Button
         mode="Primary"
         type="Default"
-        onClick={directAction || toggleShowingPopup}
+        onClick={directAction || showPopup}
         label={directLabel || 'Add people...'}
         ref={popupAnchor}
         style={styles.addButtonContainer}

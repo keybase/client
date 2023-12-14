@@ -377,7 +377,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const menuItems = [
         {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
         ...(isAdmin
@@ -395,7 +395,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
         <Kb.FloatingMenu
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           closeOnSelect={true}
           items={menuItems}
         />
@@ -403,7 +403,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
     },
     [onEditChannel, onChannelSettings, onDelete, isAdmin]
   )
-  const {popupAnchor, toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
+  const {popupAnchor, showPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
     <Kb.Box2
@@ -435,7 +435,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
         <Kb.Button
           icon="iconfont-ellipsis"
           iconColor={Kb.Styles.globalColors.black_50}
-          onClick={toggleShowingPopup}
+          onClick={showPopup}
           ref={popupAnchor}
           small={true}
           mode="Secondary"

@@ -205,7 +205,7 @@ const AddMoreMembers = () => {
   const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
       const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
       const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
@@ -214,7 +214,7 @@ const AddMoreMembers = () => {
         <Kb.FloatingMenu
           attachTo={attachTo}
           closeOnSelect={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
           items={[
             {onClick: onAddKeybase, title: 'From Keybase'},
@@ -228,16 +228,10 @@ const AddMoreMembers = () => {
     [appendNewTeamBuilder, nav, teamID]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
-        mode="Secondary"
-        small={true}
-        label="Add people"
-        onClick={toggleShowingPopup}
-        ref={popupAnchor}
-      />
+      <Kb.Button mode="Secondary" small={true} label="Add people" onClick={showPopup} ref={popupAnchor} />
       {popup}
     </>
   )

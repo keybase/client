@@ -30,7 +30,7 @@ export const HeaderRightActions = () => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onAddPersonal = () => {
         setError(undefined)
         navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
@@ -45,7 +45,7 @@ export const HeaderRightActions = () => {
           attachTo={attachTo}
           closeOnSelect={true}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="bottom center"
           items={[
             {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
@@ -57,12 +57,12 @@ export const HeaderRightActions = () => {
     [navigateAppend, setError]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
         label="New repository"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         small={true}
         ref={popupAnchor}
         style={styles.newRepoButton}

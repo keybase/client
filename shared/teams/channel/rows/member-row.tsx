@@ -56,8 +56,8 @@ const ChannelMemberRow = (props: Props) => {
     ? teamMemberInfo.status === 'deleted'
       ? 'Has deleted their account'
       : yourOperations.manageMembers
-      ? 'Has reset their account'
-      : 'Has reset their account; admins can re-invite'
+        ? 'Has reset their account'
+        : 'Has reset their account; admins can re-invite'
     : null
 
   const roleLabel = !!active && C.Teams.typeToLabel[teamMemberInfo.type]
@@ -122,7 +122,7 @@ const ChannelMemberRow = (props: Props) => {
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
         navigateAppend({
@@ -196,7 +196,7 @@ const ChannelMemberRow = (props: Props) => {
           attachTo={attachTo}
           closeOnSelect={true}
           items={menuItems}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
@@ -219,7 +219,7 @@ const ChannelMemberRow = (props: Props) => {
     ]
   )
 
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (
     <Kb.Box2
@@ -240,7 +240,7 @@ const ChannelMemberRow = (props: Props) => {
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         ref={popupAnchor}
         small={true}
         tooltip="More actions"

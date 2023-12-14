@@ -170,7 +170,7 @@ const DropdownButton = (p: DropdownProps) => {
   const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const items: Kb.MenuItems = [
         isBot
           ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
@@ -193,7 +193,7 @@ const DropdownButton = (p: DropdownProps) => {
           closeOnSelect={true}
           attachTo={attachTo}
           items={items}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="bottom right"
           visible={true}
         />
@@ -210,10 +210,10 @@ const DropdownButton = (p: DropdownProps) => {
       onUnfollow,
     ]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+    <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />

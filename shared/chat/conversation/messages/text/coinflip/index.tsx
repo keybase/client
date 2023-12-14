@@ -36,11 +36,11 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <CoinFlipParticipants
           attachTo={attachTo}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           participants={participants}
           visible={true}
         />

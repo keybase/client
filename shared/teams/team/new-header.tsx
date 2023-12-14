@@ -94,8 +94,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const callbacks = useHeaderCallbacks(teamID)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return <TeamMenu attachTo={attachTo} onHidden={toggleShowingPopup} teamID={teamID} visible={true} />
+      const {attachTo, hidePopup} = p
+      return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
     },
     [teamID]
   )
@@ -205,12 +205,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             mode="Secondary"
             ref={popupAnchor}
           />
-          <Kb.Button
-            mode="Secondary"
-            small={true}
-            ref={teamMenu.popupAnchor}
-            onClick={teamMenu.toggleShowingPopup}
-          >
+          <Kb.Button mode="Secondary" small={true} ref={teamMenu.popupAnchor} onClick={teamMenu.showPopup}>
             <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
           {teamMenu.popup}
