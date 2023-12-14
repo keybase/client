@@ -172,13 +172,13 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
           items={menuItems}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           attachTo={attachTo}
           position="bottom right"
         />
@@ -186,7 +186,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
     },
     [menuItems]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
 
@@ -213,7 +213,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
               : Kb.Styles.globalColors.blueDarker
           }
           hoverColor={Kb.Styles.globalColors.whiteOrWhite}
-          onClick={toggleShowingPopup}
+          onClick={showPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
           ref={popupAnchor}

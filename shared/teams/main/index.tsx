@@ -143,7 +143,7 @@ const SortHeader = () => {
   const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onChangeSort = (sortOrder: T.Teams.TeamListSort) => setTeamListFilterSort(sortOrder)
       return (
         <Kb.FloatingMenu
@@ -162,7 +162,7 @@ const SortHeader = () => {
             },
           ]}
           closeOnSelect={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
           position="bottom left"
         />
@@ -171,11 +171,11 @@ const SortHeader = () => {
     [setTeamListFilterSort]
   )
 
-  const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   const sortOrder = C.useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
-      <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
+      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
           <Kb.Icon type="iconfont-arrow-full-down" />
           <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>

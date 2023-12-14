@@ -68,14 +68,14 @@ const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
   const {name, isOpen} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return <TeamInfo {...props} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+      const {attachTo, hidePopup} = p
+      return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
     },
     [props]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
-    <Kb.ClickableBox ref={popupAnchor} onClick={toggleShowingPopup}>
+    <Kb.ClickableBox ref={popupAnchor} onClick={showPopup}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
         <>
           {popup}

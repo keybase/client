@@ -23,15 +23,10 @@ const SFMIPopup = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
 
       return (
-        <Kb.Overlay
-          style={styles.popup}
-          attachTo={attachTo}
-          onHidden={toggleShowingPopup}
-          position="bottom right"
-        >
+        <Kb.Overlay style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
           <Kb.Box
             style={styles.container}
             onClick={(e: any) => {
@@ -65,7 +60,7 @@ const SFMIPopup = (props: Props) => {
     },
     [canContinue, isEnabling, enableDriver, fuseConsentComponent, type]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (type !== T.FS.DriverStatusType.Disabled) {
     return null
@@ -80,7 +75,7 @@ const SFMIPopup = (props: Props) => {
             fontSize={16}
             color={Kb.Styles.globalColors.black_50}
             hoverColor={Kb.Styles.globalColors.black}
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
             ref={popupAnchor}
           />
         </Kb.WithTooltip>
@@ -89,7 +84,7 @@ const SFMIPopup = (props: Props) => {
           mode="Secondary"
           small={true}
           label={`Enable ${C.fileUIName} integration`}
-          onClick={toggleShowingPopup}
+          onClick={showPopup}
           ref={popupAnchor}
         />
       )}

@@ -9,10 +9,9 @@ type Props = {
   hasUnfurlPrompts: boolean
   hasUnfurlList: boolean
   hasCoinFlip: boolean
-  toggleShowingPopup: () => void
 }
 
-export const useBottom = (ordinal: T.Chat.Ordinal, toggleShowingPopup: () => void) => {
+export const useBottom = (ordinal: T.Chat.Ordinal) => {
   const {id, hasCoinFlip, hasUnfurlList} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
@@ -31,10 +30,9 @@ export const useBottom = (ordinal: T.Chat.Ordinal, toggleShowingPopup: () => voi
         hasCoinFlip={hasCoinFlip}
         hasUnfurlList={hasUnfurlList}
         hasUnfurlPrompts={hasUnfurlPrompts}
-        toggleShowingPopup={toggleShowingPopup}
       />
     ),
-    [hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, toggleShowingPopup]
+    [hasCoinFlip, hasUnfurlList, hasUnfurlPrompts]
   )
 }
 

@@ -14,7 +14,7 @@ export const InfoIcon = (props: InfoIconProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onDocumentation = () => openURL('https://book.keybase.io/docs')
       const onFeedback = () => {
         navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
@@ -28,20 +28,20 @@ export const InfoIcon = (props: InfoIconProps) => {
           ]}
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           closeOnSelect={true}
         />
       )
     },
     [navigateAppend, loggedIn]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
       <Kb.Icon
         type="iconfont-question-mark"
-        onClick={props.invisible ? undefined : toggleShowingPopup}
+        onClick={props.invisible ? undefined : showPopup}
         ref={popupAnchor}
         style={Kb.Styles.collapseStyles([
           Kb.Styles.desktopStyles.windowDraggingClickable,

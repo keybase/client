@@ -69,7 +69,7 @@ const MoreNetworksButton = (props: {
   const {services, onChangeService} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -79,7 +79,7 @@ const MoreNetworksButton = (props: {
             title: service,
             view: <MoreNetworkItem service={service} />,
           }))}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
@@ -87,7 +87,7 @@ const MoreNetworksButton = (props: {
     [services, onChangeService]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -100,7 +100,7 @@ const MoreNetworksButton = (props: {
           ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
-            <Kb.ClickableBox onClick={toggleShowingPopup} style={styles.moreNetworks3}>
+            <Kb.ClickableBox onClick={showPopup} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
               </Kb.Text>

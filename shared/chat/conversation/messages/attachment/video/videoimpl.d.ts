@@ -1,7 +1,7 @@
 import type * as React from 'react'
 export type Props = {
   openFullscreen: () => void
-  toggleMessageMenu: () => void
+  showPopup: () => void
   allowPlay: boolean
 }
 declare const VideoImpl: (p: Props) => React.ReactNode

@@ -75,14 +75,18 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
     [onAdd, setFilter]
   )
 
-  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(channelItems, onSelect, filter)
+  const {popup, popupAnchor, onKeyDown, showPopup, hidePopup} = useAutocompleter(
+    channelItems,
+    onSelect,
+    filter
+  )
 
   return (
     <>
       <Kb.SearchFilter
         measureRef={popupAnchor}
-        onFocus={() => setShowingPopup(true)}
-        onBlur={() => setShowingPopup(false)}
+        onFocus={showPopup}
+        onBlur={hidePopup}
         placeholderText="Add channels"
         icon="iconfont-search"
         onChange={setFilter}

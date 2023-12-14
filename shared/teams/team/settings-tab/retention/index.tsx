@@ -119,7 +119,7 @@ const RetentionPicker = (p: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
 
       const makeItems = () => {
         const policies = C.Teams.baseRetentionPolicies.slice()
@@ -185,7 +185,7 @@ const RetentionPicker = (p: Props) => {
           attachTo={attachTo}
           closeOnSelect={true}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           items={items}
           position="top center"
         />
@@ -193,7 +193,7 @@ const RetentionPicker = (p: Props) => {
     },
     [isSelected, setSelected, showInheritOption, teamPolicy]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, containerStyle])}>
@@ -202,7 +202,7 @@ const RetentionPicker = (p: Props) => {
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box>
       <Kb.ClickableBox
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         ref={popupAnchor}
         style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
         underlayColor={Kb.Styles.globalColors.white_40}

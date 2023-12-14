@@ -40,12 +40,12 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
   const {onCancelInvite} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           closeOnSelect={true}
           attachTo={attachTo}
         />
@@ -53,7 +53,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
     },
     [onCancelInvite]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
@@ -62,7 +62,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
         type="Dim"
         small={true}
         icon="iconfont-ellipsis"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
       />
       {popup}
     </>

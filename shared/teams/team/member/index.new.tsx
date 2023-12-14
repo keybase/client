@@ -362,8 +362,8 @@ const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username
       {props.loading
         ? 'Loading activity...'
         : lastActivity
-        ? `Active ${formatTimeRelativeToNow(lastActivity)}`
-        : 'No activity'}
+          ? `Active ${formatTimeRelativeToNow(lastActivity)}`
+          : 'No activity'}
     </Kb.Text>
   )
 }
@@ -680,13 +680,13 @@ const BlockDropdown = (props: {username: string}) => {
   const nav = Container.useSafeNavigation()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           closeOnSelect={true}
           items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
         />
@@ -694,13 +694,13 @@ const BlockDropdown = (props: {username: string}) => {
     },
     [nav, username]
   )
-  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
         small={true}
         icon="iconfont-ellipsis"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         mode="Secondary"
         ref={popupAnchor}
       />

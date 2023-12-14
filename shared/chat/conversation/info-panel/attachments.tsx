@@ -170,13 +170,13 @@ const DocViewRow = (props: DocViewRowProps) => {
   const shouldShow = React.useCallback(() => {
     return !!item.message
   }, [item])
-  const {toggleShowingPopup, popup} = useMessagePopup({
+  const {showPopup, popup} = useMessagePopup({
     ordinal: item.message?.id ?? 0,
     shouldShow,
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={item.onDownload} onLongPress={toggleShowingPopup}>
+      <Kb.ClickableBox onClick={item.onDownload} onLongPress={showPopup}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
           <Kb.Icon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>

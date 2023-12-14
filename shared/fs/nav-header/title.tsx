@@ -36,13 +36,13 @@ const Breadcrumb = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           containerStyle={styles.floating}
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           items={ancestors
             .slice(0, -2)
             .reverse()
@@ -66,13 +66,13 @@ const Breadcrumb = (props: Props) => {
     [ancestors, onOpenPath]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Text key="dots" type="BodyTinyLink" onClick={toggleShowingPopup} textRef={popupAnchor}>
+          <Kb.Text key="dots" type="BodyTinyLink" onClick={showPopup} textRef={popupAnchor}>
             •••
           </Kb.Text>
           {popup}

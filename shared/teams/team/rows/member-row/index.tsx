@@ -142,7 +142,7 @@ export const TeamMemberRow = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const menuHeader = (
         <MenuHeader
           username={username}
@@ -202,7 +202,7 @@ export const TeamMemberRow = (props: Props) => {
           attachTo={attachTo}
           closeOnSelect={true}
           items={menuItems}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
@@ -223,7 +223,7 @@ export const TeamMemberRow = (props: Props) => {
       onClick,
     ]
   )
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (
     <Kb.Box2
@@ -244,7 +244,7 @@ export const TeamMemberRow = (props: Props) => {
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         ref={popupAnchor}
         small={true}
         tooltip="More actions"

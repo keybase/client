@@ -33,8 +33,6 @@ class SetExplodePopup extends React.Component<Props, State> {
     }
   }
 
-  onDone = () => {}
-
   onCancel = () => {
     if (this.state.selected !== this.props.selected) {
       // reset selection
@@ -59,7 +57,7 @@ class SetExplodePopup extends React.Component<Props, State> {
           header={<Prompt />}
           closeOnSelect={true}
           items={items}
-          onHidden={this.onDone}
+          onHidden={this.props.onHidden}
           visible={this.props.visible}
         />
       </Kb.FloatingModalContext.Provider>

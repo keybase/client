@@ -49,7 +49,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {toggleShowingPopup} = p
+      const {hidePopup} = p
       const setUseOriginalFromUI = (useOriginal: boolean) => {
         !originalOnly && setUseOriginalInStore(useOriginal)
         setUseOriginalInService(useOriginal)
@@ -59,7 +59,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
         <Kb.FloatingMenu
           closeOnSelect={true}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           items={[
             {
               icon: useOriginalValue ? 'iconfont-check' : undefined,
@@ -84,7 +84,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
       setUseOriginalInStore,
     ]
   )
-  const {popup, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, showPopup} = Kb.usePopup2(makePopup)
 
   if (originalOnly) {
     return null
@@ -96,7 +96,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   return (
     <>
-      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={toggleShowingPopup} />
+      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={showPopup} />
       {popup}
     </>
   )

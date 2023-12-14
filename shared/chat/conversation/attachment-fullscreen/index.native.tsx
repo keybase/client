@@ -15,7 +15,7 @@ const Fullscreen = (p: Props) => {
   const [loaded, setLoaded] = React.useState(false)
   const {id} = message
 
-  const {toggleShowingPopup, popup} = useMessagePopup({ordinal: id})
+  const {showPopup, popup} = useMessagePopup({ordinal: id})
 
   const onSwipe = React.useCallback(
     (left: boolean) => {
@@ -93,7 +93,7 @@ const Fullscreen = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
-      <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={toggleShowingPopup} />
+      <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
       {popup}
     </Kb.Box2>
   )

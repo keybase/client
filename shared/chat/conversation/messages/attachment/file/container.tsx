@@ -7,7 +7,7 @@ import {globalColors} from '@/styles'
 import {isPathSaltpack} from '@/constants/crypto'
 
 type OwnProps = {
-  toggleMessageMenu: () => void
+  showPopup: () => void
 }
 
 const missingMessage = C.Chat.makeMessageAttachment({})
@@ -108,8 +108,8 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     onSaltpackFileOpen,
     onShowInFinder: !C.isMobile && downloadPath ? onShowInFinder : undefined,
     progress,
+    showMessageMenu: p.showPopup,
     title,
-    toggleMessageMenu: p.toggleMessageMenu,
     transferState,
   }
 

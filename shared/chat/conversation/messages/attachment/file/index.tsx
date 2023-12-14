@@ -7,7 +7,7 @@ import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import * as CryptoConstants from '@/constants/crypto'
 
 type Props = {
-  toggleMessageMenu: () => void
+  showMessageMenu: () => void
   arrowColor: string
   onDownload?: () => void
   onShowInFinder?: () => void
@@ -25,16 +25,16 @@ type Props = {
 
 const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const {isSaltpackFile, isEditing, toggleMessageMenu} = props
+  const {isSaltpackFile, isEditing, showMessageMenu} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = CryptoConstants.isPathSaltpackEncrypted(props.fileName)
     ? CryptoConstants.Operations.Decrypt
     : CryptoConstants.isPathSaltpackSigned(props.fileName)
-    ? CryptoConstants.Operations.Verify
-    : undefined
+      ? CryptoConstants.Operations.Verify
+      : undefined
   const operationTitle = captialize(operation)
   return (
-    <Kb.ClickableBox2 onLongPress={toggleMessageMenu} onClick={props.onDownload}>
+    <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
       <Kb.Box style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>

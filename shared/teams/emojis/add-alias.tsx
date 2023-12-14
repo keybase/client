@@ -162,20 +162,20 @@ const ChooseEmoji = Kb.Styles.isMobile
       const {onChoose} = props
       const makePopup = React.useCallback(
         (p: Kb.Popup2Parms) => {
-          const {attachTo, toggleShowingPopup} = p
+          const {attachTo, hidePopup} = p
           return (
             <Kb.FloatingBox
               attachTo={attachTo}
               containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
               position="bottom left"
-              onHidden={toggleShowingPopup}
+              onHidden={hidePopup}
               propagateOutsideClicks={false}
             >
               <EmojiPickerDesktop
                 hideFrequentEmoji={true}
                 small={false}
                 onPickAction={onChoose}
-                onDidPick={toggleShowingPopup}
+                onDidPick={hidePopup}
                 onlyTeamCustomEmoji={true}
               />
             </Kb.FloatingBox>
@@ -183,10 +183,10 @@ const ChooseEmoji = Kb.Styles.isMobile
         },
         [onChoose]
       )
-      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+      const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>
-          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={toggleShowingPopup} />
+          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={showPopup} />
           {popup}
         </>
       )

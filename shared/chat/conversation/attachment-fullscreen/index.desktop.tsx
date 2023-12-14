@@ -49,7 +49,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }
   const isDownloadError = !!message.transferErrMsg
 
-  const {toggleShowingPopup, popup, popupAnchor} = useMessagePopup({
+  const {showPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
   })
 
@@ -69,7 +69,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
               isElectron: {cursor: 'pointer'},
             })}
             color={Styles.globalColors.black_50}
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
           />
           {popup}
         </Kb.Box>

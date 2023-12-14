@@ -20,24 +20,24 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   const {explodingModeSeconds, focusInput} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <SetExplodingMessagePopup
           attachTo={attachTo}
           onAfterSelect={focusInput}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
     },
     [focusInput]
   )
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
-      onClick={toggleShowingPopup}
+      onClick={showPopup}
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
@@ -56,7 +56,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
           <Kb.WithTooltip tooltip="Timer">
             <Kb.Icon
               className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
-              onClick={toggleShowingPopup}
+              onClick={showPopup}
               padding="xtiny"
               type="iconfont-timer"
             />
@@ -88,17 +88,17 @@ const EmojiButton = (p: EmojiButtonProps) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
-        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
-          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={toggleShowingPopup} />
+        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
+          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
         </Kb.Overlay>
       )
     },
     [insertEmoji]
   )
 
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -106,7 +106,7 @@ const EmojiButton = (p: EmojiButtonProps) => {
         <Kb.Box2Measure direction="vertical" style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
             color={showingPopup ? Kb.Styles.globalColors.black : undefined}
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
             type="iconfont-emoji"
           />
         </Kb.Box2Measure>

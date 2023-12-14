@@ -142,13 +142,13 @@ const StellarValue = (p: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           closeOnSelect={true}
           items={menuItems}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
           position="bottom center"
         />
@@ -156,7 +156,7 @@ const StellarValue = (p: Props) => {
     },
     [menuItems]
   )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return Kb.Styles.isMobile ? (
     <Kb.Text
@@ -170,7 +170,7 @@ const StellarValue = (p: Props) => {
       <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
-          onClick={toggleShowingPopup}
+          onClick={showPopup}
           style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
         >
           {value}

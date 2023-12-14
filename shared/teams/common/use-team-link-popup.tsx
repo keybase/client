@@ -4,7 +4,7 @@ import * as React from 'react'
 export const useTeamLinkPopup = (teamname: string) => {
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const shareURLApp = `keybase://team-page/${teamname}`
       const shareURLWeb = `https://keybase.io/team/${teamname}`
       const content = (
@@ -18,21 +18,14 @@ export const useTeamLinkPopup = (teamname: string) => {
             <Kb.Text type="Body">On the web:</Kb.Text>
             <Kb.CopyText text={shareURLWeb} shareSheet={true} />
           </Kb.Box2>
-          {Kb.Styles.isMobile && (
-            <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={toggleShowingPopup} />
-          )}
+          {Kb.Styles.isMobile && <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={hidePopup} />}
         </Kb.Box2>
       )
       if (Kb.Styles.isMobile) {
         return <Kb.MobilePopup>{content}</Kb.MobilePopup>
       }
       return (
-        <Kb.Overlay
-          position="bottom left"
-          style={styles.overlay}
-          attachTo={attachTo}
-          onHidden={toggleShowingPopup}
-        >
+        <Kb.Overlay position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>
           {content}
         </Kb.Overlay>
       )

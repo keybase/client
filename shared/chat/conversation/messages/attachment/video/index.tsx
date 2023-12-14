@@ -4,11 +4,11 @@ import VideoImpl from './videoimpl'
 import {Title, useAttachmentState, Collapsed, useCollapseIcon, Transferring} from '../shared'
 
 type Props = {
-  toggleMessageMenu: () => void
+  showPopup: () => void
 }
 
 const Video = React.memo(function Video(p: Props) {
-  const {toggleMessageMenu} = p
+  const {showPopup} = p
   const r = useAttachmentState()
   const {transferState, transferProgress, submitState} = r
   const {fileName, isCollapsed, showTitle, openFullscreen} = r
@@ -37,7 +37,7 @@ const Video = React.memo(function Video(p: Props) {
         >
           <VideoImpl
             openFullscreen={openFullscreen}
-            toggleMessageMenu={toggleMessageMenu}
+            showPopup={showPopup}
             allowPlay={transferState !== 'uploading' && submitState !== 'pending'}
           />
           {showTitle ? <Title /> : null}
@@ -45,7 +45,7 @@ const Video = React.memo(function Video(p: Props) {
         </Kb.Box2>
       </>
     )
-  }, [openFullscreen, toggleMessageMenu, showTitle, filename, transferProgress, transferState, submitState])
+  }, [openFullscreen, showPopup, showTitle, filename, transferProgress, transferState, submitState])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">

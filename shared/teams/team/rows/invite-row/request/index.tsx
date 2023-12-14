@@ -41,7 +41,7 @@ export const TeamRequestRow = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           header={
@@ -66,7 +66,7 @@ export const TeamRequestRow = (props: Props) => {
             },
           ]}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           closeOnSelect={true}
           attachTo={attachTo}
           position="bottom left"
@@ -76,7 +76,7 @@ export const TeamRequestRow = (props: Props) => {
     },
     [approveWord, ctime, denyWord, fullName, props, reset, username]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ListItem2
@@ -137,7 +137,7 @@ export const TeamRequestRow = (props: Props) => {
             small={true}
             icon="iconfont-ellipsis"
             style={styles.ignoreButton}
-            onClick={toggleShowingPopup}
+            onClick={showPopup}
             ref={popupAnchor}
           />
           {popup}

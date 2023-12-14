@@ -24,12 +24,12 @@ const UploadButton = (props: UploadButtonProps) => {
   const {pickAndUploadPhoto, pickAndUploadVideo, openAndUploadDirectory, openAndUploadFile} = props
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           items={[
             ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
             ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
@@ -43,7 +43,7 @@ const UploadButton = (props: UploadButtonProps) => {
     },
     [openAndUploadDirectory, openAndUploadFile, pickAndUploadPhoto, pickAndUploadVideo]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (!props.canUpload) {
     return null
@@ -60,9 +60,9 @@ const UploadButton = (props: UploadButtonProps) => {
   return (
     <>
       {C.isMobile ? (
-        <Kb.Icon type="iconfont-upload" padding="tiny" onClick={toggleShowingPopup} />
+        <Kb.Icon type="iconfont-upload" padding="tiny" onClick={showPopup} />
       ) : (
-        <Kb.Button onClick={toggleShowingPopup} label="Upload" ref={popupAnchor} style={props.style} />
+        <Kb.Button onClick={showPopup} label="Upload" ref={popupAnchor} style={props.style} />
       )}
       {popup}
     </>

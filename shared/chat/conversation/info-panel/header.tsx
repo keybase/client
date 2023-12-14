@@ -27,13 +27,13 @@ const TeamHeader = () => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <C.ChatProvider id={conversationIDKey}>
           <InfoPanelMenu
             attachTo={attachTo}
             floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={toggleShowingPopup}
+            onHidden={hidePopup}
             hasHeader={false}
             isSmallTeam={isSmallTeam}
             visible={true}
@@ -43,7 +43,7 @@ const TeamHeader = () => {
     },
     [conversationIDKey, isSmallTeam]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
@@ -110,7 +110,7 @@ const TeamHeader = () => {
         )}
         <Kb.Icon
           type="iconfont-gear"
-          onClick={toggleShowingPopup}
+          onClick={showPopup}
           ref={popupAnchor}
           style={styles.gear}
           fontSize={gearIconSize}

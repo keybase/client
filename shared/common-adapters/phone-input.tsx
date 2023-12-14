@@ -616,24 +616,24 @@ const PhoneInput = (p: Props) => {
   const {defaultCountry} = p
 
   const toggleShowingMenu = React.useCallback(
-    (toggleShowingPopup: () => void) => {
+    (hidePopup: () => void) => {
       if (!country && defaultCountry) {
         countrySelectorRef.current?.onSelectMenu(defaultCountry)
       }
       countrySelectorRef.current?.clearFilter()
-      toggleShowingPopup()
+      hidePopup()
     },
     [country, defaultCountry]
   )
 
   const makePopup = React.useCallback(
     (p: Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <CountrySelector
           attachTo={attachTo}
           onSelect={onSelectCountry}
-          onHidden={() => toggleShowingMenu(toggleShowingPopup)}
+          onHidden={() => toggleShowingMenu(hidePopup)}
           selected={country}
           visible={true}
           ref={countrySelectorRef}
@@ -643,11 +643,11 @@ const PhoneInput = (p: Props) => {
     [country, onSelectCountry, toggleShowingMenu]
   )
 
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const _toggleShowingMenu = React.useCallback(() => {
-    toggleShowingMenu(toggleShowingPopup)
-  }, [toggleShowingMenu, toggleShowingPopup])
+    toggleShowingMenu(showPopup)
+  }, [toggleShowingMenu, showPopup])
 
   // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
   // want to rewrite this now

@@ -55,21 +55,21 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   )
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <EmojiMenu
           attachTo={attachTo}
           visible={true}
           onAddAlias={doAddAlias}
           onRemove={doRemove}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           isAlias={emoji.isAlias}
         />
       )
     },
     [doAddAlias, doRemove, emoji.isAlias]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={styles.outerContainer}>
@@ -114,7 +114,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
                 icon="iconfont-ellipsis"
                 mode="Secondary"
                 type="Dim"
-                onClick={toggleShowingPopup}
+                onClick={showPopup}
                 ref={popupAnchor}
                 small={true}
               />

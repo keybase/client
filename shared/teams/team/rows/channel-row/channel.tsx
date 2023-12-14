@@ -98,7 +98,7 @@ const ChannelRow = (props: ChannelRowProps) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       const menuItems: Array<Kb.MenuItem> = [
         {onClick: onNavToSettings, title: 'Settings'},
         ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
@@ -108,14 +108,14 @@ const ChannelRow = (props: ChannelRowProps) => {
           attachTo={attachTo}
           closeOnSelect={true}
           items={menuItems}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           visible={true}
         />
       )
     },
     [canDelete, onDeleteChannel, onNavToSettings]
   )
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = canPerform.deleteChannel ? (
     <Kb.Box2
@@ -137,7 +137,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         ref={popupAnchor}
         small={true}
         tooltip="More actions"

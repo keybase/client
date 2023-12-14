@@ -78,7 +78,7 @@ const GenerateLinkModal = (props: Props) => {
   const onClose = () => clearModals()
 
   const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
-    const {attachTo, toggleShowingPopup} = p
+    const {attachTo, hidePopup} = p
     const menuItems = [
       {onClick: () => setValidity(validityOneUse), title: validityOneUse},
       {onClick: () => setValidity(validityOneYear), title: validityOneYear},
@@ -89,13 +89,13 @@ const GenerateLinkModal = (props: Props) => {
         attachTo={attachTo}
         closeOnSelect={true}
         items={menuItems}
-        onHidden={toggleShowingPopup}
+        onHidden={hidePopup}
         visible={true}
       />
     )
   }, [])
 
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const generateLinkRPC = C.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
@@ -221,7 +221,7 @@ const GenerateLinkModal = (props: Props) => {
           {popup}
           <InlineDropdown
             label={validity}
-            onPress={toggleShowingPopup}
+            onPress={showPopup}
             textWrapperType="BodySemibold"
             containerStyle={styles.dropdownStyle}
             style={styles.dropdownStyle}

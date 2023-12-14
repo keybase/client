@@ -58,10 +58,10 @@ const PathItemAction = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
 
       const hide = () => {
-        toggleShowingPopup()
+        hidePopup()
         setPathItemActionMenuDownload()
       }
 
@@ -80,12 +80,12 @@ const PathItemAction = (props: Props) => {
     },
     [setPathItemActionMenuDownload, path, mode]
   )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const onClick = React.useCallback(() => {
     setPathItemActionMenuView(initView)
-    toggleShowingPopup()
-  }, [initView, setPathItemActionMenuView, toggleShowingPopup])
+    showPopup()
+  }, [initView, setPathItemActionMenuView, showPopup])
 
   if (props.path === C.defaultPath) {
     return null

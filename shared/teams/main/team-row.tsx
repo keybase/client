@@ -29,12 +29,12 @@ const TeamRow = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+      const {attachTo, hidePopup} = p
+      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
     },
     [teamID]
   )
-  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
   const badgeCount = C.useTeamsState(s =>
@@ -46,8 +46,8 @@ const TeamRow = (props: Props) => {
     teamMeta.role === 'owner'
       ? 'iconfont-crown-owner'
       : teamMeta.role === 'admin'
-      ? 'iconfont-crown-admin'
-      : undefined
+        ? 'iconfont-crown-admin'
+        : undefined
   const crownIcon = crownIconType ? (
     <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
       <Kb.Icon
@@ -140,7 +140,7 @@ const TeamRow = (props: Props) => {
             )}
             <Kb.Button
               type="Dim"
-              onClick={toggleShowingPopup}
+              onClick={showPopup}
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"

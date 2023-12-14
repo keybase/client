@@ -103,13 +103,13 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
 
   const makePopup = React.useCallback(
     (p: Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.Overlay
           style={Styles.collapseStyles([styles.overlay, overlayStyle])}
           attachTo={attachTo}
           visible={true}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position={position || 'center center'}
         >
           <Kb.ScrollView style={styles.scrollView}>
@@ -122,7 +122,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
                   // Bug in flow that doesn't let us just call this function
                   // onSelect(i)
                   onChangedIdx?.(idx)
-                  toggleShowingPopup()
+                  hidePopup()
                 }}
                 style={styles.itemClickBox}
               >
@@ -140,15 +140,15 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
     },
     [items, onChangedIdx, overlayStyle, position, itemBoxStyle]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const toggleOpen = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
       evt?.preventDefault()
-      toggleShowingPopup()
+      showPopup()
     },
-    [toggleShowingPopup]
+    [showPopup]
   )
 
   return (

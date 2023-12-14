@@ -72,14 +72,14 @@ const Dropdown = (p: DropdownProps) => {
   const {items, minWriterRole, saving} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
           closeOnSelect={true}
           visible={true}
           items={items}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           position="top center"
           positionFallbacks={positionFallbacks}
         />
@@ -87,13 +87,13 @@ const Dropdown = (p: DropdownProps) => {
     },
     [items]
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.ClickableBox
         style={styles.dropdown}
         ref={Style.isMobile ? null : popupAnchor}
-        onClick={toggleShowingPopup}
+        onClick={showPopup}
         underlayColor={Style.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" style={styles.label}>

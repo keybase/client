@@ -397,7 +397,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+      const {attachTo, hidePopup} = p
       return (
         <TeamInfo
           attachTo={attachTo}
@@ -408,7 +408,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           membersCount={memberCount}
           position="right center"
           onChat={undefined}
-          onHidden={toggleShowingPopup}
+          onHidden={hidePopup}
           onJoinTeam={() => joinTeam(name)}
           onViewTeam={() => {
             clearModals()
@@ -421,20 +421,20 @@ const OpenTeamRow = (p: OpenTeamProps) => {
     },
     [showTeamByName, joinTeam, description, inTeam, memberCount, name, publicAdmins, clearModals]
   )
-  const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+  const {hidePopup, showingPopup, popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   React.useEffect(() => {
     if (!showingPopup && isSelected && !showingDueToSelect.current) {
       showingDueToSelect.current = true
-      setShowingPopup(true)
+      showPopup()
     } else if (showingPopup && !isSelected && showingDueToSelect.current) {
       showingDueToSelect.current = false
-      setShowingPopup(false)
+      hidePopup()
     }
-  }, [showingDueToSelect, setShowingPopup, showingPopup, isSelected])
+  }, [showingDueToSelect, showPopup, hidePopup, showingPopup, isSelected])
 
   return (
-    <Kb.ClickableBox onClick={toggleShowingPopup} style={{width: '100%'}}>
+    <Kb.ClickableBox onClick={showPopup} style={{width: '100%'}}>
       <Kb.Box2Measure
         direction="horizontal"
         fullWidth={true}

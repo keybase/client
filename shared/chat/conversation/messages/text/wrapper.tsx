@@ -56,9 +56,9 @@ const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
 const WrapperText = React.memo(function WrapperText(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {toggleShowingPopup, type, showCenteredHighlight} = common
+  const {type, showCenteredHighlight} = common
 
-  const bottomChildren = useBottom(ordinal, toggleShowingPopup)
+  const bottomChildren = useBottom(ordinal)
   const reply = useReply(ordinal)
 
   const {isEditing, textType, hasReactions} = C.useChatContext(
@@ -69,8 +69,8 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       const textType = errorReason
         ? ('error' as const)
         : !m?.submitState
-        ? ('sent' as const)
-        : ('pending' as const)
+          ? ('sent' as const)
+          : ('pending' as const)
       const hasReactions = (m?.reactions?.size ?? 0) > 0
       return {hasReactions, isEditing, textType}
     })
