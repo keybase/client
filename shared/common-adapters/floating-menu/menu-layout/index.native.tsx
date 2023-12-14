@@ -99,6 +99,9 @@ const MenuRow = (props: MenuRowProps) => (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="Body" style={styleRowText(props)}>
                 {props.title}
+                {props.rightTitle ? (
+                  <Kb.Text type="BodyTinySemiboldItalic">{' ' + props.rightTitle}</Kb.Text>
+                ) : null}
               </Kb.Text>
               {props.newTag && (
                 <Kb.Meta
