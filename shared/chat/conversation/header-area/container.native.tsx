@@ -6,7 +6,6 @@ import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '@/router-v2/route-params'
-import {defaultNavigationOptions} from '@/router-v2/common'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
