@@ -156,7 +156,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
             disabled: !onDelete,
             icon: 'iconfont-trash',
             onClick: onDelete,
-            subTitle: 'Deletes this message for everyone',
+            rightTitle: 'for everyone',
             title: 'Delete',
           },
         ] as const)
@@ -185,7 +185,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
           disabled: !onKick,
           icon: 'iconfont-user-block',
           onClick: onKick,
-          subTitle: 'Removes the user from the team',
+          rightTitle: 'from the team',
           title: 'Kick user',
         },
       ] as const)

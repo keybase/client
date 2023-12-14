@@ -19,6 +19,7 @@ export type MenuItem = {
   progressIndicator?: boolean
   style?: Object
   subTitle?: string
+  rightTitle?: string
   title: string // Used only as ID if view is provided
   unWrapped?: boolean
   view?: React.ReactNode
