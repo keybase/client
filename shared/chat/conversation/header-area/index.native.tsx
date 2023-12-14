@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
+import {Dimensions} from 'react-native'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -24,6 +25,11 @@ const ShhIcon = React.memo(function ShhIcon() {
   ) : null
 })
 
+const useMaxWidthStyle = () => {
+  const {width} = Dimensions.get('window')
+  return React.useMemo(() => ({maxWidth: width - 140}), [width])
+}
+
 const ChannelHeader = () => {
   const {channelname, smallTeam, teamname, teamID} = C.useChatContext(
     C.useShallow(s => {
@@ -38,9 +44,10 @@ const ChannelHeader = () => {
   const onClick = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})
   }, [navigateAppend, teamID])
+  const maxWidthStyle = useMaxWidthStyle()
 
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Kb.Avatar teamname={teamname || undefined} size={smallTeam ? 16 : (12 as any)} />
         <Kb.Text
@@ -93,10 +100,12 @@ const UsernameHeader = () => {
     [showUserProfile]
   )
 
+  const maxWidthStyle = useMaxWidthStyle()
+
   return (
     <Kb.Box2
       direction={theirFullname ? 'vertical' : 'horizontal'}
-      style={Styles.collapseStyles([styles.usernameHeaderContainer, {maxWidth: Styles.dimensionWidth - 140}])}
+      style={Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
         <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
@@ -128,8 +137,12 @@ const PhoneOrEmailHeader = () => {
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = participantInfo.contactName.get(phoneOrEmail)
+  const maxWidthStyle = useMaxWidthStyle()
   return (
-    <Kb.Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
+    >
       <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
