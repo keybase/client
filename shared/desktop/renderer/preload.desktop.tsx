@@ -43,6 +43,12 @@ if (isRenderer) {
             .then(() => {})
             .catch(() => {})
         },
+        copyImageToClipboard: (img: unknown) => {
+          console.log('aaaacopyImageToClipboard preload', img)
+          invoke({payload: {img}, type: 'copyImageToClipboard'})
+            .then(() => {})
+            .catch(() => {})
+        },
         copyToClipboard: (text: string) => {
           invoke({payload: {text}, type: 'copyToClipboard'})
             .then(() => {})

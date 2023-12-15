@@ -73,6 +73,7 @@ export type Action =
     }
   | {type: 'isDirectory'; payload: {path: string}}
   | {type: 'copyToClipboard'; payload: {text: string}}
+  | {type: 'copyImageToClipboard'; payload: {img: unknown}}
   | {type: 'readImageFromClipboard'}
   | {type: 'clipboardAvailableFormats'}
   | {type: 'installCachedDokan'}

@@ -10,7 +10,8 @@ import {getMainWindow} from './main-window.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import type {BadgeType} from '@/constants/notifications'
 
-const getIcons = (iconType: BadgeType, badges: number) => {
+const getIcons = (iconType: BadgeType, _badges: number) => {
+  const badges = 1
   const size = isWindows ? 16 : 22
   const x = isLinux ? '' : '@2x'
 

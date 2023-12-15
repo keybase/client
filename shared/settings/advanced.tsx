@@ -7,6 +7,8 @@ import {ProxySettings} from './proxy/container'
 
 let initialUseNativeFrame: boolean | undefined
 
+const showMakeIcons = __DEV__ && (true as boolean)
+
 const UseNativeFrame = () => {
   const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
   const onChangeUseNativeFrame = C.useConfigState(s => s.dispatch.setUseNativeFrame)
@@ -212,6 +214,7 @@ const Developer = () => {
   const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
+  const onMakeIcons = () => navigateAppend('makeIcons')
 
   return (
     <Kb.Box style={styles.developerContainer}>
@@ -226,6 +229,15 @@ const Developer = () => {
         label="Enable Detailed Logging"
         onClick={onExtraKBFSLogging}
       />
+
+      {showMakeIcons && (
+        <Kb.Button
+          style={styles.developerButtons}
+          type="Secondary"
+          label="Make Icons"
+          onClick={onMakeIcons}
+        />
+      )}
       {showPprofControls && (
         <>
           <Kb.Button

@@ -482,6 +482,37 @@ const plumbEvents = () => {
         const image = Electron.clipboard.readImage()
         return image.toPNG()
       }
+      case 'copyImageToClipboard': {
+        console.log('aaaacopyImageToClipboardnode2', action)
+        try {
+          const win = Electron.BrowserWindow.fromWebContents(event.sender)
+          if (!win) return
+          win.setBackgroundColor('#00000000')
+          // const oldSize = win.getSize()
+          // win.setMinimumSize(0, 0)
+          // win.setSize(22, 22)
+          // dont capture the rulers in debug
+          // await timeoutPromise(2000)
+          const img = await win.capturePage({height: 22, width: 22, x: 0, y: 0})
+          Electron.clipboard.writeImage(img)
+          // win.setSize(oldSize[0], oldSize[1])
+          //
+          // const dataURL = action.payload.img
+          // console.log('aaaaurl', dataURL)
+          // const img = Electron.nativeImage.createFromDataURL(dataURL)
+          // console.log('aaaaimg', img)
+          // Electron.clipboard.writeImage(img)
+          // const dataURL = action.payload.img
+          // const b = Buffer.from(action.payload.img)
+          // const img = Electron.nativeImage.createFromBuffer(b)
+          // console.log('aaaa raw', b.toString('base64'))
+          // Electron.clipboard.writeImage(img)
+          // Electron.clipboard.writeBuffer('image/png', b)
+        } catch (e) {
+          console.log('aaaacopyImageToClipboardnode2 err', e)
+        }
+        return
+      }
       case 'copyToClipboard': {
         Electron.clipboard.writeText(action.payload.text)
         return
