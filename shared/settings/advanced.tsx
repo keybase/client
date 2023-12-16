@@ -7,7 +7,7 @@ import {ProxySettings} from './proxy/container'
 
 let initialUseNativeFrame: boolean | undefined
 
-const showMakeIcons = __DEV__ && (true as boolean)
+const showMakeIcons = __DEV__ && (false as boolean)
 
 const UseNativeFrame = () => {
   const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
