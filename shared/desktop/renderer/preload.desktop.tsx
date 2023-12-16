@@ -19,6 +19,11 @@ if (isRenderer) {
     .invoke('KBkeybase', {type: 'setupPreloadKB2'})
     .then((kb2consts: KB2['constants']) => {
       const functions: Required<KB2['functions']> = {
+        DEVwriteMenuIcons: () => {
+          invoke({type: 'DEVwriteMenuIcons'})
+            .then(() => {})
+            .catch(() => {})
+        },
         activeChanged: (changedAtMs: number, isUserActive: boolean) => {
           invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'})
             .then(() => {})

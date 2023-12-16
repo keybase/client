@@ -482,6 +482,24 @@ const plumbEvents = () => {
         const image = Electron.clipboard.readImage()
         return image.toPNG()
       }
+      case 'DEVwriteMenuIcons': {
+        if (!__DEV__) return
+        console.log('DEVwriteMenuIcons', action)
+        try {
+          const win = Electron.BrowserWindow.fromWebContents(event.sender)
+          if (!win) return
+          win.setBackgroundColor('#00000000')
+          await Promise.all(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 'many'].map(async (name, idx) => {
+              const img = await win.capturePage({height: 22, width: 22, x: idx * 22, y: 0})
+              return fs.writeFile(`/tmp/icon-menubar-${name}@2x.png`, img.toPNG(), 'binary', () => {})
+            })
+          )
+        } catch (e) {
+          console.log('DEVwriteMenuIcons err', e)
+        }
+        return
+      }
       case 'copyToClipboard': {
         Electron.clipboard.writeText(action.payload.text)
         return

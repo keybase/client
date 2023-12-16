@@ -18,6 +18,7 @@ import addEmail from './account/email.page'
 import addPhone from './account/phone.page'
 import settingsVerifyPhone from './account/verify-phone.page'
 import dbNukeConfirm from './db-nuke-confirm/page'
+import makeIcons from './make-icons.page'
 import inviteSent from './invite-generated/page'
 import logOut from './logout/page'
 import password from './password/page'
@@ -54,6 +55,7 @@ export const sharedNewRoutes = {
   dbNukeConfirm,
   inviteSent,
   keybaseLinkError,
+  makeIcons,
   removeDevice: devicesRoutes.deviceRevoke,
 }
 

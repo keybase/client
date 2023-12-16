@@ -113,6 +113,7 @@ export type KB2 = {
     quitApp?: () => void
     exitApp?: (code: number) => void
     copyToClipboard?: (text: string) => void
+    DEVwriteMenuIcons?: () => void
     clipboardAvailableFormats?: () => Promise<Array<string>>
     ctlQuit?: () => void
     relaunchApp?: () => void
