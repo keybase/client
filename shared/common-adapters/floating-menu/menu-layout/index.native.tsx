@@ -249,7 +249,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: 20,
       },
       bottomSheetScrollView: {
-        backgroundColor: Styles.globalColors.black_05,
+        backgroundColor: Styles.globalColors.black_05OrBlack,
         padding: 8,
       },
       divider: {marginBottom: Styles.globalMargins.tiny},

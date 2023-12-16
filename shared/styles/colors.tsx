@@ -12,6 +12,9 @@ export const colors = {
     return this.black
   },
   black_05: 'rgba(0, 0, 0, 0.05)',
+  get black_05OrBlack() {
+    return this.black_05
+  },
   get black_05OrBlack_60() {
     return this.black_05
   },
@@ -233,6 +236,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
     return colors.white
   },
   black_05: 'rgba(255, 255, 255, 0.05)',
+  get black_05OrBlack() {
+    return colors.black
+  },
   get black_05OrBlack_60() {
     return colors.black_60
   },

@@ -125,7 +125,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
-      handleStyle: {backgroundColor: Styles.globalColors.black_05},
+      handleStyle: {backgroundColor: Styles.globalColors.black_05OrBlack},
       modalStyle: Styles.platformStyles({
         isAndroid: {
           elevation: 17,
