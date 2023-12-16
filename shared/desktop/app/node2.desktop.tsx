@@ -482,44 +482,21 @@ const plumbEvents = () => {
         const image = Electron.clipboard.readImage()
         return image.toPNG()
       }
-      case 'copyImageToClipboard': {
-        console.log('aaaacopyImageToClipboardnode2', action)
+      case 'DEVwriteMenuIcons': {
+        if (!__DEV__) return
+        console.log('DEVwriteMenuIcons', action)
         try {
           const win = Electron.BrowserWindow.fromWebContents(event.sender)
           if (!win) return
           win.setBackgroundColor('#00000000')
-          //
-          //
-          //
-          //
-          //
-          // const oldSize = win.getSize()
-          // win.setMinimumSize(0, 0)
-          // win.setSize(22, 22)
-          // dont capture the rulers in debug
-          // await timeoutPromise(2000)
           await Promise.all(
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 'many'].map(async (name, idx) => {
               const img = await win.capturePage({height: 22, width: 22, x: idx * 22, y: 0})
               return fs.writeFile(`/tmp/icon-menubar-${name}@2x.png`, img.toPNG(), 'binary', () => {})
             })
           )
-          // Electron.clipboard.writeImage(img)
-          // win.setSize(oldSize[0], oldSize[1])
-          //
-          // const dataURL = action.payload.img
-          // console.log('aaaaurl', dataURL)
-          // const img = Electron.nativeImage.createFromDataURL(dataURL)
-          // console.log('aaaaimg', img)
-          // Electron.clipboard.writeImage(img)
-          // const dataURL = action.payload.img
-          // const b = Buffer.from(action.payload.img)
-          // const img = Electron.nativeImage.createFromBuffer(b)
-          // console.log('aaaa raw', b.toString('base64'))
-          // Electron.clipboard.writeImage(img)
-          // Electron.clipboard.writeBuffer('image/png', b)
         } catch (e) {
-          console.log('aaaacopyImageToClipboardnode2 err', e)
+          console.log('DEVwriteMenuIcons err', e)
         }
         return
       }
