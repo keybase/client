@@ -233,7 +233,7 @@ const Developer = () => {
       {showMakeIcons && (
         <Kb.Button
           style={styles.developerButtons}
-          type="Secondary"
+          mode="Secondary"
           label="Make Icons"
           onClick={onMakeIcons}
         />
