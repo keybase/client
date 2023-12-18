@@ -14,7 +14,7 @@ const ChatPDF = (props: Props) => {
 
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = React.useCallback(() => {
-    message && attachmentDownload(message.id)
+    message && attachmentDownload(message.ordinal)
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
   return (

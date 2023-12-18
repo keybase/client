@@ -124,7 +124,7 @@ const initialConvoStore: ConvoStore = {
   commandMarkdown: undefined,
   commandStatus: undefined,
   dismissedInviteBanners: false,
-  editing: 0,
+  editing: T.Chat.numberToOrdinal(0),
   explodingMode: 0,
   explodingModeLock: undefined,
   giphyResult: undefined,
@@ -141,7 +141,7 @@ const initialConvoStore: ConvoStore = {
   mutualTeams: [],
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
-  replyTo: 0,
+  replyTo: T.Chat.numberToOrdinal(0),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
@@ -834,7 +834,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatLoadGalleryHit': (
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
-                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
                 const username = C.useCurrentUserState.getState().username
                 const devicename = C.useCurrentUserState.getState().deviceName
                 const message = Message.uiMessageToMessage(
@@ -853,7 +853,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                     // inject them into the message map
                     info.messages.forEach(m => {
-                      s.messageMap.set(m.id, m)
+                      s.messageMap.set(m.ordinal, m)
                     })
                     syncMessageDerived(s)
                   })
@@ -951,7 +951,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           const username = C.useCurrentUserState.getState().username
           const devicename = C.useCurrentUserState.getState().deviceName
-          const getLastOrdinal = () => messageOrdinals?.at(-1) ?? 0
+          const getLastOrdinal = () => messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
           let shouldClearOthers = false
           if (!calledClear) {
@@ -1054,7 +1054,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         scrollDirection: 'forward',
       })
     },
-    loadNextAttachment: async (from: T.Chat.Ordinal, backInTime: boolean) => {
+    loadNextAttachment: async (from, backInTime) => {
       const fromMsg = get().messageMap.get(from)
       if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
       const {id} = fromMsg
@@ -1071,7 +1071,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (result.message) {
           const devicename = C.useCurrentUserState.getState().deviceName
           const username = C.useCurrentUserState.getState().username
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const goodMessage = Message.uiMessageToMessage(
             get().id,
             result.message,
@@ -1429,7 +1429,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messageSend: (text, replyTo, waitingKey) => {
       get().dispatch.injectIntoInput('')
-      get().dispatch.setReplyTo(0)
+      get().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
       get().dispatch.setCommandMarkdown()
       set(s => {
         s.giphyWindow = false
@@ -1939,7 +1939,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         get().dispatch.toggleLocalReaction({
           decorated: cMsg.outbox.decoratedTextBody ?? '',
           emoji: cMsg.outbox.body,
-          targetOrdinal: cMsg.outbox.supersedes,
+          targetOrdinal: T.Chat.numberToOrdinal(cMsg.outbox.supersedes),
           username,
         })
         return
@@ -1949,7 +1949,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const conversationIDKey = get().id
       const shouldAddMessage = get().isCaughtUp()
       const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       const message = Message.uiMessageToMessage(
         conversationIDKey,
         cMsg,
@@ -2053,7 +2053,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
       const username = C.useCurrentUserState.getState().username
       const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       for (const msg of messagesUpdated.updates ?? []) {
         const messageID = Message.getMessageID(msg)
         if (!messageID) {
@@ -2347,7 +2347,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // clearing
       if (_ordinal === false) {
         set(s => {
-          s.editing = 0
+          s.editing = T.Chat.numberToOrdinal(0)
         })
         get().dispatch.injectIntoInput('')
         return
@@ -2355,7 +2355,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const messageMap = get().messageMap
 
-      let ordinal = 0
+      let ordinal = T.Chat.numberToOrdinal(0)
       // Editing last message
       if (_ordinal === true) {
         const editLastUser = C.useCurrentUserState.getState().username
@@ -2478,7 +2478,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const ordinals = get().messageOrdinals
           const ord =
             ordinals &&
-            findLast(ordinals, (o: T.Chat.Ordinal) => {
+            findLast(ordinals, o => {
               const message = messageMap.get(o)
               return !!(message && message.id < unreadLineID)
             })
@@ -2647,7 +2647,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
         const username = C.useCurrentUserState.getState().username
         const devicename = C.useCurrentUserState.getState().deviceName
         const onDone = () => {
@@ -2953,7 +2953,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     // maybe remove this when reducer is ported
-    updateMessage: (ordinal: T.Chat.Ordinal, pm: Partial<T.Chat.Message>) => {
+    updateMessage: (ordinal, pm) => {
       set(s => {
         const m = s.messageMap.get(ordinal) as {[key: string]: unknown} | undefined
         if (!m) return
@@ -2965,7 +2965,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       })
     },
-    updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => {
+    updateMeta: pm => {
       // see setmeta
       const opm = pm as {[key: string]: any}
       set(s => {

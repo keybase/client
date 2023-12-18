@@ -7,9 +7,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
 
-type Props = {
-  ordinal: T.Chat.Ordinal
-}
+type Props = {ordinal: T.Chat.Ordinal}
 
 type PickerState = 'picker' | 'title'
 

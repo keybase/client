@@ -18,11 +18,4 @@ export * as Users from './users'
 export * as Waiting from './waiting'
 export * as Wallets from './wallets'
 export type * as Retention from './retention-policy'
-
-export type Unpacked<T> = T extends (infer U)[]
-  ? U
-  : T extends (...args: any[]) => infer U
-  ? U
-  : T extends Promise<infer U>
-  ? U
-  : T
+export type {Opaque, Unpacked} from './ts'

@@ -1216,7 +1216,7 @@ export const uiMessageToMessage = (
   }
 }
 
-export function nextFractionalOrdinal(ord: T.Chat.Ordinal): T.Chat.Ordinal {
+export function nextFractionalOrdinal(ord: T.Chat.Ordinal) {
   // Mimic what the service does with outbox items
   return T.Chat.numberToOrdinal(T.Chat.ordinalToNumber(ord) + 0.001)
 }
@@ -1275,22 +1275,22 @@ export const makePendingAttachmentMessage = (
     conversationIDKey,
     deviceName: '',
     deviceType: C.isMobile ? 'mobile' : 'desktop',
-    errorReason: errorReason,
-    errorTyp: errorTyp,
+    errorReason,
+    errorTyp,
     exploding,
-    fileName: fileName,
+    fileName,
     id: T.Chat.numberToMessageID(0),
     inlineVideoPlayable: previewSpec.showPlayButton,
     isCollapsed: false,
-    ordinal: ordinal,
-    outboxID: outboxID,
+    ordinal,
+    outboxID,
     previewHeight: previewSpec.height,
-    previewURL: previewURL,
+    previewURL,
     previewWidth: previewSpec.width,
     showPlayButton: previewSpec.showPlayButton,
     submitState: 'pending',
     timestamp: Date.now(),
-    title: title,
+    title,
   })
 }
 

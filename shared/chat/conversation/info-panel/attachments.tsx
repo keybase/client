@@ -171,7 +171,7 @@ const DocViewRow = (props: DocViewRowProps) => {
     return !!item.message
   }, [item])
   const {showPopup, popup} = useMessagePopup({
-    ordinal: item.message?.id ?? 0,
+    ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
     shouldShow,
   })
   return (
@@ -430,7 +430,7 @@ export const useAttachmentSections = (
   }
 
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
-  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.id)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.ordinal)
 
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
@@ -439,7 +439,7 @@ export const useAttachmentSections = (
     if (Styles.isMobile) {
       messageAttachmentNativeShare(message.ordinal)
     } else if (!message.downloadPath) {
-      attachmentDownload(message.id)
+      attachmentDownload(message.ordinal)
     }
   }
 
