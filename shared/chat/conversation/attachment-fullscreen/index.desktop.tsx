@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '@/styles'
 import type {Props} from '.'
@@ -53,12 +54,21 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     ordinal,
   })
 
+  const titleOverride = React.useMemo(
+    () => ({
+      paragraph: Styles.platformStyles({
+        isElectron: {whiteSpace: 'nowrap'},
+      }) as StylesTextCrossPlatform,
+    }),
+    []
+  )
+
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
       <Kb.Box style={styles.container}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne}>
+          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
           <Kb.Icon
