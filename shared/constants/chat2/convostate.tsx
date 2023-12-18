@@ -501,19 +501,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           transferErrMsg: undefined,
           transferState: 'downloading',
         })
+      } else {
+        dispatch.updateMessage(ordinal, {
+          transferErrMsg: 'Trying to download missing / incorrect message?',
+          transferState: undefined,
+        })
+        return
       }
       // Download an attachment to your device
       const f = async () => {
-        const message = get().messageMap.get(ordinal)
-        if (message?.type !== 'attachment') {
-          throw new Error('Trying to download missing / incorrect message?')
-        }
         // already downloaded?
-        if (message.downloadPath) {
+        if (m.downloadPath) {
           logger.warn('Attachment already downloaded')
           return
         }
-        await downloadAttachment(false, message)
+        await downloadAttachment(false, m)
       }
       C.ignorePromise(f())
     },

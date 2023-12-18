@@ -53,7 +53,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const onDownloadAttachment = message.downloadPath
     ? undefined
     : () => {
-        attachmentDownload(message.id)
+        attachmentDownload(message.ordinal)
       }
 
   const onShowInFinder = downloadPath
