@@ -20,7 +20,11 @@ void quarantineFile(const char* inFilename) {
 }
 */
 import "C"
-import "golang.org/x/net/context"
+import (
+	"unsafe"
+
+	"golang.org/x/net/context"
+)
 
 // Quarantine is for adding the mark of the web.
 func Quarantine(ctx context.Context, path string) error {
