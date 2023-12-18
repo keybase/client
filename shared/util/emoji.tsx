@@ -8,6 +8,16 @@ import {type EmojiData, emojiNameMap} from '@/util/emoji-shared'
 export {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 
 const categorized = groupBy(emojidata, 'category')
+// merge these groups
+categorized['Smileys & People'] = [
+  ...(categorized['Smileys & Emotion'] ?? []),
+  ...(categorized['People & Body'] ?? []),
+]
+delete categorized['Smileys & Emotion']
+delete categorized['People & Body']
+// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+delete categorized['Component']
+
 const sorted: typeof categorized = {}
 for (const cat in categorized) {
   if (cat && cat !== 'undefined') {
@@ -15,7 +25,7 @@ for (const cat in categorized) {
   }
 }
 export const categoryOrder = [
-  'Smileys & Emotion',
+  'Smileys & People',
   'Animals & Nature',
   'Food & Drink',
   'Activities',
@@ -24,13 +34,18 @@ export const categoryOrder = [
   'Symbols',
   'Flags',
 ]
+
+if (__DEV__ && Object.keys(categorized).sort().join(',') !== categoryOrder.sort().join(',')) {
+  console.log('[EMOJI] categories incorrect!', categorized)
+}
+
 export const categoryIcons = {
   Activities: 'iconfont-basketball',
   'Animals & Nature': 'iconfont-pawprint',
   Flags: 'iconfont-flag',
   'Food & Drink': 'iconfont-apple',
   Objects: 'iconfont-music',
-  'Smileys & Emotion': 'iconfont-emoji',
+  'Smileys & People': 'iconfont-emoji',
   Symbols: 'iconfont-checkbox',
   'Travel & Places': 'iconfont-airplane',
 }
