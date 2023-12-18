@@ -69,7 +69,7 @@ const patch = () => {
 }
 
 const prepareSubmodules = () => {
-  if (process.platform === 'darwin') {
+  if (process.platform === 'darwin' || process.platform === 'linux') {
     const root = path.resolve(__dirname, '..', '..', '..', 'rnmodules')
     // const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
     fs.readdirSync(root, {withFileTypes: true}).forEach(f => {
