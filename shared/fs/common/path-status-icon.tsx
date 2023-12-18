@@ -102,6 +102,7 @@ const PathStatusIcon = (props: Props) =>
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {
+    alignSelf: 'center',
     paddingLeft: Kb.Styles.globalMargins.xtiny,
     paddingRight: Kb.Styles.globalMargins.xtiny,
   },
