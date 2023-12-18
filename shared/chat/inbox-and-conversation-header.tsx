@@ -87,7 +87,11 @@ const Header2 = (props: Props) => {
   }
   if (isTeam && desc && canEditDesc) {
     description = (
-      <Kb.WithTooltip position="bottom left" tooltip="Set the description using the /headline command.">
+      <Kb.WithTooltip
+        position="bottom left"
+        tooltip="Set the description using the /headline command."
+        containerStyle={styles.descriptionTooltip}
+      >
         {description}
       </Kb.WithTooltip>
     )
@@ -248,6 +252,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {alignItems: 'baseline'},
         isTablet: {alignItems: 'baseline'},
       }),
+      descriptionTooltip: {alignItems: 'flex-start'},
       headerTitle: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
