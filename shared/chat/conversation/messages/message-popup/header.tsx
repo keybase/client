@@ -114,7 +114,13 @@ const MessagePopupHeader = (props: Props) => {
           </Kb.PopupHeaderText>
         </Kb.Box2>
       )}
-      <Kb.Divider style={{marginBottom: Kb.Styles.globalMargins.tiny, width: '100%'}} />
+      <Kb.Divider
+        style={{
+          marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : 0,
+          marginTop: Kb.Styles.globalMargins.tiny,
+          width: '100%',
+        }}
+      />
     </Kb.Box>
   )
 }

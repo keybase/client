@@ -150,7 +150,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const {exploded, submitState, author, id, botUsername} = m
-      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) !== T.Chat.messageIDToNumber(id)
+      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
       const youSent = m.author === you && !idMatchesOrdinal
       const exploding = !!m.exploding
       const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
