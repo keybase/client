@@ -30,8 +30,8 @@ export type ConversationMeta = {
   inboxVersion: number
   isEmpty: boolean
   isMuted: boolean
-  maxMsgID: number
-  maxVisibleMsgID: number
+  maxMsgID: Message.MessageID
+  maxVisibleMsgID: Message.MessageID
   membershipType: MembershipType
   minWriterRole: TeamTypes.TeamRoleType // minimum role to be able to write into a channel,
   notificationsDesktop: NotificationsType
@@ -39,7 +39,7 @@ export type ConversationMeta = {
   notificationsMobile: NotificationsType
   offline: boolean
   pinnedMsg?: PinnedMessageInfo
-  readMsgID: number
+  readMsgID: Message.MessageID
   rekeyers: Set<string>
   resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
