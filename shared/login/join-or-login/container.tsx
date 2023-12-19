@@ -7,8 +7,8 @@ const Container = () => {
   const bannerMessage = justDeletedSelf
     ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
     : justRevokedSelf
-    ? `${justRevokedSelf} was revoked successfully`
-    : ''
+      ? `${justRevokedSelf} was revoked successfully`
+      : ''
 
   const isOnline = C.useConfigState(s => s.isOnline)
   const loadIsOnline = C.useConfigState(s => s.dispatch.loadIsOnline)
@@ -18,7 +18,10 @@ const Container = () => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
   const checkIsOnline = loadIsOnline
-  const onLogin = C.useProvisionState(s => s.dispatch.startProvision)
+  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const onLogin = () => {
+    startProvision()
+  }
   const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => {
     requestAutoInvite()
