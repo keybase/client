@@ -17,7 +17,7 @@ const InstallSecurityPrefs = () => {
     if (autoCancelledRef.current) return
     if (driverStatus.type === T.FS.DriverStatusType.Enabled) {
       autoCancelledRef.current = true
-      // onCancel()
+      onCancel()
     }
   }, [driverStatus, onCancel])
 
