@@ -1,9 +1,13 @@
-import type * as C from '@/constants'
+import * as C from '@/constants'
 import fsRoot from './page'
 import barePreview from './filepreview/page'
 import confirmDelete from './common/path-item-action/confirm-delete/page'
 import destinationPicker from './browser/destination-picker/page'
 import kextPermission from './banner/system-file-manager-integration-banner/page'
+
+setTimeout(() => {
+  C.useRouterState.getState().dispatch.navigateAppend('kextPermission')
+}, 1000)
 
 export const newRoutes = {
   fsRoot,
