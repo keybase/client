@@ -51,7 +51,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const {onClose, onToggleCollapse} = useActions(
     data?.youAreAuthor ?? false,
-    data?.unfurlMessageID ?? 0,
+    T.Chat.numberToMessageID(data?.unfurlMessageID ?? 0),
     ordinal
   )
 

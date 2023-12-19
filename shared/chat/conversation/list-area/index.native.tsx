@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Container from '@/util/container'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -6,7 +7,6 @@ import * as React from 'react'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import type * as T from '@/constants/types'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 import {SeparatorMapContext} from '../messages/ids-context'
@@ -37,8 +37,8 @@ const useScrolling = (p: {
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
   const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
-  const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinals.at(-1) ?? -1
+  const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
+  const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
   const loadOlderMessages = C.useEvent(() => {
@@ -60,7 +60,7 @@ const useScrolling = (p: {
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
   if (cidChanged) {
-    lastScrollToCentered.current = -1
+    lastScrollToCentered.current = T.Chat.numberToOrdinal(-1)
   }
 
   const scrollToCentered = C.useEvent(() => {
@@ -105,7 +105,7 @@ const ConversationList = React.memo(function ConversationList() {
   const [extraData, setExtraData] = React.useState(0)
   const [lastED, setLastED] = React.useState(extraData)
 
-  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
+  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = C.useChatContext(s => s.messageOrdinals)
 
@@ -117,7 +117,7 @@ const ConversationList = React.memo(function ConversationList() {
   const separatorMap = React.useMemo(() => {
     if (usingFlashList) return emptyMap
     const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-    let p = 0
+    let p = T.Chat.numberToOrdinal(0)
     for (const o of _messageOrdinals ?? []) {
       sm.set(o, p)
       p = o

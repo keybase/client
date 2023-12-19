@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import SetExplodingMessagePopup from '@/chat/conversation/messages/set-explode-popup/container'
@@ -196,7 +197,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = React.useCallback(() => {
-    setReplyTo(0)
+    setReplyTo(T.Chat.numberToOrdinal(0))
   }, [setReplyTo])
 
   // Key-handling code shared by both the input key handler

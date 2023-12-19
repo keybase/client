@@ -13,9 +13,9 @@ const Fullscreen = (p: Props) => {
   const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
-  const {id} = message
+  const {ordinal} = message
 
-  const {showPopup, popup} = useMessagePopup({ordinal: id})
+  const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
     (left: boolean) => {

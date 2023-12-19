@@ -8,10 +8,12 @@ import type * as TeamTypes from '../teams'
 import type HiddenString from '@/util/hidden-string'
 import type {DeviceType} from '../devices'
 import type {ServiceIdWithContact} from '../team-building'
+import type {Opaque} from '@/constants/types/ts'
 
 // The actual ID the server uses for operations (edit, delete etc)
-export type MessageID = number
-export const numberToMessageID = (n: number): MessageID => n
+export type MessageID = Opaque<number, 'MessageID'>
+export const numberToMessageID = (n: number) => n as MessageID
+export const numbersToMessageIDs = (a: Array<number>) => a as Array<MessageID>
 export const messageIDToNumber = (n: MessageID): number => n
 
 export type Reaction = {
@@ -38,8 +40,8 @@ export type UnfurlMap = Map<string, RPCChatTypes.UIMessageUnfurlInfo>
 // danny: Are you there? (id: 102, ordinal: 102)
 // (later we get an ordinal of 103, so it'll be (id: 103, ordinal: 101.001). We keep the ordinal so our list doesn't re-order itself from our perspective. On a later
 // load it will be 100, 101, 102, 103 and be chris, danny, danny, chris
-export type Ordinal = number
-export const numberToOrdinal = (n: number): Ordinal => n
+export type Ordinal = Opaque<number, 'Ordinal'>
+export const numberToOrdinal = (n: number): Ordinal => n as Ordinal
 export const ordinalToNumber = (o: Ordinal): number => o
 
 export type OutboxID = string

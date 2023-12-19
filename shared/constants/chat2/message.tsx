@@ -43,11 +43,11 @@ export const isMessageWithReactions = (message: T.Chat.Message): message is T.Ch
 export const getMessageID = (m: T.RPCChat.UIMessage) => {
   switch (m.state) {
     case T.RPCChat.MessageUnboxedState.valid:
-      return m.valid.messageID
+      return T.Chat.numberToMessageID(m.valid.messageID)
     case T.RPCChat.MessageUnboxedState.error:
-      return m.error.messageID
+      return T.Chat.numberToMessageID(m.error.messageID)
     case T.RPCChat.MessageUnboxedState.placeholder:
-      return m.placeholder.messageID
+      return T.Chat.numberToMessageID(m.placeholder.messageID)
     default:
       return null
   }
@@ -418,7 +418,7 @@ const makeMessageSetDescription = (
 
 const makeMessagePin = (m?: Partial<MessageTypes.MessagePin>): MessageTypes.MessagePin => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  pinnedMessageID: 0,
+  pinnedMessageID: T.Chat.numberToMessageID(0),
   reactions: new Map(),
   type: 'pin',
   ...m,
@@ -999,7 +999,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.pin:
       return makeMessagePin({
         ...common,
-        pinnedMessageID: m.pinnedMessageID || m.messageID,
+        pinnedMessageID: T.Chat.numberToMessageID(m.pinnedMessageID || m.messageID),
         reactions,
       })
     case T.RPCChat.MessageType.metadata:
@@ -1171,7 +1171,7 @@ const journeycardUIMessageToMessage = (
     return makeMessageJourneycard({
       cardType: m.cardType,
       conversationIDKey,
-      highlightMsgID: m.highlightMsgID,
+      highlightMsgID: T.Chat.numberToMessageID(m.highlightMsgID),
       openTeam: m.openTeam,
       ordinal: T.Chat.numberToOrdinal(m.ordinal),
     })
@@ -1216,7 +1216,7 @@ export const uiMessageToMessage = (
   }
 }
 
-export function nextFractionalOrdinal(ord: T.Chat.Ordinal): T.Chat.Ordinal {
+export function nextFractionalOrdinal(ord: T.Chat.Ordinal) {
   // Mimic what the service does with outbox items
   return T.Chat.numberToOrdinal(T.Chat.ordinalToNumber(ord) + 0.001)
 }
@@ -1275,22 +1275,22 @@ export const makePendingAttachmentMessage = (
     conversationIDKey,
     deviceName: '',
     deviceType: C.isMobile ? 'mobile' : 'desktop',
-    errorReason: errorReason,
-    errorTyp: errorTyp,
+    errorReason,
+    errorTyp,
     exploding,
-    fileName: fileName,
+    fileName,
     id: T.Chat.numberToMessageID(0),
     inlineVideoPlayable: previewSpec.showPlayButton,
     isCollapsed: false,
-    ordinal: ordinal,
-    outboxID: outboxID,
+    ordinal,
+    outboxID,
     previewHeight: previewSpec.height,
-    previewURL: previewURL,
+    previewURL,
     previewWidth: previewSpec.width,
     showPlayButton: previewSpec.showPlayButton,
     submitState: 'pending',
     timestamp: Date.now(),
-    title: title,
+    title,
   })
 }
 

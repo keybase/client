@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 
 const ReplyPreview = () => {
   const rordinal = C.useChatContext(s => s.replyTo)
@@ -33,7 +33,7 @@ const ReplyPreview = () => {
   const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : null
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
-    setReplyTo(0)
+    setReplyTo(T.Chat.numberToOrdinal(0))
   }, [setReplyTo])
 
   return (

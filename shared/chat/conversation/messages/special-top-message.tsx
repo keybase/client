@@ -110,7 +110,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const data = C.useChatContext(
     C.useShallow(s => {
       const hasLoadedEver = ordinals !== undefined
-      const ordinal = ordinals?.[0] ?? 0
+      const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
       const meta = s.meta
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
       return {
@@ -214,7 +214,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
         <Separator trailingItem={ordinal} leadingItem={undefined} />
       ) : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
-        <Separator trailingItem={0} leadingItem={ordinal} />
+        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
       )}
     </Kb.Box>
   )

@@ -141,11 +141,11 @@ const useScrolling = (p: {
     200
   )
   const conversationIDKeyChanged = C.useCIDChanged(conversationIDKey)
-  const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
+  const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   if (conversationIDKeyChanged) {
-    lastLoadOrdinal.current = -1
+    lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
   }
-  const oldestOrdinal = messageOrdinals[0] ?? -1
+  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed

@@ -124,7 +124,7 @@ const initialConvoStore: ConvoStore = {
   commandMarkdown: undefined,
   commandStatus: undefined,
   dismissedInviteBanners: false,
-  editing: 0,
+  editing: T.Chat.numberToOrdinal(0),
   explodingMode: 0,
   explodingModeLock: undefined,
   giphyResult: undefined,
@@ -141,7 +141,7 @@ const initialConvoStore: ConvoStore = {
   mutualTeams: [],
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
-  replyTo: 0,
+  replyTo: T.Chat.numberToOrdinal(0),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
@@ -223,16 +223,16 @@ export type ConvoState = ConvoStore & {
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
     messagesAdd: (messages: Array<T.Chat.Message>) => void
     messagesClear: () => void
-    messagesExploded: (messageIDs: Array<T.RPCChat.MessageID>, explodedBy?: string) => void
+    messagesExploded: (messageIDs: Array<T.Chat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
-      messageIDs?: Array<T.RPCChat.MessageID>
-      upToMessageID?: T.RPCChat.MessageID // expunge calls give us a message we should delete up to (don't delete it)
+      messageIDs?: Array<T.Chat.MessageID>
+      upToMessageID?: T.Chat.MessageID // expunge calls give us a message we should delete up to (don't delete it)
       deletableMessageTypes?: Set<T.Chat.MessageType> // expunge calls don't delete _all_ messages, only these types
       ordinals?: Array<T.Chat.Ordinal>
     }) => void
     metaReceivedError: (error: T.RPCChat.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
-    navigateToThread: (reason: NavReason, highlightMessageID?: number, pushBody?: string) => void
+    navigateToThread: (reason: NavReason, highlightMessageID?: T.Chat.MessageID, pushBody?: string) => void
     openFolder: () => void
     onChatPaymentInfo: (action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
@@ -308,7 +308,7 @@ export type ConvoState = ConvoStore & {
       notificationsMobile: T.Chat.NotificationsType,
       notificationsGlobalIgnoreMentions: boolean
     ) => void
-    updateReactions: (updates: Array<{targetMsgID: T.RPCChat.MessageID; reactions: T.Chat.Reactions}>) => void
+    updateReactions: (updates: Array<{targetMsgID: T.Chat.MessageID; reactions: T.Chat.Reactions}>) => void
   }
   getExplodingMode: () => number
   isMetaGood: () => boolean
@@ -437,7 +437,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const message = mm.get(goodOrdinal)
       clientPrev = message && message.id
     }
-    return clientPrev || 0
+    return clientPrev || T.Chat.numberToMessageID(0)
   }
 
   // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
@@ -834,7 +834,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatLoadGalleryHit': (
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
-                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
                 const username = C.useCurrentUserState.getState().username
                 const devicename = C.useCurrentUserState.getState().deviceName
                 const message = Message.uiMessageToMessage(
@@ -853,7 +853,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                     // inject them into the message map
                     info.messages.forEach(m => {
-                      s.messageMap.set(m.id, m)
+                      s.messageMap.set(m.ordinal, m)
                     })
                     syncMessageDerived(s)
                   })
@@ -951,7 +951,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           const username = C.useCurrentUserState.getState().username
           const devicename = C.useCurrentUserState.getState().deviceName
-          const getLastOrdinal = () => messageOrdinals?.at(-1) ?? 0
+          const getLastOrdinal = () => messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
           let shouldClearOthers = false
           if (!calledClear) {
@@ -1054,7 +1054,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         scrollDirection: 'forward',
       })
     },
-    loadNextAttachment: async (from: T.Chat.Ordinal, backInTime: boolean) => {
+    loadNextAttachment: async (from, backInTime) => {
       const fromMsg = get().messageMap.get(from)
       if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
       const {id} = fromMsg
@@ -1071,7 +1071,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (result.message) {
           const devicename = C.useCurrentUserState.getState().deviceName
           const username = C.useCurrentUserState.getState().username
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const goodMessage = Message.uiMessageToMessage(
             get().id,
             result.message,
@@ -1429,7 +1429,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messageSend: (text, replyTo, waitingKey) => {
       get().dispatch.injectIntoInput('')
-      get().dispatch.setReplyTo(0)
+      get().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
       get().dispatch.setCommandMarkdown()
       set(s => {
         s.giphyWindow = false
@@ -1513,7 +1513,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             s.messageTypeMap.delete(m.ordinal)
           } else {
             // we sent it so lets keep our temp ordinal
-            if (m.outboxID && m.id !== m.ordinal) {
+            if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
               s.pendingOutboxToOrdinal.set(m.outboxID, m.ordinal)
             }
             // we want to keep ordinals we've seen before so if a message comes in with a 'real'
@@ -1761,7 +1761,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: {
           const {msgID} = action.payload.params
           const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
-          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+          const ordinal = messageIDToOrdinal(
+            messageMap,
+            pendingOutboxToOrdinal,
+            T.Chat.numberToMessageID(msgID)
+          )
           if (!ordinal) {
             logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
             return
@@ -1787,7 +1791,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           get().dispatch.updateAttachmentViewTransfer(msgID, ratio)
 
           const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
-          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+          const ordinal = messageIDToOrdinal(
+            messageMap,
+            pendingOutboxToOrdinal,
+            T.Chat.numberToMessageID(msgID)
+          )
           if (!ordinal) {
             logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
             return
@@ -1939,7 +1947,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         get().dispatch.toggleLocalReaction({
           decorated: cMsg.outbox.decoratedTextBody ?? '',
           emoji: cMsg.outbox.body,
-          targetOrdinal: cMsg.outbox.supersedes,
+          targetOrdinal: T.Chat.numberToOrdinal(cMsg.outbox.supersedes),
           username,
         })
         return
@@ -1949,7 +1957,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const conversationIDKey = get().id
       const shouldAddMessage = get().isCaughtUp()
       const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       const message = Message.uiMessageToMessage(
         conversationIDKey,
         cMsg,
@@ -1965,7 +1973,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           message.type === 'attachment'
         ) {
           const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
-          const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, placeholderID)
+          const ordinal = messageIDToOrdinal(
+            get().messageMap,
+            get().pendingOutboxToOrdinal,
+            T.Chat.numberToMessageID(placeholderID)
+          )
           if (ordinal) {
             const m = get().messageMap.get(ordinal)
             dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
@@ -2002,11 +2014,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const {delete: d} = body
             if (d.messageIDs) {
               // check if the delete is acting on an exploding message
-              const messageIDs = d.messageIDs
+              const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
               const messages = get().messageMap
-              const isExplodeNow = messageIDs.some(_id => {
-                const id = T.Chat.numberToOrdinal(_id)
-                const message = messages.get(id) ?? [...messages.values()].find(msg => msg.id === id)
+              const isExplodeNow = messageIDs.some(id => {
+                const message =
+                  messages.get(T.Chat.numberToOrdinal(id)) ??
+                  [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
                 if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
                   return true
                 }
@@ -2053,7 +2066,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
       const username = C.useCurrentUserState.getState().username
       const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       for (const msg of messagesUpdated.updates ?? []) {
         const messageID = Message.getMessageID(msg)
         if (!messageID) {
@@ -2347,7 +2360,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // clearing
       if (_ordinal === false) {
         set(s => {
-          s.editing = 0
+          s.editing = T.Chat.numberToOrdinal(0)
         })
         get().dispatch.injectIntoInput('')
         return
@@ -2355,7 +2368,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const messageMap = get().messageMap
 
-      let ordinal = 0
+      let ordinal = T.Chat.numberToOrdinal(0)
       // Editing last message
       if (_ordinal === true) {
         const editLastUser = C.useCurrentUserState.getState().username
@@ -2478,7 +2491,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const ordinals = get().messageOrdinals
           const ord =
             ordinals &&
-            findLast(ordinals, (o: T.Chat.Ordinal) => {
+            findLast(ordinals, o => {
               const message = messageMap.get(o)
               return !!(message && message.id < unreadLineID)
             })
@@ -2647,7 +2660,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
         const username = C.useCurrentUserState.getState().username
         const devicename = C.useCurrentUserState.getState().deviceName
         const onDone = () => {
@@ -2771,7 +2784,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const m = get().messageMap.get(ordinal)
         let isCollapsed = false
 
-        if (messageID !== ordinal) {
+        if (T.Chat.messageIDToNumber(messageID) !== T.Chat.ordinalToNumber(ordinal)) {
           const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
           const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
           if (ui) {
@@ -2953,7 +2966,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     // maybe remove this when reducer is ported
-    updateMessage: (ordinal: T.Chat.Ordinal, pm: Partial<T.Chat.Message>) => {
+    updateMessage: (ordinal, pm) => {
       set(s => {
         const m = s.messageMap.get(ordinal) as {[key: string]: unknown} | undefined
         if (!m) return
@@ -2965,7 +2978,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       })
     },
-    updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => {
+    updateMeta: pm => {
       // see setmeta
       const opm = pm as {[key: string]: any}
       set(s => {
