@@ -5,7 +5,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
 import logger from '@/logger'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 
 const prefix = 'keybase://'
 type Store = {
@@ -205,11 +205,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 return
               }
               const [teamname, channelname] = teamChat
-              const highlightMessageID = parseInt(parts[2]!, 10)
-              if (highlightMessageID < 0) {
-                logger.warn(`invalid chat message id: ${highlightMessageID}`)
+              const _highlightMessageID = parseInt(parts[2]!, 10)
+              if (_highlightMessageID < 0) {
+                logger.warn(`invalid chat message id: ${_highlightMessageID}`)
                 return
               }
+
+              const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
               const {previewConversation} = C.useChatState.getState().dispatch
               previewConversation({
                 channelname,
@@ -226,7 +228,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               }
               const {previewConversation} = C.useChatState.getState().dispatch
               previewConversation({
-                highlightMessageID,
+                highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
                 participants: parts[1]!.split(','),
                 reason: 'appLink',
               })

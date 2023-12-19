@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 
@@ -142,7 +142,7 @@ const useCollapseAction = () => {
   const onCollapse = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
-      toggleMessageCollapse(ordinal, ordinal)
+      toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
     },
     [toggleMessageCollapse, ordinal]
   )

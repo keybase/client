@@ -150,14 +150,15 @@ const useState = (ordinal: T.Chat.Ordinal) => {
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const {exploded, submitState, author, id, botUsername} = m
-      const youSent = m.author === you && m.ordinal !== m.id
+      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) !== T.Chat.messageIDToNumber(id)
+      const youSent = m.author === you && !idMatchesOrdinal
       const exploding = !!m.exploding
       const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
       const decorate = !exploded && !m.errorReason
       const type = m.type
       const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
       const showSendIndicator =
-        !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
+        !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
       const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)

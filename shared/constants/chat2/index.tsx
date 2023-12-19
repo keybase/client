@@ -325,7 +325,7 @@ export type State = Store & {
       code: number,
       message: string
     ) => void
-    createConversation: (participants: Array<string>, highlightMessageID?: number) => void
+    createConversation: (participants: Array<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     findGeneralConvIDFromTeamID: (teamID: T.Teams.TeamID) => void
     fetchUserEmoji: (conversationIDKey?: T.Chat.ConversationIDKey, onlyInTeam?: boolean) => void
@@ -374,7 +374,7 @@ export type State = Store & {
       teamname?: string
       channelname?: string
       conversationIDKey?: T.Chat.ConversationIDKey // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
-      highlightMessageID?: number
+      highlightMessageID?: T.Chat.MessageID
       reason: PreviewReason
     }) => void
     queueMetaToRequest: (ids: Array<T.Chat.ConversationIDKey>) => void
@@ -1230,7 +1230,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
               C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
                 deletableMessageTypes,
-                upToMessageID: expunge.expunge.upto,
+                upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
               })
               break
             }
@@ -1259,7 +1259,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               }
               const updates = reactionUpdate.reactionUpdates.map(ru => ({
                 reactions: Message.reactionMapToReactions(ru.reactions),
-                targetMsgID: ru.targetMsgID,
+                targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
               }))
               logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
               C.getConvoState(conversationIDKey).dispatch.updateReactions(updates)

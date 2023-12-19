@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {formatTimeForChat} from '@/util/timestamp'
 import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
@@ -187,7 +187,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   // we derive the previous by using SeparatorMapContext
   if (Kb.Styles.isMobile && !usingFlashList) {
     trailingItem = leadingItem
-    leadingItem = sm.get(trailingItem) ?? 0
+    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
   }
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
@@ -273,7 +273,10 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove} = useStateFast(trailingItem, leadingItem ?? 0)
+  const {ordinal, showUsername, orangeLineAbove} = useStateFast(
+    trailingItem,
+    leadingItem ?? T.Chat.numberToOrdinal(0)
+  )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null

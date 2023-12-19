@@ -20,7 +20,7 @@ const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
-  const {downloadPath, id, attachmentType} = message
+  const {downloadPath, attachmentType} = message
   const pending = !!message.transferState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
@@ -30,8 +30,8 @@ const PopAttach = (ownProps: OwnProps) => {
   }
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const _onDownload = React.useCallback(() => {
-    attachmentDownload(id)
-  }, [attachmentDownload, id])
+    attachmentDownload(ordinal)
+  }, [attachmentDownload, ordinal])
   const onDownload = !C.isMobile && !message.downloadPath ? _onDownload : undefined
 
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
