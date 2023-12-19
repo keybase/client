@@ -3,7 +3,7 @@ import * as C from '@/constants'
 
 const Loading = React.lazy(async () => import('./loading/container'))
 const Relogin = React.lazy(async () => import('./relogin/container'))
-const JoinOrLogin = React.lazy(async () => import('./join-or-login/container'))
+const JoinOrLogin = React.lazy(async () => import('./join-or-login'))
 
 const RootLogin = () => {
   const isLoggedIn = C.useConfigState(s => s.loggedIn)
