@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-const Perms = React.lazy(async () => import('./kext-permission-popup-container'))
+const Perms = React.lazy(async () => import('./kext-permission-popup'))
 
 const Screen = () => (
   <React.Suspense>
