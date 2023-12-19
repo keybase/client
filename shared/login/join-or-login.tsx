@@ -1,20 +1,36 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useFocusEffect} from '@react-navigation/core'
 
-type Props = {
-  bannerMessage?: string
-  checkIsOnline: () => void
-  onLogin: () => void
-  onSignup: () => void
-  isOnline?: boolean
-  showProxySettings: () => void
-}
+const Intro = () => {
+  const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
+  const justRevokedSelf = C.useConfigState(s => s.justRevokedSelf)
+  const bannerMessage = justDeletedSelf
+    ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
+    : justRevokedSelf
+      ? `${justRevokedSelf} was revoked successfully`
+      : ''
 
-const Intro = (props: Props) => {
+  const isOnline = C.useConfigState(s => s.isOnline)
+  const loadIsOnline = C.useConfigState(s => s.dispatch.loadIsOnline)
+
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const checkIsOnline = loadIsOnline
+  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const onLogin = () => {
+    startProvision()
+  }
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
+  const onSignup = () => {
+    requestAutoInvite()
+  }
+  const showProxySettings = () => {
+    navigateAppend('proxySettingsModal')
+  }
   const [showing, setShowing] = React.useState(true)
-  Kb.useInterval(props.checkIsOnline, showing ? 5000 : undefined)
+  Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
 
   useFocusEffect(
     React.useCallback(() => {
@@ -34,7 +50,7 @@ const Intro = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <InfoIcon />
       </Kb.Box2>
-      {!!props.bannerMessage && <Kb.Banner color="blue">{props.bannerMessage}</Kb.Banner>}
+      {!!bannerMessage && <Kb.Banner color="blue">{bannerMessage}</Kb.Banner>}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -50,13 +66,13 @@ const Intro = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button label="Create account" onClick={props.onSignup} fullWidth={true} />
-          <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
-          {props.isOnline === false && (
+          <Kb.Button label="Create account" onClick={onSignup} fullWidth={true} />
+          <Kb.Button label="Log in" mode="Secondary" onClick={onLogin} fullWidth={true} />
+          {isOnline ? null : (
             <Kb.Button
               label="Configure a proxy"
               mode="Secondary"
-              onClick={props.showProxySettings}
+              onClick={showProxySettings}
               fullWidth={true}
             />
           )}
