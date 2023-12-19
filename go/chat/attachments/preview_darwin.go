@@ -93,7 +93,7 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		return res, errors.New("no data returned from native")
 	}
 	localDat := make([]byte, C.ImageLength())
-	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
+	copy(localDat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
 	if err != nil {
 		return res, err

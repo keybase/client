@@ -1,5 +1,6 @@
 package client
 
+//lint:ignore U1000 Ignore unsued
 const walletAPIDoc = `"keybase wallet api" provides a JSON API to the Keybase wallet.
 
 EXAMPLES:
