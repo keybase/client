@@ -36,22 +36,22 @@ require (
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103225103-1f052922b096
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
-	github.com/keybase/go-kext v0.0.0-20221220214016-0b515ccced3b
-	github.com/keybase/go-keychain v0.0.0-20221221221913-9be78f6c498b
-	github.com/keybase/go-logging v0.0.0-20221220224924-396ca573808c
-	github.com/keybase/go-merkle-tree v0.0.0-20221220225120-009ea00ffb15
+	github.com/keybase/go-kext v0.0.0-20231213202110-2638d39eaa5c
+	github.com/keybase/go-keychain v0.0.0-20231219164618-57a3676c3af6
+	github.com/keybase/go-logging v0.0.0-20231213204715-4b3ff33ba5b6
+	github.com/keybase/go-merkle-tree v0.0.0-20231220184832-f941b050db23
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20221220225315-06ddee08f3c2
-	github.com/keybase/go-triplesec-insecure v0.0.0-20221220225342-ddc3aa12adec
-	github.com/keybase/go-updater v0.0.0-20221221194633-9e97736a0b42
+	github.com/keybase/go-triplesec v0.0.0-20231213205702-981541df982e
+	github.com/keybase/go-triplesec-insecure v0.0.0-20231213205953-ffb6212a205e
+	github.com/keybase/go-updater v0.0.0-20231213212021-a8be26e88400
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20211118220306-ca1be321c9e5
-	github.com/keybase/release v0.0.0-20221220220653-50771d921175
-	github.com/keybase/saltpack v0.0.0-20221220231257-f6cce11cfd0f
+	github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63
+	github.com/keybase/release v0.0.0-20231213214806-14d42f4e5475
+	github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -73,7 +73,7 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/image v0.14.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
@@ -109,7 +109,7 @@ require (
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/alecthomas/go-check-sumtype v0.1.3 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
+	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.2 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
@@ -121,7 +121,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.164 // indirect
+	github.com/aws/aws-sdk-go v1.49.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
@@ -283,7 +283,7 @@ require (
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
 	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/strib/gomounts v0.0.0-20180215003523-d9ea4eaa52ca // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c // indirect
@@ -315,7 +315,7 @@ require (
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/tools v0.16.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
