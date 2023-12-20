@@ -6,7 +6,6 @@ package engine
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -348,9 +347,6 @@ func proveGubbleSocialFail(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-	mctx := libkb.NewMetaContextTODO(g).WithUIs(uis)
-	mctx, cancel1 := mctx.WithTimeout(12 * time.Second)
-	defer cancel1()
 	mctx, cancel2 := libkb.NewMetaContextTODO(g).WithUIs(uis).WithContextCancel()
 	defer cancel2()
 

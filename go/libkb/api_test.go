@@ -4,7 +4,7 @@
 package libkb
 
 import (
-	"crypto/x509"
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"testing"
@@ -144,7 +144,7 @@ func checkX509Err(t *testing.T, err error) {
 		return
 	}
 
-	_, ok = b.Err.(x509.UnknownAuthorityError)
+	_, ok = b.Err.(*tls.CertificateVerificationError)
 	if !ok {
 		t.Errorf("url.Error Err field type: %T, expected x509.UnknownAuthorityError", b.Err)
 	}
