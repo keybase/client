@@ -7,21 +7,16 @@ import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/times
 
 type OwnProps = {deviceID: string}
 
-const TimelineMarker = ({
-  first,
-  last,
-  closedCircle,
-}: {
-  first: boolean
-  last: boolean
-  closedCircle: boolean
-}) => (
-  <Kb.Box style={styles.marker}>
-    <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
-    <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
-  </Kb.Box>
-)
+const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
+  const {first, last, closedCircle} = p
+  return (
+    <Kb.Box style={styles.marker}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+      <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+    </Kb.Box>
+  )
+}
 
 const TimelineLabel = (p: {
   desc: string

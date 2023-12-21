@@ -228,10 +228,6 @@ const HoverOpacity = (p: {children: React.ReactNode}) => (
   <Kb.Box className="hover-opacy inverted">{p.children}</Kb.Box>
 )
 
-type State = {
-  showingMenu: boolean
-}
-
 type SIProps = {
   full: boolean
 } & Pick<
@@ -270,30 +266,28 @@ const AssertionSiteIcon = (p: SIProps) => {
   )
 }
 
-class Assertion extends React.PureComponent<Props, State> {
-  state = {showingMenu: false}
-  _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
-  _hideMenu = () => this.setState({showingMenu: false})
-  _ref: React.RefObject<Kb.MeasureRef> = React.createRef()
-  _getMenu = () => {
-    const p = this.props
-    if (!p.isYours || p.isSuggestion) {
+const Assertion = React.memo(function Assertion(p: Props) {
+  const {isYours, isSuggestion, stellarHidden, type, metas, onHideStellar, onRevoke: _onRevoke} = p
+  const {onShowProof, onRecheck, onCreateProof, state, timestamp, color, notAUser} = p
+  const {siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
+  const {header, items} = React.useMemo(() => {
+    if (!isYours || isSuggestion) {
       return {}
     }
     const onRevoke =
-      p.type === 'stellar'
+      type === 'stellar'
         ? {
             danger: true,
-            onClick: () => p.onHideStellar(!this.props.stellarHidden),
-            title: `${this.props.stellarHidden ? 'Show' : 'Hide'} Stellar address on profile`,
+            onClick: () => onHideStellar(!stellarHidden),
+            title: `${stellarHidden ? 'Show' : 'Hide'} Stellar address on profile`,
           }
         : {
             danger: true,
-            onClick: p.onRevoke,
-            title: p.type === 'pgp' ? 'Drop' : 'Revoke',
+            onClick: _onRevoke,
+            title: type === 'pgp' ? 'Drop' : 'Revoke',
           }
 
-    if (p.metas.find(m => m.label === 'unreachable')) {
+    if (metas.find(m => m.label === 'unreachable')) {
       return {
         header: (
           <Kb.PopupHeaderText
@@ -304,16 +298,16 @@ class Assertion extends React.PureComponent<Props, State> {
           </Kb.PopupHeaderText>
         ),
         items: [
-          {onClick: p.onShowProof, title: 'View proof'},
-          {onClick: p.onRecheck, title: 'I fixed it - recheck'},
+          {onClick: onShowProof, title: 'View proof'},
+          {onClick: onRecheck, title: 'I fixed it - recheck'},
           onRevoke,
         ],
       }
     }
 
-    if (p.metas.find(m => m.label === 'pending')) {
+    if (metas.find(m => m.label === 'pending')) {
       let pendingMessage: undefined | string
-      switch (p.type) {
+      switch (type) {
         case 'hackernews':
           pendingMessage =
             'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
@@ -347,108 +341,132 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.Box2 direction="vertical" style={styles.positionRelative}>
             <AssertionSiteIcon
               full={true}
-              siteIconFullDarkmode={this.props.siteIconFullDarkmode}
-              siteIconFull={this.props.siteIconFull}
-              siteIconDarkmode={this.props.siteIconDarkmode}
-              siteIcon={this.props.siteIcon}
-              onCreateProof={this.props.onCreateProof}
-              onShowProof={this.props.onShowProof}
-              isSuggestion={this.props.isSuggestion}
+              siteIconFullDarkmode={siteIconFullDarkmode}
+              siteIconFull={siteIconFull}
+              siteIconDarkmode={siteIconDarkmode}
+              siteIcon={siteIcon}
+              onCreateProof={onCreateProof}
+              onShowProof={onShowProof}
+              isSuggestion={isSuggestion}
             />
-            <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
+            <Kb.Icon type={stateToDecorationIcon(state)} style={styles.siteIconFullDecoration} />
           </Kb.Box2>
-          {!!this.props.timestamp && (
+          {!!timestamp && (
             <>
               <Kb.Text type="BodySmall">Posted on</Kb.Text>
               <Kb.Text center={true} type="BodySmall">
-                {formatTimeForAssertionPopup(this.props.timestamp)}
+                {formatTimeForAssertionPopup(timestamp)}
               </Kb.Text>
             </>
           )}
         </Kb.Box2>
       ),
-      items: [{onClick: p.onShowProof, title: `View ${proofTypeToDesc(p.type)}`}, onRevoke],
+      items: [{onClick: onShowProof, title: `View ${proofTypeToDesc(type)}`}, onRevoke],
     }
-  }
-  render() {
-    const p = this.props
-    const {header, items} = this._getMenu()
+  }, [
+    _onRevoke,
+    isSuggestion,
+    isYours,
+    metas,
+    onCreateProof,
+    onRecheck,
+    onShowProof,
+    siteIcon,
+    siteIconDarkmode,
+    siteIconFull,
+    siteIconFullDarkmode,
+    state,
+    stellarHidden,
+    timestamp,
+    type,
+    onHideStellar,
+  ])
 
-    return (
-      <Kb.Box2Measure
-        className={p.notAUser ? undefined : 'hover-container'}
-        ref={this._ref}
-        direction="vertical"
-        style={styles.container}
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      return items ? (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          visible={true}
+          onHidden={hidePopup}
+          attachTo={attachTo}
+          position="bottom right"
+          containerStyle={styles.floatingMenu}
+          header={header}
+          items={items}
+        />
+      ) : null
+    },
+    [items, header]
+  )
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+
+  return (
+    <Kb.Box2Measure
+      className={notAUser ? undefined : 'hover-container'}
+      ref={popupAnchor}
+      direction="vertical"
+      style={styles.container}
+      fullWidth={true}
+    >
+      <Kb.Box2
+        alignItems="flex-start"
+        direction="horizontal"
+        gap="tiny"
         fullWidth={true}
+        gapStart={true}
+        gapEnd={true}
       >
-        <Kb.Box2
-          alignItems="flex-start"
-          direction="horizontal"
-          gap="tiny"
-          fullWidth={true}
-          gapStart={true}
-          gapEnd={true}
-        >
-          <AssertionSiteIcon
-            full={false}
-            siteIconFullDarkmode={this.props.siteIconFullDarkmode}
-            siteIconFull={this.props.siteIconFull}
-            siteIconDarkmode={this.props.siteIconDarkmode}
-            siteIcon={this.props.siteIcon}
-            onCreateProof={this.props.onCreateProof}
-            onShowProof={this.props.onShowProof}
-            isSuggestion={this.props.isSuggestion}
-          />
-          <Kb.Text type="Body" style={styles.textContainer}>
-            <Value {...p} />
-            {!p.isSuggestion && (
-              <Kb.Text type="Body" style={styles.site}>
-                @{p.type}
-              </Kb.Text>
-            )}
-          </Kb.Text>
-          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof} style={styles.statusContainer}>
-            <Kb.WithTooltip tooltip={(p.state === 'valid' || p.state === 'revoked') && 'View proof'}>
-              <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-                <Kb.Icon
-                  type={stateToIcon(p.state)}
-                  fontSize={20}
-                  hoverColor={assertionColorToColor(p.color)}
-                  color={p.isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(p.color)}
-                />
-                {items ? (
-                  <>
-                    <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
-                    <Kb.FloatingMenu
-                      closeOnSelect={true}
-                      visible={this.state.showingMenu}
-                      onHidden={this._hideMenu}
-                      attachTo={this._ref}
-                      position="bottom right"
-                      containerStyle={styles.floatingMenu}
-                      header={header}
-                      items={items}
-                    />
-                  </>
-                ) : (
-                  <Kb.Box2 direction="vertical" />
-                )}
-              </Kb.Box2>
-            </Kb.WithTooltip>
-          </Kb.ClickableBox>
+        <AssertionSiteIcon
+          full={false}
+          siteIconFullDarkmode={siteIconFullDarkmode}
+          siteIconFull={siteIconFull}
+          siteIconDarkmode={siteIconDarkmode}
+          siteIcon={siteIcon}
+          onCreateProof={onCreateProof}
+          onShowProof={onShowProof}
+          isSuggestion={isSuggestion}
+        />
+        <Kb.Text type="Body" style={styles.textContainer}>
+          <Value {...p} />
+          {!isSuggestion && (
+            <Kb.Text type="Body" style={styles.site}>
+              @{type}
+            </Kb.Text>
+          )}
+        </Kb.Text>
+        <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
+          <Kb.WithTooltip tooltip={(state === 'valid' || state === 'revoked') && 'View proof'}>
+            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+              <Kb.Icon
+                type={stateToIcon(state)}
+                fontSize={20}
+                hoverColor={assertionColorToColor(color)}
+                color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
+              />
+              {items ? (
+                <>
+                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                  {popup}
+                </>
+              ) : (
+                <Kb.Box2 direction="vertical" />
+              )}
+            </Kb.Box2>
+          </Kb.WithTooltip>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+      {!!metas.length && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
+          {metas.map(m => (
+            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
+          ))}
         </Kb.Box2>
-        {!!p.metas.length && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
-            {p.metas.map(m => (
-              <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
-            ))}
-          </Kb.Box2>
-        )}
-      </Kb.Box2Measure>
-    )
-  }
-}
+      )}
+    </Kb.Box2Measure>
+  )
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
