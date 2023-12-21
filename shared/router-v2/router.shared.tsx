@@ -54,10 +54,13 @@ const useDarkNeedsRedraw = () => {
 
 const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
   const needsRedraw = useDarkNeedsRedraw()
-  if (needsRedraw) {
-    key.current++
+  if (appState === AppState.NEEDS_INIT) {
+    key.current = -1
+  } else {
+    if (needsRedraw) {
+      key.current++
+    }
   }
-  return appState === AppState.NEEDS_INIT ? -1 : key.current
 }
 
 const useIsDarkChanged = () => {
@@ -79,9 +82,16 @@ export const useShared = () => {
   useConnectNavToState()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
-  const loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
+  // if we ever were loaded just keep that state so we don't lose loggedin state when disconnecting
+  const everLoaded = React.useRef(false)
+  const _loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
+  const loggedInLoaded = everLoaded.current || _loggedInLoaded
+  if (_loggedInLoaded) {
+    everLoaded.current = true
+  }
+
   const loggedIn = C.useConfigState(s => s.loggedIn)
-  const navContainerKey = React.useRef(1)
+  const navKeyRef = React.useRef(1)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
 
@@ -95,7 +105,7 @@ export const useShared = () => {
     setNavState(ns)
   }, [setNavState])
 
-  const navKey = useNavKey(appState.current, navContainerKey)
+  useNavKey(appState.current, navKeyRef)
   const initialState = useInitialState()
 
   const onUnhandledAction = React.useCallback(
@@ -111,6 +121,8 @@ export const useShared = () => {
     },
     []
   )
+
+  const navKey = navKeyRef.current
   return {
     appState,
     initialState,
