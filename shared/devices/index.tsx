@@ -90,46 +90,39 @@ type Item =
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
 
-type State = {
-  revokedExpanded: boolean
-}
-
 export type Props = {
-  _stateOverride?: State
   items: Array<Item>
   loadDevices: () => void
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
-  onBack: () => void
   revokedItems: Array<Item>
   showPaperKeyNudge: boolean
   hasNewlyRevoked: boolean
   waiting: boolean
-  title: string
 }
 
-class Devices extends React.PureComponent<Props, State> {
-  static defaultProps = {_stateOverride: null}
-  state = {revokedExpanded: this.props._stateOverride?.revokedExpanded ?? false}
+const Devices = React.memo(function Devices(p: Props) {
+  const {loadDevices, hasNewlyRevoked, items: _items} = p
+  const {onAddDevice, revokedItems, showPaperKeyNudge, waiting} = p
+  const [revokedExpanded, setRevokeExpanded] = React.useState(false)
+  const toggleExpanded = React.useCallback(() => setRevokeExpanded(p => !p), [])
 
-  componentDidMount() {
-    this.props.loadDevices()
+  React.useEffect(() => {
+    loadDevices()
+  }, [loadDevices])
+
+  const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
+  if (lastHasNewlyRevoked.current !== hasNewlyRevoked) {
+    lastHasNewlyRevoked.current = hasNewlyRevoked
+    setRevokeExpanded(true)
   }
-
-  componentDidUpdate(_: Props, prevState: State) {
-    if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
-      this.setState({revokedExpanded: true})
-    }
-  }
-
-  private toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
-
-  private renderItem = (index: number, item: Item) => {
+  const renderItem = (index: number, item: Item) => {
     if (item.type === 'revokedHeader') {
       return (
-        <RevokedHeader
+        <Kb.SectionDivider
           key="revokedHeader"
-          expanded={this.state.revokedExpanded}
-          onToggleExpanded={this.toggleExpanded}
+          collapsed={!revokedExpanded}
+          onToggleCollapsed={toggleExpanded}
+          label="Revoked devices"
         />
       )
     } else if (item.type === 'revokedNote') {
@@ -143,37 +136,35 @@ class Devices extends React.PureComponent<Props, State> {
     }
   }
 
-  render() {
-    const items: Array<Item> = [
-      ...this.props.items,
-      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
-      ...(this.state.revokedExpanded
-        ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...this.props.revokedItems]
-        : []),
-    ]
+  const items: Array<Item> = [
+    ..._items,
+    ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
+    ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
+  ]
 
-    return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {Kb.Styles.isMobile && <DeviceHeader onAddNew={() => this.props.onAddDevice()} />}
-        {this.props.showPaperKeyNudge && (
-          <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
-        )}
-        {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
-          <Kb.List2
-            bounces={false}
-            items={items}
-            renderItem={this.renderItem}
-            itemHeight={{
-              height: 48,
-              type: 'fixed',
-            }}
-          />
-        </Kb.Box2>
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      {Kb.Styles.isMobile ? (
+        <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
+          <Kb.Button label="Add a device or paper key" fullWidth={true} />
+        </Kb.ClickableBox>
+      ) : null}
+      {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
+      {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
+        <Kb.List2
+          bounces={false}
+          items={items}
+          renderItem={renderItem}
+          itemHeight={{
+            height: 48,
+            type: 'fixed',
+          }}
+        />
       </Kb.Box2>
-    )
-  }
-}
+    </Kb.Box2>
+  )
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -192,11 +183,6 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const DeviceHeader = ({onAddNew}: any) => (
-  <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button label="Add a device or paper key" fullWidth={true} />
-  </Kb.ClickableBox>
-)
 const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
@@ -212,11 +198,7 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const RevokedHeader = ({onToggleExpanded, expanded}: any) => (
-  <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
-)
-
-const PaperKeyNudge = ({onAddDevice}: any) => (
+const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
   <Kb.ClickableBox onClick={onAddDevice}>
     <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
