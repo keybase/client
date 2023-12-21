@@ -152,8 +152,6 @@ const ElectronApp = () => {
   const {navKey, initialState, onUnhandledAction} = s
   Shared.useSharedAfter(appState)
 
-  console.log('aaa electron app render', s)
-
   return (
     <NavigationContainer
       ref={C.navigationRef_ as any}
