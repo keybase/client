@@ -65,6 +65,7 @@ export type StyleOverride = {
 }
 
 export type Props = {
+  context?: string // metadata used for bookkeeping
   children?: string
   lineClamp?: LineClampType
   selectable?: boolean // desktop - applies to outer container only
@@ -299,6 +300,14 @@ const rules: {[type: string]: SM.ParserRule} = {
       type: 'serviceDecoration',
     }),
   },
+  spoiler: {
+    match: SimpleMarkdown.inlineRegex(/^!>([^!>]*?)<!/),
+    order: 2,
+    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: SM.State) => ({
+      content: capture[1],
+      type: 'spoiler',
+    }),
+  },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
     // original
@@ -396,7 +405,7 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
 const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
   const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
-  const {serviceOnlyNoWrap, disallowAnimation} = p
+  const {serviceOnlyNoWrap, disallowAnimation, context} = p
   let parseTree: Array<SM.SingleASTNode>
   let output: React.ReactNode
   try {
@@ -419,6 +428,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
 
     const state = {
       allowFontScaling,
+      context,
       disallowAnimation,
       messageType,
       paragraphTextClassName,

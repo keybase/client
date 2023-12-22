@@ -1,0 +1,31 @@
+diff --git a/node_modules/@khanacademy/simple-markdown/dist/es/index.js b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
+index 7d31dc5..1f76f2e 100644
+--- a/node_modules/@khanacademy/simple-markdown/dist/es/index.js
++++ b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
+@@ -1,9 +1,7 @@
+-import { addLibraryVersionToPerseusDebug } from '@khanacademy/perseus-core';
+ 
+ // This file is processed by a Rollup plugin (replace) to inject the production
+ const libName = "@khanacademy/simple-markdown";
+ const libVersion = "0.11.2";
+-addLibraryVersionToPerseusDebug(libName, libVersion);
+ 
+ /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
+ 
+diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.js b/node_modules/@khanacademy/simple-markdown/dist/index.js
+index d0e2c4a..9573e7c 100644
+--- a/node_modules/@khanacademy/simple-markdown/dist/index.js
++++ b/node_modules/@khanacademy/simple-markdown/dist/index.js
+@@ -2,12 +2,10 @@
+ 
+ Object.defineProperty(exports, '__esModule', { value: true });
+ 
+-var perseusCore = require('@khanacademy/perseus-core');
+ 
+ // This file is processed by a Rollup plugin (replace) to inject the production
+ const libName = "@khanacademy/simple-markdown";
+ const libVersion = "0.11.2";
+-perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
+ 
+ /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
+ 

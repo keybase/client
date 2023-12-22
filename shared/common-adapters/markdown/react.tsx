@@ -4,6 +4,7 @@ import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
 import Box from '@/common-adapters/box'
+import Spoiler from './spoiler'
 import Emoji from '../emoji'
 import type {StyleOverride} from '.'
 import type {default as ServiceDecorationType} from './service-decoration'
@@ -17,6 +18,7 @@ export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
 }
 
 type State = SM.State & {
+  context?: string
   allowFontScaling?: boolean
   disallowAnimation?: boolean
   messageType?: T.Chat.MessageType
@@ -293,6 +295,11 @@ const reactComponentsForMarkdownType = {
       />
     ),
   },
+  spoiler: {
+    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+      return <Spoiler key={state.key} context={state.context} content={node['content']} />
+    },
+  },
   strong: {
     react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
       <Text
@@ -402,6 +409,11 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
           disableEmojiAnimation={true}
         />
       ),
+    },
+    spoiler: {
+      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+        return <Spoiler key={state.key} context={state.context} content={node['content']} />
+      },
     },
     text: SimpleMarkdown.defaultRules.text,
   },

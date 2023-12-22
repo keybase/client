@@ -47,7 +47,13 @@ const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   )
 
   return (
-    <Kb.Markdown messageType="text" style={style} styleOverride={styleOverride} allowFontScaling={true}>
+    <Kb.Markdown
+      messageType="text"
+      style={style}
+      styleOverride={styleOverride}
+      allowFontScaling={true}
+      context={String(ordinal)}
+    >
       {text}
     </Kb.Markdown>
   )
