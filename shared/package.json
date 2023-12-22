@@ -131,7 +131,7 @@
     "react-virtualized-auto-sizer": "1.0.20",
     "react-window": "1.8.10",
     "shallowequal": "1.1.0",
-    "simple-markdown": "0.7.3",
+    "@khanacademy/simple-markdown": "0.11.2",
     "uint8array-extras": "1.0.0",
     "url-parse": "1.5.10",
     "use-debounce": "10.0.0",
@@ -203,6 +203,7 @@
   },
   "resolutions": {
     "**/purepack": "keybase/nullModule",
+    "**/@khanacademy/perseus-core": "keybase/nullModule",
     "**/@types/react": "18.2.45"
   },
   "typecoverage": {
