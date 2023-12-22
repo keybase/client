@@ -40,7 +40,7 @@ const MoreMenuPopup = (props: Props) => {
       title: 'Share your location',
     },
     {
-      icon: 'iconfont-location',
+      icon: 'iconfont-shh',
       onClick: onSpoiler,
       subTitle: '!>spoiler<!',
       title: 'Add a spoiler',
