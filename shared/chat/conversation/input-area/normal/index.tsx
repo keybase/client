@@ -124,7 +124,10 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       lastTextRef.current = text
       inputRef.current?.transformText(
         () => ({
-          selection: {end: text.length, start: text.length},
+          selection:
+            text === '!>spoiler<!'
+              ? {end: text.length - 2, start: text.length - 2 - 7}
+              : {end: text.length, start: text.length},
           text,
         }),
         true

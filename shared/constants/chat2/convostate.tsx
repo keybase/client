@@ -163,7 +163,12 @@ export type ConvoState = ConvoStore & {
     attachmentPreviewSelect: (ordinal: T.Chat.Ordinal) => void
     attachmentUploadCanceled: (outboxIDs: Array<T.RPCChat.OutboxID>) => void
     attachmentDownload: (ordinal: T.Chat.Ordinal) => void
-    attachmentsUpload: (paths: Array<T.Chat.PathAndOutboxID>, titles: Array<string>, tlfName?: string) => void
+    attachmentsUpload: (
+      paths: Array<T.Chat.PathAndOutboxID>,
+      titles: Array<string>,
+      tlfName?: string,
+      spoiler?: boolean
+    ) => void
     attachFromDragAndDrop: (paths: Array<T.Chat.PathAndOutboxID>, titles: Array<string>) => void
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
@@ -550,7 +555,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    attachmentsUpload: (paths, titles, _tlfName) => {
+    attachmentsUpload: (paths, titles, _tlfName, _spoiler) => {
       const f = async () => {
         let tlfName = _tlfName
         const conversationIDKey = get().id
@@ -571,6 +576,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           obids.push(p.outboxID ? p.outboxID : Common.generateOutboxID())
           return obids
         }, [])
+        // TODO plumb spoiler
         await Promise.all(
           paths.map(async (p, i) =>
             T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
