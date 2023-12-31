@@ -1,0 +1,18 @@
+diff --git a/node_modules/expo-modules-core/android/build.gradle b/node_modules/expo-modules-core/android/build.gradle
+index e0dfb67..4f990ca 100644
+--- a/node_modules/expo-modules-core/android/build.gradle
++++ b/node_modules/expo-modules-core/android/build.gradle
+@@ -383,9 +383,10 @@ task prepareHermes() {
+ 
+ def downloadBoost = tasks.create('downloadBoost', Download) {
+   dependsOn(createNativeDepsDirectories)
+-  def srcUrl = REACT_NATIVE_TARGET_VERSION >= 69
+-    ? "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION.replace("_", ".")}/source/boost_${BOOST_VERSION}.tar.gz"
+-    : "https://github.com/react-native-community/boost-for-react-native/releases/download/v${BOOST_VERSION.replace("_", ".")}-0/boost_${BOOST_VERSION}.tar.gz"
++  def srcUrl = "https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION.replace("_", ".")}/boost_${BOOST_VERSION}.tar.gz"
++  //def srcUrl = REACT_NATIVE_TARGET_VERSION >= 69
++  //  ? "https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION.replace("_", ".")}/boost_${BOOST_VERSION}.tar.gz"
++  //  : "https://github.com/react-native-community/boost-for-react-native/releases/download/v${BOOST_VERSION.replace("_", ".")}-0/boost_${BOOST_VERSION}.tar.gz"
+   src(srcUrl)
+   onlyIfNewer(true)
+   overwrite(false)
