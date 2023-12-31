@@ -45,6 +45,7 @@ target 'Keybase' do
       installer.pods_project.targets.each do |target|
             target.build_configurations.each do |config|
                 config.build_settings['CODE_SIGN_IDENTITY'] = ''
+                config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', '_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION']
             end
       end
   end
