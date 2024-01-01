@@ -54,7 +54,9 @@ const commands = {
 }
 
 const patch = () => {
-  exec('patch-package')
+  try {
+    exec('patch-package')
+  } catch {}
 }
 
 const prepareSubmodules = () => {
