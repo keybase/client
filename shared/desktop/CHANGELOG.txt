@@ -1,1 +1,1 @@
-• Support KBFS on macOS Sonoma
+• Fix connection errors due to expired CA certificate
