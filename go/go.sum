@@ -118,8 +118,8 @@ github.com/ashanbrown/forbidigo v1.6.0/go.mod h1:Y8j9jy9ZYAEHXdu723cUlraTqbzjKF1
 github.com/ashanbrown/makezero v1.1.1 h1:iCQ87C0V0vSyO+M9E/FZYbu65auqH0lnsOkf5FcB28s=
 github.com/ashanbrown/makezero v1.1.1/go.mod h1:i1bJLCRSCHOcOa9Y6MyF2FTfMZMFdHvxKHxgO5Z1axI=
 github.com/aws/aws-sdk-go v1.6.11-0.20170104181648-8649d278323e/go.mod h1:ZRmQr0FajVIyZ4ZzBYKG5P3ZqPz9IHG41ZoMu1ADI3k=
-github.com/aws/aws-sdk-go v1.49.6 h1:yNldzF5kzLBRvKlKz1S0bkvc2+04R1kt13KfBWQBfFA=
-github.com/aws/aws-sdk-go v1.49.6/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
+github.com/aws/aws-sdk-go v1.49.13 h1:f4mGztsgnx2dR9r8FQYa9YW/RsKb+N7bgef4UGrOW1Y=
+github.com/aws/aws-sdk-go v1.49.13/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
@@ -543,8 +543,8 @@ github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c h1:PRG2AXSelSy7
 github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c/go.mod h1:DkylHDco/FLr1+GM6wg0GF4E3CCKov54MSYojKYAbS0=
 github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63 h1:zwjxaJp3XkHxS5jBFbQjcy2yHiUecymXB3MXPf0U7tg=
 github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63/go.mod h1:3ui+OKQTLV41wZxubSXA4oWfqg1/YSrpJ4Zs86z26OM=
-github.com/keybase/release v0.0.0-20231213214806-14d42f4e5475 h1:RfR3q2ccQZBLB10JZH8hVlUQLSl2NSXzGd8v+vc8tMA=
-github.com/keybase/release v0.0.0-20231213214806-14d42f4e5475/go.mod h1:8d+y6J5MJbeHX7TsFPelStyCxdAw866QE4xqQbT9OSo=
+github.com/keybase/release v0.0.0-20240101021039-1872efc5abb0 h1:778AYy1IleFjqSXeXd2Uyw70Maa7huZgDyqiRx5CBjo=
+github.com/keybase/release v0.0.0-20240101021039-1872efc5abb0/go.mod h1:8d+y6J5MJbeHX7TsFPelStyCxdAw866QE4xqQbT9OSo=
 github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617 h1:z0BITnIaKvnqlZuK0BroCaZ0rMLIwFJN1/lttLG3xvw=
 github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617/go.mod h1:sslrL/EiYuXAYxsh0dUHhkWtFypUfWEz4pkES+5QWvQ=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
