@@ -918,7 +918,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 	case types.UnboxModeQuick:
 		// we skip this check in quick mode, the idea is we will do it later asynchonously so we can
-		// deliver messges quicker to the UI.
+		// deliver messages quicker to the UI.
 	}
 
 	// Open header and verify against VerifyKey

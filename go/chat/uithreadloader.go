@@ -754,7 +754,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 					// only deliver these updates for the current conv
 					continue
 				}
-				// filter resolved to only update changed messges
+				// filter resolved to only update changed messages
 				var changed []chat1.MessageUnboxed
 				for _, rmsg := range resolved {
 					if modifiedMap[rmsg.GetMessageID()] {

@@ -1686,7 +1686,7 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		expectedMessages := 4 // 3 messges and 1 TLF
+		expectedMessages := 4 // 3 messages and 1 TLF
 		require.Len(t, tv.Thread.Messages, expectedMessages,
 			"unexpected response from GetThreadLocal . number of messages")
 
