@@ -5,11 +5,10 @@ import * as Kb from '@/common-adapters'
 // import KB2 from '@/util/electron.desktop'
 
 // const {DEVwriteMenuIcons} = KB2.functions
-// uncomment to just jump there
 // setTimeout(() => {
 //   C.useRouterState.getState().dispatch.navigateAppend('makeIcons')
 // }, 1000)
-
+//
 // const Icon = (p: {badge: number}) => {
 //   const {badge} = p
 //   const special = badge > 9
@@ -22,7 +21,7 @@ import * as Kb from '@/common-adapters'
 //         fontSize={18}
 //         type="iconfont-keybase"
 //         color="black"
-//         style={{alignSelf: 'center', display: 'flex', marginLeft: -2, marginTop: 6}}
+//         style={{alignSelf: 'center', display: 'flex', marginLeft: 0, marginTop: 6}}
 //       />
 //       <div
 //         style={{
