@@ -1,4 +1,4 @@
-FROM golang:1.21.5-alpine3.19 AS builder
+FROM golang:1.19.4-alpine3.16 AS builder
 
 RUN apk add --update --no-cache gnupg bash build-base
 
@@ -23,7 +23,7 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
     && chmod +x /binaries/amd64/usr/bin/kbfsfuse \
     && chmod +x /binaries/amd64/usr/bin/git-remote-keybase
 
-FROM alpine:3.19
+FROM alpine:3.16
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apk add --update --no-cache gnupg procps ca-certificates bash
