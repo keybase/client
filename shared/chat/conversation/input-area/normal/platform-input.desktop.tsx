@@ -177,7 +177,7 @@ const Footer = (p: {focusInput: () => void}) => {
     <Kb.Box style={styles.footerContainer}>
       <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
-        {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
+        {`*bold*, _italics_, \`code\`, >quote, !>spoiler<!, @user, @team, #channel`}
       </Kb.Text>
     </Kb.Box>
   )
