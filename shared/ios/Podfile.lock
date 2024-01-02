@@ -439,7 +439,7 @@ PODS:
     - React-Core
   - react-native-netinfo (11.2.1):
     - React-Core
-  - react-native-safe-area-context (4.8.1):
+  - react-native-safe-area-context (4.8.2):
     - React-Core
   - react-native-webview (13.6.3):
     - React-Core
@@ -865,7 +865,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: aa35e27b639bf67de7573b279486f84a3c6546c2
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 042aa2e3f05258a16962ea1a9914bf288db9c9a1
@@ -908,7 +908,7 @@ SPEC CHECKSUMS:
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: a2ae9c27c273b060b2affff2957bc0ff7fdca353
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
   RCTRequired: 83bca1c184feb4d2e51c72c8369b83d641443f95
   RCTTypeSafety: 13c4a87a16d7db6cd66006ce9759f073402ef85b
   React: e67aa9f99957c7611c392b5e49355d877d6525e2
@@ -929,7 +929,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: 00f70648f2f1e0ab1df703c6e8774f8ffffe121c
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
-  react-native-safe-area-context: cd1169d797a2ef722a00bfc5af10748d5b6c94f9
+  react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
   react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
   React-NativeModulesApple: 6f63747fd6e237b646c61957a8f877a2713617af
   React-perflogger: 31ea61077185eb1428baf60c0db6e2886f141a5a
