@@ -13,7 +13,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-cmd /C yarn run package --arch x64 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
+cmd /C yarn run package --arch=x64 --platform=win32 --appVersion=%KEYBASE_VERSION% --icon=%GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

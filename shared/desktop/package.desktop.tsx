@@ -85,10 +85,11 @@ const platform = argv.platform || os.platform()
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment
 const outDir = argv.outDir
-const icon = argv.icon
 const saltpackIcon = argv.saltpackIcon
-const appCopyright = 'Copyright (c) 2022, Keybase'
+const appCopyright = 'Copyright (c) 2024, Keybase'
 const companyName = 'Keybase, Inc.'
+const electronVersion = require('../package.json').devDependencies.electron
+console.log('Found electron version:', electronVersion)
 
 const packagerOpts: Options = {
   appBundleId: 'keybase.Electron',
@@ -99,7 +100,7 @@ const packagerOpts: Options = {
   darwinDarkModeSupport: true,
   dir: desktopPath('./build'),
   download: {checksums: electronChecksums},
-  electronVersion: undefined,
+  electronVersion,
   // macOS file association to saltpack files
   extendInfo: {
     CFBundleDocumentTypes: [
@@ -126,17 +127,24 @@ const packagerOpts: Options = {
     ],
   },
   // Any paths placed here will be moved to the final bundle
-  extraResource: [] as Array<string>,
+  extraResource: [saltpackIcon],
   helperBundleId: 'keybase.ElectronHelper',
-  icon: undefined,
+  icon: argv.icon,
   ignore: [/\.map/, /\/test($|\/)/, /\/tools($|\/)/, /\/release($|\/)/, /\/node_modules($|\/)/],
   name: appName,
   protocols: [
     {
       name: 'Keybase',
-      schemes: ['keybase', 'web+stellar'],
+      schemes: ['keybase'],
     },
   ],
+  prune: true,
+}
+
+if (!packagerOpts.extraResource?.[0]) {
+  console.warn(
+    `Missing 'saltpack.icns' from yarn package arguments. Need an icon to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
+  )
 }
 
 async function main() {
@@ -165,28 +173,6 @@ async function main() {
     name: appName,
     version: appVersion,
   })
-
-  if (icon) {
-    packagerOpts.icon = icon
-  }
-
-  if (saltpackIcon) {
-    packagerOpts.extraResource = [saltpackIcon]
-  } else {
-    console.warn(
-      `Missing 'saltpack.icns' from yarn package arguments. Need an icon to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
-    )
-  }
-
-  // use the same version as the currently-installed electron
-  console.log('Finding electron version')
-  try {
-    packagerOpts.electronVersion = require('../package.json').devDependencies.electron
-    console.log('Found electron version:', packagerOpts.electronVersion)
-  } catch (err) {
-    console.log("Couldn't parse yarn list to find electron:", err)
-    process.exit(1)
-  }
 
   try {
     await startPack()
@@ -256,7 +242,6 @@ async function pack(plat: string, arch: string) {
     arch,
     out: packageOutDir,
     platform: plat,
-    prune: true,
     ...(plat === 'win32'
       ? {
           'version-string': {
@@ -268,6 +253,7 @@ async function pack(plat: string, arch: string) {
         }
       : null),
   }
+  console.log('Building using options', opts)
 
   const ret = await packager(opts)
   // sometimes returns bools, unclear why
