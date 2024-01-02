@@ -17,6 +17,7 @@ const MoreMenuPopup = (props: Props) => {
   const onCoinFlip = () => injectIntoInput('/flip ')
   const onGiphy = () => injectIntoInput('/giphy ')
   const onInsertSlashCommand = () => injectIntoInput('/')
+  const onSpoiler = () => injectIntoInput('!>spoiler<!')
 
   // render
   const items: Kb.MenuItems = [
@@ -37,6 +38,12 @@ const MoreMenuPopup = (props: Props) => {
       onClick: onLocationShare,
       subTitle: '/location',
       title: 'Share your location',
+    },
+    {
+      icon: 'iconfont-shh',
+      onClick: onSpoiler,
+      subTitle: '!>spoiler<!',
+      title: 'Add a spoiler',
     },
     {
       icon: 'iconfont-ellipsis',

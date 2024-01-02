@@ -34,9 +34,9 @@ const Container = (ownProps: OwnProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = C.useChatContext(s => s.dispatch.attachFromDragAndDrop)
-  const onSubmit = (titles: Array<string>) => {
+  const onSubmit = (titles: Array<string>, spoiler: boolean) => {
     tlfName || noDragDrop
-      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName)
+      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
       : attachFromDragAndDrop(pathAndOutboxIDs, titles)
     clearModals()
 

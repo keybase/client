@@ -5,6 +5,7 @@ import type {Props} from './list'
 import {createAnimatedComponent} from './reanimated'
 import noop from 'lodash/noop'
 
+// eslint-disable-next-line deprecation/deprecation
 const AnimatedFlatList = createAnimatedComponent(FlatList)
 
 class List<Item> extends React.PureComponent<Props<Item>> {

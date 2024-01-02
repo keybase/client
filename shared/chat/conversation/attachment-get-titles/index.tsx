@@ -21,12 +21,13 @@ type Props = {
   pathAndInfos: Array<PathAndInfo>
   titles?: Array<string>
   onCancel: () => void
-  onSubmit: (titles: Array<string>) => void
+  onSubmit: (titles: Array<string>, spoiler: boolean) => void
 }
 
 type State = {
   index: number
   titles: Array<string>
+  spoiler: boolean
 }
 
 class GetTitles extends React.Component<Props, State> {
@@ -36,6 +37,7 @@ class GetTitles extends React.Component<Props, State> {
     super(props)
     this.state = {
       index: 0,
+      spoiler: false,
       titles: props.pathAndInfos.map((_, idx) => props.titles?.[idx] ?? ''),
     }
   }
@@ -50,7 +52,7 @@ class GetTitles extends React.Component<Props, State> {
 
     // done
     if (nextIndex === this.props.pathAndInfos.length) {
-      this.props.onSubmit(this.state.titles)
+      this.props.onSubmit(this.state.titles, this.state.spoiler)
     } else {
       // go to next
       this.setState({index: nextIndex})
@@ -59,7 +61,7 @@ class GetTitles extends React.Component<Props, State> {
 
   _onSubmit = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
-    this.props.onSubmit(this.state.titles)
+    this.props.onSubmit(this.state.titles, this.state.spoiler)
   }
 
   _isLast = () => {
@@ -131,6 +133,14 @@ class GetTitles extends React.Component<Props, State> {
                 onChangeText={this._updateTitle}
                 selectTextOnFocus={true}
               />
+              {/* (
+                <Kb.Checkbox
+                  style={{alignSelf: 'flex-end'}}
+                  label="Spoiler?"
+                  checked={this.state.spoiler}
+                  onCheck={c => this.setState({spoiler: c})}
+                />
+              )*/}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
