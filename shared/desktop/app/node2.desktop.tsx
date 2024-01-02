@@ -215,7 +215,7 @@ const handleActivate = () => {
   mainWindow?.show()
   const dock = Electron.app.dock
   dock
-    .show()
+    ?.show()
     .then(() => {})
     .catch(() => {})
 }
