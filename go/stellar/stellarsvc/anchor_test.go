@@ -272,7 +272,7 @@ func TestAnchorInteractor(t *testing.T) {
 			}
 			if res.MessageFromAnchor != nil {
 				if test.DepositMessage != *res.MessageFromAnchor {
-					t.Errorf("valid test %d [%s] deposit: result messge %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.DepositMessage)
+					t.Errorf("valid test %d [%s] deposit: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.DepositMessage)
 				}
 			}
 		}
@@ -298,7 +298,7 @@ func TestAnchorInteractor(t *testing.T) {
 			}
 			if res.MessageFromAnchor != nil {
 				if test.WithdrawMessage != *res.MessageFromAnchor {
-					t.Errorf("valid test %d [%s] withdraw: result messge %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.WithdrawMessage)
+					t.Errorf("valid test %d [%s] withdraw: result message %q, expected %q", i, test.Name, *res.MessageFromAnchor, test.WithdrawMessage)
 				}
 			}
 		}

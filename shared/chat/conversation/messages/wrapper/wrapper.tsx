@@ -326,7 +326,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID
       const reason = m?.errorReason ?? ''
-      const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+      const failureDescription = `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
       return {failureDescription, outboxID}
     })
   )
