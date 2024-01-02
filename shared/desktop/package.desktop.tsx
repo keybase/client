@@ -127,7 +127,7 @@ const packagerOpts: Options = {
     ],
   },
   // Any paths placed here will be moved to the final bundle
-  extraResource: [saltpackIcon],
+  extraResource: saltpackIcon ? [saltpackIcon] : undefined,
   helperBundleId: 'keybase.ElectronHelper',
   icon: argv.icon,
   ignore: [/\.map/, /\/test($|\/)/, /\/tools($|\/)/, /\/release($|\/)/, /\/node_modules($|\/)/],
