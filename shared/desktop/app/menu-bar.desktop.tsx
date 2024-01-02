@@ -112,7 +112,7 @@ const MenuBar = () => {
         badges = action.payload.desktopAppBadgeCount
         updateIcon()
         const dock = Electron.app.dock
-        if (dock.isVisible()) {
+        if (dock?.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
