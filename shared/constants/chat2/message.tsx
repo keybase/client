@@ -1427,7 +1427,7 @@ export const upgradeMessage = (old: T.Chat.Message, m: T.Chat.Message): T.Chat.M
 }
 
 export const shouldShowPopup = (
-  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
+  accountsInfoMap?: ConvoConstants.ConvoState['accountsInfoMap'],
   message?: T.Chat.Message
 ) => {
   switch (message?.type) {
@@ -1451,7 +1451,7 @@ export const shouldShowPopup = (
     case 'setChannelname':
       return message.newChannelname !== 'general'
     case 'sendPayment': {
-      const paymentInfo = getPaymentMessageInfo(accountsInfoMap, message)
+      const paymentInfo = accountsInfoMap && getPaymentMessageInfo(accountsInfoMap, message)
       if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.status)) {
         return false
       }

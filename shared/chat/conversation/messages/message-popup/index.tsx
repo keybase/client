@@ -65,7 +65,14 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
           visible={visible}
         />
       )
-    default:
+    case 'deleted':
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'systemCreateTeam':
+    case 'placeholder':
+    case 'systemJoined':
+    case 'systemLeft':
+    case undefined:
       return null
   }
 })
