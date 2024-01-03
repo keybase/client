@@ -1036,7 +1036,11 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
 			})
 			for index, conv := range ibox.InboxRes.Items {
-				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
+				snippet := "<nil>"
+				if conv.LocalMetadata != nil {
+					snippet = conv.LocalMetadata.Snippet
+				}
+				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, snippet,
 					conv.Time)
 			}
 			index := 0
