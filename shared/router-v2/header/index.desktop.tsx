@@ -44,41 +44,57 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => (
   </Kb.Box2>
 )
 
-export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => (
-  <Kb.Box2 direction="horizontal">
-    <Kb.ClickableBox
-      className="hover_background_color_black_05  color_black_50 hover_color_black"
-      onClick={minimizeWindow}
-      style={styles.appIconBox}
-    >
-      <Kb.Icon
-        inheritColor={true}
-        onClick={minimizeWindow}
-        style={styles.appIcon}
-        type="iconfont-app-minimize"
-      />
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      className="hover_background_color_black_05 color_black_50 hover_color_black"
-      onClick={toggleMaximizeWindow}
-      style={styles.appIconBox}
-    >
-      <Kb.Icon
-        inheritColor={true}
-        onClick={toggleMaximizeWindow}
-        style={styles.appIcon}
-        type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
-      />
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
-      className="hover_background_color_red hover_color_white color_black_50"
-      onClick={closeWindow}
-      style={styles.appIconBox}
-    >
-      <Kb.Icon inheritColor={true} onClick={closeWindow} style={styles.appIcon} type="iconfont-app-close" />
-    </Kb.ClickableBox>
-  </Kb.Box2>
-)
+export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
+  const onMinimize = React.useCallback(() => {
+    minimizeWindow?.()
+  }, [])
+  const onToggleMaximizeWindow = React.useCallback(() => {
+    toggleMaximizeWindow?.()
+  }, [])
+  const onCloseWindow = React.useCallback(() => {
+    closeWindow?.()
+  }, [])
+  return (
+    <Kb.Box2 direction="horizontal">
+      <Kb.ClickableBox
+        className="hover_background_color_black_05  color_black_50 hover_color_black"
+        onClick={onMinimize}
+        style={styles.appIconBox}
+      >
+        <Kb.Icon
+          inheritColor={true}
+          onClick={onMinimize}
+          style={styles.appIcon}
+          type="iconfont-app-minimize"
+        />
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        className="hover_background_color_black_05 color_black_50 hover_color_black"
+        onClick={onToggleMaximizeWindow}
+        style={styles.appIconBox}
+      >
+        <Kb.Icon
+          inheritColor={true}
+          onClick={onToggleMaximizeWindow}
+          style={styles.appIcon}
+          type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
+        />
+      </Kb.ClickableBox>
+      <Kb.ClickableBox
+        className="hover_background_color_red hover_color_white color_black_50"
+        onClick={onCloseWindow}
+        style={styles.appIconBox}
+      >
+        <Kb.Icon
+          inheritColor={true}
+          onClick={onCloseWindow}
+          style={styles.appIcon}
+          type="iconfont-app-close"
+        />
+      </Kb.ClickableBox>
+    </Kb.Box2>
+  )
+}
 
 const DesktopHeader = React.memo(
   function DesktopHeader(p: Props) {

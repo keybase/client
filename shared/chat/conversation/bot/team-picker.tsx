@@ -7,9 +7,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
 
-type Props = {
-  botUsername: string
-}
+type Props = {botUsername: string}
 
 const BotTeamPicker = (props: Props) => {
   const botUsername = props.botUsername
