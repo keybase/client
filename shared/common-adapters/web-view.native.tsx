@@ -43,7 +43,9 @@ const KBWebViewBase = (props: WebViewProps) => {
   const setLoading = React.useCallback(
     (l: boolean) => {
       _setLoading(l)
-      api.start({opacity: l ? 0 : 1})
+      Promise.allSettled(api.start({opacity: l ? 0 : 1}))
+        .then(() => {})
+        .catch(() => {})
     },
     [_setLoading, api]
   )
