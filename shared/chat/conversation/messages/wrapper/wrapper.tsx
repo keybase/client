@@ -167,6 +167,9 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       const botname = botUsername === author ? '' : botUsername ?? ''
       const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
       const ecrType = getEcrType(m, you)
+
+      const shouldShowPopup = C.Chat.shouldShowPopup(undefined, m)
+
       return {
         botname,
         decorate,
@@ -175,6 +178,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
         hasReactions,
         isPendingPayment,
         reactionsPopupPosition,
+        shouldShowPopup,
         showCoinsIcon,
         showExplodingCountdown,
         showRevoked,
@@ -201,6 +205,7 @@ type TSProps = {
   popupAnchor: React.RefObject<Kb.MeasureRef>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
+  shouldShowPopup: boolean
   showCoinsIcon: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
@@ -229,7 +234,7 @@ const NormalWrapper = ({
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
-  const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
+  const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
@@ -291,6 +296,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         </Background>
       </Kb.Box2>
       <RightSide
+        shouldShowPopup={shouldShowPopup}
         botname={botname}
         showSendIndicator={showSendIndicator}
         showExplodingCountdown={showExplodingCountdown}
@@ -424,10 +430,11 @@ type RProps = {
   showRevoked: boolean
   showCoinsIcon: boolean
   botname: string
+  shouldShowPopup: boolean
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon} = p
-  const {showExplodingCountdown, showRevoked, botname} = p
+  const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
@@ -454,17 +461,18 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   // left, then on hover we invert the list so its on the right. Theres usually only 1 non menu item so this
   // is fine
 
-  const menu = C.isMobile ? null : (
-    <Kb.WithTooltip
-      tooltip="More actions..."
-      toastStyle={styles.moreActionsTooltip}
-      className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
-    >
-      <Kb.Box style={styles.ellipsis}>
-        <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
-      </Kb.Box>
-    </Kb.WithTooltip>
-  )
+  const menu =
+    C.isMobile || !shouldShowPopup ? null : (
+      <Kb.WithTooltip
+        tooltip="More actions..."
+        toastStyle={styles.moreActionsTooltip}
+        className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
+      >
+        <Kb.Box style={styles.ellipsis}>
+          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
+        </Kb.Box>
+      </Kb.WithTooltip>
+    )
 
   const visibleItems =
     hasVisibleItems || menu ? (
@@ -506,7 +514,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const mdata = useState(ordinal)
 
-  const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
+  const {isPendingPayment, decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {reactionsPopupPosition, showCoinsIcon, botname, you, youSent} = mdata
 
@@ -527,6 +535,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,
+    shouldShowPopup,
     showCoinsIcon,
     showExplodingCountdown,
     showPopup,
