@@ -24,7 +24,9 @@ const Rover = () => {
   React.useEffect(() => {
     const onMouseMove = (e: {clientX: number; clientY: number}) => {
       const {clientX: x, clientY: y} = e
-      api.start({x: calcx(x), y: calcy(y)})
+      Promise.allSettled(api.start({x: calcx(x), y: calcy(y)}))
+        .then(() => {})
+        .catch(() => {})
     }
 
     window.addEventListener('mousemove', onMouseMove, {passive: true})
