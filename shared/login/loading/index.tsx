@@ -27,10 +27,14 @@ const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
 const Splash = (props: Props) => {
   const {allowFeedback = true} = props
   const [showFeedback, setShowFeedback] = React.useState(false)
-  const setShowFeedbackTrueLater = Kb.useTimeout(() => setShowFeedback(true), 7000)
+
   React.useEffect(() => {
-    setShowFeedbackTrueLater()
-  }, [setShowFeedbackTrueLater])
+    const id = setTimeout(() => {
+      setShowFeedback(true)
+    }, 7000)
+    return () => clearTimeout(id)
+  }, [])
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
       <Kb.Icon type={props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
