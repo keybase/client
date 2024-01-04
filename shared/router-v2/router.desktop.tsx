@@ -47,12 +47,7 @@ const makeTabStack = (tab: DesktopTabs) => {
   const Comp = React.memo(
     function TabStackNavigator() {
       return (
-        <S.Navigator
-          initialRouteName={tabRoots[tab]}
-          screenOptions={{
-            ...Common.defaultNavigationOptions,
-          }}
-        >
+        <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
           {tabScreens}
         </S.Navigator>
       )
@@ -83,6 +78,16 @@ const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) =>
   })
 }
 
+const appTabsInnerOptions = {
+  ...Common.defaultNavigationOptions,
+  header: undefined,
+  headerShown: false,
+  tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+  tabBarHideOnKeyboard: true,
+  tabBarInactiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+  tabBarShowLabel: Kb.Styles.isTablet,
+  tabBarStyle: Common.tabBarStyle,
+}
 const AppTabsInner = () => {
   // so we have a stack per tab
   const tabStacks = React.useMemo(
@@ -91,21 +96,7 @@ const AppTabsInner = () => {
   )
 
   return (
-    <Tab.Navigator
-      backBehavior="none"
-      screenOptions={() => {
-        return {
-          ...Common.defaultNavigationOptions,
-          header: undefined,
-          headerShown: false,
-          tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarHideOnKeyboard: true,
-          tabBarInactiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarShowLabel: Kb.Styles.isTablet,
-          tabBarStyle: Common.tabBarStyle,
-        }
-      }}
-    >
+    <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {tabStacks}
     </Tab.Navigator>
   )

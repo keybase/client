@@ -123,6 +123,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   )
 })
 
+const noSmallTeams = new Array<T.RPCChat.UIInboxSmallTeamRow>()
+const noBigTeams = new Array<T.RPCChat.UIInboxBigTeamRow>()
 const Connected = (ownProps: OwnProps) => {
   const inboxLayout = C.useChatState(s => s.inboxLayout)
   const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
@@ -134,19 +136,24 @@ const Connected = (ownProps: OwnProps) => {
     return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
-  const _selectedConversationIDKey = conversationIDKey ?? C.noConversationIDKey
+  const selectedConversationIDKey = conversationIDKey ?? C.noConversationIDKey
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
-  const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []
+  const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || noBigTeams : noBigTeams
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
-  let smallTeams = _inboxLayout ? _inboxLayout.smallTeams || [] : []
+  let smallTeams = _inboxLayout ? _inboxLayout.smallTeams || noSmallTeams : noSmallTeams
   const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > inboxNumSmallRows
   if (!showAllSmallRows) {
     smallTeams = smallTeams.slice(0, inboxNumSmallRows)
   }
-  const smallRows = makeSmallRows(smallTeams, _selectedConversationIDKey)
-  const bigRows = makeBigRows(bigTeams, _selectedConversationIDKey)
+  const smallRows = React.useMemo(() => {
+    return makeSmallRows(smallTeams, selectedConversationIDKey)
+  }, [smallTeams, selectedConversationIDKey])
+
+  const bigRows = React.useMemo(() => {
+    return makeBigRows(bigTeams, selectedConversationIDKey)
+  }, [bigTeams, selectedConversationIDKey])
   const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
@@ -182,7 +189,7 @@ const Connected = (ownProps: OwnProps) => {
       if (
         row.conversationIDKey &&
         _badgeMap.get(row.conversationIDKey) &&
-        row.conversationIDKey !== _selectedConversationIDKey
+        row.conversationIDKey !== selectedConversationIDKey
       ) {
         // on mobile include all convos, on desktop only not currently selected convo
         const unreadCount = _badgeMap.get(row.conversationIDKey) || 0
