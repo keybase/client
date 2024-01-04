@@ -412,7 +412,7 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     },
     spoiler: {
       react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
-        return <Spoiler key={state.key} context={state.context} content={node['content']} />
+        return <Spoiler key={state.key} context={state.context} content={node['content']} isPreview={true} />
       },
     },
     text: SimpleMarkdown.defaultRules.text,

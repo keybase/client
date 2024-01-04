@@ -5,12 +5,13 @@ import Text from '@/common-adapters/text'
 type Props = {
   context?: string
   content: string
+  isPreview?: boolean
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {content, context} = p
+  const {content, context, isPreview} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
@@ -19,7 +20,15 @@ const Spoiler = (p: Props) => {
     setShown(true)
   }, [key])
 
-  return (
+  const showMasked = isPreview && Styles.isMobile
+  const len = content.length
+  const masked = React.useMemo(() => {
+    return showMasked ? Array(len).fill('•').join('') : ''
+  }, [showMasked, len])
+
+  return showMasked ? (
+    <Text type="BodySmall">{masked}</Text>
+  ) : (
     <Text
       type="BodySmall"
       onClick={onClick}
