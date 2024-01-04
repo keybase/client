@@ -59,7 +59,7 @@ export const itemToComponent: (item: T.People.PeopleScreenItem, props: Props) =>
   }
 }
 
-const EmailVerificationBanner = () => {
+const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
   const clearJustSignedUpEmail = C.useSignupState(s => s.dispatch.clearJustSignedUpEmail)
   const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   React.useEffect(
@@ -81,9 +81,9 @@ const EmailVerificationBanner = () => {
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
   )
-}
+})
 
-const ResentEmailVerificationBanner = () => {
+const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificationBanner() {
   const resentEmail = C.usePeopleState(s => s.resentEmail)
   const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
   React.useEffect(
@@ -109,7 +109,7 @@ const ResentEmailVerificationBanner = () => {
       />
     </Kb.Banner>
   )
-}
+})
 
 export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
   return (

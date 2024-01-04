@@ -79,7 +79,7 @@ const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
 }
 
 // TODO could make this render less
-const RemoteProxy = React.memo(function MenubarRemoteProxy() {
+const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = C.useFollowerState(s => s.following)
   const followers = C.useFollowerState(s => s.followers)
   const username = C.useCurrentUserState(s => s.username)
@@ -225,4 +225,4 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   return <Widget {...p} />
 })
 
-export default RemoteProxy
+export default MenubarRemoteProxy

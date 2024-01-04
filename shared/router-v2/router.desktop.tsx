@@ -146,7 +146,15 @@ const documentTitle = {
     return `Keybase: ${tabLabel}`
   },
 }
-const ElectronApp = () => {
+
+const rootScreenOptions = {
+  headerLeft: () => <HeaderLeftCancel />,
+  headerShown: false, // eventually do this after we pull apart modal2 etc
+  presentation: 'transparentModal',
+  title: '',
+} as const
+
+const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, appState, onStateChange} = s
   const {navKey, initialState, onUnhandledAction} = s
@@ -162,15 +170,7 @@ const ElectronApp = () => {
       onUnhandledAction={onUnhandledAction}
       documentTitle={documentTitle}
     >
-      <RootStack.Navigator
-        key="root"
-        screenOptions={{
-          headerLeft: () => <HeaderLeftCancel />,
-          headerShown: false, // eventually do this after we pull apart modal2 etc
-          presentation: 'transparentModal',
-          title: '',
-        }}
-      >
+      <RootStack.Navigator key="root" screenOptions={rootScreenOptions}>
         {!loggedInLoaded && (
           <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
         )}
@@ -186,6 +186,6 @@ const ElectronApp = () => {
       </RootStack.Navigator>
     </NavigationContainer>
   )
-}
+})
 
 export default ElectronApp

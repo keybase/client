@@ -31,7 +31,7 @@ export const ScrollContext = React.createContext<
   scrollUp: () => {},
 })
 
-export const ScrollProvider = React.memo(function FocusProvider({children}: {children: React.ReactNode}) {
+export const ScrollProvider = React.memo(function ScrollProvider({children}: {children: React.ReactNode}) {
   const scrollRef = React.useRef<ScrollRefType>(null)
   const scrollUp = React.useCallback(() => {
     scrollRef.current?.scrollUp()

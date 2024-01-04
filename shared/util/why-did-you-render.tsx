@@ -26,11 +26,10 @@ if (enabled && __DEV__) {
       ],
       include: [
         // uncomment to watch everything, realllllly slows things down
-        /.*/,
+        // /.*/,
       ],
-      logOnDifferentValues: false,
+      // logOnDifferentValues: false,
       trackAllPureComponents: true,
-      // trackExtraHooks: [['useSelector']],
     })
   }
 }

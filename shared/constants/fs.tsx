@@ -9,6 +9,7 @@ import logger from '@/logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
+import isEqual from 'lodash/isEqual'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -1764,9 +1765,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     journalUpdate: (syncingPaths, totalSyncingBytes, endEstimate) => {
       set(s => {
-        s.uploads.syncingPaths = new Set(syncingPaths)
+        const sp = new Set(syncingPaths)
+        if (!isEqual(sp, s.uploads.syncingPaths)) {
+          s.uploads.syncingPaths = sp
+        }
         s.uploads.totalSyncingBytes = totalSyncingBytes
-        s.uploads.endEstimate = endEstimate || undefined
+        s.uploads.endEstimate = endEstimate
       })
     },
     kbfsDaemonOnlineStatusChanged: onlineStatus => {
@@ -2144,7 +2148,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 ]
               })
             )
-            s.uploads.writingToJournal = writingToJournal
+            if (!isEqual(writingToJournal, s.uploads.writingToJournal)) {
+              s.uploads.writingToJournal = writingToJournal
+            }
           })
         } catch (err) {
           errorToActionOrThrow(err)
