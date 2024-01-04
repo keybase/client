@@ -1,6 +1,6 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "debian/buster64"
-  config.disksize.size = '50GB'
+  config.vm.box = "debian/bullseye64"
+  config.vm.disk :disk, size: "50GB", primary: true
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "24576"
   end
@@ -25,4 +25,5 @@ Vagrant.configure("2") do |config|
     run: "always"
   config.vm.synced_folder ".", "/vagrant"
   config.vm.provision "shell", path: "provision_tuxbot_env", privileged: true, run: "always"
+  config.vm.provision "docker"
 end
