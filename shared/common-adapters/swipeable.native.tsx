@@ -76,41 +76,35 @@ const useSyncClosing = (
 const makePanOnStart = (
   tx: Reanimated.SharedValue<number>,
   startx: Reanimated.SharedValue<number>,
-  dx: Reanimated.SharedValue<number>,
   started: Reanimated.SharedValue<boolean>,
   closeOthersAndRegisterClose: () => void
 ) => {
   return function onStart() {
     closeOthersAndRegisterClose()
-    Reanimated.runOnUI(() => {
-      'worklet'
-      Reanimated.cancelAnimation(tx)
-      startx.value = tx.value
-      dx.value = 0
-      started.value = true
-    })()
+    Reanimated.cancelAnimation(tx)
+    startx.value = tx.value
+    started.value = true
   }
 }
 
 const makePanOnFinalize = (
   tx: Reanimated.SharedValue<number>,
   startx: Reanimated.SharedValue<number>,
-  dx: Reanimated.SharedValue<number>,
   started: Reanimated.SharedValue<boolean>,
   closeSelf: () => void,
   actionWidth: number
 ) => {
-  return function onFinalize(_e: unknown, success: boolean) {
+  return function onFinalize(e: GestureUpdateEvent<PanGestureHandlerEventPayload>, success: boolean) {
     if (!started.value) {
       return
     }
-    const closing = dx.value >= 0
+    const closing = e.velocityX >= 0
     if (!success || closing) {
-      startx.value = 0
       Reanimated.cancelAnimation(tx)
       tx.value = 0
       closeSelf()
     } else {
+      Reanimated.cancelAnimation(tx)
       tx.value = Reanimated.withSpring(-actionWidth, {
         damping: 30,
         stiffness: 100,
@@ -118,7 +112,6 @@ const makePanOnFinalize = (
       startx.value = -actionWidth
     }
 
-    dx.value = 0
     started.value = false
   }
 }
@@ -126,11 +119,9 @@ const makePanOnFinalize = (
 const makePanOnUpdate = (
   tx: Reanimated.SharedValue<number>,
   startx: Reanimated.SharedValue<number>,
-  dx: Reanimated.SharedValue<number>,
   actionWidth: number
 ) => {
   return function onUpdate(e: GestureUpdateEvent<PanGestureHandlerEventPayload>) {
-    dx.value = e.velocityX
     tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
   }
 }
@@ -171,14 +162,12 @@ const useGesture = (
   const started = Reanimated.useSharedValue(false)
   const [isOpen, setIsOpen] = React.useState(false)
   const startx = Reanimated.useSharedValue(0)
-  const dx = Reanimated.useSharedValue(0)
   const [lastED, setLastED] = React.useState(extraData)
 
   // parent is different, close immediately
   if (lastED !== extraData) {
     setLastED(extraData)
     startx.value = 0
-    dx.value = 0
     Reanimated.cancelAnimation(tx)
     tx.value = 0
   }
@@ -189,9 +178,9 @@ const useGesture = (
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
-    .onStart(makePanOnStart(tx, startx, dx, started, closeOthersAndRegisterClose))
-    .onFinalize(makePanOnFinalize(tx, startx, dx, started, closeSelf, actionWidth))
-    .onUpdate(makePanOnUpdate(tx, startx, dx, actionWidth))
+    .onStart(makePanOnStart(tx, startx, started, closeOthersAndRegisterClose))
+    .onFinalize(makePanOnFinalize(tx, startx, started, closeSelf, actionWidth))
+    .onUpdate(makePanOnUpdate(tx, startx, actionWidth))
 
   const tapGesture = Gesture.Tap()
     .onStart(makeTapOnStart())
