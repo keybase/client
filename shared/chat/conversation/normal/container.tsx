@@ -59,7 +59,6 @@ const useOrangeLine = () => {
 
 const NormalWrapper = React.memo(function NormalWrapper() {
   const orangeLine = useOrangeLine()
-  console.log('aaa normal wrapper', orangeLine)
   return (
     <OrangeLineContext.Provider value={orangeLine}>
       <FocusProvider>

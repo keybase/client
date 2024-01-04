@@ -11,8 +11,7 @@ type OwnProps = {
 }
 
 const makeBigRows = (
-  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>,
-  selectedConversationIDKey: T.Chat.ConversationIDKey
+  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>
 ): Array<
   T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
 > => {
@@ -24,7 +23,6 @@ const makeBigRows = (
           channelname: t.channel.channelname,
           conversationIDKey,
           isMuted: t.channel.isMuted,
-          selected: conversationIDKey === selectedConversationIDKey,
           snippetDecoration: T.RPCChat.SnippetDecoration.none,
           teamname: t.channel.teamname,
           type: 'big',
@@ -44,15 +42,13 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>,
-  selectedConversationIDKey: T.Chat.ConversationIDKey
+  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>
 ): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
     const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)
     return {
       conversationIDKey,
       isTeam: t.isTeam,
-      selected: conversationIDKey === selectedConversationIDKey,
       snippet: t.snippet || undefined,
       snippetDecoration: t.snippetDecoration,
       teamname: t.name,
@@ -64,7 +60,14 @@ const makeSmallRows = (
 
 type WrapperProps = Pick<
   Props,
-  'isSearching' | 'navKey' | 'neverLoaded' | 'rows' | 'smallTeamsExpanded' | 'unreadIndices' | 'unreadTotal'
+  | 'isSearching'
+  | 'navKey'
+  | 'neverLoaded'
+  | 'rows'
+  | 'smallTeamsExpanded'
+  | 'unreadIndices'
+  | 'unreadTotal'
+  | 'selectedConversationIDKey'
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
@@ -142,18 +145,22 @@ const Connected = (ownProps: OwnProps) => {
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || noBigTeams : noBigTeams
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
-  let smallTeams = _inboxLayout ? _inboxLayout.smallTeams || noSmallTeams : noSmallTeams
-  const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > inboxNumSmallRows
-  if (!showAllSmallRows) {
-    smallTeams = smallTeams.slice(0, inboxNumSmallRows)
-  }
+  const allSmallTeams = _inboxLayout ? _inboxLayout.smallTeams || noSmallTeams : noSmallTeams
+  const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
+  const smallTeams = React.useMemo(() => {
+    if (!showAllSmallRows) {
+      return allSmallTeams.slice(0, inboxNumSmallRows)
+    } else {
+      return allSmallTeams
+    }
+  }, [showAllSmallRows, inboxNumSmallRows, allSmallTeams])
   const smallRows = React.useMemo(() => {
-    return makeSmallRows(smallTeams, selectedConversationIDKey)
-  }, [smallTeams, selectedConversationIDKey])
+    return makeSmallRows(smallTeams)
+  }, [smallTeams])
 
   const bigRows = React.useMemo(() => {
-    return makeBigRows(bigTeams, selectedConversationIDKey)
-  }, [bigTeams, selectedConversationIDKey])
+    return makeBigRows(bigTeams)
+  }, [bigTeams])
   const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
@@ -203,6 +210,7 @@ const Connected = (ownProps: OwnProps) => {
     navKey,
     neverLoaded,
     rows,
+    selectedConversationIDKey,
     smallTeamsExpanded: smallTeamsExpanded || bigTeams.length === 0,
     unreadIndices: unreadIndices.size ? unreadIndices : emptyMap,
     unreadTotal,

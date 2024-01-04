@@ -94,7 +94,12 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      element = makeRow(row, this.props.navKey, this.swipeCloseRef)
+      element = makeRow(
+        row,
+        this.props.navKey,
+        this.props.selectedConversationIDKey === row.conversationIDKey,
+        this.swipeCloseRef
+      )
     }
 
     return element

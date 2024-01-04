@@ -12,6 +12,7 @@ import type * as T from '@/constants/types'
 const makeRow = (
   item: T.Chat.ChatInboxRowItem,
   navKey: string,
+  selected: boolean,
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 ) => {
   if (item.type === 'bigTeamsLabel') {
@@ -31,7 +32,7 @@ const makeRow = (
     case 'big':
       return (
         <C.ChatProvider id={item.conversationIDKey}>
-          <BigTeamChannel layoutChannelname={item.channelname} selected={item.selected} navKey={navKey} />
+          <BigTeamChannel layoutChannelname={item.channelname} selected={selected} navKey={navKey} />
         </C.ChatProvider>
       )
     case 'small':
@@ -42,7 +43,7 @@ const makeRow = (
             conversationIDKey={item.conversationIDKey}
             layoutIsTeam={item.isTeam}
             layoutName={item.teamname}
-            isSelected={item.selected}
+            isSelected={selected}
             layoutTime={item.time}
             layoutSnippet={item.snippet}
             swipeCloseRef={swipeCloseRef}

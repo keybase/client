@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 
 export type Props = {
   allowShowFloatingButton: boolean
+  selectedConversationIDKey: T.Chat.ConversationIDKey
   inboxNumSmallRows: number
   isSearching: boolean
   navKey: string
