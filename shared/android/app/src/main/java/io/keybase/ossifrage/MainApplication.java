@@ -1,4 +1,6 @@
 package io.keybase.ossifrage;
+
+import android.os.Build;
 import android.content.res.Configuration;
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
@@ -108,7 +110,9 @@ public class MainApplication extends Application implements ReactApplication {
           // If you opted-in for the New Architecture, we load the native entry point for this app.
           DefaultNewArchitectureEntryPoint.load();
         }
-        ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+            ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+        }
 
         // KB
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
