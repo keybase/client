@@ -24,6 +24,13 @@ class SuggestionList extends React.Component<Props> {
     this.props.renderItem(index, this.props.items[index]) as React.JSX.Element
 
   render() {
+    if (
+      !this.props.items.length &&
+      (!this.props.suggestBotCommandsUpdateStatus ||
+        this.props.suggestBotCommandsUpdateStatus === T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
+    ) {
+      return null
+    }
     return (
       <Kb.Box2
         direction="vertical"
