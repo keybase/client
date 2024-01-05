@@ -32,7 +32,6 @@ const RemoteSmallTeam = (props: RowProps) => {
 
 const ChatPreview = (p: Pick<DeserializeProps, 'conversationsToSend'> & {convLimit?: number}) => {
   const {conversationsToSend, convLimit} = p
-
   const convRows = conversationsToSend
     .slice(0, convLimit ? convLimit : conversationsToSend.length)
     .map(c => c.conversationIDKey)

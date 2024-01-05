@@ -71,7 +71,11 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       if (layoutIsTeam && layoutName) {
         return [layoutName]
       }
-      return layoutName?.split(',') ?? []
+      return (
+        layoutName
+          ?.split(',')
+          .filter((participant, _, list) => (list.length === 1 ? true : participant !== you)) ?? []
+      )
     })
   )
 
