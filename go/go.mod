@@ -44,7 +44,6 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/keybase/go-triplesec v0.0.0-20231213205702-981541df982e
 	github.com/keybase/go-triplesec-insecure v0.0.0-20231213205953-ffb6212a205e
-	github.com/keybase/go-updater v0.0.0-20231213212021-a8be26e88400
 	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
@@ -89,7 +88,10 @@ require (
 	stathat.com/c/ramcache v1.0.0
 )
 
-require github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
+require (
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
+	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
+)
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect

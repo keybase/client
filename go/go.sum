@@ -483,6 +483,8 @@ github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8
 github.com/julz/importas v0.1.0 h1:F78HnrsjY3cR7j0etXy5+TU1Zuy7Xt08X/1aJnH5xXY=
 github.com/julz/importas v0.1.0/go.mod h1:oSFU2R4XK/P7kNBrnL/FEQlDGN1/6WoxXEjSSXO0DV0=
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
+github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 h1:iQTw/8FWTuc7uiaSepXwyf3o52HaUYcV+Tu66S3F5GA=
+github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
 github.com/kennygrant/sanitize v1.2.4 h1:gN25/otpP5vAsO2djbMhF/LQX6R7+O1TB4yv8NzpJ3o=
 github.com/kennygrant/sanitize v1.2.4/go.mod h1:LGsjYYtgxbetdg5owWB2mpgUL6e2nfw2eObZ0u0qvak=
 github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e h1:RgQk53JHp/Cjunrr1WlsXSZpqXn+uREuHvUVcK82CV8=
@@ -527,8 +529,6 @@ github.com/keybase/go-triplesec v0.0.0-20231213205702-981541df982e h1:gq30zfpBFP
 github.com/keybase/go-triplesec v0.0.0-20231213205702-981541df982e/go.mod h1:qgaIwulBeySrYGk5RF9eMxzchKMVnI8BPBwqK5O5j8c=
 github.com/keybase/go-triplesec-insecure v0.0.0-20231213205953-ffb6212a205e h1:PU+eVHu7gjLjBqHSBV7DMlZCtnq0TUtRrNpFVc+EyNg=
 github.com/keybase/go-triplesec-insecure v0.0.0-20231213205953-ffb6212a205e/go.mod h1:FZedR+t+xUayFbjFxL+yqtOsbJZR2kkd69T8Io9mAPY=
-github.com/keybase/go-updater v0.0.0-20231213212021-a8be26e88400 h1:OUyfiyt8cdPUgJaM6/PnDsgchtRE36tjBIxqPOaxLWQ=
-github.com/keybase/go-updater v0.0.0-20231213212021-a8be26e88400/go.mod h1:mKNI0nXkgU3TfKt80W/ikgtA8/GmlFzfRdIF9AeB8qU=
 github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58 h1:W3c3cQc7Fe2LWwa9gz1qyOBfJwuMNcnVIoHP9joEUzI=
 github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58/go.mod h1:Rcswqyeiwun4CF+RpzSNllKs3nO8Es5HZIhl+8YCm94=
 github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9 h1:O4kEXd3yzbpHCRqwjbsBNKlanp52zXjKP6nFh9VSGy0=

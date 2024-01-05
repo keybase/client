@@ -1,0 +1,71 @@
+NOTE: this is a phony log for unit testing
+
+[2F98:1DF4][2016-06-23T13:30:03]i001: Burn v3.10.2.2516, Windows v10.0 (Build 10586: Service Pack 0), path: C:\Users\Steve\AppData\Local\Temp\{AF1AE293-D5E6-4106-B5EB-8EB97596AFE4}\.cr\Keybase_1.0.16-20160621133121+95ba468.386.exe
+[2F98:1DF4][2016-06-23T13:30:03]i000: Initializing string variable 'DokanProduct64' to value '{65A3A964-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Initializing string variable 'DokanProduct86' to value '{65A3A986-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i009: Command Line: '-burn.clean.room=c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe /layout /quiet /log c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleOriginalSource' to value 'c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleOriginalSourceFolder' to value 'c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'LOGPATH_PROP' to value 'c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleName' to value 'Keybase'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleManufacturer' to value 'Keybase, Inc.'
+[2F98:3D58][2016-06-23T13:30:03]i000: Setting numeric variable 'WixStdBALanguageId' to value 1033
+[2F98:3D58][2016-06-23T13:30:03]i000: Setting version variable 'WixBundleFileVersion' to value '1.0.16.45'
+[2F98:1DF4][2016-06-23T13:30:03]i100: Detect begin, 3 packages
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT DokanUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT DokanUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT DokanUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160621082245}'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry key not found. Key = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry value not found. Key = 'SOFTWARE\Keybase', Value = 'TargetDokanUninstallKey'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT TargetDokanUninstallKey' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i000: Registry value not found. Key = 'SOFTWARE\Keybase', Value = 'TargetDokanUninstallKey'
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'NOT InnoUninstallString' evaluates to true.
+[2F98:1DF4][2016-06-23T13:30:03]i052: Condition 'DokanUninstallString and NOT (WixBundleAction=3 AND ( TargetDokanUninstallKey <> DokanProduct64 AND TargetDokanUninstallKey <> DokanProduct86 ))' evaluates to false.
+[2F98:1DF4][2016-06-23T13:30:03]i101: Detected package: runquiet.exe, state: Present, cached: None
+[2F98:1DF4][2016-06-23T13:30:03]i101: Detected package: DokanSetup_redist.exe, state: Absent, cached: None
+[2F98:1DF4][2016-06-23T13:30:03]i101: Detected package: KeybasePrograms, state: Absent, cached: None
+[2F98:1DF4][2016-06-23T13:30:03]i199: Detect complete, result: 0x0
+[2F98:1DF4][2016-06-23T13:30:03]i200: Plan begin, 3 packages, action: Layout
+[2F98:1DF4][2016-06-23T13:30:03]i201: Planned package: runquiet.exe, state: Present, default requested: Cache, ba requested: Cache, execute: None, rollback: None, cache: No, uncache: No, dependency: None
+[2F98:1DF4][2016-06-23T13:30:03]i201: Planned package: DokanSetup_redist.exe, state: Absent, default requested: Cache, ba requested: Cache, execute: None, rollback: None, cache: No, uncache: No, dependency: None
+[2F98:1DF4][2016-06-23T13:30:03]i201: Planned package: KeybasePrograms, state: Absent, default requested: Cache, ba requested: Cache, execute: None, rollback: None, cache: No, uncache: No, dependency: None
+[2F98:1DF4][2016-06-23T13:30:03]i299: Plan complete, result: 0x0
+[2F98:1DF4][2016-06-23T13:30:03]i300: Apply begin
+[2F98:1DF4][2016-06-23T13:30:03]i399: Apply complete, result: 0x0, restart: None, ba requested restart:  No
+[2F98:1DF4][2016-06-23T13:30:03]i500: Shutting down, exit code: 0x0
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: DokanProduct64 = {65A3A964-3DC3-0100-0000-160621082245}
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: DokanProduct86 = {65A3A986-3DC3-0100-0000-160621082245}
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: LOGPATH_PROP = c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleAction = 2
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleElevated = 0
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleFileVersion = 1.0.16.45
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleInstalled = 0
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleManufacturer = Keybase, Inc.
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleName = Keybase
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleOriginalSource = c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleOriginalSourceFolder = c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleProviderKey = {eec341cb-b399-4008-a5cd-e2f46af3f788}
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleSourceProcessFolder = c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleSourceProcessPath = c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleTag = 
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleVersion = 1.0.16.45
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixStdBALanguageId = 1033
+[2F98:1DF4][2016-06-23T13:30:03]i007: Exit code: 0x0, restarting: No
