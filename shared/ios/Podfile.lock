@@ -16,6 +16,8 @@ PODS:
     - ExpoModulesCore
   - EXContacts (11.0.1):
     - ExpoModulesCore
+  - EXErrorRecovery (4.0.1):
+    - ExpoModulesCore
   - EXFileSystem (15.1.1):
     - ExpoModulesCore
   - EXFont (11.0.1):
@@ -477,7 +479,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.20.0):
+  - RNScreens (3.29.0):
     - React-Core
     - React-RCTImage
   - SDWebImage (5.12.6):
@@ -506,6 +508,7 @@ DEPENDENCIES:
   - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
+  - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -632,6 +635,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   EXContacts:
     :path: "../node_modules/expo-contacts/ios"
+  EXErrorRecovery:
+    :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -768,6 +773,7 @@ SPEC CHECKSUMS:
   EXBarCodeScanner: cb4deb49e59b6c7ed6bbf38d187802359908d2a8
   EXConstants: 3c86653c422dd77e40d10cbbabb3025003977415
   EXContacts: 81d2963abb188d5f79d746cfff94c58cc7e8d713
+  EXErrorRecovery: ae43433feb0608a64dc5b1c8363b3e7769a9ea24
   EXFileSystem: 60602b6eefa6873f97172c684b7537c9760b50d6
   EXFont: 319606bfe48c33b5b5063fb0994afdc496befe80
   EXImageLoader: 84b65e6bd9d3345d6fbb3ab936a546c54496a64d
@@ -841,7 +847,7 @@ SPEC CHECKSUMS:
   RNFlashList: 7fbca4fc075484a9426f1610d648dbea2de94eb0
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNReanimated: 0dd48c050ab4b6b55922fbeeddb2965dad1240b3
-  RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
+  RNScreens: fa9b582d85ae5d62c91c66003b5278458fed7aaa
   SDWebImage: a47aea9e3d8816015db4e523daff50cfd294499d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
