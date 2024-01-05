@@ -6,7 +6,7 @@ import Text from './text'
 import type {Props} from './with-tooltip'
 import type {MeasureRef} from './measure-ref'
 
-const IGNORE_FOR_PROFILING = true as boolean
+const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
   Box2Measure,
