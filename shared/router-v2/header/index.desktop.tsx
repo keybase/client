@@ -6,6 +6,7 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '@/whats-new/icon/container'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
+import shallowEqual from 'shallowequal'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -96,151 +97,141 @@ export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   )
 }
 
-const DesktopHeader = React.memo(
-  function DesktopHeader(p: Props) {
-    const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
+const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
+  const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
+  const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
+  const {headerTransparent, headerHideBorder, headerBottomStyle, headerStyle, headerLeft} = options
 
-    const pop = React.useCallback(() => {
-      back && navigation.pop()
-    }, [back, navigation])
+  const pop = React.useCallback(() => {
+    back && navigation.pop()
+  }, [back, navigation])
 
-    // TODO add more here as we use more options on the mobile side maybe
-    const opt = options
-    if (opt.headerMode === 'none') {
-      return null
-    }
-
-    let title: React.ReactNode | string = null
-    if (opt.title) {
-      title = <PlainTitle title={opt.title} />
-    }
-
-    if (opt.headerTitle) {
-      if (React.isValidElement(opt.headerTitle)) {
-        title = opt.headerTitle
-      } else if (ReactIs.isValidElementType(opt.headerTitle)) {
-        const CustomTitle = opt.headerTitle
-        const props = {params} as any
-        title = <CustomTitle {...props}>{opt.title}</CustomTitle>
-      }
-    }
-
-    let rightActions: React.ReactNode = null
-    if (ReactIs.isValidElementType(opt.headerRightActions)) {
-      const CustomActions = opt.headerRightActions
-      rightActions = <CustomActions />
-    }
-
-    let subHeader: React.ReactNode = null
-    if (ReactIs.isValidElementType(opt.subHeader)) {
-      const CustomSubHeader = opt.subHeader
-      subHeader = <CustomSubHeader />
-    }
-
-    let style: Kb.Styles.StylesCrossPlatform = null
-    if (opt.headerTransparent) {
-      style = {position: 'absolute'}
-    }
-
-    let showDivider = true
-    if (opt.headerHideBorder) {
-      showDivider = false
-    }
-
-    const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
-
-    // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
-    // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
-    // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
-    // push the back arrow down below the system icons.
-    const iconContainerStyle: Kb.Styles.StylesCrossPlatform = Kb.Styles.collapseStyles([
-      styles.iconContainer,
-      !back && styles.iconContainerInactive,
-      !loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
-    ] as const)
-    const iconColor = back
-      ? Kb.Styles.globalColors.black_50
-      : loggedIn
-        ? Kb.Styles.globalColors.black_10
-        : Kb.Styles.globalColors.transparent
-
-    const popupAnchor = React.createRef<Kb.MeasureRef>()
-
-    return (
-      <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-        <Kb.Box2
-          noShrink={true}
-          direction="vertical"
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([
-            styles.headerContainer,
-            showDivider && styles.headerBorder,
-            style,
-            opt.headerStyle,
-          ])}
-        >
-          <Kb.Box2Measure
-            key="topBar"
-            direction="horizontal"
-            fullWidth={true}
-            style={styles.headerBack}
-            alignItems="center"
-            ref={popupAnchor}
-          >
-            {/* TODO have headerLeft be the back button */}
-            {opt.headerLeft !== null && (
-              <Kb.Box
-                className={Kb.Styles.classNames('hover_container', {
-                  hover_background_color_black_10: !!back,
-                })}
-                onClick={pop}
-                style={iconContainerStyle}
-              >
-                <Kb.Icon
-                  type="iconfont-arrow-left"
-                  color={iconColor}
-                  className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
-                  boxStyle={styles.icon}
-                />
-              </Kb.Box>
-            )}
-            <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
-              <SyncingFolders
-                negative={
-                  p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
-                  p.style?.backgroundColor !== Kb.Styles.globalColors.white
-                }
-              />
-              {loggedIn && <WhatsNewIconWithPopup attachToRef={popupAnchor} />}
-              {!title && rightActions}
-              {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
-            </Kb.Box2>
-          </Kb.Box2Measure>
-          <Kb.Box2
-            key="bottomBar"
-            direction="horizontal"
-            fullWidth={true}
-            style={Kb.Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
-          >
-            <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
-              {title}
-            </Kb.Box2>
-            {!!title && rightActions}
-          </Kb.Box2>
-        </Kb.Box2>
-        {subHeader}
-      </Kb.Box2>
-    )
-  },
-  (p, n) => {
-    return C.shallowEqual(p, n, (obj: unknown, oth: unknown, key) => {
-      if (key === 'options') {
-        return C.shallowEqual(obj, oth)
-      }
-      return undefined
-    })
+  if (headerMode === 'none') {
+    return null
   }
-)
+
+  let titleNode: React.ReactNode | string = null
+  if (title) {
+    titleNode = <PlainTitle title={title} />
+  }
+
+  if (headerTitle) {
+    if (React.isValidElement(headerTitle)) {
+      titleNode = headerTitle
+    } else if (ReactIs.isValidElementType(headerTitle)) {
+      const CustomTitle = headerTitle
+      const props = {params} as any
+      titleNode = <CustomTitle {...props}>{title}</CustomTitle>
+    }
+  }
+
+  let rightActions: React.ReactNode = null
+  if (ReactIs.isValidElementType(headerRightActions)) {
+    const CustomActions = headerRightActions
+    rightActions = <CustomActions />
+  }
+
+  let subHeaderNode: React.ReactNode = null
+  if (ReactIs.isValidElementType(subHeader)) {
+    const CustomSubHeader = subHeader
+    subHeaderNode = <CustomSubHeader />
+  }
+
+  let style: Kb.Styles.StylesCrossPlatform = null
+  if (headerTransparent) {
+    style = {position: 'absolute'}
+  }
+
+  let showDivider = true
+  if (headerHideBorder) {
+    showDivider = false
+  }
+
+  const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
+
+  // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
+  // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
+  // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
+  // push the back arrow down below the system icons.
+  const iconContainerStyle: Kb.Styles.StylesCrossPlatform = Kb.Styles.collapseStyles([
+    styles.iconContainer,
+    !back && styles.iconContainerInactive,
+    !loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
+  ] as const)
+  const iconColor = back
+    ? Kb.Styles.globalColors.black_50
+    : loggedIn
+      ? Kb.Styles.globalColors.black_10
+      : Kb.Styles.globalColors.transparent
+
+  const popupAnchor = React.createRef<Kb.MeasureRef>()
+
+  return (
+    <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+      <Kb.Box2
+        noShrink={true}
+        direction="vertical"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([
+          styles.headerContainer,
+          showDivider && styles.headerBorder,
+          style,
+          headerStyle,
+        ])}
+      >
+        <Kb.Box2Measure
+          key="topBar"
+          direction="horizontal"
+          fullWidth={true}
+          style={styles.headerBack}
+          alignItems="center"
+          ref={popupAnchor}
+        >
+          {/* TODO have headerLeft be the back button */}
+          {headerLeft !== null && (
+            <Kb.Box
+              className={Kb.Styles.classNames('hover_container', {
+                hover_background_color_black_10: !!back,
+              })}
+              onClick={pop}
+              style={iconContainerStyle}
+            >
+              <Kb.Icon
+                type="iconfont-arrow-left"
+                color={iconColor}
+                className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
+                boxStyle={styles.icon}
+              />
+            </Kb.Box>
+          )}
+          <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
+            <SyncingFolders
+              negative={
+                p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
+                p.style?.backgroundColor !== Kb.Styles.globalColors.white
+              }
+            />
+            {loggedIn && <WhatsNewIconWithPopup attachToRef={popupAnchor} />}
+            {!title && rightActions}
+            {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
+          </Kb.Box2>
+        </Kb.Box2Measure>
+        <Kb.Box2
+          key="bottomBar"
+          direction="horizontal"
+          fullWidth={true}
+          style={Kb.Styles.collapseStyles([styles.bottom, headerBottomStyle])}
+        >
+          <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
+            {titleNode}
+          </Kb.Box2>
+          {!!title && rightActions}
+        </Kb.Box2>
+      </Kb.Box2>
+      {subHeaderNode}
+    </Kb.Box2>
+  )
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -332,10 +323,30 @@ const styles = Kb.Styles.styleSheetCreate(
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
 const DesktopHeaderWrapper = (p: HeaderProps) => {
-  const {options, back, style, params, navigation} = p
+  const {options: _options, back, style, params, navigation} = p
   const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
+
+  const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
+  const {headerTransparent, headerHideBorder, headerBottomStyle, headerStyle, headerLeft} = _options
+  const next = {
+    headerBottomStyle,
+    headerHideBorder,
+    headerLeft,
+    headerMode,
+    headerRightActions,
+    headerStyle,
+    headerTitle,
+    headerTransparent,
+    subHeader,
+    title,
+  }
+  const optionsRef = React.useRef(next)
+  if (!shallowEqual(next, optionsRef.current)) {
+    optionsRef.current = next
+  }
+  const options = optionsRef.current
 
   return (
     <DesktopHeader

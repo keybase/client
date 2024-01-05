@@ -1,9 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {gesturesEnabled: false}
+
 const Confirm = React.lazy(async () => import('./confirm'))
-
-const getOptions = () => ({gesturesEnabled: false})
-
 const Screen = () => (
   <React.Suspense>
     <Confirm />

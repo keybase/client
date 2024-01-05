@@ -3,10 +3,8 @@ import * as Common from '@/router-v2/common'
 import * as Kb from '@/common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
-const Defer = React.lazy(async () => import('./defer-loading'))
-
 const buttonWidth = 132
-const getOptions = () => ({
+const getOptions = {
   freezeOnBlur: false, // let it render even if not visible
   headerLeft: () => <Kb.HeaderLeftBlank />,
   headerLeftContainerStyle: {
@@ -26,8 +24,9 @@ const getOptions = () => ({
       Chats
     </Kb.Text>
   ),
-})
+}
 
+const Defer = React.lazy(async () => import('./defer-loading'))
 const Screen = () => (
   <React.Suspense>
     <Defer />

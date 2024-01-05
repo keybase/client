@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {title: 'Your account'}
+
 const Account = React.lazy(async () => import('.'))
-
-const getOptions = () => ({
-  title: 'Your account',
-})
-
 const Screen = () => (
   <React.Suspense>
     <Account />

@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-const Root = React.lazy(async () => import('./root-phone'))
-const getOptions = () => ({title: 'More'})
+const getOptions = {title: 'More'}
 
+const Root = React.lazy(async () => import('./root-phone'))
 const Screen = () => (
   <React.Suspense>
     <Root />

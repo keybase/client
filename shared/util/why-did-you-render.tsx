@@ -23,6 +23,8 @@ if (enabled && __DEV__) {
         /^PressabilityDebugView$/,
         /^PreventRemoveProvider$/,
         /^NativeStackViewInner$/,
+        /^LeftTabNavigator/,
+        /^RouteBox/,
       ],
       include: [
         // uncomment to watch everything, realllllly slows things down

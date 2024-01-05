@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {headerLeft: undefined}
+
 const Error = React.lazy(async () => import('./error'))
-
-const getOptions = () => ({
-  headerLeft: undefined,
-})
-
 const Screen = () => (
   <React.Suspense>
     <Error />

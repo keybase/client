@@ -2,9 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
 
-const Username = React.lazy(async () => import('./username'))
-
-const getOptions = () => ({
+const getOptions = {
   headerBottomStyle: {height: undefined},
   headerLeft: undefined, // no back button
   headerRightActions: () => (
@@ -15,8 +13,9 @@ const getOptions = () => ({
       <InfoIcon />
     </Kb.Box2>
   ),
-})
+}
 
+const Username = React.lazy(async () => import('./username'))
 const Screen = () => (
   <React.Suspense>
     <Username />

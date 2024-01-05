@@ -1,16 +1,15 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const Full = React.lazy(async () => import('.'))
-type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Full>>
-
-const getOptions = () => ({
+const getOptions = {
   ...(C.isIOS ? {presentation: 'transparentModal'} : {}),
   safeAreaStyle: {
     backgroundColor: 'black', // true black
   },
-})
+}
 
+const Full = React.lazy(async () => import('.'))
+type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Full>>
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params
   return (

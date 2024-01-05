@@ -1,15 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
+const getOptions = C.isMobile ? {title: 'Advanced'} : undefined
+
 const Advanced = React.lazy(async () => import('./advanced'))
-
-const getOptions = () =>
-  C.isMobile
-    ? {
-        title: 'Advanced',
-      }
-    : undefined
-
 const Screen = () => (
   <React.Suspense>
     <Advanced />

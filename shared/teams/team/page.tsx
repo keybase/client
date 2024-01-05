@@ -1,14 +1,13 @@
 import * as React from 'react'
 import type * as C from '@/constants'
 
-const Team = React.lazy(async () => import('.'))
-type OwnProps = C.ViewPropsToPageProps<typeof Team>
-
-const getOptions = () => ({
+const getOptions = {
   headerHideBorder: true,
   headerTitle: '',
-})
+}
 
+type OwnProps = C.ViewPropsToPageProps<typeof Team>
+const Team = React.lazy(async () => import('.'))
 const Screen = (p: OwnProps) => (
   <React.Suspense>
     <Team {...p.route.params} />

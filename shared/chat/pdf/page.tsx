@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
+const getOptions = C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'}
+
 const Pdf = React.lazy(async () => import('.'))
 type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Pdf>>
-
-const getOptions = () => (C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'})
-
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params
   return (

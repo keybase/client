@@ -2,9 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {InfoIcon} from '@/signup/common'
 
-const ResetPassword = React.lazy(async () => import('./prompt-reset-password'))
-
-const getOptions = () => ({
+const getOptions = {
   headerBottomStyle: {height: undefined},
   headerLeft: undefined, // no back button
   headerRightActions: () => (
@@ -12,8 +10,9 @@ const getOptions = () => ({
       <InfoIcon />
     </Kb.Box2>
   ),
-})
+}
 
+const ResetPassword = React.lazy(async () => import('./prompt-reset-password'))
 const Screen = () => (
   <React.Suspense>
     <ResetPassword />

@@ -1,13 +1,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const Root = React.lazy(async () => import('./manage-contacts'))
-
-const getOptions = () => ({
+const getOptions = {
   header: undefined,
   title: 'Contacts',
-})
+}
 
+const Root = React.lazy(async () => import('./manage-contacts'))
 const Screen = () =>
   C.isMobile ? (
     <React.Suspense>

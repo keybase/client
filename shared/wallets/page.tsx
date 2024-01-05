@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {title: 'Wallet'}
+
 const Index = React.lazy(async () => import('.'))
-
-const getOptions = () => {
-  return {title: 'Wallet'}
-}
-
 const Screen = () => (
   <React.Suspense>
     <Index />
