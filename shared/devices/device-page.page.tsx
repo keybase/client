@@ -1,13 +1,10 @@
 import * as React from 'react'
 import type * as C from '@/constants'
 
-const Device = React.lazy(async () => import('./device-page'))
+const getOptions = {title: ''}
+
 type OwnProps = C.ViewPropsToPageProps<typeof Device>
-
-const getOptions = () => ({
-  title: '',
-})
-
+const Device = React.lazy(async () => import('./device-page'))
 const Screen = (p: OwnProps) => (
   <React.Suspense>
     <Device {...p.route.params} />

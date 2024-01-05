@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {gesturesEnabled: false}
+
 const ErrorModal = React.lazy(async () => import('./error-modal'))
-
-const getOptions = () => ({
-  gesturesEnabled: false,
-})
-
 const Screen = () => (
   <React.Suspense>
     <ErrorModal />

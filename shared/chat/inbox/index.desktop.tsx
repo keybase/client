@@ -199,7 +199,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
     // pointer events on so you can click even right after a scroll
     return (
       <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-        {makeRow(row, this.props.navKey)}
+        {makeRow(row, this.props.navKey, this.props.selectedConversationIDKey === row.conversationIDKey)}
       </div>
     )
   }

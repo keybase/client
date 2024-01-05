@@ -2,9 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 
-const Paper = React.lazy(async () => import('./paper-key'))
-
-const getOptions = () => ({
+const getOptions = {
   headerBottomStyle: {height: undefined},
   headerLeft: undefined, // no back button
   headerRightActions: () => (
@@ -15,8 +13,9 @@ const getOptions = () => ({
       <InfoIcon />
     </Kb.Box2>
   ),
-})
+}
 
+const Paper = React.lazy(async () => import('./paper-key'))
 const Screen = () => (
   <React.Suspense>
     <Paper />

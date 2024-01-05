@@ -1,11 +1,10 @@
 import * as React from 'react'
 
-const Notif = React.lazy(async () => import('./container'))
-
-export const getOptions = () => ({
+export const getOptions = {
   title: 'Notifications',
-})
+}
 
+const Notif = React.lazy(async () => import('./container'))
 const Screen = () => (
   <React.Suspense>
     <Notif />

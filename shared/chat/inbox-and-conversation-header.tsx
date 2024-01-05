@@ -4,11 +4,14 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
+import {useRoute} from '@react-navigation/native'
+import type {RootRouteProps} from '@/router-v2/route-params'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 const Header = (props: Props) => {
+  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
-    <C.ChatProvider canBeNull={true} id={props.conversationIDKey ?? C.noConversationIDKey}>
+    <C.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? C.noConversationIDKey}>
       <Header2 {...props} />
     </C.ChatProvider>
   )

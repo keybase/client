@@ -4,6 +4,11 @@ import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 
+const getOptions = {
+  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+  title: 'Teams',
+}
+
 const Root = React.lazy(async () => import('./container'))
 
 const useHeaderActions = () => {
@@ -45,11 +50,6 @@ const ConnectedHeaderRightActions = (_: {}) => {
   const actions = useHeaderActions()
   return <HeaderRightActions {...actions} />
 }
-
-const getOptions = () => ({
-  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
-})
 
 const Screen = () => (
   <React.Suspense>

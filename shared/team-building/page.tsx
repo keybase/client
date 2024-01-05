@@ -2,9 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
-const Building = React.lazy(async () => import('./container'))
-type OwnProps = C.ViewPropsToPageProps<typeof Building>
-
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace
   const common = {
@@ -31,6 +28,8 @@ const getOptions = ({route}: OwnProps) => {
     : common
 }
 
+const Building = React.lazy(async () => import('./container'))
+type OwnProps = C.ViewPropsToPageProps<typeof Building>
 const Screen = (p: OwnProps) => (
   <C.TBProvider namespace={p.route.params.namespace}>
     <React.Suspense>

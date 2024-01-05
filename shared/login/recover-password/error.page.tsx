@@ -2,9 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {InfoIcon} from '@/signup/common'
 
-const Error = React.lazy(async () => import('./error'))
-
-const getOptions = () => ({
+const getOptions = {
   gesturesEnabled: false,
   headerLeft: undefined, // no back button
   headerRightActions: () => (
@@ -15,8 +13,9 @@ const getOptions = () => ({
       <InfoIcon />
     </Kb.Box2>
   ),
-})
+}
 
+const Error = React.lazy(async () => import('./error'))
 const Screen = () => (
   <React.Suspense>
     <Error />

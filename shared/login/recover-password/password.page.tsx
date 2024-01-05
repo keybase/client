@@ -1,9 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {gesturesEnabled: false}
+
 const Password = React.lazy(async () => import('./password'))
-
-const getOptions = () => ({gesturesEnabled: false})
-
 const Screen = () => (
   <React.Suspense>
     <Password />

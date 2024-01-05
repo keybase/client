@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {title: 'About'}
+
 const About = React.lazy(async () => import('./about'))
-
-const getOptions = () => ({
-  title: 'About',
-})
-
 const Screen = () => (
   <React.Suspense>
     <About />

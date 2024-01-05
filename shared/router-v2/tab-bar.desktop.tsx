@@ -202,7 +202,6 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const {label} = Tabs.desktopTabMeta[tab]
-  const accountRows = C.useConfigState(s => s.configuredAccounts)
   const current = C.useCurrentUserState(s => s.username)
   const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
   const login = C.useConfigState(s => s.dispatch.login)
@@ -210,6 +209,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
     () =>
       index === 0
         ? () => {
+            const accountRows = C.useConfigState.getState().configuredAccounts
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
             if (row) {
               setUserSwitching(true)
@@ -219,7 +219,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
             }
           }
         : undefined,
-    [login, accountRows, index, current, onSelectTab, tab, setUserSwitching]
+    [login, index, current, onSelectTab, tab, setUserSwitching]
   )
 
   // no long press on desktop so a quick version

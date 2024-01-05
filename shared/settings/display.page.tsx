@@ -1,11 +1,10 @@
 import * as React from 'react'
 
-const Display = React.lazy(async () => import('./display'))
-
-const getOptions = () => ({
+const getOptions = {
   title: 'Display',
-})
+}
 
+const Display = React.lazy(async () => import('./display'))
 const Screen = () => (
   <React.Suspense>
     <Display />

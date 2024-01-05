@@ -3,6 +3,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import ProfileSearch from '../profile/search/bar'
 
+const getOptions = {
+  headerLeft: () => <Kb.HeaderLeftBlank />,
+  headerRight: () => <HeaderAvatar />,
+  headerTitle: () => <ProfileSearch />,
+}
 const HeaderAvatar = () => {
   const myUsername = C.useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -11,13 +16,6 @@ const HeaderAvatar = () => {
 }
 
 const People = React.lazy(async () => import('./container'))
-
-const getOptions = () => ({
-  headerLeft: () => <Kb.HeaderLeftBlank />,
-  headerRight: () => <HeaderAvatar />,
-  headerTitle: () => <ProfileSearch />,
-})
-
 const Screen = () => (
   <React.Suspense>
     <People />

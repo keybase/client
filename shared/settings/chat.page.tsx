@@ -1,11 +1,8 @@
 import * as React from 'react'
 
+const getOptions = {title: 'Chat'}
+
 const Chat = React.lazy(async () => import('./chat'))
-
-const getOptions = () => ({
-  title: 'Chat',
-})
-
 const Screen = () => (
   <React.Suspense>
     <Chat />

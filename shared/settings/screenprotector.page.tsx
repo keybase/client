@@ -1,12 +1,11 @@
 import * as React from 'react'
 
-const Root = React.lazy(async () => import('./screenprotector'))
-
-const getOptions = () => ({
+const getOptions = {
   header: undefined,
   title: 'Screen Protector',
-})
+}
 
+const Root = React.lazy(async () => import('./screenprotector'))
 const Screen = () => (
   <React.Suspense>
     <Root />

@@ -848,7 +848,9 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     setAccounts: a => {
       set(s => {
-        s.configuredAccounts = a
+        if (!isEqual(a, s.configuredAccounts)) {
+          s.configuredAccounts = a
+        }
       })
     },
     setAllowAnimatedEmojis: a => {
@@ -1076,7 +1078,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     setOutOfDate: outOfDate => {
       set(s => {
-        s.outOfDate = outOfDate
+        s.outOfDate.critical = outOfDate.critical
+        s.outOfDate.message = outOfDate.message
+        s.outOfDate.updating = outOfDate.updating
+        s.outOfDate.outOfDate = outOfDate.outOfDate
       })
     },
     setStartupDetails: st => {
