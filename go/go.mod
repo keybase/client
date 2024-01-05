@@ -48,9 +48,8 @@ require (
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20211118220306-ca1be321c9e5
-	github.com/keybase/release v0.0.0-20221220220653-50771d921175
-	github.com/keybase/saltpack v0.0.0-20221220231257-f6cce11cfd0f
+	github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63
+	github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
@@ -76,8 +75,8 @@ require (
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/mobile v0.0.0-20221110043201-43a038452099
-	golang.org/x/net v0.10.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/net v0.19.0
+	golang.org/x/sync v0.5.0
 	golang.org/x/sys v0.15.0
 	golang.org/x/text v0.14.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
@@ -89,8 +88,11 @@ require (
 )
 
 require (
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/aws/aws-sdk-go v1.49.13
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
 require (
@@ -106,8 +108,7 @@ require (
 	github.com/RoaringBitmap/roaring v0.4.22-0.20191112221735-4d53b29a8f7d // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
+	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/andybalholm/cascadia v0.0.0-20150730174459-3ad29d1ad1c4 // indirect
@@ -118,7 +119,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.164 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
@@ -302,11 +302,10 @@ require (
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
-	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/tools v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/src-d/go-git-fixtures.v3 v3.5.0 // indirect

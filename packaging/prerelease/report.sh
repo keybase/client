@@ -9,7 +9,7 @@ client_dir="$dir/../.."
 bucket_name=${BUCKET_NAME:-}
 
 echo "Loading release tool"
-(cd "$client_dir/go" && go install "github.com/keybase/release")
+(cd "$client_dir/go" && go install "github.com/keybase/client/go/release")
 release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 

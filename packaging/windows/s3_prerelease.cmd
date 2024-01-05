@@ -6,7 +6,7 @@ IF [%BUCKET_NAME%]==[] (
 )
 
 echo "Loading release tool"
-(cd %GOPATH%\src/github.com/keybase/client/go && go install github.com/keybase/release)
+(cd %GOPATH%\src/github.com/keybase/client/go && go install github.com/keybase/client/go/release)
 set release_bin=%GOPATH%\bin\release.exe
 
 echo "Creating index files"
