@@ -19,7 +19,7 @@
 
 ```
 git clone https://github.com/keybase/client.git c:\work\src\github.com\keybase\client
-git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keybase\go-updater
+git clone https://github.com/keybase/client/go/updater.git c:\work\src\github.com\keybase\go-updater
 ```
 
 ### Build Service, Etc

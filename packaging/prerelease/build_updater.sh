@@ -7,7 +7,7 @@ cd "$dir"
 
 build_dir=${BUILD_DIR:-/tmp/keybase}
 gopath=${GOPATH:-}
-package="github.com/keybase/go-updater/service"
+package="github.com/keybase/client/go/updater/service"
 dest="$build_dir/updater"
 arch=${ARCH:-"amd64"}
 

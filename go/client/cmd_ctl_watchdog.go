@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-updater/watchdog"
+	"github.com/keybase/client/go/updater/watchdog"
 )
 
 // CmdWatchdog defines watchdog command
