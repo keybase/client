@@ -49,7 +49,6 @@ require (
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
 	github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63
-	github.com/keybase/release v0.0.0-20240101021039-1872efc5abb0
 	github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
@@ -89,8 +88,11 @@ require (
 )
 
 require (
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/aws/aws-sdk-go v1.49.13
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
 require (
@@ -110,7 +112,6 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/alecthomas/go-check-sumtype v0.1.3 // indirect
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.2 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
@@ -123,7 +124,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.49.13 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
@@ -320,7 +320,6 @@ require (
 	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/src-d/go-git-fixtures.v3 v3.5.0 // indirect

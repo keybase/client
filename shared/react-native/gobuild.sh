@@ -42,7 +42,7 @@ PATH="$GOPATH/bin:$PATH"
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
 if [ "$check_ci" = "1" ]; then
-  (cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
+  (cd "$client_dir/go/buildtools"; go install "github.com/keybase/client/go/release")
   release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 

@@ -23,7 +23,7 @@ if [ "$platform" = "" ]; then
 fi
 
 echo "Loading release tool"
-(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/client/go/release")
 release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 

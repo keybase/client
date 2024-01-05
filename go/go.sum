@@ -79,7 +79,6 @@ github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271 h1:TBMmV9OIKIixAuZ/C
 github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271/go.mod h1:2+aQMrY0hBFBaIr2xxnZ/ctfwnYmMRMbTczYLAC34v4=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7/go.mod h1:6zEj6s6u/ghQa61ZWa/C2Aw3RkjiTBOix7dkqa1VLIs=
-github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38 h1:smF2tmSOzy2Mm+0dGI2AIUHY+w0BUc+4tn40djz7+6U=
 github.com/alecthomas/assert/v2 v2.2.2 h1:Z/iVC0xZfWTaFNE6bA3z07T86hd45Xe2eLt6WVy2bbk=
 github.com/alecthomas/go-check-sumtype v0.1.3 h1:M+tqMxB68hcgccRXBMVCPI4UJ+QUfdSx0xdbypKCqA8=
 github.com/alecthomas/go-check-sumtype v0.1.3/go.mod h1:WyYPfhfkdhyrdaligV6svFopZV8Lqdzn5pyVBaV6jhQ=
@@ -543,8 +542,6 @@ github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c h1:PRG2AXSelSy7
 github.com/keybase/msgpackzip v0.0.0-20221220225959-4abf538d2b9c/go.mod h1:DkylHDco/FLr1+GM6wg0GF4E3CCKov54MSYojKYAbS0=
 github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63 h1:zwjxaJp3XkHxS5jBFbQjcy2yHiUecymXB3MXPf0U7tg=
 github.com/keybase/pipeliner v0.0.0-20231213214924-f648db4bba63/go.mod h1:3ui+OKQTLV41wZxubSXA4oWfqg1/YSrpJ4Zs86z26OM=
-github.com/keybase/release v0.0.0-20240101021039-1872efc5abb0 h1:778AYy1IleFjqSXeXd2Uyw70Maa7huZgDyqiRx5CBjo=
-github.com/keybase/release v0.0.0-20240101021039-1872efc5abb0/go.mod h1:8d+y6J5MJbeHX7TsFPelStyCxdAw866QE4xqQbT9OSo=
 github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617 h1:z0BITnIaKvnqlZuK0BroCaZ0rMLIwFJN1/lttLG3xvw=
 github.com/keybase/saltpack v0.0.0-20231213211625-726bb684c617/go.mod h1:sslrL/EiYuXAYxsh0dUHhkWtFypUfWEz4pkES+5QWvQ=
 github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7 h1:wOqDICze0HpgV4PfV6m4fWvHV5XZteSgFHrT6KVDOkg=
