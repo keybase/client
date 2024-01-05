@@ -15,9 +15,17 @@ const Spoiler = (p: Props) => {
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
+  const lastKey = React.useRef(key)
+  if (lastKey.current !== key) {
+    lastKey.current = key
+    setShown(false)
+  }
+
   const onClick = React.useCallback(() => {
-    spoilerState.set(key, true)
-    setShown(true)
+    setShown(s => {
+      spoilerState.set(key, !s)
+      return !s
+    })
   }, [key])
 
   const showMasked = isPreview && Styles.isMobile
