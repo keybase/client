@@ -17,9 +17,9 @@ check_ci=${CHECK_CI:-1}
 
 # Notify Slack on failure
 function notify_slack {
-  if [ -n "$automated_build" ]; then
-    "$client_dir/packaging/slack/send.sh" "<@channel> Automated iOS build failed, please check out the log."
-  fi
+	if [ -n "$automated_build" ]; then
+		"$client_dir/packaging/slack/send.sh" "<@channel> Automated iOS build failed, please check out the log."
+	fi
 }
 trap notify_slack ERR
 
@@ -28,26 +28,26 @@ kbfs_branch=$(cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD)
 client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
 rn_packager_pid=""
 function reset {
-  (cd "$kbfs_dir" && git checkout "$kbfs_branch")
-  (cd "$client_dir" && git checkout "$client_branch")
-  (cd "$client_dir" && git checkout shared/ios/)
+	(cd "$kbfs_dir" && git checkout "$kbfs_branch")
+	(cd "$client_dir" && git checkout "$client_branch")
+	(cd "$client_dir" && git checkout shared/ios/)
 
-  if [ ! "$rn_packager_pid" = "" ]; then
-    echo "Killing packager $rn_packager_pid"
-    pkill -P $rn_packager_pid || true
-  fi
+	if [ ! "$rn_packager_pid" = "" ]; then
+		echo "Killing packager $rn_packager_pid"
+		pkill -P $rn_packager_pid || true
+	fi
 }
 trap reset EXIT
 
 if [ -n "$kbfs_commit" ]; then
-  cd "$kbfs_dir"
-  echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
-  git fetch
-  git reset --hard
-  git clean -f
-  git checkout "$kbfs_commit"
-  # tell gobuild.sh (called via "yarn run rn-gobuild-ios" below) to use our local commit
-  export LOCAL_KBFS=1
+	cd "$kbfs_dir"
+	echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
+	git fetch
+	git reset --hard
+	git clean -f
+	git checkout "$kbfs_commit"
+	# tell gobuild.sh (called via "yarn run rn-gobuild-ios" below) to use our local commit
+	export LOCAL_KBFS=1
 fi
 
 cd "$kbfs_dir"
@@ -55,14 +55,14 @@ echo "Recent KBFS commit log"
 git log -n 3
 
 if [ -n "$client_commit" ]; then
-  cd "$client_dir"
-  echo "Checking out $client_commit on client (will reset to $client_branch)"
-  git fetch
-  git reset --hard
-  git clean -f
-  git checkout "$client_commit"
+	cd "$client_dir"
+	echo "Checking out $client_commit on client (will reset to $client_branch)"
+	git fetch
+	git reset --hard
+	git clean -f
+	git checkout "$client_commit"
 else
-  "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
+	"$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 fi
 
 cd "$client_dir"
@@ -74,17 +74,12 @@ cd "$shared_dir"
 echo "Cleaning up main node_modules from previous runs"
 rm -rf node_modules
 yarn modules
-echo "Ensuring correct"
-yarn --check-files
-
-echo "Cocoapods"
-cd ios
-pod install --repo-update
-cd ..
+yarn pod-clean
+yarn pod-install
 
 if [ ! "$cache_go_lib" = "1" ]; then
-  echo "Building Go library"
-  CHECK_CI="$check_ci" yarn run rn-gobuild-ios
+	echo "Building Go library"
+	CHECK_CI="$check_ci" yarn run rn-gobuild-ios
 fi
 
 "$client_dir/packaging/manage_react_native_packager.sh" &
@@ -94,7 +89,7 @@ echo "Packager running with PID $rn_packager_pid"
 # Build and publish the apk
 cd "$ios_dir"
 if [ -n "$clean" ]; then
-    xcodebuild clean -workspace "Keybase.xcworkspace" -scheme "Keybase"
+	xcodebuild clean -workspace "Keybase.xcworkspace" -scheme "Keybase"
 fi
 
 # fastlane wants these set
