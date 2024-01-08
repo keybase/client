@@ -115,13 +115,11 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
       return {
         hasLoadedEver,
-        loadMoreType,
         ordinal,
         retentionPolicy,
         supersedes,
         teamRetentionPolicy,
         teamType,
-        username,
       }
     })
   )

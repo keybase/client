@@ -2582,7 +2582,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // see updatemeta
       const m = _m ?? Meta.makeConversationMeta()
       set(s => {
-        s.meta = m
+        C.updateImmer(s.meta, m)
       })
     },
     setMinWriterRole: role => {

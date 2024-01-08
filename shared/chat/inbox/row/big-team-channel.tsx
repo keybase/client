@@ -3,24 +3,38 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
+import * as RPCChatTypes from '@/constants/types/rpc-chat-gen'
 
 type Props = {
   layoutChannelname: string
   navKey: string
   selected: boolean
+  layoutSnippetDecoration?: RPCChatTypes.SnippetDecoration
 }
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
-  const {selected, layoutChannelname} = props
+  const {selected, layoutChannelname, layoutSnippetDecoration} = props
   const channelname = C.useChatContext(s => s.meta.channelname || layoutChannelname)
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
-  const snippetDecoration = C.useChatContext(s => s.meta.snippetDecoration)
+  const snippetDecoration = C.useChatContext(s => {
+    const d =
+      s.meta.conversationIDKey === C.noConversationIDKey
+        ? layoutSnippetDecoration ?? RPCChatTypes.SnippetDecoration.none
+        : s.meta.snippetDecoration
+
+    switch (d) {
+      case T.RPCChat.SnippetDecoration.pendingMessage:
+      case T.RPCChat.SnippetDecoration.failedPendingMessage:
+        return d
+      default:
+        return 0
+    }
+  })
   const hasBadge = C.useChatContext(s => s.badge > 0)
   const hasDraft = C.useChatContext(s => !!s.meta.draft)
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const isMuted = C.useChatContext(s => s.meta.isMuted)
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
-
   const onSelectConversation = () => navigateToThread('inboxBig')
 
   let outboxIcon: React.ReactNode = null

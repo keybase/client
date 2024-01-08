@@ -7,7 +7,7 @@ const BlockButtons = () => {
   const nav = Container.useSafeNavigation()
   const conversationIDKey = C.useChatContext(s => s.id)
 
-  const teamname = C.useChatContext(s => s.meta.teamname)
+  const team = C.useChatContext(s => s.meta.teamname)
   const teamID = C.useChatContext(s => s.meta.teamID)
   const blockButtonInfo = C.useChatState(s => {
     const blockButtonsMap = s.blockButtonsMap
@@ -20,7 +20,6 @@ const BlockButtons = () => {
   if (!blockButtonInfo) {
     return null
   }
-  const team = teamname
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
     person => person !== currentUser && person !== adder && !C.Chat.isAssertion(person)
