@@ -77,7 +77,7 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if typ != "fixed_height" {
 				continue
 			}
-			searchRes.PreviewUrl, searchRes.PreviewIsVideo, err = getPreferredPreview(mctx, img)
+			searchRes.PreferredPreviewUrl, searchRes.PreviewIsVideo, err = getPreferredPreview(mctx, img)
 			if err != nil {
 				continue
 			}
@@ -89,7 +89,7 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if err != nil {
 				continue
 			}
-			searchRes.PreviewUrl = srv.GetGiphyURL(mctx.Ctx(), searchRes.PreviewUrl)
+			searchRes.PreviewUrl = srv.GetGiphyURL(mctx.Ctx(), searchRes.PreferredPreviewUrl)
 			foundPreview = true
 			break
 		}
@@ -196,7 +196,20 @@ func Search(g *globals.Context, mctx libkb.MetaContext, apiKeySource types.Exter
 	}
 
 	// If we have no query first check the local store for recently used results.
-	results := storage.NewGiphyStore(g).GiphyResults(mctx.Ctx(), mctx.CurrentUID().ToBytes())
+	recentlyUsedLimit := 7
+	if mctx.G().IsMobileAppType() {
+		recentlyUsedLimit = 3
+	}
+
+	results := storage.NewGiphyStore(g).GiphyResults(mctx.Ctx(), mctx.CurrentUID().ToBytes(), recentlyUsedLimit)
+	// Refresh the local url for any previously cached results.
+	seenPreviewURLs := make(map[string]bool)
+	for i, result := range results {
+		result.PreviewUrl = srv.GetGiphyURL(mctx.Ctx(), result.PreferredPreviewUrl)
+		results[i] = result
+		seenPreviewURLs[result.PreviewUrl] = true
+	}
+
 	if len(results) > limit {
 		results = results[:limit]
 	} else if len(results) < limit { // grab trending if we don't have enough recents
@@ -206,7 +219,13 @@ func Search(g *globals.Context, mctx libkb.MetaContext, apiKeySource types.Exter
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, trendingResults...)
+		// Filter out any results already from the cached response.
+		for _, result := range trendingResults {
+			if !seenPreviewURLs[result.PreviewUrl] {
+				results = append(results, result)
+				seenPreviewURLs[result.PreviewUrl] = true
+			}
+		}
 	}
 	return results, nil
 }

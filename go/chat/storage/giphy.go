@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	giphyDiskVersion = 1
+	giphyDiskVersion = 2
 )
 
 // track frequency/mtime of giphy search results that are sent.
@@ -195,7 +195,7 @@ type giphyFrequencyResultWithScore struct {
 
 // GiphyResults returns the user's most frequently used giphy results.
 // Results are ordered by frequency and then alphabetically but may be empty
-func (s *GiphyStore) GiphyResults(ctx context.Context, uid gregor1.UID) []chat1.GiphySearchResult {
+func (s *GiphyStore) GiphyResults(ctx context.Context, uid gregor1.UID, limit int) []chat1.GiphySearchResult {
 	s.Lock()
 	defer s.Unlock()
 
@@ -213,10 +213,12 @@ func (s *GiphyStore) GiphyResults(ctx context.Context, uid gregor1.UID) []chat1.
 		}
 		return pairs[i].score > pairs[j].score
 	})
+	if len(pairs) > limit {
+		pairs = pairs[:limit]
+	}
 	results := make([]chat1.GiphySearchResult, 0, len(pairs))
 	for _, p := range pairs {
 		results = append(results, p.result.Result)
 	}
-
 	return results
 }

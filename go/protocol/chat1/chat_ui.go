@@ -2099,20 +2099,22 @@ func (o UIChatPaymentSummary) DeepCopy() UIChatPaymentSummary {
 }
 
 type GiphySearchResult struct {
-	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
-	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
-	PreviewWidth   int    `codec:"previewWidth" json:"previewWidth"`
-	PreviewHeight  int    `codec:"previewHeight" json:"previewHeight"`
-	PreviewIsVideo bool   `codec:"previewIsVideo" json:"previewIsVideo"`
+	TargetUrl           string `codec:"targetUrl" json:"targetUrl"`
+	PreferredPreviewUrl string `codec:"preferredPreviewUrl" json:"preferredPreviewUrl"`
+	PreviewUrl          string `codec:"previewUrl" json:"previewUrl"`
+	PreviewWidth        int    `codec:"previewWidth" json:"previewWidth"`
+	PreviewHeight       int    `codec:"previewHeight" json:"previewHeight"`
+	PreviewIsVideo      bool   `codec:"previewIsVideo" json:"previewIsVideo"`
 }
 
 func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 	return GiphySearchResult{
-		TargetUrl:      o.TargetUrl,
-		PreviewUrl:     o.PreviewUrl,
-		PreviewWidth:   o.PreviewWidth,
-		PreviewHeight:  o.PreviewHeight,
-		PreviewIsVideo: o.PreviewIsVideo,
+		TargetUrl:           o.TargetUrl,
+		PreferredPreviewUrl: o.PreferredPreviewUrl,
+		PreviewUrl:          o.PreviewUrl,
+		PreviewWidth:        o.PreviewWidth,
+		PreviewHeight:       o.PreviewHeight,
+		PreviewIsVideo:      o.PreviewIsVideo,
 	}
 }
 
