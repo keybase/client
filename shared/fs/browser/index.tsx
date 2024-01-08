@@ -55,17 +55,17 @@ const SelfReset = (_: Props) => (
   </Kb.Box2>
 )
 
-const DragAndDrop = ({
-  children,
-  path,
-  rejectReason,
-}: {
+const DragAndDrop = React.memo(function DragAndDrop(p: {
   children: React.ReactNode
   path: T.FS.Path
   rejectReason?: string
-}) => {
+}) {
+  const {children, path, rejectReason} = p
   const uploadFromDragAndDrop = C.useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
-  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
+  const onAttach = React.useCallback(
+    (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths),
+    [path, uploadFromDragAndDrop]
+  )
   return (
     <Kb.DragAndDrop
       allowFolders={true}
@@ -77,7 +77,7 @@ const DragAndDrop = ({
       {children}
     </Kb.DragAndDrop>
   )
-}
+})
 
 const BrowserContent = (props: Props) => {
   const parsedPath = Constants.parsePath(props.path)
