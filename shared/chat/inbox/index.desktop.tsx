@@ -369,7 +369,11 @@ class Inbox extends React.Component<TInbox.Props, State> {
                       itemCount={this.props.rows.length}
                       itemSize={this.itemSizeGetter}
                       estimatedItemSize={56}
-                      itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
+                      itemData={
+                        this.state.dragY === -1
+                          ? {rows: this.props.rows, sel: this.props.selectedConversationIDKey}
+                          : this.state.dragY
+                      }
                     >
                       {this.listChild}
                     </VariableSizeList>

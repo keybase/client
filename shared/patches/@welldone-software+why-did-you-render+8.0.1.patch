@@ -1,3 +1,20 @@
+diff --git a/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js b/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
+index 6b8284b..6f23b7c 100644
+--- a/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
++++ b/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
+@@ -409,6 +409,12 @@
+       }
+       return trackDiff(_toConsumableArray(a), _toConsumableArray(b), diffsAccumulator, pathString, diffTypes.different);
+     }
++    if (lodash.isMap(a) && lodash.isMap(b)) {
++      if (!lodash.isEqual(a, b)) {
++        return trackDiff(new Map(a), new Map(b), diffsAccumulator, pathString, diffTypes.different);
++      }
++      return trackDiff(new Map(a), new Map(b), diffsAccumulator, pathString, diffTypes.deepEquals);
++    }
+     if (lodash.isSet(a) && lodash.isSet(b)) {
+       if (a.size !== b.size) {
+         return trackDiff(new Set(a), new Set(b), diffsAccumulator, pathString, diffTypes.different);
 diff --git a/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js b/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js
 index 760e775..77f4530 100644
 --- a/node_modules/@welldone-software/why-did-you-render/jsx-dev-runtime.js

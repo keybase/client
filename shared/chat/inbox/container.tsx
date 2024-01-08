@@ -161,7 +161,6 @@ const Connected = (ownProps: OwnProps) => {
   const bigRows = React.useMemo(() => {
     return makeBigRows(bigTeams)
   }, [bigTeams])
-  const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
     (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
@@ -169,18 +168,30 @@ const Connected = (ownProps: OwnProps) => {
     bigRows.length !== 0 || !hasAllSmallTeamConvs
       ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
       : []
+
+  const builderAfterSmall = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+  const builderAfterDivider = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+  const builderAfterBig = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+  const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
   if (smallRows.length !== 0) {
     if (bigRows.length === 0) {
       if (divider.length !== 0) {
-        divider.push(teamBuilder)
+        builderAfterDivider.push(teamBuilder)
       } else {
-        smallRows.push(teamBuilder)
+        builderAfterSmall.push(teamBuilder)
       }
     } else {
-      bigRows.push(teamBuilder)
+      builderAfterBig.push(teamBuilder)
     }
   }
-  const nextRows: Array<T.Chat.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
+  const nextRows: Array<T.Chat.ChatInboxRowItem> = [
+    ...smallRows,
+    ...builderAfterSmall,
+    ...divider,
+    ...builderAfterDivider,
+    ...bigRows,
+    ...builderAfterBig,
+  ]
   let rows = nextRows
   // TODO better fix later
   if (isEqual(rows, cachedRows)) {
