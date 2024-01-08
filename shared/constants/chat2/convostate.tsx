@@ -448,7 +448,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
   const syncMessageDerived = (s: ConvoState) => {
     const mo = [...s.messageMap.keys()].sort((a, b) => a - b)
-    s.messageOrdinals = mo
+    if (!C.shallowEqual(s.messageOrdinals, mo)) {
+      s.messageOrdinals = mo
+    }
     const last = mo.at(-1)
     if (last && last > s.maxMsgIDSeen) {
       s.maxMsgIDSeen = last
@@ -2600,10 +2602,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setParticipants: p => {
       set(s => {
-        if (!isEqual(s.participants.all, p.all)) {
+        if (!C.shallowEqual(s.participants.all, p.all)) {
           s.participants.all = p.all
         }
-        if (!isEqual(s.participants.name, p.name)) {
+        if (!C.shallowEqual(s.participants.name, p.name)) {
           s.participants.name = p.name
         }
         if (!isEqual(s.participants.contactName, p.contactName)) {

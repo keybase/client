@@ -12,7 +12,7 @@ type Props = {
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const {selected, layoutChannelname} = props
-  const channelname = C.useChatContext(s => s.meta.channelname) || layoutChannelname
+  const channelname = C.useChatContext(s => s.meta.channelname || layoutChannelname)
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
   const snippetDecoration = C.useChatContext(s => s.meta.snippetDecoration)
   const hasBadge = C.useChatContext(s => s.badge > 0)

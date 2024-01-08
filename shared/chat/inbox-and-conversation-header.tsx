@@ -22,8 +22,12 @@ const Header2 = (props: Props) => {
   const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const participantInfo = C.useChatContext(s => s.participants)
-  const meta = C.useChatContext(s => s.meta)
-  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
+  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = C.useChatContext(
+    C.useShallow(s => {
+      const {channelname, descriptionDecorated, isMuted, teamType, teamname} = s.meta
+      return {channelname, descriptionDecorated, isMuted, teamType, teamname}
+    })
+  )
   // TODO not reactive
   const canEditDesc = C.Teams.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
   const otherParticipants = C.Chat.getRowParticipants(participantInfo, username)

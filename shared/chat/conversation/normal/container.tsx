@@ -16,11 +16,8 @@ const useOrangeLine = () => {
   const maxMsgID = C.useChatContext(s => s.meta.maxMsgID)
   const metaOrangeShow = maxMsgID > readMsgID
   const active = C.useActiveState(s => s.active)
-
-  const initOrangeLine = () => {
-    return metaOrangeShow ? readMsgID : 0
-  }
-  const [orangeLine, setOrangeLine] = React.useState(initOrangeLine())
+  const initOrangeLine = metaOrangeShow ? readMsgID : 0
+  const [orangeLine, setOrangeLine] = React.useState(initOrangeLine)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const [lastReadMsgID, setLastReadMsgID] = React.useState(readMsgID)
   const [metaGood, setMetaGood] = React.useState(readMsgID > 0)
@@ -40,7 +37,7 @@ const useOrangeLine = () => {
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
     setLastReadMsgID(readMsgID)
-    setOrangeLine(initOrangeLine())
+    setOrangeLine(initOrangeLine)
   }
 
   // not active and we should show?
@@ -57,10 +54,9 @@ const useOrangeLine = () => {
   return orangeLine
 }
 
-const NormalWrapper = React.memo(function NormalWrapper() {
-  const orangeLine = useOrangeLine()
+const WithOrange = React.memo(function WithOrange(p: {orangeLine: number}) {
   return (
-    <OrangeLineContext.Provider value={orangeLine}>
+    <OrangeLineContext.Provider value={p.orangeLine}>
       <FocusProvider>
         <ScrollProvider>
           <Normal />
@@ -68,5 +64,10 @@ const NormalWrapper = React.memo(function NormalWrapper() {
       </FocusProvider>
     </OrangeLineContext.Provider>
   )
+})
+
+const NormalWrapper = React.memo(function NormalWrapper() {
+  const orangeLine = useOrangeLine()
+  return <WithOrange orangeLine={orangeLine} />
 })
 export default NormalWrapper

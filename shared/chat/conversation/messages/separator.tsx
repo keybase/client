@@ -205,17 +205,16 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 }
 
 const useState = (ordinal: T.Chat.Ordinal) => {
-  const participantInfoNames = C.useChatContext(s => s.participants.name)
-  const meta = C.useChatContext(s => s.meta)
   const d = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
+      const participantInfoNames = s.participants.name
       const {author, timestamp} = m
-      const {teamID, botAliases, teamType} = meta
+      const {teamID, botAliases, teamType, teamname} = s.meta
       // TODO not reactive
       const authorRoleInTeam = C.useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
       const botAlias = botAliases[author] ?? ''
-      const authorIsBot = meta.teamname
+      const authorIsBot = teamname
         ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
         : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
           ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
@@ -229,7 +228,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       }
     })
   )
-  return {...d, participantInfoNames}
+  return {...d}
 }
 
 type SProps = {
