@@ -18,10 +18,10 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
         ? 'icon-shh-active-26-21'
         : 'icon-shh-26-21'
       : isLocked
-      ? isSelected
-        ? 'icon-addon-lock-active-22'
-        : 'icon-addon-lock-22'
-      : null
+        ? isSelected
+          ? 'icon-addon-lock-active-22'
+          : 'icon-addon-lock-22'
+        : null
     if (!type) return null
     return <Kb.Icon type={type} style={styles.mutedIcon} />
   }
@@ -74,22 +74,30 @@ const Avatars = React.memo(function Avatars(p: Props) {
   const {isSelected = false} = p
   const opacity = isLocked ? 0.4 : 1
 
-  const leftProps = {
-    loadingColor: Styles.globalColors.greyLight,
-    size: 32,
-    skipBackground: Styles.isMobile,
-    style: {left: 0, position: 'absolute', top: 0},
-    username: participantTwo,
-  } as const
+  const leftProps = React.useMemo(
+    () =>
+      ({
+        loadingColor: Styles.globalColors.greyLight,
+        size: 32,
+        skipBackground: Styles.isMobile,
+        style: {left: 0, position: 'absolute', top: 0},
+        username: participantTwo,
+      }) as const,
+    [participantTwo]
+  )
 
-  const rightProps = {
-    borderColor: backgroundColor,
-    loadingColor: Styles.globalColors.greyLight,
-    size: 32,
-    skipBackground: Styles.isMobile,
-    style: {bottom: 0, position: 'absolute', right: 0},
-    username: participantOne,
-  } as const
+  const rightProps = React.useMemo(
+    () =>
+      ({
+        borderColor: backgroundColor,
+        loadingColor: Styles.globalColors.greyLight,
+        size: 32,
+        skipBackground: Styles.isMobile,
+        style: {bottom: 0, position: 'absolute', right: 0},
+        username: participantOne,
+      }) as const,
+    [participantOne, backgroundColor]
+  )
 
   const containerStyle = Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])
 

@@ -86,14 +86,15 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
 
 type TProps = {
   showUsername: string
-  authorRoleInTeam?: string
+  authorIsOwner: boolean
+  authorIsAdmin: boolean
   authorIsBot: boolean
   botAlias: string
   timestamp: number
   teamType: T.Chat.TeamType
 }
 const TopSide = React.memo(function TopSide(p: TProps) {
-  const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
+  const {timestamp, botAlias, showUsername, authorIsBot, authorIsAdmin, authorIsOwner, teamType} = p
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
@@ -104,8 +105,6 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     }
   }, [showUser, showUsername, showUserProfile])
 
-  const authorIsOwner = authorRoleInTeam === 'owner'
-  const authorIsAdmin = authorRoleInTeam === 'admin'
   const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
   const usernameNode = (
@@ -213,6 +212,8 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       const {teamID, botAliases, teamType, teamname} = s.meta
       // TODO not reactive
       const authorRoleInTeam = C.useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
+      const authorIsOwner = authorRoleInTeam === 'owner'
+      const authorIsAdmin = authorRoleInTeam === 'admin'
       const botAlias = botAliases[author] ?? ''
       const authorIsBot = teamname
         ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
@@ -220,15 +221,16 @@ const useState = (ordinal: T.Chat.Ordinal) => {
           ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
           : false
       return {
+        authorIsAdmin,
         authorIsBot,
-        authorRoleInTeam,
+        authorIsOwner,
         botAlias,
         teamType,
         timestamp,
       }
     })
   )
-  return {...d}
+  return d
 }
 
 type SProps = {
@@ -236,11 +238,25 @@ type SProps = {
   showUsername: string
   orangeLineAbove: boolean
 }
+
+const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
+  const {ordinal, username} = p
+  const mdata = useState(ordinal)
+  const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
+  return (
+    <TopSide
+      showUsername={username}
+      botAlias={botAlias}
+      timestamp={timestamp}
+      authorIsOwner={authorIsOwner}
+      authorIsAdmin={authorIsAdmin}
+      authorIsBot={authorIsBot}
+      teamType={teamType}
+    />
+  )
+})
 const Separator = React.memo(function Separator(p: SProps) {
   const {ordinal, orangeLineAbove, showUsername} = p
-  const mdata = useState(ordinal)
-  const {botAlias, authorRoleInTeam, authorIsBot, timestamp, teamType} = mdata
-
   return (
     <Kb.Box2
       direction="horizontal"
@@ -250,16 +266,7 @@ const Separator = React.memo(function Separator(p: SProps) {
       className="WrapperMessage-hoverColor"
     >
       {showUsername ? <LeftSide username={showUsername} /> : null}
-      {showUsername ? (
-        <TopSide
-          showUsername={showUsername}
-          botAlias={botAlias}
-          timestamp={timestamp}
-          authorRoleInTeam={authorRoleInTeam}
-          authorIsBot={authorIsBot}
-          teamType={teamType}
-        />
-      ) : null}
+      {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
       {orangeLineAbove ? <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} /> : null}
     </Kb.Box2>
   )
