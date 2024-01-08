@@ -6,7 +6,12 @@ import ThreadSearch from '../search/container'
 const InputAreaContainer = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
-  const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(s => s.meta)
+  const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(
+    C.useShallow(s => {
+      const {membershipType, resetParticipants, wasFinalizedBy} = s.meta
+      return {membershipType, resetParticipants, wasFinalizedBy}
+    })
+  )
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (

@@ -7,6 +7,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import * as RowSizes from '../sizes'
 import type * as T from '@/constants/types'
 import SwipeConvActions from './swipe-conv-actions'
+import * as RPCChatTypes from '@/constants/types/rpc-chat-gen'
 import './small-team.css'
 import {
   IsTeamContext,
@@ -24,39 +25,42 @@ export type Props = {
   layoutName?: string
   layoutSnippet?: string
   layoutTime?: number
+  layoutSnippetDecoration?: RPCChatTypes.SnippetDecoration
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   onSelectConversation?: () => void
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
-  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
+  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
   const {isInWidget, swipeCloseRef} = p
-
-  const typingSnippet = C.useChatContext(s => {
-    const typers = !isInWidget ? s.typing : undefined
-    if (!typers?.size) return undefined
-    return typers.size === 1
-      ? `${typers.values().next().value as string} is typing...`
-      : 'Multiple people typing...'
-  })
 
   const {snippet, snippetDecoration} = C.useChatContext(
     C.useShallow(s => {
+      const typingSnippet = (() => {
+        const typers = !isInWidget ? s.typing : undefined
+        if (!typers?.size) return undefined
+        return typers.size === 1
+          ? `${typers.values().next().value as string} is typing...`
+          : 'Multiple people typing...'
+      })()
+
       const {meta} = s
       // only use layout if we don't have the meta at all
       const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
       const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-      const snippetDecoration = meta.snippetDecoration
+      const snippetDecoration =
+        meta.conversationIDKey === C.noConversationIDKey
+          ? layoutSnippetDecoration ?? RPCChatTypes.SnippetDecoration.none
+          : meta.snippetDecoration
       return {snippet, snippetDecoration}
     })
   )
-
   const you = C.useCurrentUserState(s => s.username)
-  const participantInfo = C.useChatContext(s => s.participants)
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
   const participants = C.useChatContext(
     C.useShallow(s => {
       const {meta} = s
+      const participantInfo = s.participants
       const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
       const channelname = isInWidget ? meta.channelname : ''
       if (teamname && channelname) {

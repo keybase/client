@@ -6,7 +6,8 @@ import PinnedMessage from '.'
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const conversationIDKey = C.useChatContext(s => s.id)
   const you = C.useCurrentUserState(s => s.username)
-  const {teamname, pinnedMsg} = C.useChatContext(s => s.meta)
+  const teamname = C.useChatContext(s => s.meta.teamname)
+  const pinnedMsg = C.useChatContext(s => s.meta.pinnedMsg)
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const message = pinnedMsg?.message
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))

@@ -87,7 +87,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
   const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-  const {cannotWrite, minWriterRole} = C.useChatContext(s => s.meta)
+  const cannotWrite = C.useChatContext(s => s.meta.cannotWrite)
+  const minWriterRole = C.useChatContext(s => s.meta.minWriterRole)
   const replyTo = C.useChatContext(s => s.messageMap.get(s.replyTo)?.id)
   const editOrdinal = C.useChatContext(s => s.editing)
   const isEditExploded = C.useChatContext(s =>
