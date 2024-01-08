@@ -281,6 +281,10 @@ helpers.rootLinuxNode(env, {
                   println "Test Windows"
                   parallel (
                     test_windows_go: {
+                      // install the updater test binary
+                      dir('go') {
+                        sh "go install github.com/keybase/client/go/updater/test"
+                      }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
                     }
                   )
