@@ -196,6 +196,8 @@ helpers.rootLinuxNode(env, {
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
                 if (hasGoChanges || hasJenkinsfileChanges) {
+                  // install the updater test binary
+                  sh "go install github.com/keybase/client/go/updater/test"
                   testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
                 }
               }},
@@ -458,6 +460,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
         sh 'go install github.com/golangci/golangci-lint/cmd/golangci-lint'
       }
     }
+    //
 
     // TODO re-enable for kbfs.
     // if (hasKBFSChanges) {
