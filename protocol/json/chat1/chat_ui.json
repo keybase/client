@@ -1648,6 +1648,10 @@
         },
         {
           "type": "string",
+          "name": "preferredPreviewUrl"
+        },
+        {
+          "type": "string",
           "name": "previewUrl"
         },
         {

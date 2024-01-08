@@ -21,7 +21,7 @@ func TestGiphyStorage(t *testing.T) {
 
 	store := storage.NewGiphyStore(tc.Context())
 
-	giphyRes := store.GiphyResults(ctx, uid)
+	giphyRes := store.GiphyResults(ctx, uid, 5)
 	require.Equal(t, len(giphyRes), 0)
 
 	giphy1 := chat1.GiphySearchResult{
@@ -30,7 +30,7 @@ func TestGiphyStorage(t *testing.T) {
 	err := store.Put(ctx, uid, giphy1)
 	require.NoError(t, err)
 
-	giphyRes = store.GiphyResults(ctx, uid)
+	giphyRes = store.GiphyResults(ctx, uid, 5)
 	require.Equal(t, len(giphyRes), 1)
 	require.Equal(t, giphyRes[0], giphy1)
 
@@ -40,7 +40,7 @@ func TestGiphyStorage(t *testing.T) {
 	err = store.Put(ctx, uid, giphy2)
 	require.NoError(t, err)
 
-	giphyRes = store.GiphyResults(ctx, uid)
+	giphyRes = store.GiphyResults(ctx, uid, 5)
 	require.Equal(t, len(giphyRes), 2)
 	require.Equal(t, giphyRes[0], giphy1)
 	require.Equal(t, giphyRes[1], giphy2)
@@ -48,8 +48,12 @@ func TestGiphyStorage(t *testing.T) {
 	err = store.Put(ctx, uid, giphy2)
 	require.NoError(t, err)
 
-	giphyRes = store.GiphyResults(ctx, uid)
+	giphyRes = store.GiphyResults(ctx, uid, 5)
 	require.Equal(t, len(giphyRes), 2)
 	require.Equal(t, giphyRes[0], giphy2)
 	require.Equal(t, giphyRes[1], giphy1)
+
+	giphyRes = store.GiphyResults(ctx, uid, 1)
+	require.Equal(t, len(giphyRes), 1)
+	require.Equal(t, giphyRes[0], giphy2)
 }

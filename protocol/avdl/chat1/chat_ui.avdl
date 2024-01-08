@@ -458,7 +458,8 @@ protocol chatUi {
 
  record GiphySearchResult {
     string targetUrl;
-    string previewUrl;
+    string preferredPreviewUrl; // url to giphy
+    string previewUrl; // internal url to attachment_httpsrv
     int previewWidth;
     int previewHeight;
     boolean previewIsVideo;
