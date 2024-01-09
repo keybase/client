@@ -249,7 +249,7 @@ func TestWatchdogExitAllRace(t *testing.T) {
 		assertOneProcessIsRunning(procProgram2)
 	}
 
-	// spin up three watchdogs at the same time withe the same three programs
+	// spin up three watchdogs at the same time with the same three programs
 	var wg sync.WaitGroup
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
