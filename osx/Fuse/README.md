@@ -1,6 +1,6 @@
 ## KBFuse
 
-KBFuse is OSXFuse (or Fuse for MacOS) "branded" for Keybase. This is so we can maintain, install and upgrade fuse without
+KBFuse is OSXFuse (or Fuse for macOS) "branded" for Keybase. This is so we can maintain, install and upgrade Fuse without
 conflicting with existing OSXFuse installs. It also allows us to sign the kext with our certificate instead
 of relying on 3rd party binaries shipped from other developers.
 
@@ -11,21 +11,20 @@ of relying on 3rd party binaries shipped from other developers.
 First of all, we can't have a kernel extension built for a newer kernel and
 run in on older kernels, but we can generally have a kernel extension built for
 an older kernel and run it on newer kernels. So we'll try to build for the
-oldest possible (compatible) kernel, to have a fewer kernel extensions built as
+oldest possible (compatible) kernel, to have as few kernel extensions built as
 possible.
 
-It's possible to build for many macOS versions but it requrues a patched Xcode.
-So are targeting 11+ now.  We'll build for macOS 11, and make a symlink of
-macOS 12 All these are handled by the build script, but we'll need the
+It's possible to build for many macOS versions but it requires a patched Xcode.
+So we are targeting 12+ now.  We'll build for macOS 12, and make a symlink for
+macOS 13. All these are handled by the build script, but we'll need the
 appropriate SDKs to build against.
 
-Xcode 13 (13.0) is the latest version that includes the macOS 11 SDK, so we'll
-need it installed on the macOS where you build the KBFuse bundle. I have Xcode
-13.2.1 installed as well but not sure it's needed
+Xcode 13 (13.1) is the oldest version that already includes the macOS 12 SDK, so we'll
+need it installed on the macOS where you build the KBFuse bundle.
 
 Older versions of Xcode can be downloaded from the [Apple official developer
 site](https://developer.apple.com/download/more/). It has to live under
-`/Applications`, but under a different name, e.g. `/Applications/Xcode-10.3`.
+`/Applications`, but under a different name, e.g. `/Applications/Xcode-12.0`.
 Don't worry about making the naming scheme exact, as the OSXFuse builder is
 able to spotlight different versions automatically.
 [Here](https://medium.com/@hacknicity/working-with-multiple-versions-of-xcode-e331c01aa6bc)'s
@@ -41,12 +40,12 @@ for some pointers.
 
 ### Building KBFuse
 
-    VERSION=4.2.4 ./build.sh
+    VERSION=4.4.1 ./build.sh
 
-This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
+This should generate a `kbfuse.bundle` (and `fsbundle.tgz`, that includes debug symbols)
 which you can submit for PR.
 
-This bundle is included in the KeybaseInstaller.app, so you'll need to build a new
+This bundle is included in the `KeybaseInstaller.app`, so you'll need to build a new
 installer, see [Building the Installer](/osx/Scripts/README.md).
 
 Be sure to switch back to latest Xcode after you build.
