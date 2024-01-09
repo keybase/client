@@ -89,7 +89,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate(Platform.isMobile ? C.settingsCryptoTab : encryptTab)
+          onNavigate(Platform.isMobile ? C.Settings.settingsCryptoTab : encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}
@@ -130,7 +130,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate(C.settingsDisplayTab)
+          onNavigate(C.Settings.settingsDisplayTab)
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.

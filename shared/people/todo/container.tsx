@@ -50,7 +50,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -63,7 +63,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -162,7 +162,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
     if (C.isMobile) {
-      navigateAppend({props: {}, selected: C.settingsGitTab})
+      navigateAppend({props: {}, selected: C.Settings.settingsGitTab})
     } else {
       switchTab(C.gitTab)
     }
@@ -207,7 +207,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
     switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -246,7 +246,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
     switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -276,7 +276,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
     switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')

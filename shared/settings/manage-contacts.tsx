@@ -72,7 +72,7 @@ const ManageContactsBanner = () => {
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: C.settingsFeedbackTab,
+      selected: C.Settings.settingsFeedbackTab,
     })
   }, [navigateAppend, error])
 

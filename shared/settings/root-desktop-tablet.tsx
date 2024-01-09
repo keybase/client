@@ -56,7 +56,7 @@ const shimKeys = Object.keys(shimmed) as Array<keyof typeof settingsSubRoutes>
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={C.settingsAccountTab} backBehavior="none">
+  <TabNavigator.Navigator initialRouteName={C.Settings.settingsAccountTab} backBehavior="none">
     {shimKeys.map(name => (
       <TabNavigator.Screen
         key={name}

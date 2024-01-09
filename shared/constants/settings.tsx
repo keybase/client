@@ -20,6 +20,7 @@ export const settingsWaitingKey = 'settings:generic'
 
 export const settingsAboutTab = 'settingsTabs.aboutTab'
 export const settingsAdvancedTab = 'settingsTabs.advancedTab'
+export const settingsArchiveTab = 'settingsTabs.archiveTab'
 export const settingsChatTab = 'settingsTabs.chatTab'
 export const settingsCryptoTab = 'settingsTabs:cryptoTab'
 export const settingsDevicesTab = 'settingsTabs.devicesTab'

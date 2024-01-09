@@ -881,7 +881,7 @@ export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Pa
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
-export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, C.settingsFsTab] : [Tabs.fsTab]
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, C.Settings.settingsFsTab] : [Tabs.fsTab]
 
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2

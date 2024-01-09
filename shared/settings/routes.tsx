@@ -35,11 +35,13 @@ import contactsTab from './manage-contacts.page'
 import webLinks from './web-links.page'
 import settingsContactsJoined from './contacts-joined/page'
 import settingsPushPrompt from './notifications/push-prompt.page'
+import archive from './archive/index.page'
 
 export const sharedNewRoutes = {
   [Constants.settingsAboutTab]: about,
   [Constants.settingsAccountTab]: account,
   [Constants.settingsAdvancedTab]: advanced,
+  [Constants.settingsArchiveTab]: archive,
   [Constants.settingsChatTab]: chat,
   [Constants.settingsCryptoTab]: crypto,
   [Constants.settingsDevicesTab]: devicesRoutes.devicesRoot,

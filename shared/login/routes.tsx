@@ -18,7 +18,7 @@ import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {
-  feedback: settingsRoutes[C.settingsFeedbackTab],
+  feedback: settingsRoutes[C.Settings.settingsFeedbackTab],
   login,
   recoverPasswordDeviceSelector,
   recoverPasswordError,
