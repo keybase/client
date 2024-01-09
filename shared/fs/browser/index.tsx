@@ -79,7 +79,7 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
   )
 })
 
-const BrowserContent = (props: Props) => {
+const BrowserContent = React.memo(function BrowserContent(props: Props) {
   const parsedPath = Constants.parsePath(props.path)
   if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
@@ -124,9 +124,9 @@ const BrowserContent = (props: Props) => {
       path={props.path}
       rejectReason={props.writable ? undefined : "You don't have write permission in this folder."}
     >
-      <Rows path={props.path} headerRows={[...resetBannerAsRows(props.path, props.resetBannerType)]} />
+      <Rows path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
     </DragAndDrop>
   )
-}
+})
 
 export default Container

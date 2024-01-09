@@ -60,6 +60,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
 
 export default ConnectedBanner
 
+const noRows = new Array<RowTypes.HeaderRowItem>()
 export const asRows = (
   path: T.FS.Path,
   resetBannerType: T.FS.ResetBannerType
@@ -73,4 +74,4 @@ export const asRows = (
           rowType: RowTypes.RowType.Header,
         },
       ]
-    : []
+    : noRows

@@ -102,7 +102,7 @@ const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<Sectio
   }, [destinationPickerIndex, privateTopN, publicTopN, teamTopN, n, username])
 }
 
-const Root = ({destinationPickerIndex}: Props) => {
+const Root = React.memo(function Root({destinationPickerIndex}: Props) {
   const top10 = useRecentTlfs(10, destinationPickerIndex)
   const sections = [
     ...(destinationPickerIndex
@@ -133,6 +133,6 @@ const Root = ({destinationPickerIndex}: Props) => {
       />
     </Kb.BoxGrow>
   )
-}
+})
 
 export default Root
