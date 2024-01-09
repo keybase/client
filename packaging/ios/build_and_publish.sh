@@ -43,9 +43,7 @@ if [ -n "$kbfs_commit" ]; then
 	cd "$kbfs_dir"
 	echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
 	git fetch
-	git reset --hard
-	git clean -f
-	git checkout "$kbfs_commit"
+	git reset --hard "origin/$kbfs_commit"
 	# tell gobuild.sh (called via "yarn run rn-gobuild-ios" below) to use our local commit
 	export LOCAL_KBFS=1
 fi
@@ -58,10 +56,12 @@ if [ -n "$client_commit" ]; then
 	cd "$client_dir"
 	echo "Checking out $client_commit on client (will reset to $client_branch)"
 	git fetch
-	git reset --hard
-	git clean -f
-	git checkout "$client_commit"
+	git reset --hard "origin/$client_commit"
 else
+	echo "Checking out master on client"
+	cd "$client_dir"
+	git fetch
+	git reset --hard "origin/master"
 	"$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 fi
 
