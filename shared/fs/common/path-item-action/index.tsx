@@ -36,20 +36,24 @@ type ICProps = {
   sizeType: SizeType
   actionIconWhite?: boolean | undefined
 }
-const IconClickable = (props: ICProps) => (
-  <Kb.WithTooltip tooltip="More actions">
-    <Kb.Icon
-      fixOverdraw={false}
-      type="iconfont-ellipsis"
-      color={props.actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
-      hoverColor={props.actionIconWhite ? undefined : Kb.Styles.globalColors.black}
-      padding="tiny"
-      sizeType={props.sizeType}
-      onClick={props.onClick}
-      ref={props.measureRef}
-    />
-  </Kb.WithTooltip>
-)
+const IconClickable = React.memo(function IconClickable(props: ICProps) {
+  return (
+    <Kb.WithTooltip tooltip="More actions">
+      <Kb.Icon
+        fixOverdraw={false}
+        type="iconfont-ellipsis"
+        color={
+          props.actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50
+        }
+        hoverColor={props.actionIconWhite ? undefined : Kb.Styles.globalColors.black}
+        padding="tiny"
+        sizeType={props.sizeType}
+        onClick={props.onClick}
+        ref={props.measureRef}
+      />
+    </Kb.WithTooltip>
+  )
+})
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props

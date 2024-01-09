@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PieSlice from './pie-slice'
@@ -70,8 +71,8 @@ function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string 
   }
 }
 
-const PathStatusIcon = (props: Props) =>
-  props.statusIcon ? (
+const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
+  return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
       showOnPressMobile={props.showTooltipOnPressMobile}
@@ -99,6 +100,7 @@ const PathStatusIcon = (props: Props) =>
   ) : (
     <Kb.Box style={styles.placeholder} />
   )
+})
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {

@@ -44,20 +44,12 @@ class List2<T> extends React.PureComponent<Props<T>> {
   }
 
   private variableSizeListRef = React.createRef<VariableSizeList>()
-
-  _variable = (p: {
-    height: number
-    width: number
-    getItemLayout: (
-      index: number,
-      item?: T | undefined
-    ) => {
-      index: number
-      length: number
-      offset: number
-    }
-  }) => {
-    const {height, width, getItemLayout} = p
+  _variableItemSize = (index: number) =>
+    this.props.itemHeight.type === 'variable'
+      ? this.props.itemHeight.getItemLayout(index, this.props.items[index]).length
+      : 0
+  _variable = (p: {height: number; width: number}) => {
+    const {height, width} = p
     return (
       <VariableSizeList
         ref={this.variableSizeListRef}
@@ -67,7 +59,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
         itemCount={this.props.items.length}
         itemData={this.props.items}
         itemKey={this._keyExtractor}
-        itemSize={index => getItemLayout(index, this.props.items[index]).length}
+        itemSize={this._variableItemSize}
         estimatedItemSize={this.props.estimatedItemHeight}
       >
         {this._row}
@@ -101,7 +93,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
               return this._fixed({height, itemHeight, width})
             }
             case 'variable':
-              return this._variable({getItemLayout: this.props.itemHeight.getItemLayout, height, width})
+              return this._variable({height, width})
             default:
               return <></>
           }

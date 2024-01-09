@@ -17,7 +17,7 @@ type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
 }
-const ExplodingButton = (p: ExplodingButtonProps) => {
+const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonProps) {
   const {explodingModeSeconds, focusInput} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -66,10 +66,10 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-}
+})
 
 type EmojiButtonProps = {inputRef: InputRefType}
-const EmojiButton = (p: EmojiButtonProps) => {
+const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
   const {inputRef} = p
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
@@ -115,9 +115,9 @@ const EmojiButton = (p: EmojiButtonProps) => {
       {popup}
     </>
   )
-}
+})
 
-const GiphyButton = () => {
+const GiphyButton = React.memo(function GiphyButton() {
   const toggleGiphyPrefill = C.useChatContext(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
@@ -128,7 +128,7 @@ const GiphyButton = () => {
       </Kb.Box>
     </Kb.WithTooltip>
   )
-}
+})
 
 const fileListToPaths = (f: any): Array<string> =>
   Array.prototype.map.call(f || [], (f: File) => {
@@ -137,7 +137,7 @@ const fileListToPaths = (f: any): Array<string> =>
     return f.path
   }) as any
 
-const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
+const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
   const {htmlInputRef} = p
   const navigateAppend = C.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
@@ -170,7 +170,7 @@ const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
       </Kb.Box>
     </Kb.WithTooltip>
   )
-}
+})
 
 const Footer = (p: {focusInput: () => void}) => {
   return (

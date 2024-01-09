@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
@@ -5,11 +6,14 @@ import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
 type Props = {path: T.FS.Path}
 
-const OpenInSystemFileManager = ({path}: Props) => {
+const OpenInSystemFileManager = React.memo(function OpenInSystemFileManager({path}: Props) {
   const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
-  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
+  const openInSystemFileManager = React.useCallback(
+    () => openPathInSystemFileManagerDesktop?.(path),
+    [openPathInSystemFileManagerDesktop, path]
+  )
   return (
     <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
       <Kb.Icon
@@ -21,7 +25,7 @@ const OpenInSystemFileManager = ({path}: Props) => {
       />
     </Kb.WithTooltip>
   )
-}
+})
 
 const OpenInSFM = (props: Props) => {
   const sfmiBannerDismissed = C.useFSState(s => s.settings.sfmiBannerDismissed)
