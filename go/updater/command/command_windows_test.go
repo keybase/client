@@ -11,11 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/go-logging"
 	"github.com/stretchr/testify/assert"
 )
-
-var testLog = &logging.Logger{Module: "test"}
 
 func TestExecEchoWindows(t *testing.T) {
 	result, err := Exec("cmd", []string{"/c", "echo", "arg1", "arg2"}, time.Second, testLog)
