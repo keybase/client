@@ -4,7 +4,7 @@ set -eE -u -o pipefail # Fail on error, call ERR trap
 
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 client_dir="$dir/../.."
 kbfs_dir="$client_dir/go/kbfs"
 shared_dir="$client_dir/shared"
@@ -16,9 +16,9 @@ check_ci=${CHECK_CI:-1}
 
 # Notify Slack on failure
 function notify_slack {
-  if [ -n "$automated_build" ]; then
-    "$client_dir/packaging/slack/send.sh" "<@channel> Automated Android build failed, please check out the log."
-  fi
+	if [ -n "$automated_build" ]; then
+		"$client_dir/packaging/slack/send.sh" "<@channel> Automated Android build failed, please check out the log."
+	fi
 }
 trap notify_slack ERR
 
@@ -28,20 +28,20 @@ trap notify_slack ERR
 client_branch=$(cd "$client_dir" && git rev-parse --abbrev-ref HEAD)
 rn_packager_pid=""
 function reset {
-  (cd "$client_dir" && git checkout "$client_branch")
+	(cd "$client_dir" && git checkout "$client_branch")
 
-  if [ ! "$rn_packager_pid" = "" ]; then
-    echo "Killing packager $rn_packager_pid"
-    pkill -P $rn_packager_pid || true
-  fi
+	if [ ! "$rn_packager_pid" = "" ]; then
+		echo "Killing packager $rn_packager_pid"
+		pkill -P $rn_packager_pid || true
+	fi
 }
 trap reset EXIT
 
 if [ -n "$client_commit" ]; then
-  cd "$client_dir"
-  echo "Checking out $client_commit on client (will reset to $client_branch)"
-  git fetch
-  git checkout "$client_commit"
+	cd "$client_dir"
+	echo "Checking out $client_commit on client (will reset to $client_branch)"
+	git fetch
+	git checkout "$client_commit"
 fi
 
 cd "$client_dir"
@@ -51,14 +51,14 @@ git log -n 3
 cd "$shared_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
-  echo "Cleaning up main node_modules from previous runs"
-  yarn install --pure-lockfile --ignore-optional --prefer-offline --check-files
+	echo "Cleaning up main node_modules from previous runs"
+	rm -rf node_modules
+	yarn modules
 fi
 
-
 if [ ! "$cache_go_lib" = "1" ]; then
-  echo "Building Go library"
-  CHECK_CI="$check_ci" yarn run rn-gobuild-android
+	echo "Building Go library"
+	CHECK_CI="$check_ci" yarn run rn-gobuild-android
 fi
 
 # We can't currently automate this :(, we used to be able to `echo y | android update ...` but that no longer works
