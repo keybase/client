@@ -178,6 +178,9 @@ func testTerminateAll(t *testing.T, path string, matcher Matcher, numProcs int) 
 }
 
 func TestFindProcessWait(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	procPath := procPath(t, "testFindProcessWait")
 	cmd := exec.Command(procPath, "sleep")
 	defer cleanupProc(cmd, procPath)
