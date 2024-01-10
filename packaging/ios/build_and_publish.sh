@@ -66,7 +66,6 @@ else
 	git checkout "master"
 	git reset --hard "origin/master"
 	git pull origin master --ff-only
-	"$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 fi
 
 cd "$client_dir"
