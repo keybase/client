@@ -25,7 +25,7 @@ const UnlockFolders = React.memo(function (p: ProxyProps) {
 const UnlockRemoteProxy = () => {
   const devices = C.useConfigState(s => s.unlockFoldersDevices)
   const paperKeyError = C.useConfigState(s => s.unlockFoldersError)
-  const waiting = C.useAnyWaiting('unlock-folders:waiting')
+  const waiting = C.Waiting.useAnyWaiting('unlock-folders:waiting')
   if (devices.length) {
     return (
       <UnlockFolders

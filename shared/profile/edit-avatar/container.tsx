@@ -17,12 +17,12 @@ const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = C.useAnyErrors(C.Profile.uploadAvatarWaitingKey)
+  const sperror = C.Waiting.useAnyErrors(C.Profile.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = C.useAnyWaiting(C.Profile.uploadAvatarWaitingKey)
+  const submitting = C.Waiting.useAnyWaiting(C.Profile.uploadAvatarWaitingKey)
   const teamname = C.useTeamsState(s => (teamID ? C.Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     dispatchClearWaiting(C.Profile.uploadAvatarWaitingKey)

@@ -9,7 +9,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 const ManageContacts = () => {
   const status = C.useSettingsContactsState(s => s.permissionStatus)
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const waiting = C.useAnyWaiting(C.importContactsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 

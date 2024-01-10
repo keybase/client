@@ -57,7 +57,7 @@ export const WaveButton = (props: Props) => {
 const WaveButtonImpl = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
-  const waving = C.useAnyWaiting(waitingKey)
+  const waving = C.Waiting.useAnyWaiting(waitingKey)
   const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const messageSendByUsername = C.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {

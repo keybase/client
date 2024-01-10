@@ -16,7 +16,7 @@ const CodePageContainer = () => {
   const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
   const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
-  const waiting = C.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

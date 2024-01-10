@@ -9,7 +9,7 @@ const Container = () => {
   const error = C.useProvisionState(s => s.error)
   const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
-  const waiting = C.useAnyWaiting(C.Provision.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {

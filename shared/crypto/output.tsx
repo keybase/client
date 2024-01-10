@@ -27,7 +27,7 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = C.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
 
   const {
     outputSigned: signed,
@@ -163,7 +163,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waiting = C.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
 
   const {
     output,
@@ -378,7 +378,7 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = C.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =

@@ -124,7 +124,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
-  const waiting = C.useAnyWaiting(C.Devices.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp

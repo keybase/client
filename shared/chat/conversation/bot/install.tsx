@@ -96,7 +96,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = C.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
+  const error = C.Waiting.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -155,7 +155,7 @@ const InstallBotPopup = (props: Props) => {
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])

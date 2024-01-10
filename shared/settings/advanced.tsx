@@ -68,11 +68,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 }
 
 const Advanced = () => {
-  const settingLockdownMode = C.useAnyWaiting(Constants.setLockdownModeWaitingKey)
+  const settingLockdownMode = C.Waiting.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
   const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
-  const setLockdownModeError = C.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
+  const setLockdownModeError = C.Waiting.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
   const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
@@ -205,12 +205,12 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = C.useAnyWaiting(Constants.traceInProgressKey)
+  const traceInProgress = C.Waiting.useAnyWaiting(Constants.traceInProgressKey)
 
   const trace = C.useSettingsState(s => s.dispatch.trace)
   const processorProfile = C.useSettingsState(s => s.dispatch.processorProfile)
   const onTrace = trace
-  const processorProfileInProgress = C.useAnyWaiting(Constants.processorProfileInProgressKey)
+  const processorProfileInProgress = C.Waiting.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')

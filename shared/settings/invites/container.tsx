@@ -10,7 +10,7 @@ const Container = () => {
   const inviteMessage = ''
   const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
   const showMessageField = false
-  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
 
   const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
   const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)

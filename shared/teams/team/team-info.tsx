@@ -24,11 +24,11 @@ const TeamInfo = (props: Props) => {
 
   const saveDisabled =
     (description === teamDetails?.description && newName === _leafName) || newName.length < 3
-  const waiting = C.useAnyWaiting([C.Teams.teamWaitingKey(teamID), C.Teams.teamRenameWaitingKey])
+  const waiting = C.Waiting.useAnyWaiting([C.Teams.teamWaitingKey(teamID), C.Teams.teamRenameWaitingKey])
 
   const errors = {
     desc: C.useTeamsState(s => s.errorInEditDescription),
-    rename: C.useAnyErrors(C.Teams.teamRenameWaitingKey)?.message,
+    rename: C.Waiting.useAnyErrors(C.Teams.teamRenameWaitingKey)?.message,
   }
 
   const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)

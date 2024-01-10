@@ -16,7 +16,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = C.useAnyWaiting(C.TeamBuilding.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.TeamBuilding.searchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 

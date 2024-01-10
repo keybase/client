@@ -54,7 +54,7 @@ export const useDataSource = (filter: string) => {
     true
   )
 
-  const userEmojisLoading = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
+  const userEmojisLoading = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {

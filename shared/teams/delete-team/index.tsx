@@ -61,7 +61,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const {deleteWaiting, onBack, teamID} = props
-  const error = C.useAnyErrors(C.Teams.deleteTeamWaitingKey(props.teamID))
+  const error = C.Waiting.useAnyErrors(C.Teams.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
     if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
@@ -70,7 +70,7 @@ const ReallyDeleteTeam = (props: Props) => {
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
 
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
       dispatchClearWaiting(C.Teams.deleteTeamWaitingKey(teamID))

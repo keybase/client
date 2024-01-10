@@ -12,7 +12,7 @@ const EditTeamDescription = (props: Props) => {
 
   const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID))
   const waitingKey = C.Teams.teamWaitingKey(teamID)
-  const waiting = C.useAnyWaiting(waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 

@@ -131,7 +131,7 @@ const Container = () => {
     })
   }, [accountMap])
 
-  const loading = C.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(Constants.loadAccountsWaitingKey)
 
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 

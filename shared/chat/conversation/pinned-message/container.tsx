@@ -11,7 +11,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const message = pinnedMsg?.message
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
-  const unpinning = C.useAnyWaiting(C.Chat.waitingKeyUnpin(conversationIDKey))
+  const unpinning = C.Waiting.useAnyWaiting(C.Chat.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
   const onClick = React.useCallback(() => {
     messageID && replyJump(messageID)

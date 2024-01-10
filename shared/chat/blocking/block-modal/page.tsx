@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 
 const Block = React.lazy(async () => import('./container'))
-type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Block>>
+type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Block>>
 
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params

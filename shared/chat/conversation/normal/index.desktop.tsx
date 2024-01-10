@@ -20,7 +20,7 @@ const Offline = () => (
 
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const showLoader = C.useAnyWaiting([
+  const showLoader = C.Waiting.useAnyWaiting([
     C.Chat.waitingKeyThreadLoad(conversationIDKey),
     C.Chat.waitingKeyInboxSyncStarted,
   ])
