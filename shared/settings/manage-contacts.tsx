@@ -9,7 +9,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 const ManageContacts = () => {
   const status = C.useSettingsContactsState(s => s.permissionStatus)
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const waiting = C.useAnyWaiting(C.importContactsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.importContactsWaitingKey)
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 
@@ -65,7 +65,7 @@ const ManageContactsBanner = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {
-    switchTab(C.chatTab)
+    switchTab(C.Tabs.chatTab)
     appendNewChatBuilder()
   }, [appendNewChatBuilder, switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

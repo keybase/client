@@ -485,7 +485,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            C.getConvoState(C.pendingErrorConversationIDKey).dispatch.navigateToThread(
+            C.getConvoState(C.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
               highlightMessageID
             )
@@ -515,7 +515,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const results = await T.RPCChat.localUserEmojisRpcPromise(
           {
             convID:
-              conversationIDKey && conversationIDKey !== C.noConversationIDKey
+              conversationIDKey && conversationIDKey !== C.Chat.noConversationIDKey
                 ? T.Chat.keyToConversationID(conversationIDKey)
                 : null,
             opts: {
@@ -680,7 +680,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
           })
 
-          if (C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.noConversationIDKey) {
+          if (
+            C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.Chat.noConversationIDKey
+          ) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
         }
@@ -877,7 +879,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     maybeChangeSelectedConv: () => {
-      const selectedConversation = C.getSelectedConversation()
+      const selectedConversation = C.Chat.getSelectedConversation()
       const {inboxLayout} = get()
       if (!inboxLayout?.reselectInfo) {
         return
@@ -903,7 +905,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         } else {
           logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-          C.getConvoState(C.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
+          C.getConvoState(C.Chat.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
           return
         }
       } else {
@@ -981,7 +983,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
-          const selectedConversation = C.getSelectedConversation()
+          const selectedConversation = C.Chat.getSelectedConversation()
           let loadMore = false as boolean
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
@@ -1021,7 +1023,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
       let loadMore = false as boolean
-      const selectedConversation = C.getSelectedConversation()
+      const selectedConversation = C.Chat.getSelectedConversation()
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
           const cid = T.Chat.conversationIDToKey(u.convID)
@@ -1408,8 +1410,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && C.getModalStack(prev).length > 0
-        const isModal = next && C.getModalStack(next).length > 0
+        const wasModal = prev && C.Router2.getModalStack(prev).length > 0
+        const isModal = next && C.Router2.getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return
@@ -1480,7 +1482,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await C.timeoutPromise(500)
-        C.getConvoState(C.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(C.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       C.ignorePromise(f())
@@ -1508,7 +1510,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
 
-        C.getConvoState(C.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(C.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1676,7 +1678,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         staticConfig: s.staticConfig,
       }))
       // also blow away convoState
-      C.clearChatStores()
+      C.Chat.clearChatStores()
     },
     setInboxNumSmallRows: (rows, ignoreWrite) => {
       set(s => {
@@ -1875,7 +1877,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               try {
                 const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
                 if (!s.blockButtonsMap.get(teamID)) {
-                  const body = C.bodyToJSON(i.item.body) as {adder: string}
+                  const body = C.Gregor.bodyToJSON(i.item.body) as {adder: string}
                   const adder = body.adder
                   s.blockButtonsMap.set(teamID, {adder})
                 } else {

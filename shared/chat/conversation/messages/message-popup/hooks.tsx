@@ -23,7 +23,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
     },
     [toggleMessageReaction, ordinal]
   )
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const _onAddReaction = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {
@@ -66,7 +66,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   const convLabel = C.Chat.getConversationLabel(participantInfo, meta, true)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
-    copyToClipboard(C.linkFromConvAndMessage(convLabel, id))
+    copyToClipboard(C.DeepLinks.linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])
   const itemCopyLink = [
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
@@ -111,7 +111,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
     : []
 
   const isTeam = !!teamname
-  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canPinMessage = !isTeam || yourOperations.pinMessage
   const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const _onPinMessage = React.useCallback(() => {
@@ -138,7 +138,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   }, [messageDelete, clearModals, ordinal])
 
   const canDeleteHistory = C.useTeamsState(
-    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, teamID).deleteChatHistory
+    s => meta.teamType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).deleteChatHistory
   )
   const canExplodeNow = message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable
   const _onExplodeNow = React.useCallback(() => {

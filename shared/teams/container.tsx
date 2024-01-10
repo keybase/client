@@ -88,7 +88,7 @@ const Connected = () => {
   const activityLevels = C.useTeamsState(s => s.activityLevels)
   const deletedTeams = C.useTeamsState(s => s.deletedTeams)
   const filter = C.useTeamsState(s => s.teamListFilter)
-  const loaded = !C.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
+  const loaded = !C.Waiting.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
   const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
   const newTeams = C.useTeamsState(s => s.newTeams)
   const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)
@@ -100,7 +100,7 @@ const Connected = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

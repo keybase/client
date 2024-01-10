@@ -8,9 +8,9 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
-  const _tlfPathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.tlfPath))
+  const _tlfPathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.tlfPath))
   const _tlfs = C.useFSState(s => s.tlfs)
-  const waiting = C.useAnyWaiting(C.syncToggleWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.FS.syncToggleWaitingKey)
 
   const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
 
@@ -20,7 +20,7 @@ const Container = (ownProps: OwnProps) => {
   const enableSync = () => {
     setTlfSyncConfig(tlfPath, true)
   }
-  const syncConfig = C.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  const syncConfig = C.FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
   const props = {
     disableSync,
     enableSync,

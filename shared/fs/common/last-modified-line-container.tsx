@@ -10,7 +10,7 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const props = {
     lastModifiedTimestamp:
       _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp,

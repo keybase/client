@@ -29,7 +29,7 @@ const NewTeamInfo = () => {
   const nav = Container.useSafeNavigation()
   const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
   const parentName = C.useTeamsState(s =>
-    teamWizardState.parentTeamID ? C.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
+    teamWizardState.parentTeamID ? C.Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
   const minLength = parentName ? 2 : 3

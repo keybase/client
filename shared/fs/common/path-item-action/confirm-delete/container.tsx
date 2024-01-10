@@ -14,7 +14,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const onDelete = React.useCallback(() => {
-    if (path !== C.defaultPath) {
+    if (path !== C.FS.defaultPath) {
       deleteFile(path)
     }
     // If this is a screen menu, then we're deleting the folder we're in,

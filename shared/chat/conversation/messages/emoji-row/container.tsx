@@ -20,7 +20,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
 
   const allEmojis = C.useChatState(s => s.userReacjis.topReacjis)
   const emojis = React.useMemo(() => allEmojis.slice(0, 5), [allEmojis])
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({

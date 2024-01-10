@@ -46,7 +46,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const syncConfig = C.useFSState(s => C.getTlfFromPath(s.tlfs, path).syncConfig)
+  const syncConfig = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path).syncConfig)
   const props = {
     ...ownProps,
     syncEnabled: syncConfig.mode === T.FS.TlfSyncMode.Enabled,

@@ -19,7 +19,7 @@ const InfoPanelConnector = (props: Props) => {
   const initialTab = props.tab ?? storeSelectedTab
   const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
-  const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
+  const shouldNavigateOut = meta.conversationIDKey === C.Chat.noConversationIDKey
   const yourRole = C.useTeamsState(s => C.Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname

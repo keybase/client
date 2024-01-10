@@ -80,14 +80,14 @@ const getChannelSuggestions = (
 export const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  C.useCIDChanged(conversationIDKey, () => {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
     channelSuggestionsTriggered()
   })
 
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 
-  const suggestChannelsLoading = C.useAnyWaiting([
+  const suggestChannelsLoading = C.Waiting.useAnyWaiting([
     C.Teams.getChannelsWaitingKey(teamID),
     C.Chat.waitingKeyMutualTeams(conversationIDKey),
   ])

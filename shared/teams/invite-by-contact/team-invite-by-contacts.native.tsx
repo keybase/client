@@ -11,7 +11,7 @@ import {useTeamDetailsSubscribe} from '../subscriber'
 const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
   const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
-  return (maybeNumber && C.getE164(maybeNumber, region)) ?? ''
+  return (maybeNumber && C.SettingsPhone.getE164(maybeNumber, region)) ?? ''
 }
 
 // Extract either emails or phone numbers from team invites, to match to

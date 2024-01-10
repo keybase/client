@@ -46,7 +46,7 @@ const getRawLayout = (
   fileContext: T.FS.FileContext,
   me: string
 ): Layout => {
-  const parsedPath = C.parsePath(path)
+  const parsedPath = C.FS.parsePath(path)
   switch (parsedPath.kind) {
     case T.FS.PathKind.Root:
       // should never happen

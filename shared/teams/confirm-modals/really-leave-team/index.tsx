@@ -37,7 +37,7 @@ const Header = (props: Props) => (
 
 const _ReallyLeaveTeam = (props: Props) => {
   const {name} = props
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
       dispatchClearWaiting(C.Teams.leaveTeamWaitingKey(name))

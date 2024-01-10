@@ -79,7 +79,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     }, 1)
   }
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const openEmojiPicker = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, pickKey},
@@ -199,7 +199,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = C.useChatContext(s => s.id)
   const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const f = async () => {
@@ -377,7 +377,7 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }, [ourShowMenu])
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onPasteImage = React.useCallback(
     (uri: string) => {
       try {

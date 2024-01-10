@@ -20,7 +20,7 @@ const getStillRows = memoize(
     names: Set<string>
   ): Array<RowTypes.StillRowItem> =>
     [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-      const item = C.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
+      const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
       const path = T.FS.pathConcat(parentPath, item.name)
       return [
         ...items,
@@ -83,7 +83,7 @@ const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
   path: T.FS.Path
 ): Array<RowTypes.NamedRowItem> => {
-  const _pathItem = C.getPathItem(stateProps._pathItems, path)
+  const _pathItem = C.FS.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== T.FS.PathType.Folder) {
     return filePlaceholderRows
   }

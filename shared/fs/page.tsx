@@ -4,14 +4,14 @@ import * as C from '@/constants'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 const getOptions = (ownProps?: OwnProps) => {
-  const path = ownProps?.route.params?.path ?? C.defaultPath
+  const path = ownProps?.route.params?.path ?? C.FS.defaultPath
   return C.isMobile
     ? {header: () => <MobileHeader path={path} />}
     : {
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         subHeader: MainBanner,
-        title: path === C.defaultPath ? 'Files' : T.FS.getPathName(path),
+        title: path === C.FS.defaultPath ? 'Files' : T.FS.getPathName(path),
       }
 }
 

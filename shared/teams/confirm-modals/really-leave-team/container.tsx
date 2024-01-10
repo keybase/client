@@ -15,8 +15,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const open = settings.open
   const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
-  const leaving = C.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
-  const error = C.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
+  const leaving = C.Waiting.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
+  const error = C.Waiting.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = React.useCallback(() => {

@@ -169,7 +169,7 @@ const inputFileIcon = new Map([
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = C.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)
 
   return (
     <Kb.Box2

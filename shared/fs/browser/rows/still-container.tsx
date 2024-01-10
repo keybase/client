@@ -12,7 +12,7 @@ type OwnProps = {
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
   const _downloads = C.useFSState(s => s.downloads)
-  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _uploads = C.useFSState(s => s.uploads)
 

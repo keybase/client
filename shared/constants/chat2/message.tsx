@@ -614,7 +614,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.addedtoteam: {
       const {adder = '', addee = '', team = ''} = body.addedtoteam
       const roleEnum = body.addedtoteam.role
-      const role = roleEnum ? C.teamRoleByEnum[roleEnum] : 'none'
+      const role = roleEnum ? C.Teams.teamRoleByEnum[roleEnum] : 'none'
       const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
         ...minimum,
@@ -629,7 +629,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam
       const invitee = inviteaddedtoteam.invitee || 'someone'
-      const role = C.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
+      const role = C.Teams.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'

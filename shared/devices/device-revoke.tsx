@@ -40,7 +40,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       fullWidth={Kb.Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
-      waitingKey={C.devicesWaitingKey}
+      waitingKey={C.Devices.waitingKey}
       onClick={onSubmit}
     />
     <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
@@ -74,7 +74,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
   try {
     const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
-      C.devicesWaitingKey
+      C.Devices.waitingKey
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
@@ -94,7 +94,7 @@ const useRevoke = (deviceID = '') => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
-          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.devicesWaitingKey)
+          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.Devices.waitingKey)
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
@@ -102,12 +102,12 @@ const useRevoke = (deviceID = '') => {
         try {
           await T.RPCGen.revokeRevokeDeviceRpcPromise(
             {deviceID, forceLast: false, forceSelf: false},
-            C.devicesWaitingKey
+            C.Devices.waitingKey
           )
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
           navUpToScreen(
-            C.isMobile ? (C.isTablet ? C.settingsTab : C.Settings.settingsDevicesTab) : C.devicesTab
+            C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : C.Settings.settingsDevicesTab) : C.Tabs.devicesTab
           )
         } catch {}
       }
@@ -124,7 +124,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
-  const waiting = C.useAnyWaiting(C.devicesWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp

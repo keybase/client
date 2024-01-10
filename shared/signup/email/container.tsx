@@ -36,7 +36,7 @@ const ConnectedEnterEmail = () => {
   const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
   const error = C.useSettingsEmailState(s => s.error)
   const initialEmail = C.useSignupState(s => s.email)
-  const waiting = C.useAnyWaiting(C.addEmailWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
     clearModals()

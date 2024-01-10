@@ -11,7 +11,7 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = C.useFSState(s => s.dispatch.letResetUserBackIn)
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
@@ -19,7 +19,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      C.makeActionForOpenPathInFilesTab(filteredPath)
+      C.FS.makeActionForOpenPathInFilesTab(filteredPath)
     },
     []
   )

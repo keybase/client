@@ -70,7 +70,7 @@ const UploadButton = (props: UploadButtonProps) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.path))
   const openAndUploadDesktop = C.useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
   const pickAndUploadMobile = C.useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
   const _openAndUploadBoth = () => {

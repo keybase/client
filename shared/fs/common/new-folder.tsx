@@ -11,7 +11,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const NewFolder = (op: OwnProps) => {
   const {path} = op
-  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const canCreateNewFolder = pathItem.type === T.FS.PathType.Folder && pathItem.writable
   const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const onNewFolder = React.useCallback(() => {

@@ -5,9 +5,9 @@ type OwnProps = {teamname: string}
 
 const Container = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
-  const error = C.useAnyErrors(C.Teams.teamRenameWaitingKey)
-  const waiting = C.useAnyWaiting(C.Teams.teamRenameWaitingKey)
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const error = C.Waiting.useAnyErrors(C.Teams.teamRenameWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamRenameWaitingKey)
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

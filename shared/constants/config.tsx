@@ -278,7 +278,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (!isMobile || !f) {
         return
       }
-      const {dispatch} = C.getConvoState(C.getSelectedConversation())
+      const {dispatch} = C.getConvoState(C.Chat.getSelectedConversation())
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     },

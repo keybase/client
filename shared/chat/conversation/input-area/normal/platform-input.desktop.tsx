@@ -139,7 +139,7 @@ const fileListToPaths = (f: any): Array<string> =>
 
 const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
   const {htmlInputRef} = p
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
     const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -318,7 +318,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const conversationIDKey = C.useChatContext(s => s.id)
 
   // keep focus
-  C.useCIDChanged(conversationIDKey, () => {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
     inputRef.current?.focus()
   })
   React.useEffect(() => {

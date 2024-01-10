@@ -9,7 +9,7 @@ const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
     nav.safeNavigateAppend({props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'})
 
   const waitingKey = C.Teams.getChannelsWaitingKey(props.teamID)
-  const waitingForGet = C.useAnyWaiting(waitingKey)
+  const waitingForGet = C.Waiting.useAnyWaiting(waitingKey)
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true} gap="small">

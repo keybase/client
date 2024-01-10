@@ -150,7 +150,7 @@ export type OwnProps = {
 }
 
 const ReloadContainer = (ownProps: OwnProps) => {
-  let error = C.useAnyErrors(ownProps.waitingKeys)
+  let error = C.Waiting.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && C.isNetworkErr(error.code) ? error : undefined
@@ -170,7 +170,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      navigateAppend(C.settingsTab)
+      navigateAppend(C.Tabs.settingsTab)
       navigateAppend({props: {}, selected: C.Settings.settingsFeedbackTab})
     } else {
       navigateAppend({props: {}, selected: 'feedback'})

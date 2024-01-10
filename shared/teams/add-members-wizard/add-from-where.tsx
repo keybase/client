@@ -7,7 +7,7 @@ import {ModalTitle} from '../common'
 const Skip = () => {
   const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
   const onSkip = () => finishNewTeamWizard()
-  const waiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamCreationWaitingKey)
 
   if (Kb.Styles.isMobile) {
     return waiting ? (

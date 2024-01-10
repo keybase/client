@@ -23,7 +23,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
     showInfoPanel(true, 'settings')
   }, [showInfoPanel])
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onViewBot = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {botUsername: addee, conversationIDKey},

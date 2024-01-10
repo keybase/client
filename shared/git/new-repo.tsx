@@ -10,7 +10,7 @@ const Container = (ownProps: OwnProps) => {
   const teamnames = C.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(C.Teams.sortTeamnames)
 
-  const waitingKey = C.gitWaitingKey
+  const waitingKey = C.Git.loadingWaitingKey
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
@@ -32,7 +32,7 @@ const Container = (ownProps: OwnProps) => {
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
-    switchTab(C.teamsTab)
+    switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const props = {

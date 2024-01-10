@@ -11,7 +11,7 @@ type Props = {
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, props.path))
+  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, props.path))
   const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   const onUpdate = React.useMemo(
     () =>
@@ -21,7 +21,7 @@ const FolderViewFilter = (props: Props) => {
     [setFolderViewFilter]
   )
 
-  return C.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
+  return C.FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
       size="small"
       placeholderCentered={true}

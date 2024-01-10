@@ -51,7 +51,7 @@ export type ProxyProps = {
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
-  navBadges: Map<C.Tab, number>
+  navBadges: Map<C.Tabs.Tab, number>
   infoMap: Map<string, T.Users.UserInfo>
 }
 
@@ -63,7 +63,7 @@ export type SerializeProps = Omit<
   followersArr: Array<string>
   followingArr: Array<string>
   infoMapArr: Array<[string, T.Users.UserInfo]>
-  navBadgesArr: Array<[C.Tab, number]>
+  navBadgesArr: Array<[C.Tabs.Tab, number]>
   windowShownCountNum: number
   // ensure we never send extra stuff
   avatarRefreshCounter?: never

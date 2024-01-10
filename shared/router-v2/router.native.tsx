@@ -25,7 +25,7 @@ const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab,
 const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
-const tabToData = new Map<C.Tab, {icon: Kb.IconType; label: string}>([
+const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
   [Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
   [Tabs.fsTab, {icon: 'iconfont-nav-2-files', label: 'Files'}],
   [Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
@@ -208,7 +208,7 @@ const AppTabs = React.memo(
           ])}
           type="BodyBig"
         >
-          {tabToData.get(routeName as C.Tab)?.label}
+          {tabToData.get(routeName as C.Tabs.Tab)?.label}
         </Kb.Text>
       )
 

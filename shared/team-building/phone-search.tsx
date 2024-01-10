@@ -17,7 +17,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
-  const waiting = C.useAnyWaiting(Constants.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.searchWaitingKey)
   const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)

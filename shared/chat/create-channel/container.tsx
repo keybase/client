@@ -13,7 +13,7 @@ const Wrapped = (p: OwnProps) => {
   const teamID = p.teamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = C.useTeamsState(s => upperFirst(s.errorInChannelCreation))
-  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID) ?? '')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState<string>('')

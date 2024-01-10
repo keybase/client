@@ -2,14 +2,14 @@ import * as C from '@/constants'
 import * as React from 'react'
 
 const Confirm = React.lazy(async () => import('./confirm'))
-type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Confirm>>
+type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Confirm>>
 
 const Screen = (p: OwnProps) => {
   const rest = p.route.params
   return (
-    <C.ProviderScreen rp={p}>
+    <C.Chat.ProviderScreen rp={p}>
       <Confirm {...rest} />
-    </C.ProviderScreen>
+    </C.Chat.ProviderScreen>
   )
 }
 

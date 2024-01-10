@@ -193,7 +193,7 @@ class PostProof extends React.Component<Props, State> {
                 <Kb.WaitingButton
                   onClick={props.onSubmit}
                   label={onCompleteText || ''}
-                  waitingKey={C.profileWaitingKey}
+                  waitingKey={C.Profile.waitingKey}
                 />
               ) : (
                 <Kb.Button

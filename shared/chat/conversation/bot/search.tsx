@@ -21,7 +21,7 @@ const SearchBotPopup = (props: Props) => {
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const botSearchResults = C.useBotsState(s => s.botSearchResults)
-  const waiting = C.useAnyWaiting([C.waitingKeyBotSearchUsers, C.waitingKeyBotSearchFeatured])
+  const waiting = C.Waiting.useAnyWaiting([C.Bots.waitingKeyBotSearchUsers, C.Bots.waitingKeyBotSearchFeatured])
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
@@ -55,7 +55,7 @@ const SearchBotPopup = (props: Props) => {
   const botData: Array<T.RPCGen.FeaturedBot | string> =
     lastQuery.length > 0
       ? botSearchResults.get(lastQuery)?.bots.slice() ?? []
-      : C.getFeaturedSorted(featuredBotsMap)
+      : C.Bots.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }

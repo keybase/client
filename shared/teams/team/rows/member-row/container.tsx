@@ -21,8 +21,8 @@ const Container = (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
-  const waitingForRemove = C.useAnyWaiting(C.Teams.removeMemberWaitingKey(teamID, username))
+  const waitingForAdd = C.Waiting.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = C.Waiting.useAnyWaiting(C.Teams.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).manageMembers)
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {

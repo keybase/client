@@ -19,7 +19,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   }
 
   const waitingKey = C.Teams.setWelcomeMessageWaitingKey(teamID)
-  const waiting = C.useAnyWaiting(waitingKey)
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
   const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
 

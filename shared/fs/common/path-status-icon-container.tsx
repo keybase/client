@@ -10,8 +10,8 @@ type OwnPropsPathItem = {
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
-  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, ownProps.path))
+  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, ownProps.path))
   const _uploads = C.useFSState(s => s.uploads.syncingPaths)
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,

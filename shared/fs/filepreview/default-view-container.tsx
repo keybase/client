@@ -6,7 +6,7 @@ type OwnProps = {path: T.FS.Path}
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
   const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
 
   const _download = C.useFSState(s => s.dispatch.download)

@@ -165,7 +165,7 @@ const TeamBuilding = (p: OwnProps) => {
     namespace === 'teams' ? `Add to ${C.Teams.getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
   )
 
-  const waitingForCreate = C.useAnyWaiting(C.Chat.waitingKeyCreating)
+  const waitingForCreate = C.Waiting.useAnyWaiting(C.Chat.waitingKeyCreating)
 
   const offset = useSharedValue(0)
 
@@ -251,7 +251,7 @@ const TeamBuilding = (p: OwnProps) => {
       teamSoFar={teamSoFar}
       searchString={searchString}
       goButtonLabel={goButtonLabel}
-      waitingKey={teamID ? C.teamWaitingKey(teamID) : undefined}
+      waitingKey={teamID ? C.Teams.teamWaitingKey(teamID) : undefined}
     />
   )
 

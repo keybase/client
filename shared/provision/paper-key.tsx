@@ -7,7 +7,7 @@ import {isMobile} from '@/constants/platform'
 const Container = () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
-  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
