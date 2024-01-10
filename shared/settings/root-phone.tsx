@@ -156,6 +156,7 @@ function SettingsNav() {
         {onClick: () => onTabChange(C.Settings.settingsAboutTab), text: 'About'},
         {onClick: () => onTabChange(C.Settings.settingsFeedbackTab), text: 'Feedback'},
         {onClick: () => onTabChange(C.Settings.settingsAdvancedTab), text: 'Advanced'},
+        {onClick: () => onTabChange(C.Settings.settingsArchiveTab), text: 'Archive'},
         {
           onClick: () => onTabChange(C.Settings.settingsLogOutTab),
           text: 'Sign out',

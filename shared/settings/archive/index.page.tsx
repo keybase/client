@@ -1,4 +1,7 @@
 import * as React from 'react'
+import * as C from '@/constants'
+
+const getOptions = C.isMobile ? {title: 'Archive'} : undefined
 
 const Archive = React.lazy(async () => import('.'))
 
@@ -8,5 +11,5 @@ const Screen = () => (
   </React.Suspense>
 )
 
-const Page = {getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
 export default Page
