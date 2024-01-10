@@ -10,8 +10,8 @@ type Props = {teamID: T.Teams.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID
 
-  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID))
-  const waitingKey = C.teamWaitingKey(teamID)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID))
+  const waitingKey = C.Teams.teamWaitingKey(teamID)
   const waiting = C.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''

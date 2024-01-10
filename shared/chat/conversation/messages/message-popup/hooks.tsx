@@ -111,7 +111,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
     : []
 
   const isTeam = !!teamname
-  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canPinMessage = !isTeam || yourOperations.pinMessage
   const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const _onPinMessage = React.useCallback(() => {
@@ -138,7 +138,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   }, [messageDelete, clearModals, ordinal])
 
   const canDeleteHistory = C.useTeamsState(
-    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, teamID).deleteChatHistory
+    s => meta.teamType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).deleteChatHistory
   )
   const canExplodeNow = message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable
   const _onExplodeNow = React.useCallback(() => {

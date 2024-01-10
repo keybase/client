@@ -85,7 +85,7 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = C.useTeamsState(s =>
-    meta.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
+    meta.teamname ? !C.Teams.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined

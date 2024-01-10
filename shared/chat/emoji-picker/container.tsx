@@ -101,7 +101,7 @@ const useCanManageEmoji = () => {
   const canManageEmoji = C.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
-    return !meta.teamname || C.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
+    return !meta.teamname || C.Teams.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
   })
   return canManageEmoji
 }

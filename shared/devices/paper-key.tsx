@@ -21,7 +21,7 @@ const PaperKey = () => {
         },
       },
       params: undefined,
-      waitingKey: C.devicesWaitingKey,
+      waitingKey: C.Devices.waitingKey,
     })
       .then(() => {})
       .catch(() => {})
@@ -69,7 +69,7 @@ const PaperKey = () => {
           label="Done"
           onClick={clearModals}
           disabled={!wroteItDown}
-          waitingKey={C.devicesWaitingKey}
+          waitingKey={C.Devices.waitingKey}
         />
       </Kb.Box2>
     </Kb.Box2>

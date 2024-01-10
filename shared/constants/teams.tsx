@@ -1308,7 +1308,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           if (item?.item?.body) {
             const body = item.item.body
             msgID = item.md?.msgID
-            teams = C.bodyToJSON(body)
+            teams = C.Gregor.bodyToJSON(body)
           } else {
             logger.info(
               `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -2466,7 +2466,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           chosenChannels = i
         }
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
-          const body = C.bodyToJSON(i.item.body)
+          const body = C.Gregor.bodyToJSON(i.item.body)
           if (body) {
             const request: {id: T.Teams.TeamID; username: string} = body
             const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
@@ -2478,7 +2478,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
       get().dispatch.setTeamsWithChosenChannels(
-        new Set<T.Teams.Teamname>(C.bodyToJSON(chosenChannels?.item.body))
+        new Set<T.Teams.Teamname>(C.Gregor.bodyToJSON(chosenChannels?.item.body))
       )
     },
     openInviteLink: (inviteID, inviteKey) => {

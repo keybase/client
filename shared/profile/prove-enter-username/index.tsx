@@ -59,14 +59,14 @@ class EnterUsername extends React.Component<Props, State> {
           <UsernameTips platform={this.props.platform} />
           <Kb.Box2 direction="horizontal" gap="small">
             <Kb.WaitingButton
-              waitingKey={C.profileWaitingKey}
+              waitingKey={C.Profile.waitingKey}
               onlyDisable={true}
               type="Dim"
               onClick={this.props.onCancel}
               label="Cancel"
             />
             <Kb.WaitingButton
-              waitingKey={C.profileWaitingKey}
+              waitingKey={C.Profile.waitingKey}
               disabled={!this.state.canSubmit}
               onClick={this._submit}
               label="Continue"

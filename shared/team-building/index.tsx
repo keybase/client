@@ -251,7 +251,7 @@ const TeamBuilding = (p: OwnProps) => {
       teamSoFar={teamSoFar}
       searchString={searchString}
       goButtonLabel={goButtonLabel}
-      waitingKey={teamID ? C.teamWaitingKey(teamID) : undefined}
+      waitingKey={teamID ? C.Teams.teamWaitingKey(teamID) : undefined}
     />
   )
 

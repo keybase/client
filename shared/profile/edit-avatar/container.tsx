@@ -17,20 +17,20 @@ const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = C.useAnyErrors(C.uploadAvatarWaitingKey)
+  const sperror = C.useAnyErrors(C.Profile.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = C.useAnyWaiting(C.uploadAvatarWaitingKey)
-  const teamname = C.useTeamsState(s => (teamID ? C.getTeamNameFromID(s, teamID) : undefined) ?? '')
+  const submitting = C.useAnyWaiting(C.Profile.uploadAvatarWaitingKey)
+  const teamname = C.useTeamsState(s => (teamID ? C.Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatchClearWaiting(C.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.Profile.uploadAvatarWaitingKey)
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatchClearWaiting(C.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.Profile.uploadAvatarWaitingKey)
     clearModals()
   }
   const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
@@ -65,8 +65,8 @@ const Container = (ownProps: OwnProps) => {
       sperror.code === T.RPCGen.StatusCode.scgeneric
         ? sperror.desc
         : C.isNetworkErr(sperror.code)
-        ? 'Connection lost. Please check your network and try again.'
-        : 'This image format is not supported.'
+          ? 'Connection lost. Please check your network and try again.'
+          : 'This image format is not supported.'
   }
   const wizard = ownProps.wizard ?? false
   const bothProps = {
@@ -76,7 +76,7 @@ const Container = (ownProps: OwnProps) => {
     onClose,
     sendChatNotification,
     submitting,
-    waitingKey: C.uploadAvatarWaitingKey,
+    waitingKey: C.Profile.uploadAvatarWaitingKey,
   }
   const props = teamID
     ? {

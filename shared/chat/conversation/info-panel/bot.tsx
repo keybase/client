@@ -184,7 +184,7 @@ const BotTab = (props: Props) => {
   const {renderTabs} = props
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
+  const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
@@ -211,7 +211,7 @@ const BotTab = (props: Props) => {
   }
 
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const featuredBots = C.getFeaturedSorted(featuredBotsMap)
+  const featuredBots = C.Bots.getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&

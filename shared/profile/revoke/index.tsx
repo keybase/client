@@ -51,13 +51,13 @@ const Revoke = (props: Props) => {
             type="Dim"
             onClick={props.onCancel}
             label="Cancel"
-            waitingKey={C.profileWaitingKey}
+            waitingKey={C.Profile.waitingKey}
           />
           <Kb.WaitingButton
             type="Danger"
             onClick={props.onRevoke}
             label={props.platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={C.profileWaitingKey}
+            waitingKey={C.Profile.waitingKey}
           />
         </Kb.ButtonBar>
       </Kb.Box>

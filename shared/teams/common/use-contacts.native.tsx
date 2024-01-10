@@ -62,7 +62,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     }
     phoneNumbers.forEach(pn => {
       if (pn.number && pn.id) {
-        const value = C.getE164(pn.number, pn.countryCode || region)
+        const value = C.SettingsPhone.getE164(pn.number, pn.countryCode || region)
         if (value) {
           const valueFormatted = e164ToDisplay(value)
           ret.push({id: pn.id, name, pictureUri, type: 'phone', value, valueFormatted})

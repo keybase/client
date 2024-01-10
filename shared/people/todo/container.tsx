@@ -305,39 +305,39 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    case C.todoTypes.addEmail:
+    case C.People.todoTypes.addEmail:
       return <AddEmailConnector {...props} />
-    case C.todoTypes.addPhoneNumber:
+    case C.People.todoTypes.addPhoneNumber:
       return <AddPhoneNumberConnector {...props} />
-    case C.todoTypes.avatarTeam:
+    case C.People.todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
-    case C.todoTypes.avatarUser:
+    case C.People.todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
-    case C.todoTypes.bio:
+    case C.People.todoTypes.bio:
       return <BioConnector {...props} />
-    case C.todoTypes.proof:
+    case C.People.todoTypes.proof:
       return <ProofConnector {...props} />
-    case C.todoTypes.device:
+    case C.People.todoTypes.device:
       return <DeviceConnector {...props} />
-    case C.todoTypes.follow:
+    case C.People.todoTypes.follow:
       return <FollowConnector {...props} />
-    case C.todoTypes.chat:
+    case C.People.todoTypes.chat:
       return <ChatConnector {...props} />
-    case C.todoTypes.paperkey:
+    case C.People.todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
-    case C.todoTypes.team:
+    case C.People.todoTypes.team:
       return <TeamConnector {...props} />
-    case C.todoTypes.folder:
+    case C.People.todoTypes.folder:
       return <FolderConnector {...props} />
-    case C.todoTypes.gitRepo:
+    case C.People.todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
-    case C.todoTypes.legacyEmailVisibility:
+    case C.People.todoTypes.legacyEmailVisibility:
       return <LegacyEmailVisibilityConnector {...props} />
-    case C.todoTypes.teamShowcase:
+    case C.People.todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
-    case C.todoTypes.verifyAllEmail:
+    case C.People.todoTypes.verifyAllEmail:
       return <VerifyAllEmailConnector {...props} />
-    case C.todoTypes.verifyAllPhoneNumber:
+    case C.People.todoTypes.verifyAllPhoneNumber:
       return <VerifyAllPhoneNumberConnector {...props} />
     default:
       return null
