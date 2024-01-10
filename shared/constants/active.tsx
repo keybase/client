@@ -20,7 +20,7 @@ export const _useState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
-      const {dispatch} = C.getConvoState(C.getSelectedConversation())
+      const {dispatch} = C.getConvoState(C.Chat.getSelectedConversation())
       dispatch.markThreadAsRead()
     },
   }

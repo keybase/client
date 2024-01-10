@@ -13,7 +13,7 @@ const Container = () => {
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
-  const waiting = C.useAnyWaiting(ConfigConstants.loginWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
   const onAddAccount = C.useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -30,7 +30,7 @@ const Container = () => {
   const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => {
-    navigateAppend(C.settingsLogOutTab)
+    navigateAppend(C.Settings.settingsLogOutTab)
   }
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {

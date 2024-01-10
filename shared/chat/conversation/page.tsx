@@ -8,13 +8,13 @@ const getOptions = ({route}: OwnProps) => ({
 })
 
 const Convo = React.lazy(async () => import('./container'))
-type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Convo>>
+type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Convo>>
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params
   return (
-    <C.ProviderScreen rp={p} canBeNull={true}>
+    <C.Chat.ProviderScreen rp={p} canBeNull={true}>
       <Convo {...rest} />
-    </C.ProviderScreen>
+    </C.Chat.ProviderScreen>
   )
 }
 

@@ -17,7 +17,7 @@ const Container = (ownProps: OwnProps) => {
   const admin = yourOperations.manageMembers
   const error = C.useTeamsState(s => s.errorInAddToTeam)
   const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
-  const loading = C.useAnyWaiting([
+  const loading = C.Waiting.useAnyWaiting([
     C.Teams.teamWaitingKey(teamID),
     C.Teams.teamTarsWaitingKey(teamMeta.teamname),
   ])

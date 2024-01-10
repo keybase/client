@@ -175,7 +175,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-        {parentPath === C.defaultPath ? (
+        {parentPath === C.FS.defaultPath ? (
           <Root destinationPickerIndex={index} />
         ) : (
           <Rows path={parentPath} destinationPickerIndex={index} />

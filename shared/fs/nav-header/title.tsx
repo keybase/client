@@ -14,21 +14,21 @@ type Props = {
 
 // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
 const getAncestors = memoize(path =>
-  path === C.defaultPath
+  path === C.FS.defaultPath
     ? []
     : T.FS.getPathElements(path)
         .slice(1, -1)
-        .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.defaultPath])
+        .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.FS.defaultPath])
 )
 
 const Breadcrumb = (props: Props) => {
-  const ancestors = getAncestors(props.path || C.defaultPath)
+  const ancestors = getAncestors(props.path || C.FS.defaultPath)
   const {inDestinationPicker} = props
   const nav = Container.useSafeNavigation()
   const onOpenPath = React.useCallback(
     (path: T.FS.Path) => {
       inDestinationPicker
-        ? C.makeActionsForDestinationPickerOpen(0, path)
+        ? C.FS.makeActionsForDestinationPickerOpen(0, path)
         : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
     },
     [nav, inDestinationPicker]
@@ -115,7 +115,7 @@ const MainTitle = (props: Props) => (
 )
 
 const FsNavHeaderTitle = (props: Props) =>
-  props.path === C.defaultPath ? (
+  props.path === C.FS.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
     </Kb.Text>

@@ -20,7 +20,7 @@ const Offline = () => (
 
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const showLoader = C.useAnyWaiting([
+  const showLoader = C.Waiting.useAnyWaiting([
     C.Chat.waitingKeyThreadLoad(conversationIDKey),
     C.Chat.waitingKeyInboxSyncStarted,
   ])
@@ -29,7 +29,7 @@ const LoadingLine = () => {
 
 const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
       const pathAndOutboxIDs = paths.map(p => ({path: p}))

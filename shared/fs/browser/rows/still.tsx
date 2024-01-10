@@ -35,7 +35,7 @@ const Still = (props: StillProps) => (
     uploadErrored={!!props.dismissUploadError}
     content={
       <>
-        <Filename path={props.path} type={C.pathTypeToTextType(props.type)} style={rowStyles.rowText} />
+        <Filename path={props.path} type={C.FS.pathTypeToTextType(props.type)} style={rowStyles.rowText} />
         {props.isEmpty && (
           <Kb.Meta
             title="empty"

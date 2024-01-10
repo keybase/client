@@ -22,7 +22,7 @@ const Offline = () => (
 
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const showLoader = C.useAnyWaiting([
+  const showLoader = C.Waiting.useAnyWaiting([
     C.Chat.waitingKeyThreadLoad(conversationIDKey),
     C.Chat.waitingKeyInboxSyncStarted,
   ])
@@ -51,7 +51,7 @@ const Conversation = React.memo(function Conversation() {
     </Kb.BoxGrow>
   )
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {

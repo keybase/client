@@ -48,7 +48,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       teamname: '',
     }
 
-    if (meta.conversationIDKey !== C.noConversationIDKey) {
+    if (meta.conversationIDKey !== C.Chat.noConversationIDKey) {
       const participants = C.Chat.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
@@ -94,7 +94,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onBlockConv = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {

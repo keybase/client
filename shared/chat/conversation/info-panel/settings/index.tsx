@@ -14,11 +14,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
+  const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = C.useAnyWaiting(C.Chat.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
@@ -36,7 +36,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !C.Chat.isAssertion(u)
   )
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }
@@ -97,7 +97,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         <Kb.Text type="Header">Conversation</Kb.Text>
         <RetentionPicker
           conversationIDKey={
-            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.noConversationIDKey
+            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
           }
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}

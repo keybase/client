@@ -8,9 +8,9 @@ import NewFeatureRow from './new-feature-row'
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: C.PathParam) => void
+  onNavigate: (props: C.Router2.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: C.AppTab) => void
+  onSwitchTab: (tab: C.Tabs.AppTab) => void
 }
 
 export const Version = ({children}: {children: React.ReactNode}) => {
@@ -38,7 +38,7 @@ export const Current = ({onSwitchTab, seen}: VersionProps) => {
         seen={seen}
         primaryButtonText="Go to Teams"
         onPrimaryButtonClick={() => {
-          onSwitchTab(C.teamsTab)
+          onSwitchTab(C.Tabs.teamsTab)
         }}
       >
         Administering groups is easier than ever with the redesigned Teams tab.
@@ -89,7 +89,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate(Platform.isMobile ? C.settingsCryptoTab : encryptTab)
+          onNavigate(Platform.isMobile ? C.Settings.settingsCryptoTab : encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}
@@ -130,7 +130,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate(C.settingsDisplayTab)
+          onNavigate(C.Settings.settingsDisplayTab)
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.

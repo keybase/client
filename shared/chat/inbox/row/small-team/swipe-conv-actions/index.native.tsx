@@ -41,7 +41,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
   const conversationIDKey = C.useChatContext(s => s.id)
   const [extraData, setExtraData] = React.useState(0)
-  C.useCIDChanged(conversationIDKey, () => {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
     // only if open
     if (swipeCloseRef?.current) {
       setExtraData(d => d + 1)

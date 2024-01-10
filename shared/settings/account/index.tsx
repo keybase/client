@@ -13,7 +13,7 @@ const Container = () => {
   const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
   const clearAddedPhone = C.useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
   const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
-  const waiting = C.useAnyWaiting(Constants.loadSettingsWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
@@ -47,11 +47,11 @@ const Container = () => {
     loadHasRandomPw()
   }
   const onSetPassword = () => {
-    navigateAppend(C.settingsPasswordTab)
+    navigateAppend(C.Settings.settingsPasswordTab)
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
-    switchTab(C.chatTab)
+    switchTab(C.Tabs.chatTab)
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }

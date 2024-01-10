@@ -140,7 +140,7 @@ const useScrolling = (p: {
     }, [loadNewerMessagesDueToScroll]),
     200
   )
-  const conversationIDKeyChanged = C.useCIDChanged(conversationIDKey)
+  const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
   const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   if (conversationIDKeyChanged) {
     lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)

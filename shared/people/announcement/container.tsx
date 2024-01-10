@@ -33,34 +33,34 @@ const Container = (ownProps: OwnProps) => {
         navigateToInbox()
         break
       case T.RPCGen.AppLinkType.files:
-        switchTab(C.isMobile ? C.settingsTab : C.fsTab)
+        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.fsTab)
         if (C.isMobile) {
-          navigateAppend(C.settingsFsTab)
+          navigateAppend(C.Settings.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
-        switchTab(C.isMobile ? C.settingsTab : C.walletsTab)
+        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.walletsTab)
         if (C.isMobile) {
-          navigateAppend(C.settingsWalletsTab)
+          navigateAppend(C.Settings.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
-        switchTab(C.isMobile ? C.settingsTab : C.gitTab)
+        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.gitTab)
         if (C.isMobile) {
-          navigateAppend({props: {}, selected: C.settingsGitTab})
+          navigateAppend({props: {}, selected: C.Settings.settingsGitTab})
         }
         break
       case T.RPCGen.AppLinkType.devices:
-        switchTab(C.isMobile ? C.settingsTab : C.devicesTab)
+        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab)
         if (C.isMobile) {
-          navigateAppend(C.settingsDevicesTab)
+          navigateAppend(C.Settings.settingsDevicesTab)
         }
         break
       case T.RPCGen.AppLinkType.settings:
-        switchTab(C.settingsTab)
+        switchTab(C.Tabs.settingsTab)
         break
       case T.RPCGen.AppLinkType.teams:
-        switchTab(C.teamsTab)
+        switchTab(C.Tabs.teamsTab)
         break
       default:
     }

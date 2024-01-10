@@ -91,7 +91,7 @@ const PathItemAction = (props: Props) => {
     showPopup()
   }, [initView, setPathItemActionMenuView, showPopup])
 
-  if (props.path === C.defaultPath) {
+  if (props.path === C.FS.defaultPath) {
     return null
   }
 

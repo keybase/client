@@ -314,7 +314,7 @@ class Chat extends React.Component<Props, State> {
                     label="Save"
                     small={true}
                     style={styles.save}
-                    waitingKey={C.contactSettingsSaveWaitingKey}
+                    waitingKey={C.SettingsChat.contactSettingsSaveWaitingKey}
                   />
                   {!!this.props.contactSettingsError && (
                     <Kb.Text type="BodySmall" style={styles.error}>
@@ -414,7 +414,7 @@ class Chat extends React.Component<Props, State> {
                 small={true}
                 style={styles.save}
                 disabled={this._isUnfurlSaveDisabled()}
-                waitingKey={C.chatUnfurlWaitingKey}
+                waitingKey={C.SettingsChat.chatUnfurlWaitingKey}
               />
               {this.props.unfurlError && (
                 <Kb.Text type="BodySmall" style={styles.error}>

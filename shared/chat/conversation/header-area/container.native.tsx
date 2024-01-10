@@ -10,8 +10,8 @@ import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const pendingWaiting =
-    conversationIDKey === C.pendingWaitingConversationIDKey ||
-    conversationIDKey === C.pendingErrorConversationIDKey
+    conversationIDKey === C.Chat.pendingWaitingConversationIDKey ||
+    conversationIDKey === C.Chat.pendingErrorConversationIDKey
   const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   const [showToast, setShowToast] = React.useState(false)
 
@@ -90,7 +90,7 @@ const BadgeHeaderLeftArray = ({...rest}: any) => {
 
 export const headerNavigationOptions = (route: unknown) => {
   const conversationIDKey =
-    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.noConversationIDKey
+    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.Chat.noConversationIDKey
   return {
     headerLeft: (props: any) => {
       const {onLabelLayout, labelStyle, ...rest} = props

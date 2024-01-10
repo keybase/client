@@ -269,7 +269,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (C.useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
-            C.createOtherAccountWaitingKey
+            C.Config.createOtherAccountWaitingKey
           )
         }
         try {

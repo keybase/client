@@ -26,7 +26,7 @@ export type Props = {
 
 const WaitingButton = React.forwardRef<MeasureRef, Props>(function WaitingButton(props, ref) {
   const {onlyDisable, waitingKey, ...buttonProps} = props
-  const storeWaiting = C.useAnyWaiting(waitingKey)
+  const storeWaiting = C.Waiting.useAnyWaiting(waitingKey)
 
   const [localWaiting, setLocalWaiting] = React.useState(false)
 

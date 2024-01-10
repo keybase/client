@@ -82,30 +82,30 @@ function SettingsNav() {
         ...(statsShown ? [{onClick: noop, text: 'perf'}] : []),
         {
           icon: 'iconfont-nav-2-crypto',
-          onClick: () => onTabChange(C.settingsCryptoTab),
+          onClick: () => onTabChange(C.Settings.settingsCryptoTab),
           text: 'Crypto',
         },
         {
-          badgeNumber: badgeNumbers.get(C.gitTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
-          onClick: () => onTabChange(C.settingsGitTab),
+          onClick: () => onTabChange(C.Settings.settingsGitTab),
           text: 'Git',
         },
         {
-          badgeNumber: badgeNumbers.get(C.devicesTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
-          onClick: () => onTabChange(C.settingsDevicesTab),
+          onClick: () => onTabChange(C.Settings.settingsDevicesTab),
           text: 'Devices',
         },
         {
-          badgeNumber: badgeNumbers.get(C.walletsTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.walletsTab),
           icon: 'iconfont-nav-2-wallets',
-          onClick: () => onTabChange(C.settingsWalletsTab),
+          onClick: () => onTabChange(C.Settings.settingsWalletsTab),
           text: 'Wallet',
         },
         {
           iconComponent: WhatsNewIcon,
-          onClick: () => onTabChange(C.settingsWhatsNewTab),
+          onClick: () => onTabChange(C.Settings.settingsWhatsNewTab),
           subText: `What's new?`,
           text: keybaseFM,
         },
@@ -115,35 +115,35 @@ function SettingsNav() {
     {
       data: [
         {
-          badgeNumber: badgeNumbers.get(C.settingsTab),
-          onClick: () => onTabChange(C.settingsAccountTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
+          onClick: () => onTabChange(C.Settings.settingsAccountTab),
           text: 'Your account',
         },
         {
-          onClick: () => onTabChange(C.settingsChatTab),
+          onClick: () => onTabChange(C.Settings.settingsChatTab),
           text: 'Chat',
         },
         {
-          onClick: () => onTabChange(C.settingsContactsTab),
+          onClick: () => onTabChange(C.Settings.settingsContactsTab),
           text: contactsLabel,
         },
         {
-          onClick: () => onTabChange(C.settingsFsTab),
+          onClick: () => onTabChange(C.Settings.settingsFsTab),
           text: 'Files',
         },
         {
           badgeNumber: badgeNotifications ? 1 : 0,
-          onClick: () => onTabChange(C.settingsNotificationsTab),
+          onClick: () => onTabChange(C.Settings.settingsNotificationsTab),
           text: 'Notifications',
         },
         {
-          onClick: () => onTabChange(C.settingsDisplayTab),
+          onClick: () => onTabChange(C.Settings.settingsDisplayTab),
           text: 'Display',
         },
         ...(isAndroid
           ? [
               {
-                onClick: () => onTabChange(C.settingsScreenprotectorTab),
+                onClick: () => onTabChange(C.Settings.settingsScreenprotectorTab),
                 text: 'Screen protector',
               } as const,
             ]
@@ -153,11 +153,11 @@ function SettingsNav() {
     },
     {
       data: [
-        {onClick: () => onTabChange(C.settingsAboutTab), text: 'About'},
-        {onClick: () => onTabChange(C.settingsFeedbackTab), text: 'Feedback'},
-        {onClick: () => onTabChange(C.settingsAdvancedTab), text: 'Advanced'},
+        {onClick: () => onTabChange(C.Settings.settingsAboutTab), text: 'About'},
+        {onClick: () => onTabChange(C.Settings.settingsFeedbackTab), text: 'Feedback'},
+        {onClick: () => onTabChange(C.Settings.settingsAdvancedTab), text: 'Advanced'},
         {
-          onClick: () => onTabChange(C.settingsLogOutTab),
+          onClick: () => onTabChange(C.Settings.settingsLogOutTab),
           text: 'Sign out',
           textColor: Kb.Styles.globalColors.red,
         },

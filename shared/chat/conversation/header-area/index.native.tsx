@@ -6,7 +6,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {Dimensions} from 'react-native'
 
 export const useBackBadge = () => {
-  const visiblePath = C.getVisiblePath()
+  const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
   const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
   const conversationIDKey = C.useChatContext(s => s.id)

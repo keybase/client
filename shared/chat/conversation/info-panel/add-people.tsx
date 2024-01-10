@@ -78,7 +78,7 @@ const AddPeople = (ownProps: OwnProps) => {
   const _onAddPeople = (teamID: T.Teams.TeamID) => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const _onAddToChannel = (teamID: T.Teams.TeamID) => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
   }

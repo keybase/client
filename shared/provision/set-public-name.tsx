@@ -11,7 +11,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 const PublicNameContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const error = C.useProvisionState(s => s.error)
-  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)
@@ -49,7 +49,7 @@ type Props = {
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
+  const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)

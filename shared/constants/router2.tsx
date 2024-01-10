@@ -149,12 +149,12 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
-export const getTab = (navState?: NavState): undefined | C.Tab => {
+export const getTab = (navState?: NavState): undefined | C.Tabs.Tab => {
   const s = navState || getRootState()
   const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
     // eslint-disable-next-line
-    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as C.Tab
+    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as C.Tabs.Tab
   }
   return undefined
 }

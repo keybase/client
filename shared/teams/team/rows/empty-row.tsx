@@ -83,7 +83,7 @@ const EmptyRow = (props: Props) => {
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const joinConversation = C.useConvoState(
-    conversationIDKey ?? C.noConversationIDKey,
+    conversationIDKey ?? C.Chat.noConversationIDKey,
     s => s.dispatch.joinConversation
   )
   const onAddSelf = () => {
@@ -93,7 +93,7 @@ const EmptyRow = (props: Props) => {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }
   }
-  const waiting = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, you))
+  const waiting = C.Waiting.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname

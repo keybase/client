@@ -19,7 +19,7 @@ export const Email = () => {
 
   const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
   const emailError = C.useSettingsEmailState(s => s.error)
-  const waiting = C.useAnyWaiting(C.addEmailWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
 
   const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
   const resetAddingEmail = C.useSettingsEmailState(s => s.dispatch.resetAddingEmail)
@@ -128,7 +128,7 @@ export const Phone = () => {
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const error = C.useSettingsPhoneState(s => s.error)
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
-  const waiting = C.useAnyWaiting(C.addPhoneNumberWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.SettingsPhone.addPhoneNumberWaitingKey)
 
   const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
@@ -233,8 +233,8 @@ export const VerifyPhone = () => {
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
   const error = C.useSettingsPhoneState(s => s.error)
   const verificationState = C.useSettingsPhoneState(s => s.verificationState)
-  const resendWaiting = C.useAnyWaiting([C.addPhoneNumberWaitingKey, C.resendVerificationForPhoneWaitingKey])
-  const verifyWaiting = C.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
+  const resendWaiting = C.Waiting.useAnyWaiting([C.SettingsPhone.addPhoneNumberWaitingKey, C.SettingsPhone.resendVerificationForPhoneWaitingKey])
+  const verifyWaiting = C.Waiting.useAnyWaiting(C.SettingsPhone.verifyPhoneNumberWaitingKey)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   // clean everything on unmount

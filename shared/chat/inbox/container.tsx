@@ -96,7 +96,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     setLastIsFocused(isFocused)
     if (C.isMobile) {
       if (isFocused && C.Chat.isSplit) {
-        C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
+        C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
       }
     }
   }
@@ -106,7 +106,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   C.useOnMountOnce(() => {
     if (!C.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
+      C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
@@ -139,7 +139,7 @@ const Connected = (ownProps: OwnProps) => {
     return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
-  const selectedConversationIDKey = conversationIDKey ?? C.noConversationIDKey
+  const selectedConversationIDKey = conversationIDKey ?? C.Chat.noConversationIDKey
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps

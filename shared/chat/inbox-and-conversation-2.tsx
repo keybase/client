@@ -11,11 +11,11 @@ import InfoPanel from './conversation/info-panel'
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
-  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? C.Chat.noConversationIDKey
   const navKey = props.navKey ?? ''
   const inboxSearch = C.useChatState(s => s.inboxSearch)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const validConvoID = conversationIDKey && conversationIDKey !== C.noConversationIDKey
+  const validConvoID = conversationIDKey && conversationIDKey !== C.Chat.noConversationIDKey
   const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
   const selectNextConvo = C.useChatState(s => {
     if (seenValidCIDRef.current) {

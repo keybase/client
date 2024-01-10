@@ -16,7 +16,7 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = C.useFSState(s => C.getPathItem(s.pathItems, path).writable)
+  const isWritable = C.useFSState(s => C.FS.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = C.useFSState(s => s.lastPublicBannerClosedTlf)
   const you = C.useCurrentUserState(s => s.username)
 
@@ -24,7 +24,7 @@ const PublicBanner = ({path}: Props) => {
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 
-  const parsedPath = C.parsePath(path)
+  const parsedPath = C.FS.parsePath(path)
   const tlfName = getTlfName(parsedPath)
 
   // If we're showing the banner for a new TLF, clear the closed state

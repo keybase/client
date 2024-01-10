@@ -13,7 +13,7 @@ const Container = (ownProps: OwnProps) => {
   const errorMessage = C.useProfileState(s => s.revokeError)
   const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
   const submitRevokeProof = C.useProfileState(s => s.dispatch.submitRevokeProof)
-  const isWaiting = C.useAnyWaiting(C.profileWaitingKey)
+  const isWaiting = C.Waiting.useAnyWaiting(C.Profile.waitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     finishRevoking()

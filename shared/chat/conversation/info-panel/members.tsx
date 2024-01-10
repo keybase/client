@@ -31,7 +31,7 @@ const MembersTab = (props: Props) => {
   const participants = C.useChatContext(
     s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants
   )
-  const cidChanged = C.useCIDChanged(conversationIDKey)
+  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
   if (lastTeamName !== teamname || cidChanged) {
     setLastTeamName(teamname)

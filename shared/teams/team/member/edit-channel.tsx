@@ -43,7 +43,7 @@ const EditChannel = (props: Props) => {
       })
       .catch(() => {})
   }
-  const waiting = C.useAnyWaiting(C.Teams.updateChannelNameWaitingKey(teamID))
+  const waiting = C.Waiting.useAnyWaiting(C.Teams.updateChannelNameWaitingKey(teamID))
 
   return (
     <Kb.Modal

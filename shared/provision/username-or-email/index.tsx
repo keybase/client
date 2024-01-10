@@ -89,7 +89,7 @@ const Username = (props: Props) => {
             <Kb.LabeledInput
               autoFocus={true}
               placeholder="Username"
-              maxLength={C.maxUsernameLength}
+              maxLength={C.Signup.maxUsernameLength}
               onEnterKeyDown={onSubmit}
               onChangeText={setUsername}
               value={username}

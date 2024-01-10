@@ -22,7 +22,7 @@ const Container = (ownProps: OwnProps) => {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-  const conversationIDKey = _cid ?? C.noConversationIDKey
+  const conversationIDKey = _cid ?? C.Chat.noConversationIDKey
   let policy = C.useConvoState(conversationIDKey, s =>
     _cid ? s.meta.retentionPolicy : C.Teams.retentionPolicies.policyRetain
   )

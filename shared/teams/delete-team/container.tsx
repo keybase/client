@@ -10,7 +10,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
   const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const deleteWaiting = C.useAnyWaiting(C.Teams.deleteTeamWaitingKey(teamID))
+  const deleteWaiting = C.Waiting.useAnyWaiting(C.Teams.deleteTeamWaitingKey(teamID))
   const teamMetas = C.useTeamsState(s => s.teamMeta)
   const subteamNames = teamDetails?.subteams.size
     ? [...teamDetails.subteams]

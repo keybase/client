@@ -85,7 +85,7 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = C.useTeamsState(s =>
-    meta.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
+    meta.teamname ? !C.Teams.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
@@ -96,7 +96,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = C.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
+  const error = C.Waiting.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -155,7 +155,7 @@ const InstallBotPopup = (props: Props) => {
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
-  const dispatchClearWaiting = C.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])

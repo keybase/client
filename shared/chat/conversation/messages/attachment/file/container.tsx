@@ -41,7 +41,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: T.Crypto.Operations) => {
-      switchTab(C.cryptoTab)
+      switchTab(C.Tabs.cryptoTab)
       saltpackOpenFile(operation, path)
     },
     [switchTab, saltpackOpenFile]

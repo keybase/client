@@ -12,7 +12,7 @@ const PeopleReloadable = () => {
   const newItems = C.usePeopleState(s => s.newItems)
   const oldItems = C.usePeopleState(s => s.oldItems)
   const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
-  const waiting = C.useAnyWaiting(C.getPeopleDataWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.People.getPeopleDataWaitingKey)
 
   const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
@@ -38,7 +38,7 @@ const PeopleReloadable = () => {
   )
 
   return (
-    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={C.getPeopleDataWaitingKey}>
+    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={C.People.getPeopleDataWaitingKey}>
       <People
         followSuggestions={followSuggestions}
         getData={getData}

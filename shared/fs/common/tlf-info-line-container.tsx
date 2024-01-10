@@ -10,7 +10,7 @@ export type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
+  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, ownProps.path))
   const _username = C.useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
   const props = {

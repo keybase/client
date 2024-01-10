@@ -12,7 +12,7 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const _tlf = C.useFSState(s => C.FS.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

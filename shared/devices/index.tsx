@@ -20,7 +20,7 @@ const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
 
 const ReloadableDevices = () => {
   const deviceMap = C.useDevicesState(s => s.deviceMap)
-  const waiting = C.useAnyWaiting(C.devicesWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
   const {load, clearBadges} = C.useDevicesState(s => s.dispatch)
   const storeSet = C.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
@@ -73,7 +73,7 @@ const ReloadableDevices = () => {
   return (
     <Kb.Reloadable
       onBack={C.isMobile ? onBack : undefined}
-      waitingKeys={C.devicesWaitingKey}
+      waitingKeys={C.Devices.waitingKey}
       onReload={load}
       reloadOnMount={true}
       title={''}

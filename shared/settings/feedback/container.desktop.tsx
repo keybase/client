@@ -8,7 +8,7 @@ const Container = (ownProps: Props) => {
   const {sendFeedback, error} = useSendFeedback()
   const feedback = ownProps.feedback ?? ''
   const loggedOut = C.useConfigState(s => !s.loggedIn)
-  const sending = C.useAnyWaiting(Constants.sendFeedbackWaitingKey)
+  const sending = C.Waiting.useAnyWaiting(Constants.sendFeedbackWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

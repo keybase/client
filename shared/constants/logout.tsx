@@ -41,10 +41,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         } else {
           if (C.isMobile) {
-            C.useRouterState.getState().dispatch.navigateAppend(C.settingsPasswordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(C.Settings.settingsPasswordTab)
           } else {
-            C.useRouterState.getState().dispatch.navigateAppend(C.settingsTab)
-            C.useRouterState.getState().dispatch.navigateAppend(C.settingsPasswordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(C.Tabs.settingsTab)
+            C.useRouterState.getState().dispatch.navigateAppend(C.Settings.settingsPasswordTab)
           }
         }
       }

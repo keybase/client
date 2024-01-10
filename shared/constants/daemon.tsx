@@ -1,5 +1,4 @@
 import * as C from '.'
-import {getNavigator} from '.'
 import logger from '@/logger'
 import * as T from './types'
 import * as Z from '@/util/zustand'
@@ -106,14 +105,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       const checkNav = (version: number) => {
         // have one
-        if (getNavigator()) return
+        if (C.Router2._getNavigator()) return
         const name = 'nav'
         const {wait} = get().dispatch
         wait(name, version, true)
         logger.info('Waiting on nav')
         C.useConfigState.setState(s => {
           s.dispatch.dynamic.setNavigatorExistsNative = () => {
-            if (getNavigator()) {
+            if (C.Router2._getNavigator()) {
               C.useConfigState.setState(s => {
                 s.dispatch.dynamic.setNavigatorExistsNative = undefined
               })

@@ -24,8 +24,8 @@ const ConfirmHeader = (props: Props) => (
     </Kb.Text>
     <Kb.Text type="Body" style={styles.confirmText}>
       {props.action === 'save-media'
-        ? `You are about to download a ${C.humanReadableFileSize(props.size)} file.`
-        : `The file will be downloaded and its size is ${C.humanReadableFileSize(props.size)}.`}
+        ? `You are about to download a ${C.FS.humanReadableFileSize(props.size)} file.`
+        : `The file will be downloaded and its size is ${C.FS.humanReadableFileSize(props.size)}.`}
     </Kb.Text>
   </Kb.Box2>
 )

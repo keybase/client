@@ -13,7 +13,7 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const noGit = C.makeGitInfo()
+const noGit = C.Git.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
@@ -22,7 +22,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const you = C.useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = (path: T.FS.Path) => {
-    C.makeActionForOpenPathInFilesTab(path)
+    C.FS.makeActionForOpenPathInFilesTab(path)
   }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

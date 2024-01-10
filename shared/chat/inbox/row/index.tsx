@@ -25,7 +25,7 @@ const makeRow = (
   switch (item.type) {
     case 'bigHeader':
       return (
-        <C.ChatProvider id={C.dummyConversationIDKey}>
+        <C.ChatProvider id={C.Chat.dummyConversationIDKey}>
           <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
         </C.ChatProvider>
       )

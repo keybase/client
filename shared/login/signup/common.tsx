@@ -36,7 +36,7 @@ export const ContinueButton = ({
 }) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
     <WaitingButton
-      waitingKey={C.signupWaitingKey}
+      waitingKey={C.Signup.waitingKey}
       label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}

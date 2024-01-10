@@ -17,7 +17,7 @@ type Props = {
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
   iconNumber: T.Devices.IconNumber
-  otherDevice: C.ProvisionDevice
+  otherDevice: C.Provision.Device
   tabOverride?: Tab
   textCode: string
   onBack: () => void
@@ -192,7 +192,7 @@ class CodePage2 extends React.Component<Props, State> {
               onClick={this._onSubmitTextCode}
               disabled={!this.state.code || this.props.waiting}
               style={styles.enterTextButton}
-              waitingKey={C.provisionWaitingKey}
+              waitingKey={C.Provision.waitingKey}
             />
           )}
           {this.state.tab !== 'enterText' && this._inModal() && !Kb.Styles.isMobile && (
@@ -203,7 +203,7 @@ class CodePage2 extends React.Component<Props, State> {
               onClick={this.props.onBack}
               onlyDisable={true}
               style={styles.closeButton}
-              waitingKey={C.provisionWaitingKey}
+              waitingKey={C.Provision.waitingKey}
             />
           )}
           {showHeyWaitInFooter && this._heyWaitBanner()}

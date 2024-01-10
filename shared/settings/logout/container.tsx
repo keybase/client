@@ -9,7 +9,7 @@ const LogoutContainer = () => {
   const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
   const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
   const hasRandomPW = C.useSettingsPasswordState(s => s.randomPW)
-  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.Waiting.useAnyWaiting(Constants.settingsWaitingKey)
 
   const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
 

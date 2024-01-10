@@ -14,7 +14,7 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => C.Teams.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas.size === 0 // TODO fix this?
   const channelNames = [...channelMetas.values()].map(info => info.channelname)

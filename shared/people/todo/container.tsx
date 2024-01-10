@@ -49,8 +49,8 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    switchTab(C.Tabs.settingsTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -62,8 +62,8 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    switchTab(C.Tabs.settingsTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -73,7 +73,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
 
 const AvatarTeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(C.teamsTab)
+  const onConfirm = () => switchTab(C.Tabs.teamsTab)
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -124,7 +124,7 @@ const FollowConnector = (props: TodoOwnProps) => {
 
 const ChatConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(C.chatTab)
+  const onConfirm = () => switchTab(C.Tabs.chatTab)
   const onDismiss = useOnSkipTodo('chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -141,7 +141,7 @@ const TeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
-    switchTab(C.teamsTab)
+    switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const onDismiss = useOnSkipTodo('team')
@@ -151,7 +151,7 @@ const TeamConnector = (props: TodoOwnProps) => {
 
 const FolderConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(C.fsTab)
+  const onConfirm = () => switchTab(C.Tabs.fsTab)
   const onDismiss = useOnSkipTodo('folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -162,9 +162,9 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
     if (C.isMobile) {
-      navigateAppend({props: {}, selected: C.settingsGitTab})
+      navigateAppend({props: {}, selected: C.Settings.settingsGitTab})
     } else {
-      switchTab(C.gitTab)
+      switchTab(C.Tabs.gitTab)
     }
     navigateAppend({props: {isTeam}, selected: 'gitNewRepo'})
   }
@@ -189,7 +189,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(C.teamsTab)
+  const onConfirm = () => switchTab(C.Tabs.teamsTab)
   const onDismiss = useOnSkipTodo('teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -206,8 +206,8 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
-    switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    switchTab(C.Tabs.settingsTab)
+    navigateAppend(C.Settings.settingsAccountTab)
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -245,8 +245,8 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
-    switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    switchTab(C.Tabs.settingsTab)
+    navigateAppend(C.Settings.settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -275,8 +275,8 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
-    switchTab(C.settingsTab)
-    navigateAppend(C.settingsAccountTab)
+    switchTab(C.Tabs.settingsTab)
+    navigateAppend(C.Settings.settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')
@@ -305,39 +305,39 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    case C.todoTypes.addEmail:
+    case C.People.todoTypes.addEmail:
       return <AddEmailConnector {...props} />
-    case C.todoTypes.addPhoneNumber:
+    case C.People.todoTypes.addPhoneNumber:
       return <AddPhoneNumberConnector {...props} />
-    case C.todoTypes.avatarTeam:
+    case C.People.todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
-    case C.todoTypes.avatarUser:
+    case C.People.todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
-    case C.todoTypes.bio:
+    case C.People.todoTypes.bio:
       return <BioConnector {...props} />
-    case C.todoTypes.proof:
+    case C.People.todoTypes.proof:
       return <ProofConnector {...props} />
-    case C.todoTypes.device:
+    case C.People.todoTypes.device:
       return <DeviceConnector {...props} />
-    case C.todoTypes.follow:
+    case C.People.todoTypes.follow:
       return <FollowConnector {...props} />
-    case C.todoTypes.chat:
+    case C.People.todoTypes.chat:
       return <ChatConnector {...props} />
-    case C.todoTypes.paperkey:
+    case C.People.todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
-    case C.todoTypes.team:
+    case C.People.todoTypes.team:
       return <TeamConnector {...props} />
-    case C.todoTypes.folder:
+    case C.People.todoTypes.folder:
       return <FolderConnector {...props} />
-    case C.todoTypes.gitRepo:
+    case C.People.todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
-    case C.todoTypes.legacyEmailVisibility:
+    case C.People.todoTypes.legacyEmailVisibility:
       return <LegacyEmailVisibilityConnector {...props} />
-    case C.todoTypes.teamShowcase:
+    case C.People.todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
-    case C.todoTypes.verifyAllEmail:
+    case C.People.todoTypes.verifyAllEmail:
       return <VerifyAllEmailConnector {...props} />
-    case C.todoTypes.verifyAllPhoneNumber:
+    case C.People.todoTypes.verifyAllPhoneNumber:
       return <VerifyAllPhoneNumberConnector {...props} />
     default:
       return null

@@ -35,7 +35,7 @@ const UpoadContainer = () => {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => C.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
+    path => C.FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const np = useUploadCountdown({

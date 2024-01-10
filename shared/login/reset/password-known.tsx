@@ -6,7 +6,7 @@ import * as Container from '@/util/container'
 
 const KnowPassword = () => {
   const error = C.useAutoResetState(s => s.error)
-  const waiting = C.useAnyWaiting(C.enterPipelineWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.AutoReset.enterPipelineWaitingKey)
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])

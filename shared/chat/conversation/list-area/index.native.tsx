@@ -99,7 +99,7 @@ const ConversationList = React.memo(function ConversationList() {
   ) : null
 
   const conversationIDKey = C.useChatContext(s => s.id)
-  const cidChanged = C.useCIDChanged(conversationIDKey)
+  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
 
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
