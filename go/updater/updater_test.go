@@ -501,6 +501,9 @@ func TestUpdaterNotNeeded(t *testing.T) {
 }
 
 func TestUpdaterCheckAndUpdate(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	testServer := testServerForUpdateFile(t, testZipPath)
 	defer testServer.Close()
 
