@@ -66,7 +66,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   const convLabel = C.Chat.getConversationLabel(participantInfo, meta, true)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
-    copyToClipboard(C.linkFromConvAndMessage(convLabel, id))
+    copyToClipboard(C.DeepLinks.linkFromConvAndMessage(convLabel, id))
   }, [copyToClipboard, id, convLabel])
   const itemCopyLink = [
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},

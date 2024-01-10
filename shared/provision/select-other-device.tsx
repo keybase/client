@@ -9,7 +9,7 @@ const SelectOtherDeviceContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const submitDeviceSelect = C.useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = C.useProvisionState(s => s.username)
-  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.Provision.waitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
@@ -36,14 +36,14 @@ export default SelectOtherDeviceContainer
 
 type Props = {
   passwordRecovery?: boolean
-  devices: ReadonlyArray<C.ProvisionDevice>
+  devices: ReadonlyArray<C.Provision.Device>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
 }
 
 const resetSignal = 'reset'
-type DeviceOrReset = C.ProvisionDevice | 'reset'
+type DeviceOrReset = C.Provision.Device | 'reset'
 export class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index: number, item: DeviceOrReset) => {
     if (item === resetSignal) {

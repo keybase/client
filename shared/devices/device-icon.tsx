@@ -6,7 +6,7 @@ import type {IconStyle} from '@/common-adapters/icon'
 
 export type Props = {
   current?: boolean
-  device: T.Devices.Device | C.ProvisionDevice
+  device: T.Devices.Device | C.Provision.Device
   size: 32 | 64 | 96
   style?: IconStyle
 }
