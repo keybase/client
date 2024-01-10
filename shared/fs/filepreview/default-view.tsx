@@ -13,7 +13,7 @@ type DefaultViewProps = {
 }
 
 const DefaultView = (props: DefaultViewProps) => {
-  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2
@@ -27,7 +27,7 @@ const DefaultView = (props: DefaultViewProps) => {
         <Kb.Text type="BodyBig" style={styles.filename}>
           {props.pathItem.name}
         </Kb.Text>
-        <Kb.Text type="BodySmall">{C.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
+        <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
         {C.isMobile && <LastModifiedLine path={props.path} mode="default" />}
         {props.pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>

@@ -14,7 +14,7 @@ const TlfType = (props: TlfTypeProps) => (
     content={
       <Kb.Text
         fixOverdraw={true}
-        type={C.pathTypeToTextType(T.FS.PathType.Folder)}
+        type={C.FS.pathTypeToTextType(T.FS.PathType.Folder)}
         style={rowStyles.rowText}
         lineClamp={Kb.Styles.isMobile ? 1 : undefined}
       >

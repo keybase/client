@@ -24,7 +24,7 @@ const Content = (props: TlfProps) => (
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
-          type={C.pathTypeToTextType(T.FS.PathType.Folder)}
+          type={C.FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={Kb.Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
           path={props.path}
         />
@@ -35,7 +35,7 @@ const Content = (props: TlfProps) => (
 )
 const Avatars = (props: TlfProps) => (
   <Kb.Box style={styles.avatarBox}>
-    {C.isTeamPath(props.path) ? (
+    {C.FS.isTeamPath(props.path) ? (
       <Kb.Avatar size={32} isTeam={true} teamname={props.usernames[0]} />
     ) : (
       <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames} />

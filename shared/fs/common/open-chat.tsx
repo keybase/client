@@ -32,7 +32,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const isTeam = C.isTeamPath(path)
+  const isTeam = C.FS.isTeamPath(path)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onChat = () => {
     previewConversation({

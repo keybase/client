@@ -10,31 +10,31 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _pathItem = C.useFSState(s => C.FS.getPathItem(s.pathItems, path))
 
   const setSorting = C.useFSState(s => s.dispatch.setSorting)
   const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, path).sort)
 
   const sortByNameAsc =
-    path === C.defaultPath
+    path === C.FS.defaultPath
       ? undefined
       : () => {
           setSorting(path, T.FS.SortSetting.NameAsc)
         }
   const sortByNameDesc =
-    path === C.defaultPath
+    path === C.FS.defaultPath
       ? undefined
       : () => {
           setSorting(path, T.FS.SortSetting.NameDesc)
         }
   const sortByTimeAsc =
-    path === C.defaultPath
+    path === C.FS.defaultPath
       ? undefined
       : () => {
           setSorting(path, T.FS.SortSetting.TimeAsc)
         }
   const sortByTimeDesc =
-    path === C.defaultPath
+    path === C.FS.defaultPath
       ? undefined
       : () => {
           setSorting(path, T.FS.SortSetting.TimeDesc)

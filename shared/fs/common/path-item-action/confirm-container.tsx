@@ -12,7 +12,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
-  const size = C.useFSState(s => C.getPathItem(s.pathItems, path).size)
+  const size = C.useFSState(s => C.FS.getPathItem(s.pathItems, path).size)
 
   const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
   const download = C.useFSState(s => s.dispatch.download)

@@ -100,7 +100,7 @@ const Connected = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

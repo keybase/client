@@ -17,7 +17,7 @@ export const useOpen = (props: Props) => {
   }
 
   const isFolder =
-    T.FS.getPathLevel(props.path) <= 3 || C.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
+    T.FS.getPathLevel(props.path) <= 3 || C.FS.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&
@@ -30,7 +30,7 @@ export const useOpen = (props: Props) => {
   }
 
   const destinationPickerGoTo = () =>
-    C.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
+    C.FS.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
 
   return destinationPickerGoTo
 }

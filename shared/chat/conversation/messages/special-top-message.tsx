@@ -172,7 +172,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
+    C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (
