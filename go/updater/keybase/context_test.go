@@ -25,8 +25,9 @@ var testMessagePath, testMessage2Path string
 
 func init() {
 	_, filename, _, _ := runtime.Caller(0)
-	testMessagePath = filepath.Join(filepath.Dir(filename), "../test/message1.txt")
-	testMessage2Path = filepath.Join(filepath.Dir(filename), "../test/message2.txt")
+	root := filepath.Dir(filepath.Dir(filename))
+	testMessagePath = filepath.Join(root, "test/message1.txt")
+	testMessage2Path = filepath.Join(root, "test/message2.txt")
 }
 
 // testSignatureInvalidSigner is "This is a test message" signed by gabrielh who
@@ -63,6 +64,7 @@ func TestContext(t *testing.T) {
 
 func TestContextVerify(t *testing.T) {
 	ctx := testContext(t)
+	testLog.Warningf("testMessagePath: %v", testMessagePath)
 	err := ctx.Verify(testContextUpdate(testMessagePath, testSignatureKeybot))
 	assert.NoError(t, err)
 }

@@ -321,7 +321,7 @@ func (c context) runKeybase(cmd KeybaseCommand) {
 
 	_, err = command.Exec(filepath.Join(path, "keybaserq.exe"), args, time.Minute, c.log)
 	if err != nil {
-		c.log.Infof("Error %s'ing keybase", cmd, err.Error())
+		c.log.Infof("Error %s'ing keybase: %s", cmd, err.Error())
 	}
 }
 

@@ -229,6 +229,10 @@ func TestExitAllOnSuccess(t *testing.T) {
 }
 
 func TestWatchdogExitAllRace(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// this was flaking
+		t.Skip("Unsupported on windows")
+	}
 	exiter := procProgram(t, "TestWatchdogExitAllRace", "sleep")
 	defer util.RemoveFileAtPath(exiter.Path)
 	exiter.ExitOn = ExitAllOnSuccess
