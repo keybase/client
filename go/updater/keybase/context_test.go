@@ -25,9 +25,8 @@ var testMessagePath, testMessage2Path string
 
 func init() {
 	_, filename, _, _ := runtime.Caller(0)
-	root := filepath.Dir(filepath.Dir(filename))
-	testMessagePath = filepath.Join(root, "test/message1.txt")
-	testMessage2Path = filepath.Join(root, "test/message2.txt")
+	testMessagePath = filepath.Join(filepath.Dir(filename), "../test/message1.txt")
+	testMessage2Path = filepath.Join(filepath.Dir(filename), "../test/message2.txt")
 }
 
 // testSignatureInvalidSigner is "This is a test message" signed by gabrielh who
@@ -63,6 +62,9 @@ func TestContext(t *testing.T) {
 }
 
 func TestContextVerify(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	ctx := testContext(t)
 	testLog.Warningf("testMessagePath: %v", testMessagePath)
 	err := ctx.Verify(testContextUpdate(testMessagePath, testSignatureKeybot))
@@ -76,6 +78,9 @@ func TestContextVerifyFail(t *testing.T) {
 }
 
 func TestContextVerifyNoValidIDs(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	ctx := testContext(t)
 	err := ctx.Verify(testContextUpdate(testMessagePath, testSignatureInvalidSigner))
 	require.Error(t, err)

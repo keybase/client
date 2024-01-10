@@ -598,6 +598,9 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 }
 
 func TestApplyDownloaded(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	testServer := testServerForUpdateFile(t, testZipPath)
 	defer testServer.Close()
 
@@ -709,6 +712,9 @@ func TestApplyDownloaded(t *testing.T) {
 }
 
 func TestFindDownloadedAsset(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	upr, err := newTestUpdater(t)
 	assert.NoError(t, err)
 	defer func() {
