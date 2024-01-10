@@ -1,24 +1,22 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
 
-type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
-const Header = (props: Props) => {
+const Header = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
     <C.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? C.Chat.noConversationIDKey}>
-      <Header2 {...props} />
+      <Header2 />
     </C.ChatProvider>
   )
 }
 
-const Header2 = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? C.Chat.noConversationIDKey
+const Header2 = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const participantInfo = C.useChatContext(s => s.participants)
