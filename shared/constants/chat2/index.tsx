@@ -680,7 +680,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
           })
 
-          if (C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.Chat.noConversationIDKey) {
+          if (
+            C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.Chat.noConversationIDKey
+          ) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
         }
@@ -1408,8 +1410,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && C.getModalStack(prev).length > 0
-        const isModal = next && C.getModalStack(next).length > 0
+        const wasModal = prev && C.Router2.getModalStack(prev).length > 0
+        const isModal = next && C.Router2.getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return

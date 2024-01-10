@@ -1467,7 +1467,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-                const visibleScreen = C.getVisibleScreen()
+                const visibleScreen = C.Router2.getVisibleScreen()
                 if (visibleScreen && visibleScreen.name === confirmRouteName) {
                   C.useRouterState.getState().dispatch.clearModals()
                   return
@@ -1716,7 +1716,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const conversationIDKey = get().id
-        const visible = C.getVisibleScreen()
+        const visible = C.Router2.getVisibleScreen()
         const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
         const visibleConvo = params?.conversationIDKey
         const visibleRouteName = visible?.name
@@ -1728,10 +1728,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // we select the chat tab and change the params
         if (Common.isSplit) {
-          C.navToThread(conversationIDKey)
+          C.Router2.navToThread(conversationIDKey)
           // immediately switch stack to an inbox | thread stack
         } else if (reason === 'push' || reason === 'savedLastState') {
-          C.navToThread(conversationIDKey)
+          C.Router2.navToThread(conversationIDKey)
           return
         } else {
           // replace if looking at the pending / waiting screen
@@ -1739,7 +1739,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             visibleRouteName === Common.threadRouteName &&
             !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
           // note: we don't switch tabs on non split
-          const modalPath = C.getModalStack()
+          const modalPath = C.Router2.getModalStack()
           if (modalPath.length > 0) {
             C.useRouterState.getState().dispatch.clearModals()
           }

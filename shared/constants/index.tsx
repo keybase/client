@@ -1,11 +1,8 @@
 // Used to avoid circular dependencies, keep orders
 export * from './platform'
 export {_useState as useDarkModeState} from './darkmode'
-export {_useState as useRouterState, getModalStack, getTab} from './router2'
-export {_getNavigator as getNavigator, navigationRef_, getVisibleScreen} from './router2'
-export {getVisiblePath, navToThread, type PathParam} from './router2'
-import * as Router2 from './router2'
-export {Router2}
+export {_useState as useRouterState} from './router2'
+export * as Router2 from './router2'
 export {_useState as useDeepLinksState, linkFromConvAndMessage} from './deeplinks'
 export {_Provider as TBProvider, _stores as TBstores, _useContext as useTBContext} from './team-building'
 export {searchWaitingKey as tbSearchWaitingKey} from './team-building'

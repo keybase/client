@@ -8,7 +8,7 @@ import NewFeatureRow from './new-feature-row'
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: C.PathParam) => void
+  onNavigate: (props: C.Router2.PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: C.Tabs.AppTab) => void
 }

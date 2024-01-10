@@ -40,7 +40,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     LastLast,
     onBack,
     // Navigate then handle setting seen state and closing the modal (desktop only)
-    onNavigate: (props: C.PathParam) => {
+    onNavigate: (props: C.Router2.PathParam) => {
       navigateAppend(props)
       onBack()
     },

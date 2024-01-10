@@ -359,11 +359,11 @@ export const initPlatformListener = () => {
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
-          const cur = C.getTab()
+          const cur = C.Router2.getTab()
           if (cur) {
             routeName = cur
           }
-          const ap = C.getVisiblePath()
+          const ap = C.Router2.getVisiblePath()
           ap.some(r => {
             if (r.name === 'chatConversation') {
               const rParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = r.params
@@ -543,7 +543,7 @@ export const initPlatformListener = () => {
     if (next === prev) return
     const f = async () => {
       await C.timeoutPromise(1000)
-      const path = C.getVisiblePath()
+      const path = C.Router2.getVisiblePath()
       C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
     C.ignorePromise(f())

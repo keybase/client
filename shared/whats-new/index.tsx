@@ -6,7 +6,7 @@ import type {VersionProps} from './versions'
 
 type Props = {
   onBack: () => void
-  onNavigate: (props: C.PathParam) => void
+  onNavigate: (props: C.Router2.PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: C.Tabs.AppTab) => void
   seenVersions: {[key: string]: boolean}

@@ -2438,12 +2438,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyTeamTeamDeleted:
           // likely wrong?
-          if (C.getTab()) {
+          if (C.Router2.getTab()) {
             C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
         case EngineGen.keybase1NotifyTeamTeamExit:
-          if (C.getTab()) {
+          if (C.Router2.getTab()) {
             C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break

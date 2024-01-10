@@ -131,7 +131,7 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
-    const t = C.getTab()
+    const t = C.Router2.getTab()
     const m = t ? C.Tabs.desktopTabMeta[t] : undefined
     const tabLabel: string = m?.label ?? ''
     return `Keybase: ${tabLabel}`
@@ -153,7 +153,7 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
-      ref={C.navigationRef_ as any}
+      ref={C.Router2.navigationRef_ as any}
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}
