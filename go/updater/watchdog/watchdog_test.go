@@ -1,6 +1,8 @@
+//go:build !windows
+// +build !windows
+
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
-
 package watchdog
 
 import (
@@ -229,9 +231,6 @@ func TestExitAllOnSuccess(t *testing.T) {
 }
 
 func TestWatchdogExitAllRace(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping on windows")
-	}
 	exiter := procProgram(t, "TestWatchdogExitAllRace", "sleep")
 	defer util.RemoveFileAtPath(exiter.Path)
 	exiter.ExitOn = ExitAllOnSuccess
