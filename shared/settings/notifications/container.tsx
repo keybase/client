@@ -36,7 +36,7 @@ const Container = () => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
-    navigateAppend(C.settingsAccountTab)
+    navigateAppend(C.Settings.settingsAccountTab)
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle

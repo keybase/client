@@ -20,7 +20,7 @@ const useData = () => {
       clearModals()
       navigateAppend({
         props: {},
-        selected: C.settingsFeedbackTab,
+        selected: C.Settings.settingsFeedbackTab,
       })
     } else {
       navigateAppend({props: {}, selected: 'feedback'})

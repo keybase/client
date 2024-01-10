@@ -62,7 +62,7 @@ const Header = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => navigateAppend(C.settingsLogOutTab)
+  const onSignOut = () => navigateAppend(C.Settings.settingsLogOutTab)
 
   const menuHeader = () => (
     <Kb.Box2 direction="vertical" fullWidth={true}>

@@ -223,7 +223,7 @@ const IncomingShareError = () => {
     clearModals()
     navigateAppend({
       props: {feedback: `iOS share failure`},
-      selected: C.settingsFeedbackTab,
+      selected: C.Settings.settingsFeedbackTab,
     })
   }
   const onCancel = () => clearModals()

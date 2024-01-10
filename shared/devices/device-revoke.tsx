@@ -106,7 +106,9 @@ const useRevoke = (deviceID = '') => {
           )
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
-          navUpToScreen(C.isMobile ? (C.isTablet ? C.settingsTab : C.settingsDevicesTab) : C.devicesTab)
+          navUpToScreen(
+            C.isMobile ? (C.isTablet ? C.settingsTab : C.Settings.settingsDevicesTab) : C.devicesTab
+          )
         } catch {}
       }
     }

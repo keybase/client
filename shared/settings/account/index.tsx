@@ -47,7 +47,7 @@ const Container = () => {
     loadHasRandomPw()
   }
   const onSetPassword = () => {
-    navigateAppend(C.settingsPasswordTab)
+    navigateAppend(C.Settings.settingsPasswordTab)
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
