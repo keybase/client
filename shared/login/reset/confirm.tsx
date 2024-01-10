@@ -43,7 +43,7 @@ const ConfirmReset = () => {
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
-              waitingKey={C.actuallyResetWaitingKey}
+              waitingKey={C.AutoReset.actuallyResetWaitingKey}
             />
             <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>
