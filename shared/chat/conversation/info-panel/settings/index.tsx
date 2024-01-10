@@ -63,6 +63,13 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     leaveConversation()
   }
 
+  const onArchive = () => {
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, type: 'chatID'} as const,
+      selected: 'archiveModal',
+    }))
+  }
+
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
   const conversationIDKey = C.useChatContext(s => s.id)
   return (
@@ -82,6 +89,15 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         ) : (
           <Notifications />
         )}
+        <Kb.Button
+          type="Default"
+          mode="Secondary"
+          label="Archive channel"
+          onClick={onArchive}
+          style={styles.smallButton}
+          icon="iconfont-file"
+          iconColor={Kb.Styles.globalColors.black}
+        />
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
             type="Default"
@@ -171,9 +187,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: '100%'},
       }),
       smallButton: {
-        marginBottom: Kb.Styles.globalMargins.medium,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        alignSelf: 'center',
       },
     }) as const
 )

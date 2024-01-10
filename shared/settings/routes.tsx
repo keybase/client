@@ -36,6 +36,7 @@ import webLinks from './web-links.page'
 import settingsContactsJoined from './contacts-joined/page'
 import settingsPushPrompt from './notifications/push-prompt.page'
 import archive from './archive/index.page'
+import archiveModal from './archive/modal.page'
 
 export const sharedNewRoutes = {
   [Constants.settingsAboutTab]: about,
@@ -64,6 +65,7 @@ export const sharedNewRoutes = {
 export const sharedNewModalRoutes = {
   [Constants.settingsLogOutTab]: logOut,
   [Constants.settingsPasswordTab]: password,
+  archiveModal,
   deleteConfirm,
   disableCertPinningModal,
   settingsAddEmail: addEmail,
