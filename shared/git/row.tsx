@@ -13,7 +13,7 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const noGit = C.makeGitInfo()
+const noGit = C.Git.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || noGit)

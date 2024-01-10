@@ -5,14 +5,14 @@ import * as React from 'react'
 type OwnProps = {id: string}
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
-const emptyGit = C.makeGitInfo()
+const emptyGit = C.Git.makeGitInfo()
 const Container = (ownProps: OwnProps) => {
   const {id} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || emptyGit)
   const error = C.useGitState(s => s.error)
   const name = git.name || ''
   const teamname = git.teamname || ''
-  const waitingKey = C.gitWaitingKey
+  const waitingKey = C.Git.loadingWaitingKey
 
   const deletePersonalRepo = C.useGitState(s => s.dispatch.deletePersonalRepo)
   const deleteTeamRepo = C.useGitState(s => s.dispatch.deleteTeamRepo)

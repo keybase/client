@@ -27,7 +27,7 @@ const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
 
 const Container = (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const loading = C.useAnyWaiting(C.gitWaitingKey)
+  const loading = C.useAnyWaiting(C.Git.loadingWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(
     C.useShallow(s => {
       const {dispatch, error, idToInfo, isNew} = s
@@ -97,7 +97,12 @@ const Container = (ownProps: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable waitingKeys={C.gitWaitingKey} onBack={undefined} onReload={load} reloadOnMount={true}>
+    <Kb.Reloadable
+      waitingKeys={C.Git.loadingWaitingKey}
+      onBack={undefined}
+      onReload={load}
+      reloadOnMount={true}
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
