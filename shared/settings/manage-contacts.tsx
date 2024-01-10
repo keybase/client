@@ -65,7 +65,7 @@ const ManageContactsBanner = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {
-    switchTab(C.chatTab)
+    switchTab(C.Tabs.chatTab)
     appendNewChatBuilder()
   }, [appendNewChatBuilder, switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

@@ -55,7 +55,7 @@ export const Bot = (props: BotProps) => {
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
-  C.useCIDChanged(conversationIDKey, () => {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
       refreshBotSettings(botUsername)
@@ -241,7 +241,7 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const conversationIDKey = C.useChatContext(s => s.id)
   const onBotAdd = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
@@ -258,7 +258,7 @@ const BotTab = (props: Props) => {
 
   const featuredBotsLength = featuredBots.length
   const [lastFBL, setLastFBL] = React.useState(-1)
-  const cidChanged = C.useCIDChanged(conversationIDKey)
+  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   if (cidChanged || lastFBL !== featuredBotsLength) {
     setLastFBL(featuredBotsLength)
     if (featuredBotsLength === 0 && !loadedAllBots) {

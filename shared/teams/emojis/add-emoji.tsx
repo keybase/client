@@ -41,7 +41,7 @@ const useDoAddEmojis = (
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddEmojis =
-    conversationIDKey !== C.noConversationIDKey
+    conversationIDKey !== C.Chat.noConversationIDKey
       ? () => {
           setWaitingAddEmojis(true)
           addEmojisRpc(

@@ -8,7 +8,7 @@ const BottomMessageContainer = React.memo(function BottomMessageContainer() {
     C.useShallow(s => {
       const meta = s.meta
       const showResetParticipants = meta.resetParticipants.size !== 0
-      const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== C.noConversationIDKey
+      const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== C.Chat.noConversationIDKey
       return {showResetParticipants, showSuperseded}
     })
   )

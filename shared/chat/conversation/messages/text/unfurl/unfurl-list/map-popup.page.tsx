@@ -7,9 +7,9 @@ type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Popup>>
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params
   return (
-    <C.ProviderScreen rp={p}>
+    <C.Chat.ProviderScreen rp={p}>
       <Popup {...rest} />
-    </C.ProviderScreen>
+    </C.Chat.ProviderScreen>
   )
 }
 

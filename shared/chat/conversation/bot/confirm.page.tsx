@@ -7,9 +7,9 @@ type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Confirm>>
 const Screen = (p: OwnProps) => {
   const rest = p.route.params
   return (
-    <C.ProviderScreen rp={p}>
+    <C.Chat.ProviderScreen rp={p}>
       <Confirm {...rest} />
-    </C.ProviderScreen>
+    </C.Chat.ProviderScreen>
   )
 }
 

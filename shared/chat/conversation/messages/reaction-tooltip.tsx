@@ -55,7 +55,7 @@ const ReactionTooltip = (p: OwnProps) => {
   )
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onAddReaction = React.useCallback(() => {
     onHidden()
     navigateAppend(conversationIDKey => ({

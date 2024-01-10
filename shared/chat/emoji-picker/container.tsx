@@ -41,7 +41,7 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
   const conversationIDKey = C.useChatContext(s => s.id)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
-      if (conversationIDKey !== C.noConversationIDKey && onPickAddToMessageOrdinal) {
+      if (conversationIDKey !== C.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
         toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
       }
       onPickAction?.(emoji, renderableEmoji)
@@ -81,7 +81,7 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const conversationIDKey = C.useChatContext(s => s.id)
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
-  const cidChanged = C.useCIDChanged(conversationIDKey, undefined, true)
+  const cidChanged = C.Chat.useCIDChanged(conversationIDKey, undefined, true)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
@@ -117,7 +117,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const addEmoji = React.useCallback(
     () =>
       navigateAppend(conversationIDKey => ({
@@ -187,7 +187,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji as any)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const addEmoji = () => {
     props.onDidPick?.()
     navigateAppend(conversationIDKey => ({

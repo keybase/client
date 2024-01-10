@@ -86,19 +86,19 @@ function SettingsNav() {
           text: 'Crypto',
         },
         {
-          badgeNumber: badgeNumbers.get(C.gitTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
           onClick: () => onTabChange(C.Settings.settingsGitTab),
           text: 'Git',
         },
         {
-          badgeNumber: badgeNumbers.get(C.devicesTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
           onClick: () => onTabChange(C.Settings.settingsDevicesTab),
           text: 'Devices',
         },
         {
-          badgeNumber: badgeNumbers.get(C.walletsTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.walletsTab),
           icon: 'iconfont-nav-2-wallets',
           onClick: () => onTabChange(C.Settings.settingsWalletsTab),
           text: 'Wallet',
@@ -115,7 +115,7 @@ function SettingsNav() {
     {
       data: [
         {
-          badgeNumber: badgeNumbers.get(C.settingsTab),
+          badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
           onClick: () => onTabChange(C.Settings.settingsAccountTab),
           text: 'Your account',
         },

@@ -15,7 +15,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     openURL(url)
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const _onSwitchTab = (tab: C.AppTab) => {
+  const _onSwitchTab = (tab: C.Tabs.AppTab) => {
     switchTab(tab)
   }
 

@@ -32,7 +32,7 @@ const Container = (ownProps: OwnProps) => {
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
-    switchTab(C.teamsTab)
+    switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const props = {

@@ -8,7 +8,7 @@ type Props = {
   onBack: () => void
   onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: C.AppTab) => void
+  onSwitchTab: (tab: C.Tabs.AppTab) => void
   seenVersions: {[key: string]: boolean}
   Current?: React.ComponentType<VersionProps>
   Last?: React.ComponentType<VersionProps>

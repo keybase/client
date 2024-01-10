@@ -83,7 +83,7 @@ const EmptyRow = (props: Props) => {
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const joinConversation = C.useConvoState(
-    conversationIDKey ?? C.noConversationIDKey,
+    conversationIDKey ?? C.Chat.noConversationIDKey,
     s => s.dispatch.joinConversation
   )
   const onAddSelf = () => {

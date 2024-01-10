@@ -63,7 +63,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
 }
 
 const useMenuItems = (
-  p: Props & {showBadges?: boolean; openApp: (tab?: C.AppTab) => void}
+  p: Props & {showBadges?: boolean; openApp: (tab?: C.Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const countMap = navBadges
@@ -118,25 +118,29 @@ const useMenuItems = (
     if (showBadges) {
       return [
         {
-          onClick: () => openApp(C.gitTab),
+          onClick: () => openApp(C.Tabs.gitTab),
           title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.gitTab)} />,
+          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.Tabs.gitTab)} />,
         },
         {
-          onClick: () => openApp(C.devicesTab),
+          onClick: () => openApp(C.Tabs.devicesTab),
           title: 'Devices',
           view: (
-            <TabView title="Devices" iconType="iconfont-nav-2-devices" count={countMap.get(C.devicesTab)} />
+            <TabView
+              title="Devices"
+              iconType="iconfont-nav-2-devices"
+              count={countMap.get(C.Tabs.devicesTab)}
+            />
           ),
         },
         {
-          onClick: () => openApp(C.settingsTab),
+          onClick: () => openApp(C.Tabs.settingsTab),
           title: 'Settings',
           view: (
             <TabView
               title="Settings"
               iconType="iconfont-nav-2-settings"
-              count={countMap.get(C.settingsTab)}
+              count={countMap.get(C.Tabs.settingsTab)}
             />
           ),
         },
@@ -163,7 +167,7 @@ const useMenuItems = (
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const openApp = React.useCallback((tab?: C.AppTab) => {
+  const openApp = React.useCallback((tab?: C.Tabs.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
     tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
   }, [])
@@ -225,8 +229,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   )
 }
 
-const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab] as const
-const badgesInMenu = [C.gitTab, C.devicesTab, C.settingsTab] as const
+const badgeTypesInHeader = [C.Tabs.peopleTab, C.Tabs.chatTab, C.Tabs.fsTab, C.Tabs.teamsTab] as const
+const badgesInMenu = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as const
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount, conversationsToSend, remoteTlfUpdates} = p
@@ -280,7 +284,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     R.remoteDispatch(RemoteGen.createShowMain())
-    navigateAppend(C.loginTab)
+    navigateAppend(C.Tabs.loginTab)
   }
   return (
     <>
@@ -370,13 +374,13 @@ body {
 `
 
 const iconMap = {
-  [C.peopleTab]: 'iconfont-nav-2-people',
-  [C.chatTab]: 'iconfont-nav-2-chat',
-  [C.devicesTab]: 'iconfont-nav-2-devices',
-  [C.fsTab]: 'iconfont-nav-2-files',
-  [C.teamsTab]: 'iconfont-nav-2-teams',
-  [C.gitTab]: undefined,
-  [C.settingsTab]: undefined,
+  [C.Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [C.Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [C.Tabs.devicesTab]: 'iconfont-nav-2-devices',
+  [C.Tabs.fsTab]: 'iconfont-nav-2-files',
+  [C.Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [C.Tabs.gitTab]: undefined,
+  [C.Tabs.settingsTab]: undefined,
 } as const
 
 type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
@@ -386,7 +390,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: Map<string, number>; openApp: (t: Ta
   const count = countMap.get(tab)
   const iconType = iconMap[tab]
 
-  if ((tab === C.devicesTab && !count) || !iconType) {
+  if ((tab === C.Tabs.devicesTab && !count) || !iconType) {
     return null
   }
 

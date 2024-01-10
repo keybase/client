@@ -23,7 +23,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
     },
     [toggleMessageReaction, ordinal]
   )
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const _onAddReaction = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {

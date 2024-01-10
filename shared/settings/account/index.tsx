@@ -51,7 +51,7 @@ const Container = () => {
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
-    switchTab(C.chatTab)
+    switchTab(C.Tabs.chatTab)
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }

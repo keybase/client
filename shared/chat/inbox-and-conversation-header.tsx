@@ -11,7 +11,7 @@ type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 const Header = (props: Props) => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
-    <C.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? C.noConversationIDKey}>
+    <C.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? C.Chat.noConversationIDKey}>
       <Header2 {...props} />
     </C.ChatProvider>
   )

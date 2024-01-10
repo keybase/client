@@ -135,7 +135,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
         // only use layout if we don't have the meta at all
         const typers = !isInWidget ? s.typing : undefined
         const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
-        const maybeLayoutSnippet = conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+        const maybeLayoutSnippet = conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
 
         const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
         const isDecryptingSnippet =

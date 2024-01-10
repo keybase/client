@@ -170,7 +170,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      navigateAppend(C.settingsTab)
+      navigateAppend(C.Tabs.settingsTab)
       navigateAppend({props: {}, selected: C.Settings.settingsFeedbackTab})
     } else {
       navigateAppend({props: {}, selected: 'feedback'})

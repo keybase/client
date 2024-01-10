@@ -222,13 +222,13 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
 export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
   const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
-  const cidChanged = C.useCIDChanged(convID)
+  const cidChanged = C.Chat.useCIDChanged(convID)
   const getUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
   const doGetUserEmoji = () => {
-    if (!convID || convID === C.noConversationIDKey || !shouldActuallyLoad) {
+    if (!convID || convID === C.Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
     getUserEmoji(
@@ -278,7 +278,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     renderItem: () => (
       <EmojiAddRow
         teamID={teamID}
-        convID={convID ?? C.noConversationIDKey}
+        convID={convID ?? C.Chat.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
       />
@@ -301,7 +301,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
         <EmojiItemRow
           emoji={item}
           firstItem={index === 0}
-          conversationIDKey={convID ?? C.noConversationIDKey}
+          conversationIDKey={convID ?? C.Chat.noConversationIDKey}
           teamID={teamID}
         />
       ),

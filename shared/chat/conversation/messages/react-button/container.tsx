@@ -33,7 +33,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const onClick = React.useCallback(() => {
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onOpenEmojiPicker = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},

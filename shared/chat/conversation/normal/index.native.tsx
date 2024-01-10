@@ -51,7 +51,7 @@ const Conversation = React.memo(function Conversation() {
     </Kb.BoxGrow>
   )
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {

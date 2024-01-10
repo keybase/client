@@ -7,7 +7,7 @@ import logger from '@/logger'
 export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = p
   const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
-    const selected = C.getSelectedConversation()
+    const selected = C.Chat.getSelectedConversation()
     if (selected !== conversationIDKey) {
       logger.info('mark intially as read bail on not looking at this thread anymore?')
       return

@@ -80,7 +80,7 @@ const getChannelSuggestions = (
 export const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  C.useCIDChanged(conversationIDKey, () => {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
     channelSuggestionsTriggered()
   })
 

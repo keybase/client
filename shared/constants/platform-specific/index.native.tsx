@@ -216,7 +216,7 @@ const loadStartupDetails = async () => {
   }
 
   C.useConfigState.getState().dispatch.setStartupDetails({
-    conversation: conversation ?? C.noConversationIDKey,
+    conversation: conversation ?? C.Chat.noConversationIDKey,
     followUser,
     link,
     tab: tab as Tabs.Tab,

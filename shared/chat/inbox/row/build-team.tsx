@@ -8,7 +8,7 @@ const BuildTeam = React.memo(function BuildTeam() {
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onCreateTeam = () => {
-    switchTab(C.teamsTab)
+    switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {

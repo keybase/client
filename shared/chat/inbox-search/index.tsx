@@ -88,7 +88,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const renderBots = (h: {item: T.RPCGen.FeaturedBot; section: {indexOffset: number}; index: number}) => {
     const {item, index} = h
     return (
-      <C.ChatProvider id={C.noConversationIDKey} key={index} canBeNull={true}>
+      <C.ChatProvider id={C.Chat.noConversationIDKey} key={index} canBeNull={true}>
         <Bot {...item} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
       </C.ChatProvider>
     )

@@ -36,7 +36,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !C.Chat.isAssertion(u)
   )
 
-  const navigateAppend = C.useChatNavigateAppend()
+  const navigateAppend = C.Chat.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }
@@ -97,7 +97,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         <Kb.Text type="Header">Conversation</Kb.Text>
         <RetentionPicker
           conversationIDKey={
-            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.noConversationIDKey
+            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
           }
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}

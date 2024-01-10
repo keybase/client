@@ -80,7 +80,7 @@ const noPaths = new Array<string>()
 const DesktopSendToChat = (props: Props) => {
   const sendPaths = props.sendPaths ?? noPaths
   const [title, setTitle] = React.useState('')
-  const [conversationIDKey, setConversationIDKey] = React.useState(C.noConversationIDKey)
+  const [conversationIDKey, setConversationIDKey] = React.useState(C.Chat.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = C.useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -106,7 +106,7 @@ const DesktopSendToChat = (props: Props) => {
   return (
     <Kb.PopupWrapper>
       <DesktopSendToChatRender
-        enabled={conversationIDKey !== C.noConversationIDKey}
+        enabled={conversationIDKey !== C.Chat.noConversationIDKey}
         convName={convName}
         // If we ever support sending multiples from desktop this will need to
         // change.

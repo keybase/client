@@ -10,7 +10,7 @@ const Conversation = React.memo(function Conversation() {
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {
-      case C.noConversationIDKey:
+      case C.Chat.noConversationIDKey:
         return 'noConvo'
       default:
         if (meta.membershipType === 'youAreReset') {

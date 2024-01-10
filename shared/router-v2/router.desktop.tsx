@@ -132,7 +132,7 @@ const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Sc
 const documentTitle = {
   formatter: () => {
     const t = C.getTab()
-    const m = t ? Tabs.desktopTabMeta[t] : undefined
+    const m = t ? C.Tabs.desktopTabMeta[t] : undefined
     const tabLabel: string = m?.label ?? ''
     return `Keybase: ${tabLabel}`
   },

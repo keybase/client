@@ -401,7 +401,7 @@ export const useAttachmentSections = (
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
   )
-  const cidChanged = C.useCIDChanged(conversationIDKey)
+  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
 

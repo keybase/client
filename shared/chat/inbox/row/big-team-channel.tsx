@@ -18,7 +18,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
   const snippetDecoration = C.useChatContext(s => {
     const d =
-      s.meta.conversationIDKey === C.noConversationIDKey
+      s.meta.conversationIDKey === C.Chat.noConversationIDKey
         ? layoutSnippetDecoration ?? RPCChatTypes.SnippetDecoration.none
         : s.meta.snippetDecoration
 
