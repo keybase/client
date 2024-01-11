@@ -63,6 +63,13 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     leaveConversation()
   }
 
+  const onArchive = () => {
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, type: 'chatID'} as const,
+      selected: 'archiveModal',
+    }))
+  }
+
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
   const conversationIDKey = C.useChatContext(s => s.id)
   return (
@@ -95,6 +102,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            label="Archive channel"
+            onClick={onArchive}
+            icon="iconfont-folder-downloads"
+            iconColor={Kb.Styles.globalColors.black}
+          />
+        </Kb.Box2>
         <RetentionPicker
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
@@ -105,7 +122,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           teamID={teamID}
         />
         {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
-
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
@@ -171,9 +187,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: '100%'},
       }),
       smallButton: {
-        marginBottom: Kb.Styles.globalMargins.medium,
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
+        alignSelf: 'center',
       },
     }) as const
 )

@@ -65,10 +65,10 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
     if (teamName) {
       return HeaderType.Team
     }
-    const participants = meta.teamname ? null : participantInfo.name
-    const isPhoneOrEmail =
-      participants?.some(participant => participant.endsWith('@phone') || participant.endsWith('@email')) ??
-      false
+    const participants = participantInfo.name
+    const isPhoneOrEmail = participants.some(
+      participant => participant.endsWith('@phone') || participant.endsWith('@email')
+    )
     return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
   })
 

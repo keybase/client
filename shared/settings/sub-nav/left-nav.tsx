@@ -108,6 +108,11 @@ const LeftNav = (props: Props) => {
         selected={props.selected === C.Settings.settingsAdvancedTab}
         onClick={() => props.onClick(C.Settings.settingsAdvancedTab)}
       />
+      <SettingsItem
+        text="Archive"
+        selected={props.selected === C.Settings.settingsArchiveTab}
+        onClick={() => props.onClick(C.Settings.settingsArchiveTab)}
+      />
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
       <SettingsItem

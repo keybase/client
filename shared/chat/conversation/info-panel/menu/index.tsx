@@ -120,6 +120,17 @@ const InfoPanelMenu = (p: Props) => {
   const {manageChannelsTitle, badgeSubscribe, teamname, isMuted, onMuteConv, onBlockConv, onJoinChannel} = p
   const {visible, fullname, onViewTeam, onHidden, attachTo, floatingMenuContainerStyle, teamID} = p
   const {onLeaveTeam, onLeaveChannel, onMarkAsRead, onMarkAsUnread, canAddPeople} = p
+
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+
+  const onArchive = () => {
+    teamname &&
+      navigateAppend({
+        props: {teamname, type: 'chatTeam'} as const,
+        selected: 'archiveModal',
+      })
+  }
+
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
   const addPeopleItems = [
@@ -308,6 +319,12 @@ const InfoPanelMenu = (p: Props) => {
       iconIsVisible: false,
       onClick: onLeaveTeam,
       title: 'Leave team',
+    } as const)
+    items.push({
+      icon: 'iconfont-folder-downloads',
+      iconIsVisible: false,
+      onClick: onArchive,
+      title: 'Archive conversation',
     } as const)
   }
 
