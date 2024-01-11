@@ -26,11 +26,14 @@ export const _useState = Z.createZustand<State>(set => {
       const f = async () => {
         const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
         set(s => {
-          s.deviceMap = new Map(
-            results?.map(r => {
-              const d = rpcDeviceToDevice(r)
-              return [d.deviceID, d]
-            })
+          C.updateImmerMap(
+            s.deviceMap,
+            new Map(
+              results?.map(r => {
+                const d = rpcDeviceToDevice(r)
+                return [d.deviceID, d]
+              })
+            )
           )
         })
       }

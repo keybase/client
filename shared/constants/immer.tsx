@@ -23,6 +23,22 @@ export function updateImmerArray<T, K extends keyof T>(existing: T, propName: K,
   }
 }
 
+// using immer update and array so we can maximize strict equality
+export function updateImmerMap<K, V>(existing: Map<K, V>, next: Map<K, V>): void {
+  // sync keys
+  const existingKeys = new Set(existing.keys())
+
+  for (const [key, val] of next) {
+    if (!isEqual(existing.get(key), val)) {
+      existing.set(key, val)
+    }
+    existingKeys.delete(key)
+  }
+  for (const key of existingKeys) {
+    existingKeys.delete(key)
+  }
+}
+
 export function updateImmerVal<T, K extends keyof T>(existing: T, propName: K, next: T): void {
   if (!isEqual(existing[propName], next[propName])) {
     existing[propName] = next[propName]
