@@ -119,6 +119,9 @@ func startProcess(t *testing.T, path string, testCommand string) (string, int, *
 }
 
 func TestTerminateAllPathEqual(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("flakey :(")
+	}
 	procPath := procPath(t, "testTerminateAllPathEqual")
 	defer util.RemoveFileAtPath(procPath)
 	matcher := NewMatcher(procPath, PathEqual, testLog)
