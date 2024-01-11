@@ -96,26 +96,27 @@ const ArchiveModal = (p: Props) => {
   let content: React.ReactNode = null
   switch (type) {
     case 'chatID':
-      content = <Kb.Text type="Body">Chat conversation: {displayname}</Kb.Text>
+      content = <Kb.Text type="Body">Source: Chat conversation: {displayname}</Kb.Text>
       break
     case 'chatTeam':
-      content = <Kb.Text type="Body">Chat team: {p.teamname}</Kb.Text>
+      content = <Kb.Text type="Body">Source: Chat team: {p.teamname}</Kb.Text>
       break
     case 'chatAll':
-      content = <Kb.Text type="Body">All chats</Kb.Text>
+      content = <Kb.Text type="Body">Source: All chats</Kb.Text>
       break
     case 'fsAll':
-      content = <Kb.Text type="Body">All KBFS</Kb.Text>
+      content = <Kb.Text type="Body">Source: All KBFS</Kb.Text>
       break
     case 'fsPath':
-      content = <Kb.Text type="Body">KBFS: {p.path}</Kb.Text>
+      content = <Kb.Text type="Body">Source: KBFS folder: {p.path}</Kb.Text>
       break
   }
 
   const output = Kb.Styles.isMobile ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" alignItems="center">
-      <Kb.BoxGrow style={{height: 18}}>
-        <Kb.Text type="BodyItalic" lineClamp={1} title={outpath}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
+      <Kb.Text type="Body">To:</Kb.Text>
+      <Kb.BoxGrow style={{height: 22}}>
+        <Kb.Text type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
           {outpath}
         </Kb.Text>
       </Kb.BoxGrow>
@@ -144,6 +145,11 @@ const ArchiveModal = (p: Props) => {
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" style={styles.container}>
+        {Kb.Styles.isMobile ? (
+          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
+        ) : (
+          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
+        )}
         {content}
         {output}
       </Kb.Box2>
@@ -153,7 +159,18 @@ const ArchiveModal = (p: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
-  selectOutput: {alignSelf: 'flex-start'},
+  outPath: Kb.Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Kb.Styles.globalColors.blue_30,
+      borderColor: Kb.Styles.globalColors.grey,
+      borderRadius: Kb.Styles.borderRadius,
+      padding: 2,
+      wordBreak: 'break-all',
+    },
+  }),
+  selectOutput: {
+    alignSelf: 'flex-start',
+  },
 }))
 
 export default ArchiveModal

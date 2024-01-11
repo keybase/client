@@ -185,7 +185,10 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([Constants.folderListWaitingKey, Constants.statWaitingKey])
+  const ignoreNeedsToWait = C.Waiting.useAnyWaiting([
+    Constants.folderListWaitingKey,
+    Constants.statWaitingKey,
+  ])
   const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
@@ -233,6 +236,22 @@ const Container = (op: OwnProps) => {
         },
       ] as const)
     : []
+
+  const onArchive = () => {
+    path &&
+      navigateAppend({
+        props: {path, type: 'fsPath'} as const,
+        selected: 'archiveModal',
+      })
+  }
+  const itemArchive = [
+    {
+      icon: 'iconfont-folder-downloads',
+      onClick: hideAfter(() => onArchive()),
+      title: 'Archive folder',
+    },
+  ] as const
+
   const items: Kb.MenuItems = [
     ...itemNewFolder,
     ...itemChatTeam,
@@ -245,6 +264,7 @@ const Container = (op: OwnProps) => {
     ...itemDownload,
     ...itemIgnore,
     ...itemRename,
+    ...itemArchive,
     ...itemDelete,
   ]
 
