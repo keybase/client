@@ -108,7 +108,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label="Archive channel"
             onClick={onArchive}
-            icon="iconfont-file"
+            icon="iconfont-folder-downloads"
             iconColor={Kb.Styles.globalColors.black}
           />
         </Kb.Box2>
