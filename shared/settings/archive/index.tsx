@@ -1,48 +1,23 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {formatTimeForPopup} from '@/util/timestamp'
 
-type JobDetails = {
-  context: string
-  outPath: string
-  progress: number
-  start: string
-}
-
-const mockJobs = [1, 2, 3] // new Array(100).fill(1)
-
-const mock = {
-  1: {
-    context: 'chat/.',
-    outPath: '~/Downloads/all',
-    progress: 0.2,
-    start: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 3),
-  },
-  2: {
-    context: 'fs/./a/a/a/a//a/b/b/b/b/d/d//d1/2/3/4/5/6/7/8/9/0/',
-    outPath: '~/Downloads/fs',
-    progress: 0.5,
-    start: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 8),
-  },
-  3: {
-    context: 'chat/keybasefriends/a/b/c/d/e/f/g/',
-    outPath: '~/Downloads/kbf',
-    progress: 1,
-    start: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 30),
-  },
-} as Record<number, JobDetails>
-
-const Job = React.memo(function Job(p: {index: number; id: number}) {
+const Job = React.memo(function Job(p: {index: number; id: string}) {
   const {id, index} = p
+  const m = C.useArchiveState(s => s.jobs.get(id))
+  const cancel = C.useArchiveState(s => s.dispatch.cancel)
 
+  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const onShowFinder = React.useCallback(() => {
+    if (!m) return
+    openFinder?.(m.outPath)
+  }, [m, openFinder])
   const onCancel = React.useCallback(() => {
-    console.log('cancel TODO', id)
-  }, [id])
-  // TODO really get data
-  const m = mock[id]
+    cancel(id)
+  }, [cancel, id])
+
   if (!m) return null
-  const {start, progress, outPath, context} = m
+  const {started, progress, outPath, context} = m
   const done = progress === 1
   return (
     <Kb.ListItem2
@@ -52,7 +27,7 @@ const Job = React.memo(function Job(p: {index: number; id: number}) {
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
           <Kb.Box2 direction="vertical" style={styles.jobLeft}>
             <Kb.Text type="Body">
-              {Kb.Styles.isMobile ? `Job: (${start})` : `Job ${id}: (started: ${start})`}
+              {Kb.Styles.isMobile ? `Job: (${started})` : `Job ${id}: (started: ${started})`}
             </Kb.Text>
             <Kb.Box2
               direction="horizontal"
@@ -72,7 +47,7 @@ const Job = React.memo(function Job(p: {index: number; id: number}) {
           <Kb.Box2 direction="vertical" style={styles.action}>
             {done ? (
               Kb.Styles.isMobile ? null : (
-                <Kb.Text type="BodyPrimaryLink" onClick={onCancel}>
+                <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
                   Show in {C.fileUIName}
                 </Kb.Text>
               )
@@ -89,16 +64,32 @@ const Job = React.memo(function Job(p: {index: number; id: number}) {
 })
 
 const Archive = () => {
-  const archiveChat = React.useCallback(() => {}, [])
-  const archiveFS = React.useCallback(() => {}, [])
-  const clearCompleted = React.useCallback(() => {}, [])
-  const jobs = mockJobs
+  const start = C.useArchiveState(s => s.dispatch.start)
+  const load = C.useArchiveState(s => s.dispatch.load)
 
-  const showClear = React.useMemo(() => {
-    return jobs.some(id => {
-      return (mock[id]?.progress ?? 0) === 1
-    })
-  }, [jobs])
+  C.useOnMountOnce(() => {
+    load()
+  })
+
+  const archiveChat = React.useCallback(() => {
+    start('chat', '.', 'downloads/allchat')
+  }, [start])
+  const archiveFS = React.useCallback(() => {
+    start('kbfs', '.', 'downloads/allkbfs')
+  }, [start])
+  const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
+
+  const jobMap = C.useArchiveState(s => s.jobs)
+  const jobs = React.useMemo(() => [...jobMap.keys()], [jobMap])
+
+  const showClear = C.useArchiveState(s => {
+    for (const job of s.jobs.values()) {
+      if (job.progress === 1) {
+        return true
+      }
+    }
+    return false
+  })
 
   return (
     <Kb.ScrollView style={styles.scroll}>
@@ -121,7 +112,7 @@ const Archive = () => {
           {jobs.length ? (
             <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
               {jobs.map((id, idx) => (
-                <Job id={id} key={idx} index={idx} />
+                <Job id={id} key={id} index={idx} />
               ))}
               {showClear ? (
                 <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
