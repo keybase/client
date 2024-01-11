@@ -73,6 +73,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
       get().dispatch.start('chatname', 'keybasefriends#general', `${downloadFolder}/friends`)
       get().dispatch.start('kbfs', '.', `${downloadFolder}/allkbfs`)
       get().dispatch.start('kbfs', 'cnojima/vacation', `${downloadFolder}/vacation`)
+      set(s => {
+        const old = s.jobs.get('1')
+        if (old) {
+          s.jobs.set('1', {
+            ...old,
+            progress: 0.8,
+          })
+        }
+      })
     },
     resetState: 'default',
     start: (type, path, outPath) => {
@@ -96,6 +105,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           break
       }
+      // TODO outpath on mobile set by service
       set(s => {
         const nextKey = `${s.jobs.size + 1}`
         s.jobs.set(nextKey, {

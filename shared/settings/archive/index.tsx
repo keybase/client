@@ -12,6 +12,17 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
     if (!m) return
     openFinder?.(m.outPath)
   }, [m, openFinder])
+
+  const onShare = React.useCallback(() => {
+    if (!m?.outPath) return
+    C.PlatformSpecific.showShareActionSheet({
+      filePath: m.outPath,
+      mimeType: 'application/zip',
+    })
+      .then(() => {})
+      .catch(() => {})
+  }, [m])
+
   const onCancel = React.useCallback(() => {
     cancel(id)
   }, [cancel, id])
@@ -20,7 +31,7 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
   const {started, progress, outPath, context} = m
   const done = progress === 1
   const sub = Kb.Styles.isMobile ? (
-    <Kb.Text type="Body" lineClamp={1}>
+    <Kb.Text type="BodyBold" lineClamp={1}>
       {context}
     </Kb.Text>
   ) : (
@@ -52,7 +63,11 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.action}>
             {done ? (
-              Kb.Styles.isMobile ? null : (
+              Kb.Styles.isMobile ? (
+                <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
+                  Share
+                </Kb.Text>
+              ) : (
                 <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
                   Show in {C.fileUIName}
                 </Kb.Text>
