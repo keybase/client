@@ -183,7 +183,7 @@ class Tabs extends React.Component<TabsProps> {
             : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
         </Kb.Text>
         {((tab === 'following' && this.props.loadingFollowing) || this.props.loadingFollowers) && (
-          <Kb.ProgressIndicator style={{position: 'absolute'}} />
+          <Kb.ProgressIndicator style={styles.progress} />
         )}
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -595,6 +595,7 @@ export const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   noGrow: {flexGrow: 0},
   profileSearch: {marginTop: Kb.Styles.globalMargins.xtiny},
+  progress: {position: 'absolute'},
   proofs: Kb.Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',

@@ -199,7 +199,7 @@ const Connected = (ownProps: OwnProps) => {
   }
   cachedRows = rows
 
-  const unreadIndices: Map<number, number> = new Map()
+  const _unreadIndices: Map<number, number> = new Map()
   let unreadTotal: number = 0
   for (let i = rows.length - 1; i >= 0; i--) {
     const row = rows[i]!
@@ -211,11 +211,18 @@ const Connected = (ownProps: OwnProps) => {
       ) {
         // on mobile include all convos, on desktop only not currently selected convo
         const unreadCount = _badgeMap.get(row.conversationIDKey) || 0
-        unreadIndices.set(i, unreadCount)
+        _unreadIndices.set(i, unreadCount)
         unreadTotal += unreadCount
       }
     }
   }
+
+  const unreadIndiciesRef = React.useRef(_unreadIndices)
+  if (!isEqual(unreadIndiciesRef.current, _unreadIndices)) {
+    unreadIndiciesRef.current = _unreadIndices
+  }
+  const unreadIndices = unreadIndiciesRef.current
+
   const props = {
     isSearching,
     navKey,
