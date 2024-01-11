@@ -125,9 +125,6 @@ const ArchiveModal = (p: Props) => {
   )
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Archive', onClose)
-  // TODO footer not showing on mobile?
-  // check mobile routring of progress
-
   return (
     <Kb.Modal
       mode="Wide"
