@@ -63,20 +63,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     leaveConversation()
   }
 
-  const you = C.useCurrentUserState(s => s.username)
-  const displayname = C.useChatContext(s => {
-    const m = s.meta
-    if (m.teamname) {
-      return m.teamname
-    }
-
-    const participants = participantInfo.name
-    return participants.filter(username => username !== you).join(',')
-  })
-
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, displayname, type: 'chatID'} as const,
+      props: {conversationIDKey, type: 'chatID'} as const,
       selected: 'archiveModal',
     }))
   }
@@ -100,15 +89,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         ) : (
           <Notifications />
         )}
-        <Kb.Button
-          type="Default"
-          mode="Secondary"
-          label="Archive channel"
-          onClick={onArchive}
-          style={styles.smallButton}
-          icon="iconfont-file"
-          iconColor={Kb.Styles.globalColors.black}
-        />
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
             type="Default"
@@ -122,6 +102,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            label="Archive channel"
+            onClick={onArchive}
+            icon="iconfont-file"
+            iconColor={Kb.Styles.globalColors.black}
+          />
+        </Kb.Box2>
         <RetentionPicker
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
@@ -132,7 +122,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           teamID={teamID}
         />
         {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
-
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>

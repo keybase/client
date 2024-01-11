@@ -1,4 +1,5 @@
 import * as Z from '@/util/zustand'
+import * as C from '.'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {downloadFolder} from '@/constants/platform'
 
@@ -20,16 +21,20 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    start: (type: 'chat' | 'kbfs', path: string, outPath: string) => void
+    start: (type: 'chatid' | 'chatname' | 'kbfs', path: string, outPath: string) => void
     cancel: (id: string) => void
     clearCompleted: () => void
     load: () => void
     resetState: 'default'
   }
+  chatIDToDisplayname: (id: string) => string
 }
 
-export const _useState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>((set, get) => {
+  let startedMockTimer = false
   const startMockTimer = () => {
+    if (startedMockTimer) return
+    startedMockTimer = true
     setInterval(() => {
       set(s => {
         for (const value of s.jobs.values()) {
@@ -60,51 +65,41 @@ export const _useState = Z.createZustand<State>(set => {
     },
     load: () => {
       // TODO
-      set(s => {
-        if (s.jobs.size > 0) {
-          return
-        }
-        startMockTimer()
-        s.jobs = new Map([
-          [
-            '1',
-            {
-              context: 'chat/.',
-              id: '1',
-              outPath: `${downloadFolder}/allchat`,
-              progress: 0.2,
-              started: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 3),
-            },
-          ],
-          [
-            '2',
-            {
-              context: 'fs/.',
-              id: '2',
-              outPath: `${downloadFolder}/allkbfs`,
-              progress: 0.8,
-              started: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 8),
-            },
-          ],
-          [
-            '3',
-            {
-              context: 'chat/keybase',
-              id: '3',
-              outPath: `${downloadFolder}/archivetest`,
-              progress: 1,
-              started: formatTimeForPopup(new Date().getTime() - 1000 * 60 * 60 * 24 * 30),
-            },
-          ],
-        ] as const)
-      })
+      startMockTimer()
+      if (get().jobs.size > 0) {
+        return
+      }
+      get().dispatch.start('chatname', '.', `${downloadFolder}/allchat`)
+      get().dispatch.start('chatname', 'keybasefriends#general', `${downloadFolder}/friends`)
+      get().dispatch.start('kbfs', '.', `${downloadFolder}/allkbfs`)
+      get().dispatch.start('kbfs', 'cnojima/vacation', `${downloadFolder}/vacation`)
     },
     resetState: 'default',
     start: (type, path, outPath) => {
+      let context = ''
+      switch (type) {
+        case 'chatid':
+          context = C.useArchiveState.getState().chatIDToDisplayname(path)
+          break
+        case 'chatname':
+          if (path === '.') {
+            context = 'all chat'
+          } else {
+            context = `chat/${path}`
+          }
+          break
+        case 'kbfs':
+          if (path === '.') {
+            context = 'all kbfs'
+          } else {
+            context = `kbfs/${path}`
+          }
+          break
+      }
       set(s => {
         const nextKey = `${s.jobs.size + 1}`
         s.jobs.set(nextKey, {
-          context: `${type}/${path}`,
+          context,
           id: nextKey,
           outPath,
           progress: 0,
@@ -115,6 +110,20 @@ export const _useState = Z.createZustand<State>(set => {
   }
   return {
     ...initialStore,
+    chatIDToDisplayname: (conversationIDKey: string) => {
+      const you = C.useCurrentUserState.getState().username
+      const cs = C.getConvoState(conversationIDKey)
+      const m = cs.meta
+      if (m.teamname) {
+        return m.teamname
+      }
+
+      const participants = cs.participants.name
+      if (participants.length === 1) {
+        return participants[0] ?? ''
+      }
+      return participants.filter(username => username !== you).join(',')
+    },
     dispatch,
   }
 })

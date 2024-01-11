@@ -19,6 +19,16 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
   if (!m) return null
   const {started, progress, outPath, context} = m
   const done = progress === 1
+  const sub = Kb.Styles.isMobile ? (
+    <Kb.Text type="Body" lineClamp={1}>
+      {context}
+    </Kb.Text>
+  ) : (
+    <Kb.Text type="Body" lineClamp={1} title={`${context} => ${outPath}`}>
+      <Kb.Text type="BodyBold">{context}</Kb.Text>
+      {` => ${outPath}`}
+    </Kb.Text>
+  )
   return (
     <Kb.ListItem2
       firstItem={index === 0}
@@ -37,11 +47,7 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
               style={styles.jobSub}
             >
               <Kb.ProgressBar ratio={progress} />
-              <Kb.BoxGrow2>
-                <Kb.Text type="Body" lineClamp={1}>
-                  {Kb.Styles.isMobile ? `${context}` : `Archiving ${context} to ${outPath}`}
-                </Kb.Text>
-              </Kb.BoxGrow2>
+              <Kb.BoxGrow2>{sub}</Kb.BoxGrow2>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.action}>
