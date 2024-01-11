@@ -64,19 +64,19 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
 })
 
 const Archive = () => {
-  const start = C.useArchiveState(s => s.dispatch.start)
   const load = C.useArchiveState(s => s.dispatch.load)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   C.useOnMountOnce(() => {
     load()
   })
 
   const archiveChat = React.useCallback(() => {
-    start('chat', '.', 'downloads/allchat')
-  }, [start])
+    navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
+  }, [navigateAppend])
   const archiveFS = React.useCallback(() => {
-    start('kbfs', '.', 'downloads/allkbfs')
-  }, [start])
+    navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
+  }, [navigateAppend])
   const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
   const jobMap = C.useArchiveState(s => s.jobs)

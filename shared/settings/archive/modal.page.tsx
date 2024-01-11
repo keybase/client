@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as C from '@/constants'
 
-const getOptions = {modal2: true}
+const getOptions = {}
 
 const ArchiveModal = React.lazy(async () => import('./modal'))
 type OwnProps = C.ViewPropsToPageProps<typeof ArchiveModal>

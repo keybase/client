@@ -7,6 +7,7 @@ type Props =
   | {
       type: 'chatID'
       conversationIDKey: T.Chat.ConversationIDKey
+      displayname: string
     }
   | {
       type: 'chatTeam'
@@ -50,10 +51,10 @@ const ArchiveModal = (p: Props) => {
   let content: React.ReactNode = null
   switch (type) {
     case 'chatID':
-      content = <Kb.Text type="Body">{p.conversationIDKey}</Kb.Text>
+      content = <Kb.Text type="Body">Chat conversation: {p.displayname}</Kb.Text>
       break
     case 'chatTeam':
-      content = <Kb.Text type="Body">{p.teamname}</Kb.Text>
+      content = <Kb.Text type="Body">Chat team: {p.teamname}</Kb.Text>
       break
     case 'chatAll':
       content = <Kb.Text type="Body">All chats</Kb.Text>
@@ -62,7 +63,7 @@ const ArchiveModal = (p: Props) => {
       content = <Kb.Text type="Body">All KBFS</Kb.Text>
       break
     case 'fsPath':
-      content = <Kb.Text type="Body">{p.path}</Kb.Text>
+      content = <Kb.Text type="Body">KBFS: {p.path}</Kb.Text>
       break
   }
 
@@ -73,7 +74,7 @@ const ArchiveModal = (p: Props) => {
           {outpath}
         </Kb.Text>
       ) : (
-        <Kb.Button label="Select output path" onClick={selectPath} style={styles.selectOutput} />
+        <Kb.Button label="Output path" onClick={selectPath} style={styles.selectOutput} />
       )}
     </Kb.Box2>
   )
@@ -83,7 +84,7 @@ const ArchiveModal = (p: Props) => {
   // check mobile routring of progress
 
   return (
-    <Kb.Modal2
+    <Kb.Modal
       header={modalHeader}
       footer={{
         content: Kb.Styles.isMobile ? (
@@ -100,11 +101,10 @@ const ArchiveModal = (p: Props) => {
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" style={styles.container}>
-        <Kb.Text type="Body">{type}</Kb.Text>
         {content}
         {output}
       </Kb.Box2>
-    </Kb.Modal2>
+    </Kb.Modal>
   )
 }
 

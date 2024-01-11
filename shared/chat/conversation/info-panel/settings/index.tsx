@@ -63,9 +63,20 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     leaveConversation()
   }
 
+  const you = C.useCurrentUserState(s => s.username)
+  const displayname = C.useChatContext(s => {
+    const m = s.meta
+    if (m.teamname) {
+      return m.teamname
+    }
+
+    const participants = participantInfo.name
+    return participants.filter(username => username !== you).join(',')
+  })
+
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID'} as const,
+      props: {conversationIDKey, displayname, type: 'chatID'} as const,
       selected: 'archiveModal',
     }))
   }
