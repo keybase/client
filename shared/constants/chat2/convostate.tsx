@@ -2581,9 +2581,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMeta: _m => {
       // see updatemeta
       const m = _m ?? Meta.makeConversationMeta()
+      const wasGood = get().isMetaGood()
       set(s => {
         C.updateImmer(s.meta, m)
       })
+      const isGood = get().isMetaGood()
+      if (!wasGood && isGood) {
+        // got a good meta, adopt the draft once
+        set(s => {
+          // bail on if there is something
+          if (s.unsentText !== undefined) return
+          s.unsentText = s.meta.draft.length ? s.meta.draft : undefined
+        })
+      }
     },
     setMinWriterRole: role => {
       const f = async () => {
@@ -2954,17 +2964,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    updateDraft: throttle(text => {
-      const f = async () => {
-        const meta = get().meta
-        await T.RPCChat.localUpdateUnsentTextRpcPromise({
-          conversationID: T.Chat.keyToConversationID(get().id),
-          text,
-          tlfName: meta.tlfname,
-        })
-      }
-      C.ignorePromise(f())
-    }, 200),
+    updateDraft: throttle(
+      text => {
+        const f = async () => {
+          const meta = get().meta
+          await T.RPCChat.localUpdateUnsentTextRpcPromise({
+            conversationID: T.Chat.keyToConversationID(get().id),
+            text,
+            tlfName: meta.tlfname,
+          })
+        }
+        C.ignorePromise(f())
+      },
+      200,
+      {trailing: true}
+    ),
     updateFromUIInboxLayout: l => {
       if (get().isMetaGood()) return
       const {isMuted, draft} = l

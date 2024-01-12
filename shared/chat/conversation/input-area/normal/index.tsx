@@ -96,19 +96,17 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   )
   const isEditing = !!editOrdinal
   const unsentText = C.useChatContext(s => s.unsentText)
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const sendTyping = C.useChatContext(s => s.dispatch.sendTyping)
-  const resetUnsentText = C.useChatContext(s => s.dispatch.resetUnsentText)
   const updateDraft = C.useChatContext(s => s.dispatch.updateDraft)
   const setExplodingModeLocked = C.useChatContext(s => s.dispatch.setExplodingModeLocked)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const lastTextRef = React.useRef('')
 
   // true while injecting since onChangeText is called
   const injectingTextRef = React.useRef(false)
   const onChangeText = React.useCallback(
     (text: string) => {
       if (injectingTextRef.current) return
-      lastTextRef.current = text
       const isTyping = text.length > 0
       if (!isTyping) {
         sendTyping.cancel()
@@ -116,13 +114,14 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       sendTyping(isTyping)
       updateDraft(text)
       setExplodingModeLocked(text.length > 0)
+      lastUnsentText.current = text
+      injectIntoInput(text)
     },
-    [setExplodingModeLocked, sendTyping, updateDraft]
+    [setExplodingModeLocked, sendTyping, updateDraft, injectIntoInput]
   )
   const injectText = React.useCallback(
     (text: string, focus?: boolean) => {
       injectingTextRef.current = true
-      lastTextRef.current = text
       inputRef.current?.transformText(
         () => ({
           selection:
@@ -184,7 +183,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     setEditing(false)
     injectText('')
   }, [injectText, setEditing])
-  const isMetaGood = C.useChatContext(s => s.isMetaGood())
 
   const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
   const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)
@@ -200,36 +198,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const isExploding = explodingModeSeconds !== 0
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
 
-  // if cid or unsent changes we inject
-  const injectRef = React.useRef<string>('')
-  React.useEffect(() => {
-    // if the convo didn't change we only look at the unsent text being injected
-    if (injectRef.current === conversationIDKey) {
-      // we want to inject '' sometimes
-      if (unsentText !== undefined) {
-        injectText(unsentText, true)
-        resetUnsentText()
-      }
-    } else {
-      // look at draft and unsent once
-      // not reactive, just once per change
-      const draft = C.getConvoState(conversationIDKey).meta.draft
-      // prefer injection
-      if (unsentText) {
-        injectText(unsentText)
-        resetUnsentText()
-      } else if (draft) {
-        injectText(draft)
-      } else {
-        injectText('')
-      }
-    }
-
-    // only ignore draft etc if meta was good
-    if (isMetaGood) {
-      injectRef.current = conversationIDKey
-    }
-  }, [resetUnsentText, conversationIDKey, injectText, unsentText, isMetaGood])
+  // text from the store, either a draft or changes like injecting a giphy or clearing that
+  const lastUnsentText = React.useRef<string | undefined>()
+  if (lastUnsentText.current !== unsentText) {
+    lastUnsentText.current = unsentText
+    injectText(unsentText ?? '', true)
+  }
 
   return (
     <PlatformInput
