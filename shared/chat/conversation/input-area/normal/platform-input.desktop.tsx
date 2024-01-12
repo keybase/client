@@ -10,6 +10,7 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
+import logger from '@/logger'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
@@ -311,11 +312,40 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
+  const conversationIDKey = C.useChatContext(s => s.id)
+
+  // TODO REMOVE
+  React.useEffect(() => {
+    logger.error('[CHATDEBUG]: PlatformInput F1 inject')
+    const onKeydown = (e: KeyboardEvent) => {
+      if (e.key !== 'F1') {
+        return
+      }
+
+      const cs = C.getConvoState(conversationIDKey)
+      logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
+      cs.messageMap.forEach((v, k) => {
+        const {id, ordinal, submitState} = v
+        logger.error('[CHATDEBUG] mm: ', {
+          id,
+          key: k,
+          mid: id,
+          ordinal,
+          submitState,
+        })
+      })
+    }
+    window.addEventListener('keydown', onKeydown)
+    return () => {
+      window.removeEventListener('keydown', onKeydown)
+    }
+  }, [conversationIDKey])
+  // TODO REMOVE
+
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const conversationIDKey = C.useChatContext(s => s.id)
 
   // keep focus
   C.Chat.useCIDChanged(conversationIDKey, () => {

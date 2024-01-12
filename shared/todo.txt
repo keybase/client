@@ -1,8 +1,3 @@
 Some short term todos:
 swipeable2 slow
-
-chat export
-buttons to export w/ context
-  modal to get path
-export screen
-  show progress / cancel
+remove F1 debug in chat
