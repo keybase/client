@@ -13,6 +13,7 @@ import {isMobile, isPhone} from '../platform'
 import * as Z from '@/util/zustand'
 import * as Common from './common'
 import {uint8ArrayToString} from 'uint8array-extras'
+import isEqual from 'lodash/isEqual'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1793,7 +1794,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const {inboxHasLoaded} = s
           const layout: T.RPCChat.UIInboxLayout = JSON.parse(str)
-          s.inboxLayout = layout
+          if (!isEqual(s.inboxLayout, layout)) {
+            s.inboxLayout = layout
+          }
           s.inboxHasLoaded = true
           if (!inboxHasLoaded) {
             // on first layout, initialize any drafts and muted status

@@ -18,10 +18,12 @@ const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID,
 const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
-const ReloadableDevices = () => {
+const itemHeight = {height: 48, type: 'fixed'} as const
+
+const ReloadableDevices = React.memo(function ReloadableDevices() {
   const deviceMap = C.useDevicesState(s => s.deviceMap)
   const waiting = C.Waiting.useAnyWaiting(C.Devices.waitingKey)
-  const {load, clearBadges} = C.useDevicesState(s => s.dispatch)
+  const {load: loadDevices, clearBadges} = C.useDevicesState(s => s.dispatch)
   const storeSet = C.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
@@ -29,8 +31,8 @@ const ReloadableDevices = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      load()
-    }, [load])
+      loadDevices()
+    }, [loadDevices])
   )
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -43,47 +45,91 @@ const ReloadableDevices = () => {
     navigateUp()
   }
 
-  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, items} = React.useMemo(() => {
+  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, _items} = React.useMemo(() => {
     const [revoked, normal] = splitAndSortDevices(deviceMap)
     const revokedItems = revoked.map(deviceToItem)
     const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), newlyChangedItemIds)
     const hasNewlyRevoked = newlyRevokedIds.size > 0
     const showPaperKeyNudge = !!deviceMap.size && ![...deviceMap.values()].some(v => v.type === 'backup')
-    const items = normal.map(deviceToItem) as Array<Item>
+    const _items = normal.map(deviceToItem) as Array<Item>
     return {
+      _items,
       hasNewlyRevoked,
-      items,
       revokedItems,
       showPaperKeyNudge,
     }
   }, [deviceMap, newlyChangedItemIds])
 
-  const np = {
-    hasNewlyRevoked,
-    items,
-    loadDevices: load,
-    onAddDevice,
-    onBack,
-    revokedItems,
-    showPaperKeyNudge,
-    title: 'Devices',
-    waiting,
+  const [revokedExpanded, setRevokeExpanded] = React.useState(false)
+  const toggleExpanded = React.useCallback(() => setRevokeExpanded(p => !p), [])
+
+  React.useEffect(() => {
+    loadDevices()
+  }, [loadDevices])
+
+  const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
+  if (lastHasNewlyRevoked.current !== hasNewlyRevoked) {
+    lastHasNewlyRevoked.current = hasNewlyRevoked
+    setRevokeExpanded(true)
   }
+  const renderItem = React.useCallback(
+    (index: number, item: Item) => {
+      if (item.type === 'revokedHeader') {
+        return (
+          <Kb.SectionDivider
+            key="revokedHeader"
+            collapsed={!revokedExpanded}
+            onToggleCollapsed={toggleExpanded}
+            label="Revoked devices"
+          />
+        )
+      } else if (item.type === 'revokedNote') {
+        return (
+          <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
+            Revoked devices are no longer able to access your Keybase account.
+          </Kb.Text>
+        )
+      } else {
+        return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+      }
+    },
+    [revokedExpanded, toggleExpanded]
+  )
+
+  const items: Array<Item> = React.useMemo(
+    () => [
+      ..._items,
+      ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
+      ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
+    ],
+    [_items, revokedExpanded, revokedItems]
+  )
 
   return (
     <Kb.Reloadable
       onBack={C.isMobile ? onBack : undefined}
       waitingKeys={C.Devices.waitingKey}
-      onReload={load}
+      onReload={loadDevices}
       reloadOnMount={true}
-      title={''}
+      title=""
     >
       <NewContext.Provider value={badged}>
-        <Devices {...np} />
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+          {Kb.Styles.isMobile ? (
+            <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
+              <Kb.Button label="Add a device or paper key" fullWidth={true} />
+            </Kb.ClickableBox>
+          ) : null}
+          {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
+          {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
+            <Kb.List2 bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} />
+          </Kb.Box2>
+        </Kb.Box2>
       </NewContext.Provider>
     </Kb.Reloadable>
   )
-}
+})
 
 type Item =
   | {key: string; id: T.Devices.DeviceID; type: 'device'}
@@ -99,72 +145,6 @@ export type Props = {
   hasNewlyRevoked: boolean
   waiting: boolean
 }
-
-const Devices = React.memo(function Devices(p: Props) {
-  const {loadDevices, hasNewlyRevoked, items: _items} = p
-  const {onAddDevice, revokedItems, showPaperKeyNudge, waiting} = p
-  const [revokedExpanded, setRevokeExpanded] = React.useState(false)
-  const toggleExpanded = React.useCallback(() => setRevokeExpanded(p => !p), [])
-
-  React.useEffect(() => {
-    loadDevices()
-  }, [loadDevices])
-
-  const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
-  if (lastHasNewlyRevoked.current !== hasNewlyRevoked) {
-    lastHasNewlyRevoked.current = hasNewlyRevoked
-    setRevokeExpanded(true)
-  }
-  const renderItem = (index: number, item: Item) => {
-    if (item.type === 'revokedHeader') {
-      return (
-        <Kb.SectionDivider
-          key="revokedHeader"
-          collapsed={!revokedExpanded}
-          onToggleCollapsed={toggleExpanded}
-          label="Revoked devices"
-        />
-      )
-    } else if (item.type === 'revokedNote') {
-      return (
-        <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
-          Revoked devices are no longer able to access your Keybase account.
-        </Kb.Text>
-      )
-    } else {
-      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
-    }
-  }
-
-  const items: Array<Item> = [
-    ..._items,
-    ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
-    ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
-  ]
-
-  return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      {Kb.Styles.isMobile ? (
-        <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
-          <Kb.Button label="Add a device or paper key" fullWidth={true} />
-        </Kb.ClickableBox>
-      ) : null}
-      {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
-      {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
-        <Kb.List2
-          bounces={false}
-          items={items}
-          renderItem={renderItem}
-          itemHeight={{
-            height: 48,
-            type: 'fixed',
-          }}
-        />
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

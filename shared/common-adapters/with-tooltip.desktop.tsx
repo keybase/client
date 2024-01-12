@@ -27,6 +27,31 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
     setVisible(false)
   }, [])
 
+  const toast = React.useMemo(() => {
+    return (
+      <Kb.Toast
+        containerStyle={Styles.collapseStyles([
+          styles.container,
+          multiline && styles.containerMultiline,
+          backgroundColor && {backgroundColor},
+          toastStyle,
+        ])}
+        visible={true}
+        attachTo={popupAnchor}
+        position={position || 'top center'}
+        className={toastClassName}
+      >
+        <Kb.Text
+          center={!Styles.isMobile}
+          type="BodySmall"
+          style={Styles.collapseStyles([styles.text, textStyle])}
+        >
+          {tooltip}
+        </Kb.Text>
+      </Kb.Toast>
+    )
+  }, [backgroundColor, multiline, position, textStyle, toastClassName, toastStyle, tooltip])
+
   return (
     <>
       <Kb.Box2Measure
@@ -41,28 +66,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
       >
         {children}
       </Kb.Box2Measure>
-      {!disabled && visible && (
-        <Kb.Toast
-          containerStyle={Styles.collapseStyles([
-            styles.container,
-            multiline && styles.containerMultiline,
-            backgroundColor && {backgroundColor: backgroundColor},
-            toastStyle,
-          ])}
-          visible={!!tooltip && visible}
-          attachTo={popupAnchor}
-          position={position || 'top center'}
-          className={toastClassName}
-        >
-          <Kb.Text
-            center={!Styles.isMobile}
-            type="BodySmall"
-            style={Styles.collapseStyles([styles.text, textStyle])}
-          >
-            {tooltip}
-          </Kb.Text>
-        </Kb.Toast>
-      )}
+      {!disabled && visible && tooltip ? toast : null}
     </>
   )
 })

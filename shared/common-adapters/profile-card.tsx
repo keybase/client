@@ -283,7 +283,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
             username={username}
             clickToProfile={true}
             onLayoutChange={onLayoutChange}
-            onHide={() => setShowing(false)}
+            onHide={onHide}
           />
         }
         items={[]}

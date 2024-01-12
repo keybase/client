@@ -142,17 +142,16 @@ const useState = (ordinal: T.Chat.Ordinal) => {
   }
 
   const you = C.useCurrentUserState(s => s.username)
-  const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
-  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
-  const isEditing = C.useChatContext(s => s.editing === ordinal)
-  const ordinals = C.useChatContext(s => s.messageOrdinals)
-  const d = C.useChatContext(
+  return C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
+      const isEditing = s.editing === ordinal
+      const ordinals = s.messageOrdinals
       const {exploded, submitState, author, id, botUsername} = m
       const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
       const youSent = m.author === you && !idMatchesOrdinal
       const exploding = !!m.exploding
+      const accountsInfoMap = s.accountsInfoMap
       const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
       const decorate = !exploded && !m.errorReason
       const type = m.type
@@ -161,6 +160,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
         !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
       const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+      const paymentStatusMap = C.useChatState.getState().paymentStatusMap
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       // hide if the bot is writing to itself
@@ -176,6 +176,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
         ecrType,
         exploding,
         hasReactions,
+        isEditing,
         isPendingPayment,
         reactionsPopupPosition,
         shouldShowPopup,
@@ -189,7 +190,6 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       }
     })
   )
-  return {...d, isEditing}
 }
 
 type TSProps = {
