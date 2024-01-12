@@ -75,7 +75,7 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
-  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'node20'
+  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'mysql57'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:5.7.42-debian"),
