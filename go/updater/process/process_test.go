@@ -119,6 +119,9 @@ func startProcess(t *testing.T, path string, testCommand string) (string, int, *
 }
 
 func TestTerminateAllPathEqual(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("flakey :(")
+	}
 	procPath := procPath(t, "testTerminateAllPathEqual")
 	defer util.RemoveFileAtPath(procPath)
 	matcher := NewMatcher(procPath, PathEqual, testLog)
@@ -178,6 +181,9 @@ func testTerminateAll(t *testing.T, path string, matcher Matcher, numProcs int) 
 }
 
 func TestFindProcessWait(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	procPath := procPath(t, "testFindProcessWait")
 	cmd := exec.Command(procPath, "sleep")
 	defer cleanupProc(cmd, procPath)

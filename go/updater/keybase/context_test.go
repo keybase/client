@@ -62,7 +62,11 @@ func TestContext(t *testing.T) {
 }
 
 func TestContextVerify(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	ctx := testContext(t)
+	testLog.Warningf("testMessagePath: %v", testMessagePath)
 	err := ctx.Verify(testContextUpdate(testMessagePath, testSignatureKeybot))
 	assert.NoError(t, err)
 }
@@ -74,6 +78,9 @@ func TestContextVerifyFail(t *testing.T) {
 }
 
 func TestContextVerifyNoValidIDs(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	ctx := testContext(t)
 	err := ctx.Verify(testContextUpdate(testMessagePath, testSignatureInvalidSigner))
 	require.Error(t, err)

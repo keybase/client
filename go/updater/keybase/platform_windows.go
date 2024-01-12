@@ -233,66 +233,66 @@ func (i *ComponentsChecker) deleteProductsFunc(componentKey registry.Key, produc
 }
 
 // checkRegistryComponents returns true if any component has more than one keybase product code
-func (c *ComponentsChecker) checkRegistryComponents() (result bool) {
+func (i *ComponentsChecker) checkRegistryComponents() (result bool) {
 	// e.g.
 	// [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-21-2398092721-582601651-115936829-1001\Components\024E69EF1A837C752BFB37F494D86925]
 	// "D6A082CFDEED2984C8688664C76174BC"="C:\\Users\\chris\\AppData\\Local\\Keybase\\Gui\\resources\\app\\images\\icons\\icon-facebook-visibility.gif"
 	// "50DC76D18793BC24DA7D4D681AE74262"="C:\\Users\\chris\\AppData\\Local\\Keybase\\Gui\\resources\\app\\images\\icons\\icon-facebook-visibility.gif"
 
-	readAccess := registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE | c.RegWow
+	readAccess := registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE | i.RegWow
 
 	rootName := "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData"
 
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, rootName, readAccess)
 	if err != nil {
-		c.log.Infof("Error opening uninstall subkeys: %s\n", err.Error())
+		i.log.Infof("Error opening uninstall subkeys: %s\n", err.Error())
 		return
 	}
 	defer k.Close()
 
 	UIDs, err := k.ReadSubKeyNames(-1)
 	if err != nil {
-		c.log.Infof("Error reading subkeys: %s\n", err.Error())
+		i.log.Infof("Error reading subkeys: %s\n", err.Error())
 		return
 	}
 	for _, UID := range UIDs {
 		componentsKey, err := registry.OpenKey(k, UID+"\\Components", readAccess)
 		if err != nil {
-			c.log.Infof("Error opening subkey %s: %s\n", UID+"\\Components", err.Error())
+			i.log.Infof("Error opening subkey %s: %s\n", UID+"\\Components", err.Error())
 			continue
 		}
 
 		componentKeyNames, err := componentsKey.ReadSubKeyNames(-1)
 		if err != nil {
-			c.log.Infof("Error reading subkeys: %s\n", err.Error())
+			i.log.Infof("Error reading subkeys: %s\n", err.Error())
 			continue
 		}
 
 		for _, componentKeyName := range componentKeyNames {
-			componentKey, err := registry.OpenKey(componentsKey, componentKeyName, readAccess|c.RegAccess)
+			componentKey, err := registry.OpenKey(componentsKey, componentKeyName, readAccess|i.RegAccess)
 			if err != nil {
-				c.log.Infof("Error opening subkey %s: %s\n", componentKeyName, err.Error())
+				i.log.Infof("Error opening subkey %s: %s\n", componentKeyName, err.Error())
 				// No need to list all the components we couldn't open in write mode.
 				// This is expected when run without elevated permissions.
-				c.log.Infof("skipping subsequent subkeys of  %s\n", UID+"\\Components")
+				i.log.Infof("skipping subsequent subkeys of  %s\n", UID+"\\Components")
 				continue
 			}
 
 			productValueNames, err := componentKey.ReadValueNames(-1)
 			if err != nil {
-				c.log.Infof("Error reading values: %s\n", err.Error())
+				i.log.Infof("Error reading values: %s\n", err.Error())
 				continue
 			}
 
 			for n, productValueName := range productValueNames {
 				componentPath, _, err := componentKey.GetStringValue(productValueName)
 				if err == nil && strings.Contains(componentPath, "\\AppData\\Local\\Keybase\\") {
-					if c.PerComponent != nil {
-						c.PerComponent(componentKey, productValueName, componentPath)
+					if i.PerComponent != nil {
+						i.PerComponent(componentKey, productValueName, componentPath)
 					}
 					if n > 0 {
 						result = true
-						c.log.Infof("Found multiple Keybase product codes on %s\n", componentPath)
+						i.log.Infof("Found multiple Keybase product codes on %s\n", componentPath)
 					}
 				}
 			}
@@ -321,7 +321,7 @@ func (c context) runKeybase(cmd KeybaseCommand) {
 
 	_, err = command.Exec(filepath.Join(path, "keybaserq.exe"), args, time.Minute, c.log)
 	if err != nil {
-		c.log.Infof("Error %s'ing keybase", cmd, err.Error())
+		c.log.Infof("Error %s'ing keybase: %s", cmd, err.Error())
 	}
 }
 

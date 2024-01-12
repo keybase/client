@@ -265,7 +265,7 @@ helpers.rootLinuxNode(env, {
                 def GOPATH="${BASEDIR}\\go"
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
-                  "GOPATH=\"${GOPATH}\"",
+                  "GOPATH=${GOPATH}",
                   "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
@@ -281,6 +281,10 @@ helpers.rootLinuxNode(env, {
                   println "Test Windows"
                   parallel (
                     test_windows_go: {
+                      // install the updater test binary
+                      dir('go') {
+                        sh "go install github.com/keybase/client/go/updater/test"
+                      }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles, hasJenkinsfileChanges), hasKBFSChanges)
                     }
                   )

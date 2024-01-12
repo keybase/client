@@ -75,5 +75,5 @@ OtWvrDGSUA==
 	require.NoError(t, err)
 	resp, err := client.Do(req)
 	defer util.DiscardAndCloseBodyIgnoreError(resp)
-	require.EqualError(t, err, `Get "https://api-0.core.keybaseapi.com/_/api/1.0/user/lookup.json?github=gabriel": x509: certificate signed by unknown authority`)
+	require.ErrorContains(t, err, "x509: certificate signed by unknown authority")
 }

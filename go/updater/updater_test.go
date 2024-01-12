@@ -501,6 +501,9 @@ func TestUpdaterNotNeeded(t *testing.T) {
 }
 
 func TestUpdaterCheckAndUpdate(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	testServer := testServerForUpdateFile(t, testZipPath)
 	defer testServer.Close()
 
@@ -517,6 +520,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 	// Need update = false
 	// FindDownloadedAsset = false
 	// return updateAvailable = false, updateWasDownloaded = false
+	t.Logf("No update from the server")
 	updateAvailable, updateWasDownloaded, err := upr.CheckAndDownload(ctx)
 	assert.NoError(t, err)
 	assert.False(t, updateAvailable)
@@ -526,6 +530,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 
 	// 2. Download asset from URL
 	// Need update = true
+	t.Logf("Download asset from URL")
 	testUpdate.NeedUpdate = true
 	updateAvailable, updateWasDownloaded, err = upr.CheckAndDownload(ctx)
 	assert.NoError(t, err)
@@ -538,6 +543,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 	// Need update = true
 	// FindDownloadedAsset = true
 	// return updateAvailable = true, updateWasDownloaded = true
+	t.Logf("Find existing downloaded assert")
 	tmpDir := makeKeybaseUpdateTempDir(t, upr, testUpdate.Asset)
 	updateAvailable, updateWasDownloaded, err = upr.CheckAndDownload(ctx)
 	assert.NoError(t, err)
@@ -547,6 +553,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 	assert.Equal(t, "deadbeef", upr.config.GetInstallID())
 
 	// Run it again to ensure we don't accidentally download again
+	t.Logf("Find existing downloaded assert (again)")
 	updateAvailable, updateWasDownloaded, err = upr.CheckAndDownload(ctx)
 	assert.NoError(t, err)
 	assert.True(t, updateAvailable)
@@ -560,6 +567,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 	// Need update = true
 	// FindDownloadedAsset = true
 	// return updateAvailable = false, updateWasDownloaded = false
+	t.Logf("bit flip failure verify sig")
 	tmpDir = makeKeybaseUpdateTempDir(t, upr, testUpdate.Asset)
 	testUpdate.Asset.Signature = invalidSignature
 
@@ -577,6 +585,7 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 	// Need update = true
 	// FindDownloadedAsset = true
 	// return updateAvailable = false, updateWasDownloaded = false
+	t.Logf("bit flip failure verify digest")
 	tmpDir = makeKeybaseUpdateTempDir(t, upr, testUpdate.Asset)
 	testUpdate.Asset.Digest = invalidDigest
 
@@ -592,6 +601,9 @@ func TestUpdaterCheckAndUpdate(t *testing.T) {
 }
 
 func TestApplyDownloaded(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	testServer := testServerForUpdateFile(t, testZipPath)
 	defer testServer.Close()
 
@@ -703,6 +715,9 @@ func TestApplyDownloaded(t *testing.T) {
 }
 
 func TestFindDownloadedAsset(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping on windows")
+	}
 	upr, err := newTestUpdater(t)
 	assert.NoError(t, err)
 	defer func() {

@@ -21,11 +21,11 @@ type buildNumberResponse struct {
 	BuildNumber int `json:"build_number"`
 }
 
-func GetNextBuildNumber(keybaseToken string, version string, botId string, platform string) error {
+func GetNextBuildNumber(keybaseToken string, version string, botID string, platform string) error {
 
 	form := url.Values{}
 	form.Set("version", version)
-	form.Add("bot_id", botId)
+	form.Add("bot_id", botID)
 	form.Add("platform", platform)
 	req, err := http.NewRequest("POST", buildNumAPIUrl, bytes.NewBufferString(form.Encode()))
 	if err != nil {
