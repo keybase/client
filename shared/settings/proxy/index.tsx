@@ -126,15 +126,15 @@ class ProxySettings extends React.Component<Props, State> {
               onChangeText={port => this.setState({port})}
               value={this.state.port}
             />
-            <Kb.Checkbox
-              checked={!this.certPinning()}
-              onCheck={this.toggleCertPinning}
-              label="Allow TLS Interception"
-              style={styles.proxySetting}
-            />
-            <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
           </>
         )}
+        <Kb.Checkbox
+          checked={!this.certPinning()}
+          onCheck={this.toggleCertPinning}
+          label="Allow TLS Interception"
+          style={styles.proxySetting}
+        />
+        <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
       </>
     )
   }
