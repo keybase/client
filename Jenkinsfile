@@ -75,7 +75,7 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
-  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'mysql57'
+  def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:5.7.42-debian"),
@@ -125,10 +125,10 @@ helpers.rootLinuxNode(env, {
     }
 
     def goChanges = helpers.getChangesForSubdir('go', env)
-    def hasGoChanges = true // goChanges.size() != 0
+    def hasGoChanges = goChanges.size() != 0
     def hasJSChanges = helpers.hasChanges('shared', env)
     def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
-    def hasKBFSChanges = true
+    def hasKBFSChanges = false
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
     println "Has Jenkinsfile changes: " + hasJenkinsfileChanges
@@ -173,7 +173,7 @@ helpers.rootLinuxNode(env, {
               test_xcompilation: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
               ]) {
-                if (true || env.BRANCH_NAME == "master" && cause != "upstream") {
+                if (env.BRANCH_NAME == "master" && cause != "upstream") {
                   // We only cross compile when we're on a master build and we
                   // weren't triggered by upstream. i.e. potentially breaking
                   // changes.
