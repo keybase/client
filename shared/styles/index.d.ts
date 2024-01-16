@@ -148,3 +148,5 @@ export declare const undynamicColor: (col: string) => string
 export declare const normalizePath: (p: string) => string
 // remove file://
 export declare const unnormalizePath: (p: string) => string
+// fixup file:// with spaces etc
+export declare const urlEscapeFilePath: (path: string) => string
