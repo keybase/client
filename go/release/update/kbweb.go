@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	kbwebAPIUrl = "https://api-0.core.keybaseapi.com"
+	kbwebAPIUrl = "https://api-1.core.keybaseapi.com"
 )
 
 type kbwebClient struct {
