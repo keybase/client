@@ -21,7 +21,8 @@ const DelayMount = ({children}: {children: React.ReactNode}) => {
 }
 
 const Video = (props: Props) => {
-  const {url, allowFile} = props
+  const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
+  const url = Styles.urlEscapeFilePath(_url)
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
   const source = React.useMemo(() => {
     if (allowFile) {
@@ -31,7 +32,7 @@ const Video = (props: Props) => {
   }, [url, allowFile])
 
   return (
-    <CheckURL url={props.url} allowFile={props.allowFile}>
+    <CheckURL url={url} allowFile={allowFile}>
       <DelayMount>
         <Kb.Box
           style={styles.container}
@@ -40,13 +41,13 @@ const Video = (props: Props) => {
           }}
         >
           <AVVideo
-            isMuted={props.muted}
+            isMuted={muted}
             source={source}
             onError={e => {
-              props.onUrlError && props.onUrlError(JSON.stringify(e))
+              onUrlError && onUrlError(JSON.stringify(e))
             }}
             useNativeControls={true}
-            shouldPlay={props.autoPlay ?? true}
+            shouldPlay={autoPlay ?? true}
             onFullscreenUpdate={event => {
               if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 StatusBar.setHidden(false)

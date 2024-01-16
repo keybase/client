@@ -186,3 +186,12 @@ export const unnormalizePath = (p: string) => {
   }
   return p
 }
+
+export const urlEscapeFilePath = (path: string) => {
+  if (path && path.startsWith('file://')) {
+    const parts = path.split('/')
+    parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]!)
+    return parts.join('/')
+  }
+  return path
+}
