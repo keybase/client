@@ -78,7 +78,7 @@ helpers.rootLinuxNode(env, {
   def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
-    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql"),
+    docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:5.7.42-debian"),
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/sqsd"),
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}"),
   ]
