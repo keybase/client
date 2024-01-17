@@ -2871,7 +2871,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } else {
           threadSearchInfo.visible = !threadSearchInfo.visible
         }
-        s.messageCenterOrdinal = undefined
+        if (s.messageCenterOrdinal) {
+          s.messageCenterOrdinal.highlightMode = 'none'
+        }
       })
 
       const f = async () => {
