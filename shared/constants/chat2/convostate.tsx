@@ -1520,13 +1520,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
           } else {
-            // we sent it so lets keep our temp ordinal
-            if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
-              s.pendingOutboxToOrdinal.set(m.outboxID, m.ordinal)
+            let mapOrdinal = m.ordinal
+            // if we've sent it we use the outbox id to manage the ordinal relationship
+            if (m.outboxID) {
+              const existingSent = s.pendingOutboxToOrdinal.get(m.outboxID)
+              if (existingSent) {
+                mapOrdinal = existingSent
+              }
             }
-            // we want to keep ordinals we've seen before so if a message comes in with a 'real'
-            // ordinal and it maps to one we created while sending retain it
-            const mapOrdinal = (m.outboxID && s.pendingOutboxToOrdinal.get(m.outboxID)) || m.ordinal
             // never set a placeholder on top of any other data
             if (m.type === 'placeholder') {
               const old = s.messageMap.get(mapOrdinal)
@@ -1536,7 +1537,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               }
             }
 
-            s.messageMap.set(mapOrdinal, {...m, ordinal: mapOrdinal})
+            const toWrite = {...m, ordinal: mapOrdinal}
+            s.messageMap.set(mapOrdinal, toWrite)
+            if (m.outboxID) {
+              s.pendingOutboxToOrdinal.set(m.outboxID, toWrite.ordinal)
+            }
             if (m.type === 'text') {
               s.messageTypeMap.delete(mapOrdinal)
             } else {
