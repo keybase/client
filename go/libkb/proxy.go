@@ -19,7 +19,7 @@ export PROXY=<"localhost:8080" or "username:password@localhost:8080">
 Internally, we support proxies by setting the Proxy field of http.Transport in order to use http's
 built in support for proxies. Note that http.Transport.Proxy does support socks5 proxies and basic auth.
 
-By default, the client reaches out to api-0.core.keybaseapi.com which has a self-signed certificate. This
+By default, the client reaches out to api-1.core.keybaseapi.com which has a self-signed certificate. This
 is actually more secure than relying on the standard CA system since we pin the client to only accept this
 certificate. By pinning this certificate, we make it so that any proxies that MITM TLS cannot intercept the
 client's traffic since even though their certificate is "trusted" according to the CA system, it isn't

@@ -15,7 +15,7 @@ The updater may not protect against certain attacks.
 
 The Keybase updater does do the following (to prevent basic attacks):
 
-- Uses TLS with a pinned certificate for api-0.core.keybaseapi.com (update source) for metadata
+- Uses TLS with a pinned certificate for api-1.core.keybaseapi.com (update source) for metadata
 - Uses TLS to download asset
 - Verifies asset digest (SHA256)
 - Verifies asset saltpack signature (key IDs are pinned)
