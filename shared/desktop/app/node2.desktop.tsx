@@ -480,6 +480,7 @@ const plumbEvents = () => {
       }
       case 'readImageFromClipboard': {
         const image = Electron.clipboard.readImage()
+        if (image.isEmpty()) return undefined
         return image.toPNG()
       }
       case 'DEVwriteMenuIcons': {
