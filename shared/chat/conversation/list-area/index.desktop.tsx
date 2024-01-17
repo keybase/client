@@ -507,7 +507,8 @@ const useItems = (p: {
 const ThreadWrapper = React.memo(function ThreadWrapper() {
   const conversationIDKey = C.useChatContext(s => s.id)
   const editingOrdinal = C.useChatContext(s => s.editing)
-  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
+  const mco = C.useChatContext(s => s.messageCenterOrdinal)
+  const centeredOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
   const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
   const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
   const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))

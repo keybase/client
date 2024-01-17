@@ -314,7 +314,7 @@ const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
     return i?.ordinal === ordinal ? i.highlightMode : undefined
   })
 
-  return centeredOrdinalType !== undefined
+  return centeredOrdinalType !== undefined && centeredOrdinalType !== 'none'
 }
 
 // Author
@@ -522,6 +522,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const maybeSentChildren = C.isMobile && youSent ? <Sent>{children}</Sent> : children
 
+  const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
     botname,
     bottomChildren,
@@ -530,7 +531,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     ecrType,
     exploding,
     hasReactions,
-    isHighlighted: showCenteredHighlight || isEditing,
+    isHighlighted,
     isPendingPayment,
     popupAnchor,
     reactionsPopupPosition,
