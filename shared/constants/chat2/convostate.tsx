@@ -999,16 +999,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
 
         try {
-          let validated = false
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
                 // if we're validated, never undo that
-                if (p.status.typ === T.RPCChat.UIChatThreadStatusTyp.validated) {
-                  validated = true
-                } else if (validated) {
+                if (get().threadLoadStatus === T.RPCChat.UIChatThreadStatusTyp.validated) {
                   return
                 }
                 get().dispatch.setThreadLoadStatus(p.status.typ)
