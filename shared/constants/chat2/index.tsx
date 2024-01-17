@@ -1793,11 +1793,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         try {
           const {inboxHasLoaded} = s
-          const layout: T.RPCChat.UIInboxLayout = JSON.parse(str)
+          const _layout = JSON.parse(str) as unknown
+          if (!_layout || typeof _layout !== 'object') {
+            console.log('Invalid layout?')
+            return
+          }
+          const layout = _layout as T.RPCChat.UIInboxLayout
+
           if (!isEqual(s.inboxLayout, layout)) {
             s.inboxLayout = layout
           }
-          s.inboxHasLoaded = true
+          s.inboxHasLoaded = !!layout
           if (!inboxHasLoaded) {
             // on first layout, initialize any drafts and muted status
             // After the first layout, any other updates will come in the form of meta updates.
