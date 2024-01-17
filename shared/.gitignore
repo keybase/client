@@ -14,6 +14,7 @@ android/app/.cxx
 android/app/google-services.json
 android/app/src/debug/google-services.json
 android/app/src/releaseUnsigned/google-services.json
+android/app/src/release/google-services.json
 
 # iOS
 !default.mode1v3
