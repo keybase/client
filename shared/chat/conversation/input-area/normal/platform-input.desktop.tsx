@@ -324,14 +324,17 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
 
       const cs = C.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
+      logger.error('[CHATDEBUG] pen: ', cs.pendingOutboxToOrdinal)
       cs.messageMap.forEach((v, k) => {
-        const {id, ordinal, submitState} = v
+        const {id, ordinal, submitState, outboxID, type} = v
         logger.error('[CHATDEBUG] mm: ', {
-          id,
           key: k,
+          length: type === 'text' ? v.text.stringValue().length : -1,
           mid: id,
           ordinal,
+          outboxID,
           submitState,
+          type,
         })
       })
     }
