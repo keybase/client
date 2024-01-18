@@ -79,7 +79,7 @@ const PopAttach = (ownProps: OwnProps) => {
     : []
   const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}] as const
 
-  const topSection = [...itemSave, ...itemShare, ...itemDelete]
+  const topSection = [...itemSave, ...itemShare, ...itemDelete, ...itemExplode]
 
   const items = [
     ...itemReaction,
@@ -90,7 +90,6 @@ const PopAttach = (ownProps: OwnProps) => {
     ...itemReply,
     ...itemForward,
     ...itemEdit,
-    ...itemExplode,
     ...itemDownload,
     ...itemUnread,
     ...itemFinder,
