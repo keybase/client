@@ -901,7 +901,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         if (reselectInfo.newConvID) {
-          logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
+          logger.info(
+            `maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID} old ${selectedConversation}`
+          )
           C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
           return
         } else {

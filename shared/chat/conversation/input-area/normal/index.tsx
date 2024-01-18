@@ -106,7 +106,10 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const injectingTextRef = React.useRef(false)
   const onChangeText = React.useCallback(
     (text: string) => {
-      if (injectingTextRef.current) return
+      if (injectingTextRef.current) {
+        console.log('onChange injectingTextRef null')
+        return
+      }
       const isTyping = text.length > 0
       if (!isTyping) {
         sendTyping.cancel()
@@ -121,8 +124,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   )
   const injectText = React.useCallback(
     (text: string, focus?: boolean) => {
+      if (!inputRef.current) {
+        console.log('injectText injectingTextRef null')
+        return
+      }
       injectingTextRef.current = true
-      inputRef.current?.transformText(
+      inputRef.current.transformText(
         () => ({
           selection:
             text === '!>spoiler<!'
@@ -133,7 +140,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
         true
       )
       if (focus) {
-        inputRef.current?.focus()
+        inputRef.current.focus()
       }
       injectingTextRef.current = false
     },
@@ -199,11 +206,14 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
 
   // text from the store, either a draft or changes like injecting a giphy or clearing that
+  // dont inject if we don't have a ref yet
   const lastUnsentText = React.useRef<string | undefined>()
-  if (lastUnsentText.current !== unsentText) {
-    lastUnsentText.current = unsentText
-    injectText(unsentText ?? '', true)
-  }
+  React.useEffect(() => {
+    if (lastUnsentText.current !== unsentText && inputRef.current) {
+      lastUnsentText.current = unsentText
+      injectText(unsentText ?? '', true)
+    }
+  }, [injectText, unsentText])
 
   return (
     <PlatformInput
