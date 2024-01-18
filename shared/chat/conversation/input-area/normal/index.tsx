@@ -106,10 +106,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const injectingTextRef = React.useRef(false)
   const onChangeText = React.useCallback(
     (text: string) => {
-      if (injectingTextRef.current) {
-        console.log('onChange injectingTextRef null')
-        return
-      }
+      if (injectingTextRef.current) return
       const isTyping = text.length > 0
       if (!isTyping) {
         sendTyping.cancel()
