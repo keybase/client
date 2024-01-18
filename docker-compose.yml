@@ -1,7 +1,7 @@
 version: '3.7'
 services:
     mysql.local:
-        image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:5.7.42-debian
+        image: 897413463132.dkr.ecr.us-east-1.amazonaws.com/mysql:8.0.35-debian
         restart: unless-stopped
         environment:
             - MYSQL_ROOT_PASSWORD=secret
