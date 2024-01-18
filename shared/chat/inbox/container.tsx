@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
+import {useFocusEffect} from '@react-navigation/native'
 import isEqual from 'lodash/isEqual'
 
 type OwnProps = {
@@ -112,6 +113,14 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       inboxRefresh('componentNeverLoaded')
     }
   })
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!inboxHasLoaded) {
+        inboxRefresh('componentNeverLoaded')
+      }
+    }, [inboxHasLoaded, inboxRefresh])
+  )
 
   return (
     <Inbox

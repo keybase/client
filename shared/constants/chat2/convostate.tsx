@@ -859,12 +859,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
                     }
-                    // inject them into the message map
-                    info.messages.forEach(m => {
-                      s.messageMap.set(m.ordinal, m)
-                    })
-                    syncMessageDerived(s)
                   })
+                  // inject them into the message map
+                  get().dispatch.messagesAdd([message])
                 }
               },
             },
@@ -1536,7 +1533,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
             const toWrite = {...m, ordinal: mapOrdinal}
             s.messageMap.set(mapOrdinal, toWrite)
-            if (m.outboxID) {
+            if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
               s.pendingOutboxToOrdinal.set(m.outboxID, toWrite.ordinal)
             }
             if (m.type === 'text') {
@@ -1965,7 +1962,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
       const conversationIDKey = get().id
-      const shouldAddMessage = get().isCaughtUp()
       const devicename = C.useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
       const message = Message.uiMessageToMessage(
@@ -1996,7 +1992,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               s.messageTypeMap.set(ordinal, subType)
             })
           }
-        } else if (shouldAddMessage) {
+        } else {
           // A normal message
           dispatch.messagesAdd([message])
         }
