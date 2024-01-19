@@ -720,7 +720,18 @@ const plumbEvents = () => {
       case 'setupPreloadKB2':
         return KB2.constants
       case 'showMainWindow':
-        mainWindow?.show()
+        if (isDarwin && !allowMultipleInstances) {
+          // launch the app explicitly so we can switch workspaces
+          try {
+            const parts = Electron.app.getPath('exe').split('/')
+            const exe = parts.slice(0, -3).join('/')
+            await Electron.shell.openPath(exe)
+          } catch (e) {
+            logger.error('launch fail', e)
+          }
+        } else {
+          mainWindow?.show()
+        }
         showDockIcon()
         break
       case 'activeChanged':
