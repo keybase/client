@@ -16,7 +16,7 @@ export type _Props = {
 
 export type Props = PropsWithInput<_Props>
 type RefProps = {
-  forwardedRef: React.Ref<PlainInput>
+  forwardedRef?: React.MutableRefObject<PlainInput | null>
 }
 
 const ReflessLabeledInput = (props: Props & RefProps) => {
@@ -45,8 +45,12 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
     [value, onChangeText]
   )
 
+  // If we're uncontrolled its possible its been injected into unbeknownst to us
+  // this is VERY hacky and we shouldn't leak out the ref directly, but thats a larger change
+  // and this component is old and we should likely just rewrite it
+  const maybeInjectedValue = props.forwardedRef?.current?.value
   // Style is supposed to switch when there's any input or its focused
-  const actualValue = value !== undefined ? value : uncontrolledValue
+  const actualValue = value !== undefined ? value : uncontrolledValue || maybeInjectedValue
   const populated = !!actualValue && actualValue.length > 0
   const multiline = props.multiline
   const collapsed = focused || populated || multiline
@@ -103,7 +107,7 @@ ReflessLabeledInput.defaultProps = {
 }
 
 const LabeledInput = React.forwardRef<PlainInput, Props>(function LabeledInput(props, ref) {
-  return <ReflessLabeledInput {...props} forwardedRef={ref} />
+  return <ReflessLabeledInput {...props} forwardedRef={ref as any} />
 })
 
 const styles = Styles.styleSheetCreate(
