@@ -205,10 +205,14 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   // text from the store, either a draft or changes like injecting a giphy or clearing that
   // dont inject if we don't have a ref yet
   const lastUnsentText = React.useRef<string | undefined>()
+  const lastInputRef = React.useRef<Kb.PlainInput | null>(inputRef.current)
   React.useEffect(() => {
     if (lastUnsentText.current !== unsentText && inputRef.current) {
       lastUnsentText.current = unsentText
-      injectText(unsentText ?? '', true)
+      // only focus if the text changed, not due to mounting
+      const focus = lastInputRef.current === inputRef.current
+      lastInputRef.current = inputRef.current
+      injectText(unsentText ?? '', focus)
     }
   }, [injectText, unsentText])
 
