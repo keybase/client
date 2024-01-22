@@ -1,5 +1,5 @@
 diff --git a/node_modules/electron/electron.d.ts b/node_modules/electron/electron.d.ts
-index e034a32..a7b5151 100644
+index e3a0eb0..08d5f72 100644
 --- a/node_modules/electron/electron.d.ts
 +++ b/node_modules/electron/electron.d.ts
 @@ -1659,7 +1659,7 @@ declare namespace Electron {
