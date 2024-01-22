@@ -331,7 +331,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.Respon
 	for _, res := range galleryInfo.Results {
 		videoStr += fmt.Sprintf(`
 			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
-		`, r.GetGiphyURL(ctx, res.PreviewUrl), r.getGiphyGallerySelectURL(ctx, galleryInfo.ConvID, galleryInfo.TlfName,
+		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.ConvID, galleryInfo.TlfName,
 			res))
 	}
 	res := fmt.Sprintf(`
