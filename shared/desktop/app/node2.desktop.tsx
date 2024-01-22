@@ -87,9 +87,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
   }
 
   mainWindow.show()
-  if (isWindows || isLinux) {
-    mainWindow.focus()
-  }
+  mainWindow.focus()
 
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
