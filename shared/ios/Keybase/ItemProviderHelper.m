@@ -542,8 +542,10 @@
             [self sendText:text];
           }];
           break;
-          // local file urls, basically unknown
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
+          // local file urls, basically unknown, or known data files
+        } else if (
+                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePDF) ||
+                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple2];
           break;
