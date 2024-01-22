@@ -2,11 +2,10 @@ import * as React from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '@/styles'
 import type {Props} from './list'
-import {createAnimatedComponent} from './reanimated'
+import ReAnimated from './reanimated'
 import noop from 'lodash/noop'
 
-// eslint-disable-next-line deprecation/deprecation
-const AnimatedFlatList = createAnimatedComponent(FlatList)
+const AnimatedFlatList = ReAnimated.FlatList
 
 class List<Item> extends React.PureComponent<Props<Item>> {
   static defaultProps = {

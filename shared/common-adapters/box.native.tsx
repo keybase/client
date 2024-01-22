@@ -109,12 +109,15 @@ export const Box2Div = () => {
   throw new Error('Wrong platform')
 }
 
-export const Box2View = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
+export const Box2View = React.forwardRef<View, Box2Props>(function Box2View(p, ref) {
   const props = useBox2Shared(p)
   return <View {...props} ref={ref} />
 })
 
-export const Box2Animated = Reanimated.createAnimatedComponent(Box2View)
+export const Box2Animated = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
+  const props = useBox2Shared(p)
+  return <Reanimated.View {...props} ref={ref} />
+})
 
 export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
   React.useImperativeHandle(
