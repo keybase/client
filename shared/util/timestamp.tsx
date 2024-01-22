@@ -199,27 +199,34 @@ export function daysToLabel(days: number): string {
 }
 
 const formatDistanceLocale = {
+  aboutXHours: '{{count}}h',
+  aboutXMonths: '{{count}}mo',
+  aboutXWeeks: '{{count}}w',
+  aboutXYears: '{{count}}y',
+  almostXYears: '{{count}}y',
+  halfAMinute: '30s',
+  lessThanXMinutes: '{{count}}m',
+  lessThanXSeconds: '{{count}}s',
+  overXYears: '{{count}}y',
   xDays: '{{count}}d',
   xHours: '{{count}}h',
   xMinutes: '{{count}}m',
   xMonths: '{{count}}mo',
   xSeconds: '{{count}}s',
+  xWeeks: '{{count}}w',
   xYears: '{{count}}y',
 }
 type Token = keyof typeof formatDistanceLocale
 
-const formatDistanceAbbr = (token: Token, count: number): string =>
+const formatDistanceAbbr = (token: dateFns.FormatDistanceToken, count: number): string =>
   formatDistanceLocale[token].replace('{{count}}', String(count))
 
 export function formatTimeForPeopleItem(time: number): string {
   return dateFns.formatDistanceStrict(time, Date.now(), {
     locale: {
       ...enUS,
-      formatDistance: (
-        token: 'xDays' | 'xHours' | 'xMinutes' | 'xMonths' | 'xSeconds' | 'xYears',
-        count: number,
-        _
-      ) => (token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count)),
+      formatDistance: (token, count, _) =>
+        token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count),
     },
   })
 }
