@@ -1,57 +1,62 @@
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
-# Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
-platform :ios, "13.0"
+# ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '1' : '0'
+
+platform :ios, "13.4"
+install! 'cocoapods',
+  :deterministic_uuids => false
+
 prepare_react_native_project!
 
+# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
+# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
+#
+# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
+# ```js
+# module.exports = {
+#   dependencies: {
+#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
+# ```
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
-new_arch = ENV['RCT_NEW_ARCH_ENABLED']
-if new_arch == "1"
-    use_modular_headers!
-    # doesn't seem to work
-    flipper_config = FlipperConfiguration.disabled
-end
+#    use_modular_headers!
+#new_arch = ENV['RCT_NEW_ARCH_ENABLED']
+#if new_arch == "1"
+#    use_modular_headers!
+#    # doesn't seem to work
+#    flipper_config = FlipperConfiguration.disabled
+#end
 
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+#linkage = ENV['USE_FRAMEWORKS']
+#if linkage != nil
+#  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+#  use_frameworks! :linkage => linkage.to_sym
+#end
 
 target 'Keybase' do
   use_expo_modules!
-  post_integrate do |installer|
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
-  end
+#  post_integrate do |installer|
+#    begin
+#      expo_patch_react_imports!(installer)
+#    rescue => e
+#      Pod::UI.warn e
+#    end
+#  end
   config = use_native_modules!
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
+#  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
-  use_expo_modules!
+  #use_expo_modules!
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => false, # flags[:hermes_enabled],
-    :fabric_enabled => false, # flags[:fabric_enabled],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
+    :hermes_enabled => false, # podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    # Note that if you have use_frameworks! enabled, Flipper will not work if enabled
+    :flipper_configuration => flipper_config
   )
 
   post_install do |installer|
@@ -61,13 +66,19 @@ target 'Keybase' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
     # fix pods xcode 14 losing signing team
       installer.pods_project.targets.each do |target|
             target.build_configurations.each do |config|
                 config.build_settings['CODE_SIGN_IDENTITY'] = ''
             end
       end
+  end
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
   end
 end
 

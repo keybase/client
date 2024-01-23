@@ -2,8 +2,6 @@
 #import "DropViewView.h"
 #import "DropView.h"
 #import "../../../shared/ios/Keybase/ItemProviderHelper.h"
-#import <React/RCTUIManager.h>
-#import <React/RCTViewManager.h>
 #import <react/renderer/components/RNDropViewViewSpec/ComponentDescriptors.h>
 #import <react/renderer/components/RNDropViewViewSpec/EventEmitters.h>
 #import <react/renderer/components/RNDropViewViewSpec/Props.h>
@@ -20,18 +18,19 @@ using namespace facebook::react;
   UIView *_view;
 }
 
-+ (ComponentDescriptorProvider)componentDescriptorProvider {
-  return concreteComponentDescriptorProvider<DropViewViewComponentDescriptor>();
++ (ComponentDescriptorProvider)componentDescriptorProvider
+{
+    return concreteComponentDescriptorProvider<DropViewViewComponentDescriptor>();
 }
 
-- (instancetype)initWithFrame:(CGRect)frame {
+- (instancetype)initWithFrame:(CGRect)frame
+{
   if (self = [super initWithFrame:frame]) {
-    static const auto defaultProps =
-        std::make_shared<const DropViewViewProps>();
+    static const auto defaultProps = std::make_shared<const DropViewViewProps>();
     _props = defaultProps;
 
-    DropView *dv = [[DropView alloc] init];
-    _view = dv;
+      DropView *dv = [[DropView alloc] init];
+      _view = dv;
 
     self.contentView = _view;
   }
@@ -39,8 +38,14 @@ using namespace facebook::react;
   return self;
 }
 
-Class<RCTComponentViewProtocol> DropViewViewCls(void) {
-  return DropViewView.class;
+- (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
+{
+    [super updateProps:props oldProps:oldProps];
+}
+
+Class<RCTComponentViewProtocol> DropViewViewCls(void)
+{
+    return DropViewView.class;
 }
 
 @end

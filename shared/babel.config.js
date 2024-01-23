@@ -51,7 +51,16 @@ module.exports = function (api /*: any */) {
     // console.error('KB babel.config.js for ReactNative')
     return {
       plugins: [
-        ['module-resolver', {alias: {'@': './'}}],
+        [
+          'module-resolver',
+          {
+            alias: {
+              '@': './',
+              'react-native-kb': '../rnmodules/react-native-kb',
+              'react-native-drop-view': '../rnmodules/react-native-drop-view',
+            },
+          },
+        ],
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
         '@babel/plugin-proposal-numeric-separator',
         '@babel/plugin-transform-export-namespace-from',
@@ -67,7 +76,7 @@ module.exports = function (api /*: any */) {
       ],
       presets: [
         // lets us set our own jsx above
-        ['module:metro-react-native-babel-preset', {useTransformReactJSXExperimental: true}],
+        ['module:@react-native/babel-preset', {useTransformReactJSXExperimental: true}],
       ],
       sourceMaps: true,
     }

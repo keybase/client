@@ -5,9 +5,8 @@
  */
 /* eslint-disable */
 
-const {getDefaultConfig} = require('@expo/metro-config')
-const {mergeConfig} = require('@react-native/metro-config')
-const {resolve} = require('metro-resolver')
+const {getDefaultConfig: getDefaultConfigExpo} = require('@expo/metro-config')
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config')
 const path = require('path')
 const fs = require('fs')
 const exclusionList = require('metro-config/src/defaults/exclusionList')
@@ -34,14 +33,15 @@ const modules = []
   .sort()
 
 const defaultConfig = getDefaultConfig(__dirname)
+const defaultConfigExpo = getDefaultConfigExpo(__dirname)
 
-module.exports = mergeConfig(defaultConfig, {
+module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
   resolver: {
-    ...defaultConfig.resolver,
-    assetExts: [...defaultConfig.resolver.assetExts, 'css'],
-    sourceExts: [...defaultConfig.resolver.sourceExts, 'cjs', 'css'],
+    ...defaultConfigExpo.resolver,
+    assetExts: [...defaultConfigExpo.resolver.assetExts, 'css'],
+    sourceExts: [...defaultConfigExpo.resolver.sourceExts, 'cjs', 'css'],
     // We need to exclude the peerDependencies we've collected in packages' node_modules
     blacklistRE: exclusionList(
       [].concat(
@@ -58,7 +58,7 @@ module.exports = mergeConfig(defaultConfig, {
     }, {}),
   },
   transformer: {
-    ...defaultConfig.transformer,
+    ...defaultConfigExpo.transformer,
     babelTransformerPath: require.resolve('./rn-transformer.js'),
     getTransformOptions: async () => ({
       transform: {
@@ -75,3 +75,5 @@ module.exports = mergeConfig(defaultConfig, {
     },
   },
 })
+
+console.log('aaa', module.exports)

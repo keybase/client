@@ -29,6 +29,10 @@
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+  return [self getBundleURL];
+}
+
+- (NSURL *)getBundleURL {
 #if DEBUG
   [[RCTBundleURLProvider sharedSettings] setEnableDev:true];
   // uncomment to get a prod bundle.
