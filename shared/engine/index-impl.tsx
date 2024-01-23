@@ -63,9 +63,15 @@ class Engine {
   constructor(emitWaiting: (changes: BatchParams) => void, onConnected: (c: boolean) => void) {
     this._onConnectedCB = onConnected
     const f = async () => {
-      this._engineConstantsIncomingCall = (
-        await import('@/constants')
-      ).useEngineState.getState().dispatch.onEngineIncoming
+      logger.error('aaa engine construct start')
+      try {
+        this._engineConstantsIncomingCall = (
+          await import('@/constants')
+        ).useEngineState.getState().dispatch.onEngineIncoming
+      } catch (e) {
+        logger.error('aaa engine construct error', e)
+      }
+      logger.error('aaa engine construct end')
     }
     f()
       .then(() => {})
@@ -124,8 +130,8 @@ class Engine {
 
   // Got a cancelled sequence id
   _handleCancel(seqid: number) {
-    const cancelledSessionID = Object.keys(this._sessionsMap).find(
-      key => this._sessionsMap[key]?.hasSeqID(seqid)
+    const cancelledSessionID = Object.keys(this._sessionsMap).find(key =>
+      this._sessionsMap[key]?.hasSeqID(seqid)
     )
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
