@@ -61,6 +61,7 @@ const MenuBar = () => {
   const icon = getIcon()
   const mb = menubar({
     browserWindow: {
+      ...(isDarwin ? {type: 'panel'} : {}),
       hasShadow: true,
       height: 640,
       resizable: false,
@@ -80,6 +81,7 @@ const MenuBar = () => {
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
+    showOnAllWorkspaces: true,
   })
 
   Electron.app.on('ready', () => {

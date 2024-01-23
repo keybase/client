@@ -431,7 +431,8 @@ const plumbEvents = () => {
     () => {},
     (c: boolean) => {
       R.remoteDispatch(RemoteGen.createEngineConnection({connected: c}))
-    }
+    },
+    false
   )
 
   const timeoutPromise = async (timeMs: number) =>

@@ -29,7 +29,8 @@ export declare class Engine {
 export declare function getEngine(): Engine
 export declare function makeEngine(
   emitWaiting: (b: BatchParams) => void,
-  onConnected: (c: boolean) => void
+  onConnected: (c: boolean) => void,
+  allowIncomingCalls?: boolean
 ): Engine
 export default getEngine
 export type {IncomingCallMapType, CustomResponseIncomingCallMapType}
