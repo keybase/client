@@ -2,8 +2,19 @@ declare module 'electron-positioner' {
   type ignore = unknown
   export default ignore
 }
-declare module 'react-native/Libraries/Image/AssetRegistry' {
+declare module '@react-native/assets-registry/registry' {
   type PackagerAsset = {[key: string]: unknown}
+}
+
+declare module 'expo-manifests' {
+  type EASConfig = any
+  type ExpoGoConfig = any
+  type NewManifest = any
+  type BareManifest = any
+  type ManifestAsset = any
+  type ManifestExtra = any
+  type ClientScopingConfig = any
+  type ExpoGoPackagerOpts = any
 }
 
 declare module '@react-spring/rafz' {
