@@ -75,5 +75,3 @@ module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
     },
   },
 })
-
-console.log('aaa', module.exports)

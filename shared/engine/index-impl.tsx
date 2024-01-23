@@ -62,14 +62,8 @@ class Engine {
 
   constructor(emitWaiting: (changes: BatchParams) => void, onConnected: (c: boolean) => void) {
     this._onConnectedCB = onConnected
-    const f = async () => {
-      this._engineConstantsIncomingCall = (
-        await import('@/constants')
-      ).useEngineState.getState().dispatch.onEngineIncoming
-    }
-    f()
-      .then(() => {})
-      .catch(() => {})
+    this._engineConstantsIncomingCall =
+      require('@/constants').useEngineState.getState().dispatch.onEngineIncoming
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload as any),
@@ -124,8 +118,8 @@ class Engine {
 
   // Got a cancelled sequence id
   _handleCancel(seqid: number) {
-    const cancelledSessionID = Object.keys(this._sessionsMap).find(
-      key => this._sessionsMap[key]?.hasSeqID(seqid)
+    const cancelledSessionID = Object.keys(this._sessionsMap).find(key =>
+      this._sessionsMap[key]?.hasSeqID(seqid)
     )
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
