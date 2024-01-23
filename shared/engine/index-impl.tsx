@@ -63,7 +63,7 @@ class Engine {
   constructor(emitWaiting: (changes: BatchParams) => void, onConnected: (c: boolean) => void) {
     this._onConnectedCB = onConnected
     this._engineConstantsIncomingCall =
-      require('@/constants').useEngineState.getState().dispatch.onEngineIncoming
+      require('@/constants/engine')._useState.getState().dispatch.onEngineIncoming
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload as any),
