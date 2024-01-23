@@ -134,8 +134,7 @@ const TeamBuilding = (p: OwnProps) => {
   )
   const onAdd = React.useCallback(
     (userId: string) => {
-      const user =
-        userResults?.filter(u => u.id === userId)?.[0] ?? userRecs?.filter(u => u.id === userId)?.[0]
+      const user = userResults?.filter(u => u.id === userId)[0] ?? userRecs?.filter(u => u.id === userId)[0]
 
       if (!user) {
         logger.error(`Couldn't find Types.User to add for ${userId}`)

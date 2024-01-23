@@ -457,8 +457,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
 
-  let loadMessageCount = 0
-
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -913,10 +911,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
-      // ignore incoming calls if we've already started a new load
-      loadMessageCount++
-      const currentLoadMessageCount = loadMessageCount
-
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
           last: false,
@@ -957,10 +951,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
         let calledClear = false
         const onGotThread = (thread: string) => {
-          if (currentLoadMessageCount !== loadMessageCount) {
-            return
-          }
-
           if (!thread) {
             return
           }
@@ -1010,9 +1000,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
-                if (currentLoadMessageCount !== loadMessageCount) {
-                  return
-                }
                 // if we're validated, never undo that
                 if (get().threadLoadStatus === T.RPCChat.UIChatThreadStatusTyp.validated) {
                   return

@@ -54,15 +54,19 @@ export const ZoomableBox = (props: Props) => {
   const ref = React.useRef<ScrollView>(null)
   const onDoubleTap = React.useCallback(() => {
     const scroll = ref.current as unknown as null | {
-      getScrollResponder?: () => {
-        scrollResponderZoomTo: (p: {
-          animated: boolean
-          width: number
-          height: number
-          x?: number
-          y?: number
-        }) => void
-      }
+      getScrollResponder?:
+        | undefined
+        | (() =>
+            | undefined
+            | {
+                scrollResponderZoomTo: (p: {
+                  animated: boolean
+                  width: number
+                  height: number
+                  x?: number
+                  y?: number
+                }) => void
+              })
     }
     scroll?.getScrollResponder?.()?.scrollResponderZoomTo(
       curScaleRef.current > 1.01

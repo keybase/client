@@ -425,6 +425,7 @@ PODS:
   - React-logger (0.72.7):
     - glog
   - react-native-drop-view (0.1.0):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-flipper-performance-plugin (0.4.0):
     - React-Core
@@ -436,6 +437,7 @@ PODS:
   - react-native-image-keyboard (2.2.1):
     - React
   - react-native-kb (0.1.1):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-netinfo (11.2.1):
     - React-Core
@@ -923,11 +925,11 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 10e6c77ff6b32274b8d152d08ed0328c4b30a821
   React-jsinspector: 8baadae51f01d867c3921213a25ab78ab4fbcd91
   React-logger: 8edc785c47c8686c7962199a307015e2ce9a0e4f
-  react-native-drop-view: 912001e1d68fc83ff8a1f9dc748e481cbc279f5d
+  react-native-drop-view: 4360a3af2492ac08b29cbb9333e5d14788ac724a
   react-native-flipper-performance-plugin: 42ec5017abd26e7c5a1f527f2db92c14a90cabdb
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
-  react-native-kb: 00f70648f2f1e0ab1df703c6e8774f8ffffe121c
+  react-native-kb: d214fc08bf5420efd5dbc61d8c7ad8fb4226eb6a
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
   react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
