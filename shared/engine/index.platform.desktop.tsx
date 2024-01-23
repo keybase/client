@@ -68,6 +68,7 @@ class ProxyNativeTransport extends TransportShared {
   }
 
   send(msg: unknown) {
+    // send over bridge to node to really send
     engineSend?.(msg as Uint8Array)
     return true
   }

@@ -60,22 +60,17 @@ class Engine {
     this._emitWaiting(changes)
   }, 500)
 
-  constructor(emitWaiting: (changes: BatchParams) => void, onConnected: (c: boolean) => void) {
+  constructor(
+    emitWaiting: (changes: BatchParams) => void,
+    onConnected: (c: boolean) => void,
+    allowIncomingCalls = true
+  ) {
     this._onConnectedCB = onConnected
-    const f = async () => {
-      logger.error('aaa engine construct start')
-      try {
-        this._engineConstantsIncomingCall = (
-          await import('@/constants')
-        ).useEngineState.getState().dispatch.onEngineIncoming
-      } catch (e) {
-        logger.error('aaa engine construct error', e)
-      }
-      logger.error('aaa engine construct end')
+    // the node engine doesn't do this and we don't want to pull in any reqs
+    if (allowIncomingCalls) {
+      this._engineConstantsIncomingCall =
+        require('@/constants/engine')._useState.getState().dispatch.onEngineIncoming
     }
-    f()
-      .then(() => {})
-      .catch(() => {})
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload as any),
@@ -190,6 +185,7 @@ class Engine {
     }
   }
   _engineConstantsIncomingCall = (_a: EngineGen.Actions): void => {
+    logger.error('_engineConstantsIncomingCall not overriden')
     throw Error('needs override')
   }
 
@@ -332,13 +328,19 @@ if (__DEV__) {
   engine = global.DEBUGEngine as Engine
 }
 
-const makeEngine = (emitWaiting: (b: BatchParams) => void, onConnected: (c: boolean) => void) => {
+const makeEngine = (
+  emitWaiting: (b: BatchParams) => void,
+  onConnected: (c: boolean) => void,
+  allowIncomingCalls = true
+) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(emitWaiting, onConnected)
+    engine = isTesting
+      ? (new FakeEngine() as unknown as Engine)
+      : new Engine(emitWaiting, onConnected, allowIncomingCalls)
     initEngine(engine as any)
     initEngineListener(engineListener)
   }
