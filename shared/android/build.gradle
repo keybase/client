@@ -1,14 +1,11 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        buildToolsVersion = "33.0.0"
+        buildToolsVersion = "34.0.0"
         minSdkVersion = 21
-        compileSdkVersion = 33
-        targetSdkVersion = 33
-        kotlinVersion = "1.6.21"
-
-        // We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
-        ndkVersion = "23.1.7779620"
+        compileSdkVersion = 34
+        targetSdkVersion = 34
+        kotlinVersion = "1.8.0"
+        ndkVersion = "25.1.8937393"
      }
 
     repositories {
@@ -20,9 +17,7 @@ buildscript {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("com.github.triplet.gradle:play-publisher:3.7.0") // To publish from gradle
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
-
-plugins {
-    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
-}
+apply plugin: "com.facebook.react.rootproject"
