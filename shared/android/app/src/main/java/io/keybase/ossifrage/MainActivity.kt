@@ -110,7 +110,10 @@ class MainActivity : ReactActivity() {
         super.onCreate(null)
         Handler().postDelayed({
             try {
-                setBackgroundColor(GuiConfig.getInstance(filesDir).darkMode)
+                var gc = GuiConfig.getInstance(filesDir)
+                if (gc != null) {
+                    setBackgroundColor(gc.getDarkMode())
+                }
             } catch (e: Exception) {
             }
         }, 300)
@@ -350,7 +353,10 @@ class MainActivity : ReactActivity() {
         super.onConfigurationChanged(newConfig)
         val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
         try {
-            setBackgroundColor(GuiConfig.getInstance(filesDir).darkMode)
+            var gc = GuiConfig.getInstance(filesDir)
+            if (gc != null) {
+                setBackgroundColor(gc.getDarkMode())
+            }
         } catch (e: Exception) {
         }
         if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
