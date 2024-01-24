@@ -109,7 +109,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                 }
 
                 "follow" -> {
-                    notifier.followNotification(bundle.getString("username"), bundle.getString("message"))
+                    val username = bundle.getString("username")
+                    val message = bundle.getString("message")
+                    if (username != null && message != null) {
+                        notifier.followNotification(username, message)
+                    }
                 }
 
                 "device.revoked", "device.new" -> {
@@ -208,7 +212,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 }
 
-internal class SmallMsgRingBuffer {
+class SmallMsgRingBuffer {
     private val buffer = ArrayList<NotificationCompat.MessagingStyle.Message>()
     fun add(m: NotificationCompat.MessagingStyle.Message) {
         while (buffer.size > 4) {
@@ -284,7 +288,9 @@ internal interface WithBackgroundActive {
                 return
             }
             if (Keybase.appDidEnterBackground()) {
-                Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
+                if (context != null) {
+                    Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
+                }
             } else {
                 Keybase.setAppStateBackground()
             }
