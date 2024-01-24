@@ -1,0 +1,445 @@
+package io.keybase.ossifrage
+
+import android.annotation.TargetApi
+import android.content.ContentResolver
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import android.provider.Settings
+import android.util.Log
+import android.view.KeyEvent
+import android.webkit.MimeTypeMap
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.ReactApplication
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
+import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.modules.core.PermissionListener
+import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule
+import com.reactnativekb.DarkModePreference
+import com.reactnativekb.GuiConfig
+import io.keybase.ossifrage.modules.NativeLogger
+import io.keybase.ossifrage.util.DNSNSFetcher
+import io.keybase.ossifrage.util.VideoHelper
+import keybase.Keybase
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.security.KeyStoreException
+import java.security.NoSuchAlgorithmException
+import java.security.cert.CertificateException
+import java.util.Arrays
+import java.util.Objects
+import java.util.UUID
+
+class MainActivity : ReactActivity() {
+    private val listener: PermissionListener? = null
+    private var isUsingHardwareKeyboard = false
+    var initialBundleFromNotification: Bundle? = null
+        get() {
+            val b = field
+            field = null
+            return b
+        }
+    private var shareFileUrls: Array<String>? = null
+    private var shareText: String? = null
+    var initialShareFileUrls: Array<String>?
+        get() {
+            val s = shareFileUrls
+            shareFileUrls = null
+            return s
+        }
+        set(urls) {
+            shareFileUrls = urls
+        }
+    var initialShareText: String?
+        get() {
+            val s = shareText
+            shareText = null
+            return s
+        }
+        set(text) {
+            shareText = text
+        }
+
+    override fun invokeDefaultOnBackPressed() {
+        moveTaskToBack(true)
+    }
+
+    private val reactContext: ReactContext?
+        private get() {
+            val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
+            if (instanceManager == null) {
+                NativeLogger.warn("react instance manager not ready")
+                return null
+            }
+            return instanceManager.currentReactContext
+        }
+
+    private fun colorSchemeForCurrentConfiguration(): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            when (currentNightMode) {
+                Configuration.UI_MODE_NIGHT_NO -> return "light"
+                Configuration.UI_MODE_NIGHT_YES -> return "dark"
+            }
+        }
+        return "light"
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        NativeLogger.info("Activity onCreate")
+        val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
+        if (!createdReact) {
+            createdReact = true
+            instanceManager.createReactContextInBackground()
+        }
+        setupKBRuntime(this, true)
+        super.onCreate(null)
+        Handler().postDelayed({
+            try {
+                setBackgroundColor(GuiConfig.getInstance(filesDir).darkMode)
+            } catch (e: Exception) {
+            }
+        }, 300)
+        KeybasePushNotificationListenerService.createNotificationChannel(this)
+        updateIsUsingHardwareKeyboard()
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        return if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            super.onKeyUp(KeyEvent.KEYCODE_MENU, null)
+        } else super.onKeyUp(keyCode, event)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        listener?.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onPause() {
+        NativeLogger.info("Activity onPause")
+        super.onPause()
+        if (Keybase.appDidEnterBackground()) {
+            Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(this, Bundle()))
+        } else {
+            Keybase.setAppStateBackground()
+        }
+    }
+
+    private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
+        // Use a GUID default.
+        var filename = String.format("%s.%s", UUID.randomUUID().toString(), extension)
+        val nameProjection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+        resolver.query(uri, nameProjection, null, null, null).use { cursor ->
+            if (cursor != null && cursor.moveToFirst()) {
+                filename = cursor.getString(0)
+            }
+        }
+        val cut = filename.lastIndexOf('/')
+        if (cut != -1) {
+            filename = filename.substring(cut + 1)
+        }
+        return filename
+    }
+
+    private fun saveFileToCache(reactContext: ReactContext?, uri: Uri, filename: String): File {
+        val file = File(reactContext!!.cacheDir, filename)
+        try {
+            reactContext.contentResolver.openInputStream(uri).use { istream ->
+                FileOutputStream(file).use { ostream ->
+                    val buf = ByteArray(64 * 1024)
+                    var len: Int
+                    while (istream!!.read(buf).also { len = it } != -1) {
+                        ostream.write(buf, 0, len)
+                    }
+                }
+            }
+        } catch (ex: IOException) {
+            Log.w(TAG, "Error writing shared file $uri", ex)
+        }
+        return file
+    }
+
+    private fun readFileFromUri(reactContext: ReactContext?, uri: Uri?): String? {
+        if (uri == null) return null
+        var filePath: String? = null
+        filePath = if (uri.scheme == "content") {
+            val resolver = reactContext!!.contentResolver
+            val mimeType = resolver.getType(uri)
+            val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+
+            // Load the filename from the resolver.
+            val filename = getFileNameFromResolver(resolver, uri, extension)
+
+            // Now load the file itself.
+            val file = saveFileToCache(reactContext, uri, filename)
+            file.path
+        } else {
+            uri.path
+        }
+        return filePath
+    }
+
+    private inner class IntentEmitter(private val intent: Intent) {
+        fun emit() {
+
+            // Here we are just reading from the notification bundle.
+            // If other sources start the app, we can get their intent data the same way.
+            val bundleFromNotification = intent.getBundleExtra("notification")
+            intent.removeExtra("notification")
+            val action = intent.action
+            var uris_: Array<Uri?>? = null
+            if (Intent.ACTION_SEND_MULTIPLE == action) {
+                val alUri = intent.getParcelableArrayListExtra<Uri?>(Intent.EXTRA_STREAM)
+                uris_ = alUri!!.toTypedArray<Uri?>()
+            } else if (Intent.ACTION_SEND == action) {
+                val oneUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                uris_ = arrayOf(oneUri)
+            }
+            intent.removeExtra(Intent.EXTRA_STREAM)
+            val uris = uris_
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            intent.removeExtra(Intent.EXTRA_SUBJECT)
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+            intent.removeExtra(Intent.EXTRA_TEXT)
+            val sb = StringBuilder()
+            if (subject != null) {
+                sb.append(subject)
+            }
+            if (subject != null && text != null) {
+                sb.append(" ")
+            }
+            if (text != null) {
+                sb.append(text)
+            }
+            val textPayload = sb.toString()
+            /*val filePaths = if (uris != null) Arrays.stream<Uri?>(uris)
+                    .map<String?> { uri: Uri? -> readFileFromUri(reactContext, uri) }
+                    .filter { obj: String? -> Objects.nonNull(obj) }
+                    .toArray<String> { _Dummy_.__Array__() } else arrayOfNulls<String>(0)
+
+             */
+            // TODO check this works
+            val filePaths = uris?.mapNotNull { uri ->
+                readFileFromUri(reactContext, uri)
+            }?.toTypedArray() ?: emptyArray()
+            if (bundleFromNotification != null) {
+                initialBundleFromNotification = bundleFromNotification
+            } else if (filePaths != null && filePaths.size != 0) {
+                initialShareFileUrls = filePaths
+            } else if (textPayload.length > 0) {
+                initialShareText = textPayload
+            }
+
+            // Closure like class so we can keep our emit logic together
+            class Emit(private val emitter: DeviceEventManagerModule.RCTDeviceEventEmitter, private val context: ReactContext) {
+                fun run() {
+                    val context: ReactContext = reactContext ?: return
+                    // assert emitter != null;
+                    // If there are any other bundle sources we care about, emit them here
+                    if (bundleFromNotification != null) {
+                        emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification))
+                    }
+                    if (filePaths!!.size != 0) {
+                        val args = Arguments.createMap()
+                        val lPaths = Arguments.createArray()
+                        for (path in filePaths) {
+                            lPaths.pushString(path)
+                        }
+                        args.putArray("localPaths", lPaths)
+                        emitter.emit("onShareData", args)
+                    } else if (textPayload.length > 0) {
+                        val args = Arguments.createMap()
+                        args.putString("text", textPayload)
+                        emitter.emit("onShareData", args)
+                    }
+                }
+            }
+
+            // We need to run this on the main thread, as the React code assumes that is true.
+            // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
+            // "Can't create handler inside thread that has not called Looper.prepare()"
+            val handler = Handler(Looper.getMainLooper())
+            handler.post {
+
+                // Construct and load our normal React JS code bundle
+                val reactInstanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
+                val context = reactInstanceManager.currentReactContext
+
+                // If it's constructed, send a notification
+                if (context != null) {
+                    val emitter = context
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    Emit(emitter, context).run()
+                } else {
+                    // Otherwise wait for construction, then send the notification
+                    reactInstanceManager.addReactInstanceEventListener { rctContext: ReactContext ->
+                        val emitter = rctContext
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                        Emit(emitter, rctContext).run()
+                    }
+                    if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
+                        // Construct it in the background
+                        reactInstanceManager.createReactContextInBackground()
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        NativeLogger.info("Activity onResume")
+        super.onResume()
+        Keybase.setAppStateForeground()
+        // Emit the intent data to JS
+        val intent = intent
+        if (intent != null) {
+            IntentEmitter(intent).emit()
+        }
+    }
+
+    override fun onStart() {
+        NativeLogger.info("Activity onStart")
+        super.onStart()
+        Keybase.setAppStateForeground()
+    }
+
+    override fun onDestroy() {
+        NativeLogger.info("Activity onDestroy")
+        super.onDestroy()
+        Keybase.appWillExit(KBPushNotifier(this, Bundle()))
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    /**
+     * Returns the name of the main component registered from JavaScript. This is
+     * used to schedule rendering of the component.
+     */
+    override fun getMainComponentName(): String = "Keybase"
+
+    /**
+     * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
+     * (aka React 18) with two boolean flags.
+     */
+    override fun createReactActivityDelegate(): ReactActivityDelegate {
+        return DefaultReactActivityDelegate(
+                this,
+                mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+                fabricEnabled
+        )
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
+        try {
+            setBackgroundColor(GuiConfig.getInstance(filesDir).darkMode)
+        } catch (e: Exception) {
+        }
+        if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
+            isUsingHardwareKeyboard = true
+        } else if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
+            isUsingHardwareKeyboard = false
+        }
+    }
+
+    fun setBackgroundColor(pref: DarkModePreference) {
+        val bgColor: Int
+        bgColor = if (pref == DarkModePreference.System) {
+            if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
+        } else if (pref == DarkModePreference.AlwaysDark) {
+            R.color.black
+        } else {
+            R.color.white
+        }
+        val mainWindow = this.window
+        val handler = Handler(Looper.getMainLooper())
+        // Run this on the main thread.
+        handler.post { mainWindow.setBackgroundDrawableResource(bgColor) }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (isUsingHardwareKeyboard && event.keyCode == KeyEvent.KEYCODE_ENTER) {
+            // Detects user pressing the enter key
+            if (event.action == KeyEvent.ACTION_DOWN && !event.isShiftPressed) {
+                // Enter is pressed
+                HWKeyboardEventModule.getInstance().keyPressed("enter")
+                return true
+            }
+            if (event.action == KeyEvent.ACTION_DOWN && event.isShiftPressed) {
+                // Shift-Enter is pressed
+                HWKeyboardEventModule.getInstance().keyPressed("shift-enter")
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun updateIsUsingHardwareKeyboard() {
+        isUsingHardwareKeyboard = resources.configuration.keyboard == Configuration.KEYBOARD_QWERTY
+    }
+
+    companion object {
+        private val TAG = MainActivity::class.java.name
+        var createdReact = false
+        private fun createDummyFile(context: Context) {
+            val dummyFile = File(context.filesDir, "dummy.txt")
+            try {
+                if (dummyFile.createNewFile()) {
+                    dummyFile.setWritable(true)
+                    FileOutputStream(dummyFile).use { stream -> stream.write("hi".toByteArray()) }
+                } else {
+                    Log.d(TAG, "dummy.txt exists")
+                }
+            } catch (e: Exception) {
+                NativeLogger.error("Exception in createDummyFile", e)
+            }
+        }
+
+        // Is this a robot controlled test device? (i.e. pre-launch report?)
+        fun isTestDevice(context: Context): Boolean {
+            val testLabSetting = Settings.System.getString(context.contentResolver, "firebase.test.lab")
+            return "true" == testLabSetting
+        }
+
+        @JvmStatic
+        fun setupKBRuntime(context: Context, shouldCreateDummyFile: Boolean) {
+            try {
+                Keybase.setGlobalExternalKeyStore(KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)))
+            } catch (e: KeyStoreException) {
+                NativeLogger.error("Exception in MainActivity.onCreate", e)
+            } catch (e: CertificateException) {
+                NativeLogger.error("Exception in MainActivity.onCreate", e)
+            } catch (e: IOException) {
+                NativeLogger.error("Exception in MainActivity.onCreate", e)
+            } catch (e: NoSuchAlgorithmException) {
+                NativeLogger.error("Exception in MainActivity.onCreate", e)
+            }
+            if (shouldCreateDummyFile) {
+                createDummyFile(context)
+            }
+            val mobileOsVersion = Integer.toString(Build.VERSION.SDK_INT)
+            val isIPad = false
+            val isIOS = false
+            Keybase.initOnce(context.filesDir.path, "", context.getFileStreamPath("service.log").absolutePath, "prod", false,
+                    DNSNSFetcher(), VideoHelper(), mobileOsVersion, isIPad, KBInstallReferrerListener(context), isIOS)
+        }
+    }
+}
