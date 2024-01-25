@@ -14,44 +14,61 @@ const useOrangeLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const readMsgID = C.useChatContext(s => s.meta.readMsgID)
   const maxMsgID = C.useChatContext(s => s.meta.maxMsgID)
-  const metaOrangeShow = maxMsgID > readMsgID
-  const active = C.useActiveState(s => s.active)
-  const initOrangeLine = metaOrangeShow ? readMsgID : 0
-  const [orangeLine, setOrangeLine] = React.useState(initOrangeLine)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const [lastReadMsgID, setLastReadMsgID] = React.useState(readMsgID)
-  const [metaGood, setMetaGood] = React.useState(readMsgID > 0)
+  // const active = C.useActiveState(s => s.active)
+  const reinitValue = maxMsgID > readMsgID ? readMsgID : 0
+  const orangeLineRef = React.useRef(reinitValue)
+  const lastCIDRef = React.useRef(conversationIDKey)
+  const lastReadMsgIDRef = React.useRef(readMsgID)
+  const metaGoodRef = React.useRef(readMsgID > 0)
+
+  // TEMP
+  const TEMPBelowText = C.useChatContext(s => s.messageMap.get(orangeLineRef.current)?.text?.stringValue())
+
+  console.log('aaa useOrangeLine', {
+    // active,
+    conversationIDKey,
+    lastCID: lastCIDRef.current,
+    lastReadMsgID: lastReadMsgIDRef.current,
+    maxMsgID,
+    metaGood: metaGoodRef.current,
+    orangeLine: orangeLineRef.current,
+    readMsgID,
+    reinitValue,
+    TEMPBelowText,
+  })
 
   // meta not ready yet
   if (readMsgID < 0) {
     return 0
   }
 
-  if (!metaGood) {
-    setMetaGood(true)
-    setLastReadMsgID(readMsgID)
-    setOrangeLine(metaOrangeShow ? readMsgID : 0)
+  // init on first good met
+  if (!metaGoodRef.current) {
+    metaGoodRef.current = true
+    lastReadMsgIDRef.current = readMsgID
+    orangeLineRef.current = reinitValue
   }
 
   // convo changed? reset
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
-    setLastReadMsgID(readMsgID)
-    setOrangeLine(initOrangeLine)
+  if (lastCIDRef.current !== conversationIDKey) {
+    lastCIDRef.current = conversationIDKey
+    lastReadMsgIDRef.current = readMsgID
+    orangeLineRef.current = reinitValue
   }
 
+  // needed?
   // not active and we should show?
-  if (metaOrangeShow && !active && orangeLine <= 0) {
-    setOrangeLine(readMsgID)
-  }
+  // if (metaOrangeShow && !active && orangeLine <= 0) {
+  //   setOrangeLine(readMsgID)
+  // }
 
   // mark unread
-  if (metaOrangeShow && readMsgID < lastReadMsgID) {
-    setLastReadMsgID(readMsgID)
-    setOrangeLine(readMsgID)
+  if (readMsgID < lastReadMsgIDRef.current) {
+    lastReadMsgIDRef.current = readMsgID
+    orangeLineRef.current = readMsgID
   }
 
-  return orangeLine
+  return orangeLineRef.current
 }
 
 const WithOrange = React.memo(function WithOrange(p: {orangeLine: number}) {
