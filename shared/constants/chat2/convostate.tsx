@@ -1001,7 +1001,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
                 logger.info(
-                  `loadMoreMessagees: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
+                  `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
                 )
                 get().dispatch.setThreadLoadStatus(p.status.typ)
               },
