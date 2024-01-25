@@ -9,6 +9,7 @@ import type {Props} from './toast'
 import {colors, darkColors} from '@/styles/colors'
 import {isDarkMode} from '@/styles/dark-mode'
 import noop from 'lodash/noop'
+import {useFocusEffect} from '@react-navigation/core'
 
 const Kb = {
   Box,
@@ -54,6 +55,15 @@ const Toast = (props: Props) => {
     }
     return noop
   }, [shouldRender])
+
+  // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setShouldRender(false)
+      }
+    }, [])
+  )
 
   return shouldRender ? (
     <Kb.FloatingBox>
