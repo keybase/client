@@ -140,6 +140,7 @@ public class PathResolver {
 
     private static String getContentName(ContentResolver resolver, Uri uri) {
         Cursor cursor = resolver.query(uri, null, null, null, null);
+        if (cursor == null) return null;
         cursor.moveToFirst();
         int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
         if (nameIndex >= 0) {
