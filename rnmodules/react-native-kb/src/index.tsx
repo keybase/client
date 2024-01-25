@@ -8,7 +8,6 @@ const LINKING_ERROR =
 
 // @ts-expect-error
 const isTurboModuleEnabled = global.__turboModuleProxy != null
-console.log('aaaa', isTurboModuleEnabled, Object.keys(NativeModules))
 
 const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb
 
