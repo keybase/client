@@ -37,8 +37,8 @@ const Conversation = React.memo(function Conversation() {
   }, [])
 
   const conversationIDKey = C.useChatContext(s => s.id)
-  logger.info('Conversation: rendering convID: ' + conversationIDKey)
-  
+  logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
+
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
