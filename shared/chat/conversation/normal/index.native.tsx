@@ -13,6 +13,7 @@ import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {Dimensions} from 'react-native'
+import logger from '@/logger'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -35,6 +36,9 @@ const Conversation = React.memo(function Conversation() {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
 
+  const conversationIDKey = C.useChatContext(s => s.id)
+  logger.info('Conversation: rendering convID: ' + conversationIDKey)
+  
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>

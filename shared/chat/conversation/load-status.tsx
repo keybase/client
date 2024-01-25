@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import logger from '@/logger'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -32,6 +33,7 @@ const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
 const ThreadLoadStatus = () => {
   const status = C.useChatContext(s => s.threadLoadStatus)
 
+  logger.info('ThreadLoadStatus: status: ' + status)
   if (status === T.RPCChat.UIChatThreadStatusTyp.none) {
     return null
   }
