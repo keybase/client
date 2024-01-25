@@ -78,7 +78,7 @@ class MainActivity : ReactActivity() {
     }
 
     private val reactContext: ReactContext?
-        private get() {
+         get() {
             val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
             if (instanceManager == null) {
                 NativeLogger.warn("react instance manager not ready")
@@ -108,7 +108,7 @@ class MainActivity : ReactActivity() {
         }
         setupKBRuntime(this, true)
         super.onCreate(null)
-        Handler().postDelayed({
+        Handler(Looper.getMainLooper()).postDelayed({
             try {
                 var gc = GuiConfig.getInstance(filesDir)
                 if (gc != null) {
@@ -178,7 +178,7 @@ class MainActivity : ReactActivity() {
 
     private fun readFileFromUri(reactContext: ReactContext?, uri: Uri?): String? {
         if (uri == null) return null
-        var filePath: String? = null
+        var filePath: String?
         filePath = if (uri.scheme == "content") {
             val resolver = reactContext!!.contentResolver
             val mimeType = resolver.getType(uri)
@@ -241,7 +241,7 @@ class MainActivity : ReactActivity() {
             }?.toTypedArray() ?: emptyArray()
             if (bundleFromNotification != null) {
                 initialBundleFromNotification = bundleFromNotification
-            } else if (filePaths != null && filePaths.size != 0) {
+            } else if (filePaths.size != 0) {
                 initialShareFileUrls = filePaths
             } else if (textPayload.length > 0) {
                 initialShareText = textPayload
@@ -250,13 +250,13 @@ class MainActivity : ReactActivity() {
             // Closure like class so we can keep our emit logic together
             class Emit(private val emitter: DeviceEventManagerModule.RCTDeviceEventEmitter, private val context: ReactContext) {
                 fun run() {
-                    val context: ReactContext = reactContext ?: return
+                    if (reactContext == null) return
                     // assert emitter != null;
                     // If there are any other bundle sources we care about, emit them here
                     if (bundleFromNotification != null) {
                         emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification))
                     }
-                    if (filePaths!!.size != 0) {
+                    if (filePaths.size != 0) {
                         val args = Arguments.createMap()
                         val lPaths = Arguments.createArray()
                         for (path in filePaths) {
@@ -351,7 +351,6 @@ class MainActivity : ReactActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
         try {
             var gc = GuiConfig.getInstance(filesDir)
             if (gc != null) {

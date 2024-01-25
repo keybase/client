@@ -27,7 +27,7 @@ class CustomBitmapMemoryCacheParamsSupplier(context: Context) : Supplier<MemoryC
     }
 
     private val maxCacheSize: Int
-        private get() {
+         get() {
             val maxMemory = Math.min(mActivityManager.memoryClass * ByteConstants.MB, Int.MAX_VALUE)
             return if (maxMemory < 32 * ByteConstants.MB) {
                 4 * ByteConstants.MB

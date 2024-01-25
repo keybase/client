@@ -42,6 +42,7 @@ void DeferThreadDetach(JNIEnv *env) {
     }
     return 0;
   }();
+  static_cast<void>(run_once);
 
   // For the callback to actually be executed when a thread exits
   // we need to associate a non-NULL value with the key on that thread.

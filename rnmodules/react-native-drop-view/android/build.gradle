@@ -114,7 +114,7 @@ dependencies {
 if (isNewArchitectureEnabled()) {
   react {
     jsRootDir = file("../src/")
-    libraryName = codegenViewLibraryName
+    libraryName = "DropViewView"
     codegenJavaPackageName = "io.keybase.dropview"
   }
 }

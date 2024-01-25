@@ -155,7 +155,6 @@ class KeyStore(private val context: Context, private val prefs: SharedPreference
             val entry = ks.getEntry(keyStoreAlias(serviceName), null)
                     ?: throw KeyStoreException("No RSA keys in the keystore")
             val wrappedSecret = wrapSecret(entry as KeyStore.PrivateKeyEntry, SecretKeySpec(bytes, ALGORITHM))
-                    ?: throw IOException("Null return when wrapping secret")
             saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret)
         } catch (e: Exception) {
             NativeLogger.error("KeyStore: error storing secret for $id", e)

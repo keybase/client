@@ -3,7 +3,6 @@ package io.keybase.ossifrage.keystore
 import android.annotation.TargetApi
 import android.content.Context
 import android.os.Build
-import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import java.math.BigInteger
@@ -24,8 +23,9 @@ object KeyStoreHelper {
         val spec: AlgorithmParameterSpec
         val endTime = Calendar.getInstance()
         endTime.add(Calendar.YEAR, 10)
-        spec = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            KeyGenParameterSpec.Builder(
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            spec = KeyGenParameterSpec.Builder(
                     keyAlias,
                     KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
@@ -35,7 +35,8 @@ object KeyStoreHelper {
                     .setKeySize(2048)
                     .build()
         } else {
-            KeyPairGeneratorSpec.Builder(ctx!!)
+            @Suppress("DEPRECATION")
+            spec = android.security.KeyPairGeneratorSpec.Builder(ctx!!)
                     .setAlias(keyAlias)
                     .setEncryptionRequired()
                     .setSerialNumber(BigInteger.ONE)
@@ -46,6 +47,6 @@ object KeyStoreHelper {
                     .build()
         }
         kpg.initialize(spec)
-        val kp = kpg.generateKeyPair()
+        kpg.generateKeyPair()
     }
 }

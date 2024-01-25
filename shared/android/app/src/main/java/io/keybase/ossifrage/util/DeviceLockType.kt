@@ -74,6 +74,7 @@ object DeviceLockType {
         val mode = Settings.Secure.getLong(contentResolver, PASSWORD_TYPE_KEY,
                 DevicePolicyManager.PASSWORD_QUALITY_SOMETHING.toLong())
         return if (mode == DevicePolicyManager.PASSWORD_QUALITY_SOMETHING.toLong()) {
+            @Suppress("DEPRECATION")
             if (Settings.Secure.getInt(contentResolver, Settings.Secure.LOCK_PATTERN_ENABLED, 0) == 1) {
                 PATTERN
             } else NONE_OR_SLIDER

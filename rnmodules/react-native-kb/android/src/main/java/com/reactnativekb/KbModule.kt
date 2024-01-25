@@ -59,7 +59,7 @@ import keybase.Keybase.version
 import keybase.Keybase.writeArr
 
 
-class KbModule internal constructor(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
+internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private var started: Boolean? = false
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
@@ -74,11 +74,11 @@ class KbModule internal constructor(reactContext: ReactApplicationContext?) : Kb
     }
 
     @ReactMethod
-    fun addListener(eventName: String?) {
+    override fun addListener(eventName: String) {
     }
 
     @ReactMethod
-    fun removeListeners(count: Integer?) {
+    override fun removeListeners(count: Double) {
     }
 
     /**
@@ -107,8 +107,13 @@ class KbModule internal constructor(reactContext: ReactApplicationContext?) : Kb
         return GuiConfig.getInstance(reactContext.getFilesDir())?.asString()
     }
 
+    // only old arch, uncomment
+//    override fun getConstants(): MutableMap<String, Any>? {
+//        return getTypedExportedConstants()
+//    }
+
     // newarch @Override
-    override protected fun getTypedExportedConstants(): MutableMap<String, Any> {
+    override fun getTypedExportedConstants(): MutableMap<String, Any> {
         val versionCode: String = getBuildConfigValue("VERSION_CODE").toString()
         val versionName: String = getBuildConfigValue("VERSION_NAME").toString()
         var isDeviceSecure = false
@@ -677,7 +682,7 @@ class KbModule internal constructor(reactContext: ReactApplicationContext?) : Kb
     }
 
     @ReactMethod
-    override fun rpcOnGo(arr: ByteArray) {
+    fun rpcOnGo(arr: ByteArray) {
         try {
             writeArr(arr)
         } catch (e: Exception) {
@@ -686,7 +691,7 @@ class KbModule internal constructor(reactContext: ReactApplicationContext?) : Kb
     }
 
     @ReactMethod
-    fun iosGetHasShownPushPrompt(promise: Promise) {
+    override fun iosGetHasShownPushPrompt(promise: Promise) {
         promise.reject(Exception("wrong platform"))
     }
 

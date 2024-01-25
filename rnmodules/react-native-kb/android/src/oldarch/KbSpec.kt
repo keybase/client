@@ -8,11 +8,7 @@ import java.util.Map
 
 abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaModule(context) {
 
-    protected abstract fun getTypedExportedConstants(): MutableMap<String, Any>
-
-    override fun getConstants(): MutableMap<String, Any> {
-        return this.getTypedExportedConstants()
-    }
+    abstract fun getTypedExportedConstants(): MutableMap<String, Any>
     abstract fun install()
     abstract fun getDefaultCountryCode(promise: Promise)
     abstract fun logSend(status: String, feedback: String, sendLogs: Boolean, sendMaxBytes: Boolean, traceDir: String, cpuProfileDir: String, promise: Promise)
@@ -33,5 +29,8 @@ abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaM
     abstract fun androidGetInitialShareText(promise: Promise)
     abstract fun engineReset()
     abstract fun engineStart()
-    abstract fun rpcOnGo(arr: ByteArray)
+    abstract fun addListener(eventType: String)
+    abstract fun removeListeners(count: Double)
+    abstract fun iosGetHasShownPushPrompt(promise: Promise)
+
 }

@@ -51,16 +51,16 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         val data = parseJSONObject(bundle.getString("data"))
         if (data != null) {
             if (!bundle.containsKey("message")) {
-                bundle.putString("message", data.optString("alert", null))
+                bundle.putString("message", data.optString("alert", ""))
             }
             if (!bundle.containsKey("title")) {
-                bundle.putString("title", data.optString("title", null))
+                bundle.putString("title", data.optString("title", ""))
             }
             if (!bundle.containsKey("sound")) {
-                bundle.putString("soundName", data.optString("sound", null))
+                bundle.putString("soundName", data.optString("sound", ""))
             }
             if (!bundle.containsKey("color")) {
-                bundle.putString("color", data.optString("color", null))
+                bundle.putString("color", data.optString("color", ""))
             }
             val badge = data.optInt("badge", -1)
             if (badge >= 0) {
@@ -110,9 +110,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                 "follow" -> {
                     val username = bundle.getString("username")
-                    val message = bundle.getString("message")
-                    if (username != null && message != null) {
-                        notifier.followNotification(username, message)
+                    val m = bundle.getString("message")
+                    if (username != null && m != null) {
+                        notifier.followNotification(username, m)
                     }
                 }
 
@@ -140,7 +140,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
     private fun parseJSONObject(str: String?): JSONObject? {
         return try {
-            JSONObject(str)
+            if (str != null) {
+                return JSONObject(str)
+            } else {
+                return null
+            }
         } catch (e: Exception) {
             null
         }
