@@ -32,8 +32,9 @@ const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
 
 const ThreadLoadStatus = () => {
   const status = C.useChatContext(s => s.threadLoadStatus)
+  const conversationIDKey = C.useChatContext(s => s.id)
 
-  logger.info('ThreadLoadStatus: status: ' + status)
+  logger.info('ThreadLoadStatus: convID: ' + conversationIDKey + ' status: ' + status)
   if (status === T.RPCChat.UIChatThreadStatusTyp.none) {
     return null
   }
