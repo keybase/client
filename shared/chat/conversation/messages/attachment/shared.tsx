@@ -17,30 +17,20 @@ export const missingMessage = C.Chat.makeMessageAttachment()
 
 export const ShowToastAfterSaving = C.isMobile
   ? ({transferState}: Props) => {
-      const [showingToast, setShowingToast] = React.useState(false)
-      const [wasSaving, setWasSaving] = React.useState(false)
-      const [lastWasSaving, setLastWasSaving] = React.useState(wasSaving)
-      const setShowingToastFalseLater = Kb.useTimeout(() => setShowingToast(false), 1500)
-      const [lastTS, setLastTS] = React.useState(transferState)
-      if (lastTS !== transferState) {
-        setLastTS(transferState)
+      const [showingToast, setShowingToast] = React.useState(transferState === 'mobileSaving')
+      React.useEffect(() => {
         if (transferState === 'mobileSaving') {
-          setWasSaving(true)
-        }
-      }
-
-      if (lastWasSaving !== wasSaving || lastTS !== transferState) {
-        setLastTS(transferState)
-        setLastWasSaving(wasSaving)
-        if (wasSaving && !transferState) {
-          setWasSaving(false)
           setShowingToast(true)
-          setShowingToastFalseLater()
         }
-      }
-      return showingToast ? (
-        <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
-      ) : null
+        const id = setTimeout(() => {
+          setShowingToast(false)
+        }, 2000)
+        return () => {
+          clearTimeout(id)
+        }
+      }, [transferState])
+
+      return showingToast ? <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} /> : null
     }
   : () => null
 
