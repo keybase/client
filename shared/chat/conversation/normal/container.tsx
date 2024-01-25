@@ -21,8 +21,12 @@ const useOrangeLine = () => {
   const lastReadMsgIDRef = React.useRef(readMsgID)
   const metaGoodRef = React.useRef(readMsgID > 0)
 
+  // TEMP
+  const TEMPMM = C.useChatContext(s => s.messageMap)
+
   // meta not ready yet
   if (readMsgID < 0) {
+    console.log('aaa orange bad meta', conversationIDKey)
     return 0
   }
 
@@ -50,6 +54,19 @@ const useOrangeLine = () => {
     lastReadMsgIDRef.current = readMsgID
     orangeLineRef.current = readMsgID
   }
+
+  console.log('aaa orange', {
+    active,
+    conversationIDKey,
+    lastCIDRef,
+    lastReadMsgIDRef,
+    maxMsgID,
+    metaGoodRef,
+    orangeLineRef,
+    readMsgID,
+    reinitValue,
+    TEMPBelow: TEMPMM.get(orangeLineRef.current)?.text?.stringValue(),
+  })
 
   return orangeLineRef.current
 }
