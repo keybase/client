@@ -14,28 +14,12 @@ const useOrangeLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const readMsgID = C.useChatContext(s => s.meta.readMsgID)
   const maxMsgID = C.useChatContext(s => s.meta.maxMsgID)
-  // const active = C.useActiveState(s => s.active)
+  const active = C.useActiveState(s => s.active)
   const reinitValue = maxMsgID > readMsgID ? readMsgID : 0
   const orangeLineRef = React.useRef(reinitValue)
   const lastCIDRef = React.useRef(conversationIDKey)
   const lastReadMsgIDRef = React.useRef(readMsgID)
   const metaGoodRef = React.useRef(readMsgID > 0)
-
-  // TEMP
-  const TEMPBelowText = C.useChatContext(s => s.messageMap.get(orangeLineRef.current)?.text?.stringValue())
-
-  console.log('aaa useOrangeLine', {
-    // active,
-    conversationIDKey,
-    lastCID: lastCIDRef.current,
-    lastReadMsgID: lastReadMsgIDRef.current,
-    maxMsgID,
-    metaGood: metaGoodRef.current,
-    orangeLine: orangeLineRef.current,
-    readMsgID,
-    reinitValue,
-    TEMPBelowText,
-  })
 
   // meta not ready yet
   if (readMsgID < 0) {
@@ -56,11 +40,10 @@ const useOrangeLine = () => {
     orangeLineRef.current = reinitValue
   }
 
-  // needed?
   // not active and we should show?
-  // if (metaOrangeShow && !active && orangeLine <= 0) {
-  //   setOrangeLine(readMsgID)
-  // }
+  if (!active && reinitValue && orangeLineRef.current <= 0) {
+    orangeLineRef.current = reinitValue
+  }
 
   // mark unread
   if (readMsgID < lastReadMsgIDRef.current) {
