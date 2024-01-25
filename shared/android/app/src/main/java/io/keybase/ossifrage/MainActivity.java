@@ -325,14 +325,23 @@ public class MainActivity extends ReactActivity {
             }
             String textPayload = sb.toString();
 
-            final String[] filePaths = uris != null ? Arrays.stream(uris)
-                .map(uri -> readFileFromUri(getReactContext(), uri))
-                .filter(Objects::nonNull)
-                .toArray(String[]::new) : new String[0];
+            String[] filePaths;
+            if (uris != null) {
+                ArrayList<String> filePathList = new ArrayList<String>();
+                for (Uri uri : uris) {
+                    String filePath = readFileFromUri(getReactContext(), uri);
 
+                    if (filePath != null) {
+                        filePathList.add(filePath);
+                    }
+                }
+                filePaths = filePathList.toArray(new String[0]);
+            } else {
+                filePaths = new String[0];
+            }
             if (bundleFromNotification != null) {
                 setInitialBundleFromNotification(bundleFromNotification);
-            } else if (filePaths != null && filePaths.length != 0) {
+            } else if (filePaths.length != 0) {
                 setInitialShareFileUrls(filePaths);
             } else if (textPayload.length() > 0){
                 setInitialShareText(textPayload);
