@@ -1000,10 +1000,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
-                // if we're validated, never undo that
-                if (get().threadLoadStatus === T.RPCChat.UIChatThreadStatusTyp.validated) {
-                  return
-                }
+                logger.info("thread status received: convID: " + conversationIDKey + " typ: "  + p.status.typ)
                 get().dispatch.setThreadLoadStatus(p.status.typ)
               },
             },
