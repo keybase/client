@@ -937,15 +937,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const {id: conversationIDKey, meta, messageOrdinals, dispatch} = get()
 
         if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('bail: no conversationIDKey')
+          logger.info('loadMoreMessages: bail: no conversationIDKey')
           return
         }
         if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
-          logger.info('bail: we are reset')
+          logger.info('loadMoreMessages: bail: we are reset')
           return
         }
         logger.info(
-          `calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
+          `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
         )
 
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
@@ -1000,10 +1000,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
-                // if we're validated, never undo that
-                if (get().threadLoadStatus === T.RPCChat.UIChatThreadStatusTyp.validated) {
-                  return
-                }
+                logger.info(
+                  `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
+                )
                 get().dispatch.setThreadLoadStatus(p.status.typ)
               },
             },
@@ -1031,7 +1030,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         } catch (error) {
           if (error instanceof RPCError) {
-            logger.warn(error.desc)
+            logger.warn(`loadMoreMessages: error: ${error.desc}`)
             // no longer in team
             if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
               const {inboxRefresh, navigateToInbox} = C.useChatState.getState().dispatch
