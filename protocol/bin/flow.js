@@ -4,6 +4,7 @@ const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const camelcase = require('camelcase')
+const colors = require('colors')
 const json5 = require('json5')
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json')))
 

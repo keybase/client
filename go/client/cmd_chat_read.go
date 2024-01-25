@@ -79,7 +79,7 @@ func (c *CmdChatRead) Run() error {
 	}
 
 	if convLocal.Error != nil {
-		ui.Printf("proccessing conversation error: %s\n", convLocal.Error.Message)
+		ui.Printf("processing conversation error: %s\n", convLocal.Error.Message)
 		return nil
 	}
 

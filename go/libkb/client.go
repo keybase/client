@@ -251,7 +251,7 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 	if mode == ProductionRunMode {
 		if env.IsCertPinningEnabled() {
 			// In order to disable SSL pinning we switch to doing requests against keybase.io which has a TLS
-			// cert signed by a publicly trusted CA (compared to api-0.keybaseapi.com which has a non-trusted but
+			// cert signed by a publicly trusted CA (compared to api-1.keybaseapi.com which has a non-trusted but
 			// pinned certificate
 			return ProductionServerURI, nil
 		}

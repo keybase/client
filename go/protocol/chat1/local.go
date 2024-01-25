@@ -6544,6 +6544,26 @@ func (o TrackGiphySelectRes) DeepCopy() TrackGiphySelectRes {
 	return TrackGiphySelectRes{}
 }
 
+type ArchiveChatRes struct {
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o ArchiveChatRes) DeepCopy() ArchiveChatRes {
+	return ArchiveChatRes{
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -7257,6 +7277,13 @@ type TrackGiphySelectArg struct {
 	Result    GiphySearchResult `codec:"result" json:"result"`
 }
 
+type ArchiveChatArg struct {
+	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
+	OutputPath       string                       `codec:"outputPath" json:"outputPath"`
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -7382,6 +7409,7 @@ type LocalInterface interface {
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 	ToggleEmojiAnimations(context.Context, bool) error
 	TrackGiphySelect(context.Context, TrackGiphySelectArg) (TrackGiphySelectRes, error)
+	ArchiveChat(context.Context, ArchiveChatArg) (ArchiveChatRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -9198,6 +9226,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"archiveChat": {
+				MakeArg: func() interface{} {
+					var ret [1]ArchiveChatArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ArchiveChatArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ArchiveChatArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveChat(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -9856,5 +9899,10 @@ func (c LocalClient) ToggleEmojiAnimations(ctx context.Context, enabled bool) (e
 
 func (c LocalClient) TrackGiphySelect(ctx context.Context, __arg TrackGiphySelectArg) (res TrackGiphySelectRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.trackGiphySelect", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ArchiveChat(ctx context.Context, __arg ArchiveChatArg) (res ArchiveChatRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.archiveChat", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

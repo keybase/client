@@ -167,6 +167,12 @@
         "chat1NotifyChatChatAttachmentDownloadComplete": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatArchiveProgress": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatArchiveProgress']['inParam'] & {sessionID: number}"
+        },
+        "chat1NotifyChatChatArchiveComplete": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatArchiveComplete']['inParam'] & {sessionID: number}"
+        },
         "chat1NotifyChatChatPaymentInfo": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}"
         },

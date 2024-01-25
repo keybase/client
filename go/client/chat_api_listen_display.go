@@ -265,6 +265,12 @@ func (d *chatNotificationDisplay) ChatAttachmentDownloadComplete(context.Context
 	chat1.ChatAttachmentDownloadCompleteArg) error {
 	return nil
 }
+func (d chatNotificationDisplay) ChatArchiveProgress(context.Context, chat1.ChatArchiveProgressArg) error {
+	return nil
+}
+func (d chatNotificationDisplay) ChatArchiveComplete(context.Context, chat1.ArchiveJobID) error {
+	return nil
+}
 func (d *chatNotificationDisplay) ChatPaymentInfo(context.Context, chat1.ChatPaymentInfoArg) error {
 	return nil
 }

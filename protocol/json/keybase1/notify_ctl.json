@@ -138,6 +138,10 @@
         {
           "type": "boolean",
           "name": "allowChatNotifySkips"
+        },
+        {
+          "type": "boolean",
+          "name": "chatarchive"
         }
       ]
     }

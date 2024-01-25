@@ -40,6 +40,7 @@ protocol notifyCtl {
     // useful for the GUI since the service knows what conversation is selected
     // and can skip updates for things not currently on the screen.
     boolean allowChatNotifySkips;
+    boolean chatarchive;
   }
 
   void setNotifications(NotificationChannels channels);
