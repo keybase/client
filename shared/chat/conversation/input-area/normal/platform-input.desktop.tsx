@@ -173,11 +173,11 @@ const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRef
   )
 })
 
-const Footer = (p: {focusInput: () => void}) => {
+const Footer = () => {
   return (
     <Kb.Box style={styles.footerContainer}>
       <Typing />
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, !>spoiler<!, @user, @team, #channel`}
       </Kb.Text>
     </Kb.Box>
@@ -453,7 +453,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             </Kb.Box2>
             <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
           </Kb.Box>
-          <Footer focusInput={focusInput} />
+          <Footer />
         </Kb.Box>
       </KeyEventHandler>
     </>
