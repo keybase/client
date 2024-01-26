@@ -338,7 +338,7 @@ func (v ConversationListView) RenderToWriter(g *libkb.GlobalContext, writer io.W
 }
 
 type RenderOptions struct {
-	UseRelativeTime bool
+	UseDateTime bool
 }
 
 type ConversationView struct {
@@ -803,10 +803,10 @@ func newMessageView(g *libkb.GlobalContext, opts RenderOptions, conversationID c
 }
 
 func FmtTime(t time.Time, opts RenderOptions) string {
-	if opts.UseRelativeTime {
-		return ShortDurationFromNow(t)
+	if opts.UseDateTime {
+		return t.Format(time.DateTime)
 	}
-	return t.Format(time.DateTime)
+	return ShortDurationFromNow(t)
 }
 
 func ShortDurationFromNow(t time.Time) string {

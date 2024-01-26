@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"golang.org/x/sync/errgroup"
 )
 
 const defaultPageSize = 1000
@@ -94,7 +95,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 			Conversation: conv,
 			Messages:     msgs,
 			Opts: chatrender.RenderOptions{
-				UseRelativeTime: false,
+				UseDateTime: true,
 			},
 		}
 
@@ -104,6 +105,10 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 		}
 
 		// Check for any attachment messages and download them alongside the chat.
+		var eg errgroup.Group
+		// Fetch attachments in parallel but limit the number since we
+		// also allow parallel conv fetching.
+		eg.SetLimit(5)
 		for _, m := range msgs {
 			if !m.IsValidFull() {
 				continue
@@ -115,18 +120,25 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 				return err
 			}
 			if typ == chat1.MessageType_ATTACHMENT {
-				attachmentPath := path.Join(arg.OutputPath, c.archiveName(conv), c.attachmentName(msg))
-				f, err := os.Create(attachmentPath)
-				if err != nil {
-					return err
-				}
+				eg.Go(func() error {
+					attachmentPath := path.Join(arg.OutputPath, c.archiveName(conv), c.attachmentName(msg))
+					f, err := os.Create(attachmentPath)
+					if err != nil {
+						return err
+					}
 
-				err = attachments.Download(ctx, c.G(), c.uid, conv.Info.Id,
-					msg.ServerHeader.MessageID, f, false, func(_, _ int64) {}, c.remoteClient)
-				if err != nil {
-					return err
-				}
+					err = attachments.Download(ctx, c.G(), c.uid, conv.Info.Id,
+						msg.ServerHeader.MessageID, f, false, func(_, _ int64) {}, c.remoteClient)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
 			}
+		}
+		err = eg.Wait()
+		if err != nil {
+			return err
 		}
 
 		c.notifyProgress(int64(thread.Pagination.Num))
@@ -164,7 +176,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 	// Fetch size of each conv to track progress.
 	//    - TODO store job info on disk to allow resumption
 	for _, conv := range convs {
-		c.messagesTotal += int64(conv.MaxVisibleMsgID())
+		c.messagesTotal += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo())
 
 		convArchivePath := path.Join(arg.OutputPath, c.archiveName(conv))
 		err = os.MkdirAll(convArchivePath, os.ModePerm)
@@ -175,11 +187,17 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 
 	// For each conv, fetch batches of messages until all are fetched.
 	//    - Messages are rendered in a text format and attachments are downloaded to the archive path.
+	var eg errgroup.Group
+	eg.SetLimit(10)
 	for _, conv := range convs {
-		// TODO in parallel?
-		if err = c.archiveConv(ctx, arg, conv); err != nil {
-			return err
-		}
+		conv := conv
+		eg.Go(func() error {
+			return c.archiveConv(ctx, arg, conv)
+		})
+	}
+	err = eg.Wait()
+	if err != nil {
+		return err
 	}
 
 	return nil
