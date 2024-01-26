@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSpring, animated} from 'react-spring'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '@/util/string'
 import type * as T from '@/constants/types'
@@ -109,19 +108,15 @@ type RoleRowWrapperProps = {
   plural: boolean
 }
 
-const AnimatedClickableBox = animated(Kb.ClickableBox)
-
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
 
-  // spring is confused that I'm animating different things on desktop vs mobile
-  const style = useSpring({
+  const style = {
     ...(Kb.Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
-    config: {tension: Kb.Styles.isMobile ? 250 : 260},
-  }) as unknown as Kb.Styles.StylesCrossPlatform
+  }
   return (
-    <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style]) as any}>
+    <Kb.ClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style]) as any}>
       <Kb.Divider />
       <RoleRow
         selected={selected}
@@ -138,7 +133,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
         onSelect={onSelect}
         disabledReason={disabledReason}
       />
-    </AnimatedClickableBox>
+    </Kb.ClickableBox>
   )
 }
 
