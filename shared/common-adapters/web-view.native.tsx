@@ -7,7 +7,6 @@ import openURL from '@/util/open-url'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
-import {useSpring, animated} from 'react-spring'
 import {useFocusEffect} from '@react-navigation/core'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
@@ -26,8 +25,6 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 (function() { ${escape(injections.javaScript)} })();
 `
 
-const AnimatedView = animated(NativeView)
-
 const KBWebViewBase = (props: WebViewProps) => {
   const {allowFileAccessFromFileURLs, allowFileAccess, originWhitelist} = props
   const {allowUniversalAccessFromFileURLs, url, renderLoading, onError} = props
@@ -36,18 +33,14 @@ const KBWebViewBase = (props: WebViewProps) => {
   const [progress, setProgress] = React.useState(0)
   const isMounted = C.useIsMounted()
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
-  const [opacity, api] = useSpring(() => ({
-    from: {opacity: isLoaded ? 1 : 0},
-  }))
+  const [opacity, setOpacity] = React.useState(isLoaded ? 1 : 0)
 
   const setLoading = React.useCallback(
     (l: boolean) => {
       _setLoading(l)
-      Promise.allSettled(api.start({opacity: l ? 0 : 1}))
-        .then(() => {})
-        .catch(() => {})
+      setOpacity(l ? 0 : 1)
     },
-    [_setLoading, api]
+    [_setLoading]
   )
 
   // on ios when we tab away and back pdfs won't rerender somehow
@@ -60,10 +53,10 @@ const KBWebViewBase = (props: WebViewProps) => {
 
   return (
     <>
-      <AnimatedView
+      <NativeView
         style={{
-          ...opacity,
           height: '100%',
+          opacity,
           width: '100%',
         }}
       >
@@ -104,14 +97,13 @@ const KBWebViewBase = (props: WebViewProps) => {
               : undefined
           }
         />
-      </AnimatedView>
+      </NativeView>
       {props.showLoadingStateUntilLoaded ? <LoadingStateView loading={loading} progress={progress} /> : null}
     </>
   )
 }
 
-const KBWebViewAnimated = animated(KBWebViewBase)
-const KBWebView = React.memo(KBWebViewAnimated)
+const KBWebView = React.memo(KBWebViewBase)
 
 const styles = Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},

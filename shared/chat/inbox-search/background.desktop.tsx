@@ -1,7 +1,6 @@
 // parallax animated rover while waiting for a search
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSpring, animated} from 'react-spring'
 
 const widthX = window.innerWidth
 const heightY = window.innerHeight
@@ -16,53 +15,49 @@ const transRoverX = (x: number) => 160 + x * 20
 const transRoverY = (x: number, y: number) => 70 + x * 2 + 3 * y
 
 const Rover = () => {
-  const [props, api] = useSpring(() => ({
-    config: {friction: 140, mass: 10, tension: 550},
-    from: {x: 0, y: 0},
-  }))
+  const [x, setX] = React.useState(0)
+  const [y, setY] = React.useState(0)
 
   React.useEffect(() => {
     const onMouseMove = (e: {clientX: number; clientY: number}) => {
-      const {clientX: x, clientY: y} = e
-      Promise.allSettled(api.start({x: calcx(x), y: calcy(y)}))
-        .then(() => {})
-        .catch(() => {})
+      const {clientX, clientY} = e
+      setX(calcx(clientX))
+      setY(calcy(clientY))
     }
-
     window.addEventListener('mousemove', onMouseMove, {passive: true})
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
     }
-  }, [api])
+  }, [])
   return (
     <div style={styles.container}>
-      <animated.div
+      <div
         style={{
           ...styles.foreground,
-          bottom: props.y.to(transBackgroundY),
-          left: props.x.to(transBackgroundX),
+          bottom: transBackgroundY(y),
+          left: transBackgroundX(x),
         }}
       >
         <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" allowLazy={false} />
-      </animated.div>
-      <animated.div
+      </div>
+      <div
         style={{
           ...styles.rover,
-          bottom: props.y.to(y => transRoverY(props.x.get(), y)),
-          left: props.x.to(transRoverX),
+          bottom: transRoverY(x, y),
+          left: transRoverX(x),
         }}
       >
         <Kb.Icon type="icon-illustration-mars-rover" allowLazy={false} />
-      </animated.div>
-      <animated.div
+      </div>
+      <div
         style={{
           ...styles.foreground,
-          bottom: props.y.to(transForegroundY),
-          left: props.x.to(transForegroundX),
+          bottom: transForegroundY(y),
+          left: transForegroundX(x),
         }}
       >
         <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" allowLazy={false} />
-      </animated.div>
+      </div>
     </div>
   )
 }
