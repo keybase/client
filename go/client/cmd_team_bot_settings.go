@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -180,9 +181,8 @@ func getConvNames(g *libkb.GlobalContext, convs []chat1.ConvIDStr) (convNames []
 	if err != nil {
 		return nil, err
 	}
-	v := conversationListView(conversations)
-	for _, conv := range v {
-		convNames = append(convNames, v.convName(g, conv, g.Env.GetUsername().String()))
+	for _, conv := range conversations {
+		convNames = append(convNames, chatrender.ConvName(g, conv, g.Env.GetUsername().String()))
 	}
 
 	return convNames, nil

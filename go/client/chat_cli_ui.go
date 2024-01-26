@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -174,7 +175,7 @@ func (c *ChatCLIUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSea
 	getMsgPrefix := func(msg chat1.UIMessage) string {
 		m := msg.Valid()
 		t := gregor1.FromTime(m.Ctime)
-		return fmt.Sprintf("[%s %s] ", m.SenderUsername, shortDurationFromNow(t))
+		return fmt.Sprintf("[%s %s] ", m.SenderUsername, chatrender.ShortDurationFromNow(t))
 	}
 
 	getContext := func(msgs []chat1.UIMessage) string {

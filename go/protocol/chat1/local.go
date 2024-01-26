@@ -6545,11 +6545,13 @@ func (o TrackGiphySelectRes) DeepCopy() TrackGiphySelectRes {
 }
 
 type ArchiveChatRes struct {
+	OutputPath       string                        `codec:"outputPath" json:"outputPath"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o ArchiveChatRes) DeepCopy() ArchiveChatRes {
 	return ArchiveChatRes{
+		OutputPath: o.OutputPath,
 		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
 			if x == nil {
 				return nil

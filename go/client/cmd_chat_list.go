@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -38,7 +39,7 @@ func (c *cmdChatList) Run() error {
 		return err
 	}
 
-	if err = conversationListView(conversations).show(c.G(), c.G().Env.GetUsername().String(),
+	if err = chatrender.ConversationListView(conversations).Show(c.G(), c.G().Env.GetUsername().String(),
 		c.showDeviceName); err != nil {
 		return err
 	}

@@ -110,14 +110,13 @@ func (c *CmdChatArchive) Run() error {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
-	// TODO plumb back output path if empty?
-	_, err = client.ArchiveChat(context.TODO(), arg)
+	res, err := client.ArchiveChat(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Archive completed to %s \n", c.outputPath)
+	ui.Printf("Archive completed to %s \n", res.OutputPath)
 
 	return nil
 }

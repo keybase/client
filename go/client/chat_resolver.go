@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -128,7 +129,7 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 	default:
 		r.G.UI.GetTerminalUI().Printf(
 			"There are %d conversations. Please choose one:\n", len(conversations))
-		err := conversationInfoListView(conversations).show(r.G)
+		err := chatrender.ConversationInfoListView(conversations).Show(r.G)
 		if err != nil {
 			return nil, false, err
 		}

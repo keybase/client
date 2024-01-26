@@ -4218,6 +4218,10 @@
       "name": "ArchiveChatRes",
       "fields": [
         {
+          "type": "string",
+          "name": "outputPath"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"

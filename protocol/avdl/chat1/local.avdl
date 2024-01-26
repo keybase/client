@@ -1470,6 +1470,8 @@ protocol local {
 
   ArchiveChatRes archiveChat(ArchiveJobID jobID, string outputPath, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
   record ArchiveChatRes {
+    // Possibily modified from the input if the input was not set or the output was compressed.
+    string outputPath;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
