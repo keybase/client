@@ -661,6 +661,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		// wait until we are online before attempting the full pull, otherwise we just waste an attempt
 		if fullErr = t.waitForOnline(ctx); fullErr != nil {
+			t.Debug(ctx, "LoadNonblock: waitForOnline error: %s", fullErr)
+			setDisplayedStatus(cancelUIStatus)
 			return
 		}
 		customRi := t.makeRi(ctx, uid, convID, knownRemotes)
@@ -806,7 +808,11 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		}
+		t.Debug(ctx, "LoadNonblock: clear complete")
+	} else {
+		t.Debug(ctx, "LoadNonblock: no status displayed, not clearing")
 	}
+
 	cancel()
 	return fullErr
 }
