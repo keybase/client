@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 
 const getOptions = {
-  ...(C.isIOS ? {presentation: 'transparentModal'} : {}),
+  ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
   safeAreaStyle: {
     backgroundColor: 'black', // true black
   },
