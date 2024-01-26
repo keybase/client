@@ -36,7 +36,9 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
   return (
     <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing)])}>
+      <Kb.Box
+        style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
           <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
@@ -47,6 +49,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
                 style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing),
+                  styles.filename,
                 ])}
               >
                 {props.fileName}
@@ -123,10 +126,13 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      containerStyle: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        width: '100%',
-      },
+      containerStyle: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          width: '100%',
+        },
+        isElectron: {...Kb.Styles.desktopStyles.clickable},
+      }),
       downloadedIcon: {
         maxHeight: 14,
         position: 'relative',
@@ -141,6 +147,9 @@ const styles = Kb.Styles.styleSheetCreate(
         right: Kb.Styles.globalMargins.small,
       },
       error: {color: Kb.Styles.globalColors.redDark},
+      filename: Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.clickable},
+      }),
       iconStyle: Kb.Styles.platformStyles({
         common: {
           height: 32,
@@ -149,6 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           display: 'block',
           height: 35,
+          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
