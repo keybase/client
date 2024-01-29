@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -16,6 +17,7 @@ type CmdChatArchive struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	outputPath       string
+	compress         bool
 }
 
 func NewCmdChatArchiveRunner(g *libkb.GlobalContext) *CmdChatArchive {
@@ -34,6 +36,10 @@ func newCmdChatArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: append(getConversationResolverFlags(), []cli.Flag{
+			cli.StringFlag{
+				Name:  "compress",
+				Usage: "Compress the output",
+			},
 			cli.StringFlag{
 				Name:  "o, outfile",
 				Usage: "Output directory name for the archive",
@@ -106,6 +112,7 @@ func (c *CmdChatArchive) Run() error {
 	arg := chat1.ArchiveChatArg{
 		JobID:            chat1.ArchiveJobID(fmt.Sprintf("chat-archive-%d", jobID)),
 		OutputPath:       c.outputPath,
+		Compress:         c.compress,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
@@ -114,9 +121,13 @@ func (c *CmdChatArchive) Run() error {
 	if err != nil {
 		return err
 	}
+	outputPath, err := filepath.Abs(res.OutputPath)
+	if err != nil {
+		return err
+	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Archive completed to %s \n", res.OutputPath)
+	ui.Printf("Archive completed, saved at %s \n", outputPath)
 
 	return nil
 }
@@ -131,6 +142,7 @@ func (c *CmdChatArchive) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.outputPath = ctx.String("outfile")
+	c.compress = ctx.Bool("compress")
 	return nil
 }
 

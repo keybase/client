@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -4069,10 +4068,7 @@ func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (res
 		h.G().NotifyRouter.HandleChatArchiveProgress(ctx, arg.JobID, messagesComplete, messagesTotal)
 	}
 
-	if len(arg.OutputPath) == 0 {
-		arg.OutputPath = path.Join(h.G().GlobalContext.Env.GetDownloadsDir(), string(arg.JobID))
-	}
-	err = NewChatArchiver(h.G(), uid, progress, h.remoteClient).ArchiveChat(ctx, arg)
+	outpath, err := NewChatArchiver(h.G(), uid, progress, h.remoteClient).ArchiveChat(ctx, arg)
 	if err != nil {
 		return chat1.ArchiveChatRes{}, err
 	}
@@ -4080,6 +4076,6 @@ func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (res
 	h.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
 	return chat1.ArchiveChatRes{
 		IdentifyFailures: identBreaks,
-		OutputPath:       arg.OutputPath,
+		OutputPath:       outpath,
 	}, err
 }

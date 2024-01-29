@@ -1,11 +1,14 @@
 package chat
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
-	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -46,6 +49,10 @@ func (c *ChatArchiver) notifyProgress(messagesCompleted int64) {
 	c.Lock()
 	defer c.Unlock()
 	c.messagesComplete += messagesCompleted
+	if c.messagesComplete > c.messagesTotal {
+		// total messages is capped to the convs expunge, don't overreport.
+		c.messagesComplete = c.messagesTotal
+	}
 	c.progress(c.messagesComplete, c.messagesTotal)
 }
 
@@ -72,8 +79,10 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	pagination := &chat1.Pagination{Num: defaultPageSize}
+	firstPage := true
 	for !pagination.Last {
 		thread, err := c.G().ConvSource.Pull(ctx, conv.Info.Id, c.uid,
 			chat1.GetThreadReason_ARCHIVE, nil,
@@ -96,6 +105,8 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 			Messages:     msgs,
 			Opts: chatrender.RenderOptions{
 				UseDateTime: true,
+				// Only show the headline message once
+				SkipHeadline: !firstPage,
 			},
 		}
 
@@ -126,6 +137,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 					if err != nil {
 						return err
 					}
+					defer f.Close()
 
 					err = attachments.Download(ctx, c.G(), c.uid, conv.Info.Id,
 						msg.ServerHeader.MessageID, f, false, func(_, _ int64) {}, c.remoteClient)
@@ -144,6 +156,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 		c.notifyProgress(int64(thread.Pagination.Num))
 
 		// update our global pagination so we can correctly fetch the next page.
+		firstPage = false
 		pagination = thread.Pagination
 		pagination.Num = defaultPageSize
 		pagination.Previous = nil
@@ -151,25 +164,25 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 	return nil
 }
 
-func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (err error) {
+func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (outpath string, err error) {
 	defer c.Trace(ctx, &err, "ArchiveChat")()
 
 	if len(arg.OutputPath) == 0 {
-		return errors.New("output path must be set")
+		arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetDownloadsDir(), string(arg.JobID))
 	}
 
 	// Make sure the root output path exists
 	// TODO option to zip output?
 	err = os.MkdirAll(arg.OutputPath, os.ModePerm)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Resolve query to a set of convIDs.
 	iboxRes, _, err := c.G().InboxSource.Read(ctx, c.uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, arg.Query)
 	if err != nil {
-		return err
+		return "", err
 	}
 	convs := iboxRes.Convs
 
@@ -181,7 +194,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 		convArchivePath := path.Join(arg.OutputPath, c.archiveName(conv))
 		err = os.MkdirAll(convArchivePath, os.ModePerm)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -197,8 +210,69 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 	}
 	err = eg.Wait()
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	outpath = arg.OutputPath
+	if arg.Compress {
+		outpath += ".tar.gzip"
+		err = tarGzip(arg.OutputPath, outpath)
+		if err != nil {
+			return "", err
+		}
+		err = os.RemoveAll(arg.OutputPath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return outpath, nil
+}
+
+func tarGzip(inPath, outPath string) error {
+	f, err := os.Create(outPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	zr := gzip.NewWriter(f)
+	defer zr.Close()
+	tw := tar.NewWriter(zr)
+	defer tw.Close()
+
+	err = filepath.Walk(inPath, func(fp string, fi os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		header, err := tar.FileInfoHeader(fi, fp)
+		if err != nil {
+			return err
+		}
+		name, err := filepath.Rel(inPath, filepath.ToSlash(fp))
+		if err != nil {
+			return err
+		}
+		header.Name = name
+
+		if err := tw.WriteHeader(header); err != nil {
+			return err
+		}
+		if fi.IsDir() {
+			return nil
+		}
+		file, err := os.Open(fp)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		if _, err := io.Copy(tw, file); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

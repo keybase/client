@@ -338,7 +338,8 @@ func (v ConversationListView) RenderToWriter(g *libkb.GlobalContext, writer io.W
 }
 
 type RenderOptions struct {
-	UseDateTime bool
+	UseDateTime  bool
+	SkipHeadline bool
 }
 
 type ConversationView struct {
@@ -361,7 +362,7 @@ func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Write
 	showRevokeAdvisory := false
 
 	headline := v.Conversation.Info.Headline
-	if headline != "" {
+	if headline != "" && !v.Opts.SkipHeadline {
 		fmt.Fprintf(writer, "headline: %s\n\n", headline)
 	}
 

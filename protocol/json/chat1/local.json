@@ -6415,6 +6415,10 @@
           ]
         },
         {
+          "name": "compress",
+          "type": "boolean"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }

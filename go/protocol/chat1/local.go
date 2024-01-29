@@ -7283,6 +7283,7 @@ type ArchiveChatArg struct {
 	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
 	OutputPath       string                       `codec:"outputPath" json:"outputPath"`
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Compress         bool                         `codec:"compress" json:"compress"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
