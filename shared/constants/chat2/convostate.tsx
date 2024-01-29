@@ -102,6 +102,7 @@ type ConvoStore = {
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: Array<T.Teams.TeamID>
+  // orangeLineOrdinal?: T.Chat.Ordinal
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -448,14 +449,58 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
   const syncMessageDerived = (s: ConvoState) => {
     const mo = [...s.messageMap.keys()].sort((a, b) => a - b)
-    if (!C.shallowEqual(s.messageOrdinals, mo)) {
-      s.messageOrdinals = mo
+    if (C.shallowEqual(s.messageOrdinals, mo)) {
+      return
     }
+
+    s.messageOrdinals = mo
     const last = mo.at(-1)
     if (last && last > s.maxMsgIDSeen) {
       s.maxMsgIDSeen = last
     }
+    // updateOrangeLine()
   }
+
+  // const updateOrangeLine = () => {
+  //   const m = get().meta
+  //   const isGood = get().isMetaGood()
+  //   if (!isGood) {
+  //     console.log('aaa updateOrangeLine: meta not good', {cid: get().id})
+  //     return
+  //   }
+  //
+  //   // update orange line, the ui keeps local state as well so it doesn't jump around
+  //   // but this is always updated. We need meta and messageMap for this to work, so call this
+  //   // when either changes
+  //   const {readMsgID, maxVisibleMsgID} = m
+  //   if (maxVisibleMsgID <= readMsgID) {
+  //     console.log('aaa updateOrangeLine: caught up', {cid: get().id, readMsgID, maxVisibleMsgID})
+  //     set(s => {
+  //       s.orangeLineOrdinal = undefined
+  //     })
+  //     return
+  //   }
+  //
+  //   const messageMap = get().messageMap
+  //   const ordinals = get().messageOrdinals
+  //   const ord = ordinals?.find(o => {
+  //     const message = messageMap.get(o)
+  //     return !!(message && message.id >= readMsgID)
+  //   })
+  //   // const message = ord ? messageMap.get(ord) : null
+  //   const toSet = ord || T.Chat.numberToOrdinal(0)
+  //
+  //   console.log('aaa updateOrangeLine: setting', {
+  //     cid: get().id,
+  //     toSet,
+  //     old: get().orangeLineOrdinal,
+  //     readMsgID,
+  //     maxVisibleMsgID,
+  //   })
+  //   set(s => {
+  //     s.orangeLineOrdinal = toSet
+  //   })
+  // }
 
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
@@ -1501,6 +1546,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     messagesAdd: messages => {
+      // console.log('aaaa messages add', {cid: get().id})
       set(s => {
         for (const m of messages) {
           // we capture the highest one, cause sometimes we'll not track it in the map
@@ -2590,6 +2636,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.unsentText = s.meta.draft.length ? s.meta.draft : undefined
         })
       }
+
+      // updateOrangeLine()
     },
     setMinWriterRole: role => {
       const f = async () => {
