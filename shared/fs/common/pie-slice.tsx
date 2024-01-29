@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import {useSpring, animated} from 'react-spring'
 
 type Props = {
   degrees: number
@@ -29,11 +28,9 @@ const Slice = (props: Props) => {
   )
 }
 
-const AnimatedSlice = animated(Slice)
 const AnimatedPieSlice = (props: Props) => {
   const {degrees} = props
-  const ad = useSpring({to: {degrees}})
-  return <AnimatedSlice degrees={ad.degrees} style={props.style as any} negative={props.negative} />
+  return <Slice degrees={degrees} style={props.style as any} negative={props.negative} />
 }
 
 const PieSlice = (props: Props) => {

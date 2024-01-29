@@ -5,7 +5,6 @@ import {useTimeout} from './use-timers'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import {animated} from 'react-spring'
 import * as Styles from '@/styles'
 import type {Props} from './with-tooltip'
 import {View, Dimensions} from 'react-native'
@@ -37,8 +36,6 @@ const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCros
     </Kb.Box>
   </Kb.Portal>
 )
-
-const AnimatedFloatingBox = animated(FloatingBox)
 
 const WithTooltip = (props: Props) => {
   const {position} = props
@@ -107,7 +104,7 @@ const WithTooltip = (props: Props) => {
       <View style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </View>
-      <AnimatedFloatingBox style={animatedStyle}>
+      <FloatingBox style={animatedStyle}>
         <View pointerEvents="none" style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}>
           <View
             style={Styles.collapseStyles([
@@ -128,7 +125,7 @@ const WithTooltip = (props: Props) => {
             </Kb.Text>
           </View>
         </View>
-      </AnimatedFloatingBox>
+      </FloatingBox>
     </>
   )
 }

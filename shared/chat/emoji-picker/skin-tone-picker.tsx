@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from './../../common-adapters'
 import * as T from './../../constants/types'
-import {useSpring, animated} from 'react-spring'
 import {skinTones} from './../../util/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
@@ -34,8 +33,6 @@ const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
   return [currentSkinTone, ...rest]
 }
 
-const AnimatedBox2 = animated(Kb.Box2)
-
 const SkinTonePicker = (props: Props) => {
   const [expanded, _setExpanded] = React.useState(false)
   const setExpanded = (toSet: boolean) => {
@@ -54,12 +51,6 @@ const SkinTonePicker = (props: Props) => {
       {circle(skinTone, true, Kb.Styles.isMobile && skinTone === props.currentSkinTone)}
     </Kb.ClickableBox>
   ))
-
-  const animStyle = useSpring({
-    config: reactSprintConfig,
-    from: {height: 26, ...styles.popupContainer},
-    to: {height: 126},
-  })
 
   return Kb.Styles.isMobile ? (
     expanded ? (
@@ -82,9 +73,9 @@ const SkinTonePicker = (props: Props) => {
   ) : (
     <Kb.Box style={styles.relative}>
       {expanded ? (
-        <AnimatedBox2 direction="vertical" style={animStyle}>
+        <Kb.Box2 direction="vertical" style={styles.popupContainer}>
           {optionSkinTones}
-        </AnimatedBox2>
+        </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
           <Kb.ClickableBox style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
@@ -149,6 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderRadius: Kb.Styles.globalMargins.small,
     borderStyle: 'solid',
     borderWidth: 1,
+    height: 126,
     marginLeft: Kb.Styles.globalMargins.xtiny - 1,
     marginTop: Kb.Styles.globalMargins.xtiny - 1,
     overflow: 'hidden',
@@ -158,5 +150,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   relative: {position: 'relative'},
 }))
-
-const reactSprintConfig = {clamp: true, friction: 20, tension: 210}
