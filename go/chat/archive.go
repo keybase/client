@@ -172,7 +172,6 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 	}
 
 	// Make sure the root output path exists
-	// TODO option to zip output?
 	err = os.MkdirAll(arg.OutputPath, os.ModePerm)
 	if err != nil {
 		return "", err

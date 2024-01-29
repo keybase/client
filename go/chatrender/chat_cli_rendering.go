@@ -1,6 +1,7 @@
 package chatrender
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math"
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/kyokomi/emoji"
 )
 
@@ -338,8 +340,9 @@ func (v ConversationListView) RenderToWriter(g *libkb.GlobalContext, writer io.W
 }
 
 type RenderOptions struct {
-	UseDateTime  bool
-	SkipHeadline bool
+	UseDateTime     bool
+	SkipHeadline    bool
+	GetWalletClient func(g *libkb.GlobalContext) (cli stellar1.LocalClient, err error)
 }
 
 type ConversationView struct {
@@ -477,97 +480,98 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 	return fmt.Sprintf("[%s]", m)
 }
 
-func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {
-	return ""
-	/*
-		ctx := context.Background()
+func formatSendPaymentMessage(g *libkb.GlobalContext, opts RenderOptions, body chat1.MessageSendPayment) string {
+	ctx := context.Background()
+	if opts.GetWalletClient == nil {
+		return fmt.Sprintf("<paymentID %s>", body.PaymentID)
+	}
 
-		cli, err := GetWalletClient(g)
-		if err != nil {
-			g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
-			return "[error getting payment details]"
-		}
-		details, err := cli.PaymentDetailCLILocal(ctx, stellar1.TransactionIDFromPaymentID(body.PaymentID).String())
-		if err != nil {
-			g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
-			return "[error getting payment details]"
-		}
+	cli, err := opts.GetWalletClient(g)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
+		return "[error getting payment details]"
+	}
+	details, err := cli.PaymentDetailCLILocal(ctx, stellar1.TransactionIDFromPaymentID(body.PaymentID).String())
+	if err != nil {
+		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
+		return "[error getting payment details]"
+	}
 
-		var verb string
-		statusStr := strings.ToLower(details.Status)
-		switch statusStr {
-		case "completed", "claimable":
-			verb = "sent"
-		case "canceled":
-			verb = "canceled sending"
-		case "pending":
-			verb = "sending"
-		default:
-			return fmt.Sprintf("error sending payment: %s %s", details.Status, details.StatusDetail)
-		}
+	var verb string
+	statusStr := strings.ToLower(details.Status)
+	switch statusStr {
+	case "completed", "claimable":
+		verb = "sent"
+	case "canceled":
+		verb = "canceled sending"
+	case "pending":
+		verb = "sending"
+	default:
+		return fmt.Sprintf("error sending payment: %s %s", details.Status, details.StatusDetail)
+	}
 
-		amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
+	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
 
-		var amountDescription string
-		if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {
-			amountDescription = fmt.Sprintf("Lumens worth %s %s (%s)", *details.DisplayAmount, *details.DisplayCurrency, amountXLM)
-		} else {
-			amountDescription = amountXLM
-		}
+	var amountDescription string
+	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {
+		amountDescription = fmt.Sprintf("Lumens worth %s %s (%s)", *details.DisplayAmount, *details.DisplayCurrency, amountXLM)
+	} else {
+		amountDescription = amountXLM
+	}
 
-		view := verb + " " + amountDescription
-		if statusStr == "claimable" {
-			// e.g. "Waiting for the recipient to open the app to claim, or the sender to cancel."
-			view += fmt.Sprintf("\n%s", details.StatusDetail)
-		}
-		if details.Note != "" {
-			view += "\n> " + details.Note
-		}
+	view := verb + " " + amountDescription
+	if statusStr == "claimable" {
+		// e.g. "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		view += fmt.Sprintf("\n%s", details.StatusDetail)
+	}
+	if details.Note != "" {
+		view += "\n> " + details.Note
+	}
 
-		return view
-	*/
+	return view
 }
 
-func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) (view string) {
-	return ""
-	/*
-		const formattingErrorStr = "[error getting request details]"
-		ctx := context.Background()
+func formatRequestPaymentMessage(g *libkb.GlobalContext, opts RenderOptions, body chat1.MessageRequestPayment) (view string) {
+	if opts.GetWalletClient == nil {
+		return fmt.Sprintf("<reqeustID %s>", body.RequestID)
+	}
 
-		cli, err := GetWalletClient(g)
-		if err != nil {
-			g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
-			return formattingErrorStr
-		}
+	const formattingErrorStr = "[error getting request details]"
+	ctx := context.Background()
 
-		details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
-			ReqID: body.RequestID,
-		})
-		if err != nil {
-			g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
-			return formattingErrorStr
-		}
+	cli, err := opts.GetWalletClient(g)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
+		return formattingErrorStr
+	}
 
-		if details.Currency != nil {
-			view = fmt.Sprintf("requested Lumens worth %s", details.AmountDescription)
-		} else {
-			view = fmt.Sprintf("requested %s", details.AmountDescription)
-		}
+	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
+		ReqID: body.RequestID,
+	})
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
+		return formattingErrorStr
+	}
 
-		if len(body.Note) > 0 {
-			view += "\n> " + body.Note
-		}
+	if details.Currency != nil {
+		view = fmt.Sprintf("requested Lumens worth %s", details.AmountDescription)
+	} else {
+		view = fmt.Sprintf("requested %s", details.AmountDescription)
+	}
 
-		if details.Status == stellar1.RequestStatus_CANCELED {
-			// If canceled, add "[canceled]" prefix.
-			view = "[canceled] " + view
-		} else {
-			// If not, append request ID for cancel-request command.
-			view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
-		}
+	if len(body.Note) > 0 {
+		view += "\n> " + body.Note
+	}
 
-		return view
-	*/
+	if details.Status == stellar1.RequestStatus_CANCELED {
+		// If canceled, add "[canceled]" prefix.
+		view = "[canceled] " + view
+	} else {
+		// If not, append request ID for cancel-request command.
+		view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
+	}
+
+	return view
 }
 
 func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
@@ -636,10 +640,10 @@ func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversatio
 		mv.Renderable = false
 	case chat1.MessageType_SENDPAYMENT:
 		mv.Renderable = true
-		mv.Body = formatSendPaymentMessage(g, m.MessageBody.Sendpayment())
+		mv.Body = formatSendPaymentMessage(g, opts, m.MessageBody.Sendpayment())
 	case chat1.MessageType_REQUESTPAYMENT:
 		mv.Renderable = true
-		mv.Body = formatRequestPaymentMessage(g, m.MessageBody.Requestpayment())
+		mv.Body = formatRequestPaymentMessage(g, opts, m.MessageBody.Requestpayment())
 	case chat1.MessageType_UNFURL:
 		mv.Renderable = false
 	case chat1.MessageType_FLIP:
