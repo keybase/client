@@ -111,6 +111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               audit: true,
               badges: true,
               chat: true,
+              chatarchive: true,
               chatattachments: true,
               chatdev: false,
               chatemoji: false,
