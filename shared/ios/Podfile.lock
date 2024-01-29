@@ -1,7 +1,7 @@
 PODS:
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
-  - EXAV (13.10.3):
+  - EXAV (13.10.4):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXBarCodeScanner (12.9.2):
@@ -25,15 +25,15 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - Expo (50.0.2):
+  - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoClipboard (5.0.1):
     - ExpoModulesCore
-  - ExpoFileSystem (16.0.4):
+  - ExpoFileSystem (16.0.5):
     - ExpoModulesCore
   - ExpoHaptics (12.8.1):
     - ExpoModulesCore
-  - ExpoImage (1.10.4):
+  - ExpoImage (1.10.5):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
@@ -45,7 +45,7 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (12.7.1):
     - ExpoModulesCore
-  - ExpoModulesCore (1.11.7):
+  - ExpoModulesCore (1.11.8):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -54,7 +54,7 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSMS (11.7.1):
     - ExpoModulesCore
-  - EXTaskManager (11.7.0):
+  - EXTaskManager (11.7.2):
     - ExpoModulesCore
     - UMAppLoader
   - FBLazyVector (0.73.2)
@@ -88,10 +88,10 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
-  - lottie-ios (4.3.4)
-  - lottie-react-native (6.5.1):
+  - lottie-ios (4.4.0)
+  - lottie-react-native (6.6.0):
     - glog
-    - lottie-ios (~> 4.3.3)
+    - lottie-ios (~> 4.4.0)
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - RCT-Folly (2022.05.16.00):
@@ -1133,7 +1133,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - RNReanimated (3.6.1):
+  - RNReanimated (3.6.2):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1432,7 +1432,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  EXAV: 0450d6e1f07d043b430ef1ce608e5b4f271e68e7
+  EXAV: 09a4d87fa6b113fbb0ada3aade6799f78271cb44
   EXBarCodeScanner: 9cf7039d99448ed1ea506401eba5ad4abd4e4871
   EXConstants: 988aa430ca0f76b43cd46b66e7fae3287f9cc2fc
   EXContacts: 5fcab84e1f1a562934e688d422117f9a33169c37
@@ -1440,17 +1440,17 @@ SPEC CHECKSUMS:
   EXImageLoader: 55080616b2fe9da19ef8c7f706afd9814e279b6b
   EXLocation: 6ec9c861af497b548f9617a5d4301884c4d43339
   EXMediaLibrary: 5a74f7d9cce776ca07cb3090b948cedd7d4841a1
-  Expo: 6c6526e76864e140363431722b22d0fa3cdeafd2
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoClipboard: b597982124f067ff9f5b89093eb3d97898d5d877
-  ExpoFileSystem: 39e454b8e7f2358ae2c8f8ec255fede4c3039493
+  ExpoFileSystem: 04795dd4d47e76eaf12e38c92091f77d794f9e7f
   ExpoHaptics: 28a771b630353cd6e8dcf1b1e3e693e38ad7c3c3
-  ExpoImage: d8d1003394f96a42d7702ab07d33e7d3773bcaa3
+  ExpoImage: 2b71f20472f293c1fbbf2400795b03d5bf8dd598
   ExpoImagePicker: 66970181d1c838f444e5e1f81b804ab2d5ff49bd
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoMailComposer: 078adb05f97c26d4a131a47dc9003eacb6879ef2
-  ExpoModulesCore: f103ff1346136b2926e1654f32b3f45ab0b74830
+  ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   ExpoSMS: 50236489ead8beaef1eb7a1be262e7f51169e34b
-  EXTaskManager: 81b2dfaaba6d9f9a4bc3e3e2a786a98004eb9e98
+  EXTaskManager: 3e446dbf75cd662aa6e7d6828be5bc26265241c3
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
@@ -1459,8 +1459,8 @@ SPEC CHECKSUMS:
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
-  lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: c1c6a1fd86e1942d69c2bc2e14212be72b55f3be
+  lottie-ios: ef1be1f90d54255f08e09d767950e43714661178
+  lottie-react-native: 34cfb1db79d0feb7bf7b200d4a4e2f164b0c5f58
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
   RCTTypeSafety: a759e3b086eccf3e2cbf2493d22f28e082f958e6
@@ -1514,7 +1514,7 @@ SPEC CHECKSUMS:
   RNCPicker: b18aaf30df596e9b1738e7c1f9ee55402a229dca
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
-  RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
+  RNReanimated: 5589be82dc26b3f94738eb7c6b1f942787532b25
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112

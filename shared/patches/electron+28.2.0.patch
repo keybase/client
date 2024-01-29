@@ -1,8 +1,8 @@
 diff --git a/node_modules/electron/electron.d.ts b/node_modules/electron/electron.d.ts
-index e3a0eb0..08d5f72 100644
+index ca14df7..d78f98a 100644
 --- a/node_modules/electron/electron.d.ts
 +++ b/node_modules/electron/electron.d.ts
-@@ -1659,7 +1659,7 @@ declare namespace Electron {
+@@ -1827,7 +1827,7 @@ declare namespace Electron {
       *
       * @platform darwin
       */
