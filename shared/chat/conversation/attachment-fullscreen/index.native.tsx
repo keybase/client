@@ -9,6 +9,7 @@ import type {Props} from '.'
 import {useData} from './hooks'
 
 const Fullscreen = (p: Props) => {
+  const {showHeader = true} = p
   const data = useData(p.ordinal)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
   const {onNextAttachment, onPreviousAttachment} = data
@@ -84,14 +85,16 @@ const Fullscreen = (p: Props) => {
     >
       {spinner}
       <ShowToastAfterSaving transferState={message.transferState} />
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
-        <Kb.Text type="Body" onClick={onClose} style={styles.close}>
-          Close
-        </Kb.Text>
-        <Kb.Text type="Body" onClick={onAllMedia} style={styles.allMedia}>
-          All media
-        </Kb.Text>
-      </Kb.Box2>
+      {showHeader ? (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
+          <Kb.Text type="Body" onClick={onClose} style={styles.close}>
+            Close
+          </Kb.Text>
+          <Kb.Text type="Body" onClick={onAllMedia} style={styles.allMedia}>
+            All media
+          </Kb.Text>
+        </Kb.Box2>
+      ) : null}
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
       <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
       {popup}
