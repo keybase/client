@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSpring, animated} from 'react-spring'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '@/util/string'
 import type * as T from '@/constants/types'
@@ -109,19 +108,15 @@ type RoleRowWrapperProps = {
   plural: boolean
 }
 
-const AnimatedClickableBox = animated(Kb.ClickableBox)
-
 const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
 
-  // spring is confused that I'm animating different things on desktop vs mobile
-  const style = useSpring({
-    ...(Kb.Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
-    config: {tension: Kb.Styles.isMobile ? 250 : 260},
-  }) as unknown as Kb.Styles.StylesCrossPlatform
+  const style = {
+    ...(Kb.Styles.isMobile ? {} : {height: selected ? 160 : 42}),
+  }
   return (
-    <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style]) as any}>
+    <Kb.ClickableBox onClick={onSelect} style={style}>
       <Kb.Divider />
       <RoleRow
         selected={selected}
@@ -130,15 +125,19 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
             ? 'Set Individually'
             : pluralize(capitalize(role as string), plural ? 2 : 1)
         }
-        body={[
-          roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
-          roleAbilities(roleInfo.cants, false, true),
-        ]}
+        body={
+          selected
+            ? [
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+                roleAbilities(roleInfo.cants, false, true),
+              ]
+            : null
+        }
         icon={roleInfo.icon}
         onSelect={onSelect}
         disabledReason={disabledReason}
       />
-    </AnimatedClickableBox>
+    </Kb.ClickableBox>
   )
 }
 
@@ -233,11 +232,12 @@ const roleAbilities = (
       direction="horizontal"
       alignItems="flex-start"
       fullWidth={true}
-      style={
-        addFinalPadding && i === abilities.length - 1
+      style={{
+        flexShrink: 0,
+        ...(addFinalPadding && i === abilities.length - 1
           ? {paddingBottom: Kb.Styles.globalMargins.tiny}
-          : undefined
-      }
+          : undefined),
+      }}
     >
       <Kb.Icon
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
@@ -374,7 +374,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
-      roleRow: Kb.Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
       row: {
         backgroundColor: Kb.Styles.globalColors.blueGreyLight,
         position: 'relative',

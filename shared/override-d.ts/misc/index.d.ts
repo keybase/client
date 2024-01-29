@@ -17,16 +17,6 @@ declare module 'expo-manifests' {
   type ExpoGoPackagerOpts = any
 }
 
-declare module '@react-spring/rafz' {
-  type frameLoop = any
-  var raf: {
-    now: any
-    batchedUpdates: any
-  }
-  type Timeout = any
-  type Rafz = any
-}
-
 declare module 'qrcode-generator' {
   const gen: (
     n: number,

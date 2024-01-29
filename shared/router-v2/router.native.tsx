@@ -152,6 +152,7 @@ const makeTabStack = (tab: (typeof tabs)[number]) => {
             ...Common.defaultNavigationOptions,
             animation: 'simple_push',
             animationDuration: 250,
+            orientation: 'portrait',
           }}
         >
           {tabScreens}

@@ -880,41 +880,46 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     maybeChangeSelectedConv: () => {
-      const selectedConversation = C.Chat.getSelectedConversation()
       const {inboxLayout} = get()
-      if (!inboxLayout?.reselectInfo) {
+      const newConvID = inboxLayout?.reselectInfo?.newConvID
+      const oldConvID = inboxLayout?.reselectInfo?.oldConvID
+      if (!newConvID && !oldConvID) {
         return
       }
-      const {reselectInfo} = inboxLayout
-      if (
-        !T.Chat.isValidConversationIDKey(selectedConversation) ||
-        selectedConversation === reselectInfo.oldConvID
-      ) {
-        if (isPhone) {
-          // on mobile just head back to the inbox if we have something selected
-          if (T.Chat.isValidConversationIDKey(selectedConversation)) {
-            logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-            get().dispatch.navigateToInbox()
-            return
-          }
-          logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+      const selectedConversation = C.Chat.getSelectedConversation()
+
+      const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
+      // no new id, just take the opportunity to resolve
+      if (!newConvID) {
+        if (!existingValid && isPhone) {
+          logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
+          get().dispatch.navigateToInbox()
+        }
+        return
+      }
+      // not matching?
+      if (selectedConversation !== oldConvID) {
+        if (!existingValid && isPhone) {
+          logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
+          get().dispatch.navigateToInbox()
+        }
+        return
+      }
+      // matching
+      if (isPhone) {
+        // on mobile just head back to the inbox if we have something selected
+        if (T.Chat.isValidConversationIDKey(selectedConversation)) {
+          logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
+          get().dispatch.navigateToInbox()
           return
         }
-        if (reselectInfo.newConvID) {
-          logger.info(
-            `maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID} old ${selectedConversation}`
-          )
-          C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
-          return
-        } else {
-          logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-          C.getConvoState(C.Chat.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
-          return
-        }
+        logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+        return
       } else {
         logger.info(
-          `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
+          `maybeChangeSelectedConv: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
         )
+        C.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
       }
     },
     messageSendByUsername: (username, text, waitingKey) => {

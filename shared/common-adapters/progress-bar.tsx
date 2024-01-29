@@ -1,23 +1,21 @@
 import Box from './box'
-import {useSpring, animated} from 'react-spring'
 import * as Styles from '@/styles'
 
 type Props = {
   ratio: number
-  style?: any
-  fillStyle?: any
+  style?: Styles.StylesCrossPlatform
+  fillStyle?: Styles.StylesCrossPlatform
 }
 
-const AnimatedBox = animated(Box)
-
 const ProgressBar = ({ratio, style, fillStyle}: Props) => {
-  const animatedStyles = useSpring({
-    from: {...styles.inner, ...fillStyle},
-    to: {width: `${Math.max(0, Math.min(1, ratio)) * 100}%`},
-  })
+  const animatedStyles = {
+    ...styles.inner,
+    ...fillStyle,
+    width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
+  }
   return (
     <Box style={Styles.collapseStyles([styles.outer, style])}>
-      <AnimatedBox style={animatedStyles} />
+      <Box style={animatedStyles} />
     </Box>
   )
 }
