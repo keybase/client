@@ -1,7 +1,9 @@
-package client
+package chatrender
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"math"
 	"sort"
 	"strconv"
@@ -15,20 +17,22 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/kyokomi/emoji"
-	"golang.org/x/net/context"
 )
 
 const publicConvNamePrefix = "(public) "
 
-type conversationInfoListView []chat1.ConversationLocal
+type ConversationInfoListView []chat1.ConversationLocal
 
-func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
+func (v ConversationInfoListView) Show(g *libkb.GlobalContext) error {
+	ui := g.UI.GetTerminalUI()
+	w, _ := ui.TerminalSize()
+	return v.RenderToWriter(g, ui.OutputWriter(), w)
+}
+
+func (v ConversationInfoListView) RenderToWriter(g *libkb.GlobalContext, writer io.Writer, width int) error {
 	if len(v) == 0 {
 		return nil
 	}
-
-	ui := g.UI.GetTerminalUI()
-	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
@@ -70,7 +74,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			return err
 		}
 	}
-	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+	if err := table.Render(writer, " ", width, []flexibletable.ColumnConstraint{
 		15,                                // visualIndex
 		8,                                 // vis
 		flexibletable.ExpandableWrappable, // participants
@@ -82,18 +86,18 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	return nil
 }
 
-type conversationListView []chat1.ConversationLocal
+type ConversationListView []chat1.ConversationLocal
 
-func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.ConversationLocal) string {
+func convNameTeam(g *libkb.GlobalContext, conv chat1.ConversationLocal) string {
 	return fmt.Sprintf("%s [#%s]", conv.Info.TlfName, conv.Info.TopicName)
 }
 
-func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
+func convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
 		name = publicConvNamePrefix + strings.Join(conv.ConvNameNames(), ",")
 	} else {
-		name = strings.Join(v.without(g, conv.ConvNameNames(), myUsername), ",")
+		name = strings.Join(without(g, conv.ConvNameNames(), myUsername), ",")
 		if len(conv.ConvNameNames()) == 1 && conv.ConvNameNames()[0] == myUsername {
 			// The user is the only writer.
 			name = myUsername
@@ -108,25 +112,25 @@ func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.Co
 
 // Make a name that looks like a tlfname but is sorted by activity and missing
 // myUsername.
-func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
+func ConvName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		return v.convNameTeam(g, conv)
+		return convNameTeam(g, conv)
 	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return v.convNameKBFS(g, conv, myUsername)
+		return convNameKBFS(g, conv, myUsername)
 	}
 	return ""
 }
 
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 // This is the less featureful version for convs that can't be unboxed.
-func (v conversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1.ConversationErrorRekey, myUsername string) string {
+func (v ConversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1.ConversationErrorRekey, myUsername string) string {
 	var name string
 	if convErr.TlfPublic {
 		name = publicConvNamePrefix + strings.Join(convErr.WriterNames, ",")
 	} else {
-		name = strings.Join(v.without(g, convErr.WriterNames, myUsername), ",")
+		name = strings.Join(without(g, convErr.WriterNames, myUsername), ",")
 		if len(convErr.WriterNames) == 1 && convErr.WriterNames[0] == myUsername {
 			// The user is the only writer.
 			name = myUsername
@@ -157,7 +161,7 @@ func formatUnverifiedConvName(unverifiedTLFName string, visibility keybase1.TLFV
 	return strippedTLFName
 }
 
-func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+func without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
 	for _, x := range slice {
 		if x != el {
 			res = append(res, x)
@@ -166,14 +170,17 @@ func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el
 	return res
 }
 
-func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) (err error) {
+func (v ConversationListView) Show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) (err error) {
 	ui := g.UI.GetTerminalUI()
+	w, _ := ui.TerminalSize()
+	return v.RenderToWriter(g, ui.OutputWriter(), w, myUsername, showDeviceName, RenderOptions{})
+}
+
+func (v ConversationListView) RenderToWriter(g *libkb.GlobalContext, writer io.Writer, width int, myUsername string, showDeviceName bool, opts RenderOptions) (err error) {
 	if len(v) == 0 {
-		ui.Printf("no conversations\n")
+		fmt.Fprint(writer, "no conversations\n")
 		return nil
 	}
-
-	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
@@ -248,7 +255,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 		mv := newMessageViewNoMessages()
 		if msg != nil {
-			mv, err = newMessageView(g, conv.Info.Id, *msg)
+			mv, err = newMessageView(g, opts, conv.Info.Id, *msg)
 			if err != nil {
 				g.Log.Error("Message render error: %s", err)
 			}
@@ -282,7 +289,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: v.convName(g, conv, myUsername)},
+				Content:   flexibletable.SingleCell{Item: ConvName(g, conv, myUsername)},
 			},
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
@@ -312,19 +319,19 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if table.NumInserts() == 0 {
-		ui.Printf("no conversations\n")
+		fmt.Fprint(writer, "no conversations\n")
 		return nil
 	}
 
-	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		15,                                    // visualIndex
-		1,                                     // unread
-		flexibletable.ColumnConstraint(w / 5), // convName
-		flexibletable.ColumnConstraint(w / 5), // authorAndTime
-		flexibletable.ColumnConstraint(w / 5), // RestrictedBotInfo
-		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
-		flexibletable.ColumnConstraint(w / 5), // reactionInfo
-		flexibletable.Expandable,              // body
+	if err := table.Render(writer, " ", width, []flexibletable.ColumnConstraint{
+		15, // visualIndex
+		1,  // unread
+		flexibletable.ColumnConstraint(width / 5), // convName
+		flexibletable.ColumnConstraint(width / 5), // authorAndTime
+		flexibletable.ColumnConstraint(width / 5), // RestrictedBotInfo
+		flexibletable.ColumnConstraint(width / 5), // ephemeralInfo
+		flexibletable.ColumnConstraint(width / 5), // reactionInfo
+		flexibletable.Expandable,                  // body
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
@@ -332,29 +339,40 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	return nil
 }
 
-type conversationView struct {
-	conversation chat1.ConversationLocal
-	messages     []chat1.MessageUnboxed
+type RenderOptions struct {
+	UseDateTime     bool
+	SkipHeadline    bool
+	GetWalletClient func(g *libkb.GlobalContext) (cli stellar1.LocalClient, err error)
 }
 
-func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) error {
-	if len(v.messages) == 0 {
+type ConversationView struct {
+	Conversation chat1.ConversationLocal
+	Messages     []chat1.MessageUnboxed
+	Opts         RenderOptions
+}
+
+func (v ConversationView) Show(g *libkb.GlobalContext, showDeviceName bool) error {
+	ui := g.UI.GetTerminalUI()
+	w, _ := ui.TerminalSize()
+	return v.RenderToWriter(g, ui.OutputWriter(), w, showDeviceName)
+}
+
+func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Writer, width int, showDeviceName bool) error {
+	if len(v.Messages) == 0 {
 		return nil
 	}
 
-	ui := g.UI.GetTerminalUI()
-	w, _ := ui.TerminalSize()
 	showRevokeAdvisory := false
 
-	headline := v.conversation.Info.Headline
-	if headline != "" {
-		g.UI.GetTerminalUI().Printf("headline: %s\n\n", headline)
+	headline := v.Conversation.Info.Headline
+	if headline != "" && !v.Opts.SkipHeadline {
+		fmt.Fprintf(writer, "headline: %s\n\n", headline)
 	}
 
 	table := &flexibletable.Table{}
-	for i := len(v.messages) - 1; i >= 0; i-- {
-		m := v.messages[i]
-		mv, err := newMessageView(g, v.conversation.Info.Id, m)
+	for i := len(v.Messages) - 1; i >= 0; i-- {
+		m := v.Messages[i]
+		mv, err := newMessageView(g, v.Opts, v.Conversation.Info.Id, m)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)
 		}
@@ -369,7 +387,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 
 		unread := ""
 		if m.IsValid() &&
-			v.conversation.ReaderInfo.ReadMsgid < m.GetMessageID() {
+			v.Conversation.ReaderInfo.ReadMsgid < m.GetMessageID() {
 			unread = "*"
 		}
 
@@ -416,20 +434,20 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			return err
 		}
 	}
-	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		15,                                    // messageID
-		1,                                     // unread
-		flexibletable.ColumnConstraint(w / 5), // authorAndTime
-		flexibletable.ColumnConstraint(w / 5), // restrictedBotInfo
-		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
-		flexibletable.ColumnConstraint(w / 5), // reactionInfo
-		flexibletable.ExpandableWrappable,     // body
+	if err := table.Render(writer, " ", width, []flexibletable.ColumnConstraint{
+		15, // messageID
+		1,  // unread
+		flexibletable.ColumnConstraint(width / 5), // authorAndTime
+		flexibletable.ColumnConstraint(width / 5), // restrictedBotInfo
+		flexibletable.ColumnConstraint(width / 5), // ephemeralInfo
+		flexibletable.ColumnConstraint(width / 5), // reactionInfo
+		flexibletable.ExpandableWrappable,         // body
 	}); err != nil {
 		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
 
 	if showRevokeAdvisory {
-		g.UI.GetTerminalUI().Printf("\nNote: Messages with (!) next to the sender were sent from a device that is now revoked.\n")
+		fmt.Fprint(writer, "\nNote: Messages with (!) next to the sender were sent from a device that is now revoked.\n")
 	}
 
 	return nil
@@ -462,10 +480,13 @@ func formatSystemMessage(body chat1.MessageSystem) string {
 	return fmt.Sprintf("[%s]", m)
 }
 
-func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {
+func formatSendPaymentMessage(g *libkb.GlobalContext, opts RenderOptions, body chat1.MessageSendPayment) string {
 	ctx := context.Background()
+	if opts.GetWalletClient == nil {
+		return fmt.Sprintf("<paymentID %s>", body.PaymentID)
+	}
 
-	cli, err := GetWalletClient(g)
+	cli, err := opts.GetWalletClient(g)
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
@@ -510,11 +531,15 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	return view
 }
 
-func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) (view string) {
+func formatRequestPaymentMessage(g *libkb.GlobalContext, opts RenderOptions, body chat1.MessageRequestPayment) (view string) {
+	if opts.GetWalletClient == nil {
+		return fmt.Sprintf("<reqeustID %s>", body.RequestID)
+	}
+
 	const formattingErrorStr = "[error getting request details]"
 	ctx := context.Background()
 
-	cli, err := GetWalletClient(g)
+	cli, err := opts.GetWalletClient(g)
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return formattingErrorStr
@@ -549,7 +574,7 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 	return view
 }
 
-func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
+func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
 
@@ -609,15 +634,23 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_SYSTEM:
 		mv.Renderable = true
 		mv.Body = formatSystemMessage(m.MessageBody.System())
+	case chat1.MessageType_DELETEHISTORY:
+		mv.Renderable = false
+	case chat1.MessageType_REACTION:
+		mv.Renderable = false
 	case chat1.MessageType_SENDPAYMENT:
 		mv.Renderable = true
-		mv.Body = formatSendPaymentMessage(g, m.MessageBody.Sendpayment())
+		mv.Body = formatSendPaymentMessage(g, opts, m.MessageBody.Sendpayment())
 	case chat1.MessageType_REQUESTPAYMENT:
 		mv.Renderable = true
-		mv.Body = formatRequestPaymentMessage(g, m.MessageBody.Requestpayment())
+		mv.Body = formatRequestPaymentMessage(g, opts, m.MessageBody.Requestpayment())
+	case chat1.MessageType_UNFURL:
+		mv.Renderable = false
 	case chat1.MessageType_FLIP:
 		mv.Renderable = true
 		mv.Body = m.MessageBody.Flip().Text
+	case chat1.MessageType_PIN:
+		mv.Renderable = false
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}
@@ -628,9 +661,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	}
 	t := gregor1.FromTime(m.ServerHeader.Ctime)
 	mv.AuthorAndTime = fmt.Sprintf("%s%s %s",
-		m.SenderUsername, possiblyRevokedMark, shortDurationFromNow(t))
+		m.SenderUsername, possiblyRevokedMark, FmtTime(t, opts))
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s%s <%s> %s",
-		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
+		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, FmtTime(t, opts))
 
 	if m.IsEphemeral() {
 		if m.IsEphemeralExpired(time.Now()) {
@@ -684,7 +717,7 @@ func outboxStateView(state chat1.OutboxState, body string) string {
 	return fmt.Sprintf("[outbox message: state: %s contents: %s]", ststr, body)
 }
 
-func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.OutboxRecord) (mv messageView, err error) {
+func newMessageViewOutbox(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID, m chat1.OutboxRecord) (mv messageView, err error) {
 
 	body := m.Msg.MessageBody
 	typ, err := body.MessageType()
@@ -716,13 +749,13 @@ func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.Conversat
 	username := g.Env.GetUsername().String()
 	mv.FromRevokedDevice = false
 	mv.MessageID = m.Msg.ClientHeader.OutboxInfo.Prev
-	mv.AuthorAndTime = fmt.Sprintf("%s %s", username, shortDurationFromNow(t))
-	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <current> %s", username, shortDurationFromNow(t))
+	mv.AuthorAndTime = fmt.Sprintf("%s %s", username, FmtTime(t, opts))
+	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <current> %s", username, FmtTime(t, opts))
 
 	return mv, nil
 }
 
-func newMessageViewError(g *libkb.GlobalContext, conversationID chat1.ConversationID,
+func newMessageViewError(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID,
 	m chat1.MessageUnboxedError) (mv messageView, err error) {
 
 	mv.messageType = m.MessageType
@@ -755,7 +788,7 @@ func newMessageViewNoMessages() (mv messageView) {
 
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
-func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
+func newMessageView(g *libkb.GlobalContext, opts RenderOptions, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
 	defer func() { mv.Body = emoji.Sprint(mv.Body) }()
 	state, err := m.State()
 	if err != nil {
@@ -763,18 +796,25 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	}
 	switch state {
 	case chat1.MessageUnboxedState_ERROR:
-		return newMessageViewError(g, conversationID, m.Error())
+		return newMessageViewError(g, opts, conversationID, m.Error())
 	case chat1.MessageUnboxedState_OUTBOX:
-		return newMessageViewOutbox(g, conversationID, m.Outbox())
+		return newMessageViewOutbox(g, opts, conversationID, m.Outbox())
 	case chat1.MessageUnboxedState_VALID:
-		return newMessageViewValid(g, conversationID, m.Valid())
+		return newMessageViewValid(g, opts, conversationID, m.Valid())
 	default:
 		return mv, fmt.Errorf("unexpected message state: %v", state)
 	}
 
 }
 
-func shortDurationFromNow(t time.Time) string {
+func FmtTime(t time.Time, opts RenderOptions) string {
+	if opts.UseDateTime {
+		return t.Format(time.DateTime)
+	}
+	return ShortDurationFromNow(t)
+}
+
+func ShortDurationFromNow(t time.Time) string {
 	d := time.Since(t)
 
 	num := d.Hours() / 24

@@ -42,6 +42,7 @@ type NotificationChannels struct {
 	FeaturedBots         bool `codec:"featuredBots" json:"featuredBots"`
 	Saltpack             bool `codec:"saltpack" json:"saltpack"`
 	AllowChatNotifySkips bool `codec:"allowChatNotifySkips" json:"allowChatNotifySkips"`
+	Chatarchive          bool `codec:"chatarchive" json:"chatarchive"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -78,6 +79,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		FeaturedBots:         o.FeaturedBots,
 		Saltpack:             o.Saltpack,
 		AllowChatNotifySkips: o.AllowChatNotifySkips,
+		Chatarchive:          o.Chatarchive,
 	}
 }
 

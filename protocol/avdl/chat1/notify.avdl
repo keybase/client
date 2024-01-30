@@ -244,6 +244,14 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatArchiveProgress(ArchiveJobID jobID, long messagesComplete, long messagesTotal);
+
+  @notify("")
+  @lint("ignore")
+  void ChatArchiveComplete(ArchiveJobID jobID);
+
+  @notify("")
+  @lint("ignore")
   void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
 
   @notify("")

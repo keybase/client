@@ -4052,3 +4052,30 @@ func (h *Server) TrackGiphySelect(ctx context.Context, arg chat1.TrackGiphySelec
 	err = storage.NewGiphyStore(h.G()).Put(ctx, uid, arg.Result)
 	return chat1.TrackGiphySelectRes{}, err
 }
+
+func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (res chat1.ArchiveChatRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChat")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChat: not logged in: %s", err)
+		return chat1.ArchiveChatRes{}, nil
+	}
+
+	progress := func(messagesComplete, messagesTotal int64) {
+		h.G().NotifyRouter.HandleChatArchiveProgress(ctx, arg.JobID, messagesComplete, messagesTotal)
+	}
+
+	outpath, err := NewChatArchiver(h.G(), uid, progress, h.remoteClient).ArchiveChat(ctx, arg)
+	if err != nil {
+		return chat1.ArchiveChatRes{}, err
+	}
+
+	h.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
+	return chat1.ArchiveChatRes{
+		IdentifyFailures: identBreaks,
+		OutputPath:       outpath,
+	}, err
+}

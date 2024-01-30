@@ -210,6 +210,12 @@ func (d DummyChatNotifications) ChatAttachmentDownloadProgress(context.Context, 
 func (d DummyChatNotifications) ChatAttachmentDownloadComplete(context.Context, chat1.ChatAttachmentDownloadCompleteArg) error {
 	return nil
 }
+func (d DummyChatNotifications) ChatArchiveProgress(context.Context, chat1.ChatArchiveProgressArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatArchiveComplete(context.Context, chat1.ArchiveJobID) error {
+	return nil
+}
 func (d DummyChatNotifications) ChatPaymentInfo(context.Context, chat1.ChatPaymentInfoArg) error {
 	return nil
 }

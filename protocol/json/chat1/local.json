@@ -4212,6 +4212,23 @@
       "type": "record",
       "name": "TrackGiphySelectRes",
       "fields": []
+    },
+    {
+      "type": "record",
+      "name": "ArchiveChatRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "outputPath"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -6379,6 +6396,34 @@
         }
       ],
       "response": "TrackGiphySelectRes"
+    },
+    "archiveChat": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "ArchiveJobID"
+        },
+        {
+          "name": "outputPath",
+          "type": "string"
+        },
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "compress",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "ArchiveChatRes"
     }
   },
   "namespace": "chat.1"

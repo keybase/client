@@ -40,6 +40,8 @@ export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
 export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerContactSync'
+export const chat1NotifyChatChatArchiveComplete = 'engine-gen:chat1NotifyChatChatArchiveComplete'
+export const chat1NotifyChatChatArchiveProgress = 'engine-gen:chat1NotifyChatChatArchiveProgress'
 export const chat1NotifyChatChatAttachmentDownloadComplete =
   'engine-gen:chat1NotifyChatChatAttachmentDownloadComplete'
 export const chat1NotifyChatChatAttachmentDownloadProgress =
@@ -526,6 +528,16 @@ const createChat1ChatUiTriggerContactSync = (payload: {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void
   }
 }) => ({payload, type: chat1ChatUiTriggerContactSync as typeof chat1ChatUiTriggerContactSync})
+const createChat1NotifyChatChatArchiveComplete = (payload: {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatArchiveComplete']['inParam'] & {
+    sessionID: number
+  }
+}) => ({payload, type: chat1NotifyChatChatArchiveComplete as typeof chat1NotifyChatChatArchiveComplete})
+const createChat1NotifyChatChatArchiveProgress = (payload: {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatArchiveProgress']['inParam'] & {
+    sessionID: number
+  }
+}) => ({payload, type: chat1NotifyChatChatArchiveProgress as typeof chat1NotifyChatChatArchiveProgress})
 const createChat1NotifyChatChatAttachmentDownloadComplete = (payload: {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {
     sessionID: number
@@ -2217,6 +2229,12 @@ export type Chat1ChatUiChatThreadFullPayload = ReturnType<typeof createChat1Chat
 export type Chat1ChatUiChatThreadStatusPayload = ReturnType<typeof createChat1ChatUiChatThreadStatus>
 export type Chat1ChatUiChatWatchPositionPayload = ReturnType<typeof createChat1ChatUiChatWatchPosition>
 export type Chat1ChatUiTriggerContactSyncPayload = ReturnType<typeof createChat1ChatUiTriggerContactSync>
+export type Chat1NotifyChatChatArchiveCompletePayload = ReturnType<
+  typeof createChat1NotifyChatChatArchiveComplete
+>
+export type Chat1NotifyChatChatArchiveProgressPayload = ReturnType<
+  typeof createChat1NotifyChatChatArchiveProgress
+>
 export type Chat1NotifyChatChatAttachmentDownloadCompletePayload = ReturnType<
   typeof createChat1NotifyChatChatAttachmentDownloadComplete
 >
@@ -2672,6 +2690,8 @@ export type Actions =
   | Chat1ChatUiChatThreadStatusPayload
   | Chat1ChatUiChatWatchPositionPayload
   | Chat1ChatUiTriggerContactSyncPayload
+  | Chat1NotifyChatChatArchiveCompletePayload
+  | Chat1NotifyChatChatArchiveProgressPayload
   | Chat1NotifyChatChatAttachmentDownloadCompletePayload
   | Chat1NotifyChatChatAttachmentDownloadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload

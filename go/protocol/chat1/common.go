@@ -130,6 +130,17 @@ func (o FlipGameID) DeepCopy() FlipGameID {
 	})(o)
 }
 
+type ArchiveJobID []byte
+
+func (o ArchiveJobID) DeepCopy() ArchiveJobID {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type InboxVersInfo struct {
 	Uid  gregor1.UID `codec:"uid" json:"uid"`
 	Vers InboxVers   `codec:"vers" json:"vers"`
@@ -2007,6 +2018,7 @@ const (
 	GetThreadReason_EMOJISOURCE        GetThreadReason = 11
 	GetThreadReason_FORWARDMSG         GetThreadReason = 12
 	GetThreadReason_LOCALIZE           GetThreadReason = 13
+	GetThreadReason_ARCHIVE            GetThreadReason = 14
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -2026,6 +2038,7 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"EMOJISOURCE":        11,
 	"FORWARDMSG":         12,
 	"LOCALIZE":           13,
+	"ARCHIVE":            14,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -2043,6 +2056,7 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	11: "EMOJISOURCE",
 	12: "FORWARDMSG",
 	13: "LOCALIZE",
+	14: "ARCHIVE",
 }
 
 func (e GetThreadReason) String() string {

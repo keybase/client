@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -41,7 +42,7 @@ func (c *cmdChatListUnread) Run() error {
 		return err
 	}
 
-	err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName)
+	err = chatrender.ConversationListView(conversations).Show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName)
 	if err != nil {
 		return err
 	}
