@@ -19,7 +19,11 @@ const needDiff = Styles.dimensionWidth / 3
 // mostly based on https://github.com/intergalacticspacehighway/react-native-reanimated-zoom
 export function ZoomableBox(props: Props) {
   const {children, minZoom = 1, maxZoom = 10, style} = props
-  const {onZoom, contentContainerStyle, onLayout: _onLayout, onSwipe} = props
+  const {onZoom, contentContainerStyle, onLayout: _onLayout, onSwipe, onTap: _onTap} = props
+
+  const onTap = React.useCallback(() => {
+    _onTap?.()
+  }, [_onTap])
 
   const translationX = useSharedValue(0)
   const translationY = useSharedValue(0)
@@ -165,7 +169,15 @@ export function ZoomableBox(props: Props) {
         }
       })
 
+    const singleTap = Gesture.Tap()
+      .maxDuration(250)
+      .numberOfTaps(1)
+      .onStart(() => {
+        runOnJS(onTap)()
+      })
     const doubleTap = Gesture.Tap()
+      .maxDuration(250)
+      .numberOfTaps(2)
       .onStart(e => {
         // if zoomed in or zoomed out, we want to reset
         if (scale.value !== 1) {
@@ -178,15 +190,16 @@ export function ZoomableBox(props: Props) {
           translationY.value = withTiming(-1 * (zoom * (e.y - viewHeight.value / 2)))
         }
       })
-      .numberOfTaps(2)
+    const taps = Gesture.Exclusive(doubleTap, singleTap)
 
-    return Gesture.Race(doubleTap, Gesture.Simultaneous(pan, pinch))
+    return Gesture.Race(taps, Gesture.Simultaneous(pan, pinch))
   }, [
     maxZoom,
     minZoom,
     isPinching,
     isZoomed,
     offsetScale,
+    onTap,
     originX,
     originY,
     viewHeight,
