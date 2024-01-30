@@ -274,6 +274,7 @@ type ModalPositionRelativeProps = {
   remeasureHint?: number
   style?: Styles.StylesCrossPlatform
   children: React.ReactNode
+  disableEscapeKey?: boolean // if true, ignore keys
 }
 
 type Snapshot = {width?: number; height?: number}
@@ -405,9 +406,13 @@ export class RelativeFloatingBox extends React.PureComponent<
     return (
       <Modal setNode={this._setRef}>
         <Kb.Box style={this.state.style}>
-          <EscapeHandler onESC={this.props.onClosePopup}>
+          {this.props.disableEscapeKey ? (
             <Kb.Box className="fade-in-generic"> {this.props.children} </Kb.Box>
-          </EscapeHandler>
+          ) : (
+            <EscapeHandler onESC={this.props.onClosePopup}>
+              <Kb.Box className="fade-in-generic"> {this.props.children} </Kb.Box>
+            </EscapeHandler>
+          )}
         </Kb.Box>
       </Modal>
     )
