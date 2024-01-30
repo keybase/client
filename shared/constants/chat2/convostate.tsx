@@ -102,7 +102,6 @@ type ConvoStore = {
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: Array<T.Teams.TeamID>
-  // orangeLineOrdinal?: T.Chat.Ordinal
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -1504,7 +1503,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     messagesAdd: messages => {
-      // console.log('aaaa messages add', {cid: get().id})
       set(s => {
         for (const m of messages) {
           // we capture the highest one, cause sometimes we'll not track it in the map
