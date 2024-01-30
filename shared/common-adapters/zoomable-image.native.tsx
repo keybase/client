@@ -15,7 +15,7 @@ const Kb = {
 }
 
 const ZoomableImage = (p: Props) => {
-  const {src, style, onChanged, onLoaded, onSwipe} = p
+  const {src, style, onChanged, onLoaded, onSwipe, onTap} = p
   const onZoom = onChanged
   const [boxW, setBoxW] = React.useState(0)
   const [boxH, setBoxH] = React.useState(0)
@@ -52,6 +52,7 @@ const ZoomableImage = (p: Props) => {
       style={style}
       contentContainerStyle={styles.contentContainerStyle}
       onZoom={onZoom}
+      onTap={onTap}
     >
       <Kb.Box2
         direction="vertical"

@@ -1,19 +1,19 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
 import type {Props} from './zoomable-box'
-import type {LayoutChangeEvent, GestureResponderEvent} from 'react-native'
+import {type LayoutChangeEvent, type GestureResponderEvent, useWindowDimensions} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import {runOnJS} from 'react-native-reanimated'
 
-const Kb = {
-  ScrollView,
-}
-
-const needDiff = Styles.dimensionWidth / 3
+const Kb = {ScrollView}
 
 export const ZoomableBox = (props: Props) => {
-  const {onSwipe, onLayout} = props
+  const {onSwipe, onLayout, onTap: _onTap} = props
+  const {width: windowWidth} = useWindowDimensions()
+  const needDiff = windowWidth / 3
+  const onTap = React.useCallback(() => {
+    _onTap?.()
+  }, [_onTap])
   const initialTouch = React.useRef(-1)
   const curScaleRef = React.useRef(1)
   const onTouchStart = React.useCallback((e: GestureResponderEvent) => {
@@ -32,12 +32,12 @@ export const ZoomableBox = (props: Props) => {
       const diff = e.nativeEvent.pageX - initialTouch.current
       if (diff > needDiff) {
         onSwipe?.(false)
-      } else if (diff < needDiff) {
+      } else if (diff < -needDiff) {
         onSwipe?.(true)
       }
       initialTouch.current = -1
     },
-    [onSwipe]
+    [onSwipe, needDiff]
   )
 
   const widthRef = React.useRef(0)
@@ -85,15 +85,22 @@ export const ZoomableBox = (props: Props) => {
     )
   }, [])
 
+  const singleTap = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(1)
+    .onStart(() => {
+      runOnJS(onTap)()
+    })
   const doubleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(2)
     .onStart(() => {
       runOnJS(onDoubleTap)()
     })
+  const taps = Gesture.Exclusive(doubleTap, singleTap)
 
   return (
-    <GestureDetector gesture={doubleTap}>
+    <GestureDetector gesture={taps}>
       <Kb.ScrollView
         ref={ref}
         centerContent={true}
