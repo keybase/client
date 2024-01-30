@@ -75,7 +75,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
+    e.cancelable && e.preventDefault()
 
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return

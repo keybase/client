@@ -47,6 +47,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
   render() {
     return (
       <RelativeFloatingBox
+        disableEscapeKey={this.props.disableEscapeKey}
         position={this.props.position || 'bottom center'}
         positionFallbacks={this.props.positionFallbacks}
         targetRect={this.state.targetRect}
