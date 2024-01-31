@@ -1,7 +1,10 @@
 import * as Z from '@/util/zustand'
+import * as T from './types'
 import * as C from '.'
+import * as EngineGen from '../actions/engine-gen-gen'
 import {formatTimeForPopup} from '@/util/timestamp'
-import {downloadFolder} from '@/constants/platform'
+// import {downloadFolder} from '@/constants/platform'
+import {uint8ArrayToHex} from 'uint8array-extras'
 
 type Job = {
   id: string
@@ -21,6 +24,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    onEngineIncoming: (action: EngineGen.Actions) => void
     start: (type: 'chatid' | 'chatname' | 'kbfs', path: string, outPath: string) => void
     cancel: (id: string) => void
     clearCompleted: () => void
@@ -30,21 +34,21 @@ type State = Store & {
   chatIDToDisplayname: (id: string) => string
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
-  let startedMockTimer = false
-  const startMockTimer = () => {
-    if (startedMockTimer) return
-    startedMockTimer = true
-    setInterval(() => {
-      set(s => {
-        for (const value of s.jobs.values()) {
-          if (Math.random() > 0.2) {
-            value.progress = Math.min(value.progress + Math.random() * 0.1, 1)
-          }
-        }
-      })
-    }, 1000)
-  }
+export const _useState = Z.createZustand<State>(set => {
+  // let startedMockTimer = false
+  // const startMockTimer = () => {
+  //   if (startedMockTimer) return
+  //   startedMockTimer = true
+  //   setInterval(() => {
+  //     set(s => {
+  //       for (const value of s.jobs.values()) {
+  //         if (Math.random() > 0.2) {
+  //           value.progress = Math.min(value.progress + Math.random() * 0.1, 1)
+  //         }
+  //       }
+  //     })
+  //   }, 1000)
+  // }
 
   const dispatch: State['dispatch'] = {
     cancel: id => {
@@ -65,57 +69,126 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     load: () => {
       // TODO
-      startMockTimer()
-      if (get().jobs.size > 0) {
-        return
-      }
-      get().dispatch.start('chatname', '.', `${downloadFolder}/allchat`)
-      get().dispatch.start('chatname', 'keybasefriends#general', `${downloadFolder}/friends`)
-      get().dispatch.start('kbfs', '.', `${downloadFolder}/allkbfs`)
-      get().dispatch.start('kbfs', 'cnojima/vacation', `${downloadFolder}/vacation`)
-      set(s => {
-        const old = s.jobs.get('1')
-        if (old) {
-          s.jobs.set('1', {
-            ...old,
-            progress: 0.8,
+      // startMockTimer()
+      // if (get().jobs.size > 0) {
+      //   return
+      // }
+      // get().dispatch.start('chatname', '.', `${downloadFolder}/allchat`)
+      // get().dispatch.start('chatname', 'keybasefriends#general', `${downloadFolder}/friends`)
+      // get().dispatch.start('kbfs', '.', `${downloadFolder}/allkbfs`)
+      // get().dispatch.start('kbfs', 'cnojima/vacation', `${downloadFolder}/vacation`)
+      // set(s => {
+      //   const old = s.jobs.get('1')
+      //   if (old) {
+      //     s.jobs.set('1', {
+      //       ...old,
+      //       progress: 0.8,
+      //     })
+      //   }
+      // })
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.chat1NotifyChatChatArchiveComplete: {
+          const {jobID} = action.payload.params
+          set(s => {
+            const id = uint8ArrayToHex(jobID)
+            s.jobs.set(id, {
+              context: 'TODO context',
+              id,
+              outPath: 'TODO outpath',
+              progress: 1,
+              started: 'TODO started',
+            })
           })
+          break
         }
-      })
+        case EngineGen.chat1NotifyChatChatArchiveProgress: {
+          const {jobID, messagesComplete, messagesTotal} = action.payload.params
+          set(s => {
+            const id = uint8ArrayToHex(jobID)
+            s.jobs.set(id, {
+              context: 'TODO context',
+              id,
+              outPath: 'TODO outpath',
+              progress: messagesComplete / messagesTotal,
+              started: 'TODO started',
+            })
+          })
+          break
+        }
+        default:
+      }
     },
     resetState: 'default',
     start: (type, path, outPath) => {
-      let context = ''
-      switch (type) {
-        case 'chatid':
-          context = C.useArchiveState.getState().chatIDToDisplayname(path)
-          break
-        case 'chatname':
-          if (path === '.') {
-            context = 'all chat'
-          } else {
-            context = `chat/${path}`
+      const f = async () => {
+        let context = ''
+        switch (type) {
+          case 'chatid': {
+            const jobID = Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
+            const id = uint8ArrayToHex(jobID)
+            try {
+              // TODO don't do this, have the service drive this
+              set(s => {
+                s.jobs.set(id, {
+                  context,
+                  id,
+                  outPath,
+                  progress: 0,
+                  started: formatTimeForPopup(new Date().getTime()),
+                })
+              })
+              await T.RPCChat.localArchiveChatRpcPromise({
+                compress: true,
+                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+                jobID,
+                outputPath: outPath,
+                query: {
+                  computeActiveList: false,
+                  convIDs: [T.Chat.keyToConversationID(path)],
+                  readOnly: false,
+                  unreadOnly: false,
+                },
+              })
+            } catch (e) {
+              set(s => {
+                const old = s.jobs.get(id)
+                if (old) {
+                  old.error = String(e)
+                }
+              })
+            }
+            return // NOTE return and not break
           }
-          break
-        case 'kbfs':
-          if (path === '.') {
-            context = 'all kbfs'
-          } else {
-            context = `kbfs/${path}`
-          }
-          break
-      }
-      // TODO outpath on mobile set by service
-      set(s => {
-        const nextKey = `${s.jobs.size + 1}`
-        s.jobs.set(nextKey, {
-          context,
-          id: nextKey,
-          outPath,
-          progress: 0,
-          started: formatTimeForPopup(new Date().getTime()),
+          case 'chatname':
+            // if (path === '.') {
+            //   context = 'all chat'
+            // } else {
+            //   context = `chat/${path}`
+            // }
+            break
+          case 'kbfs':
+            if (path === '.') {
+              context = 'all kbfs'
+            } else {
+              context = `kbfs/${path}`
+            }
+            break
+        }
+        // TODO outpath on mobile set by service
+        set(s => {
+          const nextKey = `${s.jobs.size + 1}`
+          s.jobs.set(nextKey, {
+            context,
+            id: nextKey,
+            outPath,
+            progress: 0,
+            started: formatTimeForPopup(new Date().getTime()),
+          })
         })
-      })
+      }
+      C.ignorePromise(f())
     },
   }
   return {

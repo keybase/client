@@ -45,6 +45,7 @@ export const _useState = Z.createZustand<State>(() => {
       C.useTrackerState.getState().dispatch.onEngineIncoming(action)
       C.useUFState.getState().dispatch.onEngineIncoming(action)
       C.useUsersState.getState().dispatch.onEngineIncoming(action)
+      C.useArchiveState.getState().dispatch.onEngineIncoming(action)
     },
     resetState: 'default',
   }
