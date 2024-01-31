@@ -809,7 +809,8 @@ func newMessageView(g *libkb.GlobalContext, opts RenderOptions, conversationID c
 
 func FmtTime(t time.Time, opts RenderOptions) string {
 	if opts.UseDateTime {
-		return t.Format(time.DateTime)
+		// In go>=1.20 this is time.DateTime
+		return t.Format("2006-01-02 15:04:05")
 	}
 	return ShortDurationFromNow(t)
 }
