@@ -17,7 +17,7 @@ export type MenuItem = {
   onClick?: (evt?: React.SyntheticEvent) => void
   onPress?: never
   progressIndicator?: boolean
-  style?: Object
+  style?: Styles.StylesCrossPlatform
   subTitle?: string
   rightTitle?: string
   title: string // Used only as ID if view is provided
