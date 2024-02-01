@@ -99,7 +99,7 @@
 
 + (void) _stripVideoExifAndCompleteAsset:(AVURLAsset *) asset originalURL:(NSURL *)originalURL completion:(ProcessMediaCompletionErrorOnly)completion {
   NSURL * tmpDstURL = [originalURL URLByAppendingPathExtension:@"tmp"];
-  AVAssetExportSession * exportSessionOriginal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPresetHighestQuality];
+  AVAssetExportSession * exportSessionOriginal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPresetMediumQuality];
   exportSessionOriginal.shouldOptimizeForNetworkUse = true;
   exportSessionOriginal.outputFileType = AVFileTypeMPEG4;
   exportSessionOriginal.outputURL = tmpDstURL;
