@@ -22,6 +22,24 @@ using namespace facebook;
 using namespace std;
 using namespace kb;
 
+// used to keep track of objects getting destroyed on the js side
+class KBTearDown : public jsi::HostObject {
+public:
+  KBTearDown() { Tearup(); }
+  virtual ~KBTearDown() {
+    NSLog(@"KBTeardown!!!");
+    Teardown();
+  }
+  virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
+    return jsi::Value::undefined();
+  }
+  virtual void set(jsi::Runtime &, const jsi::PropNameID &name,
+                   const jsi::Value &value) {}
+  virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
+    return {};
+  }
+};
+
 @implementation FsPathsHolder
 
 @synthesize fsPaths;
@@ -93,6 +111,18 @@ RCT_EXPORT_MODULE()
   KeybaseReset(&error);
 }
 
+- (NSArray<NSString *> *)supportedEvents {
+return @[ metaEventName ];
+}
+
+// Don't compile this code when we build for the old architecture.
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+(const facebook::react::ObjCTurboModule::InitParams &)params {
+return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
+}
+#endif
+
 - (void)sendToJS:(NSData *)data {
   __weak __typeof__(self) weakSelf = self;
   auto invoker = self.bridge.jsCallInvoker;
@@ -139,24 +169,6 @@ RCT_EXPORT_MODULE()
   }
 }
 
-// used to keep track of objects getting destroyed on the js side
-class KBTearDown : public jsi::HostObject {
-public:
-  KBTearDown() { Tearup(); }
-  virtual ~KBTearDown() {
-    NSLog(@"KBTeardown!!!");
-    Teardown();
-  }
-  virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
-    return jsi::Value::undefined();
-  }
-  virtual void set(jsi::Runtime &, const jsi::PropNameID &name,
-                   const jsi::Value &value) {}
-  virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
-    return {};
-  }
-};
-
 - (void)installJsiBindings {
   // stash the current runtime to keep in sync
   currentRuntime = self.bridge.runtime;
@@ -201,51 +213,6 @@ public:
                                         std::make_shared<KBTearDown>()));
 }
 
-RCT_REMAP_METHOD(getDefaultCountryCode, resolver
-                 : (RCTPromiseResolveBlock)resolve rejecter
-                 : (RCTPromiseRejectBlock)reject) {
-  CTTelephonyNetworkInfo *network_Info = [CTTelephonyNetworkInfo new];
-  CTCarrier *carrier = network_Info.subscriberCellularProvider;
-  resolve(carrier.isoCountryCode);
-}
-
-RCT_REMAP_METHOD(logSend, status
-                 : (NSString *)status feedback
-                 : (NSString *)feedback sendLogs
-                 : (BOOL)sendLogs sendMaxBytes
-                 : (BOOL)sendMaxBytes traceDir
-                 : (NSString *)traceDir cpuProfileDir
-                 : (NSString *)cpuProfileDir resolver
-                 : (RCTPromiseResolveBlock)resolve rejecter
-                 : (RCTPromiseRejectBlock)reject) {
-  NSString *logId = nil;
-  NSError *err = nil;
-  logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, traceDir,
-                         cpuProfileDir, &err);
-  if (err == nil) {
-    resolve(logId);
-  } else {
-    resolve(@"");
-  }
-}
-
-RCT_REMAP_METHOD(iosGetHasShownPushPrompt, getHasShownPushPromptWithResolver
-                 : (RCTPromiseResolveBlock)resolve rejecter
-                 : (RCTPromiseRejectBlock)reject) {
-  UNUserNotificationCenter *current =
-      UNUserNotificationCenter.currentNotificationCenter;
-  [current getNotificationSettingsWithCompletionHandler:^(
-               UNNotificationSettings *_Nonnull settings) {
-    if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
-      // We haven't asked yet
-      resolve(@FALSE);
-      return;
-    }
-    resolve(@TRUE);
-    return;
-  }];
-}
-
 // from react-native-localize
 - (bool)uses24HourClockForLocale:(NSLocale *_Nonnull)locale {
   NSDateFormatter *formatter = [NSDateFormatter new];
@@ -288,6 +255,54 @@ RCT_REMAP_METHOD(iosGetHasShownPushPrompt, getHasShownPushPromptWithResolver
     return @"";
   }
   return val;
+}
+
+- (NSDictionary *)getConstants {
+  return [self constantsToExport];
+}
+
+- (NSDictionary *)constantsToExport {
+  NSString *serverConfig = [self setupServerConfig];
+  NSString *guiConfig = [self setupGuiConfig];
+
+  NSString *darkModeSupported = @"0";
+  if (@available(iOS 13.0, *)) {
+    darkModeSupported = @"1";
+  };
+
+  NSString *appVersionString = [[NSBundle mainBundle]
+      objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  if (appVersionString == nil) {
+    appVersionString = @"";
+  }
+  NSString *appBuildString =
+      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+  if (appBuildString == nil) {
+    appBuildString = @"";
+  }
+  NSLocale *currentLocale = [NSLocale currentLocale];
+  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
+      NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
+      NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+
+  NSString *kbVersion = KeybaseVersion();
+  if (kbVersion == nil) {
+    kbVersion = @"";
+  }
+  return @{
+    @"androidIsDeviceSecure" : @NO,
+    @"androidIsTestDevice" : @NO,
+    @"appVersionCode" : appBuildString,
+    @"appVersionName" : appVersionString,
+    @"darkModeSupported" : darkModeSupported,
+    @"fsCacheDir" : cacheDir,
+    @"fsDownloadDir" : downloadDir,
+    @"guiConfig" : guiConfig,
+    @"serverConfig" : serverConfig,
+    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
+    @"version" : kbVersion
+  };
 }
 
 RCT_EXPORT_METHOD(engineReset) {
@@ -340,106 +355,69 @@ RCT_EXPORT_METHOD(install) {
     [self installJsiBindings];
 }
 
-- (NSDictionary *)getConstants {
-  return [self constantsToExport];
+RCT_EXPORT_METHOD(getDefaultCountryCode
+                 : (RCTPromiseResolveBlock)resolve reject
+                 : (RCTPromiseRejectBlock)reject) {
+  CTTelephonyNetworkInfo *network_Info = [CTTelephonyNetworkInfo new];
+    // TODO this will stop working at some point
+  CTCarrier *carrier = network_Info.subscriberCellularProvider;
+  resolve(carrier.isoCountryCode);
 }
 
-- (NSDictionary *)constantsToExport {
-  NSString *serverConfig = [self setupServerConfig];
-  NSString *guiConfig = [self setupGuiConfig];
-
-  NSString *darkModeSupported = @"0";
-  if (@available(iOS 13.0, *)) {
-    darkModeSupported = @"1";
-  };
-
-  NSString *appVersionString = [[NSBundle mainBundle]
-      objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-  if (appVersionString == nil) {
-    appVersionString = @"";
+RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendLogs:(BOOL)sendLogs sendMaxBytes:(BOOL)sendMaxBytes traceDir:(NSString *)traceDir cpuProfileDir:(NSString *)cpuProfileDir resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSString *logId = nil;
+  NSError *err = nil;
+  logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, traceDir,
+                         cpuProfileDir, &err);
+  if (err == nil) {
+    resolve(logId);
+  } else {
+    resolve(@"");
   }
-  NSString *appBuildString =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-  if (appBuildString == nil) {
-    appBuildString = @"";
-  }
-  NSLocale *currentLocale = [NSLocale currentLocale];
-  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
-      NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
-      NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
-
-  NSString *kbVersion = KeybaseVersion();
-  if (kbVersion == nil) {
-    kbVersion = @"";
-  }
-  return @{
-    @"androidIsDeviceSecure" : @NO,
-    @"androidIsTestDevice" : @NO,
-    @"appVersionCode" : appBuildString,
-    @"appVersionName" : appVersionString,
-    @"darkModeSupported" : darkModeSupported,
-    @"fsCacheDir" : cacheDir,
-    @"fsDownloadDir" : downloadDir,
-    @"guiConfig" : guiConfig,
-    @"serverConfig" : serverConfig,
-    @"uses24HourClock" : @([self uses24HourClockForLocale:currentLocale]),
-    @"version" : kbVersion
-  };
 }
 
-- (void)androidAddCompleteDownload:
-    (/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/ id)o {
-}
-- (void)androidAppColorSchemeChanged:(NSString *)mode {
-}
-- (NSNumber *)androidCheckPushPermissions {
-  return @-1;
-}
-- (NSString *)androidGetInitialBundleFromNotification {
-  return @"";
-}
-- (NSString *)androidGetInitialShareFileUrl {
-  return @"";
-}
-- (NSString *)androidGetInitialShareText {
-  return @"";
-}
-- (NSString *)androidGetRegistrationToken {
-  return @"";
-}
-- (NSNumber *)androidGetSecureFlagSetting {
-  return @-1;
-}
-- (void)androidOpenSettings {
-}
-- (NSNumber *)androidRequestPushPermissions {
-  return @-1;
-}
-- (void)androidSetApplicationIconBadgeNumber:(double)n {
-}
-- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {
-  return @-1;
-}
-- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {
-  return @-1;
-}
-- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {
-  return @-1;
-}
-- (void)androidUnlink:(NSString *)path {
+RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
+  UNUserNotificationCenter *current =
+      UNUserNotificationCenter.currentNotificationCenter;
+  [current getNotificationSettingsWithCompletionHandler:^(
+               UNNotificationSettings *_Nonnull settings) {
+    if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
+      // We haven't asked yet
+      resolve(@FALSE);
+      return;
+    }
+    resolve(@TRUE);
+    return;
+  }];
 }
 
-- (NSArray<NSString *> *)supportedEvents {
-  return @[ metaEventName ];
-}
+- (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/ id)o {}
+- (void)androidAppColorSchemeChanged:(NSString *)mode {}
+- (NSNumber *)androidCheckPushPermissions {return @-1;}
+- (NSString *)androidGetInitialBundleFromNotification {return @"";}
+- (NSString *)androidGetInitialShareFileUrl {return @"";}
+- (NSString *)androidGetInitialShareText {return @"";}
+- (NSString *)androidGetRegistrationToken {return @"";}
+- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
+- (void)androidOpenSettings {}
+- (NSNumber *)androidRequestPushPermissions {return @-1;}
+- (void)androidSetApplicationIconBadgeNumber:(double)n {}
+- (void)androidAddCompleteDownload:(JS::NativeKb::SpecAndroidAddCompleteDownloadO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidGetInitialBundleFromNotification:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidGetInitialShareFileUrls:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidGetInitialShareText:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidGetSecureFlagSetting:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
+- (void)androidSetSecureFlagSetting:(BOOL)s resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
+- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
+- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
+- (void)androidUnlink:(NSString *)path {}
 
-// Don't compile this code when we build for the old architecture.
-#ifdef RCT_NEW_ARCH_ENABLED
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-    (const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
-}
-#endif
 
 @end
