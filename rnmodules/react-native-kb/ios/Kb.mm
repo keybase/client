@@ -80,7 +80,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
-@property(nonatomic, weak) RCTBridge *bridge;
 @end
 
 @implementation Kb
@@ -418,6 +417,5 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
 - (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (void)androidUnlink:(NSString *)path {}
-
 
 @end
