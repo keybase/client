@@ -47,6 +47,9 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   }, [originalOnly, syncCompressPreferenceFromServiceToStore])
 
   const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
+
+  const isLarge = (useOriginalValue ? originalTotalSize : scaledTotalSize) > 1024 * 1024 * 150
+
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {hidePopup} = p
@@ -64,6 +67,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
             {
               icon: useOriginalValue ? 'iconfont-check' : undefined,
               onClick: () => setUseOriginalFromUI(true),
+              rightTitle: isLarge ? 'Large file' : undefined,
               title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
             },
             {
@@ -76,6 +80,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
       )
     },
     [
+      isLarge,
       originalTotalSize,
       scaledTotalSize,
       useOriginalValue,
@@ -96,7 +101,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   return (
     <>
-      <Kb.Icon type="iconfont-gear" padding="tiny" onClick={showPopup} />
+      <Kb.Icon
+        type="iconfont-gear"
+        padding="tiny"
+        onClick={showPopup}
+        colorOverride={isLarge ? Kb.Styles.globalColors.yellow : undefined}
+      />
       {popup}
     </>
   )

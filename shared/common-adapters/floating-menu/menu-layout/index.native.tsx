@@ -97,7 +97,7 @@ const MenuRow = (props: MenuRowProps) => (
             style={{justifyContent: 'center'}}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="Body" style={styleRowText(props)}>
+              <Kb.Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
                 {props.title}
                 {props.rightTitle ? (
                   <Kb.Text type="BodyTinySemiboldItalic">{' ' + props.rightTitle}</Kb.Text>

@@ -20,14 +20,6 @@
   };
 }
 
-+ (CFDictionaryRef) _thumbnailImageOptions{
-  return (__bridge CFDictionaryRef) @{
-    (id) kCGImageSourceCreateThumbnailWithTransform : @YES,
-    (id) kCGImageSourceCreateThumbnailFromImageAlways : @YES,
-    (id) kCGImageSourceThumbnailMaxPixelSize : @(480),
-  };
-}
-
 + (NSError *) _scaleDownCGImageSourceRef:(CGImageSourceRef)img dstURL:(NSURL *)dstURL options:(CFDictionaryRef)options {
   NSLog(@"dstURL: %@", dstURL);
   CGImageRef scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options);
@@ -72,36 +64,27 @@
 + (void) processImageFromOriginal:(NSURL*)url completion:(ProcessMediaCompletion)completion {
   NSError * error = [MediaUtils _stripImageExifAtURL:url];
   if (error != nil){
-    completion(error, nil, nil);
+    completion(error, nil);
     return;
   }
   
   NSString * basename = [[url URLByDeletingPathExtension] lastPathComponent];
   NSURL * parent = [url URLByDeletingLastPathComponent];
   NSURL * scaledURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.scaled.jpg", basename]];
-  NSURL * thumbnailURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.thumbnail.jpg", basename]];
-  
   CGImageSourceRef cgSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, nil);
   
   error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:scaledURL options:[MediaUtils _scaledImageOptions]];
   if (error != nil) {
     CFRelease(cgSource);
-    completion(error, nil, nil);
-    return;
-  }
-  
-  error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:thumbnailURL options:[MediaUtils _thumbnailImageOptions]];
-  if (error != nil) {
-    CFRelease(cgSource);
-    completion(error, nil, nil);
+    completion(error, nil);
     return;
   }
   
   CFRelease(cgSource);
-  completion(nil, scaledURL, thumbnailURL);
+  completion(nil, scaledURL);
 }
 
-+ (BOOL) _needScaleDownAsset:(AVURLAsset *) asset {
++ (BOOL) _needScaleDownAsset:(AVURLAsset *) asset { 
   NSArray<AVAssetTrack *> * tracks = [asset tracks];
   if (tracks != nil){
     for (int i = 0; i < tracks.count; ++i) {
@@ -146,26 +129,7 @@
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
   if (error != nil) {
     CFRelease(cgOriginal);
-    completion(error, nil, nil);
-    return;
-  }
-  
-  // TODO: this is just the original frame. Figure out how to make thumbnail work here.
-  /*
-  CGImageSourceRef cfSouruce = CGImageSourceCreateWithDataProvider(CGImageGetDataProvider(cgOriginal), nil);
-  error = [MediaUtils _scaleDownCGImageSourceRef:cfSouruce dstURL:thumbnailURL options:[MediaUtils _thumbnailImageOptions]];
-  CGImageRelease(cgOriginal);
-  if (error != nil) {
-    NSLog(@"scale down error: %@", error);
-    completion(error, nil, nil);
-    return;
-  }
-   */
-  NSData * thumbnail = UIImageJPEGRepresentation([UIImage imageWithCGImage:cgOriginal], 0.85);
-  CFRelease(cgOriginal);
-  BOOL OK = [thumbnail writeToURL:thumbnailURL atomically:true];
-  if (!OK) {
-    completion([NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error getting thumbnail for video"}], nil, nil);
+    completion(error, nil);
     return;
   }
   
@@ -173,27 +137,29 @@
   if (!needScaleDown) {
     [MediaUtils _stripVideoExifAndCompleteAsset:asset originalURL:url completion:^(NSError * _Nullable error) {
       if (error != nil) {
-        completion(error, nil, nil);
+        completion(error, nil);
+      } else {
+        completion(nil, url);
       }
-      completion(nil, url, thumbnailURL);
     }];
     return;
   }
   
-  AVAssetExportSession * exportSessionNormal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPreset640x480];
+  AVAssetExportSession * exportSessionNormal = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPresetMediumQuality];
   exportSessionNormal.shouldOptimizeForNetworkUse = true;
   exportSessionNormal.outputFileType = AVFileTypeMPEG4;
   exportSessionNormal.outputURL = normalVideoURL;
   [exportSessionNormal exportAsynchronouslyWithCompletionHandler:^{
     if (exportSessionNormal.error != nil) {
-      completion(exportSessionNormal.error, nil, nil);
+      completion(exportSessionNormal.error, nil);
       return;
     }
     [MediaUtils _stripVideoExifAndCompleteAsset:asset originalURL:url completion:^(NSError * _Nullable error) {
       if (error != nil) {
-        completion(error, nil, nil);
+        completion(error, nil);
+      } else {
+        completion(nil, normalVideoURL);
       }
-      completion(nil, normalVideoURL, thumbnailURL);
     }];
   }];
 }
