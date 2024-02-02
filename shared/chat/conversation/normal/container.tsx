@@ -5,6 +5,8 @@ import Normal from '.'
 import {OrangeLineContext} from '../orange-line-context'
 import {FocusProvider, ScrollProvider} from './context'
 
+const DEBUG = __DEV__
+
 const noOrd = T.Chat.numberToOrdinal(-1)
 const caughtUpOrd = T.Chat.numberToOrdinal(0)
 // Orange line logic:
@@ -64,6 +66,16 @@ const useOrangeLine = () => {
     const ord = s.messageMap.get(T.Chat.numberToOrdinal(mord))?.ordinal
     return ord ?? noOrd
   })
+
+  DEBUG &&
+    console.log('[useOrangeLine debug] ', {
+      convoChanged,
+      maxMsgOrd,
+      noExisting,
+      orangeLineRef: orangeLineRef.current,
+      readMsgWentBackwards,
+      wentInactive,
+    })
 
   if (convoChanged || noExisting || readMsgWentBackwards) {
     orangeLineRef.current = storeOrangeLine

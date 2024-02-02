@@ -38,6 +38,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
+    console.log('aaa setnative', nativeProps)
     this._input.current?.setNativeProps(nativeProps)
   }
 
@@ -59,20 +60,34 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
+    console.log('aaa transform setnative', newTextInfo.text)
+
     this.setNativeProps({text: newTextInfo.text})
-    // selection is pretty flakey on RN, skip if its at the end?
-    if (
-      newCheckedSelection.start === newCheckedSelection.end &&
-      newCheckedSelection.start === newTextInfo.text.length
-    ) {
-    } else {
+    setTimeout(() => {
+      this.setNativeProps({text: newTextInfo.text})
       setTimeout(() => {
-        this._mounted && this.setNativeProps({selection: newCheckedSelection})
-      }, 100)
-    }
+        this.setNativeProps({selection: newCheckedSelection})
+        setTimeout(() => {
+          this.setNativeProps({selection: newCheckedSelection})
+        }, 10)
+      }, 10)
+    }, 10)
+
+    // this.setNativeProps({text: newTextInfo.text})
+    // selection is pretty flakey on RN, skip if its at the end?
+    // if (
+    //   newCheckedSelection.start === newCheckedSelection.end &&
+    //   newCheckedSelection.start === newTextInfo.text.length
+    // ) {
+    // } else {
+    //   setTimeout(() => {
+    //     this._mounted && this.setNativeProps({selection: newCheckedSelection})
+    //   }, 100)
+    // }
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
     if (reflectChange) {
+      console.log('aaa _onchange refelct', newTextInfo)
       this._onChangeText(newTextInfo.text)
     }
   }
@@ -104,6 +119,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onChangeText = (t: string) => {
+    console.log('aaa _onchange', t)
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
       if (stringToUint8Array(t).byteLength > maxBytes) {
@@ -115,6 +131,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    console.log('aaa _onSelectionChange', event.nativeEvent.selection)
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
@@ -224,7 +241,17 @@ class PlainInput extends React.PureComponent<InternalProps> {
       multiline: false,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
-      onEndEditing: this.props.onEndEditing,
+
+      // TEMP
+      onChange: a => {
+        console.log('aaa onchange', a.nativeEvent)
+      },
+      onEndEditing: (...a) => {
+        console.log('aaa onendediting', a)
+        this.props.onEndEditing?.()
+      },
+      // TEMP end
+      // onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
       onImageChange: this.onImageChange,
       onKeyPress: this.props.onKeyPress,
@@ -236,7 +263,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
       // currently broken on ios https://github.com/facebook/react-native/issues/30585
-      selectTextOnFocus: this.props.selectTextOnFocus,
+      selectTextOnFocus: false, //this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
