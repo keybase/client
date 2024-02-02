@@ -14,6 +14,7 @@ import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
+import shallowEqual from 'shallowequal'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -46,6 +47,39 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._mounted = false
   }
 
+  _toSettleText = ''
+  _toSettleSel = {}
+  _toSettleTries = 0
+  _transformSettle = () => {
+    --this._toSettleTries
+    if (this._toSettleTries < 0) {
+      console.log('aaa settle fail tries')
+      return
+    }
+    if (
+      shallowEqual(this._lastNativeSelection, this._toSettleSel) &&
+      this._lastNativeText === this._toSettleText
+    ) {
+      // done
+      console.log('aaa settle DONE')
+      return
+    }
+
+    console.log(
+      'aaa settle continuing: is=',
+      this._lastNativeSelection,
+      this._lastNativeText,
+      'want=',
+      this._toSettleSel,
+      this._toSettleText
+    )
+    this.setNativeProps({selection: this._toSettleSel, text: this._toSettleText})
+    // sadly just doing this once doesn't work
+    setTimeout(() => {
+      this._transformSettle()
+    }, 100)
+  }
+
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
@@ -62,30 +96,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
     checkTextInfo(newTextInfo)
     console.log('aaa transform setnative', newTextInfo.text)
 
-    this.setNativeProps({text: newTextInfo.text})
-    setTimeout(() => {
-      this.setNativeProps({text: newTextInfo.text})
-      setTimeout(() => {
-        this.setNativeProps({selection: newCheckedSelection})
-        setTimeout(() => {
-          this.setNativeProps({selection: newCheckedSelection})
-        }, 10)
-      }, 10)
-    }, 10)
-
-    // this.setNativeProps({text: newTextInfo.text})
-    // selection is pretty flakey on RN, skip if its at the end?
-    // if (
-    //   newCheckedSelection.start === newCheckedSelection.end &&
-    //   newCheckedSelection.start === newTextInfo.text.length
-    // ) {
-    // } else {
-    //   setTimeout(() => {
-    //     this._mounted && this.setNativeProps({selection: newCheckedSelection})
-    //   }, 100)
-    // }
+    this._toSettleText = newTextInfo.text
+    this._toSettleSel = newCheckedSelection
+    this._toSettleTries = 5
+    this._transformSettle()
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
+
     if (reflectChange) {
       console.log('aaa _onchange refelct', newTextInfo)
       this._onChangeText(newTextInfo.text)
@@ -263,7 +280,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
       // currently broken on ios https://github.com/facebook/react-native/issues/30585
-      selectTextOnFocus: false, //this.props.selectTextOnFocus,
+      selectTextOnFocus: this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
