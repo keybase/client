@@ -49,35 +49,43 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _toSettleText = ''
   _toSettleSel = {}
+  _toSettleTriesMax = 5
   _toSettleTries = 0
   _transformSettle = () => {
-    if (
-      shallowEqual(this._lastNativeSelection, this._toSettleSel) &&
-      this._lastNativeText === this._toSettleText
-    ) {
-      // done
-      console.log('aaa settle DONE')
-      return
+    const needText = this._lastNativeText !== this._toSettleText
+    const needSel = !shallowEqual(this._lastNativeSelection, this._toSettleSel)
+    // we need to keep watching cause it can be correct then wrong...
+    if (needText || needSel) {
+      console.log(
+        'aaa settle continuing: is=',
+        this._lastNativeSelection,
+        this._lastNativeText,
+        'want=',
+        this._toSettleSel,
+        this._toSettleText
+      )
+
+      // can't control the order of the keys in this object! so we have to make 2 calls
+      if (needText) {
+        console.log('aaa about to setnative text', this._lastNativeText, this._toSettleText)
+        this.setNativeProps({text: this._toSettleText})
+      }
+
+      if (needSel) {
+        console.log('aaa about to setnative sel', this._lastNativeSelection, this._toSettleSel)
+        this.setNativeProps({selection: this._toSettleSel})
+      }
     }
 
-    console.log(
-      'aaa settle continuing: is=',
-      this._lastNativeSelection,
-      this._lastNativeText,
-      'want=',
-      this._toSettleSel,
-      this._toSettleText
-    )
-    this.setNativeProps({selection: this._toSettleSel, text: this._toSettleText})
     // sadly just doing this once doesn't work
     --this._toSettleTries
     if (this._toSettleTries < 0) {
-      console.log('aaa settle fail tries')
+      console.log('aaa settle out of tries')
       return
     }
     setTimeout(() => {
       this._transformSettle()
-    }, 100)
+    }, 10)
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
@@ -98,10 +106,10 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
     this._toSettleText = newTextInfo.text
     this._toSettleSel = newCheckedSelection
-    this._toSettleTries = 5
+    this._toSettleTries = this._toSettleTriesMax
+    // this._lastNativeText = newTextInfo.text
+    // this._lastNativeSelection = newCheckedSelection
     this._transformSettle()
-    this._lastNativeText = newTextInfo.text
-    this._lastNativeSelection = newCheckedSelection
 
     if (reflectChange) {
       console.log('aaa _onchange refelct', newTextInfo)
@@ -149,11 +157,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     console.log('aaa _onSelectionChange', event.nativeEvent.selection)
-    const {start: _start, end: _end} = event.nativeEvent.selection
+    const {start, end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
-    const start = Math.min(_start || 0, _end || 0)
-    const end = Math.max(_start || 0, _end || 0)
+    // const start = Math.min(_start || 0, _end || 0)
+    // const end = Math.max(_start || 0, _end || 0)
     this._lastNativeSelection = {end, start}
     this.props.onSelectionChange?.(this._lastNativeSelection)
   }
