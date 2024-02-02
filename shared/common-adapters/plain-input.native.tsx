@@ -51,11 +51,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _toSettleSel = {}
   _toSettleTries = 0
   _transformSettle = () => {
-    --this._toSettleTries
-    if (this._toSettleTries < 0) {
-      console.log('aaa settle fail tries')
-      return
-    }
     if (
       shallowEqual(this._lastNativeSelection, this._toSettleSel) &&
       this._lastNativeText === this._toSettleText
@@ -75,6 +70,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     )
     this.setNativeProps({selection: this._toSettleSel, text: this._toSettleText})
     // sadly just doing this once doesn't work
+    --this._toSettleTries
+    if (this._toSettleTries < 0) {
+      console.log('aaa settle fail tries')
+      return
+    }
     setTimeout(() => {
       this._transformSettle()
     }, 100)
