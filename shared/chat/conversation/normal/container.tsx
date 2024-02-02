@@ -36,8 +36,9 @@ const useOrangeLine = () => {
     return readMsgID
   })
   const lastReadMsgIDRef = React.useRef(readMsgID)
+
   // mark as unread does this
-  const readMsgWentBackwards = readMsgID > 0 && readMsgID < lastReadMsgIDRef.current
+  const readMsgWentBackwards = !convoChanged && readMsgID > 0 && readMsgID < lastReadMsgIDRef.current
   lastReadMsgIDRef.current = readMsgID
 
   // only search for an orange line if we need it
