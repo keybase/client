@@ -102,8 +102,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
       const newTextInfo = fn(textInfo)
       checkTextInfo(newTextInfo)
       n.value = newTextInfo.text
-      n.selectionStart = newTextInfo.selection.start
-      n.selectionEnd = newTextInfo.selection.end
+      // if we change this immediately it can fail
+      setTimeout(() => {
+        n.selectionStart = newTextInfo.selection.start
+        n.selectionEnd = newTextInfo.selection.end
+      }, 1)
 
       if (reflectChange && this._input.current) {
         this._onChange({target: this._input.current})
