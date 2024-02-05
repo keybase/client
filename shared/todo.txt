@@ -1,3 +1,5 @@
 Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
+
+cahnges in rn-tet input
