@@ -61,12 +61,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
     checkTextInfo(newTextInfo)
 
     // this is a very hacky workaround for internal bugs in RN TextInput
-    // write a stub with the same length
-    this.setNativeProps({text: new Array(newTextInfo.text.length).fill('A')})
+    // write a stub with different content
+    this.setNativeProps({text: null})
     // fix selection and text after a delay
     setTimeout(() => {
-      this.setNativeProps({selection: newCheckedSelection})
-      this.setNativeProps({text: newTextInfo.text})
+      this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
+      // if this is shorter it doesn't seem to register at all
     }, 100)
 
     if (reflectChange) {
