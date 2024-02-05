@@ -43,7 +43,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input.current?.setNativeProps(nativeProps)
   }
 
+  componentDidMount() {
+    console.log('aaaa mount >>>>>>>>>>>>>>')
+  }
+
   componentWillUnmount() {
+    console.log('aaaa unmount <<<<<<<<<<<<<<<')
     this._mounted = false
   }
 
@@ -102,14 +107,47 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    console.log('aaa transform setnative', newTextInfo.text)
+    console.log('aaa transformtxt ', newTextInfo.text)
 
-    this._toSettleText = newTextInfo.text
-    this._toSettleSel = newCheckedSelection
-    this._toSettleTries = this._toSettleTriesMax
-    // this._lastNativeText = newTextInfo.text
-    // this._lastNativeSelection = newCheckedSelection
-    this._transformSettle()
+    // write
+    this.setNativeProps({text: new Array(newTextInfo.text.length).fill('A')})
+    // fix selection
+    setTimeout(() => {
+      this.setNativeProps({selection: newCheckedSelection})
+      this.setNativeProps({text: newTextInfo.text})
+    }, 100)
+
+    // WORKS!
+    // move to end
+    // this.setNativeProps({selection: {end: newTextInfo.text.length, start: newTextInfo.text.length}})
+    // // write
+    // setTimeout(() => {
+    //   this.setNativeProps({text: new Array(newTextInfo.text.length).fill('A')})
+    //   // fix selection
+    //   setTimeout(() => {
+    //     this.setNativeProps({selection: newCheckedSelection})
+    //     this.setNativeProps({text: newTextInfo.text})
+    //   }, 100)
+    // }, 100)
+    // WORKS!
+    // this._toSettleText = newTextInfo.text
+    // this._toSettleSel = newCheckedSelection
+    // this._toSettleTries = this._toSettleTriesMax
+    // // this._lastNativeText = newTextInfo.text
+    // // this._lastNativeSelection = newCheckedSelection
+    // //this._transformSettle()
+    //
+    // this.setNativeProps({text: newTextInfo.text})
+    // // selection is pretty flakey on RN, skip if its at the end?
+    // if (
+    //   newCheckedSelection.start === newCheckedSelection.end &&
+    //   newCheckedSelection.start === newTextInfo.text.length
+    // ) {
+    // } else {
+    //   setTimeout(() => {
+    //     this._mounted && this.setNativeProps({selection: newCheckedSelection})
+    //   }, 100)
+    // }
 
     if (reflectChange) {
       console.log('aaa _onchange refelct', newTextInfo)
