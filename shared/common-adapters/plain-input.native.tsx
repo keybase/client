@@ -45,6 +45,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._mounted = false
   }
 
+  _afterTransform: (() => void) | undefined
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
@@ -62,15 +63,22 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
     // this is a very hacky workaround for internal bugs in RN TextInput
     // write a stub with different content
-    this.setNativeProps({text: null})
-    // fix selection and text after a delay
-    setTimeout(() => {
-      this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
-      // if this is shorter it doesn't seem to register at all
-    }, 100)
+    this.setNativeProps({text: ''})
 
-    if (reflectChange) {
-      this._onChangeText(newTextInfo.text)
+    this._afterTransform = () => {
+      this._afterTransform = undefined
+      this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
+      if (reflectChange) {
+        this._onChangeText(newTextInfo.text)
+      }
+    }
+    if (isIOS) {
+      // defer to a onChangeText call
+    } else {
+      // must call ourselves
+      setTimeout(() => {
+        this._afterTransform?.()
+      }, 20)
     }
   }
 
@@ -109,6 +117,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
     this._lastNativeText = t
     this.props.onChangeText?.(t)
+
+    // android doesn't get this callback correctly so we use setTimeout above
+    if (isIOS) {
+      this._afterTransform?.()
+    }
   }
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
