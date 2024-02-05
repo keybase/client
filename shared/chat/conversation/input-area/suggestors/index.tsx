@@ -69,7 +69,6 @@ export const useSyncInput = (p: UseSyncInputProps) => {
     setFilter('')
   }, [setActive, setFilter])
 
-  // TODO fix this function w/
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
       const useSpaces = active === 'commands'

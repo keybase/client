@@ -38,7 +38,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
-    console.log('aaa setnative', nativeProps)
     this._input.current?.setNativeProps(nativeProps)
   }
 
@@ -102,7 +101,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onChangeText = (t: string) => {
-    console.log('aaa _onchange', t)
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
       if (stringToUint8Array(t).byteLength > maxBytes) {
@@ -114,12 +112,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    console.log('aaa _onSelectionChange', event.nativeEvent.selection)
     const {start, end} = event.nativeEvent.selection
-    // Work around Android bug which sometimes puts end before start:
-    // https://github.com/facebook/react-native/issues/18579 .
-    // const start = Math.min(_start || 0, _end || 0)
-    // const end = Math.max(_start || 0, _end || 0)
     this._lastNativeSelection = {end, start}
     this.props.onSelectionChange?.(this._lastNativeSelection)
   }
