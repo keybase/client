@@ -14,7 +14,6 @@ import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
-import shallowEqual from 'shallowequal'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -43,54 +42,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input.current?.setNativeProps(nativeProps)
   }
 
-  componentDidMount() {
-    console.log('aaaa mount >>>>>>>>>>>>>>')
-  }
-
   componentWillUnmount() {
-    console.log('aaaa unmount <<<<<<<<<<<<<<<')
     this._mounted = false
-  }
-
-  _toSettleText = ''
-  _toSettleSel = {}
-  _toSettleTriesMax = 5
-  _toSettleTries = 0
-  _transformSettle = () => {
-    const needText = this._lastNativeText !== this._toSettleText
-    const needSel = !shallowEqual(this._lastNativeSelection, this._toSettleSel)
-    // we need to keep watching cause it can be correct then wrong...
-    if (needText || needSel) {
-      console.log(
-        'aaa settle continuing: is=',
-        this._lastNativeSelection,
-        this._lastNativeText,
-        'want=',
-        this._toSettleSel,
-        this._toSettleText
-      )
-
-      // can't control the order of the keys in this object! so we have to make 2 calls
-      if (needText) {
-        console.log('aaa about to setnative text', this._lastNativeText, this._toSettleText)
-        this.setNativeProps({text: this._toSettleText})
-      }
-
-      if (needSel) {
-        console.log('aaa about to setnative sel', this._lastNativeSelection, this._toSettleSel)
-        this.setNativeProps({selection: this._toSettleSel})
-      }
-    }
-
-    // sadly just doing this once doesn't work
-    --this._toSettleTries
-    if (this._toSettleTries < 0) {
-      console.log('aaa settle out of tries')
-      return
-    }
-    setTimeout(() => {
-      this._transformSettle()
-    }, 10)
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
@@ -107,50 +60,17 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    console.log('aaa transformtxt ', newTextInfo.text)
 
-    // write
+    // this is a very hacky workaround for internal bugs in RN TextInput
+    // write a stub with the same length
     this.setNativeProps({text: new Array(newTextInfo.text.length).fill('A')})
-    // fix selection
+    // fix selection and text after a delay
     setTimeout(() => {
       this.setNativeProps({selection: newCheckedSelection})
       this.setNativeProps({text: newTextInfo.text})
     }, 100)
 
-    // WORKS!
-    // move to end
-    // this.setNativeProps({selection: {end: newTextInfo.text.length, start: newTextInfo.text.length}})
-    // // write
-    // setTimeout(() => {
-    //   this.setNativeProps({text: new Array(newTextInfo.text.length).fill('A')})
-    //   // fix selection
-    //   setTimeout(() => {
-    //     this.setNativeProps({selection: newCheckedSelection})
-    //     this.setNativeProps({text: newTextInfo.text})
-    //   }, 100)
-    // }, 100)
-    // WORKS!
-    // this._toSettleText = newTextInfo.text
-    // this._toSettleSel = newCheckedSelection
-    // this._toSettleTries = this._toSettleTriesMax
-    // // this._lastNativeText = newTextInfo.text
-    // // this._lastNativeSelection = newCheckedSelection
-    // //this._transformSettle()
-    //
-    // this.setNativeProps({text: newTextInfo.text})
-    // // selection is pretty flakey on RN, skip if its at the end?
-    // if (
-    //   newCheckedSelection.start === newCheckedSelection.end &&
-    //   newCheckedSelection.start === newTextInfo.text.length
-    // ) {
-    // } else {
-    //   setTimeout(() => {
-    //     this._mounted && this.setNativeProps({selection: newCheckedSelection})
-    //   }, 100)
-    // }
-
     if (reflectChange) {
-      console.log('aaa _onchange refelct', newTextInfo)
       this._onChangeText(newTextInfo.text)
     }
   }
@@ -304,17 +224,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       multiline: false,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
-
-      // TEMP
-      onChange: a => {
-        console.log('aaa onchange', a.nativeEvent)
-      },
-      onEndEditing: (...a) => {
-        console.log('aaa onendediting', a)
-        this.props.onEndEditing?.()
-      },
-      // TEMP end
-      // onEndEditing: this.props.onEndEditing,
+      onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
       onImageChange: this.onImageChange,
       onKeyPress: this.props.onKeyPress,

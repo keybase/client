@@ -103,15 +103,6 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       const position = {end: toReplaceEnd, start: toReplaceStart}
 
       const word = text.substring(toReplaceStart, toReplaceEnd)
-      console.log('aaa getWordAtCursor', {
-        // orig: text.substring(selection.start),
-        startIdx,
-        nextSpaceIndex,
-        toReplaceEnd,
-        word,
-        position,
-      })
-
       return {position, word}
     }
     return null
@@ -182,13 +173,6 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
       )
-      // console.log('aaa triggerTransform', {
-      //   cursorInfo,
-      //   matchInfo,
-      //   transformedText,
-      //   lastTextRef: lastTextRef.current,
-      //   value,
-      // })
       lastTextRef.current = transformedText.text
       input.transformText(() => transformedText, final)
     },
