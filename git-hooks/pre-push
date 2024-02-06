@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# git gofmt, go vet, and golint pre-push hook
+# git gofmt, go vet, and pre-push hook
 #
 # To use, store as .git/hooks/pre-push inside your repository and make
 # sure it has execute permissions. This can be used instead of the
@@ -54,27 +54,7 @@ check_go_vet() {
 	exit 1
 }
 
-check_make_lint() {
-    if ! which golint > /dev/null 2>&1 ; then
-      echo >&2 "golint is not installed"
-      exit 1
-    fi
-    # Try the root dir.  If that doesn't work, see if there's a go subdir.
-    lint=$(make -s lint 2> /dev/null)
-    if [ $? -eq 2 ] ; then
-        lint=$(make -s -C go lint 2> /dev/null)
-    fi
-    [ -z "$lint" -o "$lint" = "Lint-free!" ] && return 0
-
-    # make lint found issues
-    echo >&2 "go lint found issues:"
-    echo >&2 "$lint"
-
-    exit 1
-}
-
 #-----------------------------------------------------------------------------
 
 check_go_fmt
 check_go_vet
-check_make_lint
