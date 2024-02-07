@@ -50,9 +50,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }
   const isDownloadError = !!message.transferErrMsg
 
-  const {showPopup, popup, popupAnchor} = useMessagePopup({
-    ordinal,
-  })
+  const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
 
   const titleOverride = React.useMemo(
     () => ({

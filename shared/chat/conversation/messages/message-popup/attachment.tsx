@@ -24,6 +24,19 @@ const PopAttach = (ownProps: OwnProps) => {
   const pending = !!message.transferState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+
+  const loadMoreMessages = C.useChatContext(s => s.dispatch.loadMoreMessages)
+
+  const onJump = React.useCallback(() => {
+    m &&
+      loadMoreMessages({
+        centeredMessageID: {conversationIDKey: m.conversationIDKey, highlightMode: 'always', messageID: m.id},
+        reason: 'jumpAttachment',
+      })
+    showInfoPanel(false, 'attachments')
+    clearModals()
+  }, [m, loadMoreMessages, showInfoPanel, clearModals])
+
   const onAllMedia = () => {
     clearModals()
     showInfoPanel(true, 'attachments')
@@ -79,6 +92,8 @@ const PopAttach = (ownProps: OwnProps) => {
     : []
   const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}] as const
 
+  const itemJump = [{icon: 'iconfont-camera', onClick: onJump, title: 'Jump to message'}] as const
+
   const topSection = [...itemSave, ...itemShare, ...itemDelete, ...itemExplode]
 
   const items = [
@@ -91,6 +106,7 @@ const PopAttach = (ownProps: OwnProps) => {
     ...itemForward,
     ...itemEdit,
     ...itemDownload,
+    ...itemJump,
     ...itemUnread,
     ...itemFinder,
     ...itemBot,

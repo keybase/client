@@ -52,6 +52,7 @@ type Doc = {
   progress: number
   onDownload?: () => void
   onShowInFinder?: () => void
+  onClick: () => void
 }
 
 type Link = {
@@ -60,6 +61,7 @@ type Link = {
   snippet: string
   title?: string
   url?: string
+  id: T.Chat.MessageID
 }
 type InfoPanelSection = Section<
   any,
@@ -176,7 +178,7 @@ const DocViewRow = (props: DocViewRowProps) => {
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={item.onDownload} onLongPress={showPopup}>
+      <Kb.ClickableBox onClick={item.onClick} onLongPress={showPopup}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
           <Kb.Icon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
@@ -404,6 +406,17 @@ export const useAttachmentSections = (
   const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
+  const loadMoreMessages = C.useChatContext(s => s.dispatch.loadMoreMessages)
+
+  const jumpToAttachment = React.useCallback(
+    (messageID: T.Chat.MessageID) => {
+      loadMoreMessages({
+        centeredMessageID: {conversationIDKey, highlightMode: 'always', messageID},
+        reason: 'jumpAttachment',
+      })
+    },
+    [conversationIDKey, loadMoreMessages]
+  )
 
   C.useOnMountOnce(() => {
     loadAttachmentView(selectedAttachmentView)
@@ -520,6 +533,7 @@ export const useAttachmentSections = (
                   audioDuration: m.audioDuration,
                   ctime: m.timestamp,
                   height: m.previewHeight,
+                  id: m.id,
                   key: `media-${m.ordinal}-${m.timestamp}-${m.previewURL}`,
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
@@ -575,6 +589,9 @@ export const useAttachmentSections = (
             key: `doc-${m.ordinal}-${m.author}-${m.timestamp}-${m.fileName}`,
             message: m,
             name: m.title || m.fileName,
+            onClick: () => {
+              jumpToAttachment(m.id)
+            },
             onDownload: () => onDocDownload(m),
             onShowInFinder: !C.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
             progress: m.transferProgress,
@@ -599,6 +616,7 @@ export const useAttachmentSections = (
               snippet: string
               title?: string
               url?: string
+              id: T.Chat.MessageID
             }>
           >((l, m) => {
             if (m.type !== 'text') {
@@ -608,6 +626,7 @@ export const useAttachmentSections = (
               l.push({
                 author: m.author,
                 ctime: m.timestamp,
+                id: m.id,
                 key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 snippet: m.decoratedText?.stringValue() ?? '',
               })
@@ -617,6 +636,7 @@ export const useAttachmentSections = (
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,
+                    id: m.id,
                     key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     snippet: m.decoratedText?.stringValue() ?? '',
                     title: u.unfurl.generic.title,
@@ -633,41 +653,50 @@ export const useAttachmentSections = (
             key: month.key,
             renderItem: ({item}: {item: Link}) => {
               return (
-                <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
-                  <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
-                    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-                      <Kb.NameWithIcon
-                        avatarSize={32}
-                        avatarStyle={styles.avatar}
-                        colorFollowing={true}
-                        username={item.author}
-                        horizontal={true}
-                      />
-                      <Kb.Text type="BodyTiny" style={styles.linkTime}>
-                        {formatTimeForMessages(item.ctime)}
-                      </Kb.Text>
+                <Kb.ClickableBox2
+                  onClick={() => {
+                    jumpToAttachment(item.id)
+                  }}
+                >
+                  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
+                    <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+                      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+                        <Kb.NameWithIcon
+                          avatarSize={32}
+                          avatarStyle={styles.avatar}
+                          colorFollowing={true}
+                          username={item.author}
+                          horizontal={true}
+                        />
+                        <Kb.Text type="BodyTiny" style={styles.linkTime}>
+                          {formatTimeForMessages(item.ctime)}
+                        </Kb.Text>
+                      </Kb.Box2>
+                      <Kb.Markdown
+                        serviceOnly={true}
+                        smallStandaloneEmoji={true}
+                        selectable={true}
+                        styleOverride={linkStyleOverride}
+                        style={styles.linkStyle}
+                      >
+                        {item.snippet}
+                      </Kb.Markdown>
                     </Kb.Box2>
-                    <Kb.Markdown
-                      serviceOnly={true}
-                      smallStandaloneEmoji={true}
-                      selectable={true}
-                      styleOverride={linkStyleOverride}
-                      style={styles.linkStyle}
-                    >
-                      {item.snippet}
-                    </Kb.Markdown>
+                    {!!item.title && (
+                      <Kb.Text
+                        type="BodySmallPrimaryLink"
+                        onClickURL={item.url}
+                        style={Styles.collapseStyles([
+                          styles.linkStyle,
+                          {color: Styles.globalColors.blueDark},
+                        ])}
+                      >
+                        {item.title}
+                      </Kb.Text>
+                    )}
+                    <Kb.Divider />
                   </Kb.Box2>
-                  {!!item.title && (
-                    <Kb.Text
-                      type="BodySmallPrimaryLink"
-                      onClickURL={item.url}
-                      style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}])}
-                    >
-                      {item.title}
-                    </Kb.Text>
-                  )}
-                  <Kb.Divider />
-                </Kb.Box2>
+                </Kb.ClickableBox2>
               )
             },
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
