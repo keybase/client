@@ -72,14 +72,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
         this._onChangeText(newTextInfo.text)
       }
     }
-    if (isIOS) {
-      // defer to a onChangeText call
-    } else {
-      // must call ourselves
-      setTimeout(() => {
-        this._afterTransform?.()
-      }, 20)
-    }
+
+    // call if it hasn't been called already
+    setTimeout(() => {
+      this._afterTransform?.()
+    }, 20)
   }
 
   getSelection = () => this._lastNativeSelection || {end: 0, start: 0}
@@ -118,10 +115,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._lastNativeText = t
     this.props.onChangeText?.(t)
 
-    // android doesn't get this callback correctly so we use setTimeout above
-    if (isIOS) {
-      this._afterTransform?.()
-    }
+    // call if it hasn't been called already
+    this._afterTransform?.()
   }
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
