@@ -137,7 +137,6 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
           ownProps.size
         )
   const iconInfo = followIconHelper(ownProps.size, followsYou, following)
-
   return (
     <Avatar
       blocked={blocked}

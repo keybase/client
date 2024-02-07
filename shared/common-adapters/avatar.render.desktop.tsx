@@ -7,12 +7,12 @@ const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128
     ? 'icon-poop-96'
     : s === 96
-    ? 'icon-poop-64'
-    : s === 64
-    ? 'icon-poop-48'
-    : s === 48 || s === 32
-    ? 'icon-poop-32'
-    : undefined
+      ? 'icon-poop-64'
+      : s === 64
+        ? 'icon-poop-48'
+        : s === 48 || s === 32
+          ? 'icon-poop-32'
+          : undefined
 
 const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
