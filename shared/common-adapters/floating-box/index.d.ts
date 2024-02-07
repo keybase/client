@@ -14,6 +14,7 @@ export type Props = {
   // optional because desktop only, return val nullable because refs always are
   attachTo?: React.RefObject<MeasureRef>
   // Desktop only - allow clicks outside the floating box to propagate. On
+  disableEscapeKey?: boolean // if true, ignore keys
   // mobile you can control this by setting a margin in `containerStyle`.
   propagateOutsideClicks?: boolean
   containerStyle?: StylesCrossPlatform

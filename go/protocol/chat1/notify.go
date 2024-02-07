@@ -1052,6 +1052,16 @@ type ChatAttachmentDownloadCompleteArg struct {
 	MsgID  MessageID      `codec:"msgID" json:"msgID"`
 }
 
+type ChatArchiveProgressArg struct {
+	JobID            ArchiveJobID `codec:"jobID" json:"jobID"`
+	MessagesComplete int64        `codec:"messagesComplete" json:"messagesComplete"`
+	MessagesTotal    int64        `codec:"messagesTotal" json:"messagesTotal"`
+}
+
+type ChatArchiveCompleteArg struct {
+	JobID ArchiveJobID `codec:"jobID" json:"jobID"`
+}
+
 type ChatPaymentInfoArg struct {
 	Uid    keybase1.UID   `codec:"uid" json:"uid"`
 	ConvID ConversationID `codec:"convID" json:"convID"`
@@ -1110,6 +1120,8 @@ type NotifyChatInterface interface {
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadComplete(context.Context, ChatAttachmentDownloadCompleteArg) error
+	ChatArchiveProgress(context.Context, ChatArchiveProgressArg) error
+	ChatArchiveComplete(context.Context, ArchiveJobID) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
@@ -1437,6 +1449,36 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					return
 				},
 			},
+			"ChatArchiveProgress": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatArchiveProgressArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatArchiveProgressArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatArchiveProgressArg)(nil), args)
+						return
+					}
+					err = i.ChatArchiveProgress(ctx, typedArgs[0])
+					return
+				},
+			},
+			"ChatArchiveComplete": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatArchiveCompleteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatArchiveCompleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatArchiveCompleteArg)(nil), args)
+						return
+					}
+					err = i.ChatArchiveComplete(ctx, typedArgs[0].JobID)
+					return
+				},
+			},
 			"ChatPaymentInfo": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatPaymentInfoArg
@@ -1641,6 +1683,17 @@ func (c NotifyChatClient) ChatAttachmentDownloadProgress(ctx context.Context, __
 
 func (c NotifyChatClient) ChatAttachmentDownloadComplete(ctx context.Context, __arg ChatAttachmentDownloadCompleteArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadComplete", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatArchiveProgress(ctx context.Context, __arg ChatArchiveProgressArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveProgress", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatArchiveComplete(ctx context.Context, jobID ArchiveJobID) (err error) {
+	__arg := ChatArchiveCompleteArg{JobID: jobID}
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveComplete", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 

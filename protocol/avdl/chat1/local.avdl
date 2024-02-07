@@ -1467,4 +1467,12 @@ protocol local {
   record TrackGiphySelectRes {
   }
   TrackGiphySelectRes trackGiphySelect(int sessionID, GiphySearchResult result);
+
+  ArchiveChatRes archiveChat(ArchiveJobID jobID, string outputPath, union { null, GetInboxLocalQuery} query, boolean compress, keybase1.TLFIdentifyBehavior identifyBehavior);
+  record ArchiveChatRes {
+    // Possibily modified from the input if the input was not set or the output was compressed.
+    string outputPath;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
 }

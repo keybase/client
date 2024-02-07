@@ -17,6 +17,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatRemoveFromChannel(cl, g),
 		newCmdChatAPI(cl, g),
 		newCmdChatAPIListen(cl, g),
+		newCmdChatArchive(cl, g),
 		newCmdChatDefaultChannels(cl, g),
 		newCmdChatDeleteChannel(cl, g),
 		newCmdChatDeleteHistory(cl, g),

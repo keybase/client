@@ -1017,7 +1017,11 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+<<<<<<< HEAD
 					"-DRN_FABRIC_ENABLED",
+=======
+					" ",
+>>>>>>> origin/master
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",

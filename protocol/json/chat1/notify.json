@@ -915,6 +915,36 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatArchiveProgress": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "ArchiveJobID"
+        },
+        {
+          "name": "messagesComplete",
+          "type": "long"
+        },
+        {
+          "name": "messagesTotal",
+          "type": "long"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatArchiveComplete": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "ArchiveJobID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatPaymentInfo": {
       "request": [
         {

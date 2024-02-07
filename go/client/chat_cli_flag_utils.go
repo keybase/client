@@ -216,11 +216,7 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	return req, nil
 }
 
-// The purpose of this function is to provide more
-// information in resolvingRequest, with the ability
-// to use the socket, since this is not available
-// at parse time.
-func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResolvingRequest) (err error) {
+func annotateResolvingRequest2(g *libkb.GlobalContext, req *chatConversationResolvingRequest, setDefaultTeamTopic bool) (err error) {
 	userOrTeamResult, err := CheckUserOrTeamName(context.TODO(), g, req.TlfName)
 	if err != nil {
 		return err
@@ -239,13 +235,20 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 		req.MembersType != chat1.ConversationMembersType_TEAM {
 		return errors.New("channel name only supported for team and dev conversations")
 	}
-
-	// Set the default topic name to #general if none is specified
-	if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
-		req.TopicName = globals.DefaultTeamTopic
+	if setDefaultTeamTopic {
+		// Set the default topic name to #general if none is specified
+		if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
+			req.TopicName = globals.DefaultTeamTopic
+		}
 	}
-
 	return nil
+}
+
+// The purpose of this function is to provide more information in
+// resolvingRequest, with the ability to use the socket, since this is not
+// available at parse time.
+func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResolvingRequest) (err error) {
+	return annotateResolvingRequest2(g, req, true)
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConvFetcher, err error) {

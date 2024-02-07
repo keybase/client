@@ -79,7 +79,13 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       if (!selection || selection.start === null) {
         return null
       }
-      const upToCursor = text.substring(0, selection.start)
+
+      // move selection to end of the selected word so replacements don't squish with text after
+      const startIdx = Math.min(selection.start, text.length)
+      const nextSpaceIndex = text.indexOf(' ', startIdx)
+      const toReplaceEnd = nextSpaceIndex !== -1 ? nextSpaceIndex : text.length
+
+      const upToCursor = text.substring(0, toReplaceEnd)
       let wordRegex: string | RegExp
 
       // If the datasource has data which contains spaces, we can't just split by a space character.
@@ -91,8 +97,11 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         wordRegex = / |\n/
       }
       const words = upToCursor.split(wordRegex)
-      const word = words.at(-1)
-      const position = {end: selection.start, start: selection.start - word!.length}
+      const lastWordPrefix = words.at(-1)
+      const toReplaceStart = toReplaceEnd - (lastWordPrefix?.length ?? 0)
+      const position = {end: toReplaceEnd, start: toReplaceStart}
+
+      const word = text.substring(toReplaceStart, toReplaceEnd)
       return {position, word}
     }
     return null

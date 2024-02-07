@@ -13,6 +13,7 @@ const Toast = (props: Props) => (
     propagateOutsideClicks={true}
     position={props.position}
     containerStyle={styles.float}
+    disableEscapeKey={true}
   >
     <div
       className={Styles.classNames({visible: props.visible}, props.className, 'fadeBox')}

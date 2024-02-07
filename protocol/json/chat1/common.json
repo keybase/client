@@ -103,6 +103,12 @@
     },
     {
       "type": "record",
+      "name": "ArchiveJobID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "InboxVersInfo",
       "fields": [
         {
@@ -1536,7 +1542,8 @@
         "BOTCOMMANDS_10",
         "EMOJISOURCE_11",
         "FORWARDMSG_12",
-        "LOCALIZE_13"
+        "LOCALIZE_13",
+        "ARCHIVE_14"
       ]
     },
     {

@@ -153,15 +153,13 @@
 
 - (void)completeItemAndAppendManifestType:(NSString *)type
                           originalFileURL:(NSURL *)originalFileURL
-                            scaledFileURL:(NSURL *)scaledFileURL
-                         thumbnailFileURL:(NSURL *)thumbnailFileURL {
+                            scaledFileURL:(NSURL *)scaledFileURL {
   dispatch_async(dispatch_get_main_queue(), ^{
     NSMutableArray *arr = [self ensureArrayOfType:type];
     [arr addObject:@{
       @"type" : type,
       @"originalPath" : [originalFileURL absoluteURL].path,
       @"scaledPath" : [scaledFileURL absoluteURL].path,
-      @"thumbnailPath" : [thumbnailFileURL absoluteURL].path,
     }];
     [self completeProcessingItemAlreadyInMainThread];
   });
@@ -235,7 +233,7 @@
 
 - (void)handleAndCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo {
   ProcessMediaCompletion completion =
-  ^(NSError *error, NSURL *scaled, NSURL *thumbnail) {
+  ^(NSError *error, NSURL *scaled) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:
        @"handleAndCompleteMediaFile"
@@ -244,8 +242,7 @@
     }
     [self completeItemAndAppendManifestType:isVideo ? @"video" : @"image"
                             originalFileURL:url
-                              scaledFileURL:scaled
-                           thumbnailFileURL:thumbnail];
+                              scaledFileURL:scaled];
   };
   if (isVideo) {
     [MediaUtils processVideoFromOriginal:url completion:completion];

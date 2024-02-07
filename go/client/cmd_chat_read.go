@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -79,15 +80,15 @@ func (c *CmdChatRead) Run() error {
 	}
 
 	if convLocal.Error != nil {
-		ui.Printf("proccessing conversation error: %s\n", convLocal.Error.Message)
+		ui.Printf("processing conversation error: %s\n", convLocal.Error.Message)
 		return nil
 	}
 
 	ui.Printf("\n")
-	if err = (conversationView{
-		conversation: convLocal,
-		messages:     messages,
-	}).show(c.G(), c.showDeviceName); err != nil {
+	if err = (chatrender.ConversationView{
+		Conversation: convLocal,
+		Messages:     messages,
+	}).Show(c.G(), c.showDeviceName); err != nil {
 		return err
 	}
 	ui.Printf("\n")

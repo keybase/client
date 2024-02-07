@@ -80,7 +80,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
-@property(nonatomic, weak) RCTBridge *bridge;
 @end
 
 @implementation Kb
@@ -391,33 +390,31 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
   }];
 }
 
-- (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/ id)o {}
-- (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (NSNumber *)androidCheckPushPermissions {return @-1;}
+- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
+- (NSNumber *)androidRequestPushPermissions {return @-1;}
+- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
+- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
+- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSString *)androidGetInitialBundleFromNotification {return @"";}
 - (NSString *)androidGetInitialShareFileUrl {return @"";}
 - (NSString *)androidGetInitialShareText {return @"";}
 - (NSString *)androidGetRegistrationToken {return @"";}
-- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
-- (void)androidOpenSettings {}
-- (NSNumber *)androidRequestPushPermissions {return @-1;}
-- (void)androidSetApplicationIconBadgeNumber:(double)n {}
-- (void)androidAddCompleteDownload:(JS::NativeKb::SpecAndroidAddCompleteDownloadO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/id)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialBundleFromNotification:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareFileUrls:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareText:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetSecureFlagSetting:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidOpenSettings {}
 - (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
+- (void)androidSetApplicationIconBadgeNumber:(double)n {}
 - (void)androidSetSecureFlagSetting:(BOOL)s resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
-- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (void)androidUnlink:(NSString *)path {}
-
 
 @end

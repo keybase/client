@@ -45,6 +45,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._mounted = false
   }
 
+  _afterTransform: (() => void) | undefined
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
@@ -59,22 +60,23 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    // selection is pretty flakey on RN, skip if its at the end?
-    if (
-      newCheckedSelection.start === newCheckedSelection.end &&
-      newCheckedSelection.start === newTextInfo.text.length
-    ) {
-    } else {
-      setTimeout(() => {
-        this._mounted && this.setNativeProps({selection: newCheckedSelection})
-      }, 100)
+
+    // this is a very hacky workaround for internal bugs in RN TextInput
+    // write a stub with different content
+    this.setNativeProps({text: ''})
+
+    this._afterTransform = () => {
+      this._afterTransform = undefined
+      this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
+      if (reflectChange) {
+        this._onChangeText(newTextInfo.text)
+      }
     }
-    this._lastNativeText = newTextInfo.text
-    this._lastNativeSelection = newCheckedSelection
-    if (reflectChange) {
-      this._onChangeText(newTextInfo.text)
-    }
+
+    // call if it hasn't been called already
+    setTimeout(() => {
+      this._afterTransform?.()
+    }, 20)
   }
 
   getSelection = () => this._lastNativeSelection || {end: 0, start: 0}
@@ -112,14 +114,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
     this._lastNativeText = t
     this.props.onChangeText?.(t)
+
+    // call if it hasn't been called already
+    this._afterTransform?.()
   }
 
   _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    const {start: _start, end: _end} = event.nativeEvent.selection
-    // Work around Android bug which sometimes puts end before start:
-    // https://github.com/facebook/react-native/issues/18579 .
-    const start = Math.min(_start || 0, _end || 0)
-    const end = Math.max(_start || 0, _end || 0)
+    const {start, end} = event.nativeEvent.selection
     this._lastNativeSelection = {end, start}
     this.props.onSelectionChange?.(this._lastNativeSelection)
   }

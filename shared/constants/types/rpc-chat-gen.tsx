@@ -23,6 +23,14 @@ type SimpleError = {code?: number; desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
 export type MessageTypes = {
+  'chat.1.NotifyChat.ChatArchiveComplete': {
+    inParam: {readonly jobID: ArchiveJobID}
+    outParam: void
+  }
+  'chat.1.NotifyChat.ChatArchiveProgress': {
+    inParam: {readonly jobID: ArchiveJobID; readonly messagesComplete: Long; readonly messagesTotal: Long}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly msgID: MessageID}
     outParam: void
@@ -817,6 +825,7 @@ export enum GetThreadReason {
   emojisource = 11,
   forwardmsg = 12,
   localize = 13,
+  archive = 14,
 }
 
 export enum GlobalAppNotificationSetting {
@@ -1152,6 +1161,8 @@ export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String; readonly convID: ConvIDStr}
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName?: String | null; readonly convID?: ConversationID | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
+export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type ArchiveJobID = Bytes
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly ptHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo} | {assetType: AssetMetadataType.none}
 export type AssetMetadataImage = {readonly width: Int; readonly height: Int; readonly audioAmps?: Array<Double> | null}
@@ -1627,6 +1638,8 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam'] & {sessionID: number}) => void
   'chat.1.NotifyChat.ChatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam'] & {sessionID: number}) => void
   'chat.1.NotifyChat.ChatAttachmentDownloadComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam'] & {sessionID: number}) => void
+  'chat.1.NotifyChat.ChatArchiveProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatArchiveProgress']['inParam'] & {sessionID: number}) => void
+  'chat.1.NotifyChat.ChatArchiveComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatArchiveComplete']['inParam'] & {sessionID: number}) => void
   'chat.1.NotifyChat.ChatPaymentInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}) => void
   'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {sessionID: number}) => void
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => void
@@ -1830,6 +1843,7 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'
+// 'chat.1.local.archiveChat'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
@@ -1851,6 +1865,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.NotifyChat.ChatAttachmentUploadProgress'
 // 'chat.1.NotifyChat.ChatAttachmentDownloadProgress'
 // 'chat.1.NotifyChat.ChatAttachmentDownloadComplete'
+// 'chat.1.NotifyChat.ChatArchiveProgress'
+// 'chat.1.NotifyChat.ChatArchiveComplete'
 // 'chat.1.NotifyChat.ChatPaymentInfo'
 // 'chat.1.NotifyChat.ChatRequestInfo'
 // 'chat.1.NotifyChat.ChatPromptUnfurl'

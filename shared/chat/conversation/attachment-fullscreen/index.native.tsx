@@ -7,14 +7,19 @@ import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 import {useData} from './hooks'
+import {Animated} from 'react-native'
 
 const Fullscreen = (p: Props) => {
-  const {showHeader = true} = p
+  const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
   const {ordinal} = message
+  const [showHeader, setShowHeader] = React.useState(_showHeader)
+  const toggleHeader = React.useCallback(() => {
+    setShowHeader(s => !s)
+  }, [])
 
   const {showPopup, popup} = useMessagePopup({ordinal})
 
@@ -59,7 +64,9 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} />
+      content = (
+        <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} onTap={toggleHeader} />
+      )
     }
   }
   if (!loaded && isVideo) {
@@ -76,17 +83,27 @@ const Fullscreen = (p: Props) => {
     )
   }
 
+  const fadeAnim = React.useRef(new Animated.Value(1)).current
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      duration: 240,
+      toValue: showHeader ? 1 : 0,
+      useNativeDriver: true,
+    }).start()
+  }, [showHeader, fadeAnim])
+
   return (
     <Kb.Box2
       direction="vertical"
-      style={{backgroundColor: Styles.globalColors.blackOrBlack}}
+      style={{backgroundColor: Styles.globalColors.blackOrBlack, position: 'relative'}}
       fullWidth={true}
       fullHeight={true}
     >
       {spinner}
       <ShowToastAfterSaving transferState={message.transferState} />
-      {showHeader ? (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
+      <Kb.BoxGrow>{content}</Kb.BoxGrow>
+      <Animated.View style={[styles.animated, {opacity: fadeAnim}]}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.headerWrapper}>
           <Kb.Text type="Body" onClick={onClose} style={styles.close}>
             Close
           </Kb.Text>
@@ -94,8 +111,7 @@ const Fullscreen = (p: Props) => {
             All media
           </Kb.Text>
         </Kb.Box2>
-      ) : null}
-      <Kb.BoxGrow>{content}</Kb.BoxGrow>
+      </Animated.View>
       <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
       {popup}
     </Kb.Box2>
@@ -106,17 +122,22 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       allMedia: {
-        backgroundColor: Styles.globalColors.blackOrBlack,
         color: Styles.globalColors.blueDark,
         marginLeft: 'auto',
         padding: Styles.globalMargins.small,
+      },
+      animated: {
+        height: 50,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
       },
       assetWrapper: {
         ...Styles.globalStyles.flexBoxCenter,
         flex: 1,
       },
       close: {
-        backgroundColor: Styles.globalColors.blackOrBlack,
         color: Styles.globalColors.blueDark,
         padding: Styles.globalMargins.small,
       },

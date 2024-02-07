@@ -17,6 +17,7 @@
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
   @typedef("bytes")  record FlipGameID {}
+  @typedef("bytes")  record ArchiveJobID {}
 
   record InboxVersInfo {
     gregor1.UID uid;
@@ -597,7 +598,8 @@
     BOTCOMMANDS_10,
     EMOJISOURCE_11,
     FORWARDMSG_12,
-    LOCALIZE_13
+    LOCALIZE_13,
+    ARCHIVE_14
   }
 
   enum ReIndexingMode {
