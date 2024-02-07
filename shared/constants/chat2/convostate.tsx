@@ -227,7 +227,7 @@ export type ConvoState = ConvoStore & {
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
     messageRetry: (outboxID: T.Chat.OutboxID) => void
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
-    messagesAdd: (messages: Array<T.Chat.Message>) => void
+    messagesAdd: (messages: Array<T.Chat.Message>, markAsRead?: boolean) => void
     messagesClear: () => void
     messagesExploded: (messageIDs: Array<T.Chat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
@@ -864,7 +864,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                   })
                   // inject them into the message map
-                  get().dispatch.messagesAdd([message])
+                  get().dispatch.messagesAdd([message], false)
                 }
               },
             },
@@ -1503,7 +1503,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    messagesAdd: messages => {
+    messagesAdd: (messages, markAsRead = true) => {
       set(s => {
         for (const m of messages) {
           // we capture the highest one, cause sometimes we'll not track it in the map
@@ -1546,7 +1546,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         syncMessageDerived(s)
       })
-      get().dispatch.markThreadAsRead()
+      if (markAsRead) {
+        get().dispatch.markThreadAsRead()
+      }
     },
     messagesClear: () => {
       set(s => {
