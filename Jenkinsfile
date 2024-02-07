@@ -446,18 +446,6 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     }
   }
 
-  println "Running golint"
-  dir("buildtools") {
-    retry(5) {
-      sh 'go install golang.org/x/lint/golint'
-    }
-  }
-  retry(5) {
-    timeout(activity: true, time: 1200, unit: 'SECONDS') {
-      sh 'make -s lint'
-    }
-  }
-
   if (prefix == "test_linux_go_") {
     // Only test golangci-lint on linux
     println "Installing golangci-lint"
