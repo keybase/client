@@ -534,6 +534,7 @@ func (l *LoaderPackage) CheckHiddenMerklePathResponseAndAddRatchets(mctx libkb.M
 		return false, NewLoaderError("Logic error in CheckHiddenMerklePathResponseAndAddRatchets: should not call this function with a NONE response.")
 	case libkb.MerkleHiddenResponseTypeFLAGOFF:
 		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as feature flag is off")
+		return true, nil
 	case libkb.MerkleHiddenResponseTypeOK:
 		newCommittedHiddenTail := hiddenResp.CommittedHiddenTail
 		newCommittedHiddenTailSeqno := newCommittedHiddenTail.Seqno
