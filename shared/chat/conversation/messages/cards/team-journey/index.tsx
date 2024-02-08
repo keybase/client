@@ -47,7 +47,11 @@ export const TeamJourney = (props: Props) => {
         style={Kb.Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={contentHorizontalPadStyle}>
-          <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
+          <Kb.Box2
+            direction="horizontal"
+            style={props.image ? styles.text : undefined}
+            alignSelf="flex-start"
+          >
             {props.textComponent}
           </Kb.Box2>
           {!!props.image && (
@@ -150,9 +154,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           marginTop: Kb.Styles.globalMargins.tiny - buttonSpace,
         },
-        isElectron: {
-          flexWrap: 'wrap',
-        },
+        isElectron: {flexWrap: 'wrap'},
       }),
       authorContainer: Kb.Styles.platformStyles({
         common: {
@@ -184,13 +186,8 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: buttonSpace,
       },
       content: Kb.Styles.platformStyles({
-        isElectron: {
-          marginTop: -16,
-        },
-        isMobile: {
-          marginTop: -12,
-          paddingBottom: 3,
-        },
+        isElectron: {},
+        isMobile: {paddingBottom: 3},
       }),
       contentHorizontalPadChat: Kb.Styles.platformStyles({
         isElectron: {
@@ -226,21 +223,9 @@ const styles = Kb.Styles.styleSheetCreate(
             Kb.Styles.globalMargins.mediumLarge, // avatar
         },
       }),
-      contentWithImage: {
-        minHeight: 70,
-      },
+      contentWithImage: {minHeight: 70},
       image: Kb.Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          top: 0,
-        },
-        isElectron: {
-          left: '50%',
-          marginLeft: 15,
-        },
-        isMobile: {
-          right: 40,
-        },
+        isElectron: {marginTop: -33},
       }),
       imageSettingsTab: Kb.Styles.platformStyles({
         common: {
@@ -251,18 +236,10 @@ const styles = Kb.Styles.styleSheetCreate(
           left: '50%',
           marginLeft: 15,
         },
-        isMobile: {
-          right: 25,
-        },
+        isMobile: {right: 25},
       }),
-      teamnameText: Kb.Styles.platformStyles({
-        common: {
-          color: Kb.Styles.globalColors.black,
-        },
-      }),
-      text: {
-        maxWidth: '45%',
-      },
+      teamnameText: {color: Kb.Styles.globalColors.black},
+      text: {maxWidth: Kb.Styles.isMobile ? '70%' : 320},
     }) as const
 )
 

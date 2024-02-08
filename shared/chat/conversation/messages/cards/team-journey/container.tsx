@@ -31,13 +31,15 @@ type Props = {
 }
 
 const TeamJourneyContainer = (props: Props) => {
+  const {message} = props
+  const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined
   let actions: Array<Action> = []
 
   const dontCallRPC =
-    props.message.cardType !== T.RPCChat.JourneycardType.popularChannels &&
-    props.message.cardType !== T.RPCChat.JourneycardType.msgNoAnswer
+    cardType !== T.RPCChat.JourneycardType.popularChannels &&
+    cardType !== T.RPCChat.JourneycardType.msgNoAnswer
   const {channelMetas} = useAllChannelMetas(props.teamID, dontCallRPC)
   // Take the top three channels with most recent activity.
   const joinableStatuses = new Set<T.Chat.ConversationMeta['membershipType']>([
@@ -49,7 +51,7 @@ const TeamJourneyContainer = (props: Props) => {
     .filter(info => info.channelname !== props.channelname)
     .sort((x, y) => y.timestamp - x.timestamp)
 
-  switch (props.message.cardType) {
+  switch (cardType) {
     case T.RPCChat.JourneycardType.welcome:
       image = 'icon-illustration-welcome-96'
       if (!props.cannotWrite) {
@@ -91,18 +93,14 @@ const TeamJourneyContainer = (props: Props) => {
         )
       }
       break
-    case T.RPCChat.JourneycardType.addPeople:
-      return null
-    case T.RPCChat.JourneycardType.createChannels:
-      return null
-    case T.RPCChat.JourneycardType.msgAttention:
-      return null
-    case T.RPCChat.JourneycardType.channelInactive:
-      return null
-    case T.RPCChat.JourneycardType.msgNoAnswer:
+    case T.RPCChat.JourneycardType.addPeople: // fallthrough
+    case T.RPCChat.JourneycardType.createChannels: // fallthrough
+    case T.RPCChat.JourneycardType.msgAttention: // fallthrough
+    case T.RPCChat.JourneycardType.channelInactive: // fallthrough
+    case T.RPCChat.JourneycardType.msgNoAnswer: // fallthrough
       return null
     default:
-      console.warn(`Unexpected journey card type: ${props.message.cardType}`)
+      console.warn(`Unexpected journey card type: ${cardType}`)
       return null
   }
 
