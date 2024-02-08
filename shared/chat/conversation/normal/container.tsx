@@ -75,6 +75,7 @@ const useOrangeLine = () => {
       noExisting,
       orangeLineRef: orangeLineRef.current,
       readMsgWentBackwards,
+      storeOrangeLine,
       wentInactive,
     })
 

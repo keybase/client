@@ -461,6 +461,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const dispatch: ConvoState['dispatch'] = {
+    DEBUG: () => {
+      const ordinal = get().messageOrdinals.at(-1) + 1
+      console.log('aaaa injecting', ordinal)
+      const id = ordinal
+      get().dispatch.messagesAdd([
+        {
+          ...Message.makeMessagePlaceholder({ordinal, id}),
+        },
+      ])
+    },
+    DEBUG2: () => {
+      set(s => {
+        for (const o of s.messageOrdinals ?? []) {
+          const m = s.messageMap.get(o)
+          console.log('aaa', m?.type)
+          if (m?.type === 'placeholder') {
+            s.messageMap.delete(o)
+          }
+        }
+        syncMessageDerived(s)
+      })
+    },
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
         const conversationIDKey = get().id
@@ -961,6 +983,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const devicename = C.useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
+          console.log('aaaa raw', uiMessages)
           let shouldClearOthers = false
           if (!calledClear) {
             if (forceClear) {
