@@ -31,6 +31,7 @@ const useOrangeLine = () => {
     // convo changed?
     if (s.id !== lastCIDRef.current) {
       lastCIDRef.current = s.id
+      lastReadMsgIDRef.current = T.Chat.numberToMessageID(-1)
       // logger.info('[useOrangeLine debug] clear due to convo change')
       next = noOrd
     }
