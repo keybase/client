@@ -5,7 +5,7 @@ services:
         restart: unless-stopped
         environment:
             - MYSQL_ROOT_PASSWORD=secret
-            - MYSQL_DATABASES=gregor
+            - MYSQL_DATABASE=gregor
         ports:
             - "3306"
         tmpfs: /var/lib/mysql
