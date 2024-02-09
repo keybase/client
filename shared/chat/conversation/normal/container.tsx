@@ -4,92 +4,104 @@ import * as React from 'react'
 import Normal from '.'
 import {OrangeLineContext} from '../orange-line-context'
 import {FocusProvider, ScrollProvider} from './context'
-
-const DEBUG = __DEV__
+import logger from '@/logger'
 
 const noOrd = T.Chat.numberToOrdinal(-1)
 const caughtUpOrd = T.Chat.numberToOrdinal(0)
 // Orange line logic:
-// While looking at a thread the line should be static
-// If you aren't active (backgrounded on desktop) the orange line will appear above new content
-// If you are active and new items get added the orange line will be consistent, either where it was on first
-// mount or not there at all (active and new items come)
-// Handle mark as unread
+// When we enter a conversation and the meta.readMsgID is < meta.maxMsgID we should show the orange line
+// When the orange line is showing we should maintain that while in that thread. An orange line can move
+// while we're in a thread due to marking as unread. Our cached local orange line (in a ref) can be outdated
+// by messages being deleted or ordinals changing. If you're up to date we do not show the orange line as
+// new messages come in. If you become inactive we will mark it and any new messages will have an orange line
+// on top.
+//
 const useOrangeLine = () => {
+  // our cached orange line location while we're mounted
   const orangeLineRef = React.useRef(noOrd)
-
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const lastCIDRef = React.useRef(conversationIDKey)
-  const convoChanged = lastCIDRef.current !== conversationIDKey
-  lastCIDRef.current = conversationIDKey
-
+  const lastCIDRef = React.useRef<T.Chat.ConversationIDKey>('')
+  const lastActiveRef = React.useRef(true)
+  const lastReadMsgIDRef = React.useRef(T.Chat.numberToMessageID(-1))
   const active = C.useActiveState(s => s.active)
-  const lastActiveRf = React.useRef(active)
-  const activeChanged = lastActiveRf.current !== active
-  const wentInactive = !active && activeChanged
-  lastActiveRf.current = active
 
-  const noExisting = orangeLineRef.current === noOrd
+  C.useChatContext(s => {
+    let next = orangeLineRef.current
 
-  const readMsgID = C.useChatContext(s => {
-    const {readMsgID} = s.meta
-    return readMsgID
-  })
-  const lastReadMsgIDRef = React.useRef(readMsgID)
+    // can we keep next?
+    // convo changed?
+    if (s.id !== lastCIDRef.current) {
+      lastCIDRef.current = s.id
+      logger.info('[useOrangeLine debug] clear due to convo change')
+      next = noOrd
+    }
 
-  // mark as unread does this
-  const readMsgWentBackwards = !convoChanged && readMsgID > 0 && readMsgID < lastReadMsgIDRef.current
-  lastReadMsgIDRef.current = readMsgID
+    // ordinal is gone? search again, ordinals could have resolved
+    if (next > 0 && !s.messageMap.has(next)) {
+      logger.info('[useOrangeLine debug] clear due to ordinal missing', next)
+      next = noOrd
+    }
 
-  // only search for an orange line if we need it
-  const needToGetOrangeLine = convoChanged || noExisting || wentInactive || readMsgWentBackwards
+    const activeChanged = lastActiveRef.current !== active
+    if (activeChanged) {
+      lastActiveRef.current = active
+    }
 
-  const storeOrangeLine = C.useChatContext(s => {
-    // don't do a search which could be expensive if we don't need it
-    if (!needToGetOrangeLine) return noOrd
-    const {readMsgID, maxMsgID} = s.meta
-    if (readMsgID <= 0) return noOrd
-    if (maxMsgID > readMsgID) {
-      const mm = s.messageMap
-      // find a good ordinal
-      const ord = s.messageOrdinals?.findLast(o => {
-        const message = mm.get(o)
-        return !!(message && message.id <= readMsgID)
-      })
-      return ord ?? noOrd
+    // lastRead went backwards? due to mark as unread
+    if (lastReadMsgIDRef.current >= 0) {
+      if (lastReadMsgIDRef.current > s.meta.readMsgID) {
+        logger.info('[useOrangeLine debug] mark as unread detected')
+        next = noOrd
+      }
+    }
+    lastReadMsgIDRef.current = s.meta.readMsgID
+
+    // possibly search for a new orange line
+    if (next === noOrd) {
+      logger.info('[useOrangeLine debug] maybe SEARCHING due to no orange')
+      const {readMsgID, maxMsgID} = s.meta
+      if (readMsgID > 0) {
+        logger.info('[useOrangeLine debug] good meta')
+        if (maxMsgID > readMsgID) {
+          logger.info('[useOrangeLine debug] actual SEARCHING')
+          const mm = s.messageMap
+          // find a good ordinal
+          const ord = s.messageOrdinals?.findLast(o => {
+            const message = mm.get(o)
+            return !!(message && message.id <= readMsgID)
+          })
+          next = ord ?? noOrd
+          logger.info('[useOrangeLine debug] HAS unread ', {maxMsgID, next, readMsgID})
+        } else {
+          logger.info('[useOrangeLine debug] caught up', {maxMsgID, readMsgID})
+          next = caughtUpOrd
+        }
+      }
     } else {
-      return caughtUpOrd
+      const {readMsgID, maxMsgID} = s.meta
+      logger.info('[useOrangeLine debug] NOT SEARCHING due to no orange', {maxMsgID, readMsgID})
     }
-  })
-  const maxMsgOrd = C.useChatContext(s => {
-    const {maxMsgID} = s.meta
-    const mord = T.Chat.messageIDToNumber(maxMsgID)
-    const ord = s.messageMap.get(T.Chat.numberToOrdinal(mord))?.ordinal
-    return ord ?? noOrd
-  })
 
-  DEBUG &&
-    console.log('[useOrangeLine debug] ', {
-      convoChanged,
-      maxMsgOrd,
-      noExisting,
-      orangeLineRef: orangeLineRef.current,
-      readMsgWentBackwards,
-      storeOrangeLine,
-      wentInactive,
-    })
-
-  if (convoChanged || noExisting || readMsgWentBackwards) {
-    orangeLineRef.current = storeOrangeLine
-  }
-
-  if (wentInactive) {
-    // leave it if it already had one
-    if (!orangeLineRef.current) {
-      orangeLineRef.current = maxMsgOrd
+    // handle active changes only
+    if (activeChanged) {
+      // we became active and we set the max due to inactive earlier
+      if (active && next === s.messageOrdinals?.at(-1)) {
+        logger.info('[useOrangeLine debug] became active no orange line, caught up')
+        next = caughtUpOrd
+      } else if (!active && next === caughtUpOrd) {
+        // became inactive while caught up, set max
+        next = s.messageOrdinals?.at(-1) ?? noOrd
+        logger.info('[useOrangeLine debug] became inactive no orange line, set max', next)
+      }
     }
-  }
 
+    logger.info('[useOrangeLine debug] WRITING', orangeLineRef.current, next)
+    // we write here so our bookkeeping is disconnected from rendering
+    orangeLineRef.current = next
+    // we return so we can trigger a re-render
+    return next
+  })
+
+  logger.info('[useOrangeLine debug] actual return >>>', orangeLineRef.current)
   return orangeLineRef.current
 }
 
