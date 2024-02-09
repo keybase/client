@@ -31,7 +31,7 @@ const useOrangeLine = () => {
     // convo changed?
     if (s.id !== lastCIDRef.current) {
       lastCIDRef.current = s.id
-      logger.info('[useOrangeLine debug] clear due to convo change')
+      // logger.info('[useOrangeLine debug] clear due to convo change')
       next = noOrd
     }
 
