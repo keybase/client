@@ -57,10 +57,10 @@ const useOrangeLine = () => {
 
     // possibly search for a new orange line
     if (next === noOrd) {
-      logger.info('[useOrangeLine debug] maybe SEARCHING due to no orange')
+      // logger.info('[useOrangeLine debug] maybe SEARCHING due to no orange')
       const {readMsgID, maxMsgID} = s.meta
       if (readMsgID > 0) {
-        logger.info('[useOrangeLine debug] good meta')
+        // logger.info('[useOrangeLine debug] good meta')
         if (maxMsgID > readMsgID) {
           logger.info('[useOrangeLine debug] actual SEARCHING')
           const mm = s.messageMap
@@ -72,13 +72,13 @@ const useOrangeLine = () => {
           next = ord ?? noOrd
           logger.info('[useOrangeLine debug] HAS unread ', {maxMsgID, next, readMsgID})
         } else {
-          logger.info('[useOrangeLine debug] caught up', {maxMsgID, readMsgID})
+          // logger.info('[useOrangeLine debug] caught up', {maxMsgID, readMsgID})
           next = caughtUpOrd
         }
       }
     } else {
-      const {readMsgID, maxMsgID} = s.meta
-      logger.info('[useOrangeLine debug] NOT SEARCHING due to no orange', {maxMsgID, readMsgID})
+      // const {readMsgID, maxMsgID} = s.meta
+      // logger.info('[useOrangeLine debug] NOT SEARCHING due to no orange', {maxMsgID, readMsgID})
     }
 
     // handle active changes only
@@ -94,14 +94,13 @@ const useOrangeLine = () => {
       }
     }
 
-    logger.info('[useOrangeLine debug] WRITING', orangeLineRef.current, next)
+    // logger.info('[useOrangeLine debug] WRITING', orangeLineRef.current, next)
     // we write here so our bookkeeping is disconnected from rendering
     orangeLineRef.current = next
     // we return so we can trigger a re-render
     return next
   })
 
-  logger.info('[useOrangeLine debug] actual return >>>', orangeLineRef.current)
   return orangeLineRef.current
 }
 
