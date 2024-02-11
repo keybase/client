@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euox pipefail
 
+# install multiarch support in docker, since we're using manifest hashes we
+# don't need to check for any more sigs/hashes - that's all done in dockerd
+docker run --rm --privileged docker/binfmt@sha256:7e54e474ac8998c01367f11edcbe2bbfcb38d9d8bd87defbc407edfa0fd6cca8
+
+# install buildx - here, we explicitly fetch a specific hash
+export DOCKER_BUILDKIT=1
+docker build --platform=local -o . git://github.com/docker/buildx#bda4882a65349ca359216b135896bddc1d92461c
+mv buildx ~/.docker/cli-plugins/docker-buildx
+# TODO: look into getting it as a binary
+
+# configure buildx, bootstrap the runner
+# TODO: make sure that it prints out the correct supported architectures
+docker buildx create --name multiarch
+docker buildx use multiarch
+docker buildx inspect --bootstrap
+
 KBCLID="$HOME/go/src/github.com/keybase/client"
 TUXBOTD="$KBCLID/packaging/linux/tuxbot"
 
