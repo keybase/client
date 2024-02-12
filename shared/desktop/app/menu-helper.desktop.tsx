@@ -19,7 +19,7 @@ const reallyQuit = () => {
   }, 2000)
 }
 
-export default function makeMenu(window: Electron.BrowserWindow) {
+export default function makeMenu(window: Electron.BrowserWindow, justQuit: boolean) {
   const editMenu = new Electron.MenuItem({
     label: 'Edit',
     submenu: Electron.Menu.buildFromTemplate([
@@ -99,17 +99,25 @@ export default function makeMenu(window: Electron.BrowserWindow) {
           new Electron.MenuItem({
             accelerator: 'CmdOrCtrl+Q',
             click() {
-              closeWindows()
+              if (justQuit) {
+                reallyQuit()
+              } else {
+                closeWindows()
+              }
             },
-            label: 'Minimize to Tray',
+            label: justQuit ? 'Quit Keybase Completely' : 'Minimize to Tray',
           }),
-          new Electron.MenuItem({
-            accelerator: 'CmdOrCtrl+Option+Q',
-            click() {
-              reallyQuit()
-            },
-            label: 'Quit Keybase Completely',
-          }),
+          ...(justQuit
+            ? []
+            : [
+                new Electron.MenuItem({
+                  accelerator: 'CmdOrCtrl+Option+Q',
+                  click() {
+                    reallyQuit()
+                  },
+                  label: 'Quit Keybase Completely',
+                }),
+              ]),
         ]),
       }),
       {...editMenu},

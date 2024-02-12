@@ -108,6 +108,7 @@ let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
 let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight'
 let disableSpellCheck = false
+let justQuit = false
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
@@ -123,6 +124,7 @@ const loadWindowState = () => {
     const guiConfig = JSON.parse(s) as
       | Partial<{
           openAtLogin: unknown
+          justQuit: unknown
           useNativeFrame: unknown
           ui: Partial<{
             disableSpellCheck: unknown
@@ -133,6 +135,7 @@ const loadWindowState = () => {
       | undefined
 
     openAtLogin = typeof guiConfig?.openAtLogin === 'boolean' ? guiConfig.openAtLogin : openAtLogin
+    justQuit = typeof guiConfig?.justQuit === 'boolean' ? guiConfig.justQuit : justQuit
     useNativeFrame =
       typeof guiConfig?.useNativeFrame === 'boolean' ? guiConfig.useNativeFrame : useNativeFrame
 
@@ -341,7 +344,7 @@ const MainWindow = () => {
     win.setFullScreen(true)
   }
 
-  menuHelper(win)
+  menuHelper(win, justQuit)
 
   if (showDevTools) {
     win.webContents.openDevTools({mode: 'detach', title: `${__DEV__ ? 'DEV' : 'Prod'} Keybase Devtools`})
