@@ -6,6 +6,10 @@ declare module '@react-native/assets-registry/registry' {
   type PackagerAsset = {[key: string]: unknown}
 }
 
+declare module 'react-test-renderer' {
+  type ReactTestInstance = any
+}
+
 declare module 'expo-manifests' {
   type EASConfig = any
   type ExpoGoConfig = any

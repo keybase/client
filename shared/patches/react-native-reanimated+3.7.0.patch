@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
-index a53a6e1..b06cfd0 100644
+index a2bcdee..cdf10d7 100644
 --- a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
 +++ b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
-@@ -50,6 +50,7 @@ export function isWindowAvailable() {
+@@ -46,6 +46,7 @@ export function isWindowAvailable() {
  }
  
  export function isReducedMotion() {

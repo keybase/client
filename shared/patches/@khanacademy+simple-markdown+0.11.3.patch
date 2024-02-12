@@ -1,19 +1,21 @@
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/es/index.js b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
-index 7d31dc5..1f76f2e 100644
+index 01395ba..bc34633 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/es/index.js
 +++ b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
-@@ -1,9 +1,7 @@
+@@ -1,9 +1,9 @@
 -import { addLibraryVersionToPerseusDebug } from '@khanacademy/perseus-core';
++//import { addLibraryVersionToPerseusDebug } from '@khanacademy/perseus-core';
  
  // This file is processed by a Rollup plugin (replace) to inject the production
  const libName = "@khanacademy/simple-markdown";
- const libVersion = "0.11.2";
+ const libVersion = "0.11.3";
 -addLibraryVersionToPerseusDebug(libName, libVersion);
++//addLibraryVersionToPerseusDebug(libName, libVersion);
  
  /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
  
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
-index 6f3c7fc..3221b28 100644
+index 6f3c7fc..43aa11f 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
 +++ b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
 @@ -60,32 +60,32 @@ type HtmlOutputRule = {
@@ -46,7 +48,7 @@ index 6f3c7fc..3221b28 100644
 -        readonly react: ArrayNodeOutput<ReactElements>;
 -    };
 +    //readonly Array?: {
-+     //   readonly react: ArrayNodeOutput<ReactElements>;
++    //    readonly react: ArrayNodeOutput<ReactElements>;
 +    //};
      readonly [type: string]: ParserRule & ReactOutputRule;
  };
@@ -55,25 +57,27 @@ index 6f3c7fc..3221b28 100644
 -        readonly html: ArrayNodeOutput<string>;
 -    };
 +    //readonly Array?: {
-+     //   readonly html: ArrayNodeOutput<string>;
++    //    readonly html: ArrayNodeOutput<string>;
 +    //};
      readonly [type: string]: ParserRule & HtmlOutputRule;
  };
  type NonNullReactOutputRule = {
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.js b/node_modules/@khanacademy/simple-markdown/dist/index.js
-index d0e2c4a..9573e7c 100644
+index 59b9e7d..df67ceb 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/index.js
 +++ b/node_modules/@khanacademy/simple-markdown/dist/index.js
-@@ -2,12 +2,10 @@
+@@ -2,12 +2,12 @@
  
  Object.defineProperty(exports, '__esModule', { value: true });
  
 -var perseusCore = require('@khanacademy/perseus-core');
++//var perseusCore = require('@khanacademy/perseus-core');
  
  // This file is processed by a Rollup plugin (replace) to inject the production
  const libName = "@khanacademy/simple-markdown";
- const libVersion = "0.11.2";
+ const libVersion = "0.11.3";
 -perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
++//perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
  
  /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
  
