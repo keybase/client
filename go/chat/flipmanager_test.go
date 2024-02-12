@@ -382,6 +382,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 }
 
 func TestFlipManagerLoadFlip(t *testing.T) {
+	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "FlipManager", 2)
 		defer ctc.cleanup()

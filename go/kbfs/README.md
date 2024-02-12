@@ -168,12 +168,10 @@ ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/git
 ```
 
 Though it doesn't happen automatically, we also expect your code to be
-as "lint-free" as possible. Running golint is easy from the top-level
-kbfs directory:
+as "lint-free" as possible. Running golangci-lint is easy:
 
 ```bash
-go get -u github.com/golang/lint/golint
-make lint
+golangci-lint --deadline 15m
 ```
 
 ### Vendoring
