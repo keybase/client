@@ -230,9 +230,11 @@ const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
 }
 
 const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
-  const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
-  // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
-  const isRestore = !!env.KEYBASE_RESTORE_UI || Electron.app.getLoginItemSettings().restoreState || isWindows
+  const openedAtLogin =
+    Electron.app.getLoginItemSettings().wasOpenedAtLogin ||
+    Electron.app.getLoginItemSettings().executableWillLaunchAtLogin
+  // app.getLoginItemSettings().restoreState is Mac only
+  const isRestore = !!env.KEYBASE_RESTORE_UI || Electron.app.getLoginItemSettings().restoreState
   const hideWindowOnStart = env.KEYBASE_AUTOSTART === '1'
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
   logger.info('KEYBASE_AUTOSTART =', env.KEYBASE_AUTOSTART)
