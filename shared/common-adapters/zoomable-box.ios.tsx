@@ -16,7 +16,11 @@ export const ZoomableBox = (props: Props) => {
   }, [_onTap])
   const initialTouch = React.useRef(-1)
   const curScaleRef = React.useRef(1)
+  // max touches during this gesture
+  const maxTouchesRef = React.useRef(0)
   const onTouchStart = React.useCallback((e: GestureResponderEvent) => {
+    // we get calls when the touches increase
+    maxTouchesRef.current = Math.max(maxTouchesRef.current, e.nativeEvent.touches.length)
     if (e.nativeEvent.touches.length === 1) {
       initialTouch.current = e.nativeEvent.pageX
     } else {
@@ -25,17 +29,23 @@ export const ZoomableBox = (props: Props) => {
   }, [])
   const onTouchEnd = React.useCallback(
     (e: GestureResponderEvent) => {
+      const maxTouches = maxTouchesRef.current
+      maxTouchesRef.current = 0
+      const diff = e.nativeEvent.pageX - initialTouch.current
+      initialTouch.current = -1
+      // we only do swipes on single touch
+      if (maxTouches !== 1) {
+        return
+      }
       const scaleDiff = Math.abs(1 - curScaleRef.current)
       if (scaleDiff > 0.1) {
         return
       }
-      const diff = e.nativeEvent.pageX - initialTouch.current
       if (diff > needDiff) {
         onSwipe?.(false)
       } else if (diff < -needDiff) {
         onSwipe?.(true)
       }
-      initialTouch.current = -1
     },
     [onSwipe, needDiff]
   )
