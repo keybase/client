@@ -550,18 +550,14 @@ func (l *TeamLoader) checkHiddenResponse(mctx libkb.MetaContext, hiddenPackage *
 
 	switch hiddenResp.RespType {
 	case libkb.MerkleHiddenResponseTypeNONE:
-		hiddenIsFresh = true
 		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as no hidden data was received. If the server had to show us the hidden chain and didn't, we will error out later (once we can establish our role in the team).")
+		return true, nil
 	case libkb.MerkleHiddenResponseTypeFLAGOFF:
-		hiddenIsFresh = true
 		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as the hidden flag is off.")
+		return true, nil
 	default:
-		hiddenIsFresh, err = hiddenPackage.CheckHiddenMerklePathResponseAndAddRatchets(mctx, hiddenResp)
-		if err != nil {
-			return false, err
-		}
+		return hiddenPackage.CheckHiddenMerklePathResponseAndAddRatchets(mctx, hiddenResp)
 	}
-	return hiddenIsFresh, nil
 }
 
 func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
