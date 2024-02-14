@@ -236,22 +236,21 @@ helpers.rootLinuxNode(env, {
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
                         kbfsfuseImage.push(env.BUILD_TAG)
                       }
-                      // TODO(ZCLIENT-2469)
-                      // if (env.BRANCH_NAME == "master" && cause != "upstream") {
-                      //   build([
-                      //     job: "/kbfs-server/master",
-                      //     parameters: [
-                      //       string(
-                      //         name: 'kbfsProjectName',
-                      //         value: env.BUILD_TAG,
-                      //       ),
-                      //       string(
-                      //         name: 'kbwebProjectName',
-                      //         value: kbwebTag,
-                      //       ),
-                      //     ]
-                      //   ])
-                      // }
+                      if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                        build([
+                          job: "/kbfs-server/master",
+                          parameters: [
+                            string(
+                              name: 'kbfsProjectName',
+                              value: env.BUILD_TAG,
+                            ),
+                            string(
+                              name: 'kbwebProjectName',
+                              value: kbwebTag,
+                            ),
+                          ]
+                        ])
+                      }
                     }
                   }
                 }
