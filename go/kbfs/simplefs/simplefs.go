@@ -5,6 +5,7 @@
 package simplefs
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -164,6 +165,8 @@ type SimpleFS struct {
 	downloadManager *downloadManager
 	uploadManager   *uploadManager
 
+	archiveManager *archiveManager
+
 	httpClient *http.Client
 }
 
@@ -254,6 +257,10 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 	}
 	k.downloadManager = newDownloadManager(k)
 	k.uploadManager = newUploadManager(k)
+	k.archiveManager, err = newArchiveManager(k)
+	if err != nil {
+		log.Fatalf("initializing archive manager error: %v", err)
+	}
 	return k
 }
 
@@ -3558,6 +3565,35 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 			Tlf:    tlfID,
 			Branch: branch,
 		})
+}
+
+// SimpleFSArchiveStart implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
+	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	desc := keybase1.SimpleFSArchiveJobDesc{
+		JobID: arg.JobID,
+		KbfsPathWithRevision: keybase1.KBFSArchivedPath{
+			Path: arg.KbfsPath.Path,
+			// TODO fill in revision
+		},
+		StartTime:  keybase1.ToTime(time.Now()),
+		OutputPath: arg.OutputPath,
+	}
+	if len(desc.JobID) == 0 {
+		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s", hex.EncodeToString(
+			[]byte(time.Now().Format(time.RFC3339Nano))))
+	}
+	if len(desc.OutputPath) == 0 {
+		panic("todo")
+	}
+	err = k.archiveManager.start(ctx, desc)
+	return desc, err
+}
+
+// SimpleFSGetArchiveState implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetArchiveState(ctx context.Context) (
+	state keybase1.SimpleFSArchiveState, err error) {
+	return *k.archiveManager.getCurrentState(ctx), nil
 }
 
 // Shutdown shuts down SimpleFS.

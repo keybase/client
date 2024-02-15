@@ -1670,6 +1670,109 @@ func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
 	}
 }
 
+type SimpleFSArchiveJobDesc struct {
+	JobID                string           `codec:"jobID" json:"jobID"`
+	KbfsPathWithRevision KBFSArchivedPath `codec:"kbfsPathWithRevision" json:"kbfsPathWithRevision"`
+	StartTime            Time             `codec:"startTime" json:"startTime"`
+	OutputPath           string           `codec:"outputPath" json:"outputPath"`
+}
+
+func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
+	return SimpleFSArchiveJobDesc{
+		JobID:                o.JobID,
+		KbfsPathWithRevision: o.KbfsPathWithRevision.DeepCopy(),
+		StartTime:            o.StartTime.DeepCopy(),
+		OutputPath:           o.OutputPath,
+	}
+}
+
+type SimpleFSFileArchiveState int
+
+const (
+	SimpleFSFileArchiveState_ToDo       SimpleFSFileArchiveState = 0
+	SimpleFSFileArchiveState_InProgress SimpleFSFileArchiveState = 1
+	SimpleFSFileArchiveState_Complete   SimpleFSFileArchiveState = 2
+)
+
+func (o SimpleFSFileArchiveState) DeepCopy() SimpleFSFileArchiveState { return o }
+
+var SimpleFSFileArchiveStateMap = map[string]SimpleFSFileArchiveState{
+	"ToDo":       0,
+	"InProgress": 1,
+	"Complete":   2,
+}
+
+var SimpleFSFileArchiveStateRevMap = map[SimpleFSFileArchiveState]string{
+	0: "ToDo",
+	1: "InProgress",
+	2: "Complete",
+}
+
+func (e SimpleFSFileArchiveState) String() string {
+	if v, ok := SimpleFSFileArchiveStateRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type SimpleFSArchiveFile struct {
+	State        SimpleFSFileArchiveState `codec:"state" json:"state"`
+	Sha256SumHex string                   `codec:"sha256SumHex" json:"sha256SumHex"`
+}
+
+func (o SimpleFSArchiveFile) DeepCopy() SimpleFSArchiveFile {
+	return SimpleFSArchiveFile{
+		State:        o.State.DeepCopy(),
+		Sha256SumHex: o.Sha256SumHex,
+	}
+}
+
+type SimpleFSArchiveJobState struct {
+	Desc     SimpleFSArchiveJobDesc         `codec:"desc" json:"desc"`
+	Manifest map[string]SimpleFSArchiveFile `codec:"manifest" json:"manifest"`
+}
+
+func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
+	return SimpleFSArchiveJobState{
+		Desc: o.Desc.DeepCopy(),
+		Manifest: (func(x map[string]SimpleFSArchiveFile) map[string]SimpleFSArchiveFile {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveFile, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Manifest),
+	}
+}
+
+type SimpleFSArchiveState struct {
+	Jobs        map[string]SimpleFSArchiveJobState `codec:"jobs" json:"jobs"`
+	LastUpdated Time                               `codec:"lastUpdated" json:"lastUpdated"`
+}
+
+func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
+	return SimpleFSArchiveState{
+		Jobs: (func(x map[string]SimpleFSArchiveJobState) map[string]SimpleFSArchiveJobState {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobState, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Jobs),
+		LastUpdated: o.LastUpdated.DeepCopy(),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1986,6 +2089,15 @@ type SimpleFSCancelJournalUploadsArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
 
+type SimpleFSArchiveStartArg struct {
+	JobID      string   `codec:"jobID" json:"jobID"`
+	KbfsPath   KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
+	OutputPath string   `codec:"outputPath" json:"outputPath"`
+}
+
+type SimpleFSGetArchiveStateArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2124,6 +2236,8 @@ type SimpleFSInterface interface {
 	SimpleFSResetIndex(context.Context) error
 	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 	SimpleFSCancelJournalUploads(context.Context, KBFSPath) error
+	SimpleFSArchiveStart(context.Context, SimpleFSArchiveStartArg) (SimpleFSArchiveJobDesc, error)
+	SimpleFSGetArchiveState(context.Context) (SimpleFSArchiveState, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3105,6 +3219,31 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSArchiveStart": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveStartArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveStartArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSArchiveStart(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSGetArchiveState": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetArchiveStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetArchiveState(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3558,5 +3697,15 @@ func (c SimpleFSClient) SimpleFSGetIndexProgress(ctx context.Context) (res Simpl
 func (c SimpleFSClient) SimpleFSCancelJournalUploads(ctx context.Context, path KBFSPath) (err error) {
 	__arg := SimpleFSCancelJournalUploadsArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelJournalUploads", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveStart(ctx context.Context, __arg SimpleFSArchiveStartArg) (res SimpleFSArchiveJobDesc, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveStart", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetArchiveState(ctx context.Context) (res SimpleFSArchiveState, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveState", []interface{}{SimpleFSGetArchiveStateArg{}}, &res, 0*time.Millisecond)
 	return
 }

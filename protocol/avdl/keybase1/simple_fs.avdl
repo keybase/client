@@ -7,7 +7,7 @@ protocol SimpleFS {
 
 /*
   File manipulation interface
-  
+
   Caller provides OpID to one of these methods to begin an operation:
     simpleFSList
     simpleFSListRecursive
@@ -28,7 +28,7 @@ protocol SimpleFS {
   Operation must be closed by calling close
 */
 
-  // Random GUID provided by caller 
+  // Random GUID provided by caller
   fixed OpID(16);
 
   @typedef("int64") @lint("ignore") record KBFSRevision {}
@@ -282,7 +282,7 @@ protocol SimpleFS {
   void simpleFSSymlink(string target, Path link);
 
   /**
-   Begin recursive copy of directory 
+   Begin recursive copy of directory
 
    overwriteExistingFiles controls whether an existing file from `src` will
    overwrite a file with the same name in `dest`; if `false`, an error will be
@@ -750,4 +750,33 @@ protocol SimpleFS {
   // Cancel all uploads from the journal, which may result in
   // partially-uploaded changes, and leaked blocks on the bserver.
   void simpleFSCancelJournalUploads(KBFSPath path);
+
+  record SimpleFSArchiveJobDesc {
+    string jobID;
+    KBFSArchivedPath kbfsPathWithRevision;
+    Time startTime;
+    string outputPath;
+  }
+  SimpleFSArchiveJobDesc simpleFSArchiveStart(string jobID, KBFSPath kbfsPath, string outputPath);
+
+  enum SimpleFSFileArchiveState {
+    ToDo_0,
+    InProgress_1,
+    Complete_2
+  }
+  record SimpleFSArchiveFile {
+    SimpleFSFileArchiveState state;
+    string sha256SumHex;
+  }
+  record SimpleFSArchiveJobState {
+    SimpleFSArchiveJobDesc desc;
+    map<string, SimpleFSArchiveFile> manifest;
+  }
+  record SimpleFSArchiveState {
+    map<string, SimpleFSArchiveJobState> jobs; // job ID -> job state
+    Time lastUpdated;
+  }
+  SimpleFSArchiveState simpleFSGetArchiveState();
+
+
 }

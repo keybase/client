@@ -1047,6 +1047,87 @@
           "name": "foldersLeft"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobDesc",
+      "fields": [
+        {
+          "type": "string",
+          "name": "jobID"
+        },
+        {
+          "type": "KBFSArchivedPath",
+          "name": "kbfsPathWithRevision"
+        },
+        {
+          "type": "Time",
+          "name": "startTime"
+        },
+        {
+          "type": "string",
+          "name": "outputPath"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SimpleFSFileArchiveState",
+      "symbols": [
+        "ToDo_0",
+        "InProgress_1",
+        "Complete_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveFile",
+      "fields": [
+        {
+          "type": "SimpleFSFileArchiveState",
+          "name": "state"
+        },
+        {
+          "type": "string",
+          "name": "sha256SumHex"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobState",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveFile",
+            "keys": "string"
+          },
+          "name": "manifest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveState",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobState",
+            "keys": "string"
+          },
+          "name": "jobs"
+        },
+        {
+          "type": "Time",
+          "name": "lastUpdated"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1186,7 +1267,7 @@
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
+      "doc": "Begin recursive copy of directory\n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
     },
     "simpleFSMove": {
       "request": [
@@ -1865,6 +1946,27 @@
         }
       ],
       "response": null
+    },
+    "simpleFSArchiveStart": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "string"
+        },
+        {
+          "name": "kbfsPath",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "outputPath",
+          "type": "string"
+        }
+      ],
+      "response": "SimpleFSArchiveJobDesc"
+    },
+    "simpleFSGetArchiveState": {
+      "request": [],
+      "response": "SimpleFSArchiveState"
     }
   },
   "namespace": "keybase.1"

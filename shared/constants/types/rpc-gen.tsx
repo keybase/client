@@ -2367,6 +2367,12 @@ export enum SignMode {
   clear = 2,
 }
 
+export enum SimpleFSFileArchiveState {
+  todo = 0,
+  inprogress = 1,
+  complete = 2,
+}
+
 export enum StatsSeverityLevel {
   normal = 0,
   warning = 1,
@@ -3240,6 +3246,10 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly sha256SumHex: String}
+export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly startTime: Time; readonly outputPath: String}
+export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null}
+export type SimpleFSArchiveState = {readonly jobs?: {[key: string]: SimpleFSArchiveJobState} | null; readonly lastUpdated: Time}
 export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: ReadonlyArray<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
@@ -4341,6 +4351,8 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.SimpleFS.simpleFSCancelJournalUploads'
+// 'keybase.1.SimpleFS.simpleFSArchiveStart'
+// 'keybase.1.SimpleFS.simpleFSGetArchiveState'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

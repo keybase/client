@@ -906,3 +906,27 @@ func (s *SimpleFSHandler) SimpleFSCancelJournalUploads(
 	// large or the disk is slow, and this is a synchronous operation.
 	return cli.SimpleFSCancelJournalUploads(ctx, path)
 }
+
+// SimpleFSArchiveStart implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSArchiveStart(ctx context.Context,
+	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobDesc{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSArchiveStart(ctx, arg)
+}
+
+// SimpleFSGetArchiveState implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetArchiveState(ctx context.Context) (
+	state keybase1.SimpleFSArchiveState, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveState{}, nil
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSGetArchiveState(ctx)
+}
