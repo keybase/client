@@ -55,17 +55,12 @@ const Row = (p: {account: Constants.Account}) => {
           direction="horizontal"
           alignItems="center"
           gap={Kb.Styles.isMobile ? undefined : 'tiny'}
-          style={{
-            alignSelf: 'flex-start',
-            flexGrow: 1,
-            maxWidth: Kb.Styles.isMobile ? undefined : 400,
-            width: '100%',
-          }}
+          style={styles.idContainer}
         >
           <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
             ID:
           </Kb.Text>
-          <Kb.BoxGrow2 style={{height: 40, maxWidth: Kb.Styles.isMobile ? undefined : 444}}>
+          <Kb.BoxGrow2 style={styles.idCopy}>
             <Kb.CopyText withReveal={false} text={accountID} />
           </Kb.BoxGrow2>
         </Kb.Box2>
@@ -188,6 +183,13 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
+      idContainer: {
+        alignSelf: 'flex-start',
+        flexGrow: 1,
+        maxWidth: Kb.Styles.isMobile ? undefined : 400,
+        width: '100%',
+      },
+      idCopy: {height: 40},
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
       reveal: {
