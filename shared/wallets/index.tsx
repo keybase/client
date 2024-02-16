@@ -51,9 +51,24 @@ const Row = (p: {account: Constants.Account}) => {
         style={styles.rowContents}
         alignItems="flex-start"
       >
-        <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
-          ID: {accountID}
-        </Kb.Text>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          gap={Kb.Styles.isMobile ? undefined : 'tiny'}
+          style={{
+            alignSelf: 'flex-start',
+            flexGrow: 1,
+            maxWidth: Kb.Styles.isMobile ? undefined : 400,
+            width: '100%',
+          }}
+        >
+          <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
+            ID:
+          </Kb.Text>
+          <Kb.BoxGrow2 style={{height: 40, maxWidth: Kb.Styles.isMobile ? undefined : 444}}>
+            <Kb.CopyText withReveal={false} text={accountID} />
+          </Kb.BoxGrow2>
+        </Kb.Box2>
         <Kb.Text type="BodyBold" lineClamp={1}>
           Balance: {balanceDescription}
         </Kb.Text>
@@ -175,7 +190,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
-      reveal: {width: Kb.Styles.isMobile ? undefined : '75%'},
+      reveal: {
+        maxWidth: Kb.Styles.isMobile ? undefined : 400,
+        width: Kb.Styles.isMobile ? undefined : '100%',
+      },
       row: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
