@@ -1,14 +1,13 @@
 # Quick Start
 
+1. `brew install watchman` (install file watcher)
 1. `adb devices` (should list _exactly_ one device)
 1. `yarn rn-gobuild-android`
-1. `yarn react-native run-android`
+1. `yarn android-debug`
 
 ## Prereqs
 
-Follow instructions for "Building Projects with Native Code" at
-https://facebook.github.io/react-native/docs/getting-started.html to
-install and configure Android.
+Follow instructions for running an android project at https://reactnative.dev/
 
 ### Installing an NDK version
 
@@ -26,15 +25,6 @@ You will need the Android Studio Command Line Tools to use `sdkmanager` without 
 Then run `sdkmanager --install "ndk-bundle"` which should write to `$HOME/Library/Android/sdk/ndk-bundle` on macOS.
 
 ## Emulator Setup
-
-### macOS
-
-If you're installing on macOS on High Sierra, skip installing
-HAX. Instead, follow the instructions in
-https://issuetracker.google.com/issues/62395878#comment7 , i.e. put
-`HVF = on` in `~/.android/advancedFeatures.ini`.
-
-On Mojave with the lastest android studio, this is no longer necessary.
 
 ### Linux
 
@@ -71,62 +61,10 @@ KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 
 3. Reload rules with `udevadm control --reload-rules && udevadm trigger`
 
-## Android Studio
-
-Select "Open an existing Android Studio Project" and point it to
-`shared/android`. Not necessary to register the `client`
-dir as a VCS-controlled dir with Android studio, but may as well.
-
-You might get various prompts about installing various tools. You should
-install 'Build Tools' and any missing platforms. However, _don't_
-update the Android Gradle Plugin to 3.0.1.
-
-Also see below for some messages you may encounter with Android Studio.
-
-Some instructions talk about the SDK Manager / AVD Manager. This is
-under the Tools > Android menu. You may have to wait for Gradle to
-sync before they appear.
-
-Before running the build process in android studio, you will need to
-run `yarn rn-gobuild-android`.
-
-### Dealing with Android Studio
-
-Sometimes Android Studio gets into a bad state, especially if you're
-doing stuff like `yarn modules` in the background.
-
-If 'Gradle sync' fails, you can retry it from Tools > Android > 'Sync
-Project with Gradle Files'.
-
-Sometimes, especially after opening Android Studio after a run of
-`yarn modules`, you'll get an "Unsupported Modules Detected" message
-for "react-native-fetch-blob" and "react-native-contacts". This seems
-to be harmless.
-
-Sometimes you'll also get an "An IDE Error has occured" message. That
-also seems to be harmless, although you may want to resync/reopen the
-project in that case.
-
-If nothing above works, you can try closing (File > Close Project) and
-reopening the project. Or even closing and reopening the app.
-
-### Building and developing without Android Studio
-
-Alternatively, you can build and develop without Android
-Studio. However, first make sure you _can_ build and run with Android
-Studio first, as it's easier to get that working first.
-
-So make sure you've run `yarn rn-gobuild-android` and you have the
-react-native packager running (`yarn rn-start android`).
-
-Then run
+## Running
 
 ```sh
-yarn react-native run-android # --variant 'debug'
-
-# for storybook
-yarn react-native run-android --variant 'storybook'
-
+yarn android-debug
 ```
 
 Unless you're modifying the Java files or you're modifying Go files
@@ -195,21 +133,17 @@ To recap, you should have run:
 
 1. `adb devices` (should list _exactly_ one device)
 1. `yarn rn-gobuild-android`
-1. `yarn react-native run-android`
+1. `yarn android-debug`
 
 Happy developing!
 
 ### Troubleshooting
 
-Occasionally you might get a white screen that doesn't go away, even
-after the bundler has finished bundling. Stopping the app and
-restarting it seems to fix it.
-
 ## Can't reach packager (could not connect to development server)
 
 can you see the packager in your computer's browser if you go to localhost:8081?
 
-no -> You aren't runnning the packager, run `yarn rn-start android`
+no -> You aren't runnning the packager, run `yarn rn-start2`
 
 yes:
 can you see the packager in android's browser if you go to localhost:8081?
@@ -226,14 +160,10 @@ no:
    )
 1. Click dev settings
 1. Click Debug server host & port
-1. set it to `localhost:8081` (See [#could-not-connect-to-development-server-error](running.md#could-not-connect-to-development-server-error) for more info)
+1. set it to `localhost:8081` (See [#could-not-connect-to-development-server-error] for more info)
 
 yes:
 You're in uncharted territories. Try using the java debugger in android studio and setting a break point in react-native's BundleDownloader and reading the actual error since it might be more informative than rn's generic handler. After you fix it, come back and update this page!
-
-## Can't find variable: Promise
-
-Same as below.
 
 ## React Native version mismatch
 
@@ -248,8 +178,6 @@ If you're hitting this issue, it is because you either do not have an NDK instal
 Android Studio 3.5.0 and later seem to install ndk versions at the following path: `~/Library/Android/sdk/ndk/{version}`
 
 To resolve this issue, use the `sdkmanager` to re-install `ndk-bundle` at the correct directory path.
-
-[Instuctions can be found here](./setup.md)
 
 ## Hot reloading / File Watching
 
@@ -283,7 +211,3 @@ adb reverse tcp:7007 tcp:7007
 # React devtools standalone port
 adb reverse tcp:8097 tcp:8097
 ```
-
-## Also see general react-native troubleshooting
-
-[Here](../react-native/troubleshooting.md)
