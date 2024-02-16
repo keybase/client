@@ -8,11 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/keybase/client/go/libkb"
-
+	"github.com/gocolly/colly/v2"
 	"github.com/keybase/client/go/chat/giphy"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/colly"
 )
 
 var giphyFavicon = "https://giphy.com/static/img/icons/apple-touch-icon-180px.png"
