@@ -1,1 +1,17 @@
-• Support KBFS on macOS Sonoma
+All platforms:
+• Wrap text in !>spoiler<! to hide spoilers. Click to reveal them
+• Copy stellar IDs from wallets
+
+Desktop:
+• System tray badging now includes unread count
+
+iOS:
+• View attachments in landscape
+• Various sharing improvements
+• Various paste into chat improvements
+• New chat menu system
+
+Android:
+• Various sharing improvements
+• Various paste into chat improvements
+• New chat menu system
