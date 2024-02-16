@@ -21,7 +21,11 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const onBack = C.useChatState(s => (Kb.Styles.isMobile ? s.dispatch.navigateToInbox : null))
+  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const _onBack = React.useCallback(() => {
+    navigateToInbox()
+  }, [navigateToInbox])
+  const onBack = Kb.Styles.isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
