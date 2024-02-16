@@ -1112,6 +1112,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "SimpleFSArchivePhase",
+      "symbols": [
+        "Indexing_0",
+        "Copying_1",
+        "Zipping_2",
+        "Complete_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "SimpleFSArchiveState",
       "fields": [
@@ -1126,6 +1136,10 @@
         {
           "type": "Time",
           "name": "lastUpdated"
+        },
+        {
+          "type": "SimpleFSArchivePhase",
+          "name": "phase"
         }
       ]
     }

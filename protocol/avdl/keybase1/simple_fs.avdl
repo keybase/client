@@ -772,9 +772,16 @@ protocol SimpleFS {
     SimpleFSArchiveJobDesc desc;
     map<string, SimpleFSArchiveFile> manifest;
   }
+  enum SimpleFSArchivePhase {
+    Indexing_0,
+    Copying_1,
+    Zipping_2,
+    Complete_3
+  }
   record SimpleFSArchiveState {
     map<string, SimpleFSArchiveJobState> jobs; // job ID -> job state
     Time lastUpdated;
+    SimpleFSArchivePhase phase;
   }
   SimpleFSArchiveState simpleFSGetArchiveState();
 

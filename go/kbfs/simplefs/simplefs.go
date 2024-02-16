@@ -3607,7 +3607,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 		}
 	}
 
-	err = k.archiveManager.start(ctx, desc)
+	err = k.archiveManager.startJob(ctx, desc)
 	return desc, err
 }
 
@@ -3620,6 +3620,7 @@ func (k *SimpleFS) SimpleFSGetArchiveState(ctx context.Context) (
 
 // Shutdown shuts down SimpleFS.
 func (k *SimpleFS) Shutdown(ctx context.Context) error {
+	k.archiveManager.shutdown()
 	if k.indexer == nil {
 		return nil
 	}

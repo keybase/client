@@ -157,7 +157,8 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 
 	ui := c.G().UI.GetTerminalUI()
 
-	ui.Printf("Last updated: %v\n\n", status.LastUpdated.Time())
+	ui.Printf("=== [Last updated: %v] ===\n", status.LastUpdated.Time())
+	ui.Printf("Phase: %v\n\n", status.Phase.String())
 	jobIDs := make([]string, 0, len(status.Jobs))
 	for jobID := range status.Jobs {
 		jobIDs = append(jobIDs, jobID)

@@ -63,6 +63,12 @@ type archiveManager struct {
 
 	mu    sync.RWMutex
 	state *keybase1.SimpleFSArchiveState
+
+	indexingWorkerSignal chan struct{}
+	copyingWorkerSignal  chan struct{}
+	zippingWorkerSignal  chan struct{}
+
+	shutdown func()
 }
 
 func getStateFilePath(simpleFS *SimpleFS) string {
@@ -72,40 +78,27 @@ func getStateFilePath(simpleFS *SimpleFS) string {
 
 const archiveManagerCreationTimeout = 10 * time.Second
 
-func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
-	ctx := context.Background()
-	m = &archiveManager{simpleFS: simpleFS}
-	stateFilePath := getStateFilePath(simpleFS)
-	m.state, err = loadArchiveStateFromJsonGz(ctx, simpleFS, stateFilePath)
-	if err == nil {
-		if m.state.Jobs == nil {
-			m.state.Jobs = make(map[string]keybase1.SimpleFSArchiveJobState)
-		}
-		return m, nil
-	}
-	simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz error ( %v ). Creating a new state.", err)
-	m.state = &keybase1.SimpleFSArchiveState{Jobs: make(map[string]keybase1.SimpleFSArchiveJobState)}
-	err = writeArchiveStateIntoJsonGz(ctx, simpleFS, stateFilePath, m.state)
-	if err != nil {
-		simpleFS.log.CErrorf(ctx, "newArchiveManager: creating state file error: %v", err)
-		return nil, err
-	}
-	return m, nil
-
-}
-
 func (m *archiveManager) fluseStateFileLocked(ctx context.Context) error {
 	err := writeArchiveStateIntoJsonGz(ctx, m.simpleFS, getStateFilePath(m.simpleFS), m.state)
 	if err != nil {
-		m.simpleFS.log.CErrorf(ctx, "archiveManager.start: writing state file error: %v", err)
+		m.simpleFS.log.CErrorf(ctx,
+			"archiveManager.fluseStateFileLocked: writing state file error: %v", err)
 		return err
 	}
 	return nil
 }
 
-func (m *archiveManager) start(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
-	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.start %#+v", job)
-	m.simpleFS.log.CDebugf(ctx, "- archiveManager.start")
+func (m *archiveManager) signal(ch chan struct{}) {
+	select {
+	case ch <- struct{}{}:
+	default:
+		// There's already a signal in the chan. Skipping this.
+	}
+}
+
+func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
+	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.startJob %#+v", job)
+	m.simpleFS.log.CDebugf(ctx, "- archiveManager.startJob")
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -116,6 +109,8 @@ func (m *archiveManager) start(ctx context.Context, job keybase1.SimpleFSArchive
 		Desc: job,
 	}
 	m.state.LastUpdated = keybase1.ToTime(time.Now())
+	m.state.Phase = keybase1.SimpleFSArchivePhase_Indexing
+	m.signal(m.indexingWorkerSignal)
 	return m.fluseStateFileLocked(ctx)
 }
 
@@ -125,4 +120,71 @@ func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSA
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.state.DeepCopy()
+}
+
+func (m *archiveManager) indexingWorker(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-m.indexingWorkerSignal:
+		}
+	}
+}
+
+func (m *archiveManager) copyingWorker(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-m.copyingWorkerSignal:
+		}
+	}
+}
+
+func (m *archiveManager) zippingWorker(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-m.zippingWorkerSignal:
+		}
+	}
+}
+
+func (m *archiveManager) start() {
+	ctx := context.Background()
+	ctx, m.shutdown = context.WithCancel(ctx)
+	go m.indexingWorker(m.simpleFS.makeContext(ctx))
+	go m.copyingWorker(m.simpleFS.makeContext(ctx))
+	go m.zippingWorker(m.simpleFS.makeContext(ctx))
+}
+
+func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
+	ctx := context.Background()
+	m = &archiveManager{
+		simpleFS:             simpleFS,
+		indexingWorkerSignal: make(chan struct{}, 1),
+		copyingWorkerSignal:  make(chan struct{}, 1),
+		zippingWorkerSignal:  make(chan struct{}, 1),
+	}
+	stateFilePath := getStateFilePath(simpleFS)
+	m.state, err = loadArchiveStateFromJsonGz(ctx, simpleFS, stateFilePath)
+	if err == nil {
+		if m.state.Jobs == nil {
+			m.state.Jobs = make(map[string]keybase1.SimpleFSArchiveJobState)
+		}
+		return m, nil
+	}
+	simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz error ( %v ). Creating a new state.", err)
+	m.state = &keybase1.SimpleFSArchiveState{
+		Jobs: make(map[string]keybase1.SimpleFSArchiveJobState),
+	}
+	err = writeArchiveStateIntoJsonGz(ctx, simpleFS, stateFilePath, m.state)
+	if err != nil {
+		simpleFS.log.CErrorf(ctx, "newArchiveManager: creating state file error: %v", err)
+		return nil, err
+	}
+	m.start()
+	return m, nil
 }

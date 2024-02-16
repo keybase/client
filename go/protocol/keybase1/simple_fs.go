@@ -1750,9 +1750,42 @@ func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
 	}
 }
 
+type SimpleFSArchivePhase int
+
+const (
+	SimpleFSArchivePhase_Indexing SimpleFSArchivePhase = 0
+	SimpleFSArchivePhase_Copying  SimpleFSArchivePhase = 1
+	SimpleFSArchivePhase_Zipping  SimpleFSArchivePhase = 2
+	SimpleFSArchivePhase_Complete SimpleFSArchivePhase = 3
+)
+
+func (o SimpleFSArchivePhase) DeepCopy() SimpleFSArchivePhase { return o }
+
+var SimpleFSArchivePhaseMap = map[string]SimpleFSArchivePhase{
+	"Indexing": 0,
+	"Copying":  1,
+	"Zipping":  2,
+	"Complete": 3,
+}
+
+var SimpleFSArchivePhaseRevMap = map[SimpleFSArchivePhase]string{
+	0: "Indexing",
+	1: "Copying",
+	2: "Zipping",
+	3: "Complete",
+}
+
+func (e SimpleFSArchivePhase) String() string {
+	if v, ok := SimpleFSArchivePhaseRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type SimpleFSArchiveState struct {
 	Jobs        map[string]SimpleFSArchiveJobState `codec:"jobs" json:"jobs"`
 	LastUpdated Time                               `codec:"lastUpdated" json:"lastUpdated"`
+	Phase       SimpleFSArchivePhase               `codec:"phase" json:"phase"`
 }
 
 func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
@@ -1770,6 +1803,7 @@ func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
 			return ret
 		})(o.Jobs),
 		LastUpdated: o.LastUpdated.DeepCopy(),
+		Phase:       o.Phase.DeepCopy(),
 	}
 }
 
