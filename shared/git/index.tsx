@@ -6,7 +6,6 @@ import sortBy from 'lodash/sortBy'
 import type * as T from '@/constants/types'
 import {memoize} from '@/util/memoize'
 import {union} from '@/util/set'
-import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '@/util/use-local-badging'
 
 type OwnProps = {expanded?: string}
@@ -46,7 +45,7 @@ const Container = (ownProps: OwnProps) => {
     [navigateAppend, setError]
   )
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       load()
     }, [load])

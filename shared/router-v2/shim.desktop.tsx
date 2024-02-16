@@ -1,8 +1,8 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import * as Shared from './shim.shared'
 import * as Kb from '@/common-adapters'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
-import {useFocusEffect} from '@react-navigation/native'
 import type {
   RouteMap,
   GetOptions,
@@ -78,7 +78,7 @@ const ModalWrapper = (p: WrapProps) => {
 
   const [topMostModal, setTopMostModal] = React.useState(true)
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       setTopMostModal(true)
       return () => {

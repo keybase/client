@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/wallets'
-import {useFocusEffect} from '@react-navigation/native'
 
 const Row = (p: {account: Constants.Account}) => {
   const {account} = p
@@ -106,7 +105,7 @@ const Container = () => {
 
   const load = C.useWalletsState(s => s.dispatch.load)
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       load()
       checkDisclaimer(
