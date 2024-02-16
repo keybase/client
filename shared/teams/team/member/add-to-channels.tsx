@@ -7,7 +7,6 @@ import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {memoize} from '@/util/memoize'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
-import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -53,7 +52,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
     usernames
   )
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       C.ignorePromise(reloadChannels())
     }, [reloadChannels])

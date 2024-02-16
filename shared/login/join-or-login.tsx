@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useFocusEffect} from '@react-navigation/core'
 
 const Intro = () => {
   const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
@@ -32,7 +31,7 @@ const Intro = () => {
   const [showing, setShowing] = React.useState(true)
   Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       setShowing(true)
       return () => setShowing(false)

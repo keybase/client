@@ -8,7 +8,6 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {useFocusEffect} from '@react-navigation/core'
 import type {RPCError} from '@/util/errors'
 
 const Kb = {
@@ -79,7 +78,7 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       reloadOnMount && onReload()
       return () => {}

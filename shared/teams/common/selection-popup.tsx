@@ -4,7 +4,6 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
 import {pluralize} from '@/util/string'
-import {useFocusEffect} from '@react-navigation/core'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -68,7 +67,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // This is a bit of a hack to work around the floating box displaying above modals on mobile.
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       setFocused(true)
       return () => setFocused(false)

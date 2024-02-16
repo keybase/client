@@ -6,6 +6,7 @@ import {
   CommonActions,
   type NavigationContainerRef,
   type NavigationState,
+  useFocusEffect,
 } from '@react-navigation/core'
 import * as Z from '@/util/zustand'
 import {produce} from 'immer'
@@ -249,6 +250,14 @@ export const getRouteTab = (route: Array<Route>) => {
 
 export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
+}
+
+// if a toast is inside of a portal then its not in nav so we can't use useFocusEffect and
+// maybe other places also
+export const useSafeFocusEffect = (fn: () => void) => {
+  try {
+    useFocusEffect(fn)
+  } catch (e) {}
 }
 
 type Store = {

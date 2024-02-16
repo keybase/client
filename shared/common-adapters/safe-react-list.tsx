@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import ReactList from 'react-list'
-import {useFocusEffect} from '@react-navigation/core'
 
 // Default ReactList will get into a bad state if it redraws while in a hidden parent (like in a stack)
 // to fix we force a redraw when we're back visible
@@ -35,7 +34,7 @@ const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeR
   const [force, setForce] = React.useState(0)
   const isMounted = C.useIsMounted()
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       setTimeout(() => {
         if (isMounted()) {
