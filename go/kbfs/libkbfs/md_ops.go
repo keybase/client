@@ -26,14 +26,10 @@ import (
 )
 
 const (
-	maxAllowedMerkleGapServer = 13 * time.Hour
-	// Our contract with the server states that it won't accept KBFS
-	// writes if more than 13 hours have passed since the last Merkle
-	// roots (both global and KBFS) were published.  Add some padding
-	// to that, and if we see any gaps larger than this, we will know
-	// we shouldn't be trusting the server.  TODO: reduce this once
-	// merkle computation is faster.
-	maxAllowedMerkleGap = maxAllowedMerkleGapServer + 15*time.Minute
+	// Update 2024-02-16: we decided to increase the merkle gap check to 4 days
+	// in case mdmerkle goes down, to give us more time to fix it.
+	maxAllowedMerkleGapServer = 4 * (time.Hour * 24)
+	maxAllowedMerkleGap       = maxAllowedMerkleGapServer + 15*time.Minute
 
 	// merkleGapEnforcementStartString indicates when the mdserver
 	// started rejecting new writes based on the lack of recent merkle
