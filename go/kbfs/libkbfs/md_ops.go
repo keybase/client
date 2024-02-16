@@ -26,7 +26,10 @@ import (
 )
 
 const (
-	maxAllowedMerkleGapServer = 13 * time.Hour
+	// Update 2024-02-16: we decided to disable the merkel gap check (by
+	// increase the allowed gap to a very high number) since mdmerkle is slow
+	// and this gap check is doing mroe harm than good.
+	maxAllowedMerkleGapServer = 200 * (time.Hour * 24 * 365)
 	// Our contract with the server states that it won't accept KBFS
 	// writes if more than 13 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
