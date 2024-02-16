@@ -359,7 +359,7 @@ export type State = Store & {
       metas: Array<T.Chat.ConversationMeta>,
       removals?: Array<T.Chat.ConversationIDKey> // convs to remove
     ) => void
-    navigateToInbox: () => void
+    navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
@@ -893,7 +893,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (!newConvID) {
         if (!existingValid && isPhone) {
           logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          get().dispatch.navigateToInbox()
+          get().dispatch.navigateToInbox(false)
         }
         return
       }
@@ -901,7 +901,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (selectedConversation !== oldConvID) {
         if (!existingValid && isPhone) {
           logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          get().dispatch.navigateToInbox()
+          get().dispatch.navigateToInbox(false)
         }
         return
       }
@@ -910,7 +910,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // on mobile just head back to the inbox if we have something selected
         if (T.Chat.isValidConversationIDKey(selectedConversation)) {
           logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-          get().dispatch.navigateToInbox()
+          get().dispatch.navigateToInbox(false)
           return
         }
         logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
@@ -967,11 +967,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
     },
-    navigateToInbox: () => {
+    navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
       setTimeout(() => {
         C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
-        C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+        if (allowSwitchTab) {
+          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+        }
       }, 1)
     },
     onChatInboxSynced: action => {
