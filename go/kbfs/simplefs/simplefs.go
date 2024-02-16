@@ -5,7 +5,7 @@
 package simplefs
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1980,6 +1980,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
+
 	defer func() { k.doneSyncOp(ctx, err) }()
 
 	fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
@@ -3570,22 +3571,42 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 // SimpleFSArchiveStart implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	ctx = k.makeContext(ctx)
+
 	desc := keybase1.SimpleFSArchiveJobDesc{
-		JobID: arg.JobID,
-		KbfsPathWithRevision: keybase1.KBFSArchivedPath{
-			Path: arg.KbfsPath.Path,
-			// TODO fill in revision
-		},
+		JobID:      arg.JobID,
 		StartTime:  keybase1.ToTime(time.Now()),
 		OutputPath: arg.OutputPath,
 	}
 	if len(desc.JobID) == 0 {
-		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s", hex.EncodeToString(
+		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s", base64.RawURLEncoding.EncodeToString(
 			[]byte(time.Now().Format(time.RFC3339Nano))))
 	}
 	if len(desc.OutputPath) == 0 {
 		panic("todo")
 	}
+
+	// Pin the job to a specific revision so if the TLF changes during the
+	// archive we don't end up mixing two different revisions.
+	{
+		fb, _, err := k.getFolderBranchFromPath(ctx, keybase1.NewPathWithKbfs(arg.KbfsPath))
+		if err != nil {
+			return keybase1.SimpleFSArchiveJobDesc{}, err
+		}
+		if fb == (data.FolderBranch{}) {
+			return keybase1.SimpleFSArchiveJobDesc{}, nil
+		}
+		status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+		if err != nil {
+			return keybase1.SimpleFSArchiveJobDesc{}, err
+		}
+		desc.KbfsPathWithRevision = keybase1.KBFSArchivedPath{
+			Path: arg.KbfsPath.Path,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+				keybase1.KBFSRevision(status.Revision)),
+		}
+	}
+
 	err = k.archiveManager.start(ctx, desc)
 	return desc, err
 }
@@ -3593,7 +3614,8 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 // SimpleFSGetArchiveState implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetArchiveState(ctx context.Context) (
 	state keybase1.SimpleFSArchiveState, err error) {
-	return *k.archiveManager.getCurrentState(ctx), nil
+	ctx = k.makeContext(ctx)
+	return k.archiveManager.getCurrentState(ctx), nil
 }
 
 // Shutdown shuts down SimpleFS.

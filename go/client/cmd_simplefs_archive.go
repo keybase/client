@@ -4,6 +4,8 @@
 package client
 
 import (
+	"sort"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -55,6 +57,30 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 	}
 }
 
+func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc) {
+	ui.Printf("Job ID: %s\n", desc.JobID)
+	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
+	ui.Printf("TLF Revision: %v\n", desc.KbfsPathWithRevision.ArchivedParam.Revision())
+	ui.Printf("Started: %s\n", desc.StartTime.Time())
+	ui.Printf("Output Path: %s\n", desc.OutputPath)
+
+}
+func printSimpleFSArchiveJobState(ui libkb.TerminalUI, job *keybase1.SimpleFSArchiveJobState) {
+	printSimpleFSArchiveJobDesc(ui, &job.Desc)
+	todo, inProgress, complete := 0, 0, 0
+	for _, item := range job.Manifest {
+		switch item.State {
+		case keybase1.SimpleFSFileArchiveState_ToDo:
+			todo++
+		case keybase1.SimpleFSFileArchiveState_InProgress:
+			inProgress++
+		case keybase1.SimpleFSFileArchiveState_Complete:
+			complete++
+		}
+	}
+	ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n", todo, inProgress, complete, len(job.Manifest))
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSArchiveStart) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
@@ -62,7 +88,7 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 		return err
 	}
 
-	_, err = cli.SimpleFSArchiveStart(context.TODO(),
+	desc, err := cli.SimpleFSArchiveStart(context.TODO(),
 		keybase1.SimpleFSArchiveStartArg{
 			JobID:      c.jobID,
 			OutputPath: c.outputPath,
@@ -71,6 +97,8 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 	if err != nil {
 		return err
 	}
+
+	printSimpleFSArchiveJobDesc(c.G().UI.GetTerminalUI(), &desc)
 
 	return nil
 }
@@ -128,7 +156,18 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("%#+v", status)
+
+	ui.Printf("Last updated: %v\n\n", status.LastUpdated.Time())
+	jobIDs := make([]string, 0, len(status.Jobs))
+	for jobID := range status.Jobs {
+		jobIDs = append(jobIDs, jobID)
+	}
+	sort.Strings(jobIDs)
+	for _, jobID := range jobIDs {
+		job := status.Jobs[jobID]
+		printSimpleFSArchiveJobState(ui, &job)
+		ui.Printf("\n")
+	}
 
 	return nil
 }

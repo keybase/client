@@ -119,10 +119,10 @@ func (m *archiveManager) start(ctx context.Context, job keybase1.SimpleFSArchive
 	return m.fluseStateFileLocked(ctx)
 }
 
-func (m *archiveManager) getCurrentState(ctx context.Context) *keybase1.SimpleFSArchiveState {
+func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSArchiveState {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.getCurrentState")
 	m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return m.state
+	return m.state.DeepCopy()
 }
