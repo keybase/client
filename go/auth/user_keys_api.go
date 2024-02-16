@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"time"
+
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -85,7 +86,7 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {
 	defer func() {
 		if err != nil {
-			u.log.Debug("- poll -> %v", err)
+			u.log.Error("- poll -> %v", err)
 		}
 	}()
 
@@ -108,7 +109,7 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		select {
 		case <-time.After(pollWait):
 		case <-ctx.Done():
-			u.log.Debug("Wait short-circuited due to context cancelation")
+			u.log.Debug("Wait short-circuited due to context cancellation")
 		}
 		return uids, err
 	}
