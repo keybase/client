@@ -64,10 +64,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const onArchive = () => {
-    navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID'} as const,
-      selected: 'archiveModal',
-    }))
+    C.featureFlags.archive &&
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, type: 'chatID'} as const,
+        selected: 'archiveModal',
+      }))
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
@@ -102,16 +103,18 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Button
-            type="Default"
-            mode="Secondary"
-            label="Archive channel"
-            onClick={onArchive}
-            icon="iconfont-folder-downloads"
-            iconColor={Kb.Styles.globalColors.black}
-          />
-        </Kb.Box2>
+        {C.featureFlags.archive ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Button
+              type="Default"
+              mode="Secondary"
+              label="Archive channel"
+              onClick={onArchive}
+              icon="iconfont-folder-downloads"
+              iconColor={Kb.Styles.globalColors.black}
+            />
+          </Kb.Box2>
+        ) : null}
         <RetentionPicker
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
