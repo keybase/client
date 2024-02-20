@@ -1,2 +1,3 @@
 import * as React from 'react'
-export const OrangeLineContext = React.createContext(0)
+import * as T from '@/constants/types'
+export const OrangeLineContext = React.createContext(T.Chat.numberToOrdinal(0))

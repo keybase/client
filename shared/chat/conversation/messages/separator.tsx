@@ -6,6 +6,8 @@ import {formatTimeForChat} from '@/util/timestamp'
 import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import {OrangeLineContext} from '../orange-line-context'
+import logger from '@/logger'
+import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -43,16 +45,37 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
 
   if (!pMessage) return message.author
 
-  if (
-    pMessage.author !== message.author ||
-    pMessage.botUsername !== message.botUsername ||
-    !authorIsCollapsible(message.type) ||
-    !authorIsCollapsible(pMessage.type) ||
-    enoughTimeBetweenMessages(message.timestamp, pMessage.timestamp)
-  ) {
+  if (pMessage.author !== message.author) {
     return message.author
   }
-  // should be impossible
+  if (pMessage.botUsername !== message.botUsername) {
+    return message.author
+  }
+  if (!authorIsCollapsible(message.type)) {
+    return message.author
+  }
+  if (enoughTimeBetweenMessages(message.timestamp, pMessage.timestamp)) {
+    return message.author
+  }
+
+  if (
+    !(message.author || message.botUsername) ||
+    !(pMessage.author || pMessage.botUsername) ||
+    !message.timestamp ||
+    !pMessage.timestamp
+  ) {
+    // something totally wrong
+    logger.error('CHATDEBUG: getUsernameToShow FAILED', {
+      authors: message.author === pMessage.author,
+      botUsernames: message.botUsername === pMessage.botUsername,
+      mcollapsible: authorIsCollapsible(message.type),
+      mtime: message.timestamp,
+      pcollapsible: authorIsCollapsible(pMessage.type),
+      ptime: pMessage.timestamp,
+    })
+    return ''
+  }
+
   return ''
 }
 
@@ -190,7 +213,10 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   }
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
-  return C.useChatContext(
+
+  const TEMP = React.useRef({})
+
+  const ret = C.useChatContext(
     C.useShallow(s => {
       const ordinal = trailingItem
       const previous = leadingItem
@@ -198,9 +224,39 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
       const orangeLineAbove = orangeOrdinal === previous && previous > 0
+      TEMP.current = {
+        orangeOrdinal,
+        ordinal,
+        previous,
+        showUsername,
+        // eslint-disable-next-line
+        mauthor: m.author,
+        mbot: m.botUsername,
+        mtype: m.type,
+        // eslint-disable-next-line
+        mtime: m.timestamp,
+        pauthor: pmessage?.author,
+        pbot: pmessage?.botUsername,
+        ptype: pmessage?.type,
+        // eslint-disable-next-line
+        ptime: pmessage?.timestamp,
+        // eslint-disable-next-line
+        msg: (m as any).text?.stringValue?.().length,
+        // eslint-disable-next-line
+        pmsg: (pmessage as any)?.text?.stringValue?.().length,
+      }
       return {orangeLineAbove, ordinal, showUsername}
     })
   )
+
+  useChatDebugDump(
+    `CHATDEBUGSep${trailingItem}:`,
+    C.useEvent(() => {
+      return JSON.stringify(TEMP.current, null, 2)
+    })
+  )
+
+  return ret
 }
 
 const useState = (ordinal: T.Chat.Ordinal) => {
@@ -283,6 +339,7 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
+
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null
