@@ -21,7 +21,6 @@ export const HeaderAreaRight = () => {
       <Kb.Icon
         type="iconfont-keybase"
         onClick={() => {
-          console.log('aaa clicked')
           chatDebugDump(conversationIDKey)
           setShowToast(true)
           setTimeout(() => {
