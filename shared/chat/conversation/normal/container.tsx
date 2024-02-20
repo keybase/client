@@ -105,7 +105,7 @@ const useOrangeLine = () => {
   return orangeLineRef.current
 }
 
-const WithOrange = React.memo(function WithOrange(p: {orangeLine: number}) {
+const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal}) {
   return (
     <OrangeLineContext.Provider value={p.orangeLine}>
       <FocusProvider>

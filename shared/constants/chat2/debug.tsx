@@ -2,7 +2,7 @@
 import * as React from 'react'
 import logger from '@/logger'
 
-export const chatDebugEnabled = false as boolean
+export const chatDebugEnabled = true as boolean
 
 if (chatDebugEnabled) {
   for (let i = 0; i < 10; ++i) {
@@ -20,7 +20,7 @@ const chatDebugDump = chatDebugEnabled
           return strs
         }, new Array<string>())
         .join('\n')
-      logger.error('Debug chat dump', lines)
+      logger.error('[CHATDEBUG]: ', lines)
     }
   : undefined
 

@@ -11,6 +11,7 @@ import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
 import logger from '@/logger'
+import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
@@ -314,8 +315,11 @@ const SideButtons = (p: SideButtonsProps) => {
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const conversationIDKey = C.useChatContext(s => s.id)
 
+  const {chatDebugDump} = React.useContext(DebugChatDumpContext)
+
   // TODO REMOVE
   React.useEffect(() => {
+    if (!chatDebugEnabled) return
     logger.error('[CHATDEBUG]: PlatformInput F1 inject')
     const onKeydown = (e: KeyboardEvent) => {
       if (e.key !== 'F1') {
@@ -325,9 +329,9 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
       const cs = C.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
       logger.error('[CHATDEBUG] pen: ', cs.pendingOutboxToOrdinal)
-      cs.messageMap.forEach((v, k) => {
+      const mm = [...cs.messageMap.entries()].map(([k, v]) => {
         const {id, ordinal, submitState, outboxID, type} = v
-        logger.error('[CHATDEBUG] mm: ', {
+        return {
           key: k,
           length: type === 'text' ? v.text.stringValue().length : -1,
           mid: id,
@@ -335,14 +339,16 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
           outboxID,
           submitState,
           type,
-        })
+        }
       })
+      logger.error('[CHATDEBUG] mm: ', mm)
+      chatDebugDump?.()
     }
     window.addEventListener('keydown', onKeydown)
     return () => {
       window.removeEventListener('keydown', onKeydown)
     }
-  }, [conversationIDKey])
+  }, [conversationIDKey, chatDebugDump])
   // TODO REMOVE
 
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
