@@ -17,17 +17,18 @@ export const HeaderAreaRight = () => {
 
   const dumpIcon = chatDebugDump ? (
     <>
-      <Kb.SimpleToast iconType="iconfont-check" text="Logged, send feedback" visible={showToast} />
+      <Kb.SimpleToast iconType="iconfont-check" text="Logged, send feedback next" visible={showToast} />
       <Kb.Icon
         type="iconfont-keybase"
         onClick={() => {
-          chatDebugDump()
+          console.log('aaa clicked')
+          chatDebugDump(conversationIDKey)
           setShowToast(true)
           setTimeout(() => {
             setShowToast(false)
           }, 2000)
         }}
-        style={{marginLeft: -40}}
+        style={{zIndex: 999}}
       />
     </>
   ) : null

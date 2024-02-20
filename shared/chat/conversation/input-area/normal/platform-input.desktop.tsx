@@ -326,23 +326,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
         return
       }
 
-      const cs = C.getConvoState(conversationIDKey)
-      logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
-      logger.error('[CHATDEBUG] pen: ', cs.pendingOutboxToOrdinal)
-      const mm = [...cs.messageMap.entries()].map(([k, v]) => {
-        const {id, ordinal, submitState, outboxID, type} = v
-        return {
-          key: k,
-          length: type === 'text' ? v.text.stringValue().length : -1,
-          mid: id,
-          ordinal,
-          outboxID,
-          submitState,
-          type,
-        }
-      })
-      logger.error('[CHATDEBUG] mm: ', mm)
-      chatDebugDump?.()
+      chatDebugDump?.(conversationIDKey)
     }
     window.addEventListener('keydown', onKeydown)
     return () => {
