@@ -18,6 +18,17 @@ const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
       const cs = C.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
+      const m = cs.meta
+      logger.error('[CHATDEBUG] meta: ', {
+        inboxLocalVersion: m.inboxLocalVersion,
+        inboxVersion: m.inboxVersion,
+        maxMsgID: m.maxMsgID,
+        maxVisibleMsgID: m.maxVisibleMsgID,
+        offline: m.offline,
+        readMsgID: m.readMsgID,
+        status: m.status,
+        timestamp: m.timestamp,
+      })
       logger.error('[CHATDEBUG] pen: ', cs.pendingOutboxToOrdinal)
       logger.error(
         '[CHATDEBUG] mm: ',
