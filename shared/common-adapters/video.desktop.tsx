@@ -52,8 +52,9 @@ export default class Video extends React.PureComponent<Props, State> {
 
   render() {
     const {onUrlError} = this.props
+    const url = encodeURI(this.props.url)
     return (
-      <CheckURL url={this.props.url} allowFile={this.props.allowFile}>
+      <CheckURL url={url} allowFile={this.props.allowFile}>
         <Measure bounds={true} onResize={this._onContainerResize}>
           {({measureRef}) => (
             <div
@@ -65,7 +66,7 @@ export default class Video extends React.PureComponent<Props, State> {
                 onClick={this._onVideoClick}
                 ref={this._videoRef}
                 controls={!this.props.hideControls}
-                src={this.props.url}
+                src={url}
                 style={
                   Styles.collapseStyles([styles.container, getVideoSize(this.state)]) as React.CSSProperties
                 }
