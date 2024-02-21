@@ -760,12 +760,9 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
     //   // cache children to skip re-rendering
     //   content = lastVisibleChildrenRef.current
     // } else {
-    const messages = ordinals.map(o => {
-      return rowRenderer(o)
-    })
     content = (
       <div key={id} data-key={id} ref={waypointRef}>
-        {messages}
+        {ordinals.map(o => rowRenderer(o))}
       </div>
     )
     // lastVisibleChildrenOrdinalsRef.current = ordinals
