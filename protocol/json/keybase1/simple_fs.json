@@ -1108,17 +1108,24 @@
             "keys": "string"
           },
           "name": "manifest"
+        },
+        {
+          "type": "SimpleFSArchiveJobPhase",
+          "name": "phase"
         }
       ]
     },
     {
       "type": "enum",
-      "name": "SimpleFSArchivePhase",
+      "name": "SimpleFSArchiveJobPhase",
       "symbols": [
-        "Indexing_0",
-        "Copying_1",
-        "Zipping_2",
-        "Complete_3"
+        "Queued_0",
+        "Indexing_1",
+        "Indexed_2",
+        "Copying_3",
+        "Copied_4",
+        "Zipping_5",
+        "Done_6"
       ]
     },
     {
@@ -1136,10 +1143,6 @@
         {
           "type": "Time",
           "name": "lastUpdated"
-        },
-        {
-          "type": "SimpleFSArchivePhase",
-          "name": "phase"
         }
       ]
     },
@@ -1150,6 +1153,10 @@
         {
           "type": "SimpleFSArchiveJobDesc",
           "name": "desc"
+        },
+        {
+          "type": "SimpleFSArchiveJobPhase",
+          "name": "phase"
         },
         {
           "type": "int",
@@ -1184,10 +1191,6 @@
         {
           "type": "Time",
           "name": "lastUpdated"
-        },
-        {
-          "type": "SimpleFSArchivePhase",
-          "name": "phase"
         }
       ]
     }

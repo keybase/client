@@ -3618,13 +3618,13 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 	state := k.archiveManager.getCurrentState(ctx)
 	status = keybase1.SimpleFSArchiveStatus{
 		LastUpdated: state.LastUpdated,
-		Phase:       state.Phase,
 		Jobs:        make(map[string]keybase1.SimpleFSArchiveJobStatus),
 	}
 	for jobID, stateJob := range state.Jobs {
 		statusJob := keybase1.SimpleFSArchiveJobStatus{
 			Desc:       stateJob.Desc.DeepCopy(),
 			TotalCount: len(stateJob.Manifest),
+			Phase:      stateJob.Phase,
 		}
 		for _, item := range stateJob.Manifest {
 			switch item.State {

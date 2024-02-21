@@ -142,8 +142,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 
 	ui := c.G().UI.GetTerminalUI()
 
-	ui.Printf("=== [Last updated: %v] ===\n", status.LastUpdated.Time())
-	ui.Printf("Phase: %v\n\n", status.Phase.String())
+	ui.Printf("=== [Last updated: %v] ===\n\n", status.LastUpdated.Time())
 	jobIDs := make([]string, 0, len(status.Jobs))
 	for jobID := range status.Jobs {
 		jobIDs = append(jobIDs, jobID)
@@ -152,6 +151,25 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	for _, jobID := range jobIDs {
 		job := status.Jobs[jobID]
 		printSimpleFSArchiveJobDesc(ui, &job.Desc)
+		{
+			ui.Printf("Phase:")
+			for _, p := range []keybase1.SimpleFSArchiveJobPhase{
+				keybase1.SimpleFSArchiveJobPhase_Queued,
+				keybase1.SimpleFSArchiveJobPhase_Indexing,
+				keybase1.SimpleFSArchiveJobPhase_Indexed,
+				keybase1.SimpleFSArchiveJobPhase_Copying,
+				keybase1.SimpleFSArchiveJobPhase_Copied,
+				keybase1.SimpleFSArchiveJobPhase_Zipping,
+				keybase1.SimpleFSArchiveJobPhase_Done,
+			} {
+				if p == job.Phase {
+					ui.Printf(" <%s> ", p.String())
+				} else {
+					ui.Printf(" [%s] ", p.String())
+				}
+			}
+			ui.Printf("\n")
+		}
 		ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n",
 			job.TodoCount, job.InProgressCount, job.CompleteCount, job.TotalCount)
 		ui.Printf("\n")

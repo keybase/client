@@ -771,23 +771,27 @@ protocol SimpleFS {
   record SimpleFSArchiveJobState {
     SimpleFSArchiveJobDesc desc;
     map<string, SimpleFSArchiveFile> manifest;
+    SimpleFSArchiveJobPhase phase;
   }
-  enum SimpleFSArchivePhase {
-    Indexing_0,
-    Copying_1,
-    Zipping_2,
-    Complete_3
+  enum SimpleFSArchiveJobPhase {
+    Queued_0,
+    Indexing_1,
+    Indexed_2,
+    Copying_3,
+    Copied_4,
+    Zipping_5,
+    Done_6
   }
   // SimpleFSArchiveState is the internal state of KBFS archiving work and is
   // also used to serialize the state to persistent storage.
   record SimpleFSArchiveState {
     map<string, SimpleFSArchiveJobState> jobs; // job ID -> job state
     Time lastUpdated;
-    SimpleFSArchivePhase phase;
   }
 
   record SimpleFSArchiveJobStatus {
     SimpleFSArchiveJobDesc desc;
+    SimpleFSArchiveJobPhase phase;
     int todoCount;
     int inProgressCount;
     int completeCount;
@@ -796,7 +800,6 @@ protocol SimpleFS {
   record SimpleFSArchiveStatus {
     map<string, SimpleFSArchiveJobStatus> jobs; // job ID -> job status
     Time lastUpdated;
-    SimpleFSArchivePhase phase;
   }
   SimpleFSArchiveStatus simpleFSGetArchiveStatus();
 

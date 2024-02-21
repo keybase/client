@@ -1730,6 +1730,7 @@ func (o SimpleFSArchiveFile) DeepCopy() SimpleFSArchiveFile {
 type SimpleFSArchiveJobState struct {
 	Desc     SimpleFSArchiveJobDesc         `codec:"desc" json:"desc"`
 	Manifest map[string]SimpleFSArchiveFile `codec:"manifest" json:"manifest"`
+	Phase    SimpleFSArchiveJobPhase        `codec:"phase" json:"phase"`
 }
 
 func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
@@ -1747,36 +1748,46 @@ func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
 			}
 			return ret
 		})(o.Manifest),
+		Phase: o.Phase.DeepCopy(),
 	}
 }
 
-type SimpleFSArchivePhase int
+type SimpleFSArchiveJobPhase int
 
 const (
-	SimpleFSArchivePhase_Indexing SimpleFSArchivePhase = 0
-	SimpleFSArchivePhase_Copying  SimpleFSArchivePhase = 1
-	SimpleFSArchivePhase_Zipping  SimpleFSArchivePhase = 2
-	SimpleFSArchivePhase_Complete SimpleFSArchivePhase = 3
+	SimpleFSArchiveJobPhase_Queued   SimpleFSArchiveJobPhase = 0
+	SimpleFSArchiveJobPhase_Indexing SimpleFSArchiveJobPhase = 1
+	SimpleFSArchiveJobPhase_Indexed  SimpleFSArchiveJobPhase = 2
+	SimpleFSArchiveJobPhase_Copying  SimpleFSArchiveJobPhase = 3
+	SimpleFSArchiveJobPhase_Copied   SimpleFSArchiveJobPhase = 4
+	SimpleFSArchiveJobPhase_Zipping  SimpleFSArchiveJobPhase = 5
+	SimpleFSArchiveJobPhase_Done     SimpleFSArchiveJobPhase = 6
 )
 
-func (o SimpleFSArchivePhase) DeepCopy() SimpleFSArchivePhase { return o }
+func (o SimpleFSArchiveJobPhase) DeepCopy() SimpleFSArchiveJobPhase { return o }
 
-var SimpleFSArchivePhaseMap = map[string]SimpleFSArchivePhase{
-	"Indexing": 0,
-	"Copying":  1,
-	"Zipping":  2,
-	"Complete": 3,
+var SimpleFSArchiveJobPhaseMap = map[string]SimpleFSArchiveJobPhase{
+	"Queued":   0,
+	"Indexing": 1,
+	"Indexed":  2,
+	"Copying":  3,
+	"Copied":   4,
+	"Zipping":  5,
+	"Done":     6,
 }
 
-var SimpleFSArchivePhaseRevMap = map[SimpleFSArchivePhase]string{
-	0: "Indexing",
-	1: "Copying",
-	2: "Zipping",
-	3: "Complete",
+var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
+	0: "Queued",
+	1: "Indexing",
+	2: "Indexed",
+	3: "Copying",
+	4: "Copied",
+	5: "Zipping",
+	6: "Done",
 }
 
-func (e SimpleFSArchivePhase) String() string {
-	if v, ok := SimpleFSArchivePhaseRevMap[e]; ok {
+func (e SimpleFSArchiveJobPhase) String() string {
+	if v, ok := SimpleFSArchiveJobPhaseRevMap[e]; ok {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
@@ -1785,7 +1796,6 @@ func (e SimpleFSArchivePhase) String() string {
 type SimpleFSArchiveState struct {
 	Jobs        map[string]SimpleFSArchiveJobState `codec:"jobs" json:"jobs"`
 	LastUpdated Time                               `codec:"lastUpdated" json:"lastUpdated"`
-	Phase       SimpleFSArchivePhase               `codec:"phase" json:"phase"`
 }
 
 func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
@@ -1803,21 +1813,22 @@ func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
 			return ret
 		})(o.Jobs),
 		LastUpdated: o.LastUpdated.DeepCopy(),
-		Phase:       o.Phase.DeepCopy(),
 	}
 }
 
 type SimpleFSArchiveJobStatus struct {
-	Desc            SimpleFSArchiveJobDesc `codec:"desc" json:"desc"`
-	TodoCount       int                    `codec:"todoCount" json:"todoCount"`
-	InProgressCount int                    `codec:"inProgressCount" json:"inProgressCount"`
-	CompleteCount   int                    `codec:"completeCount" json:"completeCount"`
-	TotalCount      int                    `codec:"totalCount" json:"totalCount"`
+	Desc            SimpleFSArchiveJobDesc  `codec:"desc" json:"desc"`
+	Phase           SimpleFSArchiveJobPhase `codec:"phase" json:"phase"`
+	TodoCount       int                     `codec:"todoCount" json:"todoCount"`
+	InProgressCount int                     `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount   int                     `codec:"completeCount" json:"completeCount"`
+	TotalCount      int                     `codec:"totalCount" json:"totalCount"`
 }
 
 func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 	return SimpleFSArchiveJobStatus{
 		Desc:            o.Desc.DeepCopy(),
+		Phase:           o.Phase.DeepCopy(),
 		TodoCount:       o.TodoCount,
 		InProgressCount: o.InProgressCount,
 		CompleteCount:   o.CompleteCount,
@@ -1828,7 +1839,6 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 type SimpleFSArchiveStatus struct {
 	Jobs        map[string]SimpleFSArchiveJobStatus `codec:"jobs" json:"jobs"`
 	LastUpdated Time                                `codec:"lastUpdated" json:"lastUpdated"`
-	Phase       SimpleFSArchivePhase                `codec:"phase" json:"phase"`
 }
 
 func (o SimpleFSArchiveStatus) DeepCopy() SimpleFSArchiveStatus {
@@ -1846,7 +1856,6 @@ func (o SimpleFSArchiveStatus) DeepCopy() SimpleFSArchiveStatus {
 			return ret
 		})(o.Jobs),
 		LastUpdated: o.LastUpdated.DeepCopy(),
-		Phase:       o.Phase.DeepCopy(),
 	}
 }
 
