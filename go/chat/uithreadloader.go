@@ -317,7 +317,7 @@ func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
 			case <-ctx.Done():
 				t.Debug(ctx, "setUIStatus: context canceled")
 			default:
-				if err := chatUI.ChatThreadStatus(context.Background(), status); err != nil {
+				if err := chatUI.ChatThreadStatus(ctx, status); err != nil {
 					t.Debug(ctx, "setUIStatus: failed to send: %s", err)
 				}
 				displayed = true

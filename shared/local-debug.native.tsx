@@ -44,12 +44,12 @@ const config = {
   userTimings: false, // Add user timings api to timeline in chrome
 }
 
-config.isDevApplePushToken = true
 // Developer settings
 if (__DEV__) {
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
+  config.isDevApplePushToken = true
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPCWaitingSession = false
