@@ -44,16 +44,15 @@ const makeTabStack = (tab: DesktopTabs) => {
     tabScreensCache.set(tab, tabScreens)
   }
 
-  const Comp = React.memo(
-    function TabStackNavigator() {
-      return (
-        <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
-          {tabScreens}
-        </S.Navigator>
-      )
-    },
-    () => true
-  )
+  const TabStackNavigator = React.memo(function TabStackNavigator() {
+    return (
+      <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
+        {tabScreens}
+      </S.Navigator>
+    )
+  })
+
+  const Comp = () => <TabStackNavigator />
   return Comp
 }
 

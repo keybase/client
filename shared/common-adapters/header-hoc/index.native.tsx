@@ -31,13 +31,13 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     const rightActions = this.props.rightActions
       ? this.props.rightActions.filter(Boolean)
       : this.props.onRightAction && this.props.rightActionLabel
-      ? [
-          {
-            label: this.props.rightActionLabel,
-            onPress: this.props.onRightAction,
-          },
-        ]
-      : []
+        ? [
+            {
+              label: this.props.rightActionLabel,
+              onPress: this.props.onRightAction,
+            },
+          ]
+        : []
 
     // This is used to center the title. The magic numbers were calculated from the inspector.
     const actionWidth = Styles.isIOS ? 38 : 54
@@ -141,8 +141,8 @@ export const LeftAction = ({
             (disabled
               ? Styles.globalColors.black_10
               : theme === 'dark'
-              ? Styles.globalColors.white
-              : Styles.globalColors.black_50)
+                ? Styles.globalColors.white
+                : Styles.globalColors.black_50)
           }
           style={styles.action}
           onClick={onLeftAction ?? undefined}
@@ -329,12 +329,10 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const noop = () => {}
-export const HeaderLeftBlank = React.memo(
-  function HeaderLeftBlank() {
-    return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
-  },
-  () => true
-)
+const HeaderLeftBlankImpl = React.memo(function HeaderLeftBlankImpl() {
+  return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
+})
+export const HeaderLeftBlank = () => <HeaderLeftBlankImpl />
 
 export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   canGoBack?: boolean
