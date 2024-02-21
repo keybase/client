@@ -442,8 +442,6 @@ const useItems = (p: {
 
   const wayOrdinalCachRef = React.useRef(new Map<string, Array<T.Chat.Ordinal>>())
 
-  const conversationIDKey = C.useChatContext(s => s.id)
-
   // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
   const items = React.useMemo(() => {
     const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
