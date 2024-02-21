@@ -23,8 +23,7 @@ const useHeaderActions = () => {
 const TeamsFilter = () => {
   const filterValue = C.useTeamsState(s => s.teamListFilter)
   const numTeams = C.useTeamsState(s => s.teamMeta.size)
-  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
-  const setFilter = (filter: string) => setTeamListFilterSort(filter)
+  const setFilter = C.useTeamsState(s => s.dispatch.setTeamListFilter)
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}
