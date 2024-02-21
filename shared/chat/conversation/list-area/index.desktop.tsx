@@ -709,8 +709,9 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
   }, [])
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
-  const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<T.Chat.Ordinal>())
-  const lastVisibleChildrenRef = React.useRef<React.ReactElement | null>(null)
+  // const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<T.Chat.Ordinal>())
+  // const lastVisibleChildrenRef = React.useRef<React.ReactElement | null>(null)
+  // const lastRowRendererRef = React.useRef(rowRenderer)
 
   if (ordinals !== heightForOrdinalsRef.current) {
     heightRef.current = undefined
@@ -749,30 +750,30 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
   const renderMessages = !heightRef.current || isVisible
   let content: React.ReactElement
 
-  const lastRowRendererRef = React.useRef(rowRenderer)
-
   if (renderMessages) {
-    if (
-      ordinals === lastVisibleChildrenOrdinalsRef.current &&
-      lastVisibleChildrenRef.current &&
-      rowRenderer === lastRowRendererRef.current
-    ) {
-      // cache children to skip re-rendering
-      content = lastVisibleChildrenRef.current
-    } else {
-      const messages = ordinals.map((o, idx) => {
-        const p = idx ? ordinals[idx - 1] : previous
-        return rowRenderer(o, p)
-      })
-      content = (
-        <div key={id} data-key={id} ref={waypointRef}>
-          {messages}
-        </div>
-      )
-      lastVisibleChildrenOrdinalsRef.current = ordinals
-      lastVisibleChildrenRef.current = content
-      lastRowRendererRef.current = rowRenderer
-    }
+    // disabling this caching for now due to its complexity. its not clear its actually safe
+    // and having it off doesn't seem to affect performance much
+    // if (
+    //   ordinals === lastVisibleChildrenOrdinalsRef.current &&
+    //   lastVisibleChildrenRef.current &&
+    //   rowRenderer === lastRowRendererRef.current
+    // ) {
+    //   // cache children to skip re-rendering
+    //   content = lastVisibleChildrenRef.current
+    // } else {
+    const messages = ordinals.map((o, idx) => {
+      const p = idx ? ordinals[idx - 1] : previous
+      return rowRenderer(o, p)
+    })
+    content = (
+      <div key={id} data-key={id} ref={waypointRef}>
+        {messages}
+      </div>
+    )
+    // lastVisibleChildrenOrdinalsRef.current = ordinals
+    // lastVisibleChildrenRef.current = content
+    // lastRowRendererRef.current = rowRenderer
+    // }
   } else {
     content = <div key={id} data-key={id} style={{height: heightRef.current}} ref={waypointRef} />
   }
