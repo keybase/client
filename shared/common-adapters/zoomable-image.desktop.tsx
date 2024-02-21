@@ -90,7 +90,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       setAllowPan(p => !p)
     } else {
       toggleZoom()
-      handleMouseMove(e)
+      setTimeout(() => {
+        handleMouseMove(e)
+      }, 0)
     }
   }
 
