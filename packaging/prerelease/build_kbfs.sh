@@ -38,7 +38,7 @@ GOARCH="$arch" go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keyb
 
 if [ "$PLATFORM" = "darwin" ] || [ "$PLATFORM" = "darwin-arm64" ]; then
   echo "Signing binaries..."
-  code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$build_dir"/kbfs
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$build_dir"/git-remote-keybase
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$build_dir"/keybase-redirector
