@@ -16,6 +16,7 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import {chatDebugEnabled} from '@/constants/chat2/debug'
 import logger from '@/logger'
 import shallowEqual from 'shallowequal'
+import {SeparatorMapContext} from '../messages/ids-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -405,7 +406,7 @@ const useItems = (p: {
   const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
-    (ordinal: T.Chat.Ordinal, previous?: T.Chat.Ordinal) => {
+    (ordinal: T.Chat.Ordinal) => {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       const Clazz = getMessageRender(type)
       if (!Clazz) {
@@ -413,10 +414,6 @@ const useItems = (p: {
           logger.error('[CHATDEBUG] no rendertype', {Clazz, ordinal, type})
         }
         return null
-      }
-
-      if (chatDebugEnabled && !previous) {
-        logger.error('[CHATDEBUG] no previous', {ordinal, type})
       }
 
       return (
@@ -432,7 +429,7 @@ const useItems = (p: {
             {highlighted: centeredOrdinal === ordinal || editingOrdinal === ordinal}
           )}
         >
-          {previous ? <Separator trailingItem={ordinal} leadingItem={previous} /> : null}
+          <Separator trailingItem={ordinal} />
           <Clazz ordinal={ordinal} />
         </div>
       )
@@ -448,7 +445,6 @@ const useItems = (p: {
 
     const numOrdinals = messageOrdinals.length
     let ordinals: Array<T.Chat.Ordinal> = []
-    let previous: undefined | T.Chat.Ordinal
     let lastBucket: number | undefined
     let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
     messageOrdinals.forEach((ordinal, idx) => {
@@ -481,15 +477,8 @@ const useItems = (p: {
             }
 
             items.push(
-              <OrdinalWaypoint
-                key={key}
-                id={key}
-                rowRenderer={rowRenderer}
-                ordinals={wayOrdinals}
-                previous={previous}
-              />
+              <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={wayOrdinals} />
             )
-            previous = wayOrdinals.at(-1)
           })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
           ordinals = []
@@ -512,10 +501,8 @@ const useItems = (p: {
             id={scrollOrdinalKey}
             rowRenderer={rowRenderer}
             ordinals={wayOrdinals}
-            previous={previous}
           />
         )
-        previous = wayOrdinals.at(-1)
         lastBucket = 0
         baseIndex++ // push this up if we drop the centered ordinal waypoint
       } else {
@@ -560,6 +547,17 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
       unsubRef.current?.()
     }
   }, [])
+
+  // map to help the sep know the previous value
+  const separatorMap = React.useMemo(() => {
+    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
+    let p = T.Chat.numberToOrdinal(0)
+    for (const o of messageOrdinals) {
+      sm.set(o, p)
+      p = o
+    }
+    return sm
+  }, [messageOrdinals])
 
   const lastResizeHeightRef = React.useRef(0)
   const onListSizeChanged = React.useCallback(
@@ -617,32 +615,33 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
 
   return (
     <ErrorBoundary>
-      <ResizeObserverContext.Provider value={resizeObserve}>
-        <IntersectObserverContext.Provider value={intersectionObserve}>
-          <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-            <div
-              className="chat-scroller"
-              key={conversationIDKey}
-              style={styles.list as any}
-              ref={setListRef}
-            >
-              <div style={styles.listContents} ref={setListContents}>
-                {items}
+      <SeparatorMapContext.Provider value={separatorMap}>
+        <ResizeObserverContext.Provider value={resizeObserve}>
+          <IntersectObserverContext.Provider value={intersectionObserve}>
+            <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+              <div
+                className="chat-scroller"
+                key={conversationIDKey}
+                style={styles.list as any}
+                ref={setListRef}
+              >
+                <div style={styles.listContents} ref={setListContents}>
+                  {items}
+                </div>
               </div>
+              {jumpToRecent}
             </div>
-            {jumpToRecent}
-          </div>
-        </IntersectObserverContext.Provider>
-      </ResizeObserverContext.Provider>
+          </IntersectObserverContext.Provider>
+        </ResizeObserverContext.Provider>
+      </SeparatorMapContext.Provider>
     </ErrorBoundary>
   )
 })
 
 type OrdinalWaypointProps = {
   id: string
-  rowRenderer: (ordinal: T.Chat.Ordinal, previous?: T.Chat.Ordinal) => React.ReactNode
+  rowRenderer: (ordinal: T.Chat.Ordinal) => React.ReactNode
   ordinals: Array<T.Chat.Ordinal>
-  previous?: T.Chat.Ordinal
 }
 
 const colorWaypoints = __DEV__ && (false as boolean)
@@ -655,7 +654,7 @@ if (colorWaypoints) {
 }
 
 const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypointProps) {
-  const {ordinals, id, rowRenderer, previous} = p
+  const {ordinals, id, rowRenderer} = p
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()
   const heightForOrdinalsRef = React.useRef<Array<T.Chat.Ordinal> | undefined>()
@@ -761,9 +760,8 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
     //   // cache children to skip re-rendering
     //   content = lastVisibleChildrenRef.current
     // } else {
-    const messages = ordinals.map((o, idx) => {
-      const p = idx ? ordinals[idx - 1] : previous
-      return rowRenderer(o, p)
+    const messages = ordinals.map(o => {
+      return rowRenderer(o)
     })
     content = (
       <div key={id} data-key={id} ref={waypointRef}>

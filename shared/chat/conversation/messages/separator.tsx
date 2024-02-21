@@ -207,7 +207,9 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
-  if (Kb.Styles.isMobile && !usingFlashList) {
+  if (!Kb.Styles.isMobile) {
+    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
+  } else if (!usingFlashList) {
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
   }
