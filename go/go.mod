@@ -5,7 +5,7 @@ go 1.19
 require (
 	bazil.org/fuse v0.0.0-20200424023519-3c101025617f
 	camlistore.org v0.0.0-20161205184337-c55c8602d3ce
-	github.com/PuerkitoBio/goquery v1.0.0
+	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
 	github.com/blang/semver v3.5.1+incompatible
@@ -31,7 +31,6 @@ require (
 	github.com/keybase/backoff v1.0.1-0.20160517061000-726b63b835ec
 	github.com/keybase/cli v1.2.1-0.20191217150554-9323fd7ddfab
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
-	github.com/keybase/colly v1.1.1-0.20190207010505-9a56fbe6c0e6
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20230103225103-1f052922b096
@@ -89,6 +88,7 @@ require (
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.49.13
+	github.com/gocolly/colly/v2 v2.1.1-0.20231020184023-3c987f1982ed
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -115,15 +115,16 @@ require (
 	github.com/alexkohler/nakedret/v2 v2.0.2 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
-	github.com/andybalholm/cascadia v0.0.0-20150730174459-3ad29d1ad1c4 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
-	github.com/antchfx/htmlquery v0.0.0-20180925020018-98389addba3d // indirect
-	github.com/antchfx/xmlquery v0.0.0-20181024140136-98cdbc3221ed // indirect
-	github.com/antchfx/xpath v0.0.0-20180922041825-3de91f3991a1 // indirect
+	github.com/antchfx/htmlquery v1.2.3 // indirect
+	github.com/antchfx/xmlquery v1.3.4 // indirect
+	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bits-and-blooms/bitset v1.2.2-0.20220111210104-dfa3e347c392 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
 	github.com/blevesearch/blevex v0.0.0-20190916190636-152f0fe5c040 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
@@ -172,7 +173,6 @@ require (
 	github.com/go-toolsmith/typep v1.1.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
-	github.com/gocolly/colly v1.1.1-0.20190204140905-b3032e87d3ef // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -238,6 +238,7 @@ require (
 	github.com/nf/cr2 v0.0.0-20140528043846-05d46fef4f2f // indirect
 	github.com/nishanths/exhaustive v0.11.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
+	github.com/nlnwa/whatwg-url v0.1.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.14.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-buffruneio v0.3.0 // indirect
@@ -290,7 +291,7 @@ require (
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c // indirect
 	github.com/tdakkota/asciicheck v0.2.0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
-	github.com/temoto/robotstxt v0.0.0-20180810133444-97ee4a9ee6ea // indirect
+	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/tetafro/godot v1.4.15 // indirect
 	github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 // indirect
 	github.com/timonwong/loggercheck v0.9.4 // indirect
