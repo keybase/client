@@ -80,8 +80,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return
 
-    const delta = e.deltaY > 0 ? 1.1 : 0.9
-    scaleRef.current = Math.max(1, scaleRef.current * delta)
+    const delta = e.deltaY > 0 ? 1.02 : 0.92
+    scaleRef.current = Math.min(2.5, Math.max(0.5, scaleRef.current * delta))
     handleMouseMove(e)
   }
 
