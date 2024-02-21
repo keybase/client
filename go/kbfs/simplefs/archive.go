@@ -61,14 +61,16 @@ func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePa
 type archiveManager struct {
 	simpleFS *SimpleFS
 
-	mu    sync.RWMutex
+	// Just use a regular mutex rather than a rw one so all writes to
+	// persistent storage are synchronized.
+	mu    sync.Mutex
 	state *keybase1.SimpleFSArchiveState
 
 	indexingWorkerSignal chan struct{}
 	copyingWorkerSignal  chan struct{}
 	zippingWorkerSignal  chan struct{}
 
-	shutdown func()
+	ctxCancel func()
 }
 
 func getStateFilePath(simpleFS *SimpleFS) string {
@@ -79,6 +81,11 @@ func getStateFilePath(simpleFS *SimpleFS) string {
 const archiveManagerCreationTimeout = 10 * time.Second
 
 func (m *archiveManager) fluseStateFileLocked(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
 	err := writeArchiveStateIntoJsonGz(ctx, m.simpleFS, getStateFilePath(m.simpleFS), m.state)
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx,
@@ -94,6 +101,16 @@ func (m *archiveManager) signal(ch chan struct{}) {
 	default:
 		// There's already a signal in the chan. Skipping this.
 	}
+}
+
+func (m *archiveManager) shutdown(ctx context.Context) {
+	// OK to cancel before fluseStateFileLocked because we'll pass in the
+	// shutdown ctx ther.
+	m.ctxCancel()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.fluseStateFileLocked(ctx)
 }
 
 func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
@@ -117,16 +134,16 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSArchiveState {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.getCurrentState")
 	m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	return m.state.DeepCopy()
 }
 
 func (m *archiveManager) startWorkerTask(ctx context.Context,
 	eligiblePhase keybase1.SimpleFSArchiveJobPhase,
 	newPhase keybase1.SimpleFSArchiveJobPhase) (jobID string, ok bool) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	for jobID := range m.state.Jobs {
 		if m.state.Jobs[jobID].Phase == eligiblePhase {
 			copy := m.state.Jobs[jobID]
@@ -203,7 +220,7 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 
 func (m *archiveManager) start() {
 	ctx := context.Background()
-	ctx, m.shutdown = context.WithCancel(ctx)
+	ctx, m.ctxCancel = context.WithCancel(ctx)
 	go m.indexingWorker(m.simpleFS.makeContext(ctx))
 	go m.copyingWorker(m.simpleFS.makeContext(ctx))
 	go m.zippingWorker(m.simpleFS.makeContext(ctx))
