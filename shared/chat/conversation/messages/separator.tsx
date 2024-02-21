@@ -335,15 +335,10 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {
-    ordinal,
-    showUsername, //: _showUsername,
-    orangeLineAbove, //: _orangeLineAbove,
-  } = useStateFast(trailingItem, leadingItem ?? T.Chat.numberToOrdinal(0))
-  // TEMP
-  // const showUsername = 'cnojima106'
-  // const orangeLineAbove = true
-
+  const {ordinal, showUsername, orangeLineAbove} = useStateFast(
+    trailingItem,
+    leadingItem ?? T.Chat.numberToOrdinal(0)
+  )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null

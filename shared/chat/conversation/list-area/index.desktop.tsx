@@ -422,7 +422,7 @@ const useItems = (p: {
       return (
         <div
           key={String(ordinal)}
-          data-debug={String(ordinal)}
+          // data-debug={String(ordinal)}
           className={Kb.Styles.classNames(
             'hover-container',
             'WrapperMessage',
@@ -479,9 +479,6 @@ const useItems = (p: {
             if (existing && shallowEqual(existing, wayOrdinals)) {
               wayOrdinals = existing
             } else {
-              if (existing && existing.length >= wayOrdinals.length) {
-                // console.log('aaaa ordinal cache miss', key, existing, wayOrdinals, conversationIDKey)
-              }
               wayOrdinalCachRef.current.set(key, wayOrdinals)
             }
 
