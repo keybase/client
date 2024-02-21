@@ -1544,6 +1544,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
+
         syncMessageDerived(s)
       })
       if (markAsRead) {
