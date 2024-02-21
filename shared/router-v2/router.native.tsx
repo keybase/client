@@ -57,34 +57,35 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
   })
 }
 
-const TabBarIcon = React.memo(
-  function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
-    const {isFocused, routeName} = props
-    const navBadges = C.useNotifState(s => s.navBadges)
-    const hasPermissions = C.usePushState(s => s.hasPermissions)
-    const onSettings = routeName === Tabs.settingsTab
-    const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-    const badgeNumber = tabsToCount.reduce(
-      (res, tab) => res + (navBadges.get(tab) || 0),
-      // notifications gets badged on native if there's no push, special case
-      onSettings && !hasPermissions ? 1 : 0
-    )
+const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boolean; routeName: Tabs.Tab}) {
+  const {isFocused, routeName} = props
+  const navBadges = C.useNotifState(s => s.navBadges)
+  const hasPermissions = C.usePushState(s => s.hasPermissions)
+  const onSettings = routeName === Tabs.settingsTab
+  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+  const badgeNumber = tabsToCount.reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    // notifications gets badged on native if there's no push, special case
+    onSettings && !hasPermissions ? 1 : 0
+  )
 
-    const data = tabToData.get(routeName)
-    return data ? (
-      <View style={styles.container}>
-        <Kb.Icon
-          type={data.icon}
-          fontSize={32}
-          style={styles.tab}
-          color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
-        />
-        {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
-        {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
-      </View>
-    ) : null
-  },
-  (a, b) => a.routeName === b.routeName && a.isFocused === b.isFocused
+  const data = tabToData.get(routeName)
+  return data ? (
+    <View style={styles.container}>
+      <Kb.Icon
+        type={data.icon}
+        fontSize={32}
+        style={styles.tab}
+        color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
+      />
+      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
+      {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
+    </View>
+  ) : null
+})
+
+const TabBarIcon = (p: {isFocused: boolean; routeName: Tabs.Tab}) => (
+  <TabBarIconImpl isFocused={p.isFocused} routeName={p.routeName} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -143,99 +144,96 @@ const makeTabStack = (tab: (typeof tabs)[number]) => {
     tabScreensCache.set(tab, tabScreens)
   }
 
-  const Comp = React.memo(
-    function TabStack() {
-      return (
-        <S.Navigator
-          initialRouteName={tabRoots[tab]}
-          screenOptions={{
-            ...Common.defaultNavigationOptions,
-            animation: 'simple_push',
-            animationDuration: 250,
-            orientation: 'portrait',
-          }}
-        >
-          {tabScreens}
-        </S.Navigator>
-      )
-    },
-    () => true
-  )
+  const TabStack = React.memo(function TabStack() {
+    return (
+      <S.Navigator
+        initialRouteName={tabRoots[tab]}
+        screenOptions={{
+          ...Common.defaultNavigationOptions,
+          animation: 'simple_push',
+          animationDuration: 250,
+          orientation: 'portrait',
+        }}
+      >
+        {tabScreens}
+      </S.Navigator>
+    )
+  })
+  const Comp = () => <TabStack />
   return Comp
 }
 
-const AppTabs = React.memo(
-  function AppTabs() {
-    // so we have a stack per tab
-    const tabStacks = React.useMemo(
-      () =>
-        tabs.map(tab => (
-          <Tab.Screen
-            key={tab}
-            name={tab}
-            component={makeTabStack(tab)}
-            options={({route}) => {
-              const routeName = getFocusedRouteNameFromRoute(route)
-              return {
-                tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
-              }
-            }}
-            listeners={{
-              tabLongPress: () => {
-                C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
-              },
-            }}
-          />
-        )),
-      []
-    )
+const AppTabsImpl = React.memo(function AppTabsImpl() {
+  // so we have a stack per tab
+  const tabStacks = React.useMemo(
+    () =>
+      tabs.map(tab => (
+        <Tab.Screen
+          key={tab}
+          name={tab}
+          component={makeTabStack(tab)}
+          options={({route}) => {
+            const routeName = getFocusedRouteNameFromRoute(route)
+            return {
+              tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+            }
+          }}
+          listeners={{
+            tabLongPress: () => {
+              C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+            },
+          }}
+        />
+      )),
+    []
+  )
 
-    const makeTabBarIcon =
-      (routeName: string) =>
-      ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
-    const makeTabBarLabel =
-      (routeName: string) =>
-      ({focused}: {focused: boolean}) => (
-        <Kb.Text
-          style={Kb.Styles.collapseStyles([
-            styles.label,
-            Kb.Styles.isDarkMode()
-              ? focused
-                ? styles.labelDarkModeFocused
-                : styles.labelDarkMode
-              : focused
-                ? styles.labelLightModeFocused
-                : styles.labelLightMode,
-          ])}
-          type="BodyBig"
-        >
-          {tabToData.get(routeName as C.Tabs.Tab)?.label}
-        </Kb.Text>
-      )
-
-    return (
-      <Tab.Navigator
-        backBehavior="none"
-        screenOptions={({route}) => {
-          return {
-            ...Common.defaultNavigationOptions,
-            headerShown: false,
-            tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
-            tabBarHideOnKeyboard: true,
-            tabBarIcon: makeTabBarIcon(route.name),
-            tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
-            tabBarLabel: makeTabBarLabel(route.name),
-            tabBarShowLabel: Kb.Styles.isTablet,
-            tabBarStyle: Common.tabBarStyle,
-          }
-        }}
+  const makeTabBarIcon =
+    (routeName: string) =>
+    ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+  const makeTabBarLabel =
+    (routeName: string) =>
+    ({focused}: {focused: boolean}) => (
+      <Kb.Text
+        style={Kb.Styles.collapseStyles([
+          styles.label,
+          Kb.Styles.isDarkMode()
+            ? focused
+              ? styles.labelDarkModeFocused
+              : styles.labelDarkMode
+            : focused
+              ? styles.labelLightModeFocused
+              : styles.labelLightMode,
+        ])}
+        type="BodyBig"
       >
-        {tabStacks}
-      </Tab.Navigator>
+        {tabToData.get(routeName as C.Tabs.Tab)?.label}
+      </Kb.Text>
     )
-  },
-  () => true // ignore all props
-)
+
+  return (
+    <Tab.Navigator
+      backBehavior="none"
+      screenOptions={({route}) => {
+        return {
+          ...Common.defaultNavigationOptions,
+          headerShown: false,
+          tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
+          tabBarHideOnKeyboard: true,
+          tabBarIcon: makeTabBarIcon(route.name),
+          tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
+          tabBarLabel: makeTabBarLabel(route.name),
+          tabBarShowLabel: Kb.Styles.isTablet,
+          tabBarStyle: Common.tabBarStyle,
+        }
+      }}
+    >
+      {tabStacks}
+    </Tab.Navigator>
+  )
+})
+
+const AppTabs = () => <AppTabsImpl />
 
 const LoggedOutStack = createNativeStackNavigator()
 
