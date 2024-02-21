@@ -8,7 +8,7 @@ cd "$dir"
 app_name="KeybaseUpdater"
 plist="$dir/Updater/Info.plist"
 scheme="Updater"
-code_sign_identity=${CODE_SIGN_IDENTITY:-"9FC3A5BC09FA2EE307C04060C918486411869B65"}
+code_sign_identity=${CODE_SIGN_IDENTITY:-"90524F7BEAEACD94C7B473787F4949582F904104"}
 xcode_configuration="Release"
 install_app_path="/Applications/Keybase.app/Contents/Resources/$app_name.app"
 
