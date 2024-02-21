@@ -919,14 +919,14 @@ func (s *SimpleFSHandler) SimpleFSArchiveStart(ctx context.Context,
 	return cli.SimpleFSArchiveStart(ctx, arg)
 }
 
-// SimpleFSGetArchiveState implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSGetArchiveState(ctx context.Context) (
-	state keybase1.SimpleFSArchiveState, err error) {
+// SimpleFSGetArchiveStatus implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetArchiveStatus(ctx context.Context) (
+	status keybase1.SimpleFSArchiveStatus, err error) {
 	cli, err := s.client(ctx)
 	if err != nil {
-		return keybase1.SimpleFSArchiveState{}, nil
+		return keybase1.SimpleFSArchiveStatus{}, nil
 	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
-	return cli.SimpleFSGetArchiveState(ctx)
+	return cli.SimpleFSGetArchiveStatus(ctx)
 }

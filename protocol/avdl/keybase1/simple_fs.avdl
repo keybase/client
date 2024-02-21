@@ -778,12 +778,27 @@ protocol SimpleFS {
     Zipping_2,
     Complete_3
   }
+  // SimpleFSArchiveState is the internal state of KBFS archiving work and is
+  // also used to serialize the state to persistent storage.
   record SimpleFSArchiveState {
     map<string, SimpleFSArchiveJobState> jobs; // job ID -> job state
     Time lastUpdated;
     SimpleFSArchivePhase phase;
   }
-  SimpleFSArchiveState simpleFSGetArchiveState();
+
+  record SimpleFSArchiveJobStatus {
+    SimpleFSArchiveJobDesc desc;
+    int todoCount;
+    int inProgressCount;
+    int completeCount;
+    int totalCount;
+  }
+  record SimpleFSArchiveStatus {
+    map<string, SimpleFSArchiveJobStatus> jobs; // job ID -> job status
+    Time lastUpdated;
+    SimpleFSArchivePhase phase;
+  }
+  SimpleFSArchiveStatus simpleFSGetArchiveStatus();
 
 
 }

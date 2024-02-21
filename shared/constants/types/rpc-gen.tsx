@@ -3256,7 +3256,9 @@ export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolea
 export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly sha256SumHex: String}
 export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly startTime: Time; readonly outputPath: String}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null}
+export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly totalCount: Int}
 export type SimpleFSArchiveState = {readonly jobs?: {[key: string]: SimpleFSArchiveJobState} | null; readonly lastUpdated: Time; readonly phase: SimpleFSArchivePhase}
+export type SimpleFSArchiveStatus = {readonly jobs?: {[key: string]: SimpleFSArchiveJobStatus} | null; readonly lastUpdated: Time; readonly phase: SimpleFSArchivePhase}
 export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: ReadonlyArray<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
@@ -4359,7 +4361,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.SimpleFS.simpleFSCancelJournalUploads'
 // 'keybase.1.SimpleFS.simpleFSArchiveStart'
-// 'keybase.1.SimpleFS.simpleFSGetArchiveState'
+// 'keybase.1.SimpleFS.simpleFSGetArchiveStatus'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

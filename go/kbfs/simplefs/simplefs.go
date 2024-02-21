@@ -3611,11 +3611,34 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	return desc, err
 }
 
-// SimpleFSGetArchiveState implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSGetArchiveState(ctx context.Context) (
-	state keybase1.SimpleFSArchiveState, err error) {
+// SimpleFSGetArchiveStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
+	status keybase1.SimpleFSArchiveStatus, err error) {
 	ctx = k.makeContext(ctx)
-	return k.archiveManager.getCurrentState(ctx), nil
+	state := k.archiveManager.getCurrentState(ctx)
+	status = keybase1.SimpleFSArchiveStatus{
+		LastUpdated: state.LastUpdated,
+		Phase:       state.Phase,
+		Jobs:        make(map[string]keybase1.SimpleFSArchiveJobStatus),
+	}
+	for jobID, stateJob := range state.Jobs {
+		statusJob := keybase1.SimpleFSArchiveJobStatus{
+			Desc:       stateJob.Desc.DeepCopy(),
+			TotalCount: len(stateJob.Manifest),
+		}
+		for _, item := range stateJob.Manifest {
+			switch item.State {
+			case keybase1.SimpleFSFileArchiveState_ToDo:
+				statusJob.TodoCount++
+			case keybase1.SimpleFSFileArchiveState_InProgress:
+				statusJob.InProgressCount++
+			case keybase1.SimpleFSFileArchiveState_Complete:
+				statusJob.CompleteCount++
+			}
+		}
+		status.Jobs[jobID] = statusJob
+	}
+	return status, nil
 }
 
 // Shutdown shuts down SimpleFS.

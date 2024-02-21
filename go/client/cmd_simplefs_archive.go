@@ -65,21 +65,6 @@ func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArc
 	ui.Printf("Output Path: %s\n", desc.OutputPath)
 
 }
-func printSimpleFSArchiveJobState(ui libkb.TerminalUI, job *keybase1.SimpleFSArchiveJobState) {
-	printSimpleFSArchiveJobDesc(ui, &job.Desc)
-	todo, inProgress, complete := 0, 0, 0
-	for _, item := range job.Manifest {
-		switch item.State {
-		case keybase1.SimpleFSFileArchiveState_ToDo:
-			todo++
-		case keybase1.SimpleFSFileArchiveState_InProgress:
-			inProgress++
-		case keybase1.SimpleFSFileArchiveState_Complete:
-			complete++
-		}
-	}
-	ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n", todo, inProgress, complete, len(job.Manifest))
-}
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSArchiveStart) Run() error {
@@ -150,7 +135,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		return err
 	}
 
-	status, err := cli.SimpleFSGetArchiveState(context.TODO())
+	status, err := cli.SimpleFSGetArchiveStatus(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -166,7 +151,9 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	sort.Strings(jobIDs)
 	for _, jobID := range jobIDs {
 		job := status.Jobs[jobID]
-		printSimpleFSArchiveJobState(ui, &job)
+		printSimpleFSArchiveJobDesc(ui, &job.Desc)
+		ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n",
+			job.TodoCount, job.InProgressCount, job.CompleteCount, job.TotalCount)
 		ui.Printf("\n")
 	}
 

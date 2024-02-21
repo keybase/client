@@ -1807,6 +1807,49 @@ func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
 	}
 }
 
+type SimpleFSArchiveJobStatus struct {
+	Desc            SimpleFSArchiveJobDesc `codec:"desc" json:"desc"`
+	TodoCount       int                    `codec:"todoCount" json:"todoCount"`
+	InProgressCount int                    `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount   int                    `codec:"completeCount" json:"completeCount"`
+	TotalCount      int                    `codec:"totalCount" json:"totalCount"`
+}
+
+func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
+	return SimpleFSArchiveJobStatus{
+		Desc:            o.Desc.DeepCopy(),
+		TodoCount:       o.TodoCount,
+		InProgressCount: o.InProgressCount,
+		CompleteCount:   o.CompleteCount,
+		TotalCount:      o.TotalCount,
+	}
+}
+
+type SimpleFSArchiveStatus struct {
+	Jobs        map[string]SimpleFSArchiveJobStatus `codec:"jobs" json:"jobs"`
+	LastUpdated Time                                `codec:"lastUpdated" json:"lastUpdated"`
+	Phase       SimpleFSArchivePhase                `codec:"phase" json:"phase"`
+}
+
+func (o SimpleFSArchiveStatus) DeepCopy() SimpleFSArchiveStatus {
+	return SimpleFSArchiveStatus{
+		Jobs: (func(x map[string]SimpleFSArchiveJobStatus) map[string]SimpleFSArchiveJobStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobStatus, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Jobs),
+		LastUpdated: o.LastUpdated.DeepCopy(),
+		Phase:       o.Phase.DeepCopy(),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -2129,7 +2172,7 @@ type SimpleFSArchiveStartArg struct {
 	OutputPath string   `codec:"outputPath" json:"outputPath"`
 }
 
-type SimpleFSGetArchiveStateArg struct {
+type SimpleFSGetArchiveStatusArg struct {
 }
 
 type SimpleFSInterface interface {
@@ -2271,7 +2314,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 	SimpleFSCancelJournalUploads(context.Context, KBFSPath) error
 	SimpleFSArchiveStart(context.Context, SimpleFSArchiveStartArg) (SimpleFSArchiveJobDesc, error)
-	SimpleFSGetArchiveState(context.Context) (SimpleFSArchiveState, error)
+	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3268,13 +3311,13 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
-			"simpleFSGetArchiveState": {
+			"simpleFSGetArchiveStatus": {
 				MakeArg: func() interface{} {
-					var ret [1]SimpleFSGetArchiveStateArg
+					var ret [1]SimpleFSGetArchiveStatusArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSGetArchiveState(ctx)
+					ret, err = i.SimpleFSGetArchiveStatus(ctx)
 					return
 				},
 			},
@@ -3739,7 +3782,7 @@ func (c SimpleFSClient) SimpleFSArchiveStart(ctx context.Context, __arg SimpleFS
 	return
 }
 
-func (c SimpleFSClient) SimpleFSGetArchiveState(ctx context.Context) (res SimpleFSArchiveState, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveState", []interface{}{SimpleFSGetArchiveStateArg{}}, &res, 0*time.Millisecond)
+func (c SimpleFSClient) SimpleFSGetArchiveStatus(ctx context.Context) (res SimpleFSArchiveStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveStatus", []interface{}{SimpleFSGetArchiveStatusArg{}}, &res, 0*time.Millisecond)
 	return
 }

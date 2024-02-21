@@ -1142,6 +1142,54 @@
           "name": "phase"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobStatus",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": "int",
+          "name": "todoCount"
+        },
+        {
+          "type": "int",
+          "name": "inProgressCount"
+        },
+        {
+          "type": "int",
+          "name": "completeCount"
+        },
+        {
+          "type": "int",
+          "name": "totalCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveStatus",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobStatus",
+            "keys": "string"
+          },
+          "name": "jobs"
+        },
+        {
+          "type": "Time",
+          "name": "lastUpdated"
+        },
+        {
+          "type": "SimpleFSArchivePhase",
+          "name": "phase"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1978,9 +2026,9 @@
       ],
       "response": "SimpleFSArchiveJobDesc"
     },
-    "simpleFSGetArchiveState": {
+    "simpleFSGetArchiveStatus": {
       "request": [],
-      "response": "SimpleFSArchiveState"
+      "response": "SimpleFSArchiveStatus"
     }
   },
   "namespace": "keybase.1"
