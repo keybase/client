@@ -106,10 +106,10 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 		return errors.New("job ID already exists")
 	}
 	m.state.Jobs[job.JobID] = keybase1.SimpleFSArchiveJobState{
-		Desc: job,
+		Desc:  job,
+		Phase: keybase1.SimpleFSArchiveJobPhase_Indexing,
 	}
 	m.state.LastUpdated = keybase1.ToTime(time.Now())
-	m.state.Phase = keybase1.SimpleFSArchivePhase_Indexing
 	m.signal(m.indexingWorkerSignal)
 	return m.fluseStateFileLocked(ctx)
 }
@@ -122,6 +122,22 @@ func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSA
 	return m.state.DeepCopy()
 }
 
+func (m *archiveManager) startWorkerTask(ctx context.Context,
+	eligiblePhase keybase1.SimpleFSArchiveJobPhase,
+	newPhase keybase1.SimpleFSArchiveJobPhase) (jobID string, ok bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for jobID := range m.state.Jobs {
+		if m.state.Jobs[jobID].Phase == eligiblePhase {
+			copy := m.state.Jobs[jobID]
+			copy.Phase = newPhase
+			m.state.Jobs[jobID] = copy
+			return jobID, true
+		}
+	}
+	return "", false
+}
+
 func (m *archiveManager) indexingWorker(ctx context.Context) {
 	for {
 		select {
@@ -129,6 +145,17 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 			return
 		case <-m.indexingWorkerSignal:
 		}
+
+		jobID, ok := m.startWorkerTask(ctx,
+			keybase1.SimpleFSArchiveJobPhase_Queued,
+			keybase1.SimpleFSArchiveJobPhase_Indexing)
+
+		if !ok {
+			m.simpleFS.log.CDebugf(ctx, "no more indexing work to do")
+			return
+		}
+
+		// TODO do work
 	}
 }
 
@@ -139,6 +166,17 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 			return
 		case <-m.copyingWorkerSignal:
 		}
+
+		jobID, ok := m.startWorkerTask(ctx,
+			keybase1.SimpleFSArchiveJobPhase_Indexed,
+			keybase1.SimpleFSArchiveJobPhase_Copying)
+
+		if !ok {
+			m.simpleFS.log.CDebugf(ctx, "no more indexing work to do")
+			return
+		}
+
+		// TODO do work
 	}
 }
 
@@ -149,6 +187,17 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 			return
 		case <-m.zippingWorkerSignal:
 		}
+
+		jobID, ok := m.startWorkerTask(ctx,
+			keybase1.SimpleFSArchiveJobPhase_Copied,
+			keybase1.SimpleFSArchiveJobPhase_Zipping)
+
+		if !ok {
+			m.simpleFS.log.CDebugf(ctx, "no more indexing work to do")
+			return
+		}
+
+		// TODO do work
 	}
 }
 
@@ -160,8 +209,41 @@ func (m *archiveManager) start() {
 	go m.zippingWorker(m.simpleFS.makeContext(ctx))
 }
 
+func (m *archiveManager) resetInterruptedPhases(ctx context.Context) {
+	// We don't resume indexing and zipping work, so just reset them here.
+	// Copying is resumable but we have per file state tracking so reset the
+	// phase here as well.
+	for jobID := range m.state.Jobs {
+		switch m.state.Jobs[jobID].Phase {
+		case keybase1.SimpleFSArchiveJobPhase_Indexing:
+			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+				keybase1.SimpleFSArchiveJobPhase_Indexing,
+				keybase1.SimpleFSArchiveJobPhase_Queued)
+			copy := m.state.Jobs[jobID]
+			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Queued
+			m.state.Jobs[jobID] = copy
+		case keybase1.SimpleFSArchiveJobPhase_Copying:
+			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+				keybase1.SimpleFSArchiveJobPhase_Copying,
+				keybase1.SimpleFSArchiveJobPhase_Indexed)
+			copy := m.state.Jobs[jobID]
+			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Indexed
+			m.state.Jobs[jobID] = copy
+		case keybase1.SimpleFSArchiveJobPhase_Zipping:
+			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+				keybase1.SimpleFSArchiveJobPhase_Zipping,
+				keybase1.SimpleFSArchiveJobPhase_Copied)
+			copy := m.state.Jobs[jobID]
+			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Copied
+			m.state.Jobs[jobID] = copy
+		}
+	}
+}
+
 func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 	ctx := context.Background()
+	simpleFS.log.CDebugf(ctx, "+ newArchiveManager")
+	simpleFS.log.CDebugf(ctx, "- newArchiveManager")
 	m = &archiveManager{
 		simpleFS:             simpleFS,
 		indexingWorkerSignal: make(chan struct{}, 1),
@@ -176,6 +258,7 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 		}
 		return m, nil
 	}
+	m.resetInterruptedPhases(ctx)
 	simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz error ( %v ). Creating a new state.", err)
 	m.state = &keybase1.SimpleFSArchiveState{
 		Jobs: make(map[string]keybase1.SimpleFSArchiveJobState),
