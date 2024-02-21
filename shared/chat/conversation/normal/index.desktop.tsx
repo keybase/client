@@ -29,6 +29,7 @@ const LoadingLine = () => {
 
 const hotKeys = ['mod+f']
 const Conversation = React.memo(function Conversation() {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
@@ -79,7 +80,7 @@ const Conversation = React.memo(function Conversation() {
       >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-          <ListArea />
+          <ListArea key={conversationIDKey} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
             {!showThreadSearch && <PinnedMessage />}
