@@ -1,3 +1,21 @@
 Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
+
+
+missing author:
+
+how it works:
+We render items in between in the list view
+They're passed the leading/trailing index
+They decide if they need to render anything based on the message and previous (author, time, type, etc)
+
+
+causes:
+Something wrong with store. Seems not the case w/ the current logs.
+Separators not being placed?
+Hooks not working correctly?
+Wrong memoization?
+Heights wrong? (you'd see the left side no matter what)
+Index / ordinal confusion
+
