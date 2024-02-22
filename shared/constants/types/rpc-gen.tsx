@@ -2375,6 +2375,7 @@ export enum SimpleFSArchiveJobPhase {
   copied = 4,
   zipping = 5,
   done = 6,
+  canceled = 7,
 }
 
 export enum SimpleFSFileArchiveState {
@@ -4364,6 +4365,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.SimpleFS.simpleFSCancelJournalUploads'
 // 'keybase.1.SimpleFS.simpleFSArchiveStart'
+// 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob'
 // 'keybase.1.SimpleFS.simpleFSGetArchiveStatus'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'

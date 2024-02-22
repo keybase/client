@@ -1762,6 +1762,7 @@ const (
 	SimpleFSArchiveJobPhase_Copied   SimpleFSArchiveJobPhase = 4
 	SimpleFSArchiveJobPhase_Zipping  SimpleFSArchiveJobPhase = 5
 	SimpleFSArchiveJobPhase_Done     SimpleFSArchiveJobPhase = 6
+	SimpleFSArchiveJobPhase_Canceled SimpleFSArchiveJobPhase = 7
 )
 
 func (o SimpleFSArchiveJobPhase) DeepCopy() SimpleFSArchiveJobPhase { return o }
@@ -1774,6 +1775,7 @@ var SimpleFSArchiveJobPhaseMap = map[string]SimpleFSArchiveJobPhase{
 	"Copied":   4,
 	"Zipping":  5,
 	"Done":     6,
+	"Canceled": 7,
 }
 
 var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
@@ -1784,6 +1786,7 @@ var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
 	4: "Copied",
 	5: "Zipping",
 	6: "Done",
+	7: "Canceled",
 }
 
 func (e SimpleFSArchiveJobPhase) String() string {
@@ -2181,6 +2184,10 @@ type SimpleFSArchiveStartArg struct {
 	OutputPath string   `codec:"outputPath" json:"outputPath"`
 }
 
+type SimpleFSArchiveCancelOrDismissJobArg struct {
+	JobID string `codec:"jobID" json:"jobID"`
+}
+
 type SimpleFSGetArchiveStatusArg struct {
 }
 
@@ -2323,6 +2330,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 	SimpleFSCancelJournalUploads(context.Context, KBFSPath) error
 	SimpleFSArchiveStart(context.Context, SimpleFSArchiveStartArg) (SimpleFSArchiveJobDesc, error)
+	SimpleFSArchiveCancelOrDismissJob(context.Context, string) error
 	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
 }
 
@@ -3320,6 +3328,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSArchiveCancelOrDismissJob": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveCancelOrDismissJobArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveCancelOrDismissJobArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveCancelOrDismissJobArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSArchiveCancelOrDismissJob(ctx, typedArgs[0].JobID)
+					return
+				},
+			},
 			"simpleFSGetArchiveStatus": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetArchiveStatusArg
@@ -3788,6 +3811,12 @@ func (c SimpleFSClient) SimpleFSCancelJournalUploads(ctx context.Context, path K
 
 func (c SimpleFSClient) SimpleFSArchiveStart(ctx context.Context, __arg SimpleFSArchiveStartArg) (res SimpleFSArchiveJobDesc, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveStart", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveCancelOrDismissJob(ctx context.Context, jobID string) (err error) {
+	__arg := SimpleFSArchiveCancelOrDismissJobArg{JobID: jobID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

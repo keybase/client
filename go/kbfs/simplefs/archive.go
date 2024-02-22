@@ -64,8 +64,9 @@ type archiveManager struct {
 
 	// Just use a regular mutex rather than a rw one so all writes to
 	// persistent storage are synchronized.
-	mu    sync.Mutex
-	state *keybase1.SimpleFSArchiveState
+	mu               sync.Mutex
+	state            *keybase1.SimpleFSArchiveState
+	jobCtxCancellers map[string]func()
 
 	indexingWorkerSignal chan struct{}
 	copyingWorkerSignal  chan struct{}
@@ -141,6 +142,26 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 	return m.fluseStateFileLocked(ctx)
 }
 
+func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
+	jobID string) (err error) {
+	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.cancelOrDismissJob")
+	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.cancelOrDismissJob %s", jobID)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if cancel, ok := m.jobCtxCancellers[jobID]; ok {
+		cancel()
+		delete(m.jobCtxCancellers, jobID)
+	}
+
+	if _, ok := m.state.Jobs[jobID]; !ok {
+		return errors.New("job not found")
+	}
+	delete(m.state.Jobs, jobID)
+
+	return nil
+}
+
 func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSArchiveState {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.getCurrentState")
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
@@ -151,7 +172,11 @@ func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSA
 
 func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
 	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase) {
-	copy := m.state.Jobs[jobID]
+	copy, ok := m.state.Jobs[jobID]
+	if !ok {
+		m.simpleFS.log.CWarningf(ctx, "job %s not found. it might have been canceled", jobID)
+		return
+	}
 	copy.Phase = newPhase
 	m.state.Jobs[jobID] = copy
 }
@@ -164,16 +189,18 @@ func (m *archiveManager) changeJobPhase(ctx context.Context,
 
 func (m *archiveManager) startWorkerTask(ctx context.Context,
 	eligiblePhase keybase1.SimpleFSArchiveJobPhase,
-	newPhase keybase1.SimpleFSArchiveJobPhase) (jobID string, ok bool) {
+	newPhase keybase1.SimpleFSArchiveJobPhase) (jobID string, jobCtx context.Context, ok bool) {
+	jobCtx, cancel := context.WithCancel(ctx)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for jobID := range m.state.Jobs {
 		if m.state.Jobs[jobID].Phase == eligiblePhase {
 			m.changeJobPhaseLocked(ctx, jobID, newPhase)
-			return jobID, true
+			m.jobCtxCancellers[jobID] = cancel
+			return jobID, jobCtx, true
 		}
 	}
-	return "", false
+	return "", nil, false
 }
 
 func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err error) {
@@ -224,7 +251,11 @@ loopReadList:
 		m.mu.Lock()
 		defer m.mu.Unlock()
 
-		jobCopy := m.state.Jobs[jobID]
+		jobCopy, ok := m.state.Jobs[jobID]
+		if !ok {
+			m.simpleFS.log.CWarningf(ctx, "job %s not found. it might have been canceled", jobID)
+			return
+		}
 		jobCopy.Manifest = manifest
 		m.state.Jobs[jobID] = jobCopy
 	}()
@@ -239,7 +270,7 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 		case <-m.indexingWorkerSignal:
 		}
 
-		jobID, ok := m.startWorkerTask(ctx,
+		jobID, jobCtx, ok := m.startWorkerTask(ctx,
 			keybase1.SimpleFSArchiveJobPhase_Queued,
 			keybase1.SimpleFSArchiveJobPhase_Indexing)
 
@@ -252,14 +283,17 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 
 		m.simpleFS.log.CDebugf(ctx, "indexing %s", jobID)
 
-		err := m.doIndexing(ctx, jobID)
+		err := m.doIndexing(jobCtx, jobID)
 		switch err {
 		case nil:
-			m.simpleFS.log.CDebugf(ctx, "indexing done on job %s", jobID)
-			m.changeJobPhase(ctx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+			m.simpleFS.log.CDebugf(jobCtx, "indexing done on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+		case context.Canceled:
+			m.simpleFS.log.CDebugf(jobCtx, "indexing canceled on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Canceled)
 		default:
-			m.simpleFS.log.CErrorf(ctx, "indexing error on job %s", jobID)
-			m.changeJobPhase(ctx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
 		}
 
 		m.fluseStateFile(ctx)
@@ -275,7 +309,7 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 		case <-m.copyingWorkerSignal:
 		}
 
-		jobID, ok := m.startWorkerTask(ctx,
+		jobID, jobCtx, ok := m.startWorkerTask(ctx,
 			keybase1.SimpleFSArchiveJobPhase_Indexed,
 			keybase1.SimpleFSArchiveJobPhase_Copying)
 
@@ -286,7 +320,7 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 		// check again on the next iteration.
 		m.signal(m.copyingWorkerSignal)
 
-		_ = jobID
+		_, _ = jobID, jobCtx
 		// TODO do work
 
 		m.fluseStateFile(ctx)
@@ -302,7 +336,7 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 		case <-m.zippingWorkerSignal:
 		}
 
-		jobID, ok := m.startWorkerTask(ctx,
+		jobID, jobCtx, ok := m.startWorkerTask(ctx,
 			keybase1.SimpleFSArchiveJobPhase_Copied,
 			keybase1.SimpleFSArchiveJobPhase_Zipping)
 
@@ -313,7 +347,7 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 		// check again on the next iteration.
 		m.signal(m.zippingWorkerSignal)
 
-		_ = jobID
+		_, _ = jobID, jobCtx
 		// TODO do work
 
 		m.fluseStateFile(ctx)
@@ -368,6 +402,7 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 	defer simpleFS.log.CDebugf(ctx, "- newArchiveManager")
 	m = &archiveManager{
 		simpleFS:             simpleFS,
+		jobCtxCancellers:     make(map[string]func()),
 		indexingWorkerSignal: make(chan struct{}, 1),
 		copyingWorkerSignal:  make(chan struct{}, 1),
 		zippingWorkerSignal:  make(chan struct{}, 1),

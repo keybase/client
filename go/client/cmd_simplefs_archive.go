@@ -20,6 +20,7 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Usage: "manage KBFS archiving activities",
 		Subcommands: []cli.Command{
 			NewCmdSimpleFSArchiveStart(cl, g),
+			NewCmdSimpleFSArchiveCancelOrDismiss(cl, g),
 			NewCmdSimpleFSArchiveStatus(cl, g),
 		},
 	}
@@ -102,6 +103,61 @@ func (c *CmdSimpleFSArchiveStart) ParseArgv(ctx *cli.Context) error {
 
 // GetUsage says what this command needs to operate.
 func (c *CmdSimpleFSArchiveStart) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
+	}
+}
+
+// CmdSimpleFSArchiveCancelOrDismiss is the 'fs uploads' command.
+type CmdSimpleFSArchiveCancelOrDismiss struct {
+	libkb.Contextified
+	jobIDs     []string
+	outputPath string
+	kbfsPath   keybase1.KBFSPath
+}
+
+// NewCmdSimpleFSArchiveCancelOrDismiss creates a new cli.Command.
+func NewCmdSimpleFSArchiveCancelOrDismiss(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:    "dismiss",
+		Aliases: []string{"cancel"},
+		Usage:   "cancel or dismiss a KBFS archiving job",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdSimpleFSArchiveCancelOrDismiss{
+				Contextified: libkb.NewContextified(g)}, "dismiss", c)
+			cl.SetNoStandalone()
+		},
+		ArgumentHelp: "<job ID>...",
+	}
+}
+
+// Run runs the command in client/server mode.
+func (c *CmdSimpleFSArchiveCancelOrDismiss) Run() error {
+	cli, err := GetSimpleFSClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	for _, jobID := range c.jobIDs {
+		err = cli.SimpleFSArchiveCancelOrDismissJob(context.TODO(), jobID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ParseArgv gets the optional -a switch.
+func (c *CmdSimpleFSArchiveCancelOrDismiss) ParseArgv(ctx *cli.Context) error {
+	c.jobIDs = ctx.Args()
+	return nil
+}
+
+// GetUsage says what this command needs to operate.
+func (c *CmdSimpleFSArchiveCancelOrDismiss) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

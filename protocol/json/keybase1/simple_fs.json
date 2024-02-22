@@ -1125,7 +1125,8 @@
         "Copying_3",
         "Copied_4",
         "Zipping_5",
-        "Done_6"
+        "Done_6",
+        "Canceled_7"
       ]
     },
     {
@@ -2028,6 +2029,15 @@
         }
       ],
       "response": "SimpleFSArchiveJobDesc"
+    },
+    "simpleFSArchiveCancelOrDismissJob": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "string"
+        }
+      ],
+      "response": null
     },
     "simpleFSGetArchiveStatus": {
       "request": [],

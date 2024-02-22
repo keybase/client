@@ -3579,8 +3579,13 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 		OutputPath: arg.OutputPath,
 	}
 	if len(desc.JobID) == 0 {
-		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s", base64.RawURLEncoding.EncodeToString(
-			[]byte(time.Now().Format(time.RFC3339Nano))))
+		buf := make([]byte, 8)
+		err := kbfscrypto.RandRead(buf)
+		if err != nil {
+			return keybase1.SimpleFSArchiveJobDesc{}, err
+		}
+		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s",
+			base64.RawURLEncoding.EncodeToString(buf))
 	}
 	if len(desc.OutputPath) == 0 {
 		panic("todo")
@@ -3609,6 +3614,13 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 
 	err = k.archiveManager.startJob(ctx, desc)
 	return desc, err
+}
+
+// SimpleFSArchiveCancelOrDismissJob implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
+	jobID string) (err error) {
+	ctx = k.makeContext(ctx)
+	return k.archiveManager.cancelOrDismissJob(ctx, jobID)
 }
 
 // SimpleFSGetArchiveStatus implements the SimpleFSInterface.
