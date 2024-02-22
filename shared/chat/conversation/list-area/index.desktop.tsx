@@ -16,7 +16,6 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import {chatDebugEnabled} from '@/constants/chat2/debug'
 import logger from '@/logger'
 import shallowEqual from 'shallowequal'
-import {SeparatorMapContext} from '../messages/ids-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -541,18 +540,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
   const resizeObserve = useResizeObserver()
   const intersectionObserve = useIntersectionObserver()
-
-  // map to help the sep know the previous value
-  const separatorMap = React.useMemo(() => {
-    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-    let p = T.Chat.numberToOrdinal(0)
-    for (const o of messageOrdinals) {
-      sm.set(o, p)
-      p = o
-    }
-    return sm
-  }, [messageOrdinals])
-
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       // Copy text only, not HTML/styling.
@@ -589,25 +576,23 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
 
   return (
     <ErrorBoundary>
-      <SeparatorMapContext.Provider value={separatorMap}>
-        <ResizeObserverContext.Provider value={resizeObserve}>
-          <IntersectObserverContext.Provider value={intersectionObserve}>
-            <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-              <div
-                className="chat-scroller"
-                key={conversationIDKey}
-                style={styles.list as any}
-                ref={setListRef}
-              >
-                <div style={styles.listContents} ref={setListContents}>
-                  {items}
-                </div>
+      <ResizeObserverContext.Provider value={resizeObserve}>
+        <IntersectObserverContext.Provider value={intersectionObserve}>
+          <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+            <div
+              className="chat-scroller"
+              key={conversationIDKey}
+              style={styles.list as any}
+              ref={setListRef}
+            >
+              <div style={styles.listContents} ref={setListContents}>
+                {items}
               </div>
-              {jumpToRecent}
             </div>
-          </IntersectObserverContext.Provider>
-        </ResizeObserverContext.Provider>
-      </SeparatorMapContext.Provider>
+            {jumpToRecent}
+          </div>
+        </IntersectObserverContext.Provider>
+      </ResizeObserverContext.Provider>
     </ErrorBoundary>
   )
 })

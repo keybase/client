@@ -95,7 +95,7 @@ type ConvoStore = {
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
-  maxMsgIDSeen: number // max id weve seen so far, we do delete things
+  maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: Array<T.Chat.Ordinal> // ordered ordinals in a thread,
@@ -106,6 +106,7 @@ type ConvoStore = {
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
+  separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   threadSearchInfo: T.Chat.ThreadSearchInfo
   threadSearchQuery: string
@@ -132,7 +133,7 @@ const initialConvoStore: ConvoStore = {
   giphyWindow: false,
   id: noConversationIDKey,
   markedAsUnread: false,
-  maxMsgIDSeen: -1,
+  maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
   messageOrdinals: undefined,
@@ -143,6 +144,7 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
+  separatorMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
@@ -454,9 +456,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     s.messageOrdinals = mo
-    const last = mo.at(-1)
-    if (last && last > s.maxMsgIDSeen) {
-      s.maxMsgIDSeen = last
+
+    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
+    let p = T.Chat.numberToOrdinal(0)
+    for (const o of mo) {
+      sm.set(o, p)
+      p = o
+    }
+    s.separatorMap = sm
+
+    const lastOrd = mo.at(-1)
+    const lastID = lastOrd ? s.messageMap.get(lastOrd)?.id ?? 0 : 0
+    if (lastID && lastID > s.maxMsgIDSeen) {
+      s.maxMsgIDSeen = lastID
     }
   }
 
@@ -1532,6 +1544,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               }
             }
 
+            // TODO could use immer here to keep equivalents
             const toWrite = {...m, ordinal: mapOrdinal}
             s.messageMap.set(mapOrdinal, toWrite)
             if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {

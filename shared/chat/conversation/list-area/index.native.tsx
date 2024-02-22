@@ -9,7 +9,6 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
-import {SeparatorMapContext} from '../messages/ids-context'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
@@ -89,8 +88,6 @@ const useScrolling = (p: {
   }
 }
 
-const emptyMap = new Map()
-
 const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
@@ -111,18 +108,6 @@ const ConversationList = React.memo(function ConversationList() {
 
   const messageOrdinals = React.useMemo(() => {
     return [...(_messageOrdinals ?? [])].reverse()
-  }, [_messageOrdinals])
-
-  // map to help the sep know the previous value
-  const separatorMap = React.useMemo(() => {
-    if (usingFlashList) return emptyMap
-    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-    let p = T.Chat.numberToOrdinal(0)
-    for (const o of _messageOrdinals ?? []) {
-      sm.set(o, p)
-      p = o
-    }
-    return sm
   }, [_messageOrdinals])
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
@@ -247,34 +232,32 @@ const ConversationList = React.memo(function ConversationList() {
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
         <ForceListRedrawContext.Provider value={forceListRedraw}>
-          <SeparatorMapContext.Provider value={separatorMap}>
-            <Kb.Box style={styles.container}>
-              <List
-                onScrollToIndexFailed={noop}
-                extraData={extraData}
-                removeClippedSubviews={Kb.Styles.isAndroid}
-                // @ts-ignore part of FlashList so lets set it
-                drawDistance={100}
-                estimatedItemSize={100}
-                ListHeaderComponent={SpecialBottomMessage}
-                ListFooterComponent={SpecialTopMessage}
-                ItemSeparatorComponent={Separator}
-                overScrollMode="never"
-                contentContainerStyle={styles.contentContainer}
-                data={messageOrdinals}
-                getItemType={getItemType}
-                inverted={true}
-                renderItem={renderItem}
-                onEndReached={onEndReached}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-                keyExtractor={keyExtractor}
-                ref={listRef}
-              />
-              {jumpToRecent}
-              {debugWhichList}
-            </Kb.Box>
-          </SeparatorMapContext.Provider>
+          <Kb.Box style={styles.container}>
+            <List
+              onScrollToIndexFailed={noop}
+              extraData={extraData}
+              removeClippedSubviews={Kb.Styles.isAndroid}
+              // @ts-ignore part of FlashList so lets set it
+              drawDistance={100}
+              estimatedItemSize={100}
+              ListHeaderComponent={SpecialBottomMessage}
+              ListFooterComponent={SpecialTopMessage}
+              ItemSeparatorComponent={Separator}
+              overScrollMode="never"
+              contentContainerStyle={styles.contentContainer}
+              data={messageOrdinals}
+              getItemType={getItemType}
+              inverted={true}
+              renderItem={renderItem}
+              onEndReached={onEndReached}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              keyExtractor={keyExtractor}
+              ref={listRef}
+            />
+            {jumpToRecent}
+            {debugWhichList}
+          </Kb.Box>
         </ForceListRedrawContext.Provider>
       </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>

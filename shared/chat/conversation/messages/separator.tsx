@@ -3,8 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {formatTimeForChat} from '@/util/timestamp'
-import {SeparatorMapContext} from './ids-context'
-import {usingFlashList} from '../list-area/flashlist-config'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useChatDebugDump} from '@/constants/chat2/debug'
@@ -201,18 +199,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = C.Chat.makeMessageDeleted({})
 
+// TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
-  let trailingItem = _trailingItem
-  let leadingItem = _leadingItem
-  const sm = React.useContext(SeparatorMapContext)
-  // in flat list we get the leadingItem but its the opposite of what we want
-  // we derive the previous by using SeparatorMapContext
-  if (!Kb.Styles.isMobile) {
-    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
-  } else if (!usingFlashList) {
-    trailingItem = leadingItem
-    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
-  }
+  const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
+  const previous = C.useChatContext(s => s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0))
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
@@ -220,8 +210,6 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 
   const ret = C.useChatContext(
     C.useShallow(s => {
-      const ordinal = trailingItem
-      const previous = leadingItem
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
@@ -252,7 +240,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   )
 
   useChatDebugDump(
-    `CHATDEBUGSep${trailingItem}:`,
+    `CHATDEBUGSep${ordinal}:`,
     C.useEvent(() => {
       return JSON.stringify(TEMP.current, null, 2)
     })

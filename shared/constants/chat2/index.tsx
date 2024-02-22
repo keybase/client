@@ -1162,9 +1162,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.onChatInboxSynced(action)
           break
         case EngineGen.chat1ChatUiChatInboxLayout:
+          get().dispatch.updateInboxLayout(action.payload.params.layout)
           get().dispatch.maybeChangeSelectedConv()
           get().dispatch.ensureWidgetMetas()
-          get().dispatch.updateInboxLayout(action.payload.params.layout)
           break
         case EngineGen.chat1NotifyChatChatInboxStale:
           get().dispatch.inboxRefresh('inboxStale')
