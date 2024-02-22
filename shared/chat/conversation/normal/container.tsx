@@ -56,7 +56,6 @@ const useOrangeLine = () => {
       }
       // find ordinal
       const mm = C.Chat._getConvoState(CID).messageMap
-      console.log('aa mm', mm)
       const idAsOrd = T.Chat.numberToOrdinal(unreadlineID)
       const quick = mm.get(idAsOrd)
       if (quick) {
@@ -70,12 +69,10 @@ const useOrangeLine = () => {
           }
         }
       }
-      // setOrangeLine(T.Chat.numberToMessageID(unreadlineID))
     }
     C.ignorePromise(f())
   }
 
-  console.log('aaaa useorangeline', orangeLine)
   return orangeLine
 }
 
