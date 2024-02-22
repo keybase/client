@@ -23,7 +23,7 @@ type CmdSigsList struct {
 	json    bool
 	verbose bool
 	allKeys bool
-	headers bool
+	omitHeaders bool
 	types   map[string]bool
 
 	username string
@@ -63,7 +63,7 @@ func (s *CmdSigsList) ParseArgv(ctx *cli.Context) error {
 	s.json = ctx.Bool("json")
 	s.verbose = ctx.Bool("verbose")
 	s.allKeys = ctx.Bool("all-keys")
-	s.headers = ctx.Bool("headers")
+	s.omitHeaders = ctx.Bool("omitHeaders")
 	s.filter = ctx.String("filter")
 
 	if err = s.ParseTypes(ctx); err != nil {
@@ -86,7 +86,7 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 
 	var cols []string
 
-	if s.headers {
+	if !s.omitHeaders {
 		cols = []string{
 			"#",
 			"SigId",
@@ -211,8 +211,8 @@ func NewCmdSigsList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 				Usage: "Show signatures from all (replaced) keys.",
 			},
 			cli.BoolFlag{
-				Name:  "H, headers",
-				Usage: "Show column headers.",
+				Name:  "H, omitHeaders",
+				Usage: "Omit column headers (e.g. for command-line processing).",
 			},
 			cli.StringFlag{
 				Name:  "f, filter",
