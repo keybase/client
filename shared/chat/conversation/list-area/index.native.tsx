@@ -228,6 +228,8 @@ const ConversationList = React.memo(function ConversationList() {
     })
   )
 
+  const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
+
   return (
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
@@ -249,7 +251,7 @@ const ConversationList = React.memo(function ConversationList() {
               getItemType={getItemType}
               inverted={true}
               renderItem={renderItem}
-              onEndReached={onEndReached}
+              onViewableItemsChanged={onViewableItemsChanged.current}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
@@ -263,6 +265,39 @@ const ConversationList = React.memo(function ConversationList() {
     </Kb.ErrorBoundary>
   )
 })
+
+const minTimeDelta = 1000
+const minDistanceFromEnd = 10
+
+const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
+  const nextCallbackRef = React.useRef(new Date().getTime())
+  const onEndReachedRef = React.useRef(onEndReached)
+  onEndReachedRef.current = onEndReached
+  const numOrdinalsRef = React.useRef(numOrdinals)
+  numOrdinalsRef.current = numOrdinals
+
+  // this can't change ever, so we have to use refs to keep in sync
+  const onViewableItemsChanged = React.useRef(
+    ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
+      const idx = viewableItems.at(-1)?.index ?? 0
+      const lastIdx = numOrdinalsRef.current - 1
+      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
+      const deltaIdx = idx - lastIdx + offset
+      // not far enough from the end
+      if (deltaIdx < 0) {
+        return
+      }
+      const t = new Date().getTime()
+      const deltaT = t - nextCallbackRef.current
+      // enough time elapsed?
+      if (deltaT > 0) {
+        nextCallbackRef.current = t + minTimeDelta
+        onEndReachedRef.current()
+      }
+    }
+  )
+  return onViewableItemsChanged
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
