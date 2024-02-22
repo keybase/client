@@ -47,9 +47,14 @@ export function updateImmerVal<T, K extends keyof T>(existing: T, propName: K, n
 
 export function updateImmer<T extends {}>(existing: T, next: T): void {
   const props = Object.keys(existing) as Array<keyof T>
+  const leftovers = new Set<keyof T>(Object.keys(next) as Array<keyof T>)
   for (const prop of props) {
+    leftovers.delete(prop)
     if (!isEqual(existing[prop], next[prop])) {
       existing[prop] = next[prop]
     }
+  }
+  for (const prop of leftovers) {
+    existing[prop] = next[prop]
   }
 }
