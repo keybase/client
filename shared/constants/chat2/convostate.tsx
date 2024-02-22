@@ -214,7 +214,6 @@ export type ConvoState = ConvoStore & {
       }
       reason: LoadMoreReason
       knownRemotes?: Array<string>
-      forceClear?: boolean
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
@@ -390,14 +389,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const path = rpcRes.filePath
       const m = get().messageMap.get(ordinal)
       if (m?.type === 'attachment') {
-        dispatch.updateMessage(ordinal, {
+        get().dispatch.updateMessage(ordinal, {
           downloadPath: path,
           fileURLCached: true, // assume we have this on the service now
           transferErrMsg: undefined,
           transferProgress: 0,
           transferState: undefined,
         })
-        dispatch.updateAttachmentViewTransfered(message.id, path)
+        get().dispatch.updateAttachmentViewTransfered(message.id, path)
       }
       return rpcRes.filePath
     } catch (error) {
@@ -405,26 +404,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         logger.info(`downloadAttachment error: ${error.message}`)
         const m = get().messageMap.get(ordinal)
         if (m?.type === 'attachment') {
-          dispatch.updateMessage(ordinal, {
+          get().dispatch.updateMessage(ordinal, {
             downloadPath: '',
             fileURLCached: true, // assume we have this on the service now
             transferErrMsg: error.message || 'Error downloading attachment',
             transferProgress: 0,
             transferState: undefined,
           })
-          dispatch.updateAttachmentViewTransfered(message.id, '')
+          get().dispatch.updateAttachmentViewTransfered(message.id, '')
         }
       } else {
         const m = get().messageMap.get(ordinal)
         if (m?.type === 'attachment') {
-          dispatch.updateMessage(ordinal, {
+          get().dispatch.updateMessage(ordinal, {
             downloadPath: '',
             fileURLCached: true, // assume we have this on the service now
             transferErrMsg: 'Error downloading attachment',
             transferProgress: 0,
             transferState: undefined,
           })
-          dispatch.updateAttachmentViewTransfered(message.id, '')
+          get().dispatch.updateAttachmentViewTransfered(message.id, '')
         }
       }
       return false
@@ -516,15 +515,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     attachmentDownload: ordinal => {
-      const {dispatch, messageMap} = get()
+      const {messageMap} = get()
       const m = messageMap.get(ordinal)
       if (m?.type === 'attachment') {
-        dispatch.updateMessage(ordinal, {
+        get().dispatch.updateMessage(ordinal, {
           transferErrMsg: undefined,
           transferState: 'downloading',
         })
       } else {
-        dispatch.updateMessage(ordinal, {
+        get().dispatch.updateMessage(ordinal, {
           transferErrMsg: 'Trying to download missing / incorrect message?',
           transferState: undefined,
         })
@@ -815,7 +814,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     jumpToRecent: () => {
       get().dispatch.setMessageCenterOrdinal()
-      get().dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
+      get().dispatch.loadMoreMessages({reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
@@ -912,7 +911,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           highlightMode,
           messageID,
         },
-        forceClear: true,
         forceContainsLatestCalc: true,
         messageIDControl: {
           mode: T.RPCChat.MessageIDControlMode.centered,
@@ -924,11 +922,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     loadMoreMessages: p => {
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-      const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
-
-      if (forceClear) {
-        dispatch.messagesClear()
-      }
+      const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -953,7 +947,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // messages
       const f = async () => {
         // Get the conversationIDKey
-        const {id: conversationIDKey, meta, messageOrdinals, dispatch} = get()
+        const {id: conversationIDKey, meta, messageOrdinals} = get()
 
         if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
           logger.info('loadMoreMessages: bail: no conversationIDKey')
@@ -990,19 +984,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
           const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-          dispatch.setMoreToLoad(moreToLoad)
+          get().dispatch.setMoreToLoad(moreToLoad)
 
           if (messages.length) {
-            dispatch.messagesAdd(messages)
+            get().dispatch.messagesAdd(messages)
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-              dispatch.setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
+              get().dispatch.setMessageCenterOrdinal({
+                highlightMode: centeredMessageID.highlightMode,
+                ordinal,
+              })
             }
           }
         }
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
         try {
+          console.log('aaaa getthread', conversationIDKey, pagination)
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
@@ -1055,8 +1053,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     loadNewerMessagesDueToScroll: () => {
-      const {dispatch} = get()
-      dispatch.loadMoreMessages({
+      get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
         scrollDirection: 'forward',
@@ -1088,7 +1085,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             devicename
           )
           if (goodMessage?.type === 'attachment') {
-            dispatch.messagesAdd([goodMessage])
+            get().dispatch.messagesAdd([goodMessage])
             let ordinal = goodMessage.ordinal
             // sent?
             if (goodMessage.outboxID && !get().messageMap.get(ordinal)) {
@@ -1106,12 +1103,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       return f()
     },
     loadOlderMessagesDueToScroll: () => {
-      const {dispatch, moreToLoad} = get()
+      const {moreToLoad} = get()
       if (!moreToLoad) {
         logger.info('bail: scrolling back and at the end')
         return
       }
-      dispatch.loadMoreMessages({
+      get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll back',
         scrollDirection: 'back',
@@ -1187,11 +1184,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('Downloading attachment failed')
           return
         }
-        const {dispatch} = get()
         try {
           const m = get().messageMap.get(ordinal)
           if (m?.type === 'attachment') {
-            dispatch.updateMessage(ordinal, {
+            get().dispatch.updateMessage(ordinal, {
               transferErrMsg: undefined,
               transferState: 'mobileSaving',
             })
@@ -1199,7 +1195,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('Trying to save chat attachment to camera roll')
           await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
           if (m?.type === 'attachment') {
-            dispatch.updateMessage(ordinal, {
+            get().dispatch.updateMessage(ordinal, {
               transferErrMsg: undefined,
               transferState: undefined,
             })
@@ -1248,10 +1244,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     messageDelete: ordinal => {
-      const {id, dispatch, messageMap, meta, isMetaGood} = get()
+      const {id, messageMap, meta, isMetaGood} = get()
       const m = messageMap.get(ordinal)
       if (m?.type === 'text') {
-        dispatch.updateMessage(ordinal, {submitState: 'deleting'})
+        get().dispatch.updateMessage(ordinal, {submitState: 'deleting'})
       }
 
       const conversationIDKey = id
@@ -1315,12 +1311,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messageEdit: (ordinal, text) => {
       get().dispatch.injectIntoInput('')
-      const {id, dispatch, messageMap, meta} = get()
+      const {id, messageMap, meta} = get()
       const message = messageMap.get(ordinal)
-      dispatch.updateMessage(ordinal, {
+      get().dispatch.updateMessage(ordinal, {
         submitState: 'editing',
       })
-      dispatch.setEditing(false)
+      get().dispatch.setEditing(false)
       if (!message || !(message.type === 'text' || message.type === 'attachment')) {
         logger.warn("Can't find message to edit", ordinal)
         return
@@ -1330,10 +1326,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         // Skip if the content is the same
         if (message.type === 'text' && message.text.stringValue() === text) {
-          dispatch.setEditing(false)
+          get().dispatch.setEditing(false)
           return
         } else if (message.type === 'attachment' && message.title === text) {
-          dispatch.setEditing(false)
+          get().dispatch.setEditing(false)
           return
         }
         const tlfName = meta.tlfname
@@ -1360,7 +1356,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!message.id) {
           const m = messageMap.get(ordinal)
           if (m) {
-            dispatch.updateMessage(ordinal, {
+            get().dispatch.updateMessage(ordinal, {
               ...(m.type === 'text' ? {text} : {}),
               ...(m.type === 'attachment' ? {title: text} : {}),
             })
@@ -1565,13 +1561,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     messagesExploded: (messageIDs, explodedBy) => {
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       for (const mid of messageIDs) {
         const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, mid)
         const m = ordinal && messageMap.get(ordinal)
         if (m) {
-          dispatch.updateMessage(ordinal, {
+          get().dispatch.updateMessage(ordinal, {
             exploded: true,
             explodedBy: explodedBy || '',
             flipGameID: '',
@@ -1682,9 +1678,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.hideSearch()
 
       const loadMessages = () => {
-        const {dispatch} = get()
         let reason: LoadMoreReason = _reason
-        const forceClear = true
         let forceContainsLatestCalc = false
         let messageIDControl: T.RPCChat.MessageIDControl | undefined
         const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
@@ -1705,9 +1699,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           forceContainsLatestCalc = true
         }
-        dispatch.loadMoreMessages({
+
+        // toss pending
+        set(s => {
+          const toDel = []
+          for (const p of s.pendingOutboxToOrdinal.keys()) {
+            for (const m of s.messageMap.values()) {
+              if (m.outboxID === p) {
+                toDel.push(m.ordinal)
+              }
+            }
+          }
+          for (const o of toDel) {
+            s.messageMap.delete(o)
+          }
+          s.pendingOutboxToOrdinal.clear()
+          syncMessageDerived(s)
+        })
+
+        get().dispatch.loadMoreMessages({
           centeredMessageID,
-          forceClear,
           forceContainsLatestCalc,
           knownRemotes,
           messageIDControl,
@@ -1775,7 +1786,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       switch (action.type) {
         case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: {
           const {msgID} = action.payload.params
-          const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+          const {pendingOutboxToOrdinal, messageMap} = get()
           const ordinal = messageIDToOrdinal(
             messageMap,
             pendingOutboxToOrdinal,
@@ -1793,7 +1804,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
           if (message.type === 'attachment') {
-            dispatch.updateMessage(ordinal, {
+            get().dispatch.updateMessage(ordinal, {
               transferProgress: 0,
               transferState: undefined,
             })
@@ -1805,7 +1816,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const ratio = bytesComplete / bytesTotal
           get().dispatch.updateAttachmentViewTransfer(msgID, ratio)
 
-          const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+          const {pendingOutboxToOrdinal, messageMap} = get()
           const ordinal = messageIDToOrdinal(
             messageMap,
             pendingOutboxToOrdinal,
@@ -1824,7 +1835,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           const m = messageMap.get(message.ordinal)
           if (m?.type === 'attachment') {
-            dispatch.updateMessage(ordinal, {
+            get().dispatch.updateMessage(ordinal, {
               transferErrMsg: undefined,
               transferProgress: ratio,
               transferState: 'downloading',
@@ -1994,7 +2005,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
           if (ordinal) {
             const m = get().messageMap.get(ordinal)
-            dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
+            get().dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
             const subType = Message.getMessageRenderType(message)
             set(s => {
               s.messageTypeMap.set(ordinal, subType)
@@ -2002,7 +2013,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         } else {
           // A normal message
-          dispatch.messagesAdd([message])
+          get().dispatch.messagesAdd([message])
         }
       } else if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
         const {valid} = cMsg
@@ -2020,7 +2031,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 devicename
               )
               if (modMessage) {
-                dispatch.messagesAdd([modMessage])
+                get().dispatch.messagesAdd([modMessage])
               }
             }
             break
@@ -2061,7 +2072,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     onMessageErrored: (outboxID, reason, errorTyp) => {
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
       const ordinal = pendingOutboxToOrdinal.get(outboxID)
       if (!ordinal) {
         return
@@ -2070,14 +2081,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (!m) {
         return
       }
-      dispatch.updateMessage(ordinal, {
+      get().dispatch.updateMessage(ordinal, {
         errorReason: reason,
         errorTyp: errorTyp || undefined,
         submitState: 'failed',
       })
     },
     onMessagesUpdated: messagesUpdated => {
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
       const username = C.useCurrentUserState.getState().username
       const devicename = C.useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
@@ -2092,7 +2103,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
         if (ordinal) {
-          dispatch.updateMessage(ordinal, message)
+          get().dispatch.updateMessage(ordinal, message)
         }
       }
     },
@@ -3057,7 +3068,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     updateReactions: updates => {
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
       for (const u of updates) {
         const reactions = u.reactions
         const targetMsgID = u.targetMsgID
@@ -3072,7 +3083,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         const m = messageMap.get(targetOrdinal)
         if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-          dispatch.updateMessage(targetOrdinal, {reactions})
+          get().dispatch.updateMessage(targetOrdinal, {reactions})
         }
       }
       get().dispatch.markThreadAsRead()

@@ -418,7 +418,7 @@ const useItems = (p: {
       return (
         <div
           key={String(ordinal)}
-          // data-debug={String(ordinal)}
+          data-debug={String(ordinal)}
           className={Kb.Styles.classNames(
             'hover-container',
             'WrapperMessage',
