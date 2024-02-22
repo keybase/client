@@ -926,6 +926,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
+      if (forceClear) {
+        dispatch.messagesClear()
+      }
+
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
           last: false,
@@ -964,7 +968,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
 
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
-        let calledClear = false
         const onGotThread = (thread: string) => {
           if (!thread) {
             return
@@ -973,13 +976,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const devicename = C.useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
-          let shouldClearOthers = false
-          if (!calledClear) {
-            if (forceClear) {
-              shouldClearOthers = true
-              calledClear = true
-            }
-          }
 
           const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
             const message = conversationIDKey
@@ -997,9 +993,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           dispatch.setMoreToLoad(moreToLoad)
 
           if (messages.length) {
-            if (shouldClearOthers) {
-              dispatch.messagesClear()
-            }
             dispatch.messagesAdd(messages)
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
@@ -1281,9 +1274,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               {outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID)},
               Common.waitingKeyCancelPost
             )
-            get().dispatch.messagesWereDeleted({
-              ordinals: [message.ordinal],
-            })
+            get().dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
           } else {
             logger.warn('Delete of no message id and no outboxid')
           }

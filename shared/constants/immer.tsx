@@ -1,29 +1,6 @@
 import isEqual from 'lodash/isEqual'
 
 // using immer update and array so we can maximize strict equality
-export function updateImmerArray<T, K extends keyof T>(existing: T, propName: K, next: T): void {
-  if (!Array.isArray(existing[propName]) || !Array.isArray(next[propName])) {
-    throw new Error(`${String(propName)} must be an array.`)
-  }
-  // if either is empty just adopt the new value
-  if (!existing[propName] || !next[propName]) {
-    existing[propName] = next[propName]
-  } else {
-    // iterate and do checks of the sub items
-    const existingArr = existing[propName] as Array<unknown>
-    const nextArr = next[propName] as Array<unknown>
-    existingArr.length = nextArr.length
-
-    for (let i = 0; i < nextArr.length; ++i) {
-      const item = nextArr[i]
-      if (item && !isEqual(existingArr[i], item)) {
-        existingArr[i] = item
-      }
-    }
-  }
-}
-
-// using immer update and array so we can maximize strict equality
 export function updateImmerMap<K, V>(existing: Map<K, V>, next: Map<K, V>): void {
   // sync keys
   const existingKeys = new Set(existing.keys())
@@ -35,7 +12,7 @@ export function updateImmerMap<K, V>(existing: Map<K, V>, next: Map<K, V>): void
     existingKeys.delete(key)
   }
   for (const key of existingKeys) {
-    existingKeys.delete(key)
+    existing.delete(key)
   }
 }
 
@@ -46,8 +23,8 @@ export function updateImmerVal<T, K extends keyof T>(existing: T, propName: K, n
 }
 
 export function updateImmer<T extends {}>(existing: T, next: T): void {
-  const props = Object.keys(existing) as Array<keyof T>
-  const leftovers = new Set<keyof T>(Object.keys(next) as Array<keyof T>)
+  const props = Object.keys(next) as Array<keyof T>
+  const leftovers = new Set<keyof T>(Object.keys(existing) as Array<keyof T>)
   for (const prop of props) {
     leftovers.delete(prop)
     if (!isEqual(existing[prop], next[prop])) {
@@ -55,6 +32,7 @@ export function updateImmer<T extends {}>(existing: T, next: T): void {
     }
   }
   for (const prop of leftovers) {
-    existing[prop] = next[prop]
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete existing[prop]
   }
 }
