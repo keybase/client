@@ -541,12 +541,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
   const resizeObserve = useResizeObserver()
   const intersectionObserve = useIntersectionObserver()
-  const unsubRef = React.useRef<(() => void) | undefined>()
-  React.useEffect(() => {
-    return () => {
-      unsubRef.current?.()
-    }
-  }, [])
 
   // map to help the sep know the previous value
   const separatorMap = React.useMemo(() => {
@@ -558,32 +552,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
     }
     return sm
   }, [messageOrdinals])
-
-  const lastResizeHeightRef = React.useRef(0)
-  const onListSizeChanged = React.useCallback(
-    (contentRect: {height: number}) => {
-      const {height} = contentRect
-      if (height !== lastResizeHeightRef.current) {
-        lastResizeHeightRef.current = height
-        if (isLockedToBottom()) {
-          scrollToBottom()
-        }
-      }
-    },
-    [isLockedToBottom, scrollToBottom]
-  )
-  const setListContents = React.useCallback(
-    (listContents: HTMLDivElement | null) => {
-      pointerWrapperRef.current = listContents
-      unsubRef.current?.()
-      if (listContents) {
-        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
-      } else {
-        unsubRef.current = undefined
-      }
-    },
-    [pointerWrapperRef, resizeObserve, onListSizeChanged]
-  )
 
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
@@ -612,6 +580,12 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   )
 
   const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
+  const setListContents = useHandleListResize({
+    isLockedToBottom,
+    pointerWrapperRef,
+    resizeObserve,
+    scrollToBottom,
+  })
 
   return (
     <ErrorBoundary>
@@ -637,6 +611,49 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
     </ErrorBoundary>
   )
 })
+
+const useHandleListResize = (p: {
+  isLockedToBottom: () => boolean
+  scrollToBottom: () => void
+  pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
+  resizeObserve: ReturnType<typeof useResizeObserver>
+}) => {
+  const {isLockedToBottom, scrollToBottom, pointerWrapperRef, resizeObserve} = p
+  const lastResizeHeightRef = React.useRef(0)
+  const onListSizeChanged = React.useCallback(
+    (contentRect: {height: number}) => {
+      const {height} = contentRect
+      if (height !== lastResizeHeightRef.current) {
+        lastResizeHeightRef.current = height
+        if (isLockedToBottom()) {
+          scrollToBottom()
+        }
+      }
+    },
+    [isLockedToBottom, scrollToBottom]
+  )
+
+  const unsubRef = React.useRef<(() => void) | undefined>()
+  React.useEffect(() => {
+    return () => {
+      unsubRef.current?.()
+    }
+  }, [])
+
+  const setListContents = React.useCallback(
+    (listContents: HTMLDivElement | null) => {
+      pointerWrapperRef.current = listContents
+      unsubRef.current?.()
+      if (listContents) {
+        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
+      } else {
+        unsubRef.current = undefined
+      }
+    },
+    [pointerWrapperRef, resizeObserve, onListSizeChanged]
+  )
+  return setListContents
+}
 
 type OrdinalWaypointProps = {
   id: string
