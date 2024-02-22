@@ -134,7 +134,7 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 	}
 	m.state.Jobs[job.JobID] = keybase1.SimpleFSArchiveJobState{
 		Desc:  job,
-		Phase: keybase1.SimpleFSArchiveJobPhase_Indexing,
+		Phase: keybase1.SimpleFSArchiveJobPhase_Queued,
 	}
 	m.state.LastUpdated = keybase1.ToTime(time.Now())
 	m.signal(m.indexingWorkerSignal)
