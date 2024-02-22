@@ -213,7 +213,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
-      const orangeLineAbove = orangeOrdinal === previous && previous > 0
+      const orangeLineAbove = orangeOrdinal === ordinal
       TEMP.current = {
         orangeOrdinal,
         ordinal,
