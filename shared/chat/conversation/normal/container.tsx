@@ -33,7 +33,6 @@ const useOrangeLine = () => {
     needRPC = true
   }
 
-  // TODO not working
   const lastActiveRef = React.useRef(true)
   const active = C.useActiveState(s => s.active)
   if (active !== lastActiveRef.current) {
