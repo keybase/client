@@ -6,6 +6,7 @@ package simplefs
 import (
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -74,8 +75,9 @@ type archiveManager struct {
 }
 
 func getStateFilePath(simpleFS *SimpleFS) string {
+	uid := simpleFS.config.KbEnv().GetUsername()
 	cacheDir := simpleFS.config.KbEnv().GetCacheDir()
-	return filepath.Join(cacheDir, "kbfs.archive.json.gz")
+	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", uid))
 }
 
 const archiveManagerCreationTimeout = 10 * time.Second
@@ -172,6 +174,7 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 			return
 		}
 
+		_ = jobID
 		// TODO do work
 	}
 }
@@ -193,6 +196,7 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 			return
 		}
 
+		_ = jobID
 		// TODO do work
 	}
 }
@@ -214,6 +218,7 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 			return
 		}
 
+		_ = jobID
 		// TODO do work
 	}
 }
@@ -273,9 +278,9 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 		if m.state.Jobs == nil {
 			m.state.Jobs = make(map[string]keybase1.SimpleFSArchiveJobState)
 		}
+		m.resetInterruptedPhases(ctx)
 		return m, nil
 	}
-	m.resetInterruptedPhases(ctx)
 	simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz error ( %v ). Creating a new state.", err)
 	m.state = &keybase1.SimpleFSArchiveState{
 		Jobs: make(map[string]keybase1.SimpleFSArchiveJobState),
