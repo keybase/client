@@ -1568,7 +1568,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
         s.messageMap.clear()
-        s.maxMsgIDSeen = -1
+        s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)
         s.messageTypeMap.clear()
       })
