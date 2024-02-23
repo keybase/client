@@ -202,8 +202,8 @@ export type ConvoState = ConvoStore & {
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
-    loadOlderMessagesDueToScroll: (oldest: T.Chat.Ordinal) => boolean
-    loadNewerMessagesDueToScroll: (newest: T.Chat.Ordinal) => boolean
+    loadOlderMessagesDueToScroll: (oldest: T.Chat.Ordinal) => void
+    loadNewerMessagesDueToScroll: (newest: T.Chat.Ordinal) => void
     loadMoreMessages: (p: {
       forceContainsLatestCalc?: boolean
       forceClear?: boolean
@@ -217,7 +217,7 @@ export type ConvoState = ConvoStore & {
       knownRemotes?: Array<string>
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
-    }) => boolean // true if we're making a call
+    }) => void
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
@@ -929,13 +929,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     loadMoreMessages: p => {
       if (!T.Chat.isValidConversationIDKey(get().id)) {
-        return false
+        return
       }
       if (inLoadMore) {
         // this isn't perfect as the onThread callbacks happen after the parent rpc resolves,
         // which shouldn't be the case afaik, but this is likely ok
         logger.debug('loadMoreMessages: already in flight')
-        return false
+        return
       }
       inLoadMore = true
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
@@ -1081,16 +1081,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         .finally(() => {
           inLoadMore = false
         })
-      return true
     },
     loadNewerMessagesDueToScroll: newest => {
       if (scrollForwardNewest === newest) {
         logger.info('bail: already made this call')
-        return false
+        return
       }
 
       scrollForwardNewest = newest
-      return get().dispatch.loadMoreMessages({
+      get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
         scrollDirection: 'forward',
