@@ -316,7 +316,7 @@ const Separator = React.memo(function Separator(p: SProps) {
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
-          {!showUsername ? (
+          {!C.isMobile && !showUsername ? (
             <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
               {orangeLineAbove}
             </Kb.Text>
