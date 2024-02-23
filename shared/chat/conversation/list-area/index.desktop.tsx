@@ -137,10 +137,12 @@ const useScrolling = (p: {
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const newestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? T.Chat.numberToOrdinal(-1)
+  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
-      loadNewerMessagesDueToScroll()
-    }, [loadNewerMessagesDueToScroll]),
+      loadNewerMessagesDueToScroll(newestOrdinal)
+    }, [loadNewerMessagesDueToScroll, newestOrdinal]),
     200
   )
   const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
@@ -148,16 +150,18 @@ const useScrolling = (p: {
   if (conversationIDKeyChanged) {
     lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
   }
-  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
-  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const loadOlderMessages = React.useCallback(() => {
-    // already loaded and nothing has changed
-    if (lastLoadOrdinal.current === oldestOrdinal) {
-      return
-    }
-    lastLoadOrdinal.current = oldestOrdinal
-    loadOlderMessagesDueToScroll()
-  }, [loadOlderMessagesDueToScroll, oldestOrdinal])
+  // const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
+  const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  // const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  // const loadOlderMessages = React.useCallback(() => {
+  // // already loaded and nothing has changed
+  // if (lastLoadOrdinal.current === oldestOrdinal) {
+  //   return
+  // }
+  // if (loadOlderMessagesDueToScroll()) {
+  //   lastLoadOrdinal.current = oldestOrdinal
+  // }
+  // }, [loadOlderMessagesDueToScroll, oldestOrdinal])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -186,7 +190,7 @@ const useScrolling = (p: {
     const list = listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessages()
+        loadOlderMessages(oldestOrdinal)
       } else if (
         !containsLatestMessage &&
         !isLockedToBottom() &&
@@ -195,7 +199,7 @@ const useScrolling = (p: {
         loadNewerMessages()
       }
     }
-  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]) //,
+  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, oldestOrdinal]) //,
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
