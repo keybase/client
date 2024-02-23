@@ -30,14 +30,14 @@ export const DEBUGDump = () => {}
 
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
-  // messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: Array<T.Chat.Ordinal>
   cidChanged: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {/*messageOrdinals, */ cidChanged, listRef, centeredOrdinal} = p
+  const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
   // const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
-  // const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
+  const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   // const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   //
@@ -79,8 +79,8 @@ const useScrolling = (p: {
   })
 
   const onEndReached = React.useCallback(() => {
-    loadOlderMessages()
-  }, [loadOlderMessages])
+    loadOlderMessages(oldestOrdinal)
+  }, [loadOlderMessages, oldestOrdinal])
 
   return {
     onEndReached,
@@ -158,7 +158,7 @@ const ConversationList = React.memo(function ConversationList() {
     cidChanged,
     conversationIDKey,
     listRef,
-    // messageOrdinals,
+    messageOrdinals,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
