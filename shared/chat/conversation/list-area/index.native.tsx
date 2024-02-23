@@ -36,20 +36,8 @@ const useScrolling = (p: {
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
   const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
-  // const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  // const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  //
-  // const loadOlderMessages = C.useEvent(() => {
-  //   // already loaded and nothing has changed
-  //   if (lastLoadOrdinal.current === oldestOrdinal) {
-  //     return
-  //   }
-  //   lastLoadOrdinal.current = oldestOrdinal
-  //   loadOlderMessagesDueToScroll()
-  // })
-
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
@@ -293,7 +281,6 @@ const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: nu
       // enough time elapsed?
       if (deltaT > 0) {
         nextCallbackRef.current = t + minTimeDelta
-        console.log('aaa <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< calling')
         onEndReachedRef.current()
       }
     }

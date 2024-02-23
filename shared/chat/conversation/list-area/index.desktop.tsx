@@ -150,18 +150,7 @@ const useScrolling = (p: {
   if (conversationIDKeyChanged) {
     lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
   }
-  // const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  // const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  // const loadOlderMessages = React.useCallback(() => {
-  // // already loaded and nothing has changed
-  // if (lastLoadOrdinal.current === oldestOrdinal) {
-  //   return
-  // }
-  // if (loadOlderMessagesDueToScroll()) {
-  //   lastLoadOrdinal.current = oldestOrdinal
-  // }
-  // }, [loadOlderMessagesDueToScroll, oldestOrdinal])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
