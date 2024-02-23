@@ -472,7 +472,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
 
-  // use by loadMoreMessages
+  // used by loadMoreMessages
   // only let one be in flight at a time
   let inLoadMore = false
   let scrollBackOldest = T.Chat.numberToOrdinal(-1)
