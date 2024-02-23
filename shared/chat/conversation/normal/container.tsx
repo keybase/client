@@ -21,13 +21,15 @@ const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
   const lastCIDRef = React.useRef<T.Chat.ConversationIDKey>('')
   const CID = C.useChatContext(s => s.id)
+  const readMsgID = C.useChatContext(s => s.meta.readMsgID)
+  const lastReadMsgIDRef = React.useRef(readMsgID)
+
   if (CID !== lastCIDRef.current) {
     lastCIDRef.current = CID
+    lastReadMsgIDRef.current = readMsgID
     needRPC = true
   }
 
-  const readMsgID = C.useChatContext(s => s.meta.readMsgID)
-  const lastReadMsgIDRef = React.useRef(readMsgID)
   if (lastReadMsgIDRef.current > readMsgID) {
     logger.info('[useOrangeLine debug] mark as unread detected')
     lastReadMsgIDRef.current = readMsgID
