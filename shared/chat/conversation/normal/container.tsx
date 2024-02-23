@@ -30,6 +30,7 @@ const useOrangeLine = () => {
   const lastReadMsgIDRef = React.useRef(readMsgID)
   if (lastReadMsgIDRef.current > readMsgID) {
     logger.info('[useOrangeLine debug] mark as unread detected')
+    lastReadMsgIDRef.current = readMsgID
     needRPC = true
   }
 
@@ -52,6 +53,7 @@ const useOrangeLine = () => {
       })
       const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
       logger.info('[useOrangeLine debug] rpc value: ', unreadlineID)
+
       if (!unreadlineID) {
         setOrangeLine(T.Chat.numberToOrdinal(0))
         return
@@ -69,6 +71,7 @@ const useOrangeLine = () => {
           }
         }
       }
+
       setOrangeLine(toSet)
     }
     C.ignorePromise(f())

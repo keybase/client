@@ -6,6 +6,7 @@ import {formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useChatDebugDump} from '@/constants/chat2/debug'
+import {formatTimeForConversationList} from '@/util/timestamp'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -213,7 +214,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
-      const orangeLineAbove = orangeOrdinal === ordinal
+      const orangeLineAbove = orangeOrdinal === ordinal ? formatTimeForConversationList(m.timestamp) : ''
       TEMP.current = {
         orangeOrdinal,
         ordinal,
@@ -282,7 +283,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
 type SProps = {
   ordinal: T.Chat.Ordinal
   showUsername: string
-  orangeLineAbove: boolean
+  orangeLineAbove: string
 }
 
 const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
@@ -313,7 +314,15 @@ const Separator = React.memo(function Separator(p: SProps) {
     >
       {showUsername ? <LeftSide username={showUsername} /> : null}
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
-      {orangeLineAbove ? <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} /> : null}
+      {orangeLineAbove ? (
+        <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
+          {!showUsername ? (
+            <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
+              {orangeLineAbove}
+            </Kb.Text>
+          ) : null}
+        </Kb.Box2>
+      ) : null}
     </Kb.Box2>
   )
 })
@@ -385,6 +394,18 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
+      orangeLabel: {
+        backgroundColor: Kb.Styles.globalColors.orange,
+        borderBottomLeftRadius: 4,
+        borderBottomRightRadius: 4,
+        color: Kb.Styles.globalColors.white,
+        left: 2,
+        opacity: 0.7,
+        paddingLeft: 2,
+        paddingRight: 2,
+        position: 'absolute',
+        top: 0,
+      },
       orangeLine: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.orange,
