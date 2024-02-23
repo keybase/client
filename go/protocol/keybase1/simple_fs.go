@@ -1717,12 +1717,14 @@ func (e SimpleFSFileArchiveState) String() string {
 
 type SimpleFSArchiveFile struct {
 	State        SimpleFSFileArchiveState `codec:"state" json:"state"`
+	DirentType   DirentType               `codec:"direntType" json:"direntType"`
 	Sha256SumHex string                   `codec:"sha256SumHex" json:"sha256SumHex"`
 }
 
 func (o SimpleFSArchiveFile) DeepCopy() SimpleFSArchiveFile {
 	return SimpleFSArchiveFile{
 		State:        o.State.DeepCopy(),
+		DirentType:   o.DirentType.DeepCopy(),
 		Sha256SumHex: o.Sha256SumHex,
 	}
 }
@@ -1762,7 +1764,6 @@ const (
 	SimpleFSArchiveJobPhase_Copied   SimpleFSArchiveJobPhase = 4
 	SimpleFSArchiveJobPhase_Zipping  SimpleFSArchiveJobPhase = 5
 	SimpleFSArchiveJobPhase_Done     SimpleFSArchiveJobPhase = 6
-	SimpleFSArchiveJobPhase_Canceled SimpleFSArchiveJobPhase = 7
 )
 
 func (o SimpleFSArchiveJobPhase) DeepCopy() SimpleFSArchiveJobPhase { return o }
@@ -1775,7 +1776,6 @@ var SimpleFSArchiveJobPhaseMap = map[string]SimpleFSArchiveJobPhase{
 	"Copied":   4,
 	"Zipping":  5,
 	"Done":     6,
-	"Canceled": 7,
 }
 
 var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
@@ -1786,7 +1786,6 @@ var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
 	4: "Copied",
 	5: "Zipping",
 	6: "Done",
-	7: "Canceled",
 }
 
 func (e SimpleFSArchiveJobPhase) String() string {

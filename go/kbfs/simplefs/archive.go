@@ -242,7 +242,8 @@ loopReadList:
 
 		for _, e := range listResult.Entries {
 			manifest[e.Name] = keybase1.SimpleFSArchiveFile{
-				State: keybase1.SimpleFSFileArchiveState_ToDo,
+				State:      keybase1.SimpleFSFileArchiveState_ToDo,
+				DirentType: e.DirentType,
 			}
 		}
 	}
@@ -281,16 +282,13 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 		// check again on the next iteration.
 		m.signal(m.indexingWorkerSignal)
 
-		m.simpleFS.log.CDebugf(ctx, "indexing %s", jobID)
+		m.simpleFS.log.CDebugf(ctx, "indexing: %s", jobID)
 
 		err := m.doIndexing(jobCtx, jobID)
 		switch err {
 		case nil:
 			m.simpleFS.log.CDebugf(jobCtx, "indexing done on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
-		case context.Canceled:
-			m.simpleFS.log.CDebugf(jobCtx, "indexing canceled on job %s", jobID)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Canceled)
 		default:
 			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
@@ -322,6 +320,8 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 
 		_, _ = jobID, jobCtx
 		// TODO do work
+
+		m.simpleFS.log.CDebugf(ctx, "copying: %s", jobID)
 
 		m.fluseStateFile(ctx)
 		m.signal(m.zippingWorkerSignal) // Done copying! Notify the zipping worker.

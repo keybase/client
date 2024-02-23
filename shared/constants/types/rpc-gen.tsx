@@ -2375,7 +2375,6 @@ export enum SimpleFSArchiveJobPhase {
   copied = 4,
   zipping = 5,
   done = 6,
-  canceled = 7,
 }
 
 export enum SimpleFSFileArchiveState {
@@ -3257,7 +3256,7 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
-export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly sha256SumHex: String}
+export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
 export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly startTime: Time; readonly outputPath: String}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase}
 export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly totalCount: Int}

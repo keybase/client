@@ -1088,6 +1088,10 @@
           "name": "state"
         },
         {
+          "type": "DirentType",
+          "name": "direntType"
+        },
+        {
           "type": "string",
           "name": "sha256SumHex"
         }
@@ -1125,8 +1129,7 @@
         "Copying_3",
         "Copied_4",
         "Zipping_5",
-        "Done_6",
-        "Canceled_7"
+        "Done_6"
       ]
     },
     {

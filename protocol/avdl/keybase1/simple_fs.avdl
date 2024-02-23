@@ -768,6 +768,7 @@ protocol SimpleFS {
   }
   record SimpleFSArchiveFile {
     SimpleFSFileArchiveState state;
+    DirentType direntType;
     string sha256SumHex;
   }
   record SimpleFSArchiveJobState {
@@ -782,7 +783,7 @@ protocol SimpleFS {
     Copying_3,
     Copied_4,
     Zipping_5,
-    Done_6,
+    Done_6
   }
   // SimpleFSArchiveState is the internal state of KBFS archiving work and is
   // also used to serialize the state to persistent storage.
