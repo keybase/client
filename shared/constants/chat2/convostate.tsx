@@ -473,7 +473,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   // use by loadMoreMessages
-  let clearBeforeAdd = false
   // only let one be in flight at a time
   let inLoadMore = false
   let scrollBackOldest = T.Chat.numberToOrdinal(-1)
@@ -936,19 +935,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // this isn't perfect as the onThread callbacks happen after the parent rpc resolves,
         // which shouldn't be the case afaik, but this is likely ok
         logger.debug('loadMoreMessages: already in flight')
-        console.log('aaa BAIL due to in flight')
         return false
       }
       inLoadMore = true
-      console.log('aaa <<<<<<<<<<<<<<<<<<<<< call', p, {inLoadMore})
-
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
+      // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
-        clearBeforeAdd = true
         scrollBackOldest = T.Chat.numberToOrdinal(-1)
         scrollForwardNewest = T.Chat.numberToOrdinal(-1)
+        get().dispatch.messagesClear()
       }
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
@@ -1014,10 +1011,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           get().dispatch.setMoreToLoad(moreToLoad)
 
           if (messages.length) {
-            if (clearBeforeAdd) {
-              clearBeforeAdd = false
-              get().dispatch.messagesClear()
-            }
             get().dispatch.messagesAdd(messages)
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
@@ -1087,19 +1080,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         .catch(() => {})
         .finally(() => {
           inLoadMore = false
-          console.log('aaa >>>>>>>>>>>>>>>>> DONE ', p, {inLoadMore})
         })
       return true
     },
     loadNewerMessagesDueToScroll: newest => {
       if (scrollForwardNewest === newest) {
         logger.info('bail: already made this call')
-        console.log('aaaa: BALI already made this call', newest)
         return false
       }
 
       scrollForwardNewest = newest
-      console.log('aaaa: <<<<<<<<<<<<<<<<<<< load scrollforward', newest)
       return get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
@@ -1158,12 +1148,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       if (scrollBackOldest === oldest) {
         logger.info('bail: already made this call')
-        console.log('aaaa: BALI already made this call', oldest)
         return false
       }
 
       scrollBackOldest = oldest
-      console.log('aaaa: <<<<<<<<<<<<<<<<<<< load scorllback', oldest)
       return get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll back',
@@ -1608,7 +1596,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     messagesClear: () => {
-      console.log('aaaaa |||||||||||||||||||||| message clear')
       set(s => {
         s.pendingOutboxToOrdinal.clear()
         s.messageMap.clear()
