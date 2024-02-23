@@ -1676,6 +1676,31 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     navigateToThread: (_reason, highlightMessageID, pushBody) => {
       get().dispatch.hideSearch()
 
+      const cleanupBeforeLoad = () => {
+        let toDel = new Array<T.Chat.Ordinal>()
+        set(s => {
+          // toss pending
+          for (const p of s.pendingOutboxToOrdinal.keys()) {
+            for (const m of s.messageMap.values()) {
+              if (m.outboxID === p) {
+                toDel.push(m.ordinal)
+              }
+            }
+          }
+          // toss older messages to help w/ rendering on desktop
+          if (!C.isMobile && s.messageOrdinals && s.messageOrdinals.length > 101) {
+            toDel = toDel.concat(s.messageOrdinals.slice(0, s.messageOrdinals.length - 100))
+          }
+
+          for (const o of toDel) {
+            s.messageMap.delete(o)
+          }
+          s.pendingOutboxToOrdinal.clear()
+          syncMessageDerived(s)
+        })
+      }
+      cleanupBeforeLoad()
+
       const loadMessages = () => {
         let reason: LoadMoreReason = _reason
         let forceContainsLatestCalc = false
@@ -1698,23 +1723,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           forceContainsLatestCalc = true
         }
-
-        // toss pending
-        set(s => {
-          const toDel = []
-          for (const p of s.pendingOutboxToOrdinal.keys()) {
-            for (const m of s.messageMap.values()) {
-              if (m.outboxID === p) {
-                toDel.push(m.ordinal)
-              }
-            }
-          }
-          for (const o of toDel) {
-            s.messageMap.delete(o)
-          }
-          s.pendingOutboxToOrdinal.clear()
-          syncMessageDerived(s)
-        })
 
         get().dispatch.loadMoreMessages({
           centeredMessageID,
