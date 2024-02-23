@@ -1677,24 +1677,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.hideSearch()
 
       const cleanupBeforeLoad = () => {
-        let toDel = new Array<T.Chat.Ordinal>()
         set(s => {
-          // toss pending
-          for (const p of s.pendingOutboxToOrdinal.keys()) {
-            for (const m of s.messageMap.values()) {
-              if (m.outboxID === p) {
-                toDel.push(m.ordinal)
+          // toss all on search
+          if (highlightMessageID) {
+            s.messageMap.clear()
+          } else {
+            let toDel = new Array<T.Chat.Ordinal>()
+            // toss pending
+            for (const p of s.pendingOutboxToOrdinal.keys()) {
+              for (const m of s.messageMap.values()) {
+                if (m.outboxID === p) {
+                  toDel.push(m.ordinal)
+                }
               }
             }
-          }
-          // toss older messages to help w/ rendering on desktop
-          if (!C.isMobile && s.messageOrdinals && s.messageOrdinals.length > 101) {
-            toDel = toDel.concat(s.messageOrdinals.slice(0, s.messageOrdinals.length - 100))
+            // toss older messages to help w/ rendering on desktop
+            if (!C.isMobile && s.messageOrdinals && s.messageOrdinals.length > 101) {
+              toDel = toDel.concat(s.messageOrdinals.slice(0, s.messageOrdinals.length - 100))
+            }
+            for (const o of toDel) {
+              s.messageMap.delete(o)
+            }
           }
 
-          for (const o of toDel) {
-            s.messageMap.delete(o)
-          }
           s.pendingOutboxToOrdinal.clear()
           syncMessageDerived(s)
         })

@@ -440,9 +440,9 @@ const useItems = (p: {
 
   // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
   const items = React.useMemo(() => {
-    const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
-
+    const items: Array<React.ReactNode> = []
     const numOrdinals = messageOrdinals.length
+
     let ordinals: Array<T.Chat.Ordinal> = []
     let lastBucket: number | undefined
     let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
@@ -508,8 +508,8 @@ const useItems = (p: {
         ordinals.push(ordinal)
       }
     })
-    items.push(<SpecialBottomMessage key="specialBottom" />)
-    return items
+
+    return [<SpecialTopMessage key="specialTop" />, ...items, <SpecialBottomMessage key="specialBottom" />]
   }, [messageOrdinals, centeredOrdinal, rowRenderer])
 
   return items
