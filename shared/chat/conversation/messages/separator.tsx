@@ -396,10 +396,9 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       orangeLabel: {
         backgroundColor: Kb.Styles.globalColors.orange,
-        borderBottomLeftRadius: 4,
         borderBottomRightRadius: 4,
         color: Kb.Styles.globalColors.white,
-        left: 2,
+        left: 0,
         opacity: 0.7,
         paddingLeft: 2,
         paddingRight: 2,
