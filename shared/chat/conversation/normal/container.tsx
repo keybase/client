@@ -37,7 +37,9 @@ const useOrangeLine = () => {
   const active = C.useActiveState(s => s.active)
   if (active !== lastActiveRef.current) {
     lastActiveRef.current = active
-    needRPC = true
+    if (active) {
+      needRPC = true
+    }
   }
 
   if (needRPC) {
