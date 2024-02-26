@@ -1066,7 +1066,15 @@
         },
         {
           "type": "string",
-          "name": "outputPath"
+          "name": "stagingPath"
+        },
+        {
+          "type": "string",
+          "name": "targetName"
+        },
+        {
+          "type": "string",
+          "name": "zipFilePath"
         }
       ]
     },
@@ -2018,10 +2026,6 @@
     },
     "simpleFSArchiveStart": {
       "request": [
-        {
-          "name": "jobID",
-          "type": "string"
-        },
         {
           "name": "kbfsPath",
           "type": "KBFSPath"

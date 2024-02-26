@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
@@ -76,9 +77,9 @@ type archiveManager struct {
 }
 
 func getStateFilePath(simpleFS *SimpleFS) string {
-	uid := simpleFS.config.KbEnv().GetUsername()
+	username := simpleFS.config.KbEnv().GetUsername()
 	cacheDir := simpleFS.config.KbEnv().GetCacheDir()
-	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", uid))
+	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", username))
 }
 
 const archiveManagerCreationTimeout = 10 * time.Second
@@ -299,6 +300,86 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 	}
 }
 
+func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error) {
+	m.simpleFS.log.CDebugf(ctx, "+ doCopying %s", jobID)
+	defer func() { m.simpleFS.log.CDebugf(ctx, "- doCopying %s err: %v", jobID, err) }()
+
+	desc, manifest := func() (keybase1.SimpleFSArchiveJobDesc, map[string]keybase1.SimpleFSArchiveFile) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		manifest := make(map[string]keybase1.SimpleFSArchiveFile)
+		for k, v := range m.state.Jobs[jobID].Manifest {
+			manifest[k] = v.DeepCopy()
+		}
+		return m.state.Jobs[jobID].desc, manifest
+	}()
+
+	updateManifest := func(manifest map[string]keybase1.SimpleFSArchiveFile) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		// Can override directly since only one worker can work on a give job at a time.
+		stateManifest := m.state.Jobs[jobID].Manifest
+		for k, v := range manifest {
+			stateManifest[k] = v.DeepCopy()
+		}
+		m.state.Jobs[jobID] = stateManifest
+	}
+
+	srcContainingDirFS, finalElem, err := m.simpleFS.getFSIfExists(ctx,
+		keybase1.NewPathWithKbfsArchived(desc.KbfsPathWithRevision))
+	if err != nil {
+		return fmt.Errorf("getFSIfExists error: %v", err)
+	}
+	srcDirFS, err := srcContainingDirFS.Chroot(finalElem)
+	if err != nil {
+		return fmt.Errorf("srcContainingDirFS.Chroot error: %v", err)
+	}
+	dstBase := filepath.Join(desc.StagingPath, desc.TargetName)
+
+	entryPaths := make([]string, 0, len(manifest))
+	for entryPathWithinJob := range manifest {
+		entryPaths = append(entryPaths, entryPathWithinJob)
+	}
+	sort.Strings(entryPaths)
+
+	for _, entryPathWithinJob := range entryPaths {
+		entry := manifest[entryPathWithinJob]
+		entry.State = keybase1.SimpleFSFileArchiveState_InProgress
+		manifest[entryPathWithinJob] = entry
+		updateManifest(manifest)
+
+		localPath := filepath.Join(dstBase, entryPathWithinJob)
+		srcFI, err := srcDirFS.Stat(entryPathWithinJob)
+		if err != nil {
+			return fmt.Errorf("srcDirFS.Stat(%s) error: %v", entryPathWithinJob, err)
+		}
+		switch {
+		case srcFI.IsDir():
+			os.MkdirAll(localPath, 0755)
+			if err != nil {
+				return fmt.Errorf("os.MkdirAll(%s) error: %v", localPath, err)
+			}
+			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			if err != nil {
+				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
+			}
+			entry.State = keybase1.SimpleFSFileArchiveState_Complete
+			manifest[entryPathWithinJob] = entry
+		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
+			panic("todo")
+		default:
+			os.MkdirAll(filepath.Dir(localPath), 0755)
+			if err != nil {
+				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
+			}
+			// todo copy, and continue from existing
+		}
+		updateManifest(manifest)
+	}
+
+	return errors.New("not implemented")
+}
+
 func (m *archiveManager) copyingWorker(ctx context.Context) {
 	for {
 		select {
@@ -319,13 +400,26 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 		m.signal(m.copyingWorkerSignal)
 
 		_, _ = jobID, jobCtx
-		// TODO do work
 
 		m.simpleFS.log.CDebugf(ctx, "copying: %s", jobID)
+
+		err := m.doCopying(jobCtx, jobID)
+		switch err {
+		case nil:
+			m.simpleFS.log.CDebugf(jobCtx, "copying done on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+		default:
+			m.simpleFS.log.CErrorf(jobCtx, "copying error on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+		}
 
 		m.fluseStateFile(ctx)
 		m.signal(m.zippingWorkerSignal) // Done copying! Notify the zipping worker.
 	}
+}
+
+func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error) {
+	return errors.New("not implemented")
 }
 
 func (m *archiveManager) zippingWorker(ctx context.Context) {
@@ -348,7 +442,18 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 		m.signal(m.zippingWorkerSignal)
 
 		_, _ = jobID, jobCtx
-		// TODO do work
+
+		m.simpleFS.log.CDebugf(ctx, "zipping: %s", jobID)
+
+		err := m.doZipping(jobCtx, jobID)
+		switch err {
+		case nil:
+			m.simpleFS.log.CDebugf(jobCtx, "zipping done on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+		default:
+			m.simpleFS.log.CErrorf(jobCtx, "zipping error on job %s", jobID)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+		}
 
 		m.fluseStateFile(ctx)
 	}

@@ -755,9 +755,11 @@ protocol SimpleFS {
     string jobID;
     KBFSArchivedPath kbfsPathWithRevision;
     Time startTime;
-    string outputPath;
+    string stagingPath; // CancelOrDismiss gets rid of this
+    string targetName; // target inside the stagingPath
+    string zipFilePath; // This could be either user specified (desktop), or inside the staging path.
   }
-  SimpleFSArchiveJobDesc simpleFSArchiveStart(string jobID, KBFSPath kbfsPath, string outputPath);
+  SimpleFSArchiveJobDesc simpleFSArchiveStart(KBFSPath kbfsPath /* must be a directory */, string outputPath);
 
   void simpleFSArchiveCancelOrDismissJob(string jobID);
 
@@ -773,7 +775,7 @@ protocol SimpleFS {
   }
   record SimpleFSArchiveJobState {
     SimpleFSArchiveJobDesc desc;
-    map<string, SimpleFSArchiveFile> manifest;
+    map<string, SimpleFSArchiveFile> manifest; // path -> SimpleFSArchiveFile
     SimpleFSArchiveJobPhase phase;
   }
   enum SimpleFSArchiveJobPhase {

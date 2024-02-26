@@ -1674,7 +1674,9 @@ type SimpleFSArchiveJobDesc struct {
 	JobID                string           `codec:"jobID" json:"jobID"`
 	KbfsPathWithRevision KBFSArchivedPath `codec:"kbfsPathWithRevision" json:"kbfsPathWithRevision"`
 	StartTime            Time             `codec:"startTime" json:"startTime"`
-	OutputPath           string           `codec:"outputPath" json:"outputPath"`
+	StagingPath          string           `codec:"stagingPath" json:"stagingPath"`
+	TargetName           string           `codec:"targetName" json:"targetName"`
+	ZipFilePath          string           `codec:"zipFilePath" json:"zipFilePath"`
 }
 
 func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
@@ -1682,7 +1684,9 @@ func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
 		JobID:                o.JobID,
 		KbfsPathWithRevision: o.KbfsPathWithRevision.DeepCopy(),
 		StartTime:            o.StartTime.DeepCopy(),
-		OutputPath:           o.OutputPath,
+		StagingPath:          o.StagingPath,
+		TargetName:           o.TargetName,
+		ZipFilePath:          o.ZipFilePath,
 	}
 }
 
@@ -2178,7 +2182,6 @@ type SimpleFSCancelJournalUploadsArg struct {
 }
 
 type SimpleFSArchiveStartArg struct {
-	JobID      string   `codec:"jobID" json:"jobID"`
 	KbfsPath   KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
 	OutputPath string   `codec:"outputPath" json:"outputPath"`
 }

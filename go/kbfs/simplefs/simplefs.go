@@ -3568,27 +3568,57 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 		})
 }
 
+func (k *SimpleFS) getStagingPath(ctx context.Context, jobID string) (stagingPath string) {
+	username := k.config.KbEnv().GetUsername()
+	cacheDir := k.config.KbEnv().GetCacheDir()
+	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s-%s", username, jobID))
+}
+
+func generateArchiveJobID() (string, error) {
+	buf := make([]byte, 8)
+	err := kbfscrypto.RandRead(buf)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("kbfs-archive-job-%s",
+		base64.RawURLEncoding.EncodeToString(buf)), nil
+}
+
 // SimpleFSArchiveStart implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
 	ctx = k.makeContext(ctx)
 
 	desc := keybase1.SimpleFSArchiveJobDesc{
-		JobID:      arg.JobID,
-		StartTime:  keybase1.ToTime(time.Now()),
-		OutputPath: arg.OutputPath,
+		StartTime: keybase1.ToTime(time.Now()),
 	}
-	if len(desc.JobID) == 0 {
-		buf := make([]byte, 8)
-		err := kbfscrypto.RandRead(buf)
-		if err != nil {
-			return keybase1.SimpleFSArchiveJobDesc{}, err
-		}
-		desc.JobID = fmt.Sprintf("kbfs-archive-job-%s",
-			base64.RawURLEncoding.EncodeToString(buf))
+
+	desc.JobID, err = generateArchiveJobID()
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobDesc{}, err
 	}
-	if len(desc.OutputPath) == 0 {
-		panic("todo")
+	desc.StagingPath = k.getStagingPath(ctx, desc.JobID)
+
+	p, err := splitPathFromKbfsPath(keybase1.NewPathWithKbfs(arg.KbfsPath))
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobDesc{}, err
+	}
+	if len(p) == 0 {
+		return keybase1.SimpleFSArchiveJobDesc{},
+			errors.New("unexpected number of elements from splitPathFromKbfsPath")
+	}
+	desc.TargetName = p[len(p)-1]
+
+	desc.ZipFilePath = arg.OutputPath
+	if len(desc.ZipFilePath) == 0 {
+		// No zip file path is given. Assume mobile-like behavior where we
+		// generate a zip file inside the staging path. A share sheet will
+		// allow the user to download the zip file, and when user dismisses the
+		// job, the zip file along with other stuff in the stagin path is
+		// deleted.
+		desc.ZipFilePath = filepath.Join(desc.StagingPath, desc.TargetName+".aip")
+	} else if !strings.HasSuffix(desc.ZipFilePath, ".zip") {
+		desc.ZipFilePath = desc.ZipFilePath + ".zip"
 	}
 
 	// Pin the job to a specific revision so if the TLF changes during the
