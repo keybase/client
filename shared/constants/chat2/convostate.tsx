@@ -473,8 +473,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   // used by loadMoreMessages
-  // only let one be in flight at a time
-  let inLoadMore = false
   let scrollBackOldest = T.Chat.numberToOrdinal(-1)
   let scrollForwardNewest = T.Chat.numberToOrdinal(-1)
 
@@ -931,13 +929,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
-      if (inLoadMore) {
-        // this isn't perfect as the onThread callbacks happen after the parent rpc resolves,
-        // which shouldn't be the case afaik, but this is likely ok
-        logger.debug('loadMoreMessages: already in flight')
-        return
-      }
-      inLoadMore = true
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
@@ -1075,12 +1066,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
 
-      f()
-        .then(() => {})
-        .catch(() => {})
-        .finally(() => {
-          inLoadMore = false
-        })
+      C.ignorePromise(f())
     },
     loadNewerMessagesDueToScroll: newest => {
       if (scrollForwardNewest === newest) {
