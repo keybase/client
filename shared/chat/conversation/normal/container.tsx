@@ -23,6 +23,8 @@ const useOrangeLine = () => {
   const CID = C.useChatContext(s => s.id)
   const readMsgID = C.useChatContext(s => s.meta.readMsgID)
   const lastReadMsgIDRef = React.useRef(readMsgID)
+  const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
+  const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
 
   if (CID !== lastCIDRef.current) {
     lastCIDRef.current = CID
@@ -36,11 +38,11 @@ const useOrangeLine = () => {
     needRPC = true
   }
 
-  const lastActiveRef = React.useRef(true)
+  // if we're not active and new messages came in, get the orange line
   const active = C.useActiveState(s => s.active)
-  if (active !== lastActiveRef.current) {
-    lastActiveRef.current = active
-    if (active) {
+  if (!active) {
+    if (maxVisibleMsgID > lastVisibleMsgIDRef.current) {
+      lastVisibleMsgIDRef.current = maxVisibleMsgID
       needRPC = true
     }
   }
