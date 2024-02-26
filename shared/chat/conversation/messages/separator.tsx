@@ -3,11 +3,10 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {formatTimeForChat} from '@/util/timestamp'
-import {SeparatorMapContext} from './ids-context'
-import {usingFlashList} from '../list-area/flashlist-config'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useChatDebugDump} from '@/constants/chat2/debug'
+import {formatTimeForConversationList} from '@/util/timestamp'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -201,18 +200,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = C.Chat.makeMessageDeleted({})
 
+// TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
-  let trailingItem = _trailingItem
-  let leadingItem = _leadingItem
-  const sm = React.useContext(SeparatorMapContext)
-  // in flat list we get the leadingItem but its the opposite of what we want
-  // we derive the previous by using SeparatorMapContext
-  if (!Kb.Styles.isMobile) {
-    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
-  } else if (!usingFlashList) {
-    trailingItem = leadingItem
-    leadingItem = sm.get(trailingItem) ?? T.Chat.numberToOrdinal(0)
-  }
+  const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
+  const previous = C.useChatContext(s => s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0))
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
@@ -220,12 +211,10 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 
   const ret = C.useChatContext(
     C.useShallow(s => {
-      const ordinal = trailingItem
-      const previous = leadingItem
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
-      const orangeLineAbove = orangeOrdinal === previous && previous > 0
+      const orangeLineAbove = orangeOrdinal === ordinal ? formatTimeForConversationList(m.timestamp) : ''
       TEMP.current = {
         orangeOrdinal,
         ordinal,
@@ -252,7 +241,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   )
 
   useChatDebugDump(
-    `CHATDEBUGSep${trailingItem}:`,
+    `CHATDEBUGSep${ordinal}:`,
     C.useEvent(() => {
       return JSON.stringify(TEMP.current, null, 2)
     })
@@ -294,7 +283,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
 type SProps = {
   ordinal: T.Chat.Ordinal
   showUsername: string
-  orangeLineAbove: boolean
+  orangeLineAbove: string
 }
 
 const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
@@ -325,7 +314,15 @@ const Separator = React.memo(function Separator(p: SProps) {
     >
       {showUsername ? <LeftSide username={showUsername} /> : null}
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
-      {orangeLineAbove ? <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} /> : null}
+      {orangeLineAbove ? (
+        <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
+          {!C.isMobile && !showUsername ? (
+            <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
+              {orangeLineAbove}
+            </Kb.Text>
+          ) : null}
+        </Kb.Box2>
+      ) : null}
     </Kb.Box2>
   )
 })
@@ -397,6 +394,17 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
+      orangeLabel: {
+        backgroundColor: Kb.Styles.globalColors.orange,
+        borderBottomRightRadius: 4,
+        color: Kb.Styles.globalColors.white,
+        left: 0,
+        opacity: 0.7,
+        paddingLeft: 2,
+        paddingRight: 2,
+        position: 'absolute',
+        top: 0,
+      },
       orangeLine: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.orange,

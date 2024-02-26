@@ -16,7 +16,6 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import {chatDebugEnabled} from '@/constants/chat2/debug'
 import logger from '@/logger'
 import shallowEqual from 'shallowequal'
-import {SeparatorMapContext} from '../messages/ids-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -138,10 +137,12 @@ const useScrolling = (p: {
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const newestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? T.Chat.numberToOrdinal(-1)
+  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
-      loadNewerMessagesDueToScroll()
-    }, [loadNewerMessagesDueToScroll]),
+      loadNewerMessagesDueToScroll(newestOrdinal)
+    }, [loadNewerMessagesDueToScroll, newestOrdinal]),
     200
   )
   const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
@@ -149,16 +150,7 @@ const useScrolling = (p: {
   if (conversationIDKeyChanged) {
     lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
   }
-  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
-  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const loadOlderMessages = React.useCallback(() => {
-    // already loaded and nothing has changed
-    if (lastLoadOrdinal.current === oldestOrdinal) {
-      return
-    }
-    lastLoadOrdinal.current = oldestOrdinal
-    loadOlderMessagesDueToScroll()
-  }, [loadOlderMessagesDueToScroll, oldestOrdinal])
+  const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -187,7 +179,7 @@ const useScrolling = (p: {
     const list = listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessages()
+        loadOlderMessages(oldestOrdinal)
       } else if (
         !containsLatestMessage &&
         !isLockedToBottom() &&
@@ -196,7 +188,7 @@ const useScrolling = (p: {
         loadNewerMessages()
       }
     }
-  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom]) //,
+  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, oldestOrdinal]) //,
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
@@ -419,7 +411,7 @@ const useItems = (p: {
       return (
         <div
           key={String(ordinal)}
-          // data-debug={String(ordinal)}
+          data-debug={String(ordinal)}
           className={Kb.Styles.classNames(
             'hover-container',
             'WrapperMessage',
@@ -441,9 +433,9 @@ const useItems = (p: {
 
   // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
   const items = React.useMemo(() => {
-    const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
-
+    const items: Array<React.ReactNode> = []
     const numOrdinals = messageOrdinals.length
+
     let ordinals: Array<T.Chat.Ordinal> = []
     let lastBucket: number | undefined
     let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
@@ -509,8 +501,8 @@ const useItems = (p: {
         ordinals.push(ordinal)
       }
     })
-    items.push(<SpecialBottomMessage key="specialBottom" />)
-    return items
+
+    return [<SpecialTopMessage key="specialTop" />, ...items, <SpecialBottomMessage key="specialBottom" />]
   }, [messageOrdinals, centeredOrdinal, rowRenderer])
 
   return items
@@ -541,50 +533,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
   const resizeObserve = useResizeObserver()
   const intersectionObserve = useIntersectionObserver()
-  const unsubRef = React.useRef<(() => void) | undefined>()
-  React.useEffect(() => {
-    return () => {
-      unsubRef.current?.()
-    }
-  }, [])
-
-  // map to help the sep know the previous value
-  const separatorMap = React.useMemo(() => {
-    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-    let p = T.Chat.numberToOrdinal(0)
-    for (const o of messageOrdinals) {
-      sm.set(o, p)
-      p = o
-    }
-    return sm
-  }, [messageOrdinals])
-
-  const lastResizeHeightRef = React.useRef(0)
-  const onListSizeChanged = React.useCallback(
-    (contentRect: {height: number}) => {
-      const {height} = contentRect
-      if (height !== lastResizeHeightRef.current) {
-        lastResizeHeightRef.current = height
-        if (isLockedToBottom()) {
-          scrollToBottom()
-        }
-      }
-    },
-    [isLockedToBottom, scrollToBottom]
-  )
-  const setListContents = React.useCallback(
-    (listContents: HTMLDivElement | null) => {
-      pointerWrapperRef.current = listContents
-      unsubRef.current?.()
-      if (listContents) {
-        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
-      } else {
-        unsubRef.current = undefined
-      }
-    },
-    [pointerWrapperRef, resizeObserve, onListSizeChanged]
-  )
-
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       // Copy text only, not HTML/styling.
@@ -612,31 +560,78 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   )
 
   const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
+  const setListContents = useHandleListResize({
+    isLockedToBottom,
+    pointerWrapperRef,
+    resizeObserve,
+    scrollToBottom,
+  })
 
   return (
     <ErrorBoundary>
-      <SeparatorMapContext.Provider value={separatorMap}>
-        <ResizeObserverContext.Provider value={resizeObserve}>
-          <IntersectObserverContext.Provider value={intersectionObserve}>
-            <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-              <div
-                className="chat-scroller"
-                key={conversationIDKey}
-                style={styles.list as any}
-                ref={setListRef}
-              >
-                <div style={styles.listContents} ref={setListContents}>
-                  {items}
-                </div>
+      <ResizeObserverContext.Provider value={resizeObserve}>
+        <IntersectObserverContext.Provider value={intersectionObserve}>
+          <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+            <div
+              className="chat-scroller"
+              key={conversationIDKey}
+              style={styles.list as any}
+              ref={setListRef}
+            >
+              <div style={styles.listContents} ref={setListContents}>
+                {items}
               </div>
-              {jumpToRecent}
             </div>
-          </IntersectObserverContext.Provider>
-        </ResizeObserverContext.Provider>
-      </SeparatorMapContext.Provider>
+            {jumpToRecent}
+          </div>
+        </IntersectObserverContext.Provider>
+      </ResizeObserverContext.Provider>
     </ErrorBoundary>
   )
 })
+
+const useHandleListResize = (p: {
+  isLockedToBottom: () => boolean
+  scrollToBottom: () => void
+  pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
+  resizeObserve: ReturnType<typeof useResizeObserver>
+}) => {
+  const {isLockedToBottom, scrollToBottom, pointerWrapperRef, resizeObserve} = p
+  const lastResizeHeightRef = React.useRef(0)
+  const onListSizeChanged = React.useCallback(
+    (contentRect: {height: number}) => {
+      const {height} = contentRect
+      if (height !== lastResizeHeightRef.current) {
+        lastResizeHeightRef.current = height
+        if (isLockedToBottom()) {
+          scrollToBottom()
+        }
+      }
+    },
+    [isLockedToBottom, scrollToBottom]
+  )
+
+  const unsubRef = React.useRef<(() => void) | undefined>()
+  React.useEffect(() => {
+    return () => {
+      unsubRef.current?.()
+    }
+  }, [])
+
+  const setListContents = React.useCallback(
+    (listContents: HTMLDivElement | null) => {
+      pointerWrapperRef.current = listContents
+      unsubRef.current?.()
+      if (listContents) {
+        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
+      } else {
+        unsubRef.current = undefined
+      }
+    },
+    [pointerWrapperRef, resizeObserve, onListSizeChanged]
+  )
+  return setListContents
+}
 
 type OrdinalWaypointProps = {
   id: string

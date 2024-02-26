@@ -212,9 +212,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
-      {!Kb.Styles.isMobile || usingFlashList ? (
-        <Separator trailingItem={ordinal} leadingItem={undefined} />
-      ) : (
+      {!Kb.Styles.isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
       )}
