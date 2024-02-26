@@ -38,13 +38,38 @@ const useOrangeLine = () => {
     needRPC = true
   }
 
-  // if we're not active and new messages came in, get the orange line
+  // desktop if we're not active and new messages came in, get the orange line
   const active = C.useActiveState(s => s.active)
   if (!active) {
     if (maxVisibleMsgID > lastVisibleMsgIDRef.current) {
+      logger.info('[useOrangeLine debug] active with new messages detected')
       lastVisibleMsgIDRef.current = maxVisibleMsgID
       needRPC = true
     }
+  }
+  // mobile if we background, clear the orange line
+  const mobileAppState = C.useConfigState(s => s.mobileAppState)
+  const lastMobileAppStateRef = React.useRef(mobileAppState)
+  if (mobileAppState !== lastMobileAppStateRef.current) {
+    lastMobileAppStateRef.current = mobileAppState
+    if (mobileAppState !== 'active') {
+      logger.info('[useOrangeLine debug] mobile app state not active, lose orange line')
+      setOrangeLine(T.Chat.numberToOrdinal(0))
+    }
+  }
+
+  // meta is good now?
+  if (maxVisibleMsgID && !lastVisibleMsgIDRef.current) {
+    logger.info('[useOrangeLine debug] now valid meta detected')
+    lastVisibleMsgIDRef.current = maxVisibleMsgID
+    needRPC = true
+  }
+
+  // no orange line but got new messages, just check
+  if (!orangeLine && maxVisibleMsgID > lastVisibleMsgIDRef.current) {
+    logger.info('[useOrangeLine debug] no orange but new messages')
+    lastVisibleMsgIDRef.current = maxVisibleMsgID
+    needRPC = true
   }
 
   if (needRPC) {
@@ -78,7 +103,15 @@ const useOrangeLine = () => {
 
       setOrangeLine(toSet)
     }
-    C.ignorePromise(f())
+
+    f()
+      .then(() => {})
+      .catch(e => {
+        logger.info('[useOrangeLine debug] error: ', e)
+      })
+      .finally(() => {
+        logger.info('[useOrangeLine debug] finally')
+      })
   }
 
   return orangeLine
