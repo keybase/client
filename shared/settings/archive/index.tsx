@@ -84,71 +84,73 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
   )
 })
 
-const Archive = () => {
-  const load = C.useArchiveState(s => s.dispatch.load)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+const Archive = C.featureFlags.archive
+  ? () => {
+      const load = C.useArchiveState(s => s.dispatch.load)
+      const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  C.useOnMountOnce(() => {
-    load()
-  })
+      C.useOnMountOnce(() => {
+        load()
+      })
 
-  const archiveChat = React.useCallback(() => {
-    navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
-  }, [navigateAppend])
-  const archiveFS = React.useCallback(() => {
-    navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
-  }, [navigateAppend])
-  const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
+      const archiveChat = React.useCallback(() => {
+        navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
+      }, [navigateAppend])
+      const archiveFS = React.useCallback(() => {
+        navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
+      }, [navigateAppend])
+      const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
-  const jobMap = C.useArchiveState(s => s.jobs)
-  const jobs = React.useMemo(() => [...jobMap.keys()], [jobMap])
+      const jobMap = C.useArchiveState(s => s.jobs)
+      const jobs = React.useMemo(() => [...jobMap.keys()], [jobMap])
 
-  const showClear = C.useArchiveState(s => {
-    for (const job of s.jobs.values()) {
-      if (job.progress === 1) {
-        return true
-      }
-    }
-    return false
-  })
+      const showClear = C.useArchiveState(s => {
+        for (const job of s.jobs.values()) {
+          if (job.progress === 1) {
+            return true
+          }
+        }
+        return false
+      })
 
-  return (
-    <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
-          <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-            <Kb.Text type="Body">
-              Easily archive your keybase data by choosing 'archive' from menus in chat and KBFS or click to
-              archive all.
-            </Kb.Text>
+      return (
+        <Kb.ScrollView style={styles.scroll}>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
+              <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+                <Kb.Text type="Body">
+                  Easily archive your keybase data by choosing 'archive' from menus in chat and KBFS or click
+                  to archive all.
+                </Kb.Text>
+              </Kb.Box2>
+              <Kb.ButtonBar>
+                <Kb.Button label="Archive all chat" onClick={archiveChat} />
+                <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
+              </Kb.ButtonBar>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="Header">Active archive jobs</Kb.Text>
+              {jobs.length ? (
+                <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+                  {jobs.map((id, idx) => (
+                    <Job id={id} key={id} index={idx} />
+                  ))}
+                  {showClear ? (
+                    <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
+                  ) : null}
+                </Kb.Box2>
+              ) : (
+                <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+                  <Kb.Text type="Body">• No active archive jobs</Kb.Text>
+                </Kb.Box2>
+              )}
+            </Kb.Box2>
           </Kb.Box2>
-          <Kb.ButtonBar>
-            <Kb.Button label="Archive all chat" onClick={archiveChat} />
-            <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
-          </Kb.ButtonBar>
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="Header">Active archive jobs</Kb.Text>
-          {jobs.length ? (
-            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-              {jobs.map((id, idx) => (
-                <Job id={id} key={id} index={idx} />
-              ))}
-              {showClear ? (
-                <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
-              ) : null}
-            </Kb.Box2>
-          ) : (
-            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-              <Kb.Text type="Body">• No active archive jobs</Kb.Text>
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      </Kb.Box2>
-    </Kb.ScrollView>
-  )
-}
+        </Kb.ScrollView>
+      )
+    }
+  : () => null
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   action: {flexShrink: 0},

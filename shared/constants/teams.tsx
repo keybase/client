@@ -1147,7 +1147,8 @@ export type State = Store & {
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
     setSubteamFilter: (filter: string, parentTeam?: T.Teams.TeamID) => void
-    setTeamListFilterSort: (filter?: string, sortOrder?: T.Teams.TeamListSort) => void
+    setTeamListFilter: (filter: string) => void
+    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
@@ -2823,8 +2824,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (parentTeam && filter) {
           const flc = filter.toLowerCase()
           s.subteamsFiltered = new Set(
-            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(
-              sID => s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
+            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+              s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
             )
           )
         } else {
@@ -2832,14 +2833,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    setTeamListFilterSort: (filter, sortOrder) => {
+    setTeamListFilter: filter => {
       set(s => {
-        if (filter !== undefined) {
-          s.teamListFilter = filter
-        }
-        if (sortOrder !== undefined) {
-          s.teamListSort = sortOrder
-        }
+        s.teamListFilter = filter
+      })
+    },
+    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => {
+      set(s => {
+        s.teamListSort = sortOrder
       })
     },
     setTeamRetentionPolicy: (teamID, policy) => {

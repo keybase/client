@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useFocusEffect} from '@react-navigation/core'
 import {memoize} from '@/util/memoize'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
@@ -89,7 +88,7 @@ const Team = (props: Props) => {
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const teamSeen = C.useTeamsState(s => s.dispatch.teamSeen)
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       return () => teamSeen(teamID)
     }, [teamSeen, teamID])

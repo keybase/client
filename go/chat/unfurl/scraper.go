@@ -3,11 +3,11 @@ package unfurl
 import (
 	"context"
 
+	"github.com/gocolly/colly/v2"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/colly"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 

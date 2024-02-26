@@ -21,7 +21,11 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const onBack = C.useChatState(s => (Kb.Styles.isMobile ? s.dispatch.navigateToInbox : null))
+  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+  const _onBack = React.useCallback(() => {
+    navigateToInbox()
+  }, [navigateToInbox])
+  const onBack = Kb.Styles.isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
@@ -208,9 +212,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
-      {!Kb.Styles.isMobile || usingFlashList ? (
-        <Separator trailingItem={ordinal} leadingItem={undefined} />
-      ) : (
+      {!Kb.Styles.isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
       )}

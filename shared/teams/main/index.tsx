@@ -140,11 +140,10 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
+  const onChangeSort = C.useTeamsState(s => s.dispatch.setTeamListSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onChangeSort = (sortOrder: T.Teams.TeamListSort) => setTeamListFilterSort(sortOrder)
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -168,7 +167,7 @@ const SortHeader = () => {
         />
       )
     },
-    [setTeamListFilterSort]
+    [onChangeSort]
   )
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)

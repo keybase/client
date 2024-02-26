@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
 import {ForceListRedrawContext} from '../../force-list-redraw-context'
-import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const noop = () => {}
 
@@ -22,13 +21,6 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
 
   const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   const [lastType, setLastType] = React.useState(type)
-
-  useChatDebugDump(
-    `wrapper${o}`,
-    C.useEvent(() => {
-      return `placeholder: ${o}: ${type ?? ''}`
-    })
-  )
 
   if (lastType !== type) {
     setLastType(type)

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
 // context, you must use `*MountOnly` variants of these helpers
@@ -9,7 +8,7 @@ import {useFocusEffect} from '@react-navigation/core'
 const useTeamsSubscribeMobile = () => {
   const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const unsubscribeTeamList = C.useTeamsState(s => s.dispatch.unsubscribeTeamList)
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       getTeams(true)
       return () => {
@@ -45,7 +44,7 @@ export const TeamsSubscriberMountOnly = () => {
 const useTeamDetailsSubscribeMobile = (teamID: T.Teams.TeamID) => {
   const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
   const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       loadTeam(teamID, true)
       return () => unsubscribeTeamDetails(teamID)

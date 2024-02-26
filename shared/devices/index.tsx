@@ -5,7 +5,6 @@ import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import type * as T from '@/constants/types'
 import {intersect} from '@/util/set'
-import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '@/util/use-local-badging'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
@@ -29,7 +28,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
 
   const newlyChangedItemIds = badged
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       loadDevices()
     }, [loadDevices])

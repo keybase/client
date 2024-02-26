@@ -24,6 +24,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const toggleZoom = React.useCallback(() => {
     isZoomedRef.current = !isZoomed
     setIsZoomed(s => !s)
+    // hide until we handle mouse move
+    imgRef.current?.classList.remove('fade-anim-enter-active')
     onIsZoomed?.(!isZoomed)
   }, [isZoomed, onIsZoomed])
 
@@ -44,6 +46,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     if (!containerRef.current || !imgRef.current) return
 
     if (dragPan && !allowPan) return
+
+    imgRef.current.classList.add('fade-anim-enter-active')
+
     if (!dragPan && !isZoomedRef.current) {
       imgRef.current.style.transform = ''
       return
@@ -80,8 +85,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return
 
-    const delta = e.deltaY > 0 ? 1.1 : 0.9
-    scaleRef.current = Math.max(1, scaleRef.current * delta)
+    const delta = e.deltaY > 0 ? 1.02 : 0.92
+    scaleRef.current = Math.min(2.5, Math.max(0.5, scaleRef.current * delta))
     handleMouseMove(e)
   }
 
@@ -90,7 +95,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       setAllowPan(p => !p)
     } else {
       toggleZoom()
-      handleMouseMove(e)
+      setTimeout(() => {
+        handleMouseMove(e)
+      }, 0)
     }
   }
 
@@ -103,7 +110,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }
   let imgStyle: React.CSSProperties = {
     display: 'flex',
-    opacity: src ? 1 : 0,
     position: 'absolute',
     transformOrigin: '0 0',
   }
@@ -141,7 +147,13 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       onWheel={handleWheel}
       onClick={handleClick}
     >
-      <img onLoad={onLoaded} ref={imgRef} src={src} style={imgStyle} />
+      <img
+        onLoad={onLoaded}
+        className="fade-anim-enter fade-anim-enter-active"
+        ref={imgRef}
+        src={src}
+        style={imgStyle}
+      />
       <Kb.Toast visible={showToast} attachTo={containerRef}>
         <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan

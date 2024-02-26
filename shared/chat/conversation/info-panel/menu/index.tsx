@@ -124,7 +124,8 @@ const InfoPanelMenu = (p: Props) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const onArchive = () => {
-    teamname &&
+    C.featureFlags.archive &&
+      teamname &&
       navigateAppend({
         props: {teamname, type: 'chatTeam'} as const,
         selected: 'archiveModal',
@@ -320,12 +321,13 @@ const InfoPanelMenu = (p: Props) => {
       onClick: onLeaveTeam,
       title: 'Leave team',
     } as const)
-    items.push({
-      icon: 'iconfont-folder-downloads',
-      iconIsVisible: false,
-      onClick: onArchive,
-      title: 'Archive conversation',
-    } as const)
+    C.featureFlags.archive &&
+      items.push({
+        icon: 'iconfont-folder-downloads',
+        iconIsVisible: false,
+        onClick: onArchive,
+        title: 'Archive conversation',
+      } as const)
   }
 
   const header = hasHeader ? (

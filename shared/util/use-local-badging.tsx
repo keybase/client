@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useFocusEffect} from '@react-navigation/core'
+import * as C from '@/constants'
 
 // On a bunch of screens we have 'new' items. We want this behavior
 // On click: clear the badges on the server and remove from things like tabs
@@ -25,7 +25,7 @@ export const useLocalBadging = (storeSet: Set<string> | undefined, clearStoreBad
     })
   }
 
-  useFocusEffect(
+  C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       clearStoreBadges()
       return () => {

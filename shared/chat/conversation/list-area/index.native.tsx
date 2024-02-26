@@ -9,7 +9,6 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
-import {SeparatorMapContext} from '../messages/ids-context'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
@@ -37,19 +36,8 @@ const useScrolling = (p: {
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
   const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
-  const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
-  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-
-  const loadOlderMessages = C.useEvent(() => {
-    // already loaded and nothing has changed
-    if (lastLoadOrdinal.current === oldestOrdinal) {
-      return
-    }
-    lastLoadOrdinal.current = oldestOrdinal
-    loadOlderMessagesDueToScroll()
-  })
-
+  const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
@@ -79,8 +67,8 @@ const useScrolling = (p: {
   })
 
   const onEndReached = React.useCallback(() => {
-    loadOlderMessages()
-  }, [loadOlderMessages])
+    loadOlderMessages(oldestOrdinal)
+  }, [loadOlderMessages, oldestOrdinal])
 
   return {
     onEndReached,
@@ -88,8 +76,6 @@ const useScrolling = (p: {
     scrollToCentered,
   }
 }
-
-const emptyMap = new Map()
 
 const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
@@ -111,18 +97,6 @@ const ConversationList = React.memo(function ConversationList() {
 
   const messageOrdinals = React.useMemo(() => {
     return [...(_messageOrdinals ?? [])].reverse()
-  }, [_messageOrdinals])
-
-  // map to help the sep know the previous value
-  const separatorMap = React.useMemo(() => {
-    if (usingFlashList) return emptyMap
-    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-    let p = T.Chat.numberToOrdinal(0)
-    for (const o of _messageOrdinals ?? []) {
-      sm.set(o, p)
-      p = o
-    }
-    return sm
   }, [_messageOrdinals])
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
@@ -243,43 +217,76 @@ const ConversationList = React.memo(function ConversationList() {
     })
   )
 
+  const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
+
   return (
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
         <ForceListRedrawContext.Provider value={forceListRedraw}>
-          <SeparatorMapContext.Provider value={separatorMap}>
-            <Kb.Box style={styles.container}>
-              <List
-                onScrollToIndexFailed={noop}
-                extraData={extraData}
-                removeClippedSubviews={Kb.Styles.isAndroid}
-                // @ts-ignore part of FlashList so lets set it
-                drawDistance={100}
-                estimatedItemSize={100}
-                ListHeaderComponent={SpecialBottomMessage}
-                ListFooterComponent={SpecialTopMessage}
-                ItemSeparatorComponent={Separator}
-                overScrollMode="never"
-                contentContainerStyle={styles.contentContainer}
-                data={messageOrdinals}
-                getItemType={getItemType}
-                inverted={true}
-                renderItem={renderItem}
-                onEndReached={onEndReached}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-                keyExtractor={keyExtractor}
-                ref={listRef}
-              />
-              {jumpToRecent}
-              {debugWhichList}
-            </Kb.Box>
-          </SeparatorMapContext.Provider>
+          <Kb.Box style={styles.container}>
+            <List
+              onScrollToIndexFailed={noop}
+              extraData={extraData}
+              removeClippedSubviews={Kb.Styles.isAndroid}
+              // @ts-ignore part of FlashList so lets set it
+              drawDistance={100}
+              estimatedItemSize={100}
+              ListHeaderComponent={SpecialBottomMessage}
+              ListFooterComponent={SpecialTopMessage}
+              ItemSeparatorComponent={Separator}
+              overScrollMode="never"
+              contentContainerStyle={styles.contentContainer}
+              data={messageOrdinals}
+              getItemType={getItemType}
+              inverted={true}
+              renderItem={renderItem}
+              onViewableItemsChanged={onViewableItemsChanged.current}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              keyExtractor={keyExtractor}
+              ref={listRef}
+            />
+            {jumpToRecent}
+            {debugWhichList}
+          </Kb.Box>
         </ForceListRedrawContext.Provider>
       </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>
   )
 })
+
+const minTimeDelta = 1000
+const minDistanceFromEnd = 10
+
+const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
+  const nextCallbackRef = React.useRef(new Date().getTime())
+  const onEndReachedRef = React.useRef(onEndReached)
+  onEndReachedRef.current = onEndReached
+  const numOrdinalsRef = React.useRef(numOrdinals)
+  numOrdinalsRef.current = numOrdinals
+
+  // this can't change ever, so we have to use refs to keep in sync
+  const onViewableItemsChanged = React.useRef(
+    ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
+      const idx = viewableItems.at(-1)?.index ?? 0
+      const lastIdx = numOrdinalsRef.current - 1
+      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
+      const deltaIdx = idx - lastIdx + offset
+      // not far enough from the end
+      if (deltaIdx < 0) {
+        return
+      }
+      const t = new Date().getTime()
+      const deltaT = t - nextCallbackRef.current
+      // enough time elapsed?
+      if (deltaT > 0) {
+        nextCallbackRef.current = t + minTimeDelta
+        onEndReachedRef.current()
+      }
+    }
+  )
+  return onViewableItemsChanged
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
