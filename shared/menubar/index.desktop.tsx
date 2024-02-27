@@ -342,7 +342,6 @@ const MenubarRender = (p: Props) => {
         className={darkMode ? 'darkMode' : 'lightMode'}
         key={darkMode ? 'darkMode' : 'light'}
       >
-        {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <IconBar {...p} showBadges={loggedIn} />
         {content}
@@ -365,13 +364,6 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
     </Kb.Box2>
   )
 }
-
-// TODO
-const _realCSS = `
-body {
-  background-color: ${Kb.Styles.globalColors.transparent};
-}
-`
 
 const iconMap = {
   [C.Tabs.peopleTab]: 'iconfont-nav-2-people',

@@ -37,7 +37,6 @@ export type MenuLayoutProps = {
   closeOnClick?: boolean
   style?: Object
   listStyle?: Object
-  hoverColor?: string
   closeText?: string // mobile only; default to "Close"
   textColor?: Styles.Color
   safeProviderStyle?: Styles.StylesCrossPlatform

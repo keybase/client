@@ -155,8 +155,8 @@ class ExplodingMeta2 extends React.Component<Props2> {
     const backgroundColor = this.props.pending
       ? Kb.Styles.globalColors.black
       : this.props.explodesAt - Date.now() < oneMinuteInMs
-      ? Kb.Styles.globalColors.red
-      : Kb.Styles.globalColors.black
+        ? Kb.Styles.globalColors.red
+        : Kb.Styles.globalColors.black
     let children: React.ReactNode
     const m = this.props.pending ? 'countdown' : this.props.mode
     switch (m) {
@@ -181,6 +181,7 @@ class ExplodingMeta2 extends React.Component<Props2> {
                     styles.countdown,
                     this.props.isParentHighlighted && styles.countdownHighlighted,
                   ])}
+                  virtualText={true}
                 >
                   {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
                 </Kb.Text>
