@@ -26,6 +26,7 @@ const AvatarHolder = () => {
             ? Kb.Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
             : styles.replyUsername
         }
+        virtualText={true}
       >
         {author}
       </Kb.Text>

@@ -549,6 +549,12 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
       styles.forEach(s => {
         s.parentNode?.removeChild(s)
       })
+      const imgs = tempDiv.querySelectorAll('img')
+      imgs.forEach(i => {
+        const dummy = document.createElement('div')
+        dummy.textContent = '\n[IMAGE]\n'
+        i.parentNode?.replaceChild(dummy, i)
+      })
 
       const tc = tempDiv.textContent
       tc && copyToClipboard(tc)

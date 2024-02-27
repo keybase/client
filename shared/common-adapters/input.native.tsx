@@ -297,7 +297,6 @@ class Input extends React.Component<Props, State> {
       onSelectionChange: this.onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.hintText,
-      placeholderTextColor: Styles.globalColors.black_40,
       ref: this.input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
