@@ -161,10 +161,17 @@ func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
 		delete(m.jobCtxCancellers, jobID)
 	}
 
-	if _, ok := m.state.Jobs[jobID]; !ok {
+	job, ok := m.state.Jobs[jobID]
+	if !ok {
 		return errors.New("job not found")
 	}
 	delete(m.state.Jobs, jobID)
+
+	err = os.RemoveAll(job.Desc.StagingPath)
+	if err != nil {
+		m.simpleFS.log.CWarningf(ctx, "removing staging path %q for job %s error: %v",
+			job.Desc.StagingPath, jobID, err)
+	}
 
 	return nil
 }
