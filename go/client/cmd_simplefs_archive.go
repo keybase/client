@@ -63,7 +63,8 @@ func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArc
 	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
 	ui.Printf("TLF Revision: %v\n", desc.KbfsPathWithRevision.ArchivedParam.Revision())
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
-	ui.Printf("Output Path: %s\n", desc.OutputPath)
+	ui.Printf("Staging Path: %s\n", desc.StagingPath)
+	ui.Printf("Zip File Path: %s\n", desc.ZipFilePath)
 
 }
 
@@ -76,7 +77,6 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 	desc, err := cli.SimpleFSArchiveStart(context.TODO(),
 		keybase1.SimpleFSArchiveStartArg{
-			JobID:      c.jobID,
 			OutputPath: c.outputPath,
 			KbfsPath:   c.kbfsPath,
 		})

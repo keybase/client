@@ -7,6 +7,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"gopkg.in/src-d/go-billy.v4"
 )
 
 func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePath string) (state *keybase1.SimpleFSArchiveState, err error) {
@@ -291,12 +293,50 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 			m.simpleFS.log.CDebugf(jobCtx, "indexing done on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
 		default:
-			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s", jobID)
+			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s: %v", jobID, err)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
 		}
 
 		m.fluseStateFile(ctx)
 		m.signal(m.copyingWorkerSignal) // Done copying! Notify the copying worker.
+	}
+}
+
+func (m *archiveManager) copyFile(ctx context.Context,
+	srcDirFS billy.Filesystem, entryPathWithinJob string,
+	localPath string, srcSeekOffset int64, mode os.FileMode) error {
+	src, err := srcDirFS.Open(entryPathWithinJob)
+	if err != nil {
+		return fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
+	}
+	defer src.Close()
+
+	dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode)
+	if err != nil {
+		return fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
+	}
+	defer src.Close()
+
+	if srcSeekOffset != 0 {
+		_, err := src.Seek(srcSeekOffset, io.SeekStart)
+		if err != nil {
+			return fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
+		}
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		_, err := io.CopyN(dst, src, 64*1024)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+		}
 	}
 }
 
@@ -311,18 +351,18 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 		for k, v := range m.state.Jobs[jobID].Manifest {
 			manifest[k] = v.DeepCopy()
 		}
-		return m.state.Jobs[jobID].desc, manifest
+		return m.state.Jobs[jobID].Desc, manifest
 	}()
 
 	updateManifest := func(manifest map[string]keybase1.SimpleFSArchiveFile) {
 		m.mu.Lock()
 		defer m.mu.Unlock()
 		// Can override directly since only one worker can work on a give job at a time.
-		stateManifest := m.state.Jobs[jobID].Manifest
+		job := m.state.Jobs[jobID]
 		for k, v := range manifest {
-			stateManifest[k] = v.DeepCopy()
+			job.Manifest[k] = v.DeepCopy()
 		}
-		m.state.Jobs[jobID] = stateManifest
+		m.state.Jobs[jobID] = job
 	}
 
 	srcContainingDirFS, finalElem, err := m.simpleFS.getFSIfExists(ctx,
@@ -372,12 +412,32 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
-			// todo copy, and continue from existing
+
+			var mode os.FileMode = 0644
+			if srcFI.Mode()&0100 != 0 {
+				mode = 0755
+			}
+
+			seek := int64(0)
+
+			dstFI, err := os.Stat(localPath)
+			switch {
+			case os.IsNotExist(err): // simple copy from the start of file
+			case err == nil: // continue from a previously interrupted copy
+				seek = dstFI.Size()
+			default:
+				return fmt.Errorf("os.Stat(%s) error: %v", localPath, err)
+			}
+
+			err = m.copyFile(ctx, srcDirFS, entryPathWithinJob, localPath, seek, mode)
+			if err != nil {
+				return err
+			}
 		}
 		updateManifest(manifest)
 	}
 
-	return errors.New("not implemented")
+	return nil
 }
 
 func (m *archiveManager) copyingWorker(ctx context.Context) {
@@ -407,10 +467,10 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 		switch err {
 		case nil:
 			m.simpleFS.log.CDebugf(jobCtx, "copying done on job %s", jobID)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Copied)
 		default:
-			m.simpleFS.log.CErrorf(jobCtx, "copying error on job %s", jobID)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+			m.simpleFS.log.CErrorf(jobCtx, "copying error on job %s: %v", jobID, err)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
 		}
 
 		m.fluseStateFile(ctx)
@@ -449,10 +509,10 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 		switch err {
 		case nil:
 			m.simpleFS.log.CDebugf(jobCtx, "zipping done on job %s", jobID)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Done)
 		default:
-			m.simpleFS.log.CErrorf(jobCtx, "zipping error on job %s", jobID)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+			m.simpleFS.log.CErrorf(jobCtx, "zipping error on job %s: %v", jobID, err)
+			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Copied)
 		}
 
 		m.fluseStateFile(ctx)
