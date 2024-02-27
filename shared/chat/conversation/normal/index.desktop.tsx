@@ -24,7 +24,7 @@ const LoadingLine = () => {
     C.Chat.waitingKeyThreadLoad(conversationIDKey),
     C.Chat.waitingKeyInboxSyncStarted,
   ])
-  return showLoader ? <Kb.LoadingLine /> : null
+  return true || showLoader ? <Kb.LoadingLine /> : null
 }
 
 const hotKeys = ['mod+f']
