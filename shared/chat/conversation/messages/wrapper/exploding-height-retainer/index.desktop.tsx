@@ -102,35 +102,36 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
 }
 
 const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
+  const {doneExploding, explodedBy, exploded, height} = props
   let explodedTag: React.ReactNode = null
-  if (props.doneExploding) {
-    explodedTag = props.explodedBy ? (
+  if (doneExploding) {
+    explodedTag = explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded}>
-        EXPLODED BY{' '}
+        <Kb.Text type="BodyTiny" virtualText={true}>
+          {'EXPLODED BY '}
+        </Kb.Text>
         <Kb.ConnectedUsernames
           type="BodySmallBold"
           onUsernameClicked="profile"
-          usernames={props.explodedBy}
+          usernames={explodedBy}
           inline={true}
           colorFollowing={true}
           colorYou={true}
           underline={true}
+          virtualText={true}
         />
       </Kb.Text>
     ) : (
-      <Kb.Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded} virtualText={true}>
         EXPLODED
       </Kb.Text>
     )
   }
 
   return (
-    <div
-      className={Kb.Styles.classNames('ashbox', {'full-width': props.exploded})}
-      style={styles.ashBox as any}
-    >
-      {props.exploded && explodedTag}
-      <FlameFront height={props.height} stop={props.doneExploding} />
+    <div className={Kb.Styles.classNames('ashbox', {'full-width': exploded})} style={styles.ashBox as any}>
+      {exploded && explodedTag}
+      <FlameFront height={height} stop={doneExploding} />
     </div>
   )
 }

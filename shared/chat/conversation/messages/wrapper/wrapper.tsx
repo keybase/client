@@ -256,7 +256,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
-  const content = exploding ? (
+  const content = true /*exploding*/ ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <ExplodingHeightRetainer>{children as React.ReactElement}</ExplodingHeightRetainer>
     </Kb.Box2>
