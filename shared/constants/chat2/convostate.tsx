@@ -103,6 +103,7 @@ type ConvoStore = {
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: Array<T.Teams.TeamID>
+  orangeAboveOrdinal: T.Chat.Ordinal // ordinal of the orange line,
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -141,6 +142,7 @@ const initialConvoStore: ConvoStore = {
   meta: Meta.makeConversationMeta(),
   moreToLoad: false,
   mutualTeams: [],
+  orangeAboveOrdinal: T.Chat.numberToOrdinal(0),
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
@@ -202,6 +204,7 @@ export type ConvoState = ConvoStore & {
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
+    loadOrangeLine: () => void
     loadOlderMessagesDueToScroll: (oldest: T.Chat.Ordinal) => void
     loadNewerMessagesDueToScroll: (newest: T.Chat.Ordinal) => void
     loadMoreMessages: (p: {
@@ -272,7 +275,7 @@ export type ConvoState = ConvoStore & {
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
     // false to clear
-    setMarkAsUnread: (readMsgID?: T.RPCChat.MessageID | false) => void
+    setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
     setMessageCenterOrdinal: (m?: T.Chat.CenterOrdinal) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
@@ -470,6 +473,22 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     if (lastID && lastID > s.maxMsgIDSeen) {
       s.maxMsgIDSeen = lastID
     }
+  }
+
+  // find ordinal or return the incoming message id (it'll resolve later)
+  const findOrdinalFromMessageIDOrMID = (messageID: T.Chat.MessageID) => {
+    // find ordinal
+    const mm = get().messageMap
+    const nid = T.Chat.messageIDToNumber(messageID)
+    const quick = mm.get(T.Chat.numberToOrdinal(nid))
+    if (quick) return quick.ordinal
+    // search
+    for (const m of mm.values()) {
+      if (m.id === messageID) {
+        return m.ordinal
+      }
+    }
+    return T.Chat.numberToOrdinal(nid)
   }
 
   // used by loadMoreMessages
@@ -1064,10 +1083,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
+        if (sd === 'none') {
+          get().dispatch.loadOrangeLine()
+        }
       }
 
       C.ignorePromise(f())
     },
+
     loadNewerMessagesDueToScroll: newest => {
       if (scrollForwardNewest === newest) {
         logger.info('bail: already made this call')
@@ -1142,6 +1165,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'scroll back',
         scrollDirection: 'back',
       })
+    },
+    loadOrangeLine: () => {
+      const f = async () => {
+        const convID = T.Chat.keyToConversationID(get().id)
+        const readMsgID = get().meta.readMsgID
+        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
+          convID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          readMsgID: readMsgID < 0 ? 0 : readMsgID,
+        })
+
+        const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+        if (!unreadlineID) {
+          set(s => {
+            s.orangeAboveOrdinal = T.Chat.numberToOrdinal(0)
+          })
+          return
+        } else {
+          const mid = T.Chat.numberToMessageID(unreadlineID)
+          const toSet = findOrdinalFromMessageIDOrMID(mid)
+          set(s => {
+            s.orangeAboveOrdinal = toSet
+          })
+        }
+      }
+      C.ignorePromise(f())
     },
     markTeamAsRead: teamID => {
       const f = async () => {
@@ -2551,7 +2600,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   const d = JSON.parse(p) as undefined | {messages?: Array<{valid?: {messageID?: unknown}}>}
                   const m = d?.messages?.[1]?.valid?.messageID
                   if (typeof m === 'number') {
-                    msgID = m
+                    msgID = T.Chat.numberToMessageID(m)
                   }
                   resolve()
                 } catch {}
@@ -2593,13 +2642,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-        T.RPCChat.localMarkAsReadLocalRpcPromise({
+        await T.RPCChat.localMarkAsReadLocalRpcPromise({
           conversationID: T.Chat.keyToConversationID(conversationIDKey),
           forceUnread: true,
           msgID,
         })
-          .then(() => {})
-          .catch(() => {})
+        // ideally we'd load the orange line here but the rpc is racy and returns 0 often
+
+        if (readMsgID) {
+          const mid = T.Chat.numberToMessageID(readMsgID)
+          const toSet = findOrdinalFromMessageIDOrMID(mid)
+          set(s => {
+            s.orangeAboveOrdinal = toSet
+          })
+        }
       }
       C.ignorePromise(f())
     },

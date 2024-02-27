@@ -214,7 +214,14 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
-      const orangeLineAbove = orangeOrdinal === ordinal ? formatTimeForConversationList(m.timestamp) : ''
+      // we don't show the label if its been too recent (2hrs)
+      const tooSoon = new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const orangeLineAbove =
+        orangeOrdinal === ordinal
+          ? tooSoon
+            ? tooSoonString
+            : formatTimeForConversationList(m.timestamp)
+          : ''
       TEMP.current = {
         orangeOrdinal,
         ordinal,
@@ -302,6 +309,9 @@ const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Or
     />
   )
 })
+
+const tooSoonString = 'toosoon'
+
 const Separator = React.memo(function Separator(p: SProps) {
   const {ordinal, orangeLineAbove, showUsername} = p
   return (
@@ -316,7 +326,7 @@ const Separator = React.memo(function Separator(p: SProps) {
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
-          {!C.isMobile && !showUsername ? (
+          {!C.isMobile && !showUsername && orangeLineAbove !== tooSoonString ? (
             <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
               {orangeLineAbove}
             </Kb.Text>
@@ -338,6 +348,13 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
+  // useful to show ordinal information while debugging
+  // return (
+  //   <Kb.Text
+  //     type="BodyTiny"
+  //     style={{height: 20}}
+  //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
+  // )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null

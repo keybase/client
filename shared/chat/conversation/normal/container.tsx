@@ -1,119 +1,35 @@
 import * as C from '@/constants'
-import * as T from '@/constants/types'
-import * as RPCChatTypes from '@/constants/types/rpc-chat-gen'
-import * as RPCTypes from '@/constants/types/rpc-gen'
 import * as React from 'react'
 import Normal from '.'
-import {OrangeLineContext} from '../orange-line-context'
+import type * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
-import logger from '@/logger'
+import {OrangeLineContext} from '../orange-line-context'
 
 // Orange line logic:
-// When we enter a conversation we call an rpc to see where the line should be. The meta.readMsgID and maxMsgID are not correct
-// enough to use directly,
-// When the orange line is showing we should maintain that while in that thread. An orange line can move
-// while we're in a thread due to marking as unread. Our cached local orange line (in a ref) can be outdated
-// by messages being deleted or ordinals changing. If you're up to date we do not show the orange line as
-// new messages come in. If you become inactive we will mark it and any new messages will have an orange line
-// on top.
+// When we load a conversation with a non scrolling scrollDirection we'll load the orange line through the rpc.
+// While the meta has readMsgID and maxMsgID those values do not update correctly in time to use.
+// On mobile when we background we'll clear the orange line and we'll get it when we foreground (as a side effect of being stale).
+// On desktop when you become inactive we'll watch for a new message and in that case we'll load the orange line once.
+// If we call mark as unread we'll just manually set the value if the rpc succeeds, as calling the rpc does not update immediately.
+
 const useOrangeLine = () => {
-  let needRPC = false
-  const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
-  const lastCIDRef = React.useRef<T.Chat.ConversationIDKey>('')
-  const CID = C.useChatContext(s => s.id)
-  const readMsgID = C.useChatContext(s => s.meta.readMsgID)
-  const lastReadMsgIDRef = React.useRef(readMsgID)
+  // this hook only deals with the active changes, otherwise the rest of the logic is in the store
+  const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)
   const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
   const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
-
-  if (CID !== lastCIDRef.current) {
-    lastCIDRef.current = CID
-    lastReadMsgIDRef.current = readMsgID
-    needRPC = true
-  }
-
-  if (lastReadMsgIDRef.current > readMsgID) {
-    logger.info('[useOrangeLine debug] mark as unread detected')
-    lastReadMsgIDRef.current = readMsgID
-    needRPC = true
-  }
-
-  // desktop if we're not active and new messages came in, get the orange line
+  const newMessageVisible = maxVisibleMsgID !== lastVisibleMsgIDRef.current
+  lastVisibleMsgIDRef.current = maxVisibleMsgID
   const active = C.useActiveState(s => s.active)
-  if (!active) {
-    if (maxVisibleMsgID > lastVisibleMsgIDRef.current) {
-      logger.info('[useOrangeLine debug] active with new messages detected')
-      lastVisibleMsgIDRef.current = maxVisibleMsgID
-      needRPC = true
-    }
+  const gotMessageWhileInactive = React.useRef(false)
+  if (active) {
+    gotMessageWhileInactive.current = false
   }
-  // mobile if we background, clear the orange line
-  const mobileAppState = C.useConfigState(s => s.mobileAppState)
-  const lastMobileAppStateRef = React.useRef(mobileAppState)
-  if (mobileAppState !== lastMobileAppStateRef.current) {
-    lastMobileAppStateRef.current = mobileAppState
-    if (mobileAppState !== 'active') {
-      logger.info('[useOrangeLine debug] mobile app state not active, lose orange line')
-      setOrangeLine(T.Chat.numberToOrdinal(0))
-    }
+  if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
+    gotMessageWhileInactive.current = true
+    loadOrangeLine()
   }
 
-  // meta is good now?
-  if (maxVisibleMsgID && !lastVisibleMsgIDRef.current) {
-    logger.info('[useOrangeLine debug] now valid meta detected')
-    lastVisibleMsgIDRef.current = maxVisibleMsgID
-    needRPC = true
-  }
-
-  // no orange line but got new messages, just check
-  if (!orangeLine && maxVisibleMsgID > lastVisibleMsgIDRef.current) {
-    logger.info('[useOrangeLine debug] no orange but new messages')
-    lastVisibleMsgIDRef.current = maxVisibleMsgID
-    needRPC = true
-  }
-
-  if (needRPC) {
-    const convID = T.Chat.keyToConversationID(CID)
-    const f = async () => {
-      const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
-        convID,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        readMsgID: readMsgID < 0 ? 0 : readMsgID,
-      })
-      const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-      logger.info('[useOrangeLine debug] rpc value: ', unreadlineID)
-
-      if (!unreadlineID) {
-        setOrangeLine(T.Chat.numberToOrdinal(0))
-        return
-      }
-      // find ordinal
-      const mm = C.Chat._getConvoState(CID).messageMap
-      let toSet = T.Chat.numberToOrdinal(unreadlineID)
-      const quick = mm.get(toSet)
-      if (!quick) {
-        // search
-        for (const m of mm.values()) {
-          if (m.id === unreadlineID) {
-            toSet = m.ordinal
-            break
-          }
-        }
-      }
-
-      setOrangeLine(toSet)
-    }
-
-    f()
-      .then(() => {})
-      .catch(e => {
-        logger.info('[useOrangeLine debug] error: ', e)
-      })
-      .finally(() => {
-        logger.info('[useOrangeLine debug] finally')
-      })
-  }
-
+  const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
   return orangeLine
 }
 
