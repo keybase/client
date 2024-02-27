@@ -4,9 +4,13 @@
 package simplefs
 
 import (
+	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash"
 	"io"
 	"os"
 	"path/filepath"
@@ -302,42 +306,165 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 	}
 }
 
-func (m *archiveManager) copyFile(ctx context.Context,
+type sha256TeeReader struct {
+	inner          io.Reader
+	innerTeeReader io.Reader
+	h              hash.Hash
+}
+
+var _ io.Reader = (*sha256TeeReader)(nil)
+
+// Read implements the io.Reader interface.
+func (r *sha256TeeReader) Read(p []byte) (n int, err error) {
+	return r.innerTeeReader.Read(p)
+}
+
+func (r *sha256TeeReader) getSum() []byte {
+	return r.h.Sum(nil)
+}
+
+func newSHA256TeeReader(inner io.Reader) (r *sha256TeeReader) {
+	r = &sha256TeeReader{
+		inner: inner,
+		h:     sha256.New(),
+	}
+	r.innerTeeReader = io.TeeReader(r.inner, r.h)
+	return r
+}
+
+func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
-	localPath string, srcSeekOffset int64, mode os.FileMode) error {
+	localPath string, mode os.FileMode) (sha256Sum []byte, err error) {
+	m.simpleFS.log.CDebugf(ctx, "+ copyFileFromBeginning %s", entryPathWithinJob)
+	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFileFromBeginning %s err: %v", entryPathWithinJob, err) }()
+
 	src, err := srcDirFS.Open(entryPathWithinJob)
 	if err != nil {
-		return fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
+		return nil, fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
 	}
 	defer src.Close()
 
 	dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode)
 	if err != nil {
-		return fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
+		return nil, fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 	}
-	defer src.Close()
+	defer dst.Close()
 
-	if srcSeekOffset != 0 {
-		_, err := src.Seek(srcSeekOffset, io.SeekStart)
-		if err != nil {
-			return fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
-		}
-	}
+	teeReader := newSHA256TeeReader(src)
 
+loopCopy:
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil, ctx.Err()
 		default:
 		}
-		_, err := io.CopyN(dst, src, 64*1024)
-		if err == io.EOF {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+		_, err := io.CopyN(dst, teeReader, 64*1024)
+		switch err {
+		case nil:
+		case io.EOF:
+			break loopCopy
+		default:
+			return nil, fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
 		}
 	}
+
+	// We didn't continue from a previously interrupted copy, so don't
+	// bother verifying the sha256sum and just return it.
+	return teeReader.getSum(), nil
+}
+
+func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
+	srcDirFS billy.Filesystem, entryPathWithinJob string,
+	localPath string, srcSeekOffset int64, mode os.FileMode) (sha256Sum []byte, err error) {
+	m.simpleFS.log.CDebugf(ctx, "+ copyFilePickupPrevious %s", entryPathWithinJob)
+	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFilePickupPrevious %s err: %v", entryPathWithinJob, err) }()
+
+	src, err := srcDirFS.Open(entryPathWithinJob)
+	if err != nil {
+		return nil, fmt.Errorf("srcDirFS.Open(%s) error: %v", entryPathWithinJob, err)
+	}
+	defer src.Close()
+
+	_, err = src.Seek(srcSeekOffset, io.SeekStart)
+	if err != nil {
+		return nil, fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
+	}
+
+	// Copy the file.
+	if err = func() error {
+		dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode)
+		if err != nil {
+			return fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
+		}
+		defer dst.Close()
+
+	loopCopy:
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
+			_, err := io.CopyN(dst, src, 64*1024)
+			switch err {
+			case nil:
+			case io.EOF:
+				break loopCopy
+			default:
+				return fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
+			}
+		}
+
+		return nil
+	}(); err != nil {
+		return nil, err
+	}
+
+	// Calculate sha256 and check the sha256 of the copied file since we
+	// continued from a previously interrupted copy.
+	{
+		_, err = src.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
+		}
+		srcSHA256SumHasher := sha256.New()
+		_, err = io.Copy(srcSHA256SumHasher, src)
+		if err != nil {
+			return nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+		}
+		srcSHA256Sum := srcSHA256SumHasher.Sum(nil)
+
+		dst, err := os.Open(localPath)
+		if err != nil {
+			return nil, fmt.Errorf("os.Open(%s) error: %v", localPath, err)
+		}
+		defer dst.Close()
+		dstSHA256SumHasher := sha256.New()
+		_, err = io.Copy(dstSHA256SumHasher, dst)
+		if err != nil {
+			return nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+		}
+		dstSHA256Sum := dstSHA256SumHasher.Sum(nil)
+
+		if !bytes.Equal(srcSHA256Sum, dstSHA256Sum) {
+			m.simpleFS.log.CInfof(ctx,
+				"file corruption is detected from a previous copy. Will copy from the beginning: ",
+				entryPathWithinJob)
+			return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
+		}
+
+		return srcSHA256Sum, nil
+	}
+}
+
+func (m *archiveManager) copyFile(ctx context.Context,
+	srcDirFS billy.Filesystem, entryPathWithinJob string,
+	localPath string, srcSeekOffset int64, mode os.FileMode) (sha256Sum []byte, err error) {
+	if srcSeekOffset == 0 {
+		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
+	}
+	return m.copyFilePickupPrevious(ctx, srcDirFS, entryPathWithinJob, localPath, srcSeekOffset, mode)
 }
 
 func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error) {
@@ -429,10 +556,15 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 				return fmt.Errorf("os.Stat(%s) error: %v", localPath, err)
 			}
 
-			err = m.copyFile(ctx, srcDirFS, entryPathWithinJob, localPath, seek, mode)
+			sha256Sum, err := m.copyFile(ctx, srcDirFS, entryPathWithinJob, localPath, seek, mode)
 			if err != nil {
 				return err
 			}
+
+			entry.Sha256SumHex = hex.EncodeToString(sha256Sum)
+			entry.State = keybase1.SimpleFSFileArchiveState_Complete
+			manifest[entryPathWithinJob] = entry
+			updateManifest(manifest)
 		}
 		updateManifest(manifest)
 	}
