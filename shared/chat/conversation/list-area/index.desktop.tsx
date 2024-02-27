@@ -544,6 +544,12 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
       // extra newlines only when you do toString() vs getting the textContents
       const tempDiv = document.createElement('div')
       tempDiv.appendChild(temp)
+      // filter
+      const styles = tempDiv.querySelectorAll('style')
+      styles.forEach(s => {
+        s.parentNode?.removeChild(s)
+      })
+
       const tc = tempDiv.textContent
       tc && copyToClipboard(tc)
       tempDiv.remove()
