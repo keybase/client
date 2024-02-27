@@ -338,6 +338,12 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
+  // return (
+  //   <Kb.Text
+  //     type="BodyTiny"
+  //     style={{height: 20}}
+  //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
+  // )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null
