@@ -125,6 +125,23 @@ const useOrangeLine = () => {
 
   // return orangeLine
 
+  const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)
+
+  const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
+  const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
+  const newMessageVisible = maxVisibleMsgID !== lastVisibleMsgIDRef.current
+  lastVisibleMsgIDRef.current = maxVisibleMsgID
+  const active = C.useActiveState(s => s.active)
+  const gotMessageWhileInactive = React.useRef(false)
+  if (active) {
+    gotMessageWhileInactive.current = false
+  }
+  if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
+    gotMessageWhileInactive.current = true
+    console.log('aaaa load orange due to new message whie inactive', maxVisibleMsgID)
+    loadOrangeLine()
+  }
+
   const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
   return orangeLine
 }

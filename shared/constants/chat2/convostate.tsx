@@ -476,10 +476,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
 
-  const findOrdinalFromMessageID = (messageID: T.Chat.MessageID) => {
+  // find ordinal or return the incoming message id (it'll resolve later)
+  const findOrdinalFromMessageIDOrMID = (messageID: T.Chat.MessageID) => {
     // find ordinal
     const mm = get().messageMap
-    const quick = mm.get(T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID)))
+    const nid = T.Chat.messageIDToNumber(messageID)
+    const quick = mm.get(T.Chat.numberToOrdinal(nid))
     if (quick) return quick.ordinal
     // search
     for (const m of mm.values()) {
@@ -487,7 +489,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return m.ordinal
       }
     }
-    return T.Chat.numberToOrdinal(0)
+    return T.Chat.numberToOrdinal(nid)
   }
 
   // used by loadMoreMessages
@@ -1184,7 +1186,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
           return
         } else {
-          const toSet = findOrdinalFromMessageID(T.Chat.numberToMessageID(unreadlineID))
+          const mid = T.Chat.numberToMessageID(unreadlineID)
+          const toSet = findOrdinalFromMessageIDOrMID(mid)
           console.log('aaaa unreadline resolved', toSet)
           set(s => {
             s.orangeAboveOrdinal = toSet
@@ -2651,7 +2654,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // ideally we'd load the orange line here but the rpc is racy and returns 0 often
 
         if (readMsgID) {
-          const toSet = findOrdinalFromMessageID(T.Chat.numberToMessageID(readMsgID))
+          const mid = T.Chat.numberToMessageID(readMsgID)
+          const toSet = findOrdinalFromMessageIDOrMID(mid)
           console.log('aaa manual set unread after call', {readMsgID, toSet})
           set(s => {
             s.orangeAboveOrdinal = toSet
