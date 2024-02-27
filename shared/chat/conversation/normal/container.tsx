@@ -138,7 +138,6 @@ const useOrangeLine = () => {
   }
   if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
     gotMessageWhileInactive.current = true
-    console.log('aaaa load orange due to new message whie inactive', maxVisibleMsgID)
     loadOrangeLine()
   }
 

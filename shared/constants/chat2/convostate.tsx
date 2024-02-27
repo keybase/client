@@ -946,7 +946,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     loadMoreMessages: p => {
-      console.log('aaaa loadmoremessages', p)
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
@@ -1179,7 +1178,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-        console.log('aaaa raw unreadlineID', {unreadlineID, readMsgID})
         if (!unreadlineID) {
           set(s => {
             s.orangeAboveOrdinal = T.Chat.numberToOrdinal(0)
@@ -1188,7 +1186,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } else {
           const mid = T.Chat.numberToMessageID(unreadlineID)
           const toSet = findOrdinalFromMessageIDOrMID(mid)
-          console.log('aaaa unreadline resolved', toSet)
           set(s => {
             s.orangeAboveOrdinal = toSet
           })
@@ -2656,7 +2653,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (readMsgID) {
           const mid = T.Chat.numberToMessageID(readMsgID)
           const toSet = findOrdinalFromMessageIDOrMID(mid)
-          console.log('aaa manual set unread after call', {readMsgID, toSet})
           set(s => {
             s.orangeAboveOrdinal = toSet
           })
