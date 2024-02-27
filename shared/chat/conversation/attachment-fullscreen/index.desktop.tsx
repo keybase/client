@@ -101,7 +101,6 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                     ref={vidRef}
                   >
                     <source src={path} />
-                    <style>{showPlayButton}</style>
                   </video>
                 ) : (
                   <Kb.ZoomableImage src={path} onIsZoomed={onIsZoomed} />
@@ -236,11 +235,5 @@ const styles = Styles.styleSheetCreate(
       }),
     }) as const
 )
-
-const showPlayButton = `
-video::-webkit-media-controls-play-button {
-  display: block;
-}
-`
 
 export default Fullscreen
