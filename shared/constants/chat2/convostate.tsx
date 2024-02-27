@@ -66,7 +66,6 @@ type NavReason =
   | 'teamMention' // from team mention
 
 type LoadMoreReason =
-  | 'markUnread'
   | 'jumpAttachment'
   | 'foregrounding'
   | 'got stale'

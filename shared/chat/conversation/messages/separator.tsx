@@ -348,6 +348,7 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
+  // useful to show ordinal information while debugging
   // return (
   //   <Kb.Text
   //     type="BodyTiny"
