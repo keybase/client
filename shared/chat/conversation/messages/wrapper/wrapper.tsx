@@ -397,8 +397,7 @@ type BProps = {
 }
 // reactions
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {showingPopup, setShowingPicker, bottomChildren /*, ecrType*/} = p
-  const ecrType = EditCancelRetryType.RETRY_CANCEL
+  const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
   const reactionsRow = hasReactions ? <ReactionsRow /> : null

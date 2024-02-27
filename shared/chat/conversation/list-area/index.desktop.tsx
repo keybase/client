@@ -535,10 +535,18 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const intersectionObserve = useIntersectionObserver()
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
-      // Copy text only, not HTML/styling.
+      // Copy text only, not HTML/styling. We use virtualText on texts to make uncopyable text
       e.preventDefault()
       const sel = window.getSelection()
-      sel && copyToClipboard(sel.toString())
+      if (!sel) return
+      const temp = sel.getRangeAt(0).cloneContents()
+      // cloning it and making a new new fixes issues where icons will give you
+      // extra newlines only when you do toString() vs getting the textContents
+      const tempDiv = document.createElement('div')
+      tempDiv.appendChild(temp)
+      const tc = tempDiv.textContent
+      tc && copyToClipboard(tc)
+      tempDiv.remove()
     },
     [copyToClipboard]
   )
