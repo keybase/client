@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import type {IconStyle} from '@/common-adapters/icon'
 import {keybaseFM} from '@/constants/whats-new'
 import Popup from './popup'
+import './icon.css'
 
 const positionFallbacks = ['bottom right', 'bottom center'] as const
 
@@ -20,11 +21,6 @@ type PopupProps = Props & {
   attachToRef: React.RefObject<Kb.MeasureRef>
 }
 
-const realCSS = `
-  .rainbowGradient {
-    -webkit-background-clip: text !important;
-  }
-`
 // Forward the ref of the icon so we can attach the FloatingBox on desktop to this component
 const Icon = (props: Props) => {
   const badgeSize = props.badgeColor ? 8 : 12
@@ -40,7 +36,6 @@ const Icon = (props: Props) => {
       />
     ) : (
       <>
-        <Kb.DesktopStyle style={realCSS} />
         <Kb.Icon
           type="iconfont-radio"
           style={styles.rainbowColor}
