@@ -214,6 +214,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
+      // we don't show the label if its been too recent (2hrs)
       const tooSoon = new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
       const orangeLineAbove =
         orangeOrdinal === ordinal
