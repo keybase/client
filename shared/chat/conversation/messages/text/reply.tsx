@@ -58,8 +58,8 @@ const ReplyText = () => {
     replyTo.type === 'attachment'
       ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
       : replyTo.type === 'text'
-      ? replyTo.text.stringValue()
-      : ''
+        ? replyTo.text.stringValue()
+        : ''
 
   return text ? (
     <Kb.Text
@@ -100,7 +100,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
             {showImage && <ReplyImage />}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
               {isDeleted ? (
-                <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+                <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
                   The original message was deleted.
                 </Kb.Text>
               ) : (
@@ -109,7 +109,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
             </Kb.Box2>
           </Kb.Box2>
           {showEdited && (
-            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+            <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
               EDITED
             </Kb.Text>
           )}

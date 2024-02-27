@@ -350,14 +350,16 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   }, [messageRetry, outboxID])
 
   const cancel = (
-    <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
+    <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
       Cancel
     </Kb.Text>
   )
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text type="BodySmall"> or </Kb.Text>
+      <Kb.Text type="BodySmall" virtualText={true}>
+        {' or '}
+      </Kb.Text>
     ) : null
 
   const action: React.ReactNode =
@@ -366,6 +368,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
         type="BodySmall"
         style={styles.failUnderline}
         onClick={ecrType === EditCancelRetryType.EDIT_CANCEL ? onEdit : onRetry}
+        virtualText={true}
       >
         {ecrType === EditCancelRetryType.EDIT_CANCEL ? 'Edit' : 'Retry'}
       </Kb.Text>
@@ -373,8 +376,8 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   return (
     <Kb.Text key="isFailed" type="BodySmall">
-      <Kb.Text type="BodySmall" style={styles.fail}>
-        {failureDescription}.{' '}
+      <Kb.Text type="BodySmall" style={styles.fail} virtualText={true}>
+        {`${failureDescription}. `}
       </Kb.Text>
       {action}
       {or}
@@ -394,7 +397,8 @@ type BProps = {
 }
 // reactions
 const BottomSide = React.memo(function BottomSide(p: BProps) {
-  const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
+  const {showingPopup, setShowingPicker, bottomChildren /*, ecrType*/} = p
+  const ecrType = EditCancelRetryType.RETRY_CANCEL
   const {hasReactions, reactionsPopupPosition} = p
 
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
