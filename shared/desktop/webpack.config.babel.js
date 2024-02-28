@@ -13,9 +13,14 @@ import CircularDependencyPlugin from 'circular-dependency-plugin'
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
-const debugUnusedChunks = true
-
+const debugUnusedChunks = false
 const enableCircularDepCheck = false
+
+if (enableWDYR || debugUnusedChunks || enableCircularDepCheck) {
+  for (let i = 0; i < 10; ++i) {
+    console.error('Webpack debugging on!!!')
+  }
+}
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
