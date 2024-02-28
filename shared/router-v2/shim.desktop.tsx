@@ -188,6 +188,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     }),
     modalContainer: {
       ...Kb.Styles.globalStyles.fillAbsolute,
+      alignSelf: 'normal',
     },
     modalModeDefault: Kb.Styles.platformStyles({
       common: {...modalModeCommon},

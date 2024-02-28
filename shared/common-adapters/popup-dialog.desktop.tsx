@@ -102,6 +102,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
+    alignSelf: 'stretch',
     // bg handled up a level w css
     // backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
