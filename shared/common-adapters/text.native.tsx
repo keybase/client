@@ -165,5 +165,3 @@ function getStyle(type: TextType, negative?: boolean) {
 
 export default Text
 export {getStyle}
-export {Text as TextMixed}
-export {allTextTypes} from './text.shared'

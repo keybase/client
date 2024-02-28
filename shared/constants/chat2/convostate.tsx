@@ -281,7 +281,6 @@ export type ConvoState = ConvoStore & {
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
     setParticipants: (p: ConvoState['participants']) => void
-    setPendingOutboxToOrdinal: (p: ConvoState['pendingOutboxToOrdinal']) => void
     setReplyTo: (o: T.Chat.Ordinal) => void
     setThreadLoadStatus: (status: T.RPCChat.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
@@ -2707,11 +2706,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!isEqual(s.participants.contactName, p.contactName)) {
           s.participants.contactName = p.contactName
         }
-      })
-    },
-    setPendingOutboxToOrdinal: p => {
-      set(s => {
-        s.pendingOutboxToOrdinal = p
       })
     },
     setReplyTo: o => {

@@ -14,7 +14,7 @@ export type UploadCountdownHOCProps = {
 // Cosider this component as a state machine with following four states. 1Hz
 // Ticks (from tick() calls by setInterval) and props changes (through
 // componentDidUpdate() calls) are two possible inputs.
-export enum Mode {
+enum Mode {
   // The upload banner isn't shown.
   Hidden,
   // Normal count-down. If upload is finished during this state while glueTTL

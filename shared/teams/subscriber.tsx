@@ -28,14 +28,9 @@ const useTeamsSubscribeDesktop = () => {
   }, [getTeams, unsubscribeTeamList])
 }
 export const useTeamsSubscribe = C.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
-export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
+const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
-export const TeamsSubscriber = () => {
-  useTeamsSubscribe()
-  return null
-}
-
 export const TeamsSubscriberMountOnly = () => {
   useTeamsSubscribeMountOnly()
   return null
@@ -67,10 +62,5 @@ export const useTeamDetailsSubscribeMountOnly = useTeamDetailsSubscribeDesktop
 // Dummy component to add to a view to trigger team meta subscription behavior
 export const TeamDetailsSubscriber = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribe(props.teamID)
-  return null
-}
-
-export const TeamDetailsSubscriberMountOnly = (props: {teamID: T.Teams.TeamID}) => {
-  useTeamDetailsSubscribeMountOnly(props.teamID)
   return null
 }

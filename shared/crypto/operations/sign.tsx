@@ -8,7 +8,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 
 const operation = Constants.Operations.Sign
 
-export const SignOutputBanner = () => {
+const SignOutputBanner = () => {
   const outputType = C.useCryptoState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>

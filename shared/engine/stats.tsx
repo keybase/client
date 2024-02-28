@@ -25,5 +25,3 @@ export const gotStat = (method: string, incoming: boolean) => {
 export const gotEOF = () => {
   ++_stats.eof
 }
-
-export const getStats = () => _stats

@@ -15,7 +15,7 @@ function stopBubbling(ev: any) {
   ev.stopPropagation()
 }
 
-export function PopupDialog(p: Props) {
+function PopupDialog(p: Props) {
   const {children, onClose, onMouseUp, onMouseDown, onMouseMove, fill} = p
   const {immuneToEscape, styleCover, styleContainer, styleClose, styleClipContainer, allowClipBubbling} = p
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)

@@ -27,7 +27,7 @@ const TopBar = (props: Props) => (
   </Kb.Box2>
 )
 
-export const height = Kb.Styles.isMobile ? 40 : 32
+const height = Kb.Styles.isMobile ? 40 : 32
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -1,22 +1,5 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {formatDurationShort} from '@/util/timestamp'
-
-export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
-  if (explodingModeSeconds === 0) {
-    // nothing to show
-    return null
-  }
-  return (
-    <Kb.Meta
-      backgroundColor={Kb.Styles.globalColors.black_on_white}
-      noUppercase={true}
-      style={styles.timeBadge}
-      size="Small"
-      title={formatDurationShort(explodingModeSeconds * 1000)}
-    />
-  )
-}
 
 type BotCommandUpdateStatusProps = {
   status: T.RPCChat.UIBotCommandsUpdateStatusTyp

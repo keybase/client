@@ -12,8 +12,15 @@ import CircularDependencyPlugin from 'circular-dependency-plugin'
 
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
-
+// true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
+const debugUnusedChunks = false
 const enableCircularDepCheck = false
+
+if (enableWDYR || debugUnusedChunks || enableCircularDepCheck) {
+  for (let i = 0; i < 10; ++i) {
+    console.error('Webpack debugging on!!!')
+  }
+}
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -234,6 +241,13 @@ const config = (_, {mode}) => {
   const makeHtmlName = name => `${name}${fileSuffix}.html`
   const makeViewPlugins = names =>
     [
+      ...(debugUnusedChunks
+        ? [
+            new webpack.optimize.LimitChunkCountPlugin({
+              maxChunks: 1,
+            }),
+          ]
+        : []),
       // needed to help webpack and electron renderer
       new webpack.DefinePlugin({
         global: 'globalThis',
@@ -290,7 +304,7 @@ const config = (_, {mode}) => {
   const entryOverride = {main: 'desktop/renderer'}
 
   // multiple entries so we can chunk shared parts
-  const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
+  const entries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     devServer: {
       compress: false,
@@ -324,7 +338,10 @@ const config = (_, {mode}) => {
     ...(isHot
       ? {}
       : {
-          optimization: {splitChunks: {chunks: 'all'}},
+          optimization: {
+            splitChunks: {chunks: 'all'},
+            ...(debugUnusedChunks ? {usedExports: true} : {}),
+          },
         }),
     plugins: makeViewPlugins(entries),
     resolve: {
@@ -345,6 +362,9 @@ const config = (_, {mode}) => {
     target: 'electron-preload',
   })
 
+  if (debugUnusedChunks) {
+    return [viewConfig]
+  }
   return [nodeConfig, viewConfig, preloadConfig]
 }
 

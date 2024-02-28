@@ -79,7 +79,7 @@ const FollowNotification = (props: Props) => {
   )
 }
 
-export const MultiFollowNotification = React.memo(function MultiFollowNotification(props: Props) {
+const MultiFollowNotification = React.memo(function MultiFollowNotification(props: Props) {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }

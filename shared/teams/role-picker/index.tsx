@@ -470,14 +470,3 @@ export const sendNotificationFooter = (
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )
-
-// Helper for navigating roles with keyboard arrows
-// as because convincing TS that the last element of the array is a different type is hard
-export const nextRoleDown = (currentRole: Role<false>): Role<false> =>
-  orderedRoles[(orderedRoles.indexOf(currentRole) + 1) % (orderedRoles.length - 1)] as Role<false>
-export const nextRoleUp = (currentRole: Role<false>): Role<false> =>
-  orderedRoles[
-    (orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % (orderedRoles.length - 1)
-  ] as Role<false>
-
-export default RolePicker

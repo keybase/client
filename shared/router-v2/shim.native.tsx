@@ -10,7 +10,7 @@ export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =
 
 export const getOptions = Shared._getOptions
 
-export const platformShim = (
+const platformShim = (
   Original: React.JSXElementConstructor<GetOptionsParams>,
   isModal: boolean,
   isLoggedOut: boolean,

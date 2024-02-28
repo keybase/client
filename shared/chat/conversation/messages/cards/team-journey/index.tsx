@@ -242,5 +242,3 @@ const styles = Kb.Styles.styleSheetCreate(
       text: {maxWidth: Kb.Styles.isMobile ? '70%' : 320},
     }) as const
 )
-
-export default TeamJourney

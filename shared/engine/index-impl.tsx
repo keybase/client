@@ -279,7 +279,7 @@ class Engine {
 }
 
 // Dummy engine for snapshotting
-export class FakeEngine {
+class FakeEngine {
   _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   constructor() {

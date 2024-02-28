@@ -1,11 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 
-export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Kb.Styles.globalColors.green} />
-export const MastadonIcon = (
-  <Kb.Icon type="iconfont-identity-mastodon" colorOverride="#2b90d9" fontSize={64} />
-)
-
 const siteIconToSrcSet = (siteIcon: T.Tracker.SiteIconSet) =>
   `-webkit-image-set(${siteIcon
     .slice()

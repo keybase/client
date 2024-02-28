@@ -58,8 +58,6 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   return <Banner {...props} />
 }
 
-export default ConnectedBanner
-
 const noRows = new Array<RowTypes.HeaderRowItem>()
 export const asRows = (
   path: T.FS.Path,

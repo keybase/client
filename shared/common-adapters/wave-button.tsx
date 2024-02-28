@@ -32,7 +32,7 @@ const getWaveWaitingKey = (recipient: string) => {
   return `settings:waveButton:${recipient}`
 }
 
-export const WaveButton = (props: Props) => {
+const WaveButton = (props: Props) => {
   const hasContext = C.Chat.useHasContext()
   if (props.username) {
     if (hasContext) {

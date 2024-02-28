@@ -1,8 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import type {allTextTypes} from '@/common-adapters/text.shared'
-
-type TextType = keyof typeof allTextTypes
+import type {TextType} from '@/common-adapters/text.shared'
 
 type Props = {
   path?: T.FS.Path
