@@ -232,6 +232,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this._onSubmitEditing,
       placeholder: this.props.placeholder,
+      placeholderTextColor: Styles.globalColors.black_35,
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
