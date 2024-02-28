@@ -40,17 +40,6 @@ export function folderNameWithoutUsers(folderName: string, users: {[K in string]
   return `${filteredWriterNames.join(',')}${readerSuffix}`
 }
 
-export function sortUserList(users: UserList): UserList {
-  const youAsRwer = users.filter(u => u.you && !u.readOnly)
-  const rwers = users.filter(u => !u.you && !u.readOnly)
-  const youAsReader = users.filter(u => u.you && !!u.readOnly)
-  const readers = users.filter(u => !u.you && !!u.readOnly)
-
-  // Turn boolean into int for flow to be okay with this type
-  const sortByUsername = (a: {username: string}, b: {username: string}) => +(a.username > b.username)
-  return youAsRwer.concat(rwers.sort(sortByUsername), youAsReader, readers.sort(sortByUsername))
-}
-
 const splitByFirstOccurrenceOf = (str: string, delimiter: string): Array<string> => {
   const firstIndexOf = str.indexOf(delimiter)
   if (firstIndexOf === -1) {

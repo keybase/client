@@ -12,15 +12,6 @@ export type Props = {
   open?: boolean
 }
 
-const Spinner = (props: Props) => (
-  <Kb.MaybePopup onClose={props.onBack}>
-    {Kb.Styles.isMobile && <Kb.HeaderHocHeader onBack={props.onBack} />}
-    <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
-      <Kb.ProgressIndicator style={styles.spinnerProgressIndicator} />
-    </Kb.Box2>
-  </Kb.MaybePopup>
-)
-
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
@@ -120,4 +111,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default _ReallyLeaveTeam
-export {Spinner}

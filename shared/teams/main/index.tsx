@@ -6,7 +6,6 @@ import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {memoize} from '@/util/memoize'
-import {pluralize} from '@/util/string'
 
 type DeletedTeam = {
   teamName: string
@@ -32,73 +31,6 @@ type HeaderProps = {
   onJoinTeam: () => void
 }
 export type Props = OwnProps & HeaderProps
-
-type RowProps = {
-  firstItem: boolean
-  name: string
-  membercount: number
-  isNew: boolean
-  isOpen: boolean
-  newRequests: number
-  onOpenFolder: () => void
-  onManageChat?: () => void
-  resetUserCount: number
-  onViewTeam: () => void
-}
-
-export const TeamRow = React.memo<RowProps>(function TeamRow(props: RowProps) {
-  const badgeCount = props.newRequests + props.resetUserCount
-  const ChatIcon = () => (
-    <Kb.Icon
-      style={{opacity: props.onManageChat ? 1 : 0.3}}
-      onClick={props.onManageChat}
-      type="iconfont-chat"
-    />
-  )
-  return (
-    <Kb.ListItem2
-      type="Small"
-      firstItem={props.firstItem}
-      onClick={props.onViewTeam}
-      icon={
-        <Kb.Box2 direction="vertical" style={styles.avatarContainer}>
-          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
-          {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-        </Kb.Box2>
-      }
-      body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.maxWidth}>
-          <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" style={styles.maxWidth}>
-            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.kerning}>
-              {props.name}
-            </Kb.Text>
-            {props.isOpen && (
-              <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
-            )}
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-            {props.isNew && <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} />}
-            <Kb.Text type="BodySmall">{getMembersText(props.membercount)}</Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-      }
-      action={
-        Kb.Styles.isMobile ? null : (
-          <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
-            <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />
-            {props.onManageChat ? (
-              <ChatIcon />
-            ) : (
-              <Kb.WithTooltip tooltip="You need to join this team before you can chat.">
-                <ChatIcon />
-              </Kb.WithTooltip>
-            )}
-          </Kb.Box2>
-        )
-      }
-    />
-  )
-})
 
 const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
@@ -184,8 +116,6 @@ const SortHeader = () => {
     </Kb.Box2>
   )
 }
-
-const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row = {key: React.Key} & (
   | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
