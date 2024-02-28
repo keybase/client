@@ -64,8 +64,3 @@ export const TeamDetailsSubscriber = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribe(props.teamID)
   return null
 }
-
-export const TeamDetailsSubscriberMountOnly = (props: {teamID: T.Teams.TeamID}) => {
-  useTeamDetailsSubscribeMountOnly(props.teamID)
-  return null
-}
