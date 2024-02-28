@@ -12,8 +12,8 @@ const Kb = {
   Text,
 }
 
-export const CHECKBOX_SIZE = 13
-export const CHECKBOX_MARGIN = 8
+const CHECKBOX_SIZE = 13
+const CHECKBOX_MARGIN = 8
 
 const Checkbox = (props: Props) => {
   return (

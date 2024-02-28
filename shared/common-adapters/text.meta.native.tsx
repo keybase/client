@@ -1,31 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType, Background} from './text'
-
-export function defaultColor(backgroundMode?: Background) {
-  return {
-    get Announcements() {
-      return Styles.globalColors.white
-    },
-    get Documentation() {
-      return Styles.globalColors.white
-    },
-    get HighRisk() {
-      return Styles.globalColors.white
-    },
-    get Information() {
-      return Styles.globalColors.brown_75
-    },
-    get Normal() {
-      return Styles.globalColors.white
-    },
-    get Success() {
-      return Styles.globalColors.white
-    },
-    get Terminal() {
-      return Styles.globalColors.white
-    },
-  }[backgroundMode || 'Normal']
-}
+import type {MetaType, TextType} from './text'
 
 // need to be `undefined` instead of `null` since `null` doesn't ellipsize at
 // all.

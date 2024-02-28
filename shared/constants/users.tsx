@@ -5,27 +5,9 @@ import * as T from './types'
 import * as C from '.'
 import {mapGetEnsureValue} from '@/util/map'
 
-export const getIsBroken = (infoMap: Map<string, T.Users.UserInfo>, username: string) =>
-  infoMap.get(username)?.broken ?? false
-
-export const makeUserInfo = (): T.Users.UserInfo => ({
-  bio: '',
-  broken: false,
-  fullname: '',
-})
-export const emptyUserInfo = makeUserInfo()
-
-export const makeBlockState = (): T.Users.BlockState => ({
-  chatBlocked: false,
-  followBlocked: false,
-})
-
 export const getUserBlocksWaitingKey = 'users:getUserBlocks'
 export const setUserBlocksWaitingKey = 'users:setUserBlocks'
-
 export const reportUserWaitingKey = 'users:reportUser'
-export const wotReactWaitingKey = 'users:wotReact'
-export const wotRevokeWaitingKey = 'users:wotRevoke'
 
 export type Store = {
   blockMap: Map<string, T.Users.BlockState>

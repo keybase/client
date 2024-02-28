@@ -46,7 +46,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
   )
 })
 
-export const styles = Styles.styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: Styles.platformStyles({

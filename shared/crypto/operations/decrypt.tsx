@@ -63,5 +63,3 @@ export const DecryptIO = () => {
     </DragAndDrop>
   )
 }
-
-export default DecryptInput

@@ -181,5 +181,3 @@ export const EncryptIO = () => (
     </Kb.Box2>
   </DragAndDrop>
 )
-
-export default EncryptInput

@@ -16,7 +16,7 @@ export const transformer = (
     preview
   )
 
-export const keyExtractor = ({channelname, teamname}: ChannelType) =>
+const keyExtractor = ({channelname, teamname}: ChannelType) =>
   teamname ? `${teamname}#${channelname}` : channelname
 
 const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
@@ -77,7 +77,7 @@ const getChannelSuggestions = (
   return suggestions
 }
 
-export const useDataSource = (filter: string) => {
+const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
   C.Chat.useCIDChanged(conversationIDKey, () => {

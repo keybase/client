@@ -5,8 +5,6 @@ export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = keyof typeof RPCTypes.HomeScreenItemType
 
 export type ItemID = string
-export const itemIDToString: (id: ItemID) => string = id => id
-export const stringToItemID: (id: string) => ItemID = id => id
 
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType

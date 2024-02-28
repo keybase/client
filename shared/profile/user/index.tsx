@@ -505,7 +505,7 @@ const usernameSelectedTab = new Map<string, Tab>()
 
 const avatarSize = 128
 
-export const styles = Kb.Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   addIdentityButton: {
     marginBottom: Kb.Styles.globalMargins.xsmall,
     marginTop: Kb.Styles.globalMargins.xsmall,

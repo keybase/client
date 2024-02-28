@@ -99,4 +99,4 @@ const DeleteModal = (props: OwnProps) => {
   )
 }
 
-export {ConfirmDeleteAddress, DeleteModal}
+export {DeleteModal}

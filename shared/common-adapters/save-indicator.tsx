@@ -194,5 +194,4 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 }
 
-export {computeNextState}
 export default SaveIndicator

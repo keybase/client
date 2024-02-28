@@ -385,7 +385,7 @@ type Section<T> = _Section<T, SectionExtra<T>>
 
 const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
 
-export const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = Kb.Styles.isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)

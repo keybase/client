@@ -18,7 +18,7 @@ import type {
 import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
 const prefix = 'keybase://'
-export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
+const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 
 const linkStyle = Styles.platformStyles({
   isElectron: {fontWeight: 'inherit'},

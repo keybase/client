@@ -1,6 +1,6 @@
 import type {Background} from './text'
 /* eslint-disable sort-keys */
-export const allTextTypes = {
+const _allTextTypes = {
   Body: 'Body',
   BodyItalic: 'BodyItalic',
   BodyBig: 'BodyBig',
@@ -43,7 +43,8 @@ export const allTextTypes = {
   TerminalComment: 'TerminalComment',
   TerminalEmpty: 'TerminalEmpty',
   TerminalInline: 'TerminalInline',
-}
+} as const
+export type allTextTypes = typeof _allTextTypes
 
 export const backgroundModeIsNegative = (bm?: Background): boolean =>
   !!bm && !['Normal', 'Information'].includes(bm)

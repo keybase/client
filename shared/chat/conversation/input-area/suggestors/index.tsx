@@ -62,7 +62,7 @@ type UseSyncInputProps = {
   selectedItemRef: React.MutableRefObject<any>
   lastTextRef: React.MutableRefObject<string>
 }
-export const useSyncInput = (p: UseSyncInputProps) => {
+const useSyncInput = (p: UseSyncInputProps) => {
   const {inputRef, active, setActive, setFilter, selectedItemRef, lastTextRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')

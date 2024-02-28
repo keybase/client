@@ -162,46 +162,4 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   )
 }
 
-const mockOwnToViewProps = (
-  ownProps: OwnProps,
-  follows: string[],
-  followers: string[],
-  action: (arg0: string) => (...args: any[]) => void
-): Props => {
-  const {username} = ownProps
-  const following = username && follows.includes(username)
-  const followsYou = username && followers.includes(username)
-  const isTeam = ownProps.isTeam || !!ownProps.teamname
-
-  const opClick =
-    ownProps.onClick === 'profile' ? (username ? action('onClickToProfile') : undefined) : ownProps.onClick
-  const onClick = ownProps.onEditAvatarClick || opClick
-
-  const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-  const name = isTeam ? ownProps.teamname : username
-  const iconInfo = followIconHelper(
-    ownProps.size,
-    !!(ownProps.showFollowingStatus && followsYou),
-    !!(ownProps.showFollowingStatus && following)
-  )
-
-  const followIconType: IconType | undefined = iconInfo.iconType || undefined
-  return {
-    borderColor: ownProps.borderColor,
-    children: ownProps.children,
-    followIconSize: iconInfo.iconSize,
-    followIconStyle: iconInfo.iconStyle,
-    followIconType,
-    isTeam,
-    loadingColor: ownProps.loadingColor,
-    name: name || '',
-    onClick,
-    opacity: ownProps.opacity,
-    size: ownProps.size,
-    style: ownProps.style,
-    url,
-  }
-}
-
 export default React.memo(ConnectedAvatar)
-export {mockOwnToViewProps}

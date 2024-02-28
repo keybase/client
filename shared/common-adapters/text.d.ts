@@ -1,6 +1,5 @@
 import type * as React from 'react'
-import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '@/styles/css'
-import {allTextTypes} from './text.shared'
+import type {allTextTypes} from './text.shared'
 import type * as CSS from '@/styles/css'
 import type colors from '@/styles/colors'
 import type {MeasureRef} from './measure-ref'
@@ -15,7 +14,7 @@ type Background =
   | 'Terminal'
 
 type Values<T extends object> = T[keyof T]
-type TextType = keyof typeof allTextTypes
+type TextType = keyof allTextTypes
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.
 export type AllowedColors =
@@ -46,8 +45,8 @@ export type AllowedColors =
     >
   | 'inherit'
 
-export type _StylesTextCrossPlatform = _CustomStyles<'color', {color?: AllowedColors}>
-export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
+export type _StylesTextCrossPlatform = CSS._CustomStyles<'color', {color?: AllowedColors}>
+export type StylesTextCrossPlatform = CSS.CustomStyles<'color', {color?: AllowedColors}>
 
 export type LineClampType = 1 | 2 | 3 | 4 | 5
 
@@ -71,7 +70,7 @@ type Props = {
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
-  style?: StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
+  style?: CSS.StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
   title?: string
   type: TextType

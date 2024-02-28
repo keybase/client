@@ -103,7 +103,7 @@ type ConversationListRenderProps = {
   onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
-export const ConversationListRender = (props: ConversationListRenderProps) => {
+const ConversationListRender = (props: ConversationListRenderProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>

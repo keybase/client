@@ -120,7 +120,7 @@ export const SignedSender = (props: SignedSenderProps) => {
   )
 }
 
-export const OutputProgress = (props: OutputProgressProps) => {
+const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
   const {bytesComplete, bytesTotal, inProgress} = C.useCryptoState(

@@ -38,7 +38,7 @@ export const HeaderHocHeader = ({
 )
 
 // TODO use LeftAction above
-export const LeftAction = ({
+const LeftAction = ({
   badgeNumber,
   disabled,
   customCancelText,
@@ -62,8 +62,8 @@ export const LeftAction = ({
           disabled
             ? Styles.globalColors.black_10
             : theme === 'dark'
-            ? Styles.globalColors.white
-            : Styles.globalColors.black_50
+              ? Styles.globalColors.white
+              : Styles.globalColors.black_50
         }
         style={styles.action}
         textStyle={disabled ? styles.disabledText : undefined}

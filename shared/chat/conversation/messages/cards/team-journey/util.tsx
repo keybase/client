@@ -55,4 +55,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}
+export {computeWelcomeMessageTextRaw, renderWelcomeMessage}

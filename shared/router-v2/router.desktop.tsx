@@ -14,7 +14,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import './router.css'
 
-export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
 
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]

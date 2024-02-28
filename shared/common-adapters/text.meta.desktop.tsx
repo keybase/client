@@ -1,17 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType, Background} from './text'
-
-export function defaultColor(backgroundMode?: Background) {
-  return {
-    Announcements: Styles.globalColors.white,
-    Documentation: Styles.globalColors.white,
-    HighRisk: Styles.globalColors.white,
-    Information: Styles.globalColors.brown_75,
-    Normal: Styles.globalColors.white,
-    Success: Styles.globalColors.white,
-    Terminal: Styles.globalColors.white,
-  }[backgroundMode || 'Normal']
-}
+import type {MetaType, TextType} from './text'
 
 export const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
