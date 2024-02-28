@@ -208,13 +208,10 @@ type State = Store & {
     resetRevokedSelf: () => void
     revoke: (deviceName: string) => void
     setAccounts: (a: Store['configuredAccounts']) => void
-    setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
-    setGregorReachable: (r: Store['gregorReachable']) => void
-    setGregorPushState: (state: T.RPCGen.Gregor1.State) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
@@ -228,15 +225,11 @@ type State = Store & {
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
-    setWindowIsMax: (m: boolean) => void
     setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
-    updateApp: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
-    updateRuntimeStats: (stats?: T.RPCGen.RuntimeStats) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
-    windowShown: (win: string) => void
   }
 }
 
@@ -266,6 +259,80 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     } catch (err) {
       logger.warn('error getting update info: ', err)
     }
+  }
+
+  const setGregorReachable = (r: Store['gregorReachable']) => {
+    const old = get().gregorReachable
+    if (old === r) return
+    set(s => {
+      s.gregorReachable = r
+    })
+    // Re-get info about our account if you log in/we're done handshaking/became reachable
+    if (r === T.RPCGen.Reachable.yes) {
+      // not in waiting state
+      if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
+        C.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+      }
+    }
+
+    C.useTeamsState.getState().dispatch.eagerLoadTeams()
+  }
+
+  const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
+    const items = state.items || []
+    const goodState = items.reduce<State['gregorPushState']>((arr, {md, item}) => {
+      md && item && arr.push({item, md})
+      return arr
+    }, [])
+    if (goodState.length !== items.length) {
+      logger.warn('Lost some messages in filtering out nonNull gregor items')
+    }
+    set(s => {
+      s.gregorPushState = goodState
+    })
+
+    const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
+    set(s => {
+      s.allowAnimatedEmojis = allowAnimatedEmojis
+    })
+
+    const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
+    C.useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
+    C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
+    C.useChatState.getState().dispatch.updatedGregor(goodState)
+  }
+
+  const updateApp = () => {
+    const f = async () => {
+      await T.RPCGen.configStartUpdateIfNeededRpcPromise()
+    }
+    ignorePromise(f())
+    // * If user choose to update:
+    //   We'd get killed and it doesn't matter what happens here.
+    // * If user hits "Ignore":
+    //   Note that we ignore the snooze here, so the state shouldn't change,
+    //   and we'd back to where we think we still need an update. So we could
+    //   have just unset the "updating" flag.However, in case server has
+    //   decided to pull out the update between last time we asked the updater
+    //   and now, we'd be in a wrong state if we didn't check with the service.
+    //   Since user has interacted with it, we still ask the service to make
+    //   sure.
+    set(s => {
+      s.outOfDate.updating = true
+    })
+  }
+
+  const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
+    set(s => {
+      if (!stats) {
+        s.runtimeStats = stats
+      } else {
+        s.runtimeStats = {
+          ...s.runtimeStats,
+          ...stats,
+        }
+      }
+    })
   }
 
   const dispatch: State['dispatch'] = {
@@ -412,7 +479,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.installerRan()
           break
         case RemoteGen.updateNow:
-          get().dispatch.updateApp()
+          updateApp()
           break
         case RemoteGen.powerMonitorEvent:
           get().dispatch.powerMonitorEvent(action.payload.event)
@@ -427,14 +494,20 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
           break
         case RemoteGen.updateWindowMaxState:
-          get().dispatch.setWindowIsMax(action.payload.max)
+          set(s => {
+            s.windowState.isMaximized = action.payload.max
+          })
           break
         case RemoteGen.updateWindowState:
           get().dispatch.updateWindowState(action.payload.windowState)
           break
-        case RemoteGen.updateWindowShown:
-          get().dispatch.windowShown(action.payload.component)
+        case RemoteGen.updateWindowShown: {
+          const win = action.payload.component
+          set(s => {
+            s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
+          })
           break
+        }
         case RemoteGen.setSystemDarkMode:
           C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
@@ -666,7 +739,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const startReachability = async () => {
         try {
           const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
-          get().dispatch.setGregorReachable(reachability.reachable)
+          setGregorReachable(reachability.reachable)
         } catch (err) {
           logger.warn('error bootstrapping reachability: ', err)
         }
@@ -698,11 +771,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case EngineGen.keybase1GregorUIPushState: {
           const {state} = action.payload.params
-          get().dispatch.setGregorPushState(state)
+          setGregorPushState(state)
           break
         }
         case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: {
-          get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
+          updateRuntimeStats(action.payload.params.stats ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
@@ -753,7 +826,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
         case EngineGen.keybase1ReachabilityReachabilityChanged:
           if (get().loggedIn) {
-            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
+            setGregorReachable(action.payload.params.reachability.reachable)
           }
           break
         default:
@@ -783,7 +856,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (next === old) return
       const updateGregor = async () => {
         const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
-        get().dispatch.setGregorReachable(reachability.reachable)
+        setGregorReachable(reachability.reachable)
       }
       C.ignorePromise(updateGregor())
 
@@ -851,11 +924,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         if (!isEqual(a, s.configuredAccounts)) {
           s.configuredAccounts = a
         }
-      })
-    },
-    setAllowAnimatedEmojis: a => {
-      set(s => {
-        s.allowAnimatedEmojis = a
       })
     },
     setAndroidShare: share => {
@@ -952,43 +1020,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           s.globalError = undefined
         })
       }
-    },
-    setGregorPushState: state => {
-      const items = state.items || []
-      const goodState = items.reduce<State['gregorPushState']>((arr, {md, item}) => {
-        md && item && arr.push({item, md})
-        return arr
-      }, [])
-      if (goodState.length !== items.length) {
-        logger.warn('Lost some messages in filtering out nonNull gregor items')
-      }
-      set(s => {
-        s.gregorPushState = goodState
-      })
-
-      const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
-      get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
-
-      const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-      C.useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
-      C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
-      C.useChatState.getState().dispatch.updatedGregor(goodState)
-    },
-    setGregorReachable: (r: Store['gregorReachable']) => {
-      const old = get().gregorReachable
-      if (old === r) return
-      set(s => {
-        s.gregorReachable = r
-      })
-      // Re-get info about our account if you log in/we're done handshaking/became reachable
-      if (r === T.RPCGen.Reachable.yes) {
-        // not in waiting state
-        if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
-          C.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-        }
-      }
-
-      C.useTeamsState.getState().dispatch.eagerLoadTeams()
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
@@ -1119,11 +1150,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.userSwitching = sw
       })
     },
-    setWindowIsMax: m => {
-      set(s => {
-        s.windowState.isMaximized = m
-      })
-    },
     setupSubscriptions: () => {
       // Kick off platform specific stuff
       C.PlatformSpecific.initPlatformListener()
@@ -1137,25 +1163,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    updateApp: () => {
-      const f = async () => {
-        await T.RPCGen.configStartUpdateIfNeededRpcPromise()
-      }
-      ignorePromise(f())
-      // * If user choose to update:
-      //   We'd get killed and it doesn't matter what happens here.
-      // * If user hits "Ignore":
-      //   Note that we ignore the snooze here, so the state shouldn't change,
-      //   and we'd back to where we think we still need an update. So we could
-      //   have just unset the "updating" flag.However, in case server has
-      //   decided to pull out the update between last time we asked the updater
-      //   and now, we'd be in a wrong state if we didn't check with the service.
-      //   Since user has interacted with it, we still ask the service to make
-      //   sure.
-      set(s => {
-        s.outOfDate.updating = true
-      })
-    },
     updateGregorCategory: (category, body, dtime) => {
       const f = async () => {
         try {
@@ -1167,18 +1174,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         } catch (_) {}
       }
       C.ignorePromise(f())
-    },
-    updateRuntimeStats: stats => {
-      set(s => {
-        if (!stats) {
-          s.runtimeStats = stats
-        } else {
-          s.runtimeStats = {
-            ...s.runtimeStats,
-            ...stats,
-          }
-        }
-      })
     },
     updateWindowState: ws => {
       const next = {...get().windowState, ...ws}
@@ -1196,11 +1191,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           },
         })
       )
-    },
-    windowShown: win => {
-      set(s => {
-        s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
-      })
     },
   }
   return {
