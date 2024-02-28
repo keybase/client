@@ -428,6 +428,8 @@ func (d *Service) startChatModules() {
 		g.InboxSource.Start(context.Background(), uid)
 		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
+		g.ArchiveRegistry.Start(globals.ChatCtx(context.Background(), g,
+			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
 		g.TeamMentionLoader.Start(context.Background(), uid)
 		g.LiveLocationTracker.Start(context.Background(), uid)
@@ -447,6 +449,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().EphemeralTracker.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
+	<-d.ChatG().ArchiveRegistry.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
@@ -480,6 +483,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
 	g.AddDbNukeHook(g.Indexer, "Indexer")
+	g.ArchiveRegistry = chat.NewChatArchiveRegistry(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers

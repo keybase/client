@@ -10,24 +10,131 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/chatrender"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/sync/errgroup"
 )
 
+type ChatArchiveRegistry struct {
+	globals.Contextified
+	utils.DebugLabeler
+	sync.Mutex
+
+	stopCh      chan struct{}
+	started     bool
+	uid         gregor1.UID
+	mdb         *libkb.JSONLocalDb
+	runningJobs map[chat1.ArchiveJobID]context.CancelFunc
+
+	// TODO put into DB
+	jobHistory map[chat1.ArchiveJobID]chat1.ArchiveChatJob
+}
+
+func NewChatArchiveRegistry(g *globals.Context) *ChatArchiveRegistry {
+	return &ChatArchiveRegistry{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ChatArchiveRegistry", false),
+		runningJobs:  make(map[chat1.ArchiveJobID]context.CancelFunc),
+		jobHistory:   make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob),
+	}
+}
+
+func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
+	defer r.Trace(ctx, nil, "Start")()
+	r.Lock()
+	defer r.Unlock()
+	if r.started {
+		return
+	}
+	r.uid = uid
+	r.started = true
+	r.stopCh = make(chan struct{})
+	// TODO create DB, flush loop
+}
+
+func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
+	defer r.Trace(ctx, nil, "Stop")()
+	r.Lock()
+	defer r.Unlock()
+	ch := make(chan struct{})
+	if r.started {
+		r.started = false
+		close(r.stopCh)
+		go func() {
+			r.Debug(context.Background(), "Stop: waiting for shutdown")
+			for _, cancel := range r.runningJobs {
+				cancel()
+			}
+			// TODO wait for bg flush
+			r.Debug(context.Background(), "Stop: shutdown complete")
+			close(ch)
+		}()
+	} else {
+		close(ch)
+	}
+	return ch
+
+}
+
+func (r *ChatArchiveRegistry) List(ctx context.Context) (res chat1.ArchiveChatListRes, err error) {
+	defer r.Trace(ctx, nil, "List")()
+	r.Lock()
+	defer r.Unlock()
+	for _, job := range r.jobHistory {
+		res.Jobs = append(res.Jobs, job)
+	}
+	return res, nil
+}
+
+func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJobID) (err error) {
+	defer r.Trace(ctx, nil, "Delete(%s)", jobID)()
+	r.Lock()
+	defer r.Unlock()
+	cancel, ok := r.runningJobs[jobID]
+	if ok {
+		cancel()
+		delete(r.runningJobs, jobID)
+	}
+
+	if _, ok := r.jobHistory[jobID]; !ok {
+		return fmt.Errorf("job not found: %s", jobID)
+	}
+	delete(r.jobHistory, jobID)
+	return nil
+}
+
+func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel context.CancelFunc, job chat1.ArchiveChatJob) (err error) {
+	defer r.Trace(ctx, nil, "Set(%+v)", job)()
+	r.Lock()
+	defer r.Unlock()
+	jobID := job.Request.JobID
+	if cancel != nil {
+		r.runningJobs[jobID] = cancel
+	} else {
+		delete(r.runningJobs, jobID)
+	}
+
+	r.jobHistory[jobID] = job
+	return nil
+}
+
+var _ types.ChatArchiveRegistry = (*ChatArchiveRegistry)(nil)
+
 const defaultPageSize = 1000
 
+// Fullfil an archive query
 type ChatArchiver struct {
 	globals.Contextified
 	utils.DebugLabeler
-	uid      gregor1.UID
-	progress func(messagesComplete, messagesTotal int64)
+	uid gregor1.UID
 
 	sync.Mutex
 	messagesComplete int64
@@ -35,25 +142,24 @@ type ChatArchiver struct {
 	remoteClient     func() chat1.RemoteInterface
 }
 
-func NewChatArchiver(g *globals.Context, uid gregor1.UID, progress func(messagesComplete, messagesTotal int64), remoteClient func() chat1.RemoteInterface) *ChatArchiver {
+func NewChatArchiver(g *globals.Context, uid gregor1.UID, remoteClient func() chat1.RemoteInterface) *ChatArchiver {
 	return &ChatArchiver{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ChatArchiver", false),
 		uid:          uid,
-		progress:     progress,
 		remoteClient: remoteClient,
 	}
 }
 
-func (c *ChatArchiver) notifyProgress(messagesCompleted int64) {
+func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJobID, messagesCompleted int64) {
 	c.Lock()
 	defer c.Unlock()
 	c.messagesComplete += messagesCompleted
 	if c.messagesComplete > c.messagesTotal {
-		// total messages is capped to the convs expunge, don't overreport.
+		// total messages is capped to the convs expunge, don't over report.
 		c.messagesComplete = c.messagesTotal
 	}
-	c.progress(c.messagesComplete, c.messagesTotal)
+	c.G().NotifyRouter.HandleChatArchiveProgress(ctx, jobID, c.messagesComplete, c.messagesTotal)
 }
 
 func (c *ChatArchiver) archiveName(conv chat1.ConversationLocal) string {
@@ -73,7 +179,7 @@ func (c *ChatArchiver) attachmentName(msg chat1.MessageUnboxedValid) string {
 	return ""
 }
 
-func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg, conv chat1.ConversationLocal) error {
+func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatJobRequest, conv chat1.ConversationLocal) error {
 	convArchivePath := path.Join(arg.OutputPath, c.archiveName(conv), "chat.txt")
 	f, err := os.Create(convArchivePath)
 	if err != nil {
@@ -153,7 +259,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 			return err
 		}
 
-		c.notifyProgress(int64(thread.Pagination.Num))
+		c.notifyProgress(ctx, arg.JobID, int64(thread.Pagination.Num))
 
 		// update our global pagination so we can correctly fetch the next page.
 		firstPage = false
@@ -164,7 +270,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, arg chat1.ArchiveChatArg
 	return nil
 }
 
-func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (outpath string, err error) {
+func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJobRequest) (outpath string, err error) {
 	defer c.Trace(ctx, &err, "ArchiveChat")()
 
 	if len(arg.OutputPath) == 0 {
@@ -186,7 +292,6 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 	convs := iboxRes.Convs
 
 	// Fetch size of each conv to track progress.
-	//    - TODO store job info on disk to allow resumption
 	for _, conv := range convs {
 		c.messagesTotal += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo())
 
@@ -196,6 +301,29 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg
 			return "", err
 		}
 	}
+	jobInfo := chat1.ArchiveChatJob{
+		Request:   arg,
+		StartedAt: gregor1.ToTime(time.Now()),
+		Status:    chat1.ArchiveChatJobStatus_RUNNING,
+		Err:       "",
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	err = c.G().ArchiveRegistry.Set(ctx, cancel, jobInfo)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		status := chat1.ArchiveChatJobStatus_COMPLETE
+		if err != nil {
+			status = chat1.ArchiveChatJobStatus_ERROR
+			jobInfo.Err = err.Error()
+		}
+		jobInfo.Status = status
+		ierr := c.G().ArchiveRegistry.Set(ctx, nil, jobInfo)
+		if ierr != nil {
+			c.Debug(ctx, ierr.Error())
+		}
+	}()
 
 	// For each conv, fetch batches of messages until all are fetched.
 	//    - Messages are rendered in a text format and attachments are downloaded to the archive path.

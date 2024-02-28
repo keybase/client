@@ -4215,6 +4215,35 @@
     },
     {
       "type": "record",
+      "name": "ArchiveChatJobRequest",
+      "fields": [
+        {
+          "type": "ArchiveJobID",
+          "name": "jobID"
+        },
+        {
+          "type": "string",
+          "name": "outputPath"
+        },
+        {
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ],
+          "name": "query"
+        },
+        {
+          "type": "boolean",
+          "name": "compress"
+        },
+        {
+          "type": "keybase1.TLFIdentifyBehavior",
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ArchiveChatRes",
       "fields": [
         {
@@ -4227,6 +4256,51 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ArchiveChatJob",
+      "fields": [
+        {
+          "type": "ArchiveChatJobRequest",
+          "name": "request"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "startedAt"
+        },
+        {
+          "type": "ArchiveChatJobStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ArchiveChatJobStatus",
+      "symbols": [
+        "RUNNING_0",
+        "PAUSED_1",
+        "ERROR_2",
+        "COMPLETE_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ArchiveChatListRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ArchiveChatJob"
+          },
+          "name": "jobs"
         }
       ]
     }
@@ -6400,30 +6474,33 @@
     "archiveChat": {
       "request": [
         {
+          "name": "req",
+          "type": "ArchiveChatJobRequest"
+        }
+      ],
+      "response": "ArchiveChatRes"
+    },
+    "archiveChatList": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "ArchiveChatListRes"
+    },
+    "archiveChatDelete": {
+      "request": [
+        {
           "name": "jobID",
           "type": "ArchiveJobID"
-        },
-        {
-          "name": "outputPath",
-          "type": "string"
-        },
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "compress",
-          "type": "boolean"
         },
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "ArchiveChatRes"
+      "response": null
     }
   },
   "namespace": "chat.1"

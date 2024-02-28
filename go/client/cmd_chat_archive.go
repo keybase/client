@@ -109,7 +109,7 @@ func (c *CmdChatArchive) Run() error {
 		return err
 	}
 
-	arg := chat1.ArchiveChatArg{
+	arg := chat1.ArchiveChatJobRequest{
 		JobID:            chat1.ArchiveJobID(fmt.Sprintf("chat-archive-%d", jobID)),
 		OutputPath:       c.outputPath,
 		Compress:         c.compress,

@@ -6544,6 +6544,30 @@ func (o TrackGiphySelectRes) DeepCopy() TrackGiphySelectRes {
 	return TrackGiphySelectRes{}
 }
 
+type ArchiveChatJobRequest struct {
+	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
+	OutputPath       string                       `codec:"outputPath" json:"outputPath"`
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Compress         bool                         `codec:"compress" json:"compress"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o ArchiveChatJobRequest) DeepCopy() ArchiveChatJobRequest {
+	return ArchiveChatJobRequest{
+		JobID:      o.JobID.DeepCopy(),
+		OutputPath: o.OutputPath,
+		Query: (func(x *GetInboxLocalQuery) *GetInboxLocalQuery {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Query),
+		Compress:         o.Compress,
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
 type ArchiveChatRes struct {
 	OutputPath       string                        `codec:"outputPath" json:"outputPath"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -6563,6 +6587,74 @@ func (o ArchiveChatRes) DeepCopy() ArchiveChatRes {
 			}
 			return ret
 		})(o.IdentifyFailures),
+	}
+}
+
+type ArchiveChatJob struct {
+	Request   ArchiveChatJobRequest `codec:"request" json:"request"`
+	StartedAt gregor1.Time          `codec:"startedAt" json:"startedAt"`
+	Status    ArchiveChatJobStatus  `codec:"status" json:"status"`
+	Err       string                `codec:"err" json:"err"`
+}
+
+func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
+	return ArchiveChatJob{
+		Request:   o.Request.DeepCopy(),
+		StartedAt: o.StartedAt.DeepCopy(),
+		Status:    o.Status.DeepCopy(),
+		Err:       o.Err,
+	}
+}
+
+type ArchiveChatJobStatus int
+
+const (
+	ArchiveChatJobStatus_RUNNING  ArchiveChatJobStatus = 0
+	ArchiveChatJobStatus_PAUSED   ArchiveChatJobStatus = 1
+	ArchiveChatJobStatus_ERROR    ArchiveChatJobStatus = 2
+	ArchiveChatJobStatus_COMPLETE ArchiveChatJobStatus = 3
+)
+
+func (o ArchiveChatJobStatus) DeepCopy() ArchiveChatJobStatus { return o }
+
+var ArchiveChatJobStatusMap = map[string]ArchiveChatJobStatus{
+	"RUNNING":  0,
+	"PAUSED":   1,
+	"ERROR":    2,
+	"COMPLETE": 3,
+}
+
+var ArchiveChatJobStatusRevMap = map[ArchiveChatJobStatus]string{
+	0: "RUNNING",
+	1: "PAUSED",
+	2: "ERROR",
+	3: "COMPLETE",
+}
+
+func (e ArchiveChatJobStatus) String() string {
+	if v, ok := ArchiveChatJobStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type ArchiveChatListRes struct {
+	Jobs []ArchiveChatJob `codec:"jobs" json:"jobs"`
+}
+
+func (o ArchiveChatListRes) DeepCopy() ArchiveChatListRes {
+	return ArchiveChatListRes{
+		Jobs: (func(x []ArchiveChatJob) []ArchiveChatJob {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ArchiveChatJob, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Jobs),
 	}
 }
 
@@ -7280,10 +7372,15 @@ type TrackGiphySelectArg struct {
 }
 
 type ArchiveChatArg struct {
+	Req ArchiveChatJobRequest `codec:"req" json:"req"`
+}
+
+type ArchiveChatListArg struct {
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ArchiveChatDeleteArg struct {
 	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
-	OutputPath       string                       `codec:"outputPath" json:"outputPath"`
-	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Compress         bool                         `codec:"compress" json:"compress"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -7412,7 +7509,9 @@ type LocalInterface interface {
 	UserEmojis(context.Context, UserEmojisArg) (UserEmojiRes, error)
 	ToggleEmojiAnimations(context.Context, bool) error
 	TrackGiphySelect(context.Context, TrackGiphySelectArg) (TrackGiphySelectRes, error)
-	ArchiveChat(context.Context, ArchiveChatArg) (ArchiveChatRes, error)
+	ArchiveChat(context.Context, ArchiveChatJobRequest) (ArchiveChatRes, error)
+	ArchiveChatList(context.Context, keybase1.TLFIdentifyBehavior) (ArchiveChatListRes, error)
+	ArchiveChatDelete(context.Context, ArchiveChatDeleteArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -9240,7 +9339,37 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ArchiveChatArg)(nil), args)
 						return
 					}
-					ret, err = i.ArchiveChat(ctx, typedArgs[0])
+					ret, err = i.ArchiveChat(ctx, typedArgs[0].Req)
+					return
+				},
+			},
+			"archiveChatList": {
+				MakeArg: func() interface{} {
+					var ret [1]ArchiveChatListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ArchiveChatListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ArchiveChatListArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveChatList(ctx, typedArgs[0].IdentifyBehavior)
+					return
+				},
+			},
+			"archiveChatDelete": {
+				MakeArg: func() interface{} {
+					var ret [1]ArchiveChatDeleteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ArchiveChatDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ArchiveChatDeleteArg)(nil), args)
+						return
+					}
+					err = i.ArchiveChatDelete(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -9905,7 +10034,19 @@ func (c LocalClient) TrackGiphySelect(ctx context.Context, __arg TrackGiphySelec
 	return
 }
 
-func (c LocalClient) ArchiveChat(ctx context.Context, __arg ArchiveChatArg) (res ArchiveChatRes, err error) {
+func (c LocalClient) ArchiveChat(ctx context.Context, req ArchiveChatJobRequest) (res ArchiveChatRes, err error) {
+	__arg := ArchiveChatArg{Req: req}
 	err = c.Cli.Call(ctx, "chat.1.local.archiveChat", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ArchiveChatList(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res ArchiveChatListRes, err error) {
+	__arg := ArchiveChatListArg{IdentifyBehavior: identifyBehavior}
+	err = c.Cli.Call(ctx, "chat.1.local.archiveChatList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ArchiveChatDelete(ctx context.Context, __arg ArchiveChatDeleteArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.archiveChatDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

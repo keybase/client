@@ -661,6 +661,13 @@ export type MessageTypes = {
   }
 }
 
+export enum ArchiveChatJobStatus {
+  running = 0,
+  paused = 1,
+  error = 2,
+  complete = 3,
+}
+
 export enum AssetMetadataType {
   none = 0,
   image = 1,
@@ -1161,8 +1168,16 @@ export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: ReadonlyArray<UserBotCommandInput> | null; readonly teamName: String; readonly convID: ConvIDStr}
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: ReadonlyArray<UserBotCommandInput> | null; readonly teamName?: String | null; readonly convID?: ConversationID | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
+<<<<<<< HEAD
 export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: ReadonlyArray<Keybase1.TLFIdentifyFailure> | null}
 export type ArchiveJobID = Bytes
+=======
+export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String}
+export type ArchiveChatJobRequest = {readonly jobID: ArchiveJobID; readonly outputPath: String; readonly query?: GetInboxLocalQuery | null; readonly compress: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+export type ArchiveChatListRes = {readonly jobs?: Array<ArchiveChatJob> | null}
+export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type ArchiveJobID = String
+>>>>>>> b5a3e139d3 (chat archive list/delete in memory)
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly ptHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo} | {assetType: AssetMetadataType.none}
 export type AssetMetadataImage = {readonly width: Int; readonly height: Int; readonly audioAmps?: ReadonlyArray<Double> | null}
@@ -1844,6 +1859,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'
 // 'chat.1.local.archiveChat'
+// 'chat.1.local.archiveChatList'
+// 'chat.1.local.archiveChatDelete'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

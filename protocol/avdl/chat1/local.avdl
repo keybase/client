@@ -1468,11 +1468,37 @@ protocol local {
   }
   TrackGiphySelectRes trackGiphySelect(int sessionID, GiphySearchResult result);
 
-  ArchiveChatRes archiveChat(ArchiveJobID jobID, string outputPath, union { null, GetInboxLocalQuery} query, boolean compress, keybase1.TLFIdentifyBehavior identifyBehavior);
+  // Starts a new archive job.
+  record ArchiveChatJobRequest {
+    ArchiveJobID jobID;
+    string outputPath; // can be empty
+    union { null, GetInboxLocalQuery} query;
+    boolean compress;
+    keybase1.TLFIdentifyBehavior identifyBehavior;
+  }
+  ArchiveChatRes archiveChat(ArchiveChatJobRequest req);
   record ArchiveChatRes {
-    // Possibily modified from the input if the input was not set or the output was compressed.
-    string outputPath;
+    string outputPath; // Possibily modified from the input if the input was not set or the output was compressed.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  // List all (un-deleted) archive jobs
+  ArchiveChatListRes archiveChatList(keybase1.TLFIdentifyBehavior identifyBehavior);
+  record ArchiveChatJob {
+    ArchiveChatJobRequest request;
+    gregor1.Time startedAt;
+    ArchiveChatJobStatus status;
+    string err; // Set iff status == ERROR
+  }
+  enum ArchiveChatJobStatus {
+    RUNNING_0,
+    PAUSED_1,
+    ERROR_2,
+    COMPLETE_3
+  }
+  record ArchiveChatListRes {
+    array<ArchiveChatJob> jobs;
+  }
+
+  void archiveChatDelete(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

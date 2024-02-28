@@ -105,7 +105,7 @@
       "type": "record",
       "name": "ArchiveJobID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
     },
     {
       "type": "record",

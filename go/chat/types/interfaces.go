@@ -649,6 +649,17 @@ type EphemeralTracker interface {
 	OnDbNuke(libkb.MetaContext) error
 }
 
+type ChatArchiveRegistry interface {
+	Resumable
+
+	// List all known jobs
+	List(ctx context.Context) (res chat1.ArchiveChatListRes, err error)
+	// Delete a jobs metadata, cancels it if it is currently running
+	Delete(ctx context.Context, jobID chat1.ArchiveJobID) (err error)
+	// Sets (possibly updating) the job to the given state.
+	Set(ctx context.Context, cancel context.CancelFunc, job chat1.ArchiveChatJob) (err error)
+}
+
 type ServerConnection interface {
 	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
