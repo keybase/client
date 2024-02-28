@@ -170,17 +170,17 @@ func (k *GpgPrimaryKey) IsValid(mctx MetaContext) bool {
 		return false
 	} else if k.Expires == 0 {
 		return true
-	} else {
-		expired := time.Now().After(time.Unix(k.Expires, 0))
-		if expired {
-			var fp string
-			if k.fingerprint != nil {
-				fp = " (" + k.fingerprint.ToQuads() + ")"
-			}
-			mctx.Warning("Skipping expired primary key%s", fp)
-		}
-		return !expired
 	}
+	expiresAt := time.Unix(k.Expires, 0)
+	expired := time.Now().After(expiresAt)
+	if expired {
+		var fp string
+		if k.fingerprint != nil {
+			fp = " (" + k.fingerprint.ToQuads() + ")"
+		}
+		mctx.Warning("Skipping expired primary key%s, expiration: %s", fp, expiresAt)
+	}
+	return !expired
 }
 
 func (k *GpgPrimaryKey) ToRow(i int) []string {
