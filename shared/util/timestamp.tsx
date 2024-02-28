@@ -160,14 +160,6 @@ export function formatTimeForPopup(time: number): string {
   return dateFns.format(time, 'EEE MMM dd ' + hourMinuteSecondString) // Wed Jan 5 2016 4:34:15 PM
 }
 
-export function formatTimeForStellarDetail(timestamp: Date) {
-  return dateFns.format(timestamp, 'EEE, MMM dd yyyy - ' + hourMinuteString) // Tue, Jan 5 2018 - 4:34 PM
-}
-
-export function formatTimeForStellarTooltip(timestamp: Date) {
-  return dateFns.formatISO(timestamp)
-}
-
 export function formatTimeForRevoked(time: number): string {
   const m = new Date(time)
   return dateFns.format(m, 'EEE MMM dd') // Wed Jan 05
@@ -188,14 +180,6 @@ export function formatTimeRelativeToNow(time: number): string {
 
 export function formatTimeForTeamMember(time: number): string {
   return dateFns.format(new Date(time), 'MMM yyyy')
-}
-
-export function daysToLabel(days: number): string {
-  let label = `${days} day`
-  if (days !== 1) {
-    label += 's'
-  }
-  return label
 }
 
 const formatDistanceLocale = {
@@ -262,9 +246,4 @@ export function formatDurationShort(ms: number): string {
     return `${Math.round(ms / oneMinuteInMs)}m`
   }
   return `${Math.floor(ms / 1000)}s`
-}
-
-// 10 {seconds, minutes, hours, days, months, years}
-export function formatDurationLong(date: Date, baseDate: Date): string {
-  return dateFns.formatDistanceStrict(date, baseDate)
 }

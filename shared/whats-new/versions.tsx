@@ -13,7 +13,7 @@ export type VersionProps = {
   onSwitchTab: (tab: C.Tabs.AppTab) => void
 }
 
-export const Version = ({children}: {children: React.ReactNode}) => {
+const Version = ({children}: {children: React.ReactNode}) => {
   return (
     // Always pass `seen` prop to children of a version to show row-level badging
     <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
@@ -22,7 +22,7 @@ export const Version = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-export const VersionTitle = ({title}: {title: string}) => (
+const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
     <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
       {title}
