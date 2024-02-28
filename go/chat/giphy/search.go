@@ -175,9 +175,13 @@ func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length 
 	}
 	req.Header.Add("Accept", "image/*")
 	req.Host = MediaHost
-	resp, err := ctxhttp.Do(mctx.Ctx(), WebClient(mctx), req)
+	resp, err := ctxhttp.Do(mctx.Ctx(), AssetClient(mctx), req)
 	if err != nil {
 		return nil, 0, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, 0, fmt.Errorf("Status %s", resp.Status)
 	}
 	return resp.Body, resp.ContentLength, nil
 }
