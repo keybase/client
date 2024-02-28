@@ -33,6 +33,7 @@ func TestParseMyKeyring(t *testing.T) {
 }
 
 func TestFindMax(t *testing.T) {
+	t.Skip("all keys were expired")
 	index := parse(t, myKeyring)
 	keylist := index.Emails.Get("max1@keybase.io")
 	if keylist == nil {
