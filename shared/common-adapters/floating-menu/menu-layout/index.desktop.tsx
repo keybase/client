@@ -8,6 +8,7 @@ import Meta from '@/common-adapters/meta'
 import Badge from '@/common-adapters/badge'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
 import * as Styles from '@/styles'
+import './menu-layout.css'
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   private renderDivider = (index: number) => (
@@ -87,19 +88,6 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
   }
 
   render() {
-    const realCSS = `
-    .menu-hover:hover { background-color: ${
-      this.props.hoverColor ? this.props.hoverColor : Styles.globalColors.blueLighter2
-    }; }
-    .menu-hover-danger:hover { background-color: ${Styles.globalColors.red}; }
-
-    .menu-hover .title { color: ${Styles.globalColors.black}; }
-    .menu-hover-danger .title { color: ${Styles.globalColors.red}; }
-    .menu-hover-danger:hover .title { color: ${Styles.globalColors.white}; }
-    .menu-hover-danger .subtitle { color: ${Styles.globalColors.black_50}; }
-    .menu-hover-danger:hover .subtitle { color: ${Styles.globalColors.white}; }
-    `
-
     const items = this.props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
       if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
         return arr
@@ -115,7 +103,6 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
           event.stopPropagation()
         }}
       >
-        <style>{realCSS}</style>
         <Box style={Styles.collapseStyles([styles.menuContainer, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header}

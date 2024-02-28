@@ -71,7 +71,7 @@ const inputPlaceholder = new Map([
  *  - Multiline input
  *  - Clear button
  */
-export const TextInput = (props: TextProps) => {
+const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
   const textType = inputTextType.get(operation)
   const placeholder = inputPlaceholder.get(operation)
@@ -166,7 +166,7 @@ const inputFileIcon = new Map([
   ['verify', 'icon-file-saltpack-64'],
 ] as const)
 
-export const FileInput = (props: FileProps) => {
+const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
   const waiting = C.Waiting.useAnyWaiting(Constants.waitingKey)

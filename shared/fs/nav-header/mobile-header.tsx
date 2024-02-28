@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 import * as Kbfs from '../common'
+import type * as T from '@/constants/types'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
 
@@ -81,30 +81,6 @@ const NavMobileHeader = (props: Props) => {
       </Kb.Box2>
     </Kb.SafeAreaViewTop>
   )
-}
-
-const getBaseHeight = (path: T.FS.Path) => {
-  return (
-    44 +
-    (path === Constants.defaultPath
-      ? Kb.Styles.headerExtraHeight
-      : (Kb.Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
-  )
-}
-
-export const useHeaderHeight = (path: T.FS.Path) => {
-  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const bannerType = C.useFSState(s => Constants.getMainBannerType(kbfsDaemonStatus, s.overallSyncStatus))
-  const base = getBaseHeight(path)
-  switch (bannerType) {
-    case T.FS.MainBannerType.None:
-    case T.FS.MainBannerType.TryingToConnect:
-      return base
-    case T.FS.MainBannerType.Offline:
-      return base + 40
-    case T.FS.MainBannerType.OutOfSpace:
-      return base + 73
-  }
 }
 
 const styles = Kb.Styles.styleSheetCreate(

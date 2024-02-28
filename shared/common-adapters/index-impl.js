@@ -105,9 +105,6 @@ module.exports = {
   get DelayedMounting() {
     return require('./delayed-mounting').default
   },
-  get DesktopStyle() {
-    return require('./desktop-style').default
-  },
   get Divider() {
     return require('./divider').default
   },

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export const getOptions = {
+const getOptions = {
   title: 'Notifications',
 }
 

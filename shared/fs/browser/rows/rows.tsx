@@ -25,7 +25,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
   </Kb.Box>
 )
 
-export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
+const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
 class Rows extends React.PureComponent<Props> {
   _rowRenderer = (_: number, item: RowTypes.RowItem) => {

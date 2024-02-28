@@ -199,7 +199,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.placeholder,
-      placeholderColor: this.props.placeholderColor,
       ref: this._input,
       spellCheck: this.props.spellCheck,
       ...(this.props.disabled ? {readOnly: true} : {}),
@@ -306,22 +305,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   render() {
-    const {ref, placeholderColor, ...inputProps} = this._getInputProps()
-    const realCSS = this.props.multiline
-      ? `
-textarea::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
-textarea::-webkit-input-placeholder { color: ${placeholderColor || Styles.globalColors.black_35}}
-textarea::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
-`
-      : `
-input::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
-input::-webkit-input-placeholder { color: ${placeholderColor || Styles.globalColors.black_35}}
-input::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
-`
-
+    const {ref, ...inputProps} = this._getInputProps()
     return (
       <>
-        <style>{realCSS}</style>
         {this.props.multiline ? (
           <textarea {...inputProps} ref={ref as any as React.RefObject<HTMLTextAreaElement>} />
         ) : (

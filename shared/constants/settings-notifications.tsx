@@ -5,8 +5,8 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import * as T from './types'
 
-export const securityGroup = 'security'
-export const soundGroup = 'sound'
+const securityGroup = 'security'
+const soundGroup = 'sound'
 const settingsWaitingKey = 'settings:generic'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 

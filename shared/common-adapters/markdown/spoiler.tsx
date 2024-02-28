@@ -48,7 +48,7 @@ const Spoiler = (p: Props) => {
   )
 }
 
-export const styles = Styles.styleSheetCreate(() => {
+const styles = Styles.styleSheetCreate(() => {
   return {
     hidden: Styles.platformStyles({
       common: {

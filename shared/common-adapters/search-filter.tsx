@@ -32,11 +32,9 @@ type Props = {
   iconColor?: AllowedColors
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
-  negative?: boolean
   onChange?: (text: string) => void
   placeholderText: string
   placeholderCentered?: boolean
-  placeholderColor?: AllowedColors
   style?: Styles.StylesCrossPlatform
   valueControlled?: boolean
   value?: string
@@ -151,11 +149,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     return !Styles.isMobile && this.props.size === 'full-width' ? 'Default' : 'Small'
   }
   private iconColor() {
-    return this.props.iconColor
-      ? this.props.iconColor
-      : this.props.negative
-      ? Styles.globalColors.white_75
-      : Styles.globalColors.black_50
+    return this.props.iconColor ? this.props.iconColor : Styles.globalColors.black_50
   }
   private leftIcon() {
     return (
@@ -192,14 +186,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         ref={this.inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
-        style={Styles.collapseStyles([styles.input, !!this.props.negative && styles.textNegative])}
-        placeholderColor={
-          this.props.placeholderColor
-            ? this.props.placeholderColor
-            : this.props.negative
-            ? Styles.globalColors.white_75
-            : ''
-        }
+        style={styles.input}
       />
     )
   }
@@ -207,10 +194,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     return (
       !!this.props.waiting &&
       (Styles.isMobile ? (
-        <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
+        <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={false} />
       ) : (
         <Kb.Animation
-          animationType={this.props.negative ? 'spinnerWhite' : 'spinner'}
+          animationType={'spinner'}
           containerStyle={styles.icon}
           style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
@@ -269,9 +256,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           this.props.placeholderCentered && styles.containerCenter,
           !Styles.isMobile && this.props.size === 'small' && styles.containerSmall,
           (Styles.isMobile || this.props.size === 'full-width') && styles.containerNonSmall,
-          !this.props.negative && (this.state.focused || this.state.hover ? styles.light : styles.dark),
-          this.props.negative &&
-            (this.state.focused || this.state.hover ? styles.lightNegative : styles.darkNegative),
+          this.state.focused || this.state.hover ? styles.light : styles.dark,
           !Styles.isMobile && this.props.style,
         ])}
         onMouseOver={this.mouseOver}
@@ -307,11 +292,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         gap="xsmall"
       >
         {!!this.props.mobileCancelButton && this.typing() && (
-          <Kb.Text
-            type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
-            onClick={this.cancel}
-            negative={!!this.props.negative}
-          >
+          <Kb.Text type={'BodyBigLink'} onClick={this.cancel}>
             Cancel
           </Kb.Text>
         )}
@@ -365,7 +346,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.tiny,
   },
   dark: {backgroundColor: Styles.globalColors.black_10},
-  darkNegative: {backgroundColor: Styles.globalColors.black_20},
   icon: Styles.platformStyles({
     isElectron: {marginTop: 2},
   }),
@@ -381,7 +361,6 @@ const styles = Styles.styleSheetCreate(() => ({
   leftIconTiny: {marginRight: Styles.globalMargins.tiny},
   leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
   light: {backgroundColor: Styles.globalColors.black_05},
-  lightNegative: {backgroundColor: Styles.globalColors.black_10},
   removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
   removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
@@ -395,5 +374,4 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.tiny,
     width: 16,
   },
-  textNegative: {color: Styles.globalColors.white},
 }))

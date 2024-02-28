@@ -10,7 +10,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-export const FolderViewFilterIcon = (props: Props) =>
+const FolderViewFilterIcon = (props: Props) =>
   C.FS.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.Icon type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
   ) : null

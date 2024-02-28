@@ -157,5 +157,3 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
 }
 
 export default ErrorBoundary
-
-export {Fallback}

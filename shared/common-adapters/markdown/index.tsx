@@ -533,5 +533,4 @@ export const EmojiIfExists = React.memo(function EmojiIfExists(
   )
 })
 
-export {SimpleMarkdownComponent, simpleMarkdownParser}
 export default SimpleMarkdownComponent

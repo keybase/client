@@ -107,7 +107,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-export const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = Kb.Styles.isMobile ? 64 : 56
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {

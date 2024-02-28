@@ -87,34 +87,3 @@ export const useAllChannelMetas = (
 
   return {channelMetas, loadingChannels, reloadChannels}
 }
-
-export const useChannelMeta = (
-  teamID: T.Teams.TeamID,
-  conversationIDKey: T.Chat.ConversationIDKey
-): T.Chat.ConversationMeta | undefined => {
-  const getInboxItem = C.useRPC(T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise)
-  const [conv, setConv] = React.useState<T.RPCChat.InboxUIItem | undefined>()
-
-  const waitingKey = C.Teams.teamWaitingKey(teamID)
-
-  React.useEffect(() => {
-    getInboxItem(
-      [
-        {
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          query: C.Chat.makeInboxQuery([conversationIDKey], true /* all statuses */),
-        },
-        waitingKey,
-      ],
-      ({conversations}) => {
-        if (conversations?.length === 1) {
-          setConv(conversations[0])
-        }
-      },
-      () => {} // TODO: error handling
-    )
-  }, [teamID, conversationIDKey, getInboxItem, waitingKey])
-
-  const meta = conv ? C.Chat.inboxUIItemToConversationMeta(conv) : undefined
-  return meta ?? undefined
-}

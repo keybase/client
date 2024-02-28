@@ -19,7 +19,7 @@ export const transformer = (
   return Common.standardTransformer(`${prefix}${command.name}`, tData, preview)
 }
 
-export const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
+const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
 
 const getBotRestrictBlockMap = (
   settings: Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
@@ -113,7 +113,7 @@ const getMaxCmdLength = memoize(
       .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
 )
 
-export const useDataSource = (p: UseDataSourceProps) => {
+const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const staticConfig = C.useChatState(s => s.staticConfig)
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)

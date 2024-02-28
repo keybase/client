@@ -77,8 +77,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
   }
 })
 
-export default MessagePopup
-
 // Mobile only
 type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {

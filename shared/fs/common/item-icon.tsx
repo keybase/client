@@ -73,7 +73,7 @@ const getTlfTypeIcon = (size: Size, tlfType: T.FS.TlfType) => {
   }
 }
 
-export const TlfTypeIcon = (props: TlfTypeIconProps) => {
+const TlfTypeIcon = (props: TlfTypeIconProps) => {
   const tlfList = C.useFSState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]

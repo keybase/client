@@ -45,7 +45,7 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => (
   </Kb.Box2>
 )
 
-export const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
+const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   const onMinimize = React.useCallback(() => {
     minimizeWindow?.()
   }, [])

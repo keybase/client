@@ -229,7 +229,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
   } as const
 })
 
-export const platformShim = (
+const platformShim = (
   Original: React.JSXElementConstructor<GetOptionsParams>,
   isModal: boolean,
   _isLoggedOut: boolean,

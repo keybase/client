@@ -39,7 +39,7 @@ type RPCErrorLike = {
   name?: string
 }
 
-export function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
+function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
 }
 
@@ -118,7 +118,7 @@ export function isErrorTransient(error: RPCError | Error) {
 
 export {RPCError}
 
-export const networkErrorCodes = [
+const networkErrorCodes = [
   T.RPCGen.StatusCode.scgenericapierror,
   T.RPCGen.StatusCode.scapinetworkerror,
   T.RPCGen.StatusCode.sctimeout,

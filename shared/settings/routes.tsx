@@ -62,7 +62,7 @@ export const sharedNewRoutes = {
   removeDevice: devicesRoutes.deviceRevoke,
 }
 
-export const sharedNewModalRoutes = {
+const sharedNewModalRoutes = {
   [Constants.settingsLogOutTab]: logOut,
   [Constants.settingsPasswordTab]: password,
   archiveModal,

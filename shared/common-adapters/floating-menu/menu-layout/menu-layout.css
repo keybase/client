@@ -1,0 +1,21 @@
+.menu-hover:hover {
+  background-color: var(--color-blueLighter2);
+}
+.menu-hover-danger:hover {
+  background-color: var(--color-red);
+}
+.menu-hover .title {
+  color: var(--color-black);
+}
+.menu-hover-danger .title {
+  color: var(--color-red);
+}
+.menu-hover-danger:hover .title {
+  color: var(--color-white);
+}
+.menu-hover-danger .subtitle {
+  color: var(--color-black_50);
+}
+.menu-hover-danger:hover .subtitle {
+  color: var(--color-white);
+}
