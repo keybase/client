@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {allTextTypes} from './text.shared'
+import type {TextType} from './text.shared'
 import type * as CSS from '@/styles/css'
 import type colors from '@/styles/colors'
 import type {MeasureRef} from './measure-ref'
@@ -14,7 +14,6 @@ type Background =
   | 'Terminal'
 
 type Values<T extends object> = T[keyof T]
-type TextType = keyof allTextTypes
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.
 export type AllowedColors =
@@ -119,6 +118,6 @@ declare function getStyle(
   selectable?: boolean
 ): TextStyle
 
-export {getStyle, allTextTypes}
+export {getStyle}
 export type {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text

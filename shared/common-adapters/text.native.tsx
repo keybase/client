@@ -165,4 +165,3 @@ function getStyle(type: TextType, negative?: boolean) {
 
 export default Text
 export {getStyle}
-export type {allTextTypes} from './text.shared'

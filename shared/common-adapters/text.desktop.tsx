@@ -149,4 +149,3 @@ function externalGetStyle(
 export {externalGetStyle as getStyle}
 
 export default Text
-export type {allTextTypes} from './text.shared'

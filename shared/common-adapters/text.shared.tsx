@@ -44,7 +44,8 @@ const _allTextTypes = {
   TerminalEmpty: 'TerminalEmpty',
   TerminalInline: 'TerminalInline',
 } as const
-export type allTextTypes = typeof _allTextTypes
+type AllTextTypes = typeof _allTextTypes
+export type TextType = keyof AllTextTypes
 
 export const backgroundModeIsNegative = (bm?: Background): boolean =>
   !!bm && !['Normal', 'Information'].includes(bm)
