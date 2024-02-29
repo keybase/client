@@ -250,8 +250,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           active: showingPopup || showingPicker,
         }),
         onContextMenu: showPopup,
-        // attach popups to the message itself
-        ref: popupAnchor,
       }
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
@@ -303,6 +301,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
         showPopup={showPopup}
+        popupAnchor={popupAnchor}
       />
     </LongPressable>
   )
@@ -434,9 +433,10 @@ type RProps = {
   showCoinsIcon: boolean
   botname: string
   shouldShowPopup: boolean
+  popupAnchor: React.RefObject<Kb.MeasureRef>
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {showPopup, showSendIndicator, showCoinsIcon} = p
+  const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
@@ -479,7 +479,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const visibleItems =
     hasVisibleItems || menu ? (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
@@ -488,13 +488,14 @@ const RightSide = React.memo(function RightSide(p: RProps) {
           'hover-reverse-row': hasVisibleItems && menu,
           'hover-visible': !hasVisibleItems && menu,
         })}
+        ref={popupAnchor}
       >
         {menu}
         {explodingCountdown}
         {revokedIcon}
         {coinsIcon}
         {bot}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     ) : null
 
   return (

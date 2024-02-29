@@ -391,6 +391,12 @@ export const makeMessageSystemCreateTeam = (
   ...m,
 })
 
+const branchRefPrefix = 'refs/heads/'
+export const systemGitBranchName = (ref: MessageTypes.MessageSystemGitPush['refs'][number]) => {
+  const {refName} = ref
+  return refName.startsWith(branchRefPrefix) ? refName.substring(branchRefPrefix.length) : refName
+}
+
 export const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
 ): MessageTypes.MessageSystemGitPush => ({
