@@ -4,7 +4,7 @@ import engineListener from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {SessionID, SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
@@ -278,49 +278,6 @@ class Engine {
   }
 }
 
-// Dummy engine for snapshotting
-class FakeEngine {
-  _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
-  _sessionsMap: {[K in SessionIDKey]: Session} = {}
-  constructor() {
-    logger.info('Engine disabled!')
-    this._sessionsMap = {}
-  }
-  reset() {}
-  cancelSession(_: SessionID) {}
-  setFailOnError() {}
-  setIncomingActionCreator(
-    _: MethodKey,
-    __: (a: {param: Object; response: Object | undefined; state: unknown}) => unknown
-  ) {}
-  createSession(
-    _: IncomingCallMapType | undefined,
-    __: WaitingHandlerType | undefined,
-    ___: CancelHandlerType | undefined,
-    ____: boolean = false
-  ) {
-    return new Session({
-      endHandler: () => {},
-      incomingCallMap: undefined,
-      invoke: () => {},
-      sessionID: 0,
-    })
-  }
-  _channelMapRpcHelper(_: Array<string>, __: string, ___: unknown) {
-    return null
-  }
-  _rpcOutgoing(
-    _: string,
-    __:
-      | {
-          incomingCallMap?: unknown
-          waitingHandler?: WaitingHandlerType
-        }
-      | undefined,
-    ___: (...args: Array<unknown>) => void
-  ) {}
-}
-
 // don't overwrite this on HMR
 let engine: Engine | undefined
 if (__DEV__) {
@@ -344,7 +301,7 @@ const makeEngine = (
   return engine
 }
 
-const getEngine = (): Engine | FakeEngine => {
+const getEngine = (): Engine => {
   if (!engine) {
     throw new Error('Engine needs to be initialized first')
   }
