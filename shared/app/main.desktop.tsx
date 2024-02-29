@@ -30,7 +30,13 @@ const Main = (_: Props) => {
       <GlobalError />
       <OutOfDate />
     </>
-  ) : null
+  ) : (
+    <div>
+      debug hide react
+      <input autoFocus={true} />
+    </div>
+  )
 }
+// get focus so react doesn't hold onto old divs
 
 export default Main

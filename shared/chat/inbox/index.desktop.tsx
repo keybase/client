@@ -15,13 +15,6 @@ import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/siz
 import {makeRow} from './row'
 import './inbox.css'
 
-type State = {
-  dragY: number
-  showFloating: boolean
-  showUnread: boolean
-  unreadCount: number
-}
-
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 
@@ -47,14 +40,38 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 
 const dragKey = '__keybase_inbox'
 
-class Inbox extends React.Component<TInbox.Props, State> {
-  state = {
-    dragY: -1,
-    showFloating: false,
-    showUnread: false,
-    unreadCount: 0,
+const Inbox = React.memo(function Inbox(props: TInbox.Props) {
+  const [dragY, setDragY] = React.useState(-1)
+  const [showFloating, setShowFloating] = React.useState(false)
+  const [showUnread, setShowUnread] = React.useState(false)
+  const [unreadCount, setUnreadCount] = React.useState(0)
+  const p = {
+    ...props,
+    dragY,
+    setDragY,
+    setShowFloating,
+    setShowUnread,
+    setUnreadCount,
+    showFloating,
+    showUnread,
+    unreadCount,
   }
 
+  return <InboxOld {...p} />
+})
+
+class InboxOld extends React.Component<
+  TInbox.Props & {
+    dragY: number
+    setDragY: (y: number) => void
+    showFloating: boolean
+    setShowFloating: (show: boolean) => void
+    showUnread: boolean
+    setShowUnread: (show: boolean) => void
+    unreadCount: number
+    setUnreadCount: (count: number) => void
+  }
+> {
   private mounted: boolean = false
   private listRef = React.createRef<VariableSizeList>()
 
@@ -65,7 +82,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
   private lastVisibleIdx: number = -1
   private scrollDiv = React.createRef<HTMLDivElement>()
 
-  shouldComponentUpdate(nextProps: TInbox.Props, nextState: State) {
+  shouldComponentUpdate(nextProps: TInbox.Props) {
     let listRowsResized = false
     if (nextProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
@@ -81,7 +98,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
       // ^ this will force an update so just do it once instead of twice
       return false
     }
-    return !C.shallowEqual(this.props, nextProps) || !C.shallowEqual(this.state, nextState)
+    return !C.shallowEqual(this.props, nextProps)
   }
 
   componentDidUpdate(prevProps: TInbox.Props) {
@@ -156,7 +173,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
               <Kb.Box style={styles.spacer} />
             </>
           )}
-          {this.state.dragY !== -1 && (
+          {this.props.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
               style={Kb.Styles.collapseStyles([
@@ -209,8 +226,8 @@ class Inbox extends React.Component<TInbox.Props, State> {
       return
     }
     if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
-      if (this.state.showUnread) {
-        this.setState({showUnread: false})
+      if (this.props.showUnread) {
+        this.props.setShowUnread(false)
       }
       return
     }
@@ -226,11 +243,12 @@ class Inbox extends React.Component<TInbox.Props, State> {
       }
     })
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true}))
-      this.setState(() => ({unreadCount}))
+      this.props.setShowUnread(true)
+      this.props.setUnreadCount(unreadCount)
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false, unreadCount: 0} : null))
+      this.props.setShowUnread(false)
+      this.props.setUnreadCount(0)
       this.firstOffscreenIdx = -1
     }
   }
@@ -247,8 +265,8 @@ class Inbox extends React.Component<TInbox.Props, State> {
       showFloating = false
     }
 
-    if (this.state.showFloating !== showFloating) {
-      this.setState({showFloating})
+    if (this.props.showFloating !== showFloating) {
+      this.props.setShowFloating(showFloating)
     }
   }
 
@@ -296,18 +314,17 @@ class Inbox extends React.Component<TInbox.Props, State> {
 
   private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
-      this.setState({
-        dragY:
-          e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop,
-      })
+      this.props.setDragY(
+        e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop
+      )
     }
   }
 
   private deltaNewSmallRows = () => {
-    if (this.state.dragY === -1) {
+    if (this.props.dragY === -1) {
       return 0
     }
-    return Math.max(0, Math.floor(this.state.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
+    return Math.max(0, Math.floor(this.props.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
   }
 
   private onDrop = () => {
@@ -315,7 +332,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
     if (delta !== 0) {
       this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + delta)
     }
-    this.setState({dragY: -1})
+    this.props.setDragY(-1)
   }
 
   private scrollToBigTeams = () => {
@@ -336,7 +353,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
   }
 
   render() {
-    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+    const floatingDivider = this.props.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.scrollToBigTeams} />
     )
     return (
@@ -370,9 +387,9 @@ class Inbox extends React.Component<TInbox.Props, State> {
                       itemSize={this.itemSizeGetter}
                       estimatedItemSize={56}
                       itemData={
-                        this.state.dragY === -1
+                        this.props.dragY === -1
                           ? {rows: this.props.rows, sel: this.props.selectedConversationIDKey}
-                          : this.state.dragY
+                          : this.props.dragY
                       }
                     >
                       {this.listChild}
@@ -383,8 +400,8 @@ class Inbox extends React.Component<TInbox.Props, State> {
             ) : null}
           </div>
           {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
-          {this.state.showUnread && !this.state.showFloating && (
-            <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.state.unreadCount} />
+          {this.props.showUnread && !this.props.showFloating && (
+            <UnreadShortcut onClick={this.scrollToUnread} unreadCount={this.props.unreadCount} />
           )}
         </Kb.Box>
       </Kb.ErrorBoundary>

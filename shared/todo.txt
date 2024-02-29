@@ -1,3 +1,7 @@
 Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
+
+f6 for just a router remount?
+inbox remounts?
+inbox autosizer keeps firing
