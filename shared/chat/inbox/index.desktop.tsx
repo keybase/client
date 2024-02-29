@@ -10,7 +10,6 @@ import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
 import {VariableSizeList} from 'react-window'
 import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import './inbox.css'
@@ -41,13 +40,232 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 const dragKey = '__keybase_inbox'
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
+  const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props
+  const {toggleSmallTeamsExpanded, navKey, selectedConversationIDKey} = props
   const [dragY, setDragY] = React.useState(-1)
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
+
+  const listRef = React.useRef<VariableSizeList>(null)
+  const dragListRef = React.useRef<HTMLDivElement>(null)
+  const scrollDiv = React.useRef<HTMLDivElement>(null)
+
+  // stuff for UnreadShortcut
+  const firstOffscreenIdx = React.useRef(-1)
+  const lastVisibleIdx = React.useRef(-1)
+
+  const mountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  const lastSmallTeamsExpanded = React.useRef(smallTeamsExpanded)
+  const lastRowsLength = React.useRef(rows.length)
+  const lastUnreadIndices = React.useRef(unreadIndices)
+  const lastUnreadTotal = React.useRef(unreadTotal)
+
+  const itemSizeGetter = React.useCallback(
+    (index: number) => {
+      const row = rows[index]
+      if (!row) {
+        return 0
+      }
+
+      return getRowHeight(row.type, row.type === 'divider' && row.showButton)
+    },
+    [rows]
+  )
+
+  const deltaNewSmallRows = React.useCallback(() => {
+    if (dragY === -1) {
+      return 0
+    }
+    return Math.max(0, Math.floor(dragY / smallRowHeight)) - inboxNumSmallRows
+  }, [dragY, inboxNumSmallRows])
+
+  const onDragStart = React.useCallback((ev: React.DragEvent<HTMLDivElement>) => {
+    ev.dataTransfer.setData(dragKey, dragKey)
+  }, [])
+
+  const itemRenderer = React.useCallback(
+    (index: number, style: Object) => {
+      const row = rows[index]
+      if (!row) {
+        // likely small teams were just collapsed
+        return null
+      }
+
+      const divStyle = style
+
+      if (row.type === 'divider') {
+        const newSmallRows = deltaNewSmallRows()
+        let expandingRows: Array<string> = []
+        let removingRows: Array<string> = []
+        if (newSmallRows === 0) {
+        } else if (newSmallRows > 0) {
+          expandingRows = new Array(newSmallRows).fill('')
+        } else {
+          removingRows = new Array(-newSmallRows).fill('')
+        }
+        return (
+          <div style={{...divStyle, position: 'relative'}}>
+            {row.showButton && !smallTeamsExpanded && (
+              <>
+                <div
+                  className="grabLinesContainer"
+                  draggable={row.showButton}
+                  onDragStart={onDragStart}
+                  style={styles.grabber as any}
+                >
+                  <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  </Kb.Box2>
+                </div>
+                <Kb.Box style={styles.spacer} />
+              </>
+            )}
+            {dragY !== -1 && (
+              <Kb.Box2
+                direction="vertical"
+                style={Kb.Styles.collapseStyles([
+                  styles.fakeRowContainer,
+                  {
+                    bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
+                    height:
+                      (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
+                    top: expandingRows.length ? 0 : undefined,
+                  },
+                ])}
+              >
+                {expandingRows.map((_, idx) => (
+                  <FakeRow idx={idx} key={idx} />
+                ))}
+                {removingRows.map((_, idx) => (
+                  <FakeRemovingRow key={idx} />
+                ))}
+              </Kb.Box2>
+            )}
+            <TeamsDivider
+              hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
+              key="divider"
+              toggle={toggleSmallTeamsExpanded}
+              showButton={row.showButton}
+              rows={rows}
+              smallTeamsExpanded={smallTeamsExpanded}
+            />
+          </div>
+        )
+      }
+      if (row.type === 'teamBuilder') {
+        return (
+          <div style={divStyle}>
+            <BuildTeam />
+          </div>
+        )
+      }
+
+      // pointer events on so you can click even right after a scroll
+      return (
+        <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
+          {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+        </div>
+      )
+    },
+    [
+      dragY,
+      smallTeamsExpanded,
+      toggleSmallTeamsExpanded,
+      deltaNewSmallRows,
+      navKey,
+      rows,
+      selectedConversationIDKey,
+      onDragStart,
+    ]
+  )
+
+  if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rows.length !== lastRowsLength.current) {
+    listRef.current?.resetAfterIndex(0, true)
+  }
+
+  const calculateShowFloating = React.useCallback(() => {
+    if (lastVisibleIdx.current < 0) {
+      return
+    }
+    let show = true
+    const row = rows[lastVisibleIdx.current]
+    if (!row || row.type !== 'small') {
+      show = false
+    }
+    setShowFloating(show)
+  }, [rows])
+
+  const calculateShowUnreadShortcut = React.useCallback(() => {
+    if (!mountedRef.current) {
+      return
+    }
+    if (!unreadIndices.size || lastVisibleIdx.current < 0) {
+      if (showUnread) {
+        setShowUnread(false)
+      }
+      return
+    }
+
+    let unreadCount = 0
+    let foid = 0
+    unreadIndices.forEach((count, idx) => {
+      if (idx > lastVisibleIdx.current) {
+        if (foid <= 0) {
+          foid = idx
+        }
+        unreadCount += count
+      }
+    })
+    if (foid) {
+      setShowUnread(true)
+      setUnreadCount(unreadCount)
+      firstOffscreenIdx.current = foid
+    } else {
+      setShowUnread(false)
+      setUnreadCount(0)
+      firstOffscreenIdx.current = -1
+    }
+  }, [showUnread, unreadIndices])
+
+  const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
+
+  if (rows.length !== lastRowsLength.current) {
+    calculateShowFloating()
+  }
+
+  if (!C.shallowEqual(lastUnreadIndices.current, unreadIndices) || lastUnreadTotal.current !== unreadTotal) {
+    calculateShowUnreadShortcut()
+  }
+
+  lastSmallTeamsExpanded.current = smallTeamsExpanded
+  lastRowsLength.current = rows.length
+  lastUnreadIndices.current = unreadIndices
+  lastUnreadTotal.current = unreadTotal
+
   const p = {
     ...props,
+    calculateShowFloating,
+    calculateShowUnreadShortcutThrottled,
+    deltaNewSmallRows,
+    dragListRef,
     dragY,
+    firstOffscreenIdx,
+    itemRenderer,
+    itemSizeGetter,
+    lastVisibleIdx,
+    listRef,
+    mounted: mountedRef.current,
+    onDragStart,
+    scrollDiv,
     setDragY,
     setShowFloating,
     setShowUnread,
@@ -62,6 +280,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
 
 class InboxOld extends React.Component<
   TInbox.Props & {
+    deltaNewSmallRows: () => number
+    itemSizeGetter: (index: number) => 56 | 0 | 24 | 32 | 40 | 64 | 68 | 44 | 84 | 41
+    itemRenderer: (index: number, style: Object) => React.JSX.Element | null
+    onDragStart: (ev: React.DragEvent<HTMLDivElement>) => void
+    scrollDiv: React.RefObject<HTMLDivElement>
+    listRef: React.RefObject<VariableSizeList>
+    dragListRef: React.RefObject<HTMLDivElement>
     dragY: number
     setDragY: (y: number) => void
     showFloating: boolean
@@ -70,206 +295,13 @@ class InboxOld extends React.Component<
     setShowUnread: (show: boolean) => void
     unreadCount: number
     setUnreadCount: (count: number) => void
+    mounted: boolean
+    firstOffscreenIdx: React.MutableRefObject<number>
+    lastVisibleIdx: React.MutableRefObject<number>
+    calculateShowFloating: () => void
+    calculateShowUnreadShortcutThrottled: () => void
   }
 > {
-  private mounted: boolean = false
-  private listRef = React.createRef<VariableSizeList>()
-
-  private dragList = React.createRef<HTMLDivElement>()
-
-  // stuff for UnreadShortcut
-  private firstOffscreenIdx: number = -1
-  private lastVisibleIdx: number = -1
-  private scrollDiv = React.createRef<HTMLDivElement>()
-
-  shouldComponentUpdate(nextProps: TInbox.Props) {
-    let listRowsResized = false
-    if (nextProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
-      listRowsResized = true
-    }
-
-    // list changed
-    if (this.props.rows.length !== nextProps.rows.length) {
-      listRowsResized = true
-    }
-
-    if (listRowsResized && this.listRef.current) {
-      this.listRef.current.resetAfterIndex(0, true)
-      // ^ this will force an update so just do it once instead of twice
-      return false
-    }
-    return !C.shallowEqual(this.props, nextProps)
-  }
-
-  componentDidUpdate(prevProps: TInbox.Props) {
-    // list changed
-    if (this.props.rows.length !== prevProps.rows.length) {
-      this.calculateShowFloating()
-    }
-    if (
-      !C.shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
-      prevProps.unreadTotal !== this.props.unreadTotal
-    ) {
-      this.calculateShowUnreadShortcut()
-    }
-  }
-
-  componentDidMount() {
-    this.mounted = true
-  }
-
-  componentWillUnmount() {
-    this.mounted = false
-  }
-
-  private itemSizeGetter = (index: number) => {
-    const row = this.props.rows[index]
-    if (!row) {
-      return 0
-    }
-
-    return getRowHeight(row.type, row.type === 'divider' && row.showButton)
-  }
-
-  private onDragStart = (ev: React.DragEvent<HTMLDivElement>) => {
-    ev.dataTransfer.setData(dragKey, dragKey)
-  }
-
-  private itemRenderer = (index: number, style: Object) => {
-    const row = this.props.rows[index]
-    if (!row) {
-      // likely small teams were just collapsed
-      return null
-    }
-
-    const divStyle = style
-
-    if (row.type === 'divider') {
-      const newSmallRows = this.deltaNewSmallRows()
-      let expandingRows: Array<string> = []
-      let removingRows: Array<string> = []
-      if (newSmallRows === 0) {
-      } else if (newSmallRows > 0) {
-        expandingRows = new Array(newSmallRows).fill('')
-      } else {
-        removingRows = new Array(-newSmallRows).fill('')
-      }
-      return (
-        <div style={{...divStyle, position: 'relative'}}>
-          {row.showButton && !this.props.smallTeamsExpanded && (
-            <>
-              <div
-                className="grabLinesContainer"
-                draggable={row.showButton}
-                onDragStart={this.onDragStart}
-                style={styles.grabber as any}
-              >
-                <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
-                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                </Kb.Box2>
-              </div>
-              <Kb.Box style={styles.spacer} />
-            </>
-          )}
-          {this.props.dragY !== -1 && (
-            <Kb.Box2
-              direction="vertical"
-              style={Kb.Styles.collapseStyles([
-                styles.fakeRowContainer,
-                {
-                  bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
-                  height:
-                    (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
-                  top: expandingRows.length ? 0 : undefined,
-                },
-              ])}
-            >
-              {expandingRows.map((_, idx) => (
-                <FakeRow idx={idx} key={idx} />
-              ))}
-              {removingRows.map((_, idx) => (
-                <FakeRemovingRow key={idx} />
-              ))}
-            </Kb.Box2>
-          )}
-          <TeamsDivider
-            hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
-            key="divider"
-            toggle={this.props.toggleSmallTeamsExpanded}
-            showButton={row.showButton}
-            rows={this.props.rows}
-            smallTeamsExpanded={this.props.smallTeamsExpanded}
-          />
-        </div>
-      )
-    }
-    if (row.type === 'teamBuilder') {
-      return (
-        <div style={divStyle}>
-          <BuildTeam />
-        </div>
-      )
-    }
-
-    // pointer events on so you can click even right after a scroll
-    return (
-      <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-        {makeRow(row, this.props.navKey, this.props.selectedConversationIDKey === row.conversationIDKey)}
-      </div>
-    )
-  }
-
-  private calculateShowUnreadShortcut = () => {
-    if (!this.mounted) {
-      return
-    }
-    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
-      if (this.props.showUnread) {
-        this.props.setShowUnread(false)
-      }
-      return
-    }
-
-    let unreadCount = 0
-    let firstOffscreenIdx = 0
-    this.props.unreadIndices.forEach((count, idx) => {
-      if (idx > this.lastVisibleIdx) {
-        if (firstOffscreenIdx <= 0) {
-          firstOffscreenIdx = idx
-        }
-        unreadCount += count
-      }
-    })
-    if (firstOffscreenIdx) {
-      this.props.setShowUnread(true)
-      this.props.setUnreadCount(unreadCount)
-      this.firstOffscreenIdx = firstOffscreenIdx
-    } else {
-      this.props.setShowUnread(false)
-      this.props.setUnreadCount(0)
-      this.firstOffscreenIdx = -1
-    }
-  }
-
-  private calculateShowUnreadShortcutThrottled = throttle(this.calculateShowUnreadShortcut, 100)
-
-  private calculateShowFloating = () => {
-    if (this.lastVisibleIdx < 0) {
-      return
-    }
-    let showFloating = true
-    const row = this.props.rows[this.lastVisibleIdx]
-    if (!row || row.type !== 'small') {
-      showFloating = false
-    }
-
-    if (this.props.showFloating !== showFloating) {
-      this.props.setShowFloating(showFloating)
-    }
-  }
-
   private onItemsRendered = ({
     visibleStartIndex,
     visibleStopIndex,
@@ -277,13 +309,13 @@ class InboxOld extends React.Component<
     visibleStartIndex: number
     visibleStopIndex: number
   }) => {
-    this.lastVisibleIdx = visibleStopIndex
-    this.calculateShowUnreadShortcutThrottled()
+    this.props.lastVisibleIdx.current = visibleStopIndex
+    this.props.calculateShowUnreadShortcutThrottled()
     this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
   }
 
   private onItemsRenderedDebounced = debounce((p: {visibleStartIndex: number; visibleStopIndex: number}) => {
-    if (!this.mounted) {
+    if (!this.props.mounted) {
       return
     }
     const {visibleStartIndex, visibleStopIndex} = p
@@ -295,40 +327,40 @@ class InboxOld extends React.Component<
         }
         return arr
       }, [])
-    this.calculateShowFloating()
+    this.props.calculateShowFloating()
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
   private scrollToUnread = () => {
-    if (this.firstOffscreenIdx <= 0 || !this.scrollDiv.current) {
+    if (this.props.firstOffscreenIdx.current <= 0 || !this.props.scrollDiv.current) {
       return
     }
     let top = 100 // give it some space below
-    for (let i = this.lastVisibleIdx; i <= this.firstOffscreenIdx; i++) {
-      top += this.itemSizeGetter(i)
+    for (let i = this.props.lastVisibleIdx.current; i <= this.props.firstOffscreenIdx.current; i++) {
+      top += this.props.itemSizeGetter(i)
     }
-    this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
+    this.props.scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
-  private listChild = ({index, style}: {index: number; style: Object}) => this.itemRenderer(index, style)
+  private listChild = ({index, style}: {index: number; style: Object}) =>
+    this.props.itemRenderer(index, style)
 
   private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
+    if (
+      this.props.scrollDiv.current &&
+      e.dataTransfer.types.length > 0 &&
+      e.dataTransfer.types[0] === dragKey
+    ) {
       this.props.setDragY(
-        e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop
+        e.clientY -
+          this.props.scrollDiv.current.getBoundingClientRect().top +
+          this.props.scrollDiv.current.scrollTop
       )
     }
   }
 
-  private deltaNewSmallRows = () => {
-    if (this.props.dragY === -1) {
-      return 0
-    }
-    return Math.max(0, Math.floor(this.props.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
-  }
-
   private onDrop = () => {
-    const delta = this.deltaNewSmallRows()
+    const delta = this.props.deltaNewSmallRows()
     if (delta !== 0) {
       this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + delta)
     }
@@ -336,7 +368,7 @@ class InboxOld extends React.Component<
   }
 
   private scrollToBigTeams = () => {
-    if (!this.scrollDiv.current) return
+    if (!this.props.scrollDiv.current) return
 
     if (this.props.smallTeamsExpanded) {
       this.props.toggleSmallTeamsExpanded()
@@ -344,11 +376,11 @@ class InboxOld extends React.Component<
 
     // Should we scroll?
     const top = this.props.inboxNumSmallRows * smallRowHeight
-    const boundingHeight = this.scrollDiv.current.getBoundingClientRect().height
+    const boundingHeight = this.props.scrollDiv.current.getBoundingClientRect().height
     const dragHeight = 76 // grabbed from inspector
-    const currentScrollTop = this.scrollDiv.current.scrollTop
+    const currentScrollTop = this.props.scrollDiv.current.scrollTop
     if (boundingHeight + currentScrollTop < top + dragHeight) {
-      this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
+      this.props.scrollDiv.current.scrollBy({behavior: 'smooth', top})
     }
   }
 
@@ -364,7 +396,7 @@ class InboxOld extends React.Component<
             onDragEnd={this.onDrop}
             onDragOver={this.onDragOver}
             onDrop={this.onDrop}
-            ref={this.dragList}
+            ref={this.props.dragListRef}
           >
             {this.props.rows.length ? (
               <AutoSizer>
@@ -380,11 +412,11 @@ class InboxOld extends React.Component<
                     <VariableSizeList
                       height={height}
                       width={width}
-                      ref={this.listRef}
-                      outerRef={this.scrollDiv}
+                      ref={this.props.listRef}
+                      outerRef={this.props.scrollDiv}
                       onItemsRendered={this.onItemsRendered}
                       itemCount={this.props.rows.length}
-                      itemSize={this.itemSizeGetter}
+                      itemSize={this.props.itemSizeGetter}
                       estimatedItemSize={56}
                       itemData={
                         this.props.dragY === -1
