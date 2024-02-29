@@ -1,14 +1,14 @@
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
-import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import logger from '@/logger'
 import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
 
 class NativeTransport extends TransportShared {
   constructor(
-    incomingRPCCallback: incomingRPCCallbackType,
-    connectCallback?: connectDisconnectCB,
-    disconnectCallback?: connectDisconnectCB
+    incomingRPCCallback: IncomingRPCCallbackType,
+    connectCallback?: ConnectDisconnectCB,
+    disconnectCallback?: ConnectDisconnectCB
   ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
@@ -52,9 +52,9 @@ class NativeTransport extends TransportShared {
 }
 
 function createClient(
-  incomingRPCCallback: incomingRPCCallbackType,
-  connectCallback: connectDisconnectCB,
-  disconnectCallback: connectDisconnectCB
+  incomingRPCCallback: IncomingRPCCallbackType,
+  connectCallback: ConnectDisconnectCB,
+  disconnectCallback: ConnectDisconnectCB
 ) {
   const client = sharedCreateClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)

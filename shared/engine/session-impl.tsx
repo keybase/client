@@ -3,7 +3,7 @@ import {
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
 } from '@/constants/types/rpc-gen'
-import {rpcLog, type invokeType} from './index.platform'
+import {rpcLog, type InvokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
@@ -35,7 +35,7 @@ class Session {
   _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
 
   // Allow us to make calls
-  _invoke: invokeType
+  _invoke: InvokeType
 
   // Outstanding requests
   _outgoingRequests: Array<{method: string}> = []
@@ -46,7 +46,7 @@ class Session {
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: WaitingKey
-    invoke: invokeType
+    invoke: InvokeType
     endHandler: EndHandlerType
     cancelHandler?: CancelHandlerType
     dangling?: boolean

@@ -9,26 +9,27 @@ export type SendArg = [number, number, unknown, unknown]
 // Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
 // a list of arguments, but it expects exactly one element with keyed
 // arguments.
-export type invokeType = (method: string, args: [Object], cb: (err: any, data: any) => void) => void
-export type createClientType = {
+export type InvokeType = (method: string, args: [Object], cb: (err: any, data: any) => void) => void
+export type CreateClientType = {
   transport: {
     needsConnect: boolean
     reset: () => void
+    send: (buf: Uint8Array) => void
   }
-  invoke: invokeType
+  invoke: InvokeType
 }
 
-export type incomingRPCCallbackType = (payload: PayloadType) => void
-export type rpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
-export type connectDisconnectCB = () => void
+export type IncomingRPCCallbackType = (payload: PayloadType) => void
+export type RpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
+export type ConnectDisconnectCB = () => void
 
 declare function createClient(
-  incomingRPCCallback: incomingRPCCallbackType,
-  connectCallback: connectDisconnectCB,
-  disconnectCallback: connectDisconnectCB
-): createClientType
+  incomingRPCCallback: IncomingRPCCallbackType,
+  connectCallback: ConnectDisconnectCB,
+  disconnectCallback: ConnectDisconnectCB
+): CreateClientType
 
-declare function resetClient(client: createClientType): void
+declare function resetClient(client: CreateClientType): void
 
 declare function rpcLog(arg0: {method: string; reason?: string; extra?: Object; type: string}): void
 

@@ -4,11 +4,11 @@ import engineListener from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {SessionID, SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
-import {printOutstandingRPCs, isTesting} from '@/local-debug'
-import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
+import {printOutstandingRPCs} from '@/local-debug'
+import {resetClient, createClient, rpcLog, type CreateClientType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
 
@@ -32,7 +32,7 @@ class Engine {
   // Tracking outstanding sessions
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
-  _rpcClient: createClientType
+  _rpcClient: CreateClientType
   // Set which actions we don't auto respond with so listeners can themselves
   _customResponseAction: {[K in MethodKey]: true} = {
     'keybase.1.rekeyUI.delegateRekeyUI': true,
@@ -48,8 +48,8 @@ class Engine {
 
   _emitWaiting: (changes: BatchParams) => void
 
-  _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
-  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
+  _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
+  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
   }
@@ -278,50 +278,6 @@ class Engine {
   }
 }
 
-// Dummy engine for snapshotting
-class FakeEngine {
-  _deadSessionsMap: {[K in SessionIDKey]: Session} = {} // just to bookkeep
-  _sessionsMap: {[K in SessionIDKey]: Session} = {}
-  constructor() {
-    logger.info('Engine disabled!')
-    this._sessionsMap = {}
-  }
-  reset() {}
-  cancelSession(_: SessionID) {}
-  rpc() {}
-  setFailOnError() {}
-  setIncomingActionCreator(
-    _: MethodKey,
-    __: (a: {param: Object; response: Object | undefined; state: unknown}) => unknown
-  ) {}
-  createSession(
-    _: IncomingCallMapType | undefined,
-    __: WaitingHandlerType | undefined,
-    ___: CancelHandlerType | undefined,
-    ____: boolean = false
-  ) {
-    return new Session({
-      endHandler: () => {},
-      incomingCallMap: undefined,
-      invoke: () => {},
-      sessionID: 0,
-    })
-  }
-  _channelMapRpcHelper(_: Array<string>, __: string, ___: unknown) {
-    return null
-  }
-  _rpcOutgoing(
-    _: string,
-    __:
-      | {
-          incomingCallMap?: unknown
-          waitingHandler?: WaitingHandlerType
-        }
-      | undefined,
-    ___: (...args: Array<unknown>) => void
-  ) {}
-}
-
 // don't overwrite this on HMR
 let engine: Engine | undefined
 if (__DEV__) {
@@ -338,16 +294,14 @@ const makeEngine = (
   }
 
   if (!engine) {
-    engine = isTesting
-      ? (new FakeEngine() as unknown as Engine)
-      : new Engine(emitWaiting, onConnected, allowIncomingCalls)
-    initEngine(engine as any)
+    engine = new Engine(emitWaiting, onConnected, allowIncomingCalls)
+    initEngine(engine)
     initEngineListener(engineListener)
   }
   return engine
 }
 
-const getEngine = (): Engine | FakeEngine => {
+const getEngine = (): Engine => {
   if (!engine) {
     throw new Error('Engine needs to be initialized first')
   }
