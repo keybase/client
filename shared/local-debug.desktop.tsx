@@ -7,12 +7,9 @@ let config = {
   allowMultipleInstances: false, // let more run
   debugFullLogs: false, // only for getting full action logs in debug mode
   featureFlagsOverride: '' as string | undefined, // Override feature flags
-  filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
-  immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
-  isTesting: false, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -30,7 +27,6 @@ let config = {
 // Developer settings
 if (__DEV__) {
   config.debugFullLogs = false
-  config.filterActionLogs = null // '^chat|entity'
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPC = true
@@ -62,10 +58,8 @@ if (config.PERF) {
   c.error = noop
   c.info = noop
 
-  config.filterActionLogs = null
   config.forceImmediateLogging = false
   config.ignoreDisconnectOverlay = false
-  config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPC = false
@@ -77,12 +71,9 @@ export const {
   allowMultipleInstances,
   debugFullLogs,
   featureFlagsOverride,
-  filterActionLogs,
   forceImmediateLogging,
   ignoreDisconnectOverlay,
-  immediateStateLogging,
   isDevApplePushToken,
-  isTesting,
   partyMode,
   printOutstandingRPCs,
   printOutstandingTimerListeners,

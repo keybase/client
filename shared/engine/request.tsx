@@ -1,6 +1,6 @@
 // Incoming and outgoing requests that are in a session
 import type {MethodKey, ResponseType} from './types'
-import type {invokeType} from './index.platform'
+import type {InvokeType} from './index.platform'
 import type {RPCError} from '@/util/errors'
 
 type SimpleWaiting = (waiting: boolean, err?: RPCError) => void
@@ -72,14 +72,14 @@ class OutgoingRequest extends Request {
   // Callback when we've gotten a response
   _callback: (err: RPCError | undefined, data: unknown) => void
   // How we make calls
-  _invoke: invokeType
+  _invoke: InvokeType
 
   constructor(
     method: MethodKey,
     param: Object,
     callback: (err: RPCError | undefined, data: unknown) => void,
     waitingHandler: SimpleWaiting,
-    invoke: invokeType
+    invoke: InvokeType
   ) {
     super(method, param, waitingHandler)
     this._invoke = invoke

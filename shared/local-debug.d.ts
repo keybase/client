@@ -1,11 +1,8 @@
 export declare const allowMultipleInstances: boolean
 export declare const featureFlagsOverride: boolean
-export declare const filterActionLogs: boolean
 export declare const forceImmediateLogging: boolean
 export declare const ignoreDisconnectOverlay: boolean
-export declare const immediateStateLogging: boolean
 export declare const isDevApplePushToken: boolean
-export declare const isTesting: boolean
 export declare const partyMode: boolean
 export declare const printOutstandingRPCs: boolean
 export declare const printOutstandingTimerListeners: boolean

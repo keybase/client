@@ -24,12 +24,9 @@ const config = {
   allowMultipleInstances: false,
   debugFullLogs: false,
   featureFlagsOverride: '', // Override feature flags
-  filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,
-  immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting: false, // NativeModules.Storybook.isStorybook, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -46,7 +43,6 @@ const config = {
 
 // Developer settings
 if (__DEV__) {
-  config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
@@ -97,9 +93,7 @@ if (PERF) {
   window.console.error = noop
   window.console.info = noop
 
-  config.filterActionLogs = null
   config.forceImmediateLogging = false
-  config.immediateStateLogging = false
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPC = false
@@ -124,12 +118,9 @@ if (serverConfig) {
 export const {
   allowMultipleInstances,
   featureFlagsOverride,
-  filterActionLogs,
   forceImmediateLogging,
   ignoreDisconnectOverlay,
-  immediateStateLogging,
   isDevApplePushToken,
-  isTesting,
   partyMode,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
