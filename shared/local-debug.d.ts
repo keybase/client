@@ -3,7 +3,6 @@ export declare const featureFlagsOverride: boolean
 export declare const forceImmediateLogging: boolean
 export declare const ignoreDisconnectOverlay: boolean
 export declare const isDevApplePushToken: boolean
-export declare const partyMode: boolean
 export declare const printOutstandingRPCs: boolean
 export declare const printOutstandingTimerListeners: boolean
 export declare const printRPC: boolean
@@ -13,5 +12,3 @@ export declare const printRPCWaitingSession: boolean
 export declare const showDevTools: boolean
 export declare const skipAppFocusActions: boolean
 export declare const skipSecondaryDevtools: boolean
-export declare const userTimings: boolean
-export declare const debugFullLogs: boolean
