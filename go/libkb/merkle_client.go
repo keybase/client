@@ -18,7 +18,6 @@ import (
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/sig3"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -2016,9 +2015,8 @@ const (
 )
 
 type MerkleHiddenResponse struct {
-	RespType            MerkleHiddenResponseType `json:"resp_type"`
-	CommittedHiddenTail *sig3.Tail               `json:"committed_hidden_tail"`
-	UncommittedSeqno    keybase1.Seqno           `json:"uncommitted_seqno"`
+	RespType         MerkleHiddenResponseType `json:"resp_type"`
+	UncommittedSeqno keybase1.Seqno           `json:"uncommitted_seqno"`
 }
 
 func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
@@ -2026,13 +2024,6 @@ func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
 		return 0
 	}
 	return m.UncommittedSeqno
-}
-
-func (m *MerkleHiddenResponse) GetCommittedSeqno() keybase1.Seqno {
-	if m == nil || m.RespType != MerkleHiddenResponseTypeOK {
-		return 0
-	}
-	return m.CommittedHiddenTail.Seqno
 }
 
 type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)

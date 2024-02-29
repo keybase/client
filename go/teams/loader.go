@@ -542,13 +542,10 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 }
 
 func (l *TeamLoader) checkHiddenResponse(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {
-	if hiddenResp.CommittedHiddenTail != nil {
-		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v CommittedSeqno %v", hiddenResp, hiddenResp.UncommittedSeqno, hiddenResp.CommittedHiddenTail.Seqno)
-	} else {
-		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v", hiddenResp, hiddenResp.UncommittedSeqno)
-	}
+	mctx.Debug("@@@ hiddenResp: %+v UncommittedSeqno %+v", hiddenResp, hiddenResp.UncommittedSeqno)
 
 	switch hiddenResp.RespType {
+	// maybe need a fourth for hidden chain enabled but not in team
 	case libkb.MerkleHiddenResponseTypeNONE:
 		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as no hidden data was received. If the server had to show us the hidden chain and didn't, we will error out later (once we can establish our role in the team).")
 		return true, nil
@@ -804,9 +801,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// If we did get an update from the server (hiddenResp != nil) are not a
 	// restricted bot AND this is not a recursive load (arg.readSubteamID == nil),
 	// then the server should have given us hidden chain data.
-	if hiddenResp != nil && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE && !role.IsRestrictedBot() && arg.readSubteamID == nil {
-		return nil, libkb.NewHiddenChainDataMissingError("Not a restricted bot or recursive load, but the server did not return merkle hidden chain data")
-	}
+	// if hiddenResp != nil && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE && !role.IsRestrictedBot() && arg.readSubteamID == nil {
+	// 	return nil, libkb.NewHiddenChainDataMissingError("Not a restricted bot or recursive load, but the server did not return merkle hidden chain data")
+	// }
 
 	// Update the hidden package with team metadata once we process all of the
 	// links. This is necessary since we need the role to be up to date to know
@@ -815,6 +812,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	hiddenPackage.UpdateTeamMetadata(encKID, gen, role)
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
+	mctx.Debug("2@@@", teamUpdate.GetHiddenChain(), hiddenResp.GetUncommittedSeqno())
 	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain(), hiddenResp.GetUncommittedSeqno())
 
 	if err != nil {

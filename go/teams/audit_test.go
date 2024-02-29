@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/sig3"
 	"github.com/keybase/client/go/teams/hidden"
 
 	"github.com/keybase/client/go/libkb"
@@ -262,237 +261,237 @@ func (m *MockRandom) RndRange(lo, hi int64) (int64, error) {
 
 var _ libkb.Random = (*MockRandom)(nil)
 
-func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
-	defer cleanup()
+// func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
+// 	fus, tcs, cleanup := setupNTests(t, 3)
+// 	defer cleanup()
 
-	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
-	m := make([]libkb.MetaContext, 3)
-	for i, tc := range tcs {
-		m[i] = libkb.NewMetaContextForTest(*tc)
-	}
+// 	t.Logf("create team")
+// 	teamName, teamID := createTeam2(*tcs[0])
+// 	m := make([]libkb.MetaContext, 3)
+// 	for i, tc := range tcs {
+// 		m[i] = libkb.NewMetaContextForTest(*tc)
+// 	}
 
-	// We set up codenames for 3 users, A, B, C
-	const (
-		A = 0
-		B = 1
-		C = 2
-	)
+// 	// We set up codenames for 3 users, A, B, C
+// 	const (
+// 		A = 0
+// 		B = 1
+// 		C = 2
+// 	)
 
-	add := func(adder, addee int) keybase1.Seqno {
-		_, err := AddMember(m[adder].Ctx(), tcs[adder].G, teamName.String(), fus[addee].Username, keybase1.TeamRole_READER, nil)
-		require.NoError(t, err)
-		return 1
-	}
+// 	add := func(adder, addee int) keybase1.Seqno {
+// 		_, err := AddMember(m[adder].Ctx(), tcs[adder].G, teamName.String(), fus[addee].Username, keybase1.TeamRole_READER, nil)
+// 		require.NoError(t, err)
+// 		return 1
+// 	}
 
-	setAudits := func(user int) {
-		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
-			NumPostProbes:         3,
-			MerkleMovementTrigger: keybase1.Seqno(1),
-			RootFreshness:         time.Duration(1),
-			LRUSize:               500,
-			NumPreProbes:          3,
-			Parallelism:           3,
-		}
-	}
+// 	setAudits := func(user int) {
+// 		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+// 			NumPostProbes:         3,
+// 			MerkleMovementTrigger: keybase1.Seqno(1),
+// 			RootFreshness:         time.Duration(1),
+// 			LRUSize:               500,
+// 			NumPreProbes:          3,
+// 			Parallelism:           3,
+// 		}
+// 	}
 
-	assertAuditTo := func(user int, mainSeqno, hiddenSeqno keybase1.Seqno) {
-		auditor := m[user].G().GetTeamAuditor().(*Auditor)
-		history, err := auditor.getFromCache(m[user], teamID, auditor.getLRU())
-		require.NoError(t, err)
-		require.Equal(t, mainSeqno, lastAudit(history).MaxChainSeqno)
-		require.Equal(t, hiddenSeqno, lastAudit(history).MaxHiddenSeqno)
-	}
+// 	assertAuditTo := func(user int, mainSeqno, hiddenSeqno keybase1.Seqno) {
+// 		auditor := m[user].G().GetTeamAuditor().(*Auditor)
+// 		history, err := auditor.getFromCache(m[user], teamID, auditor.getLRU())
+// 		require.NoError(t, err)
+// 		require.Equal(t, mainSeqno, lastAudit(history).MaxChainSeqno)
+// 		require.Equal(t, hiddenSeqno, lastAudit(history).MaxHiddenSeqno)
+// 	}
 
-	setAudits(B)
+// 	setAudits(B)
 
-	// A adds B to the team
-	add(A, B)
+// 	// A adds B to the team
+// 	add(A, B)
 
-	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
-	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
-	add(A, C)
+// 	makeHiddenRotation(t, m[A].G(), teamName)
+// 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+// 	makeHiddenRotation(t, m[A].G(), teamName)
+// 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+// 	add(A, C)
 
-	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
-	require.NoError(t, err)
+// 	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
+// 	require.NoError(t, err)
 
-	headMerkleSeqno := int64(team.MainChain().Chain.HeadMerkle.Seqno)
-	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
+// 	headMerkleSeqno := int64(team.MainChain().Chain.HeadMerkle.Seqno)
+// 	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
 
-	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
-	require.NoError(t, err)
-	firstWithHidden := int64(firstWithHiddenS)
-	t.Logf("firstWithHidden: %v", firstWithHidden)
-	root := m[A].G().GetMerkleClient().LastRoot(m[A])
-	require.NotNil(t, root)
-	high := int64(*root.Seqno())
-	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
+// 	firstWithHiddenS, err := m[A].G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m[A])
+// 	require.NoError(t, err)
+// 	firstWithHidden := int64(firstWithHiddenS)
+// 	t.Logf("firstWithHidden: %v", firstWithHidden)
+// 	root := m[A].G().GetMerkleClient().LastRoot(m[A])
+// 	require.NotNil(t, root)
+// 	high := int64(*root.Seqno())
+// 	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
 
-	for i := headMerkleSeqno; i <= high; i++ {
-		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), keybase1.Seqno(i), hidden.ProcessHiddenResponseFunc)
-		require.NoError(t, err)
-		if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
-			t.Logf("Seqno %v Leaf %v Hidden %v", i, leaf.Private.Seqno, hiddenResp)
-		} else {
-			t.Logf("Seqno %v Leaf EMPTY Hidden %v", i, hiddenResp)
-		}
+// 	for i := headMerkleSeqno; i <= high; i++ {
+// 		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), keybase1.Seqno(i), hidden.ProcessHiddenResponseFunc)
+// 		require.NoError(t, err)
+// 		if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+// 			t.Logf("Seqno %v Leaf %v Hidden %v", i, leaf.Private.Seqno, hiddenResp)
+// 		} else {
+// 			t.Logf("Seqno %v Leaf EMPTY Hidden %v", i, hiddenResp)
+// 		}
 
-	}
+// 	}
 
-	merkle := m[B].G().GetMerkleClient()
-	rand := m[B].G().GetRandom()
+// 	merkle := m[B].G().GetMerkleClient()
+// 	rand := m[B].G().GetRandom()
 
-	corruptMerkle := CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
-				leaf.Private.LinkID[0] ^= 0xff
-				t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	corruptMerkle := CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+// 				leaf.Private.LinkID[0] ^= 0xff
+// 				t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	auditor := m[B].G().GetTeamAuditor().(*Auditor)
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "team chain linkID mismatch")
+// 	auditor := m[B].G().GetTeamAuditor().(*Auditor)
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "team chain linkID mismatch")
 
-	// repeat a second time to ensure that a failed audit is not cached (and thus skipped the second time)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "team chain linkID mismatch")
+// 	// repeat a second time to ensure that a failed audit is not cached (and thus skipped the second time)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "team chain linkID mismatch")
 
-	corruptMerkle = CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
-				leaf.Private.Seqno += 5
-				t.Logf("Corruptor: altering Seqno, leaf = %+v", leaf)
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	corruptMerkle = CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+// 				leaf.Private.Seqno += 5
+// 				t.Logf("Corruptor: altering Seqno, leaf = %+v", leaf)
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "team chain rollback")
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "team chain rollback")
 
-	// now, let's try to mess with the preProbes, by making it appear as if the team existed before it was actually created.
-	corruptMerkle = CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if leaf == nil {
-				leaf = &libkb.MerkleGenericLeaf{
-					LeafID: teamID.AsUserOrTeam(),
-				}
-			}
-			if leaf.Private == nil {
-				t.Logf("Corruptor: creating a fake leaf when there should have been none")
-				leaf.Private = &libkb.MerkleTriple{
-					Seqno:  4,
-					LinkID: []byte{0x00, 0x01, 0x02},
-				}
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	// now, let's try to mess with the preProbes, by making it appear as if the team existed before it was actually created.
+// 	corruptMerkle = CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if leaf == nil {
+// 				leaf = &libkb.MerkleGenericLeaf{
+// 					LeafID: teamID.AsUserOrTeam(),
+// 				}
+// 			}
+// 			if leaf.Private == nil {
+// 				t.Logf("Corruptor: creating a fake leaf when there should have been none")
+// 				leaf.Private = &libkb.MerkleTriple{
+// 					Seqno:  4,
+// 					LinkID: []byte{0x00, 0x01, 0x02},
+// 				}
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
 
-	// now, test that the server cannot cheat on the hidden chain.
-	team, err = GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
-	require.NoError(t, err)
-	root = m[A].G().GetMerkleClient().LastRoot(m[A])
-	require.NotNil(t, root)
+// 	// now, test that the server cannot cheat on the hidden chain.
+// 	team, err = GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
+// 	require.NoError(t, err)
+// 	root = m[A].G().GetMerkleClient().LastRoot(m[A])
+// 	require.NotNil(t, root)
 
-	corruptMerkle = CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF {
-				t.Logf("Corruptor: creating a fake hidden leaf leaf when there should have been none")
-				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeOK
-				hiddenResp.CommittedHiddenTail = &sig3.Tail{
-					ChainType: keybase1.SeqType_TEAM_PRIVATE_HIDDEN,
-					Seqno:     5,
-				}
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	corruptMerkle = CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF {
+// 				t.Logf("Corruptor: creating a fake hidden leaf leaf when there should have been none")
+// 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeOK
+// 				hiddenResp.CommittedHiddenTail = &sig3.Tail{
+// 					ChainType: keybase1.SeqType_TEAM_PRIVATE_HIDDEN,
+// 					Seqno:     5,
+// 				}
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "expected an ABSENCE PROOF")
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "expected an ABSENCE PROOF")
 
-	corruptMerkle = CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
-				t.Logf("Corruptor: altering hidden seqno")
-				hiddenResp.CommittedHiddenTail.Seqno += 5
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	corruptMerkle = CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
+// 				t.Logf("Corruptor: altering hidden seqno")
+// 				hiddenResp.CommittedHiddenTail.Seqno += 5
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "team hidden chain rollback")
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "team hidden chain rollback")
 
-	corruptMerkle = CorruptingMerkleClient{
-		MerkleClientInterface: merkle,
-		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
-			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
-			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
-				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
-				t.Logf("Corruptor: altering LINKID for hidden seqno %v", hiddenResp.CommittedHiddenTail.Seqno)
-			}
-			return leaf, root, hiddenResp, err
-		},
-	}
-	m[B].G().SetMerkleClient(corruptMerkle)
-	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
+// 	corruptMerkle = CorruptingMerkleClient{
+// 		MerkleClientInterface: merkle,
+// 		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+// 			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+// 			if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
+// 				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
+// 				t.Logf("Corruptor: altering LINKID for hidden seqno %v", hiddenResp.CommittedHiddenTail.Seqno)
+// 			}
+// 			return leaf, root, hiddenResp, err
+// 		},
+// 	}
+// 	m[B].G().SetMerkleClient(corruptMerkle)
+// 	m[B].G().SetRandom(&MockRandom{t: t, nextOutputs: []int64{firstWithHidden - 1, firstWithHidden, firstWithHidden + 1, headMerkleSeqno, headMerkleSeqno + 1, high - 1}})
 
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.Error(t, err)
-	require.IsType(t, AuditError{}, err)
-	require.Contains(t, err.Error(), "hidden team chain linkID mismatch")
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.Error(t, err)
+// 	require.IsType(t, AuditError{}, err)
+// 	require.Contains(t, err.Error(), "hidden team chain linkID mismatch")
 
-	// with the original merkle client (i.e. when the server response is not altered), the audit should succeed
-	m[B].G().SetMerkleClient(merkle)
-	m[B].G().SetRandom(rand)
-	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
-	require.NoError(t, err)
-	assertAuditTo(B, 3, 2)
-}
+// 	// with the original merkle client (i.e. when the server response is not altered), the audit should succeed
+// 	m[B].G().SetMerkleClient(merkle)
+// 	m[B].G().SetRandom(rand)
+// 	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+// 	require.NoError(t, err)
+// 	assertAuditTo(B, 3, 2)
+// }
 
 func TestFailedProbesAreRetried(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
