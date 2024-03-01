@@ -506,7 +506,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const e = s.encrypt
         resetOutput(e)
-        e.recipients = []
+        e.recipients = T.castDraft(initialStore.encrypt.recipients)
         // Reset options since they depend on the recipients
         e.options = initialStore.encrypt.options
         e.meta = initialStore.encrypt.meta
