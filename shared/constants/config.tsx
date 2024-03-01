@@ -201,7 +201,7 @@ type State = Store & {
     onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
-    openUnlockFolders: (devices: Array<T.RPCGen.Device>) => void
+    openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -288,7 +288,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
     }
     set(s => {
-      s.gregorPushState = goodState
+      s.gregorPushState = T.castDraft(goodState)
     })
 
     const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
@@ -327,10 +327,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (!stats) {
         s.runtimeStats = stats
       } else {
-        s.runtimeStats = {
+        s.runtimeStats = T.castDraft({
           ...s.runtimeStats,
           ...stats,
-        }
+        })
       }
     })
   }
@@ -941,7 +941,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     setBadgeState: b => {
       if (get().badgeState === b) return
       set(s => {
-        s.badgeState = b
+        s.badgeState = T.castDraft(b)
       })
 
       const updateDevices = () => {
@@ -974,7 +974,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         if (!b) return
         const deletedTeams = b.deletedTeams || []
         const newTeams = new Set<string>(b.newTeams || [])
-        const teamsWithResetUsers: Array<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
         const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
         teamsWithResetUsers.forEach(entry => {
           const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())

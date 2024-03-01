@@ -38,7 +38,7 @@ export const getChannelsWaitingKey = (teamID: T.Teams.TeamID) => `getChannels:${
 export const createChannelWaitingKey = (teamID: T.Teams.TeamID) => `createChannel:${teamID}`
 export const settingsWaitingKey = (teamID: T.Teams.TeamID) => `teamSettings:${teamID}`
 export const retentionWaitingKey = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
-export const addMemberWaitingKey = (teamID: T.Teams.TeamID, ...usernames: Array<string>) =>
+export const addMemberWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `teamAdd:${teamID};${usernames.join(',')}`
 export const addInviteWaitingKey = (teamname: T.Teams.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
@@ -54,7 +54,7 @@ export const loadWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `loadWel
 export const setWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `setWelcomeMessage:${teamID}`
 export const loadTeamTreeActivityWaitingKey = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`
-export const editMembershipWaitingKey = (teamID: T.Teams.TeamID, ...usernames: Array<string>) =>
+export const editMembershipWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `editMembership:${teamID};${usernames.join(',')}`
 export const updateChannelNameWaitingKey = (teamID: T.Teams.TeamID) => `updateChannelName:${teamID}`
 
@@ -67,7 +67,7 @@ export const initialMemberInfo = Object.freeze<T.Teams.MemberInfo>({
 })
 
 export const rpcDetailsToMemberInfos = (
-  members: Array<T.RPCGen.TeamMemberDetails>
+  members: ReadonlyArray<T.RPCGen.TeamMemberDetails>
 ): Map<string, T.Teams.MemberInfo> => {
   const infos: Array<[string, T.Teams.MemberInfo]> = []
   members.forEach(({fullName, joinTime, needsPUK, status, username, role}) => {
@@ -299,7 +299,7 @@ export const retentionPolicies = {
 }
 
 export const userIsRoleInTeamWithInfo = (
-  memberInfo: Map<string, T.Teams.MemberInfo>,
+  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
   username: string,
   role: T.Teams.TeamRoleType
 ): boolean => {
@@ -391,7 +391,7 @@ export const getDisabledReasonsForRolePicker = (
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
   const teamDetails = _useState.getState().teamDetails.get(teamID)
-  const members: Map<string, T.Teams.MemberInfo> =
+  const members: ReadonlyMap<string, T.Teams.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
@@ -497,8 +497,8 @@ export const isInTeam = (state: State, teamname: T.Teams.Teamname): boolean =>
 export const isInSomeTeam = (state: State): boolean =>
   [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
-export const getTeamResetUsers = (state: State, teamID: T.Teams.TeamID): Set<string> =>
-  state.teamIDToResetUsers.get(teamID) || new Set()
+export const getTeamResetUsers = (state: State, teamID: T.Teams.TeamID): ReadonlySet<string> =>
+  state.teamIDToResetUsers.get(teamID) ?? new Set()
 
 // Sorts teamnames canonically.
 export function sortTeamnames(a: string, b: string) {
@@ -513,7 +513,7 @@ export function sortTeamnames(a: string, b: string) {
   }
 }
 
-export const sortTeamsByName = memoize((teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>) =>
+export const sortTeamsByName = memoize((teamMeta: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
@@ -632,7 +632,7 @@ export const getTeamMemberLastActivity = (
 ): number | null => state.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
-  list: Array<T.RPCGen.AnnotatedMemberInfo>
+  list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>
 ): Map<T.Teams.TeamID, T.Teams.TeamMeta> => {
   return new Map(
     list.map(t => [
@@ -651,9 +651,9 @@ export const teamListToMeta = (
   )
 }
 
-type InviteDetails = {inviteLinks: Array<T.Teams.InviteLink>; invites: Set<T.Teams.InviteInfo>}
+type InviteDetails = {inviteLinks: ReadonlyArray<T.Teams.InviteLink>; invites: Set<T.Teams.InviteInfo>}
 const annotatedInvitesToInviteDetails = (
-  annotatedInvites: Array<T.RPCGen.AnnotatedTeamInvite> = []
+  annotatedInvites: ReadonlyArray<T.RPCGen.AnnotatedTeamInvite> = []
 ): InviteDetails =>
   annotatedInvites.reduce<InviteDetails>(
     (invitesAndLinks, annotatedInvite) => {
@@ -827,8 +827,8 @@ export const ratchetTeamVersion = (newVersion: T.Teams.TeamVersion, oldVersion?:
     : newVersion
 
 export const dedupAddingMembeers = (
-  _existing: Array<T.Teams.AddingMember>,
-  toAdds: Array<T.Teams.AddingMember>
+  _existing: ReadonlyArray<T.Teams.AddingMember>,
+  toAdds: ReadonlyArray<T.Teams.AddingMember>
 ) => {
   const existing = [..._existing]
   for (const toAdd of toAdds) {
@@ -889,7 +889,7 @@ export const maybeGetSparseMemberInfo = (state: State, teamID: string, username:
   return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
-export const countValidInviteLinks = (inviteLinks: Array<T.Teams.InviteLink>): Number => {
+export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): Number => {
   return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
       return t + 1
@@ -898,10 +898,10 @@ export const countValidInviteLinks = (inviteLinks: Array<T.Teams.InviteLink>): N
   }, 0)
 }
 
-export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<T.Teams.InviteLink>) =>
+export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
 
-export type Store = {
+export type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   addUserToTeamsResults: string
   addUserToTeamsState: T.Teams.AddUserToTeamsState
@@ -955,7 +955,7 @@ export type Store = {
   teamMemberToTreeMemberships: Map<T.Teams.TeamID, Map<string, T.Teams.TeamTreeMemberships>>
   teamMemberToLastActivity: Map<T.Teams.TeamID, Map<string, number>>
   teamProfileAddList: Array<T.Teams.TeamProfileAddList>
-}
+}>
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
@@ -1140,7 +1140,7 @@ export type State = Store & {
       clearAll?: boolean
     ) => void
     setNewTeamInfo: (
-      deletedTeams: Array<T.RPCGen.DeletedTeamInfo>,
+      deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
       newTeams: Set<T.Teams.TeamID>,
       teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
     ) => void

@@ -3,7 +3,7 @@ import type {RPCError} from '@/util/errors'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/types/rpc-all-gen'
 import type {CreateClientType} from './index.platform'
 
-export type BatchParams = Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>
+export type BatchParams = Array<{key: string | ReadonlyArray<string>; increment: boolean; error?: RPCError}>
 
 export type WaitingKey = string | ReadonlyArray<string>
 export declare class Engine {

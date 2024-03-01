@@ -5,26 +5,27 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {getEngine} from '../engine/require'
 
-type Store = {
+type Store = T.Immutable<{
   devices: C.ConfigStore['unlockFoldersDevices']
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
-}
+}>
 
 const initialStore: Store = {
   devices: [],
   phase: 'dead',
 }
 
-export type State = Store & {
-  dispatch: {
-    onBackFromPaperKey: () => void
-    onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
-    toPaperKeyInput: () => void
-    replace: (devices: Store['devices']) => void
-    resetState: 'default'
-  }
-}
+export type State = Store &
+  T.Immutable<{
+    dispatch: {
+      onBackFromPaperKey: () => void
+      onEngineConnected: () => void
+      onEngineIncoming: (action: EngineGen.Actions) => void
+      toPaperKeyInput: () => void
+      replace: (devices: Store['devices']) => void
+      resetState: 'default'
+    }
+  }>
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
 export const _useState = Z.createZustand<State>((set, _get) => {
@@ -75,7 +76,7 @@ export const _useState = Z.createZustand<State>((set, _get) => {
     },
     replace: devices => {
       set(s => {
-        s.devices = devices
+        s.devices = T.castDraft(devices)
       })
     },
     resetState: 'default',
