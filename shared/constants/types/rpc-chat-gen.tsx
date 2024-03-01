@@ -664,8 +664,9 @@ export type MessageTypes = {
 export enum ArchiveChatJobStatus {
   running = 0,
   paused = 1,
-  error = 2,
-  complete = 3,
+  backgroundPaused = 2,
+  error = 3,
+  complete = 4,
 }
 
 export enum AssetMetadataType {
@@ -1176,6 +1177,7 @@ export type ArchiveJobID = Bytes
 export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String}
 =======
 export type ArchiveChatConvCheckpoint = {readonly pagination: Pagination; readonly offset: Int64}
+export type ArchiveChatHistory = {readonly jobHistory?: {[key: string]: ArchiveChatJob} | null}
 export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String; readonly checkpoints?: {[key: string]: ArchiveChatConvCheckpoint} | null}
 >>>>>>> f5710a02e9 (pause/resume in memory)
 export type ArchiveChatJobRequest = {readonly jobID: ArchiveJobID; readonly outputPath: String; readonly query?: GetInboxLocalQuery | null; readonly compress: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}

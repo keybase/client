@@ -4309,8 +4309,9 @@
       "symbols": [
         "RUNNING_0",
         "PAUSED_1",
-        "ERROR_2",
-        "COMPLETE_3"
+        "BACKGROUND_PAUSED_2",
+        "ERROR_3",
+        "COMPLETE_4"
       ]
     },
     {
@@ -4323,6 +4324,20 @@
             "items": "ArchiveChatJob"
           },
           "name": "jobs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ArchiveChatHistory",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "ArchiveChatJob",
+            "keys": "ArchiveJobID"
+          },
+          "name": "jobHistory"
         }
       ]
     }

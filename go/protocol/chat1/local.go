@@ -6634,26 +6634,29 @@ func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
 type ArchiveChatJobStatus int
 
 const (
-	ArchiveChatJobStatus_RUNNING  ArchiveChatJobStatus = 0
-	ArchiveChatJobStatus_PAUSED   ArchiveChatJobStatus = 1
-	ArchiveChatJobStatus_ERROR    ArchiveChatJobStatus = 2
-	ArchiveChatJobStatus_COMPLETE ArchiveChatJobStatus = 3
+	ArchiveChatJobStatus_RUNNING           ArchiveChatJobStatus = 0
+	ArchiveChatJobStatus_PAUSED            ArchiveChatJobStatus = 1
+	ArchiveChatJobStatus_BACKGROUND_PAUSED ArchiveChatJobStatus = 2
+	ArchiveChatJobStatus_ERROR             ArchiveChatJobStatus = 3
+	ArchiveChatJobStatus_COMPLETE          ArchiveChatJobStatus = 4
 )
 
 func (o ArchiveChatJobStatus) DeepCopy() ArchiveChatJobStatus { return o }
 
 var ArchiveChatJobStatusMap = map[string]ArchiveChatJobStatus{
-	"RUNNING":  0,
-	"PAUSED":   1,
-	"ERROR":    2,
-	"COMPLETE": 3,
+	"RUNNING":           0,
+	"PAUSED":            1,
+	"BACKGROUND_PAUSED": 2,
+	"ERROR":             3,
+	"COMPLETE":          4,
 }
 
 var ArchiveChatJobStatusRevMap = map[ArchiveChatJobStatus]string{
 	0: "RUNNING",
 	1: "PAUSED",
-	2: "ERROR",
-	3: "COMPLETE",
+	2: "BACKGROUND_PAUSED",
+	3: "ERROR",
+	4: "COMPLETE",
 }
 
 func (e ArchiveChatJobStatus) String() string {
@@ -6680,6 +6683,27 @@ func (o ArchiveChatListRes) DeepCopy() ArchiveChatListRes {
 			}
 			return ret
 		})(o.Jobs),
+	}
+}
+
+type ArchiveChatHistory struct {
+	JobHistory map[ArchiveJobID]ArchiveChatJob `codec:"jobHistory" json:"jobHistory"`
+}
+
+func (o ArchiveChatHistory) DeepCopy() ArchiveChatHistory {
+	return ArchiveChatHistory{
+		JobHistory: (func(x map[ArchiveJobID]ArchiveChatJob) map[ArchiveJobID]ArchiveChatJob {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[ArchiveJobID]ArchiveChatJob, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.JobHistory),
 	}
 }
 

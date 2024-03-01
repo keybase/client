@@ -1499,12 +1499,17 @@ protocol local {
   }
   enum ArchiveChatJobStatus {
     RUNNING_0,
-    PAUSED_1,
-    ERROR_2,
-    COMPLETE_3
+    PAUSED_1, // paused explicitly by the user
+    BACKGROUND_PAUSED_2, // paused because of background/shutting down the service
+    ERROR_3,
+    COMPLETE_4
   }
   record ArchiveChatListRes {
     array<ArchiveChatJob> jobs;
+  }
+  // DB Storage
+  record ArchiveChatHistory {
+    map<ArchiveJobID, ArchiveChatJob> jobHistory;
   }
 
   void archiveChatDelete(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
