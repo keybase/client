@@ -130,7 +130,6 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	if err != nil {
 		return res, err
 	}
-	p.Debug(ctx, "assetFromURLWithBody: %s", dat)
 	if int64(len(dat)) > p.maxAssetSize {
 		return res, fmt.Errorf("asset too large: %d > %d", len(dat), p.maxAssetSize)
 	}
@@ -173,7 +172,6 @@ func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
 	dat, err := io.ReadAll(body)
-	p.Debug(ctx, "uploadVideoWithBody: ", dat)
 	if err != nil {
 		return res, err
 	}
@@ -239,9 +237,8 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 		// set it (which means it will get used by the frontend)
 		vidBody, vidLength, err := giphy.Asset(libkb.NewMetaContext(ctx, p.G().ExternalG()),
 			raw.Giphy().Video.Url)
-		p.Debug(ctx, "vidBody: %s, vidLength: %s", vidBody, vidLength)
 		if err == nil && (imgLength == 0 || vidLength < imgLength) && vidLength < p.maxAssetSize {
-			p.Debug(ctx, "Package: found video: len: %d imgLength: %d", vidLength, imgLength)
+			p.Debug(ctx, "Package: found video: len: %d", vidLength)
 			defer vidBody.Close()
 			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, vidLength,
 				*raw.Giphy().Video)
