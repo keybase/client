@@ -649,15 +649,23 @@ type EphemeralTracker interface {
 	OnDbNuke(libkb.MetaContext) error
 }
 
+type CancelArchiveFn = func() chat1.ArchiveChatJob
 type ChatArchiveRegistry interface {
 	Resumable
 
 	// List all known jobs
 	List(ctx context.Context) (res chat1.ArchiveChatListRes, err error)
+	// Get a job for a specific ID
+	Get(ctx context.Context, jobID chat1.ArchiveJobID) (res chat1.ArchiveChatJob, err error)
 	// Delete a jobs metadata, cancels it if it is currently running
 	Delete(ctx context.Context, jobID chat1.ArchiveJobID) (err error)
 	// Sets (possibly updating) the job to the given state.
-	Set(ctx context.Context, cancel context.CancelFunc, job chat1.ArchiveChatJob) (err error)
+	// cancel stops a running job by cancelling it's context and returns it's current state
+	Set(ctx context.Context, cancel CancelArchiveFn, job chat1.ArchiveChatJob) (err error)
+	// Stop a running job
+	Pause(ctx context.Context, jobID chat1.ArchiveJobID) (err error)
+	// Resume a paused job
+	Resume(ctx context.Context, jobID chat1.ArchiveJobID) (err error)
 }
 
 type ServerConnection interface {

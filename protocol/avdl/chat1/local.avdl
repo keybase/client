@@ -1484,11 +1484,18 @@ protocol local {
 
   // List all (un-deleted) archive jobs
   ArchiveChatListRes archiveChatList(keybase1.TLFIdentifyBehavior identifyBehavior);
+  // Internal metadata, keyed by convid
+  record ArchiveChatConvCheckpoint {
+    Pagination pagination;
+    int64 offset;
+  }
   record ArchiveChatJob {
     ArchiveChatJobRequest request;
     gregor1.Time startedAt;
     ArchiveChatJobStatus status;
     string err; // Set iff status == ERROR
+    // convID -> checkpoint
+    map<string, ArchiveChatConvCheckpoint> checkpoints;
   }
   enum ArchiveChatJobStatus {
     RUNNING_0,
@@ -1501,4 +1508,6 @@ protocol local {
   }
 
   void archiveChatDelete(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void archiveChatPause(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void archiveChatResume(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

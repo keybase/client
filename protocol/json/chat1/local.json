@@ -4261,6 +4261,20 @@
     },
     {
       "type": "record",
+      "name": "ArchiveChatConvCheckpoint",
+      "fields": [
+        {
+          "type": "Pagination",
+          "name": "pagination"
+        },
+        {
+          "type": "int64",
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ArchiveChatJob",
       "fields": [
         {
@@ -4278,6 +4292,14 @@
         {
           "type": "string",
           "name": "err"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "ArchiveChatConvCheckpoint",
+            "keys": "string"
+          },
+          "name": "checkpoints"
         }
       ]
     },
@@ -6490,6 +6512,32 @@
       "response": "ArchiveChatListRes"
     },
     "archiveChatDelete": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "ArchiveJobID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
+    },
+    "archiveChatPause": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "ArchiveJobID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
+    },
+    "archiveChatResume": {
       "request": [
         {
           "name": "jobID",

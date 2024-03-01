@@ -6590,11 +6590,24 @@ func (o ArchiveChatRes) DeepCopy() ArchiveChatRes {
 	}
 }
 
+type ArchiveChatConvCheckpoint struct {
+	Pagination Pagination `codec:"pagination" json:"pagination"`
+	Offset     int64      `codec:"offset" json:"offset"`
+}
+
+func (o ArchiveChatConvCheckpoint) DeepCopy() ArchiveChatConvCheckpoint {
+	return ArchiveChatConvCheckpoint{
+		Pagination: o.Pagination.DeepCopy(),
+		Offset:     o.Offset,
+	}
+}
+
 type ArchiveChatJob struct {
-	Request   ArchiveChatJobRequest `codec:"request" json:"request"`
-	StartedAt gregor1.Time          `codec:"startedAt" json:"startedAt"`
-	Status    ArchiveChatJobStatus  `codec:"status" json:"status"`
-	Err       string                `codec:"err" json:"err"`
+	Request     ArchiveChatJobRequest                `codec:"request" json:"request"`
+	StartedAt   gregor1.Time                         `codec:"startedAt" json:"startedAt"`
+	Status      ArchiveChatJobStatus                 `codec:"status" json:"status"`
+	Err         string                               `codec:"err" json:"err"`
+	Checkpoints map[string]ArchiveChatConvCheckpoint `codec:"checkpoints" json:"checkpoints"`
 }
 
 func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
@@ -6603,6 +6616,18 @@ func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
 		StartedAt: o.StartedAt.DeepCopy(),
 		Status:    o.Status.DeepCopy(),
 		Err:       o.Err,
+		Checkpoints: (func(x map[string]ArchiveChatConvCheckpoint) map[string]ArchiveChatConvCheckpoint {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]ArchiveChatConvCheckpoint, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Checkpoints),
 	}
 }
 
@@ -7384,6 +7409,16 @@ type ArchiveChatDeleteArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type ArchiveChatPauseArg struct {
+	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ArchiveChatResumeArg struct {
+	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -7512,6 +7547,8 @@ type LocalInterface interface {
 	ArchiveChat(context.Context, ArchiveChatJobRequest) (ArchiveChatRes, error)
 	ArchiveChatList(context.Context, keybase1.TLFIdentifyBehavior) (ArchiveChatListRes, error)
 	ArchiveChatDelete(context.Context, ArchiveChatDeleteArg) error
+	ArchiveChatPause(context.Context, ArchiveChatPauseArg) error
+	ArchiveChatResume(context.Context, ArchiveChatResumeArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -9373,6 +9410,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"archiveChatPause": {
+				MakeArg: func() interface{} {
+					var ret [1]ArchiveChatPauseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ArchiveChatPauseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ArchiveChatPauseArg)(nil), args)
+						return
+					}
+					err = i.ArchiveChatPause(ctx, typedArgs[0])
+					return
+				},
+			},
+			"archiveChatResume": {
+				MakeArg: func() interface{} {
+					var ret [1]ArchiveChatResumeArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ArchiveChatResumeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ArchiveChatResumeArg)(nil), args)
+						return
+					}
+					err = i.ArchiveChatResume(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -10048,5 +10115,15 @@ func (c LocalClient) ArchiveChatList(ctx context.Context, identifyBehavior keyba
 
 func (c LocalClient) ArchiveChatDelete(ctx context.Context, __arg ArchiveChatDeleteArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.archiveChatDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ArchiveChatPause(ctx context.Context, __arg ArchiveChatPauseArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.archiveChatPause", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ArchiveChatResume(ctx context.Context, __arg ArchiveChatResumeArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.archiveChatResume", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

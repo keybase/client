@@ -4069,7 +4069,6 @@ func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJobReques
 		return chat1.ArchiveChatRes{}, err
 	}
 
-	h.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
 	return chat1.ArchiveChatRes{
 		IdentifyFailures: identBreaks,
 		OutputPath:       outpath,
@@ -4080,10 +4079,10 @@ func (h *Server) ArchiveChatList(ctx context.Context, identifyBehavior keybase1.
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks,
 		h.identNotifier)
-	defer h.Trace(ctx, &err, "ListArchiveChatJobs")()
+	defer h.Trace(ctx, &err, "ArchiveChatList")()
 	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		h.Debug(ctx, "ListArchiveChatJobs: not logged in: %s", err)
+		h.Debug(ctx, "ArchiveChatList: not logged in: %s", err)
 		return chat1.ArchiveChatListRes{}, nil
 	}
 
@@ -4094,12 +4093,40 @@ func (h *Server) ArchiveChatDelete(ctx context.Context, arg chat1.ArchiveChatDel
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
 		h.identNotifier)
-	defer h.Trace(ctx, &err, "ListArchiveChatJobs")()
+	defer h.Trace(ctx, &err, "ArchiveChatDelete")()
 	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		h.Debug(ctx, "ListArchiveChatJobs: not logged in: %s", err)
+		h.Debug(ctx, "ArchiveChatDelete: not logged in: %s", err)
 		return nil
 	}
 
 	return h.G().ArchiveRegistry.Delete(ctx, arg.JobID)
+}
+
+func (h *Server) ArchiveChatPause(ctx context.Context, arg chat1.ArchiveChatPauseArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatPause")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatPause: not logged in: %s", err)
+		return nil
+	}
+
+	return h.G().ArchiveRegistry.Pause(ctx, arg.JobID)
+}
+
+func (h *Server) ArchiveChatResume(ctx context.Context, arg chat1.ArchiveChatResumeArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatResume")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatResume: not logged in: %s", err)
+		return nil
+	}
+
+	return h.G().ArchiveRegistry.Resume(ctx, arg.JobID)
 }

@@ -1169,10 +1169,15 @@ export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: ReadonlyArray<UserBotCommandInput> | null; readonly teamName?: String | null; readonly convID?: ConversationID | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 <<<<<<< HEAD
+<<<<<<< HEAD
 export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: ReadonlyArray<Keybase1.TLFIdentifyFailure> | null}
 export type ArchiveJobID = Bytes
 =======
 export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String}
+=======
+export type ArchiveChatConvCheckpoint = {readonly pagination: Pagination; readonly offset: Int64}
+export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String; readonly checkpoints?: {[key: string]: ArchiveChatConvCheckpoint} | null}
+>>>>>>> f5710a02e9 (pause/resume in memory)
 export type ArchiveChatJobRequest = {readonly jobID: ArchiveJobID; readonly outputPath: String; readonly query?: GetInboxLocalQuery | null; readonly compress: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
 export type ArchiveChatListRes = {readonly jobs?: Array<ArchiveChatJob> | null}
 export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1861,6 +1866,8 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.archiveChat'
 // 'chat.1.local.archiveChatList'
 // 'chat.1.local.archiveChatDelete'
+// 'chat.1.local.archiveChatPause'
+// 'chat.1.local.archiveChatResume'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

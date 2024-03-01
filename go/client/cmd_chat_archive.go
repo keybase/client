@@ -116,6 +116,8 @@ func (c *CmdChatArchive) Run() error {
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("Starting archive jobID %s \n", arg.JobID)
 
 	res, err := client.ArchiveChat(context.TODO(), arg)
 	if err != nil {
@@ -126,7 +128,6 @@ func (c *CmdChatArchive) Run() error {
 		return err
 	}
 
-	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Archive completed, saved at %s \n", outputPath)
 
 	return nil
