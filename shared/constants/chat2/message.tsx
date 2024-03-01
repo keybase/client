@@ -10,7 +10,7 @@ import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
-export const getMessageRenderType = (m: T.Chat.Message): T.Chat.RenderMessageType => {
+export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
       if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {

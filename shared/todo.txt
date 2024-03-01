@@ -1,3 +1,8 @@
 Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
+
+hide orange on desktop nav away
+remove gets() and look at cache values after async calls in convostate  and other stores
+use immutable wrapper on all stores
+message edit todo check

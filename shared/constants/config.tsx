@@ -36,9 +36,9 @@ export const defaultPublicPrefix = '/public/'
 export const noKBFSFailReason = "Can't connect to KBFS"
 const defaultTeamPrefix = '/team/'
 
-export const privateFolderWithUsers = (users: Array<string>) =>
+export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
-export const publicFolderWithUsers = (users: Array<string>) =>
+export const publicFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 

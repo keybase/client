@@ -26,7 +26,7 @@ const useOrangeLine = () => {
   }
   if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
     gotMessageWhileInactive.current = true
-    loadOrangeLine()
+    loadOrangeLine('new message while inactive')
   }
 
   const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)

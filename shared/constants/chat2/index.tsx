@@ -954,8 +954,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         C.getConvoState(r).dispatch.setMeta()
       })
       metas.forEach(m => {
-        const {meta: oldMeta, dispatch} = C.getConvoState(m.conversationIDKey)
-        dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? Meta.updateMeta(oldMeta, m) : m)
+        const {meta: oldMeta, dispatch, isMetaGood} = C.getConvoState(m.conversationIDKey)
+        if (isMetaGood()) {
+          dispatch.updateMeta(Meta.updateMeta(oldMeta, m))
+        } else {
+          dispatch.setMeta(m)
+        }
       })
 
       const selectedConversation = Common.getSelectedConversation()

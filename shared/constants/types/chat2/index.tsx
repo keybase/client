@@ -25,7 +25,7 @@ export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
 export type ThreadSearchInfo = {
   status: ThreadSearchStatus
-  hits: Array<_Message.Message>
+  hits: ReadonlyArray<_Message.Message>
   visible: boolean
 }
 

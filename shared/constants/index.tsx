@@ -99,7 +99,11 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   : never
 
 export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
+  f.then(() => {}).catch(e => {
+    if (__DEV__) {
+      console.error('ignorePromise error', e)
+    }
+  })
 }
 
 export const timeoutPromise = async (timeMs: number) =>

@@ -117,7 +117,7 @@ const getTeamType = (tt: {
   }
 }
 
-export const getEffectiveRetentionPolicy = (meta: T.Chat.ConversationMeta) => {
+export const getEffectiveRetentionPolicy = (meta: T.Immutable<T.Chat.ConversationMeta>) => {
   return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
 }
 
@@ -391,7 +391,7 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   }
 }
 
-export const getRowParticipants = (participants: T.Chat.ParticipantInfo, username: string) =>
+export const getRowParticipants = (participants: T.Immutable<T.Chat.ParticipantInfo>, username: string) =>
   participants.name
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
