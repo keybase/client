@@ -13,7 +13,7 @@ import type {Opaque} from '@/constants/types/ts'
 // The actual ID the server uses for operations (edit, delete etc)
 export type MessageID = Opaque<number, 'MessageID'>
 export const numberToMessageID = (n: number) => n as MessageID
-export const numbersToMessageIDs = (a: Array<number>) => a as Array<MessageID>
+export const numbersToMessageIDs = (a: ReadonlyArray<number>) => a as ReadonlyArray<MessageID>
 export const messageIDToNumber = (n: MessageID): number => n
 
 export type Reaction = {

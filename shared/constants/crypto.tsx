@@ -87,7 +87,7 @@ type EncryptOptions = {
   sign: boolean
 }
 
-type Store = {
+type Store = T.Immutable<{
   decrypt: CommonStore
   encrypt: CommonStore & {
     meta: {
@@ -100,7 +100,7 @@ type Store = {
   }
   sign: CommonStore
   verify: CommonStore
-}
+}>
 
 export const Operations = {
   Decrypt: 'decrypt',
@@ -506,7 +506,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const e = s.encrypt
         resetOutput(e)
-        e.recipients = initialStore.encrypt.recipients
+        e.recipients = []
         // Reset options since they depend on the recipients
         e.options = initialStore.encrypt.options
         e.meta = initialStore.encrypt.meta
@@ -591,12 +591,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         switch (op) {
           case Operations.Encrypt:
-            s[op] = initialStore[op]
+            s[op] = T.castDraft(initialStore[op])
             break
           case Operations.Decrypt:
           case Operations.Sign:
           case Operations.Verify:
-            s[op] = initialStore[op]
+            s[op] = T.castDraft(initialStore[op])
             break
         }
       })

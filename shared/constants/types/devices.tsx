@@ -1,3 +1,4 @@
+import type * as T from '.'
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string
 

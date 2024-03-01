@@ -14,7 +14,7 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 type SimpleError = {code?: number; desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
@@ -48,7 +48,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyEmailAddress.emailsChanged': {
-    inParam: {readonly list?: Array<Email> | null; readonly category: String; readonly email: EmailAddress}
+    inParam: {readonly list?: ReadonlyArray<Email> | null; readonly category: String; readonly email: EmailAddress}
     outParam: void
   }
   'keybase.1.NotifyEphemeral.newTeamEk': {
@@ -88,11 +88,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotify': {
-    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly topic: SubscriptionTopic}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: ReadonlyArray<String> | null; readonly topic: SubscriptionTopic}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
-    inParam: {readonly clientID: String; readonly subscriptionIDs?: Array<String> | null; readonly path: String; readonly topics?: Array<PathSubscriptionTopic> | null}
+    inParam: {readonly clientID: String; readonly subscriptionIDs?: ReadonlyArray<String> | null; readonly path: String; readonly topics?: ReadonlyArray<PathSubscriptionTopic> | null}
     outParam: void
   }
   'keybase.1.NotifyFS.FSSyncActivity': {
@@ -108,7 +108,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyFeaturedBots.featuredBotsUpdate': {
-    inParam: {readonly bots?: Array<FeaturedBot> | null; readonly limit: Int; readonly offset: Int}
+    inParam: {readonly bots?: ReadonlyArray<FeaturedBot> | null; readonly limit: Int; readonly offset: Int}
     outParam: void
   }
   'keybase.1.NotifyInviteFriends.updateInviteCounts': {
@@ -128,7 +128,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
-    inParam: {readonly list?: Array<UserPhoneNumber> | null; readonly category: String; readonly phoneNumber: PhoneNumber}
+    inParam: {readonly list?: ReadonlyArray<UserPhoneNumber> | null; readonly category: String; readonly phoneNumber: PhoneNumber}
     outParam: void
   }
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
@@ -172,7 +172,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.avatarUpdated': {
-    inParam: {readonly name: String; readonly formats?: Array<AvatarFormat> | null; readonly typ: AvatarUpdateType}
+    inParam: {readonly name: String; readonly formats?: ReadonlyArray<AvatarFormat> | null; readonly typ: AvatarUpdateType}
     outParam: void
   }
   'keybase.1.NotifyTeam.newlyAddedToTeam': {
@@ -232,11 +232,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTracking.trackingInfo': {
-    inParam: {readonly uid: UID; readonly followers?: Array<String> | null; readonly followees?: Array<String> | null}
+    inParam: {readonly uid: UID; readonly followers?: ReadonlyArray<String> | null; readonly followees?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.NotifyUsers.identifyUpdate': {
-    inParam: {readonly okUsernames?: Array<String> | null; readonly brokenUsernames?: Array<String> | null}
+    inParam: {readonly okUsernames?: ReadonlyArray<String> | null; readonly brokenUsernames?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.NotifyUsers.passwordChanged': {
@@ -321,7 +321,7 @@ export type MessageTypes = {
   }
   'keybase.1.SimpleFS.simpleFSGetUploadStatus': {
     inParam: undefined
-    outParam: Array<UploadState> | null
+    outParam: ReadonlyArray<UploadState> | null
   }
   'keybase.1.SimpleFS.simpleFSList': {
     inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean}
@@ -413,7 +413,7 @@ export type MessageTypes = {
   }
   'keybase.1.SimpleFS.simpleFSUserEditHistory': {
     inParam: undefined
-    outParam: Array<FSFolderEditHistory> | null
+    outParam: ReadonlyArray<FSFolderEditHistory> | null
   }
   'keybase.1.SimpleFS.simpleFSUserIn': {
     inParam: {readonly clientID: String}
@@ -484,23 +484,23 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.apiserver.Delete': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: ReadonlyArray<StringKVPair> | null; readonly httpStatus?: ReadonlyArray<Int> | null; readonly appStatusCode?: ReadonlyArray<Int> | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.Get': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: ReadonlyArray<StringKVPair> | null; readonly httpStatus?: ReadonlyArray<Int> | null; readonly appStatusCode?: ReadonlyArray<Int> | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.GetWithSession': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null; readonly useText?: Boolean | null}
+    inParam: {readonly endpoint: String; readonly args?: ReadonlyArray<StringKVPair> | null; readonly httpStatus?: ReadonlyArray<Int> | null; readonly appStatusCode?: ReadonlyArray<Int> | null; readonly useText?: Boolean | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.Post': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: ReadonlyArray<StringKVPair> | null; readonly httpStatus?: ReadonlyArray<Int> | null; readonly appStatusCode?: ReadonlyArray<Int> | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.PostJSON': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly JSONPayload?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: ReadonlyArray<StringKVPair> | null; readonly JSONPayload?: ReadonlyArray<StringKVPair> | null; readonly httpStatus?: ReadonlyArray<Int> | null; readonly appStatusCode?: ReadonlyArray<Int> | null}
     outParam: APIRes
   }
   'keybase.1.appState.powerMonitorEvent': {
@@ -512,11 +512,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.avatars.loadTeamAvatars': {
-    inParam: {readonly names?: Array<String> | null; readonly formats?: Array<AvatarFormat> | null}
+    inParam: {readonly names?: ReadonlyArray<String> | null; readonly formats?: ReadonlyArray<AvatarFormat> | null}
     outParam: LoadAvatarsRes
   }
   'keybase.1.avatars.loadUserAvatars': {
-    inParam: {readonly names?: Array<String> | null; readonly formats?: Array<AvatarFormat> | null}
+    inParam: {readonly names?: ReadonlyArray<String> | null; readonly formats?: ReadonlyArray<AvatarFormat> | null}
     outParam: LoadAvatarsRes
   }
   'keybase.1.config.appendGUILogs': {
@@ -601,14 +601,14 @@ export type MessageTypes = {
   }
   'keybase.1.contacts.getContactsForUserRecommendations': {
     inParam: undefined
-    outParam: Array<ProcessedContact> | null
+    outParam: ReadonlyArray<ProcessedContact> | null
   }
   'keybase.1.contacts.lookupSavedContactsList': {
     inParam: undefined
-    outParam: Array<ProcessedContact> | null
+    outParam: ReadonlyArray<ProcessedContact> | null
   }
   'keybase.1.contacts.saveContactList': {
-    inParam: {readonly contacts?: Array<Contact> | null}
+    inParam: {readonly contacts?: ReadonlyArray<Contact> | null}
     outParam: ContactListResolutionResult
   }
   'keybase.1.cryptocurrency.registerAddress': {
@@ -640,7 +640,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered': {
-    inParam: {readonly systems?: Array<String> | null}
+    inParam: {readonly systems?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.delegateUiCtl.registerHomeUI': {
@@ -677,7 +677,7 @@ export type MessageTypes = {
   }
   'keybase.1.device.deviceHistoryList': {
     inParam: undefined
-    outParam: Array<DeviceDetail> | null
+    outParam: ReadonlyArray<DeviceDetail> | null
   }
   'keybase.1.device.dismissDeviceChangeNotifications': {
     inParam: undefined
@@ -737,11 +737,11 @@ export type MessageTypes = {
   }
   'keybase.1.git.getAllGitMetadata': {
     inParam: undefined
-    outParam: Array<GitRepoResult> | null
+    outParam: ReadonlyArray<GitRepoResult> | null
   }
   'keybase.1.git.getGitMetadata': {
     inParam: {readonly folder: FolderHandle}
-    outParam: Array<GitRepoResult> | null
+    outParam: ReadonlyArray<GitRepoResult> | null
   }
   'keybase.1.git.setTeamRepoSettings': {
     inParam: {readonly folder: FolderHandle; readonly repoID: RepoID; readonly channelName?: String | null; readonly chatDisabled: Boolean}
@@ -760,11 +760,11 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.gpgUi.selectKey': {
-    inParam: {readonly keys?: Array<GPGKey> | null}
+    inParam: {readonly keys?: ReadonlyArray<GPGKey> | null}
     outParam: String
   }
   'keybase.1.gpgUi.selectKeyAndPushOption': {
-    inParam: {readonly keys?: Array<GPGKey> | null}
+    inParam: {readonly keys?: ReadonlyArray<GPGKey> | null}
     outParam: SelectKeyRes
   }
   'keybase.1.gpgUi.sign': {
@@ -800,7 +800,7 @@ export type MessageTypes = {
     outParam: Gregor1.MsgID
   }
   'keybase.1.gregorUI.pushOutOfBandMessages': {
-    inParam: {readonly oobm?: Array<Gregor1.OutOfBandMessage> | null}
+    inParam: {readonly oobm?: ReadonlyArray<Gregor1.OutOfBandMessage> | null}
     outParam: void
   }
   'keybase.1.gregorUI.pushState': {
@@ -941,7 +941,7 @@ export type MessageTypes = {
   }
   'keybase.1.incomingShare.getIncomingShareItems': {
     inParam: undefined
-    outParam: Array<IncomingShareItem> | null
+    outParam: ReadonlyArray<IncomingShareItem> | null
   }
   'keybase.1.incomingShare.getPreference': {
     inParam: undefined
@@ -972,7 +972,7 @@ export type MessageTypes = {
     outParam: InviteCounts
   }
   'keybase.1.inviteFriends.invitePeople': {
-    inParam: {readonly emails: EmailInvites; readonly phones?: Array<PhoneNumber> | null}
+    inParam: {readonly emails: EmailInvites; readonly phones?: ReadonlyArray<PhoneNumber> | null}
     outParam: Int
   }
   'keybase.1.inviteFriends.requestInviteCounts': {
@@ -989,7 +989,7 @@ export type MessageTypes = {
   }
   'keybase.1.kbfsMount.GetPreferredMountDirs': {
     inParam: undefined
-    outParam: Array<String> | null
+    outParam: ReadonlyArray<String> | null
   }
   'keybase.1.kbfsMount.WaitForMounts': {
     inParam: undefined
@@ -1013,7 +1013,7 @@ export type MessageTypes = {
   }
   'keybase.1.login.getConfiguredAccounts': {
     inParam: undefined
-    outParam: Array<ConfiguredAccount> | null
+    outParam: ReadonlyArray<ConfiguredAccount> | null
   }
   'keybase.1.login.isOnline': {
     inParam: undefined
@@ -1040,7 +1040,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.loginUi.chooseDeviceToRecoverWith': {
-    inParam: {readonly devices?: Array<Device> | null}
+    inParam: {readonly devices?: ReadonlyArray<Device> | null}
     outParam: DeviceID
   }
   'keybase.1.loginUi.displayPaperKeyPhrase': {
@@ -1108,11 +1108,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.pgpUi.outputSignatureNonKeybase': {
-    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
+    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.outputSignatureSuccess': {
-    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
+    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.shouldPushPrivate': {
@@ -1200,7 +1200,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.provisionUi.PromptNewDeviceName': {
-    inParam: {readonly existingDevices?: Array<String> | null; readonly errorMessage: String}
+    inParam: {readonly existingDevices?: ReadonlyArray<String> | null; readonly errorMessage: String}
     outParam: String
   }
   'keybase.1.provisionUi.ProvisioneeSuccess': {
@@ -1212,7 +1212,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.provisionUi.chooseDevice': {
-    inParam: {readonly devices?: Array<Device> | null; readonly canSelectNoDevice: Boolean}
+    inParam: {readonly devices?: ReadonlyArray<Device> | null; readonly canSelectNoDevice: Boolean}
     outParam: DeviceID
   }
   'keybase.1.provisionUi.chooseDeviceType': {
@@ -1220,7 +1220,7 @@ export type MessageTypes = {
     outParam: DeviceType
   }
   'keybase.1.provisionUi.chooseGPGMethod': {
-    inParam: {readonly keys?: Array<GPGKey> | null}
+    inParam: {readonly keys?: ReadonlyArray<GPGKey> | null}
     outParam: GPGMethod
   }
   'keybase.1.provisionUi.chooseProvisioningMethod': {
@@ -1276,7 +1276,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.revoke.revokeSigs': {
-    inParam: {readonly sigIDQueries?: Array<String> | null}
+    inParam: {readonly sigIDQueries?: ReadonlyArray<String> | null}
     outParam: void
   }
   'keybase.1.saltpack.saltpackDecryptFile': {
@@ -1372,8 +1372,8 @@ export type MessageTypes = {
     outParam: Int
   }
   'keybase.1.teams.findAssertionsInTeamNoResolve': {
-    inParam: {readonly teamID: TeamID; readonly assertions?: Array<String> | null}
-    outParam: Array<String> | null
+    inParam: {readonly teamID: TeamID; readonly assertions?: ReadonlyArray<String> | null}
+    outParam: ReadonlyArray<String> | null
   }
   'keybase.1.teams.getAnnotatedTeam': {
     inParam: {readonly teamID: TeamID}
@@ -1432,7 +1432,7 @@ export type MessageTypes = {
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly addToChannels?: Array<String> | null}
+    inParam: {readonly teamID: TeamID; readonly users?: ReadonlyArray<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null; readonly addToChannels?: ReadonlyArray<String> | null}
     outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
@@ -1456,7 +1456,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamEditMembers': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null}
+    inParam: {readonly teamID: TeamID; readonly users?: ReadonlyArray<UserRolePair> | null}
     outParam: TeamEditMembersResult
   }
   'keybase.1.teams.teamGet': {
@@ -1469,7 +1469,7 @@ export type MessageTypes = {
   }
   'keybase.1.teams.teamGetMembersByID': {
     inParam: {readonly id: TeamID}
-    outParam: Array<TeamMemberDetails> | null
+    outParam: ReadonlyArray<TeamMemberDetails> | null
   }
   'keybase.1.teams.teamIgnoreRequest': {
     inParam: {readonly name: String; readonly username: String}
@@ -1481,11 +1481,11 @@ export type MessageTypes = {
   }
   'keybase.1.teams.teamListMyAccessRequests': {
     inParam: {readonly teamName?: String | null}
-    outParam: Array<TeamName> | null
+    outParam: ReadonlyArray<TeamName> | null
   }
   'keybase.1.teams.teamListRequests': {
     inParam: {readonly teamName?: String | null}
-    outParam: Array<TeamJoinRequest> | null
+    outParam: ReadonlyArray<TeamJoinRequest> | null
   }
   'keybase.1.teams.teamListUnverified': {
     inParam: {readonly userAssertion: String; readonly includeImplicitTeams: Boolean}
@@ -1493,7 +1493,7 @@ export type MessageTypes = {
   }
   'keybase.1.teams.teamProfileAddList': {
     inParam: {readonly username: String}
-    outParam: Array<TeamProfileAddEntry> | null
+    outParam: ReadonlyArray<TeamProfileAddEntry> | null
   }
   'keybase.1.teams.teamReAddMemberAfterReset': {
     inParam: {readonly id: TeamID; readonly username: String}
@@ -1568,12 +1568,12 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.user.getUserBlocks': {
-    inParam: {readonly usernames?: Array<String> | null}
-    outParam: Array<UserBlock> | null
+    inParam: {readonly usernames?: ReadonlyArray<String> | null}
+    outParam: ReadonlyArray<UserBlock> | null
   }
   'keybase.1.user.interestingPeople': {
     inParam: {readonly maxUsers: Int; readonly namespace: String}
-    outParam: Array<InterestingPerson> | null
+    outParam: ReadonlyArray<InterestingPerson> | null
   }
   'keybase.1.user.listTrackersUnverified': {
     inParam: {readonly assertion: String}
@@ -1604,7 +1604,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.user.setUserBlocks': {
-    inParam: {readonly blocks?: Array<UserBlockArg> | null}
+    inParam: {readonly blocks?: ReadonlyArray<UserBlockArg> | null}
     outParam: void
   }
   'keybase.1.user.unblockUser': {
@@ -1620,8 +1620,8 @@ export type MessageTypes = {
     outParam: UserCard | null
   }
   'keybase.1.userSearch.bulkEmailOrPhoneSearch': {
-    inParam: {readonly emails: String; readonly phoneNumbers?: Array<PhoneNumber> | null}
-    outParam: Array<EmailOrPhoneNumberSearchResult> | null
+    inParam: {readonly emails: String; readonly phoneNumbers?: ReadonlyArray<PhoneNumber> | null}
+    outParam: ReadonlyArray<EmailOrPhoneNumberSearchResult> | null
   }
   'keybase.1.userSearch.getNonUserDetails': {
     inParam: {readonly assertion: String}
@@ -1629,7 +1629,7 @@ export type MessageTypes = {
   }
   'keybase.1.userSearch.userSearch': {
     inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
-    outParam: Array<APIUserSearchResult> | null
+    outParam: ReadonlyArray<APIUserSearchResult> | null
   }
   'keybase.1.wot.wotReact': {
     inParam: {readonly voucher: String; readonly sigID: SigID; readonly reaction: WotReactionType; readonly allowEmptySigID: Boolean}
@@ -2821,27 +2821,27 @@ export type APIUserServiceID = String
 export type APIUserServiceResult = {readonly serviceName: APIUserServiceID; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: APIUserServiceID; readonly username: String}
 export type AirdropDetails = {readonly uid: UID; readonly kid: BinaryKID; readonly vid: VID; readonly vers: String; readonly time: Time}
-export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
+export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: ReadonlyArray<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
-export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: Array<TeamMemberDetails> | null; readonly invites?: Array<AnnotatedTeamInvite> | null; readonly settings: TeamSettings; readonly keyGeneration: PerTeamKeyGeneration; readonly showcase: TeamShowcase; readonly joinRequests?: Array<TeamJoinRequest> | null; readonly tarsDisabled: Boolean}
+export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; readonly transitiveSubteamsUnverified: SubteamListResult; readonly members?: ReadonlyArray<TeamMemberDetails> | null; readonly invites?: ReadonlyArray<AnnotatedTeamInvite> | null; readonly settings: TeamSettings; readonly keyGeneration: PerTeamKeyGeneration; readonly showcase: TeamShowcase; readonly joinRequests?: ReadonlyArray<TeamJoinRequest> | null; readonly tarsDisabled: Boolean}
 export type AnnotatedTeamInvite = {readonly inviteMetadata: TeamInviteMetadata; readonly displayName: TeamInviteDisplayName; readonly inviterUsername: String; readonly teamName: String; readonly isValid: Boolean; readonly validityDescription: String; readonly inviteExt: AnnotatedTeamInviteExt}
 export type AnnotatedTeamInviteExt = {c: TeamInviteCategory.keybase; keybase: KeybaseInviteExt} | {c: TeamInviteCategory.invitelink; invitelink: InvitelinkInviteExt} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.unknown} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.sbs} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
-export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null}
+export type AnnotatedTeamList = {readonly teams?: ReadonlyArray<AnnotatedMemberInfo> | null}
 export type AnnotatedTeamUsedInviteLogPoint = {readonly username: String; readonly teamUsedInviteLogPoint: TeamUsedInviteLogPoint}
 export type AssertionTeamMemberToRemove = {readonly assertion: String; readonly removeFromSubtree: Boolean}
 export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mhs: /* maxHiddenSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
-export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: Array<Audit> | null; readonly preProbes?: {[key: string]: Probe} | null; readonly postProbes?: {[key: string]: Probe} | null; readonly tails?: {[key: string]: LinkID} | null; readonly hiddenTails?: {[key: string]: LinkID} | null; readonly preProbesToRetry?: Array<Seqno> | null; readonly postProbesToRetry?: Array<Seqno> | null; readonly skipUntil: Time}
-export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Array<AvatarFormat> | null; readonly typ: AvatarUpdateType}
+export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: ReadonlyArray<Audit> | null; readonly preProbes?: {[key: string]: Probe} | null; readonly postProbes?: {[key: string]: Probe} | null; readonly tails?: {[key: string]: LinkID} | null; readonly hiddenTails?: {[key: string]: LinkID} | null; readonly preProbesToRetry?: ReadonlyArray<Seqno> | null; readonly postProbesToRetry?: ReadonlyArray<Seqno> | null; readonly skipUntil: Time}
+export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: ReadonlyArray<AvatarFormat> | null; readonly typ: AvatarUpdateType}
 export type AvatarFormat = String
 export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCount: Int; readonly unreadMessages: Int}
-export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly smallTeamBadgeCount: Int; readonly bigTeamBadgeCount: Int; readonly newTeamAccessRequestCount: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeams?: Array<TeamID> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly wotUpdates?: {[key: string]: WotUpdate} | null; readonly resetState: ResetState}
+export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly smallTeamBadgeCount: Int; readonly bigTeamBadgeCount: Int; readonly newTeamAccessRequestCount: Int; readonly newDevices?: ReadonlyArray<DeviceID> | null; readonly revokedDevices?: ReadonlyArray<DeviceID> | null; readonly conversations?: ReadonlyArray<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: ReadonlyArray<String> | null; readonly newTeams?: ReadonlyArray<TeamID> | null; readonly deletedTeams?: ReadonlyArray<DeletedTeamInfo> | null; readonly teamsWithResetUsers?: ReadonlyArray<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: ReadonlyArray<WalletAccountInfo> | null; readonly wotUpdates?: {[key: string]: WotUpdate} | null; readonly resetState: ResetState}
 export type BinaryKID = Bytes
 export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
 export type BlockIdCount = {readonly id: BlockIdCombo; readonly liveCount: Int}
 export type BlockPingResponse = {}
-export type BlockQuotaInfo = {readonly folders?: Array<FolderUsageStat> | null; readonly total: UsageStat; readonly limit: Int64; readonly gitLimit: Int64}
+export type BlockQuotaInfo = {readonly folders?: ReadonlyArray<FolderUsageStat> | null; readonly total: UsageStat; readonly limit: Int64; readonly gitLimit: Int64}
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
@@ -2852,7 +2852,7 @@ export type BoxAuditAttempt = {readonly ctime: UnixTime; readonly error?: String
 export type BoxNonce = string | null
 export type BoxPublicKey = string | null
 export type BoxSummaryHash = String
-export type BulkRes = {readonly malformed?: Array<String> | null}
+export type BulkRes = {readonly malformed?: ReadonlyArray<String> | null}
 export type Bytes32 = string | null
 export type CanLogoutRes = {readonly canLogout: Boolean; readonly reason: String; readonly passphraseState: PassphraseState}
 export type CanonicalTLFNameAndIDWithBreaks = {readonly tlfID: TLFID; readonly CanonicalName: CanonicalTlfName; readonly breaks: TLFBreak}
@@ -2862,21 +2862,21 @@ export type ChatConversationID = Bytes
 export type CheckProofStatus = {readonly found: Boolean; readonly status: ProofStatus; readonly proofText: String; readonly state: ProofState}
 export type CheckResult = {readonly proofResult: ProofResult; readonly time: Time; readonly freshness: CheckResultFreshness}
 export type CiphertextBundle = {readonly kid: KID; readonly ciphertext: EncryptedBytes32; readonly nonce: BoxNonce; readonly publicKey: BoxPublicKey}
-export type ClientDetails = {readonly pid: Int; readonly clientType: ClientType; readonly argv?: Array<String> | null; readonly desc: String; readonly version: String}
+export type ClientDetails = {readonly pid: Int; readonly clientType: ClientType; readonly argv?: ReadonlyArray<String> | null; readonly desc: String; readonly version: String}
 export type ClientStatus = {readonly details: ClientDetails; readonly connectionID: Int; readonly notificationChannels: NotificationChannels}
 export type CompatibilityTeamID = {typ: TeamType.legacy; legacy: TLFID} | {typ: TeamType.modern; modern: TeamID} | {typ: TeamType.none}
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
-export type Confidence = {readonly usernameVerifiedVia: UsernameVerificationType; readonly proofs?: Array<WotProof> | null; readonly other: String}
+export type Confidence = {readonly usernameVerifiedVia: UsernameVerificationType; readonly proofs?: ReadonlyArray<WotProof> | null; readonly other: String}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly f?: Double | null; readonly s?: String | null; readonly o?: String | null}
 export type ConfiguredAccount = {readonly username: String; readonly fullname: FullName; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
 export type ConfirmResult = {readonly identityConfirmed: Boolean; readonly remoteConfirmed: Boolean; readonly expiringLocal: Boolean; readonly autoConfirmed: Boolean}
 export type ConflictGeneration = Int
 export type ConflictState = {conflictStateType: ConflictStateType.normalview; normalview: FolderNormalView} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: FolderConflictManualResolvingLocalView}
-export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
+export type Contact = {readonly name: String; readonly components?: ReadonlyArray<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
-export type ContactListResolutionResult = {readonly newlyResolved?: Array<ProcessedContact> | null; readonly resolved?: Array<ProcessedContact> | null}
-export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly allowGoodTeams: Boolean; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
+export type ContactListResolutionResult = {readonly newlyResolved?: ReadonlyArray<ProcessedContact> | null; readonly resolved?: ReadonlyArray<ProcessedContact> | null}
+export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly allowGoodTeams: Boolean; readonly enabled: Boolean; readonly teams?: ReadonlyArray<TeamContactSettings> | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
@@ -2899,10 +2899,10 @@ export type Dirent = {readonly time: Time; readonly size: Int; readonly name: St
 export type DirentWithRevision = {readonly entry: Dirent; readonly revision: KBFSRevision}
 export type DismissReason = {readonly type: DismissReasonType; readonly reason: String; readonly resource: String}
 export type DownPointer = {readonly id: TeamID; readonly nameComponent: String; readonly isDeleted: Boolean}
-export type DowngradeReferenceRes = {readonly completed?: Array<BlockReferenceCount> | null; readonly failed: BlockReference}
+export type DowngradeReferenceRes = {readonly completed?: ReadonlyArray<BlockReferenceCount> | null; readonly failed: BlockReference}
 export type DownloadInfo = {readonly downloadID: String; readonly path: KBFSPath; readonly filename: String; readonly startTime: Time; readonly isRegularDownload: Boolean}
 export type DownloadState = {readonly downloadID: String; readonly progress: Double; readonly endEstimate: Time; readonly localPath: String; readonly error: String; readonly done: Boolean; readonly canceled: Boolean}
-export type DownloadStatus = {readonly regularDownloadIDs?: Array<String> | null; readonly states?: Array<DownloadState> | null}
+export type DownloadStatus = {readonly regularDownloadIDs?: ReadonlyArray<String> | null; readonly states?: ReadonlyArray<DownloadState> | null}
 export type DurationMsec = Double
 export type DurationSec = Double
 export type ED25519PublicKey = string | null
@@ -2913,42 +2913,42 @@ export type Email = {readonly email: EmailAddress; readonly isVerified: Boolean;
 export type EmailAddress = String
 export type EmailAddressChangedMsg = {readonly email: EmailAddress}
 export type EmailAddressVerifiedMsg = {readonly email: EmailAddress}
-export type EmailInvites = {readonly commaSeparatedEmailsFromUser?: String | null; readonly emailsFromContacts?: Array<EmailAddress> | null}
+export type EmailInvites = {readonly commaSeparatedEmailsFromUser?: String | null; readonly emailsFromContacts?: ReadonlyArray<EmailAddress> | null}
 export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UID | null}
 export type EmailOrPhoneNumberSearchResult = {readonly input: String; readonly assertion: String; readonly assertionValue: String; readonly assertionKey: String; readonly foundUser: Boolean; readonly username: String; readonly fullName: String}
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
 export type EncryptedKVEntry = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type ErrorNum = Int
-export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly localBlockCacheDbStats?: Array<String> | null; readonly localSyncCacheDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping?: {[key: string]: Int} | null}
+export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: ReadonlyArray<String> | null; readonly configuredAccounts?: ReadonlyArray<ConfiguredAccount> | null; readonly Clients?: ReadonlyArray<ClientStatus> | null; readonly deviceEkNames?: ReadonlyArray<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: ReadonlyArray<String> | null; readonly localChatDbStats?: ReadonlyArray<String> | null; readonly localBlockCacheDbStats?: ReadonlyArray<String> | null; readonly localSyncCacheDbStats?: ReadonlyArray<String> | null; readonly cacheDirSizeInfo?: ReadonlyArray<DirSizeInfo> | null; readonly uiRouterMapping?: {[key: string]: Int} | null}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
 export type FSEditListRequest = {readonly folder: Folder; readonly requestID: Int}
-export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: Array<FSFolderWriterEditHistory> | null}
+export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: ReadonlyArray<FSFolderWriterEditHistory> | null}
 export type FSFolderWriterEdit = {readonly filename: String; readonly notificationType: FSNotificationType; readonly serverTime: Time}
-export type FSFolderWriterEditHistory = {readonly writerName: String; readonly edits?: Array<FSFolderWriterEdit> | null; readonly deletes?: Array<FSFolderWriterEdit> | null}
+export type FSFolderWriterEditHistory = {readonly writerName: String; readonly edits?: ReadonlyArray<FSFolderWriterEdit> | null; readonly deletes?: ReadonlyArray<FSFolderWriterEdit> | null}
 export type FSNotification = {readonly filename: String; readonly status: String; readonly statusCode: FSStatusCode; readonly notificationType: FSNotificationType; readonly errorType: FSErrorType; readonly params?: {[key: string]: String} | null; readonly writerUid: UID; readonly localTime: Time; readonly folderType: FolderType}
 export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: String; readonly syncingBytes: Int64; readonly syncingOps: Int64; readonly syncedBytes: Int64}
 export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64; readonly sfmiBannerDismissed: Boolean; readonly syncOnCellular: Boolean}
-export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
+export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: ReadonlyArray<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
 export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds /* perTeamKeySeedsUnverified */?: {[key: string]: PerTeamKeySeed} | null; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks?: {[key: string]: PerTeamSeedCheck} | null; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks?: {[key: string]: {[key: string]: MaskB64} | null} | null; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
-export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: Array<TeamApplication> | null; readonly keyGenerationsNeeded?: Array<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean; readonly hiddenChainIsOptional: Boolean}
-export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys?: Array<TeamApplicationKey> | null}
+export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: ReadonlyArray<TeamApplication> | null; readonly keyGenerationsNeeded?: ReadonlyArray<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean; readonly hiddenChainIsOptional: Boolean}
+export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys?: ReadonlyArray<TeamApplicationKey> | null}
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys?: {[key: string]: PerTeamKey} | null; readonly perTeamKeySeedsVerified?: {[key: string]: PerTeamKeySeed} | null; readonly downPointers?: {[key: string]: DownPointer} | null; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs?: {[key: string]: LinkID} | null; readonly merkleInfo?: {[key: string]: MerkleRootV2} | null}
-export type FavoritesResult = {readonly favoriteFolders?: Array<Folder> | null; readonly ignoredFolders?: Array<Folder> | null; readonly newFolders?: Array<Folder> | null}
+export type FavoritesResult = {readonly favoriteFolders?: ReadonlyArray<Folder> | null; readonly ignoredFolders?: ReadonlyArray<Folder> | null; readonly newFolders?: ReadonlyArray<Folder> | null}
 export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; readonly readonly: Boolean; readonly label: String}
 export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly extendedDescription: String; readonly extendedDescriptionRaw: String; readonly botUsername: String; readonly ownerTeam?: String | null; readonly ownerUser?: String | null; readonly rank: Int; readonly isPromoted: Boolean}
-export type FeaturedBotsRes = {readonly bots?: Array<FeaturedBot> | null; readonly isLastPage: Boolean}
+export type FeaturedBotsRes = {readonly bots?: ReadonlyArray<FeaturedBot> | null; readonly isLastPage: Boolean}
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
 export type FileDescriptor = {readonly name: String; readonly type: FileType}
-export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
+export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: ReadonlyArray<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
-export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: ReadonlyArray<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
 export type FolderConflictManualResolvingLocalView = {readonly normalView: Path}
 export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
-export type FolderNormalView = {readonly resolvingConflict: Boolean; readonly stuckInConflict: Boolean; readonly localViews?: Array<Path> | null}
-export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
+export type FolderNormalView = {readonly resolvingConflict: Boolean; readonly stuckInConflict: Boolean; readonly localViews?: ReadonlyArray<Path> | null}
+export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: ReadonlyArray<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncStatus = {readonly localDiskBytesAvailable: Int64; readonly localDiskBytesTotal: Int64; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly storedBytesTotal: Int64; readonly outOfSyncSpace: Boolean}
@@ -2958,25 +2958,25 @@ export type FullName = String
 export type FullNamePackage = {readonly version: FullNamePackageVersion; readonly fullName: FullName; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly cachedAt: Time}
 export type FullStatus = {readonly username: String; readonly configPath: String; readonly curStatus: CurrentStatus; readonly extStatus: ExtendedStatus; readonly client: KbClientStatus; readonly service: KbServiceStatus; readonly kbfs: KBFSStatus; readonly desktop: DesktopStatus; readonly updater: UpdaterStatus; readonly start: StartStatus; readonly git: GitStatus}
 export type FuseMountInfo = {readonly path: String; readonly fstype: String; readonly output: String}
-export type FuseStatus = {readonly version: String; readonly bundleVersion: String; readonly kextID: String; readonly path: String; readonly kextStarted: Boolean; readonly installStatus: InstallStatus; readonly installAction: InstallAction; readonly mountInfos?: Array<FuseMountInfo> | null; readonly status: Status}
-export type GPGKey = {readonly algorithm: String; readonly keyID: String; readonly creation: String; readonly expiration: String; readonly identities?: Array<PGPIdentity> | null}
+export type FuseStatus = {readonly version: String; readonly bundleVersion: String; readonly kextID: String; readonly path: String; readonly kextStarted: Boolean; readonly installStatus: InstallStatus; readonly installAction: InstallAction; readonly mountInfos?: ReadonlyArray<FuseMountInfo> | null; readonly status: Status}
+export type GPGKey = {readonly algorithm: String; readonly keyID: String; readonly creation: String; readonly expiration: String; readonly identities?: ReadonlyArray<PGPIdentity> | null}
 export type GUIEntryArg = {readonly windowTitle: String; readonly prompt: String; readonly username: String; readonly submitLabel: String; readonly cancelLabel: String; readonly retryLabel: String; readonly type: PassphraseType; readonly features: GUIEntryFeatures}
 export type GUIEntryFeatures = {readonly showTyping: Feature}
 export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentType: String; readonly url: String}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
-export type Generic = {readonly m?: {[key: string]: Generic} | null; readonly a?: Array<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
+export type Generic = {readonly m?: {[key: string]: Generic} | null; readonly a?: ReadonlyArray<Generic> | null; readonly s?: String | null; readonly i?: Int | null}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
-export type GetBlockSizesRes = {readonly sizes?: Array<Int> | null; readonly statuses?: Array<BlockStatus> | null}
-export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
+export type GetBlockSizesRes = {readonly sizes?: ReadonlyArray<Int> | null; readonly statuses?: ReadonlyArray<BlockStatus> | null}
+export type GetLockdownResponse = {readonly history?: ReadonlyArray<LockdownHistory> | null; readonly status: Boolean}
 export type GetPassphraseRes = {readonly passphrase: String; readonly storeSecret: Boolean}
 export type GetRevisionsArgs = {readonly opID: OpID; readonly path: Path; readonly spanType: RevisionSpanType}
-export type GetRevisionsResult = {readonly revisions?: Array<DirentWithRevision> | null; readonly progress: Progress}
-export type GetTLFCryptKeysRes = {readonly nameIDBreaks: CanonicalTLFNameAndIDWithBreaks; readonly CryptKeys?: Array<CryptKey> | null}
+export type GetRevisionsResult = {readonly revisions?: ReadonlyArray<DirentWithRevision> | null; readonly progress: Progress}
+export type GetTLFCryptKeysRes = {readonly nameIDBreaks: CanonicalTLFNameAndIDWithBreaks; readonly CryptKeys?: ReadonlyArray<CryptKey> | null}
 export type GitCommit = {readonly commitHash: String; readonly message: String; readonly authorName: String; readonly authorEmail: String; readonly ctime: Time}
-export type GitLocalMetadata = {readonly repoName: GitRepoName; readonly refs?: Array<GitRefMetadata> | null; readonly pushType: GitPushType; readonly previousRepoName: GitRepoName}
+export type GitLocalMetadata = {readonly repoName: GitRepoName; readonly refs?: ReadonlyArray<GitRefMetadata> | null; readonly pushType: GitPushType; readonly previousRepoName: GitRepoName}
 export type GitLocalMetadataV1 = {readonly repoName: GitRepoName}
 export type GitLocalMetadataVersioned = {version: GitLocalMetadataVersion.v1; v1: GitLocalMetadataV1}
-export type GitRefMetadata = {readonly refName: String; readonly commits?: Array<GitCommit> | null; readonly moreCommitsAvailable: Boolean; readonly isDelete: Boolean}
+export type GitRefMetadata = {readonly refName: String; readonly commits?: ReadonlyArray<GitCommit> | null; readonly moreCommitsAvailable: Boolean; readonly isDelete: Boolean}
 export type GitRepoInfo = {readonly folder: FolderHandle; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
 export type GitRepoName = String
 export type GitRepoResult = {state: GitRepoResultState.err; err: String} | {state: GitRepoResultState.ok; ok: GitRepoInfo}
@@ -2990,7 +2990,7 @@ export type HelloRes = String
 export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly lastFull: Seqno; readonly latestSeqnoHint: Seqno; readonly lastCommittedSeqno: Seqno; readonly linkReceiptTimes?: {[key: string]: Time} | null; readonly lastPerTeamKeys?: {[key: string]: Seqno} | null; readonly outer?: {[key: string]: LinkID} | null; readonly inner?: {[key: string]: HiddenTeamChainLink} | null; readonly readerPerTeamKeys?: {[key: string]: Seqno} | null; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time; readonly needRotate: Boolean; readonly merkleRoots?: {[key: string]: MerkleRootV2} | null}
 export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k /* ptk */?: {[key: string]: PerTeamKeyAndCheck} | null}
 export type HiddenTeamChainRatchetSet = {readonly ratchets?: {[key: string]: LinkTripleAndTime} | null}
-export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
+export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: ReadonlyArray<HomeScreenItem> | null; readonly followSuggestions?: ReadonlyArray<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int
 export type HomeScreenAnnouncementVersion = Int
@@ -3000,9 +3000,9 @@ export type HomeScreenItemDataExt = {t: HomeScreenItemType.todo; todo: HomeScree
 export type HomeScreenItemID = String
 export type HomeScreenPeopleNotification = {t: HomeScreenPeopleNotificationType.followed; followed: HomeScreenPeopleNotificationFollowed} | {t: HomeScreenPeopleNotificationType.followedMulti; followedMulti: HomeScreenPeopleNotificationFollowedMulti} | {t: HomeScreenPeopleNotificationType.contact; contact: HomeScreenPeopleNotificationContact} | {t: HomeScreenPeopleNotificationType.contactMulti; contactMulti: HomeScreenPeopleNotificationContactMulti}
 export type HomeScreenPeopleNotificationContact = {readonly resolveTime: Time; readonly username: String; readonly description: String; readonly resolvedContactBlob: String}
-export type HomeScreenPeopleNotificationContactMulti = {readonly contacts?: Array<HomeScreenPeopleNotificationContact> | null; readonly numOthers: Int}
+export type HomeScreenPeopleNotificationContactMulti = {readonly contacts?: ReadonlyArray<HomeScreenPeopleNotificationContact> | null; readonly numOthers: Int}
 export type HomeScreenPeopleNotificationFollowed = {readonly followTime: Time; readonly followedBack: Boolean; readonly user: UserSummary}
-export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: Array<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
+export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: ReadonlyArray<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
 export type HomeScreenTodo = {t: HomeScreenTodoType.verifyAllPhoneNumber; verifyAllPhoneNumber: PhoneNumber} | {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: EmailAddress} | {t: HomeScreenTodoType.legacyEmailVisibility; legacyEmailVisibility: EmailAddress} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.annoncementPlaceholder}
 export type HomeScreenTodoExt = {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: VerifyAllEmailTodoExt} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.verifyAllPhoneNumber} | {t: HomeScreenTodoType.legacyEmailVisibility} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.annoncementPlaceholder}
 export type HomeUserSummary = {readonly uid: UID; readonly username: String; readonly bio: String; readonly fullName: String; readonly pics?: Pics | null}
@@ -3011,34 +3011,34 @@ export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: T
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify3Assertion = String
 export type Identify3GUIID = String
-export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: Array<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null; readonly wotProof?: WotProof | null}
+export type Identify3Row = {readonly guiID: Identify3GUIID; readonly key: String; readonly value: String; readonly priority: Int; readonly siteURL: String; readonly siteIcon?: ReadonlyArray<SizedImage> | null; readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null; readonly siteIconFull?: ReadonlyArray<SizedImage> | null; readonly siteIconFullDarkmode?: ReadonlyArray<SizedImage> | null; readonly proofURL: String; readonly sigID: SigID; readonly ctime: Time; readonly state: Identify3RowState; readonly metas?: ReadonlyArray<Identify3RowMeta> | null; readonly color: Identify3RowColor; readonly kid?: KID | null; readonly wotProof?: WotProof | null}
 export type Identify3RowMeta = {readonly color: Identify3RowColor; readonly label: String}
 export type Identify3Summary = {readonly guiID: Identify3GUIID; readonly numProofsToCheck: Int}
 export type IdentifyKey = {readonly pgpFingerprint: Bytes; readonly KID: KID; readonly trackDiff?: TrackDiff | null; readonly breaksTracking: Boolean; readonly sigID: SigID}
 export type IdentifyLiteRes = {readonly ul: UserOrTeamLite; readonly trackBreaks?: IdentifyTrackBreaks | null}
-export type IdentifyOutcome = {readonly username: String; readonly status?: Status | null; readonly warnings?: Array<String> | null; readonly trackUsed?: TrackSummary | null; readonly trackStatus: TrackStatus; readonly numTrackFailures: Int; readonly numTrackChanges: Int; readonly numProofFailures: Int; readonly numRevoked: Int; readonly numProofSuccesses: Int; readonly revoked?: Array<TrackDiff> | null; readonly trackOptions: TrackOptions; readonly forPGPPull: Boolean; readonly reason: IdentifyReason}
+export type IdentifyOutcome = {readonly username: String; readonly status?: Status | null; readonly warnings?: ReadonlyArray<String> | null; readonly trackUsed?: TrackSummary | null; readonly trackStatus: TrackStatus; readonly numTrackFailures: Int; readonly numTrackChanges: Int; readonly numProofFailures: Int; readonly numRevoked: Int; readonly numProofSuccesses: Int; readonly revoked?: ReadonlyArray<TrackDiff> | null; readonly trackOptions: TrackOptions; readonly forPGPPull: Boolean; readonly reason: IdentifyReason}
 export type IdentifyProofBreak = {readonly remoteProof: RemoteProof; readonly lcr: LinkCheckResult}
 export type IdentifyReason = {readonly type: IdentifyReasonType; readonly reason: String; readonly resource: String}
 export type IdentifyRow = {readonly rowId: Int; readonly proof: RemoteProof; readonly trackDiff?: TrackDiff | null}
-export type IdentifyTrackBreaks = {readonly keys?: Array<IdentifyKey> | null; readonly proofs?: Array<IdentifyProofBreak> | null}
-export type Identity = {readonly status?: Status | null; readonly whenLastTracked: Time; readonly proofs?: Array<IdentifyRow> | null; readonly cryptocurrency?: Array<Cryptocurrency> | null; readonly revoked?: Array<TrackDiff> | null; readonly revokedDetails?: Array<RevokedProof> | null; readonly breaksTracking: Boolean}
+export type IdentifyTrackBreaks = {readonly keys?: ReadonlyArray<IdentifyKey> | null; readonly proofs?: ReadonlyArray<IdentifyProofBreak> | null}
+export type Identity = {readonly status?: Status | null; readonly whenLastTracked: Time; readonly proofs?: ReadonlyArray<IdentifyRow> | null; readonly cryptocurrency?: ReadonlyArray<Cryptocurrency> | null; readonly revoked?: ReadonlyArray<TrackDiff> | null; readonly revokedDetails?: ReadonlyArray<RevokedProof> | null; readonly breaksTracking: Boolean}
 export type ImageCropRect = {readonly x0: Int; readonly y0: Int; readonly x1: Int; readonly y1: Int}
 export type ImpTofuSearchResult = {readonly assertion: String; readonly assertionValue: String; readonly assertionKey: String; readonly label: String; readonly prettyName: String; readonly keybaseUsername: String}
 export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
-export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
+export type ImplicitTeamUserSet = {readonly keybaseUsers?: ReadonlyArray<String> | null; readonly unresolvedUsers?: ReadonlyArray<SocialAssertion> | null}
 export type IncomingShareItem = {readonly type: IncomingShareType; readonly originalPath?: String | null; readonly originalSize?: Int | null; readonly scaledPath?: String | null; readonly scaledSize?: Int | null; readonly thumbnailPath?: String | null; readonly content?: String | null}
 export type IncomingSharePreference = {readonly compressPreference: IncomingShareCompressPreference}
 export type IndexProgressRecord = {readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesSoFar: Int64}
-export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
+export type InstallResult = {readonly componentResults?: ReadonlyArray<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap?: {[key: string]: String} | null}
 export type InviteCounts = {readonly inviteCount: Int; readonly percentageChange: Double; readonly showNumInvites: Boolean; readonly showFire: Boolean; readonly tooltipMarkdown: String}
 export type InviteLinkDetails = {readonly inviteID: TeamInviteID; readonly inviterResetOrDel: Boolean; readonly inviterUID: UID; readonly inviterUsername: String; readonly isMember: Boolean; readonly teamAvatars?: {[key: string]: AvatarUrl} | null; readonly teamDesc: String; readonly teamID: TeamID; readonly teamIsOpen: Boolean; readonly teamName: TeamName; readonly teamNumMembers: Int}
 export type InviteTeamMemberToRemove = {readonly inviteID: TeamInviteID}
 export type Invitelink = {readonly ikey: SeitanIKeyInvitelink; readonly url: String}
-export type InvitelinkInviteExt = {readonly annotatedUsedInvites?: Array<AnnotatedTeamUsedInviteLogPoint> | null}
+export type InvitelinkInviteExt = {readonly annotatedUsedInvites?: ReadonlyArray<AnnotatedTeamUsedInviteLogPoint> | null}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3053,8 +3053,8 @@ export type KVDeleteEntryResult = {readonly teamName: String; readonly namespace
 export type KVEntryID = {readonly teamID: TeamID; readonly namespace: String; readonly entryKey: String}
 export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue?: String | null; readonly revision: Int}
 export type KVListEntryKey = {readonly entryKey: String; readonly revision: Int}
-export type KVListEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKeys?: Array<KVListEntryKey> | null}
-export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: Array<String> | null}
+export type KVListEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKeys?: ReadonlyArray<KVListEntryKey> | null}
+export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: ReadonlyArray<String> | null}
 export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
 export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String; readonly perfLog: String}
@@ -3070,7 +3070,7 @@ export type LinkID = String
 export type LinkTriple = {readonly seqno: Seqno; readonly seqType: SeqType; readonly linkID: LinkID}
 export type LinkTripleAndTime = {readonly triple: LinkTriple; readonly time: Time}
 export type ListArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter}
-export type ListResult = {readonly files?: Array<File> | null}
+export type ListResult = {readonly files?: ReadonlyArray<File> | null}
 export type ListToDepthArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly depth: Int}
 export type LoadAvatarsRes = {readonly picmap?: {[key: string]: {[key: string]: AvatarUrl} | null} | null}
 export type LoadDeviceErr = {readonly where: String; readonly desc: String}
@@ -3095,31 +3095,31 @@ export type MerkleStoreKit = String
 export type MerkleStoreKitHash = String
 export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeLocation = {readonly leaf: UserOrTeamID; readonly loc: SigChainLocation}
-export type MetadataResponse = {readonly folderID: String; readonly mdBlocks?: Array<MDBlock> | null}
+export type MetadataResponse = {readonly folderID: String; readonly mdBlocks?: ReadonlyArray<MDBlock> | null}
 export type MoveArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly overwriteExistingFiles: Boolean}
 export type NaclDHKeyPrivate = string | null
 export type NaclDHKeyPublic = string | null
 export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
-export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconFullDarkmode?: Array<SizedImage> | null}
+export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: ReadonlyArray<SizedImage> | null; readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null; readonly siteIconFull?: ReadonlyArray<SizedImage> | null; readonly siteIconFullDarkmode?: ReadonlyArray<SizedImage> | null}
 export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly chatemoji: Boolean; readonly chatemojicross: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean; readonly allowChatNotifySkips: Boolean; readonly chatarchive: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs} | {asyncOp: AsyncOps.read; read: ReadArgs} | {asyncOp: AsyncOps.write; write: WriteArgs} | {asyncOp: AsyncOps.copy; copy: CopyArgs} | {asyncOp: AsyncOps.move; move: MoveArgs} | {asyncOp: AsyncOps.remove; remove: RemoveArgs} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
 export type OutOfDateInfo = {readonly upgradeTo: String; readonly upgradeURI: String; readonly customMessage: String; readonly criticalClockSkew: Long}
-export type PGPCreateUids = {readonly useDefault: Boolean; readonly ids?: Array<PGPIdentity> | null}
+export type PGPCreateUids = {readonly useDefault: Boolean; readonly ids?: ReadonlyArray<PGPIdentity> | null}
 export type PGPDecryptOptions = {readonly assertSigned: Boolean; readonly signedBy: String}
-export type PGPEncryptOptions = {readonly recipients?: Array<String> | null; readonly noSign: Boolean; readonly noSelf: Boolean; readonly binaryOut: Boolean; readonly keyQuery: String}
+export type PGPEncryptOptions = {readonly recipients?: ReadonlyArray<String> | null; readonly noSign: Boolean; readonly noSelf: Boolean; readonly binaryOut: Boolean; readonly keyQuery: String}
 export type PGPFingerprint = string | null
 export type PGPIdentity = {readonly username: String; readonly comment: String; readonly email: String}
-export type PGPPurgeRes = {readonly filenames?: Array<String> | null}
+export type PGPPurgeRes = {readonly filenames?: ReadonlyArray<String> | null}
 export type PGPQuery = {readonly secret: Boolean; readonly query: String; readonly exactMatch: Boolean}
-export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey; readonly warnings?: Array<String> | null}
+export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey; readonly warnings?: ReadonlyArray<String> | null}
 export type PGPSignOptions = {readonly keyQuery: String; readonly mode: SignMode; readonly binaryIn: Boolean; readonly binaryOut: Boolean}
 export type PGPVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
 export type ParamProofJSON = {readonly sigHash: SigID; readonly kbUsername: String}
-export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: Array<SelectorEntry> | null; readonly avatarPath?: Array<SelectorEntry> | null}
+export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: ReadonlyArray<SelectorEntry> | null; readonly avatarPath?: ReadonlyArray<SelectorEntry> | null}
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String} | {PathType: PathType.kbfs; kbfs: KBFSPath} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath}
@@ -3145,30 +3145,30 @@ export type PingResponse = {readonly timestamp: Time}
 export type PlatformInfo = {readonly os: String; readonly osVersion: String; readonly arch: String; readonly goVersion: String}
 export type PrefetchProgress = {readonly start: Time; readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesFetched: Int64}
 export type Probe = {readonly i: /* index */ Int; readonly s: /* teamSeqno */ Seqno; readonly h: /* teamHiddenSeqno */ Seqno}
-export type ProblemSet = {readonly user: User; readonly kid: KID; readonly tlfs?: Array<ProblemTLF> | null}
-export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devices?: Array<Device> | null}
-export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: Array<KID> | null}
-export type Process = {readonly pid: String; readonly command: String; readonly fileDescriptors?: Array<FileDescriptor> | null}
+export type ProblemSet = {readonly user: User; readonly kid: KID; readonly tlfs?: ReadonlyArray<ProblemTLF> | null}
+export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devices?: ReadonlyArray<Device> | null}
+export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: ReadonlyArray<KID> | null}
+export type Process = {readonly pid: String; readonly command: String; readonly fileDescriptors?: ReadonlyArray<FileDescriptor> | null}
 export type ProcessRuntimeStats = {readonly type: ProcessType; readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel}
 export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly serviceMap?: {[key: string]: String} | null; readonly assertion: String; readonly displayName: String; readonly displayLabel: String}
 export type ProfileTeamLoadRes = {readonly loadTimeNsec: Long}
 export type Progress = Int
 export type ProofResult = {readonly state: ProofState; readonly status: ProofStatus; readonly desc: String}
-export type ProofSuggestion = {readonly key: String; readonly belowFold: Boolean; readonly profileText: String; readonly profileIcon?: Array<SizedImage> | null; readonly profileIconDarkmode?: Array<SizedImage> | null; readonly pickerText: String; readonly pickerSubtext: String; readonly pickerIcon?: Array<SizedImage> | null; readonly pickerIconDarkmode?: Array<SizedImage> | null; readonly metas?: Array<Identify3RowMeta> | null}
-export type ProofSuggestionsRes = {readonly suggestions?: Array<ProofSuggestion> | null; readonly showMore: Boolean}
-export type Proofs = {readonly social?: Array<TrackProof> | null; readonly web?: Array<WebProof> | null; readonly publicKeys?: Array<PublicKey> | null}
-export type ProveParameters = {readonly logoFull?: Array<SizedImage> | null; readonly logoBlack?: Array<SizedImage> | null; readonly logoWhite?: Array<SizedImage> | null; readonly title: String; readonly subtext: String; readonly suffix: String; readonly buttonLabel: String}
+export type ProofSuggestion = {readonly key: String; readonly belowFold: Boolean; readonly profileText: String; readonly profileIcon?: ReadonlyArray<SizedImage> | null; readonly profileIconDarkmode?: ReadonlyArray<SizedImage> | null; readonly pickerText: String; readonly pickerSubtext: String; readonly pickerIcon?: ReadonlyArray<SizedImage> | null; readonly pickerIconDarkmode?: ReadonlyArray<SizedImage> | null; readonly metas?: ReadonlyArray<Identify3RowMeta> | null}
+export type ProofSuggestionsRes = {readonly suggestions?: ReadonlyArray<ProofSuggestion> | null; readonly showMore: Boolean}
+export type Proofs = {readonly social?: ReadonlyArray<TrackProof> | null; readonly web?: ReadonlyArray<WebProof> | null; readonly publicKeys?: ReadonlyArray<PublicKey> | null}
+export type ProveParameters = {readonly logoFull?: ReadonlyArray<SizedImage> | null; readonly logoBlack?: ReadonlyArray<SizedImage> | null; readonly logoWhite?: ReadonlyArray<SizedImage> | null; readonly title: String; readonly subtext: String; readonly suffix: String; readonly buttonLabel: String}
 export type ProxyData = {readonly addressWithPort: String; readonly proxyType: ProxyType; readonly certPinning: Boolean}
-export type PublicKey = {readonly KID: KID; readonly PGPFingerprint: String; readonly PGPIdentities?: Array<PGPIdentity> | null; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly parentID: String; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: DeviceTypeV2; readonly cTime: Time; readonly eTime: Time; readonly isRevoked: Boolean}
+export type PublicKey = {readonly KID: KID; readonly PGPFingerprint: String; readonly PGPIdentities?: ReadonlyArray<PGPIdentity> | null; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly parentID: String; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: DeviceTypeV2; readonly cTime: Time; readonly eTime: Time; readonly isRevoked: Boolean}
 export type PublicKeyV2 = {keyType: KeyType.nacl; nacl: PublicKeyV2NaCl} | {keyType: KeyType.pgp; pgp: PublicKeyV2PGPSummary} | {keyType: KeyType.none}
 export type PublicKeyV2Base = {readonly kid: KID; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly cTime: Time; readonly eTime: Time; readonly provisioning: SignatureMetadata; readonly revocation?: SignatureMetadata | null}
 export type PublicKeyV2NaCl = {readonly base: PublicKeyV2Base; readonly parent?: KID | null; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: DeviceTypeV2}
-export type PublicKeyV2PGPSummary = {readonly base: PublicKeyV2Base; readonly fingerprint: PGPFingerprint; readonly identities?: Array<PGPIdentity> | null}
+export type PublicKeyV2PGPSummary = {readonly base: PublicKeyV2Base; readonly fingerprint: PGPFingerprint; readonly identities?: ReadonlyArray<PGPIdentity> | null}
 export type RawPhoneNumber = String
 export type Reachability = {readonly reachable: Reachable}
 export type ReadArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long; readonly size: Int}
 export type ReaderKeyMask = {readonly application: TeamApplication; readonly generation: PerTeamKeyGeneration; readonly mask: MaskB64}
-export type ReferenceCountRes = {readonly counts?: Array<BlockIdCount> | null}
+export type ReferenceCountRes = {readonly counts?: ReadonlyArray<BlockIdCount> | null}
 export type RegisterAddressRes = {readonly type: String; readonly family: String}
 export type RekeyEvent = {readonly eventType: RekeyEventType; readonly interruptType: Int}
 export type RekeyRequest = {readonly folderID: String; readonly revision: Long}
@@ -3184,27 +3184,27 @@ export type ResetPrompt = {t: ResetPromptType.complete; complete: ResetPromptInf
 export type ResetPromptInfo = {readonly hasWallet: Boolean}
 export type ResetState = {readonly endTime: Time; readonly active: Boolean}
 export type ResetSummary = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly resetSeqno: Seqno; readonly eldestSeqno: Seqno; readonly type: ResetType}
-export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; readonly teamID: TeamID; readonly writers?: Array<UserVersion> | null; readonly trackBreaks?: {[key: string]: IdentifyTrackBreaks} | null; readonly folderID: TLFID}
-export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
+export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; readonly teamID: TeamID; readonly writers?: ReadonlyArray<UserVersion> | null; readonly trackBreaks?: {[key: string]: IdentifyTrackBreaks} | null; readonly folderID: TLFID}
+export type RevokeWarning = {readonly endangeredTLFs?: ReadonlyArray<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
-export type RuntimeStats = {readonly processStats?: Array<ProcessRuntimeStats> | null; readonly dbStats?: Array<DbStats> | null; readonly perfEvents?: Array<PerfEvent> | null; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
+export type RuntimeStats = {readonly processStats?: ReadonlyArray<ProcessRuntimeStats> | null; readonly dbStats?: ReadonlyArray<DbStats> | null; readonly perfEvents?: ReadonlyArray<PerfEvent> | null; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptFileResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly filename: String}
-export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly noForcePoll: Boolean; readonly useKBFSKeysOnlyForTesting: Boolean}
+export type SaltpackEncryptOptions = {readonly recipients?: ReadonlyArray<String> | null; readonly teamRecipients?: ReadonlyArray<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly noForcePoll: Boolean; readonly useKBFSKeysOnlyForTesting: Boolean}
 export type SaltpackEncryptResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String}
 export type SaltpackEncryptStringResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly ciphertext: String}
-export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
+export type SaltpackEncryptedMessageInfo = {readonly devices?: ReadonlyArray<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
 export type SaltpackFileResult = {readonly info: SaltpackEncryptedMessageInfo; readonly decryptedFilename: String; readonly signed: Boolean}
-export type SaltpackFrontendEncryptOptions = {readonly recipients?: Array<String> | null; readonly signed: Boolean; readonly includeSelf: Boolean}
+export type SaltpackFrontendEncryptOptions = {readonly recipients?: ReadonlyArray<String> | null; readonly signed: Boolean; readonly includeSelf: Boolean}
 export type SaltpackPlaintextResult = {readonly info: SaltpackEncryptedMessageInfo; readonly plaintext: String; readonly signed: Boolean}
 export type SaltpackSender = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly senderType: SaltpackSenderType}
 export type SaltpackSignOptions = {readonly detached: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int}
 export type SaltpackVerifyFileResult = {readonly signingKID: KID; readonly sender: SaltpackSender; readonly verifiedFilename: String; readonly verified: Boolean}
 export type SaltpackVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
 export type SaltpackVerifyResult = {readonly signingKID: KID; readonly sender: SaltpackSender; readonly plaintext: String; readonly verified: Boolean}
-export type SearchRes = {readonly bots?: Array<FeaturedBot> | null; readonly isLastPage: Boolean}
+export type SearchRes = {readonly bots?: ReadonlyArray<FeaturedBot> | null; readonly isLastPage: Boolean}
 export type SecretEntryArg = {readonly desc: String; readonly prompt: String; readonly err: String; readonly cancel: String; readonly ok: String; readonly reason: String; readonly showTyping: Boolean}
 export type SecretEntryRes = {readonly text: String; readonly canceled: Boolean; readonly storeSecret: Boolean}
 export type SecretKeys = {readonly signing: NaclSigningKeyPrivate; readonly encryption: NaclDHKeyPrivate}
@@ -3226,7 +3226,7 @@ export type SelectorEntry = {readonly isIndex: Boolean; readonly index: Int; rea
 export type Seqno = Int64
 export type ServiceDisplayConfig = {readonly creationDisabled: Boolean; readonly priority: Int; readonly key: String; readonly group?: String | null; readonly new: Boolean; readonly logoKey: String}
 export type ServiceStatus = {readonly version: String; readonly label: String; readonly pid: String; readonly lastExitStatus: String; readonly bundleVersion: String; readonly installStatus: InstallStatus; readonly installAction: InstallAction; readonly status: Status}
-export type ServicesStatus = {readonly service?: Array<ServiceStatus> | null; readonly kbfs?: Array<ServiceStatus> | null; readonly updater?: Array<ServiceStatus> | null}
+export type ServicesStatus = {readonly service?: ReadonlyArray<ServiceStatus> | null; readonly kbfs?: ReadonlyArray<ServiceStatus> | null; readonly updater?: ReadonlyArray<ServiceStatus> | null}
 export type Session = {readonly uid: UID; readonly username: String; readonly token: String; readonly deviceSubkeyKid: KID; readonly deviceSibkeyKid: KID}
 export type SessionStatus = {readonly SessionFor: String; readonly Loaded: Boolean; readonly Cleared: Boolean; readonly SaltOnly: Boolean; readonly Expired: Boolean}
 export type SessionToken = String
@@ -3240,51 +3240,51 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
-export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: Array<Folder> | null}
-export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
+export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}
+export type SimpleFSListResult = {readonly entries?: ReadonlyArray<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSSearchHit = {readonly path: String}
-export type SimpleFSSearchResults = {readonly hits?: Array<SimpleFSSearchHit> | null; readonly nextResult: Int}
-export type SimpleFSStats = {readonly processStats: ProcessRuntimeStats; readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null; readonly runtimeDbStats?: Array<DbStats> | null}
+export type SimpleFSSearchResults = {readonly hits?: ReadonlyArray<SimpleFSSearchHit> | null; readonly nextResult: Int}
+export type SimpleFSStats = {readonly processStats: ProcessRuntimeStats; readonly blockCacheDbStats?: ReadonlyArray<String> | null; readonly syncCacheDbStats?: ReadonlyArray<String> | null; readonly runtimeDbStats?: ReadonlyArray<DbStats> | null}
 export type SizedImage = {readonly path: String; readonly width: Int}
 export type SocialAssertion = {readonly user: String; readonly service: SocialAssertionService}
 export type SocialAssertionService = String
 export type StartProofResult = {readonly sigID: SigID}
 export type StartStatus = {readonly log: String}
-export type Status = {readonly code: Int; readonly name: String; readonly desc: String; readonly fields?: Array<StringKVPair> | null}
+export type Status = {readonly code: Int; readonly name: String; readonly desc: String; readonly fields?: ReadonlyArray<StringKVPair> | null}
 export type StellarAccount = {readonly accountID: String; readonly federationAddress: String; readonly sigID: SigID; readonly hidden: Boolean}
 export type Stream = {readonly fd: Int}
 export type StringKVPair = {readonly key: String; readonly value: String}
 export type SubteamListEntry = {readonly name: TeamName; readonly teamID: TeamID; readonly memberCount: Int}
-export type SubteamListResult = {readonly entries?: Array<SubteamListEntry> | null}
+export type SubteamListResult = {readonly entries?: ReadonlyArray<SubteamListEntry> | null}
 export type SubteamLogPoint = {readonly name: TeamName; readonly seqno: Seqno}
-export type SyncConfigAndStatusRes = {readonly folders?: Array<FolderSyncConfigAndStatusWithFolder> | null; readonly overallStatus: FolderSyncStatus}
-export type TLF = {readonly id: TLFID; readonly name: String; readonly writers?: Array<String> | null; readonly readers?: Array<String> | null; readonly isPrivate: Boolean}
-export type TLFBreak = {readonly breaks?: Array<TLFIdentifyFailure> | null}
+export type SyncConfigAndStatusRes = {readonly folders?: ReadonlyArray<FolderSyncConfigAndStatusWithFolder> | null; readonly overallStatus: FolderSyncStatus}
+export type TLF = {readonly id: TLFID; readonly name: String; readonly writers?: ReadonlyArray<String> | null; readonly readers?: ReadonlyArray<String> | null; readonly isPrivate: Boolean}
+export type TLFBreak = {readonly breaks?: ReadonlyArray<TLFIdentifyFailure> | null}
 export type TLFID = String
 export type TLFIdentifyFailure = {readonly user: User; readonly breaks?: IdentifyTrackBreaks | null}
 export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLFIdentifyBehavior}
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly chatSending: Boolean}
-export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
+export type TeamAddMembersResult = {readonly notAdded?: ReadonlyArray<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamAvatar = {readonly avatarFilename: String; readonly crop?: ImageCropRect | null}
 export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
-export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: Array<String> | null; readonly convs?: Array<String> | null}
-export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
+export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: ReadonlyArray<String> | null; readonly convs?: ReadonlyArray<String> | null}
+export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: ReadonlyArray<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
-export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: {[key: string]: TeamBotSettings} | null; readonly none?: Array<UserVersion> | null; readonly completedInvites?: {[key: string]: UserVersionPercentForm} | null; readonly usedInvites?: Array<TeamUsedInvite> | null}
+export type TeamChangeReq = {readonly owners?: ReadonlyArray<UserVersion> | null; readonly admins?: ReadonlyArray<UserVersion> | null; readonly writers?: ReadonlyArray<UserVersion> | null; readonly readers?: ReadonlyArray<UserVersion> | null; readonly bots?: ReadonlyArray<UserVersion> | null; readonly restrictedBots?: {[key: string]: TeamBotSettings} | null; readonly none?: ReadonlyArray<UserVersion> | null; readonly completedInvites?: {[key: string]: UserVersionPercentForm} | null; readonly usedInvites?: ReadonlyArray<TeamUsedInvite> | null}
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
 export type TeamContactSettings = {readonly teamID: TeamID; readonly enabled: Boolean}
-export type TeamCreateFancyInfo = {readonly name: String; readonly description: String; readonly joinSubteam: Boolean; readonly openSettings: TeamSettings; readonly profileShowcase: Boolean; readonly avatar?: TeamAvatar | null; readonly chatChannels?: Array<String> | null; readonly subteams?: Array<String> | null; readonly users?: Array<UserRolePair> | null; readonly emailInviteMessage?: String | null}
+export type TeamCreateFancyInfo = {readonly name: String; readonly description: String; readonly joinSubteam: Boolean; readonly openSettings: TeamSettings; readonly profileShowcase: Boolean; readonly avatar?: TeamAvatar | null; readonly chatChannels?: ReadonlyArray<String> | null; readonly subteams?: ReadonlyArray<String> | null; readonly users?: ReadonlyArray<UserRolePair> | null; readonly emailInviteMessage?: String | null}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
-export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds /* perTeamKeySeedsUnverified */?: {[key: string]: PerTeamKeySeedItem} | null; readonly readerKeyMasks?: {[key: string]: {[key: string]: MaskB64} | null} | null; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys?: {[key: string]: Array<CryptKey> | null} | null}
+export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds /* perTeamKeySeedsUnverified */?: {[key: string]: PerTeamKeySeedItem} | null; readonly readerKeyMasks?: {[key: string]: {[key: string]: MaskB64} | null} | null; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys?: {[key: string]: ReadonlyArray<CryptKey> | null} | null}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
 export type TeamDetails = {readonly name: String; readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites?: {[key: string]: AnnotatedTeamInvite} | null; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
-export type TeamEditMembersResult = {readonly failures?: Array<UserRolePair> | null}
+export type TeamEditMembersResult = {readonly failures?: ReadonlyArray<UserRolePair> | null}
 export type TeamEk = {readonly seed: Bytes32; readonly metadata: TeamEkMetadata}
 export type TeamEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientUID: UID}
 export type TeamEkBoxed = {readonly box: String; readonly userEkGeneration: EkGeneration; readonly metadata: TeamEkMetadata}
@@ -3303,7 +3303,7 @@ export type TeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; re
 export type TeamInviteDisplayName = String
 export type TeamInviteID = String
 export type TeamInviteMaxUses = Int
-export type TeamInviteMetadata = {readonly invite: TeamInvite; readonly teamSigMeta: TeamSignatureMetadata; readonly status: TeamInviteMetadataStatus; readonly usedInvites?: Array<TeamUsedInviteLogPoint> | null}
+export type TeamInviteMetadata = {readonly invite: TeamInvite; readonly teamSigMeta: TeamSignatureMetadata; readonly status: TeamInviteMetadataStatus; readonly usedInvites?: ReadonlyArray<TeamUsedInviteLogPoint> | null}
 export type TeamInviteMetadataCancel = {readonly teamSigMeta: TeamSignatureMetadata}
 export type TeamInviteMetadataCompleted = {readonly teamSigMeta: TeamSignatureMetadata}
 export type TeamInviteMetadataStatus = {code: TeamInviteMetadataStatusCode.active} | {code: TeamInviteMetadataStatusCode.obsolete} | {code: TeamInviteMetadataStatusCode.cancelled; cancelled: TeamInviteMetadataCancel} | {code: TeamInviteMetadataStatusCode.completed; completed: TeamInviteMetadataCompleted}
@@ -3314,40 +3314,40 @@ export type TeamInvitee = {readonly inviteID: TeamInviteID; readonly uid: UID; r
 export type TeamJoinRequest = {readonly name: String; readonly username: String; readonly fullName: FullName; readonly ctime: UnixTime}
 export type TeamKBFSKeyRefresher = {readonly generation: Int; readonly appType: TeamApplication}
 export type TeamLegacyTLFUpgradeChainInfo = {readonly keysetHash: TeamEncryptedKBFSKeysetHash; readonly teamGeneration: PerTeamKeyGeneration; readonly legacyGeneration: Int; readonly appType: TeamApplication}
-export type TeamList = {readonly teams?: Array<MemberInfo> | null}
+export type TeamList = {readonly teams?: ReadonlyArray<MemberInfo> | null}
 export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly eldestSeqno: Seqno; readonly status: TeamMemberStatus; readonly botSettings?: TeamBotSettings | null}
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus; readonly joinTime?: Time | null; readonly role: TeamRole}
 export type TeamMemberOutFromReset = {readonly teamID: TeamID; readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamID: TeamID; readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
 export type TeamMemberRole = {readonly uid: UID; readonly username: String; readonly fullName: FullName; readonly role: TeamRole}
 export type TeamMemberToRemove = {type: TeamMemberToRemoveType.assertion; assertion: AssertionTeamMemberToRemove} | {type: TeamMemberToRemoveType.inviteid; inviteid: InviteTeamMemberToRemove}
-export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
-export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
-export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
+export type TeamMembers = {readonly owners?: ReadonlyArray<UserVersion> | null; readonly admins?: ReadonlyArray<UserVersion> | null; readonly writers?: ReadonlyArray<UserVersion> | null; readonly readers?: ReadonlyArray<UserVersion> | null; readonly bots?: ReadonlyArray<UserVersion> | null; readonly restrictedBots?: ReadonlyArray<UserVersion> | null}
+export type TeamMembersDetails = {readonly owners?: ReadonlyArray<TeamMemberDetails> | null; readonly admins?: ReadonlyArray<TeamMemberDetails> | null; readonly writers?: ReadonlyArray<TeamMemberDetails> | null; readonly readers?: ReadonlyArray<TeamMemberDetails> | null; readonly bots?: ReadonlyArray<TeamMemberDetails> | null; readonly restrictedBots?: ReadonlyArray<TeamMemberDetails> | null}
+export type TeamName = {readonly parts?: ReadonlyArray<TeamNamePart> | null}
 export type TeamNameLogPoint = {readonly lastPart: TeamNamePart; readonly seqno: Seqno}
 export type TeamNamePart = String
 export type TeamNewlyAddedRow = {readonly id: TeamID; readonly name: String}
-export type TeamOpenReqMsg = {readonly teamID: TeamID; readonly tars?: Array<TeamAccessRequest> | null}
-export type TeamOpenSweepMsg = {readonly teamID: TeamID; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
+export type TeamOpenReqMsg = {readonly teamID: TeamID; readonly tars?: ReadonlyArray<TeamAccessRequest> | null}
+export type TeamOpenSweepMsg = {readonly teamID: TeamID; readonly resetUsersUntrusted?: ReadonlyArray<TeamCLKRResetUser> | null}
 export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean; readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean; readonly renameChannel: Boolean; readonly renameTeam: Boolean; readonly editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy: Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory: Boolean; readonly deleteOtherEmojis: Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean; readonly pinMessage: Boolean; readonly manageBots: Boolean; readonly manageEmojis: Boolean}
-export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly onlyRestrictedBots?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
+export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: ReadonlyArray<UserVersion> | null; readonly onlyReaders?: ReadonlyArray<UserVersion> | null; readonly onlyRestrictedBots?: ReadonlyArray<UserVersion> | null; readonly applicationKeys?: ReadonlyArray<TeamApplicationKey> | null}
 export type TeamProfileAddEntry = {readonly teamID: TeamID; readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
-export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations?: {[key: string]: Array<TeamApplication> | null} | null; readonly needApplicationsAtGenerationsWithKBFS?: {[key: string]: Array<TeamApplication> | null} | null; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
-export type TeamRemoveMembersResult = {readonly failures?: Array<RemoveTeamMemberFailure> | null}
+export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations?: {[key: string]: ReadonlyArray<TeamApplication> | null} | null; readonly needApplicationsAtGenerationsWithKBFS?: {[key: string]: ReadonlyArray<TeamApplication> | null} | null; readonly wantMembers?: ReadonlyArray<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
+export type TeamRemoveMembersResult = {readonly failures?: ReadonlyArray<RemoveTeamMemberFailure> | null}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}
 export type TeamRoleMapAndVersion = {readonly teams?: {[key: string]: TeamRolePair} | null; readonly version: UserTeamVersion}
 export type TeamRoleMapStored = {readonly data: TeamRoleMapAndVersion; readonly cachedAt: Time}
 export type TeamRolePair = {readonly role: TeamRole; readonly implicitRole: TeamRole}
-export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
-export type TeamSearchExport = {readonly items?: {[key: string]: TeamSearchItem} | null; readonly suggested?: Array<TeamID> | null}
+export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: ReadonlyArray<TeamInvitee> | null}
+export type TeamSearchExport = {readonly items?: {[key: string]: TeamSearchItem} | null; readonly suggested?: ReadonlyArray<TeamID> | null}
 export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time; readonly isDemoted: Boolean; readonly inTeam: Boolean}
-export type TeamSearchRes = {readonly results?: Array<TeamSearchItem> | null}
-export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
+export type TeamSearchRes = {readonly results?: ReadonlyArray<TeamSearchItem> | null}
+export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: ReadonlyArray<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
-export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog?: {[key: string]: Array<UserLogPoint> | null} | null; readonly subteamLog?: {[key: string]: Array<SubteamLogPoint> | null} | null; readonly perTeamKeys?: {[key: string]: PerTeamKey} | null; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs?: {[key: string]: LinkID} | null; readonly stubbedLinks?: {[key: string]: Boolean} | null; readonly inviteMetadatas?: {[key: string]: TeamInviteMetadata} | null; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots?: {[key: string]: TeamBotSettings} | null; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade?: {[key: string]: TeamLegacyTLFUpgradeChainInfo} | null; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots?: {[key: string]: MerkleRootV2} | null}
+export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: ReadonlyArray<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog?: {[key: string]: ReadonlyArray<UserLogPoint> | null} | null; readonly subteamLog?: {[key: string]: ReadonlyArray<SubteamLogPoint> | null} | null; readonly perTeamKeys?: {[key: string]: PerTeamKey} | null; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs?: {[key: string]: LinkID} | null; readonly stubbedLinks?: {[key: string]: Boolean} | null; readonly inviteMetadatas?: {[key: string]: TeamInviteMetadata} | null; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly bots?: {[key: string]: TeamBotSettings} | null; readonly tlfIDs?: ReadonlyArray<TLFID> | null; readonly tlfLegacyUpgrade?: {[key: string]: TeamLegacyTLFUpgradeChainInfo} | null; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots?: {[key: string]: MerkleRootV2} | null}
 export type TeamSignatureMetadata = {readonly sigMeta: SignatureMetadata; readonly uv: UserVersion}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeError = {readonly message: String; readonly willSkipSubtree: Boolean; readonly willSkipAncestors: Boolean}
@@ -3356,7 +3356,7 @@ export type TeamTreeMembership = {readonly teamName: String; readonly result: Te
 export type TeamTreeMembershipResult = {s: TeamTreeMembershipStatus.ok; ok: TeamTreeMembershipValue} | {s: TeamTreeMembershipStatus.error; error: TeamTreeError} | {s: TeamTreeMembershipStatus.hidden}
 export type TeamTreeMembershipValue = {readonly role: TeamRole; readonly joinTime?: Time | null; readonly teamID: TeamID}
 export type TeamTreeMembershipsDoneResult = {readonly expectedCount: Int; readonly targetTeamID: TeamID; readonly targetUsername: String; readonly guid: Int}
-export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
+export type TeamTreeResult = {readonly entries?: ReadonlyArray<TeamTreeEntry> | null}
 export type TeamUsedInvite = {readonly inviteID: TeamInviteID; readonly uv: UserVersionPercentForm}
 export type TeamUsedInviteLogPoint = {readonly uv: UserVersion; readonly logPoint: Int}
 export type TeambotEk = {readonly seed: Bytes32; readonly metadata: TeambotEkMetadata}
@@ -3377,12 +3377,12 @@ export type TrackToken = String
 export type UID = String
 export type UPAKVersioned = {v: UPAKVersion.v1; v1: UserPlusAllKeys} | {v: UPAKVersion.v2; v2: UserPlusKeysV2AllIncarnations}
 export type UPKLiteV1 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: {[key: string]: PublicKeyV2NaCl} | null; readonly reset?: ResetSummary | null}
-export type UPKLiteV1AllIncarnations = {readonly current: UPKLiteV1; readonly pastIncarnations?: Array<UPKLiteV1> | null; readonly seqnoLinkIDs?: {[key: string]: LinkID} | null; readonly minorVersion: UPKLiteMinorVersion}
+export type UPKLiteV1AllIncarnations = {readonly current: UPKLiteV1; readonly pastIncarnations?: ReadonlyArray<UPKLiteV1> | null; readonly seqnoLinkIDs?: {[key: string]: LinkID} | null; readonly minorVersion: UPKLiteMinorVersion}
 export type UnboxAnyRes = {readonly kid: KID; readonly plaintext: Bytes32; readonly index: Int}
-export type UninstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status}
+export type UninstallResult = {readonly componentResults?: ReadonlyArray<ComponentResult> | null; readonly status: Status}
 export type UnixTime = Long
 export type UntrustedTeamExistsResult = {readonly exists: Boolean; readonly status: StatusCode}
-export type UntrustedTeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int; readonly publicMembers?: Array<TeamMemberRole> | null}
+export type UntrustedTeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: ReadonlyArray<String> | null; readonly numMembers: Int; readonly publicMembers?: ReadonlyArray<TeamMemberRole> | null}
 export type UpPointer = {readonly ourSeqno: Seqno; readonly parentID: TeamID; readonly parentSeqno: Seqno; readonly deletion: Boolean}
 export type UpdateDetails = {readonly message: String}
 export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: String}
@@ -3395,10 +3395,10 @@ export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
 export type UserBlockState = {readonly blockType: UserBlockType; readonly blocked: Boolean}
-export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
+export type UserBlockedBody = {readonly blocks?: ReadonlyArray<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
-export type UserBlockedSummary = {readonly blocker: String; readonly blocks?: {[key: string]: Array<UserBlockState> | null} | null}
-export type UserCard = {readonly unverifiedNumFollowing: Int; readonly unverifiedNumFollowers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly stellarHidden: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
+export type UserBlockedSummary = {readonly blocker: String; readonly blocks?: {[key: string]: ReadonlyArray<UserBlockState> | null} | null}
+export type UserCard = {readonly unverifiedNumFollowing: Int; readonly unverifiedNumFollowers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly teamShowcase?: ReadonlyArray<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly stellarHidden: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
 export type UserEkBoxed = {readonly box: String; readonly deviceEkGeneration: EkGeneration; readonly metadata: UserEkMetadata}
@@ -3410,17 +3410,17 @@ export type UserOrTeamID = String
 export type UserOrTeamLite = {readonly id: UserOrTeamID; readonly name: String}
 export type UserPassphraseStateMsg = {readonly passphraseState: PassphraseState}
 export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly superseded: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
-export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: Array<PublicKey> | null; readonly remoteTracks?: Array<RemoteTrack> | null}
-export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}
-export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly perUserKeys?: Array<PerUserKey> | null; readonly deviceKeys?: {[key: string]: PublicKeyV2NaCl} | null; readonly pgpKeys?: {[key: string]: PublicKeyV2PGPSummary} | null; readonly stellarAccountID?: String | null; readonly remoteTracks?: {[key: string]: RemoteTrack} | null; readonly reset?: ResetSummary | null; readonly unstubbed: Boolean}
-export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs?: {[key: string]: LinkID} | null; readonly minorVersion: UPK2MinorVersion; readonly stale: Boolean}
+export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: ReadonlyArray<PublicKey> | null; readonly remoteTracks?: ReadonlyArray<RemoteTrack> | null}
+export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: ReadonlyArray<PublicKey> | null; readonly revokedDeviceKeys?: ReadonlyArray<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: ReadonlyArray<PublicKey> | null; readonly perUserKeys?: ReadonlyArray<PerUserKey> | null; readonly resets?: ReadonlyArray<ResetSummary> | null}
+export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly perUserKeys?: ReadonlyArray<PerUserKey> | null; readonly deviceKeys?: {[key: string]: PublicKeyV2NaCl} | null; readonly pgpKeys?: {[key: string]: PublicKeyV2PGPSummary} | null; readonly stellarAccountID?: String | null; readonly remoteTracks?: {[key: string]: RemoteTrack} | null; readonly reset?: ResetSummary | null; readonly unstubbed: Boolean}
+export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: ReadonlyArray<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs?: {[key: string]: LinkID} | null; readonly minorVersion: UPK2MinorVersion; readonly stale: Boolean}
 export type UserReacji = {readonly name: String; readonly customAddr?: String | null; readonly customAddrNoAnim?: String | null}
-export type UserReacjis = {readonly topReacjis?: Array<UserReacji> | null; readonly skinTone: ReacjiSkinTone}
+export type UserReacjis = {readonly topReacjis?: ReadonlyArray<UserReacji> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertion: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null}
-export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
+export type UserSettings = {readonly emails?: ReadonlyArray<Email> | null; readonly phoneNumbers?: ReadonlyArray<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly fullName: String; readonly linkID?: LinkID | null}
-export type UserSummarySet = {readonly users?: Array<UserSummary> | null; readonly time: Time; readonly version: Int}
-export type UserTeamShowcase = {readonly fqName: String; readonly open: Boolean; readonly teamIsShowcased: Boolean; readonly description: String; readonly role: TeamRole; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int}
+export type UserSummarySet = {readonly users?: ReadonlyArray<UserSummary> | null; readonly time: Time; readonly version: Int}
+export type UserTeamShowcase = {readonly fqName: String; readonly open: Boolean; readonly teamIsShowcased: Boolean; readonly description: String; readonly role: TeamRole; readonly publicAdmins?: ReadonlyArray<String> | null; readonly numMembers: Int}
 export type UserTeamVersion = Int
 export type UserTeamVersionUpdate = {readonly version: UserTeamVersion}
 export type UserVersion = {readonly uid: UID; readonly eldestSeqno: Seqno}
@@ -3431,11 +3431,11 @@ export type VID = String
 export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime}
 export type VerifySessionRes = {readonly uid: UID; readonly sid: String; readonly generated: Int; readonly lifetime: Int}
 export type WalletAccountInfo = {readonly accountID: String; readonly numUnread: Int}
-export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
+export type WebProof = {readonly hostname: String; readonly protocols?: ReadonlyArray<String> | null}
 export type WotProof = {readonly proofType: ProofType; readonly name: String; readonly username: String; readonly protocol: String; readonly hostname: String; readonly domain: String}
-export type WotProofUI = {readonly type: String; readonly value: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null}
+export type WotProofUI = {readonly type: String; readonly value: String; readonly siteIcon?: ReadonlyArray<SizedImage> | null; readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null}
 export type WotUpdate = {readonly voucher: String; readonly vouchee: String; readonly status: WotStatusType}
-export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchText: String; readonly vouchedAt: Time; readonly confidence: Confidence; readonly proofs?: Array<WotProofUI> | null}
+export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly vouchee: UserVersion; readonly voucheeUsername: String; readonly voucher: UserVersion; readonly voucherUsername: String; readonly vouchText: String; readonly vouchedAt: Time; readonly confidence: Confidence; readonly proofs?: ReadonlyArray<WotProofUI> | null}
 export type WriteArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long}
 
 export type IncomingCallMapType = {

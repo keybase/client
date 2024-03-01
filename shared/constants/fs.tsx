@@ -384,7 +384,9 @@ export const emptyTlfEdit: T.FS.TlfEdit = {
   serverTime: 0,
 }
 
-const fsNotificationTypeToEditType = (fsNotificationType: number): T.FS.FileEditType => {
+const fsNotificationTypeToEditType = (
+  fsNotificationType: T.RPCChat.Keybase1.FSNotificationType
+): T.FS.FileEditType => {
   switch (fsNotificationType) {
     case T.RPCGen.FSNotificationType.fileCreated:
       return T.FS.FileEditType.Created
@@ -400,7 +402,7 @@ const fsNotificationTypeToEditType = (fsNotificationType: number): T.FS.FileEdit
 }
 
 export const userTlfHistoryRPCToState = (
-  history: Array<T.RPCGen.FSFolderEditHistory>
+  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
 ): T.FS.UserTlfUpdates => {
   let updates: Array<T.FS.TlfUpdate> = []
   history.forEach(folder => {
@@ -898,7 +900,7 @@ export const getMainBannerType = (
     return T.FS.MainBannerType.Offline
   } else if (kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Trying) {
     return T.FS.MainBannerType.TryingToConnect
-  } else if (overallSyncStatus.diskSpaceStatus === 'error') {
+  } else if (overallSyncStatus.diskSpaceStatus === T.FS.DiskSpaceStatus.Error) {
     return T.FS.MainBannerType.OutOfSpace
   } else {
     return T.FS.MainBannerType.None
@@ -992,7 +994,7 @@ export const hideOrDisableInDestinationPicker = (
   destinationPickerIndex?: number
 ) => typeof destinationPickerIndex === 'number' && tlfType === T.FS.TlfType.Public && name !== username
 
-const noAccessErrorCodes = [
+const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scsimplefsnoaccess,
   T.RPCGen.StatusCode.scteamnotfound,
   T.RPCGen.StatusCode.scteamreaderror,
@@ -1000,7 +1002,7 @@ const noAccessErrorCodes = [
 
 export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   if (!isObject(error)) return
-  const code = (error as {code?: number}).code ?? -1
+  const code = (error as {code?: T.RPCGen.StatusCode}).code
   if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
     _useState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
@@ -1022,7 +1024,7 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
     _useState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
-  if (path && noAccessErrorCodes.includes(code)) {
+  if (path && code && noAccessErrorCodes.includes(code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
       _useState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
@@ -1174,7 +1176,11 @@ type State = Store & {
     moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    onPathChange: (clientID: string, path: string, topics: T.RPCGen.PathSubscriptionTopic[]) => void
+    onPathChange: (
+      clientID: string,
+      path: string,
+      topics: ReadonlyArray<T.RPCGen.PathSubscriptionTopic>
+    ) => void
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
@@ -1186,7 +1192,7 @@ type State = Store & {
     setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
     setEditName: (editID: T.FS.EditID, name: string) => void
     setFolderViewFilter: (filter?: string) => void
-    setIncomingShareSource: (source: Array<T.RPCGen.IncomingShareItem>) => void
+    setIncomingShareSource: (source: ReadonlyArray<T.RPCGen.IncomingShareItem>) => void
     setLastPublicBannerClosedTlf: (tlf: string) => void
     setMoveOrCopySource: (path: T.FS.Path) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
@@ -1575,9 +1581,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
           const payload = {
-            private: new Map(),
-            public: new Map(),
-            team: new Map(),
+            private: new Map<string, T.FS.Tlf>(),
+            public: new Map<string, T.FS.Tlf>(),
+            team: new Map<string, T.FS.Tlf>(),
           } as const
           const fs = [
             ...(results.favoriteFolders
@@ -1973,7 +1979,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
 
           set(s => {
-            s.downloads.regularDownloads = regularDownloads
+            s.downloads.regularDownloads = T.castDraft(regularDownloads)
             s.downloads.state = state
 
             const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
@@ -2426,7 +2432,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setIncomingShareSource: source => {
       set(s => {
-        s.destinationPicker.source = {source, type: T.FS.DestinationPickerSource.IncomingShare}
+        s.destinationPicker.source = {
+          source: T.castDraft(source),
+          type: T.FS.DestinationPickerSource.IncomingShare,
+        }
       })
     },
     setLastPublicBannerClosedTlf: tlf => {

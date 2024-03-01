@@ -1,4 +1,4 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import {produce} from 'immer'
 
@@ -200,6 +200,6 @@ export const deserialize = (
     if (teamShowcase) {
       details.teamShowcase = teamShowcase
     }
-    s.tracker2.usernameToDetails.set(trackerUsername, details)
+    s.tracker2.usernameToDetails.set(trackerUsername, T.castDraft(details))
   })
 }

@@ -231,12 +231,12 @@ export type ConvoState = ConvoStore & {
     messageRetry: (outboxID: T.Chat.OutboxID) => void
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
     messagesClear: () => void
-    messagesExploded: (messageIDs: Array<T.Chat.MessageID>, explodedBy?: string) => void
+    messagesExploded: (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
-      messageIDs?: Array<T.Chat.MessageID>
+      messageIDs?: ReadonlyArray<T.Chat.MessageID>
       upToMessageID?: T.Chat.MessageID // expunge calls give us a message we should delete up to (don't delete it)
-      deletableMessageTypes?: Set<T.Chat.MessageType> // expunge calls don't delete _all_ messages, only these types
-      ordinals?: Array<T.Chat.Ordinal>
+      deletableMessageTypes?: ReadonlySet<T.Chat.MessageType> // expunge calls don't delete _all_ messages, only these types
+      ordinals?: ReadonlyArray<T.Chat.Ordinal>
     }) => void
     mute: (m: boolean) => void
     navigateToThread: (reason: NavReason, highlightMessageID?: T.Chat.MessageID, pushBody?: string) => void
@@ -528,7 +528,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
 
           m.ordinal = mapOrdinal
-          s.messageMap.set(mapOrdinal, m)
+          s.messageMap.set(mapOrdinal, T.castDraft(m))
           if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
           }
@@ -627,7 +627,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         Common.waitingKeyMutualTeams(conversationIDKey)
       )
       set(s => {
-        s.mutualTeams = results.teamIDs ?? []
+        s.mutualTeams = T.castDraft(results.teamIDs) ?? []
       })
     }
     C.ignorePromise(f())
@@ -683,7 +683,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const updateAttachmentViewTransfer = (msgId: number, ratio: number) => {
     set(s => {
       const viewType = T.RPCChat.GalleryItemTyp.doc
-      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
       const {messages} = info
       const idx = messages.findIndex(item => item.id === msgId)
       if (idx !== -1) {
@@ -699,7 +699,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const updateAttachmentViewTransfered = (msgId: number, path: string) => {
     set(s => {
       const viewType = T.RPCChat.GalleryItemTyp.doc
-      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
       const {messages} = info
       const idx = messages.findIndex(item => item.id === msgId)
       if (idx !== -1) {
@@ -896,7 +896,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Object.keys(status.uptodate.settings ?? {}).forEach(u => {
             settingsMap.set(u, status.uptodate.settings?.[u])
           })
-          s.botSettings = settingsMap
+          s.botSettings = T.castDraft(settingsMap)
         }
       })
     },
@@ -1055,7 +1055,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
         const {attachmentViewMap} = s
-        const info = mapGetEnsureValue(attachmentViewMap, viewType, makeAttachmentViewInfo())
+        const info = mapGetEnsureValue(attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
         info.status = 'loading'
       })
 
@@ -1080,9 +1080,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+                    const info = mapGetEnsureValue(
+                      s.attachmentViewMap,
+                      viewType,
+                      T.castDraft(makeAttachmentViewInfo())
+                    )
                     if (!info.messages.find(item => item.id === message.id)) {
-                      info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
+                      info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
                     }
                   })
                   // inject them into the message map
@@ -1098,7 +1102,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
           })
           set(s => {
-            const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+            const info = mapGetEnsureValue(
+              s.attachmentViewMap,
+              viewType,
+              T.castDraft(makeAttachmentViewInfo())
+            )
             info.last = !!res.last
             info.status = 'success'
           })
@@ -1106,7 +1114,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (error instanceof RPCError) {
             logger.error('failed to load attachment view: ' + error.message)
             set(s => {
-              const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+              const info = mapGetEnsureValue(
+                s.attachmentViewMap,
+                viewType,
+                T.castDraft(makeAttachmentViewInfo())
+              )
               info.last = false
               info.status = 'error'
             })
@@ -2017,7 +2029,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         case EngineGen.chat1ChatUiChatCommandStatus: {
           const {displayText, typ, actions} = action.payload.params
           get().dispatch.setCommandStatusInfo({
-            actions: actions || [],
+            actions: T.castDraft(actions) || [],
             displayText,
             displayType: typ,
           })
@@ -2037,7 +2049,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         case EngineGen.chat1ChatUiChatGiphySearchResults:
           set(s => {
-            s.giphyResult = action.payload.params.results
+            s.giphyResult = T.castDraft(action.payload.params.results)
           })
           break
         case EngineGen.chat1NotifyChatChatRequestInfo:
@@ -2350,7 +2362,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             username,
           })
           set(s => {
-            s.botSettings.set(username, settings)
+            s.botSettings.set(username, T.castDraft(settings))
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2847,7 +2859,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                 if (message) {
                   set(s => {
-                    s.threadSearchInfo.hits.push(message)
+                    s.threadSearchInfo.hits.push(T.castDraft(message))
                   })
                 }
               },
@@ -2869,7 +2881,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 set(s => {
                   if (messages.length > 0) {
                     // entirely replace
-                    s.threadSearchInfo.hits = messages
+                    s.threadSearchInfo.hits = T.castDraft(messages)
                   }
                 })
               },

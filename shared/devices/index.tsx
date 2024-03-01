@@ -14,7 +14,7 @@ const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
 }
 
 const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
-const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
+const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device>>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const itemHeight = {height: 48, type: 'fixed'} as const
