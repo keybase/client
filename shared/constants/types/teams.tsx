@@ -116,7 +116,7 @@ export type TeamDetails = {
   // Legacy invites that are guaranteed to be active
   invites: Set<InviteInfo>
   // Invitelinks, some of which may be invalid already; most recent first
-  inviteLinks: Array<InviteLink>
+  inviteLinks: ReadonlyArray<InviteLink>
   subteams: Set<TeamID>
   requests: Set<JoinRequest>
   description: string

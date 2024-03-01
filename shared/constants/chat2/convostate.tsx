@@ -164,19 +164,22 @@ export type ConvoState = ConvoStore & {
       allowCommands: boolean,
       allowMentions: boolean,
       restricted: boolean,
-      convs?: Array<string>
+      convs?: ReadonlyArray<string>
     ) => void
     attachmentPasted: (data: Uint8Array) => void
     attachmentPreviewSelect: (ordinal: T.Chat.Ordinal) => void
-    attachmentUploadCanceled: (outboxIDs: Array<T.RPCChat.OutboxID>) => void
+    attachmentUploadCanceled: (outboxIDs: ReadonlyArray<T.RPCChat.OutboxID>) => void
     attachmentDownload: (ordinal: T.Chat.Ordinal) => void
     attachmentsUpload: (
-      paths: Array<T.Chat.PathAndOutboxID>,
-      titles: Array<string>,
+      paths: ReadonlyArray<T.Chat.PathAndOutboxID>,
+      titles: ReadonlyArray<string>,
       tlfName?: string,
       spoiler?: boolean
     ) => void
-    attachFromDragAndDrop: (paths: Array<T.Chat.PathAndOutboxID>, titles: Array<string>) => void
+    attachFromDragAndDrop: (
+      paths: ReadonlyArray<T.Chat.PathAndOutboxID>,
+      titles: ReadonlyArray<string>
+    ) => void
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
@@ -189,7 +192,7 @@ export type ConvoState = ConvoStore & {
       username: string,
       allowCommands: boolean,
       allowMentions: boolean,
-      convs?: Array<string>
+      convs?: ReadonlyArray<string>
     ) => void
     giphySend: (result: T.RPCChat.GiphySearchResult) => void
     hideConversation: (hide: boolean) => void
@@ -215,7 +218,7 @@ export type ConvoState = ConvoStore & {
         highlightMode: T.Chat.CenterOrdinalHighlightMode
       }
       reason: LoadMoreReason
-      knownRemotes?: Array<string>
+      knownRemotes?: ReadonlyArray<string>
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
@@ -257,7 +260,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
-    sendAudioRecording: (path: string, duration: number, amps: Array<number>) => void
+    sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => void
     sendTyping: DebouncedFunc<(typing: boolean) => void>
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
@@ -295,7 +298,9 @@ export type ConvoState = ConvoStore & {
       notificationsMobile: T.Chat.NotificationsType,
       notificationsGlobalIgnoreMentions: boolean
     ) => void
-    updateReactions: (updates: Array<{targetMsgID: T.Chat.MessageID; reactions: T.Chat.Reactions}>) => void
+    updateReactions: (
+      updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions: T.Chat.Reactions}>
+    ) => void
   }
   getExplodingMode: () => number
   isMetaGood: () => boolean

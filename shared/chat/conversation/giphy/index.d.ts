@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 export type Props = {
-  previews?: Array<T.RPCChat.GiphySearchResult>
+  previews?: ReadonlyArray<T.RPCChat.GiphySearchResult>
   galleryURL: string
   onClick: (g: T.RPCChat.GiphySearchResult) => void
 }
