@@ -16,9 +16,9 @@ export type Props = {
   name: string
   numMembers: number
   onChat?: () => void
-  onJoinTeam: (arg0: string) => void
+  onJoinTeam: (t: string) => void
   onViewTeam: () => void
-  publicAdmins: Array<string>
+  publicAdmins: ReadonlyArray<string>
   resolved: boolean
   style?: StylesTextCrossPlatform
 }

@@ -56,18 +56,18 @@ export type InboxSearchOpenTeamHit = {
 
 export type InboxSearchInfo = {
   indexPercent: number
-  botsResults: Array<RPCTypes.FeaturedBot>
+  botsResults: ReadonlyArray<RPCTypes.FeaturedBot>
   botsResultsSuggested: boolean
   botsStatus: InboxSearchStatus
-  nameResults: Array<InboxSearchConvHit>
+  nameResults: ReadonlyArray<InboxSearchConvHit>
   nameResultsUnread: boolean
   nameStatus: InboxSearchStatus
-  openTeamsResults: Array<InboxSearchOpenTeamHit>
+  openTeamsResults: ReadonlyArray<InboxSearchOpenTeamHit>
   openTeamsResultsSuggested: boolean
   openTeamsStatus: InboxSearchStatus
   query: string
   selectedIndex: number
-  textResults: Array<InboxSearchTextHit>
+  textResults: ReadonlyArray<InboxSearchTextHit>
   textStatus: InboxSearchStatus
 }
 

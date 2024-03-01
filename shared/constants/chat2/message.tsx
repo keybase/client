@@ -526,7 +526,7 @@ export const uiRequestInfoToChatRequestInfo = (
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  ps?: Array<T.RPCChat.UIPaymentInfo>
+  ps?: ReaonlyArray<T.RPCChat.UIPaymentInfo>
 ): MessageTypes.ChatPaymentInfo | undefined => {
   if (!ps || ps.length !== 1) {
     return undefined
@@ -793,8 +793,9 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
         res.showPlayButton = true
       }
     }
-    res.audioAmps = preview.image.audioAmps || []
-    res.audioAmps.length = Math.min(res.audioAmps.length, maxAmpsLength)
+    const aa = [...(preview.image.audioAmps ?? [])]
+    aa.length = Math.min(aa.length, maxAmpsLength)
+    res.audioAmps = aa
   } else if (preview.assetType === T.RPCChat.AssetMetadataType.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -857,7 +858,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.flip:
     case T.RPCChat.MessageType.text: {
       let rawText: string
-      let payments: Array<T.RPCChat.TextPayment> | undefined
+      let payments: ReadonlyArray<T.RPCChat.TextPayment> | undefined
       switch (m.messageBody.messageType) {
         case T.RPCChat.MessageType.flip:
           rawText = m.messageBody.flip.text

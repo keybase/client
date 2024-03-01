@@ -5,7 +5,7 @@ import type * as T from '@/constants/types'
 export type Props = {
   attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
-  participants?: Array<T.RPCChat.UICoinFlipParticipant>
+  participants?: ReadonlyArray<T.RPCChat.UICoinFlipParticipant>
   visible: boolean
 }
 

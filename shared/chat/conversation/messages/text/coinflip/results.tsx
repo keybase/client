@@ -19,7 +19,7 @@ function isCardIndex(value: number): value is CardIndex {
   return value >= 0 && value <= 51
 }
 
-function isArrayOfCardIndex(arr: Array<number>): arr is Array<CardIndex> {
+function isArrayOfCardIndex(arr: ReadonlyArray<number>): arr is Array<CardIndex> {
   return arr.every(isCardIndex)
 }
 
@@ -196,7 +196,7 @@ const CoinFlipResultCoin = (props: CoinType) => (
 )
 
 type HandType = {
-  hands?: Array<T.RPCChat.UICoinFlipHand>
+  hands?: ReadonlyArray<T.RPCChat.UICoinFlipHand>
 }
 
 const CoinFlipResultHands = (props: HandType) => {
@@ -255,7 +255,7 @@ const CoinFlipResultNumber = (props: NumberType) => (
 )
 
 type ShuffleType = {
-  shuffle?: Array<string>
+  shuffle?: ReadonlyArray<string>
 }
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (

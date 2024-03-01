@@ -105,8 +105,8 @@ type UseDataSourceProps = {
 
 const getMaxCmdLength = memoize(
   (
-    suggestBotCommands: Array<T.RPCChat.ConversationCommand>,
-    suggestCommands: Array<T.RPCChat.ConversationCommand>
+    suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
+    suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
   ) =>
     suggestCommands
       .concat(suggestBotCommands)

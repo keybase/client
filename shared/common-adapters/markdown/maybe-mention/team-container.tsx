@@ -42,22 +42,22 @@ const Container = (ownProps: OwnProps) => {
   const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
   const props = {
     allowFontScaling: !!allowFontScaling,
-    channel: channel,
-    description: description,
-    inTeam: inTeam,
-    isOpen: isOpen,
-    name: name,
-    numMembers: numMembers,
+    channel,
+    description,
+    inTeam,
+    isOpen,
+    name,
+    numMembers,
     onChat: convID
       ? () => {
           previewConversation({conversationIDKey: convID, reason: 'teamMention'})
         }
       : undefined,
-    onJoinTeam: onJoinTeam,
+    onJoinTeam,
     onViewTeam: () => _onViewTeam(name),
-    publicAdmins: publicAdmins,
-    resolved: resolved,
-    style: style,
+    publicAdmins,
+    resolved,
+    style,
   }
   return <TeamMention {...props} />
 }

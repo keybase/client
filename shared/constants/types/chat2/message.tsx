@@ -87,8 +87,8 @@ type _MessageCommon = {
   invitee?: string
   adder?: string
   prover?: string
-  joiners?: Array<string>
-  leavers?: Array<string>
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
   explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
   deviceRevokedAt?: number
@@ -154,7 +154,7 @@ export type MessageText = {
   exploding: boolean
   explodingTime: number
   explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  inlinePaymentIDs?: Array<WalletTypes.PaymentID>
+  inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
   inlinePaymentSuccessful: boolean
   flipGameID?: string
   mentionsAt: MentionsAt
@@ -175,7 +175,7 @@ export type AttachmentType = 'image' | 'file' | 'audio'
 
 export type PreviewSpec = {
   attachmentType: AttachmentType
-  audioAmps: Array<number>
+  audioAmps: ReadonlyArray<number>
   audioDuration: number
   height: number
   width: number
@@ -191,7 +191,7 @@ export type MessageAttachmentTransferState =
 
 export type MessageAttachment = {
   attachmentType: AttachmentType
-  audioAmps: Array<number>
+  audioAmps: ReadonlyArray<number>
   audioDuration: number
   decoratedText?: HiddenString
   showPlayButton: boolean
@@ -322,7 +322,7 @@ export type MessageSystemCreateTeam = {
 export type MessageSystemGitPush = {
   pusher: string
   pushType: RPCTypes.GitPushType
-  refs: Array<RPCTypes.GitRefMetadata>
+  refs: ReadonlyArray<RPCTypes.GitRefMetadata>
   repo: string
   repoID: string
   team: string
@@ -335,7 +335,7 @@ export type MessageSystemGitPush = {
 export type MessageSystemAddedToTeam = {
   addee: string
   adder: string
-  bulkAdds: Array<string>
+  bulkAdds: ReadonlyArray<string>
   role: TeamTypes.MaybeTeamRoleType
   team: string
   type: 'systemAddedToTeam'
@@ -345,8 +345,8 @@ export type MessageSystemAddedToTeam = {
   _MessageWithReactions
 
 export type MessageSystemJoined = {
-  joiners: Array<string>
-  leavers: Array<string>
+  joiners: ReadonlyArray<string>
+  leavers: ReadonlyArray<string>
   type: 'systemJoined'
 } & _MessageCommon &
   _MessageWithDeviceInfo &
@@ -422,7 +422,7 @@ export type MessageSystemChangeRetention = {
   _MessageWithReactions
 
 export type MessageSystemUsersAddedToConversation = {
-  usernames: Array<string>
+  usernames: ReadonlyArray<string>
   type: 'systemUsersAddedToConversation'
 } & _MessageCommon &
   _MessageWithDeviceInfo &
