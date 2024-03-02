@@ -5,11 +5,11 @@ import {isMobile} from './platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-export type Store = {
+export type Store = T.Immutable<{
   darkModePreference: DarkModePreference
   systemDarkMode: boolean
   supported: boolean
-}
+}>
 
 const initialStore: Store = {
   darkModePreference: 'system',

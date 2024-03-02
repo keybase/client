@@ -13,7 +13,7 @@ type OwnProps = {expanded?: string}
 // keep track in the module
 let moduleExpandedSet = new Set<string>()
 
-const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
+const getRepos = memoize((git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
     (pt, info) => {
       const target = info.teamname ? pt.teams : pt.personals

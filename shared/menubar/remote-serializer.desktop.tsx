@@ -51,7 +51,7 @@ export type ProxyProps = {
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
-  navBadges: Map<C.Tabs.Tab, number>
+  navBadges: ReadonlyMap<C.Tabs.Tab, number>
   infoMap: Map<string, T.Users.UserInfo>
 }
 
