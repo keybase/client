@@ -424,7 +424,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 setupCancel(response)
                 set(s => {
                   s.error = errorMessage
-                  s.existingDevices = existingDevices ?? []
+                  s.existingDevices = T.castDraft(existingDevices ?? [])
                   s.dispatch.dynamic.setDeviceName = (name: string) => {
                     set(s => {
                       s.dispatch.dynamic.setDeviceName = _setDeviceName

@@ -776,13 +776,11 @@ export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): st
   picker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
     ? T.FS.getPathName(picker.source.path)
     : picker.source.type === T.FS.DestinationPickerSource.IncomingShare
-      ? Array.isArray(picker.source.source)
-        ? getSharePathArrayDescription(
-            picker.source.source
-              .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
-              .filter(Boolean)
-          )
-        : picker.source.source
+      ? getSharePathArrayDescription(
+          picker.source.source
+            .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
+            .filter(Boolean)
+        )
       : ''
 
 const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
@@ -2703,7 +2701,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
           set(s => {
-            s.tlfUpdates = userTlfHistoryRPCToState(writerEdits || [])
+            s.tlfUpdates = T.castDraft(userTlfHistoryRPCToState(writerEdits || []))
           })
         } catch (error) {
           errorToActionOrThrow(error)

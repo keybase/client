@@ -93,13 +93,13 @@ type Section = _Section<
 
 type Props = {
   addEmoji: () => void
-  topReacjis: Array<T.RPCGen.UserReacji>
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>
   filter?: string
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: T.Chat.EmojiSkinTone
-  customEmojiGroups?: T.RPCChat.EmojiGroup[]
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
   width: number
   waitingForEmoji?: boolean
 }
@@ -109,7 +109,7 @@ type State = {
 }
 
 type Bookmark = {
-  coveredSectionKeys: Set<string>
+  coveredSectionKeys: ReadonlySet<string>
   iconType: Kb.IconType
   sectionIndex: number
 }

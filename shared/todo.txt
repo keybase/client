@@ -6,3 +6,7 @@ hide orange on desktop nav away
 remove gets() and look at cache values after async calls in convostate  and other stores
 use immutable wrapper on all stores
 message edit todo check
+
+
+seems wrong, check it
+export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): string =>

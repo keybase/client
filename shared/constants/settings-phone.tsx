@@ -104,10 +104,10 @@ export type State = Store & {
     clearPhoneNumberErrors: () => void
     editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
     loadDefaultPhoneCountry: () => void
-    notifyPhoneNumberPhoneNumbersChanged: (list?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
+    notifyPhoneNumberPhoneNumbersChanged: (list?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     resendVerificationForPhone: (phoneNumber: string) => void
     resetState: 'default'
-    setNumbers: (phoneNumbers?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
+    setNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
 }

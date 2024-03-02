@@ -1,3 +1,4 @@
+import type * as T from '../../types'
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
@@ -51,7 +52,7 @@ export type InboxSearchOpenTeamHit = {
   inTeam: boolean
   name: string
   memberCount: number
-  publicAdmins: Array<string>
+  publicAdmins: ReadonlyArray<string>
 }
 
 export type InboxSearchInfo = {
@@ -112,10 +113,10 @@ export type BlockButtonsInfo = {
   adder: string
 }
 
-export type BotPublicCommands = {
+export type BotPublicCommands = T.Immutable<{
   loadError: boolean
   commands: Array<string>
-}
+}>
 
 export type CreateConversationError = {
   allowedUsers: Array<string>

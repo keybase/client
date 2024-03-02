@@ -634,7 +634,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             const {inboxSearch} = s
             if (inboxSearch?.openTeamsStatus === 'inprogress') {
               inboxSearch.openTeamsResultsSuggested = suggested
-              inboxSearch.openTeamsResults = results
+              inboxSearch.openTeamsResults = T.castDraft(results)
               inboxSearch.openTeamsStatus = 'success'
             }
           })

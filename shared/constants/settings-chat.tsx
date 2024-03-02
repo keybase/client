@@ -60,7 +60,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             contactSettingsLoadWaitingKey
           )
           set(s => {
-            s.contactSettings = {error: '', settings}
+            s.contactSettings = T.castDraft({error: '', settings})
           })
         } catch (_) {
           set(s => {
@@ -111,7 +111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.unfurl = {
               unfurlError: undefined,
               unfurlMode: result.mode,
-              unfurlWhitelist: result.whitelist ?? [],
+              unfurlWhitelist: T.castDraft(result.whitelist ?? []),
             }
           })
         } catch (_) {

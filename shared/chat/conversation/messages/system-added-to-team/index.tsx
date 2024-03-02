@@ -8,7 +8,7 @@ import {indefiniteArticle} from '@/util/string'
 type Props = {
   addee: string
   adder: string
-  bulkAdds: Array<string>
+  bulkAdds: ReadonlyArray<string>
   role: T.Teams.MaybeTeamRoleType
   onManageNotifications: () => void
   onViewBot: () => void

@@ -58,7 +58,7 @@ export type State = Store & {
       makeSearchable?: boolean
       verify?: boolean
     }) => void
-    notifyEmailAddressEmailsChanged: (list: T.RPCChat.Keybase1.Email[]) => void
+    notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void

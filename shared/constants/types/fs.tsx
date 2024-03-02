@@ -132,7 +132,7 @@ export type Tlf = Readonly<{
 }>
 
 // name -> Tlf
-export type TlfList = Map<string, Tlf>
+export type TlfList = ReadonlyMap<string, Tlf>
 
 export type Tlfs = Readonly<{
   // additionalTlfs includes Tlfs that we care about but are not in one of
@@ -174,8 +174,8 @@ export type ParsedPathGroupTlf = Readonly<{
   kind: PathKind.GroupTlf
   tlfName: string
   tlfType: TlfType.Private | TlfType.Public
-  writers: Array<string>
-  readers?: Array<string>
+  writers: ReadonlyArray<string>
+  readers?: ReadonlyArray<string>
 }>
 
 export type ParsedPathTeamTlf = Readonly<{
@@ -189,9 +189,9 @@ export type ParsedPathInGroupTlf = Readonly<{
   kind: PathKind.InGroupTlf
   tlfName: string
   tlfType: TlfType.Private | TlfType.Public
-  writers: Array<string>
-  readers?: Array<string>
-  rest: Array<string>
+  writers: ReadonlyArray<string>
+  readers?: ReadonlyArray<string>
+  rest: ReadonlyArray<string>
 }>
 
 export type ParsedPathInTeamTlf = Readonly<{
@@ -199,7 +199,7 @@ export type ParsedPathInTeamTlf = Readonly<{
   tlfName: string
   tlfType: TlfType.Team
   team: string
-  rest: Array<string>
+  rest: ReadonlyArray<string>
 }>
 
 export type ParsedPath =
@@ -245,7 +245,7 @@ type _PathItemMetadata = {
 
 export type FolderPathItem = Readonly<{
   type: PathType.Folder
-  children: Set<string>
+  children: ReadonlySet<string>
   progress: ProgressType
 }> &
   _PathItemMetadata
@@ -336,16 +336,16 @@ export type DownloadInfo = Readonly<{
 }>
 
 export type Downloads = Readonly<{
-  info: Map<string, DownloadInfo>
-  regularDownloads: Array<string>
-  state: Map<string, DownloadState>
+  info: ReadonlyMap<string, DownloadInfo>
+  regularDownloads: ReadonlyArray<string>
+  state: ReadonlyMap<string, DownloadState>
 }>
 
 export type Uploads = Readonly<{
-  writingToJournal: Map<Path, RPCTypes.UploadState>
+  writingToJournal: ReadonlyMap<Path, RPCTypes.UploadState>
   totalSyncingBytes: number
   endEstimate?: number
-  syncingPaths: Set<Path>
+  syncingPaths: ReadonlySet<Path>
 }>
 
 // 'both' is only supported on macOS
@@ -378,14 +378,14 @@ export type TlfUpdate = Readonly<{
   path: Path
   writer: string
   serverTime: number
-  history: Array<TlfEdit>
+  history: ReadonlyArray<TlfEdit>
 }>
 
-export type UserTlfUpdates = Array<TlfUpdate>
+export type UserTlfUpdates = ReadonlyArray<TlfUpdate>
 
-export type PathItems = Map<Path, PathItem>
+export type PathItems = ReadonlyMap<Path, PathItem>
 
-export type Edits = Map<EditID, Edit>
+export type Edits = ReadonlyMap<EditID, Edit>
 
 export enum DestinationPickerSource {
   None = 'none',
@@ -400,7 +400,7 @@ export type MoveOrCopySource = Readonly<{
 
 export type IncomingShareSource = Readonly<{
   type: DestinationPickerSource.IncomingShare
-  source: Array<RPCTypes.IncomingShareItem>
+  source: ReadonlyArray<RPCTypes.IncomingShareItem>
 }>
 
 export type NoSource = Readonly<{
@@ -413,7 +413,7 @@ export type DestinationPicker = Readonly<{
   // back button. We don't put this in routeProps directly as that'd
   // complicate stuff for desktop because we don't have something like a
   // routeToSibling.
-  destinationParentPath: Array<Path>
+  destinationParentPath: ReadonlyArray<Path>
   source: MoveOrCopySource | IncomingShareSource | NoSource
 }>
 
@@ -459,7 +459,7 @@ export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverSt
 export type SystemFileManagerIntegration = Readonly<{
   directMountDir: string
   driverStatus: DriverStatus
-  preferredMountDirs: Array<string>
+  preferredMountDirs: ReadonlyArray<string>
 }>
 
 export enum KbfsDaemonRpcStatus {
@@ -504,8 +504,8 @@ export enum SoftError {
 }
 
 export type SoftErrors = Readonly<{
-  pathErrors: Map<Path, SoftError>
-  tlfErrors: Map<Path, SoftError>
+  pathErrors: ReadonlyMap<Path, SoftError>
+  tlfErrors: ReadonlyMap<Path, SoftError>
 }>
 
 export type Settings = Readonly<{
@@ -552,15 +552,15 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop() || '')
-export const getPathNameFromElems = (elems: Array<string>): string => {
+export const getPathNameFromElems = (elems: ReadonlyArray<string>): string => {
   if (elems.length === 0) return ''
   return elems.at(-1)!
 }
 export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path => (!p ? '' : p.split('/').slice(0, -1).join('/'))
-export const getPathElements = memoize((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
-export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
-export const getVisibilityFromElems = (elems: Array<string>) => {
+export const getPathElements = memoize((p: Path): ReadonlyArray<string> => (!p ? [] : p.split('/').slice(1)))
+export const getPathFromElements = (elems: ReadonlyArray<string>): Path => [''].concat(elems).join('/')
+export const getVisibilityFromElems = (elems: ReadonlyArray<string>) => {
   if (elems.length < 2 || !elems[1]) return undefined
   const visibility = elems[1]
   switch (visibility) {
@@ -670,10 +670,10 @@ export type FolderRPCWithMeta = {
   isIgnored: boolean
   isNew: boolean
   needsRekey: boolean
-  waitingForParticipantUnlock?: Array<ParticipantUnlock>
-  youCanUnlock?: Array<Device>
+  waitingForParticipantUnlock?: ReadonlyArray<ParticipantUnlock>
+  youCanUnlock?: ReadonlyArray<Device>
   team_id?: string
-  reset_members?: Array<ResetMember>
+  reset_members?: ReadonlyArray<ResetMember>
 }
 
 export type FavoriteFolder = Readonly<{
@@ -681,11 +681,11 @@ export type FavoriteFolder = Readonly<{
   private: boolean
   folderType: RPCTypes.FolderType
   problem_set?: {
-    solution_kids: {[K in string]: Array<string>}
+    solution_kids: {[K in string]: ReadonlyArray<string>}
     can_self_help: boolean
   }
   team_id?: string
-  reset_members?: Array<ResetMember>
+  reset_members?: ReadonlyArray<ResetMember>
 }>
 
 export enum FileViewType {
@@ -699,7 +699,7 @@ export enum FileViewType {
 export type ResetMetadata = Readonly<{
   name: string
   visibility: Visibility
-  resetParticipants: Array<string>
+  resetParticipants: ReadonlyArray<string>
 }>
 
 export enum NonUploadPathItemBadgeType {

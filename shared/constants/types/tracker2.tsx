@@ -6,7 +6,7 @@ export type TeamShowcase = {
   isOpen: boolean
   membersCount: number
   name: string
-  publicAdmins: Array<string>
+  publicAdmins: ReadonlyArray<string>
 }
 
 export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked' | 'suggestion'
@@ -21,13 +21,13 @@ export type SiteIcon = {
   path: string // https://keybase.io/_/icons/twitter.png,
   width: number
 }
-export type SiteIconSet = Array<SiteIcon>
+export type SiteIconSet = ReadonlyArray<SiteIcon>
 export type Assertion = {
   assertionKey: string // twitter:bob,
   belowFold: boolean // suggestion in 'Other identities' dialog,
   color: AssertionColor
   kid: string // used to revoke pgp keys,
-  metas: Array<AssertionMeta>
+  metas: ReadonlyArray<AssertionMeta>
   pickerText: string // Text + subtext for 'Other identities' dialog,
   pickerSubtext: string
   priority: number // sort order,
@@ -70,10 +70,10 @@ export type Details = {
   reason: string
   state: DetailsState
   stellarHidden?: boolean
-  teamShowcase?: Array<TeamShowcase>
+  teamShowcase?: ReadonlyArray<TeamShowcase>
   username: string
   resetBrokeTrack: boolean
-  webOfTrustEntries?: Array<WebOfTrustEntry>
+  webOfTrustEntries?: ReadonlyArray<WebOfTrustEntry>
 }
 
 // Details for SBS profiles
@@ -102,7 +102,7 @@ export type WebOfTrustEntry = {
   attestingUser: string
   otherText: string
   proofID: RPCTypes.SigID
-  proofs?: Array<RPCTypes.WotProofUI>
+  proofs?: ReadonlyArray<RPCTypes.WotProofUI>
   status: RPCTypes.WotStatusType
   verificationType: WebOfTrustVerificationType
   vouchedAt: number

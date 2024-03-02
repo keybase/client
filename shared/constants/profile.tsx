@@ -25,7 +25,7 @@ export const makeProveGenericParams = (): ProveGenericParams => ({
   title: '',
 })
 
-export const toProveGenericParams = (p: T.RPCGen.ProveParameters): ProveGenericParams => ({
+export const toProveGenericParams = (p: T.RPCGen.ProveParameters): T.Immutable<ProveGenericParams> => ({
   ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],
@@ -367,7 +367,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
                 } else if (genericService && parameters) {
                   set(s => {
-                    s.platformGenericParams = toProveGenericParams(parameters)
+                    s.platformGenericParams = T.castDraft(toProveGenericParams(parameters))
                   })
                   C.useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
                 }

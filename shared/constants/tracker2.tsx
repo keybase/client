@@ -290,7 +290,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             profileLoadWaitingKey
           )
           set(s => {
-            s.proofSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? []
+            s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -319,7 +319,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.info(`Showing tracker for assertion: ${assertion}`)
           s.showTrackerSet.add(username)
         }
-        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
+        const d = mapGetEnsureValue(s.usernameToDetails, username, T.castDraft({...noDetails}))
         d.assertions = new Map() // just remove for now, maybe keep them
         d.guiID = guiID
         d.reason = reason
@@ -431,7 +431,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const {assertion, ...rest} = p
                 const {usernameToNonUserDetails} = s
                 const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
               return
             } else {
@@ -447,7 +447,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const {assertion, ...rest} = p
                 const {usernameToNonUserDetails} = s
                 const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
             }
           }
@@ -633,7 +633,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     replace: usernameToDetails => {
       set(s => {
-        s.usernameToDetails = usernameToDetails
+        s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
     resetState: 'default',
