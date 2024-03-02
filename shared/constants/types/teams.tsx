@@ -111,14 +111,14 @@ export type InviteLink = {
 }
 
 export type TeamDetails = {
-  members: Map<string, MemberInfo>
+  members: ReadonlyMap<string, MemberInfo>
   settings: TeamSettings2
   // Legacy invites that are guaranteed to be active
-  invites: Set<InviteInfo>
+  invites: ReadonlySet<InviteInfo>
   // Invitelinks, some of which may be invalid already; most recent first
   inviteLinks: ReadonlyArray<InviteLink>
-  subteams: Set<TeamID>
-  requests: Set<JoinRequest>
+  subteams: ReadonlySet<TeamID>
+  requests: ReadonlySet<JoinRequest>
   description: string
 }
 

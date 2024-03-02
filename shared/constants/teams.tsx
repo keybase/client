@@ -1022,7 +1022,7 @@ export type State = Store & {
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
-      toAdd?: Array<T.Teams.ChannelNameID>,
+      toAdd?: ReadonlyArray<T.Teams.ChannelNameID>,
       toRemove?: T.Teams.ChannelNameID
     ) => void
     addTeamWithChosenChannels: (teamID: T.Teams.TeamID) => void

@@ -831,10 +831,10 @@ export const tlfIsStuckInConflict = (tlf: T.FS.Tlf) =>
 
 export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
-  tlf: T.FS.Tlf,
-  pathItem: T.FS.PathItem,
-  uploadingPaths: Set<T.FS.Path>,
-  path: T.FS.Path
+  tlf: T.Immutable<T.FS.Tlf>,
+  pathItem: T.Immutable<T.FS.PathItem>,
+  uploadingPaths: T.Immutable<Set<T.FS.Path>>,
+  path: T.Immutable<T.FS.Path>
 ): T.FS.PathStatusIcon => {
   // There's no upload or sync for local conflict view.
   if (tlf.conflictState.type === T.FS.ConflictStateType.ManualResolvingLocalView) {
@@ -952,8 +952,8 @@ export const hasPublicTag = (path: T.FS.Path): boolean => {
 }
 
 export const getPathUserSetting = (
-  pathUserSettings: Map<T.FS.Path, T.FS.PathUserSetting>,
-  path: T.FS.Path
+  pathUserSettings: T.Immutable<Map<T.FS.Path, T.FS.PathUserSetting>>,
+  path: T.Immutable<T.FS.Path>
 ): T.FS.PathUserSetting =>
   pathUserSettings.get(path) ||
   (T.FS.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)

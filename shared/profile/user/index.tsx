@@ -20,13 +20,13 @@ export type BackgroundColorType = 'red' | 'green' | 'blue'
 type Section = _Section<'bioTeamProofs'> | _Section<ChunkType[number], {itemWidth: number}>
 
 export type Props = {
-  assertionKeys?: Array<string>
+  assertionKeys?: ReadonlyArray<string>
   backgroundColorType: BackgroundColorType
   blocked: boolean
   followThem: boolean
-  followers?: Array<string>
+  followers?: ReadonlyArray<string>
   followersCount?: number
-  following?: Array<string>
+  following?: ReadonlyArray<string>
   followingCount?: number
   hidFromFollowers: boolean
   notAUser: boolean
@@ -38,17 +38,17 @@ export type Props = {
   reason: string
   sbsAvatarUrl?: string
   state: T.Tracker.DetailsState
-  suggestionKeys?: Array<string>
+  suggestionKeys?: ReadonlyArray<string>
   userIsYou: boolean
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
-  serviceIcon?: Array<T.Tracker.SiteIcon>
+  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   fullName?: string // full name from external profile
   title: string
   vouchShowButton: boolean
   vouchDisableButton: boolean
-  webOfTrustEntries: Array<T.Tracker.WebOfTrustEntry>
+  webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry>
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -67,7 +67,7 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 const noopOnClick = () => {}
 
 type SbsTitleProps = {
-  serviceIcon?: Array<T.Tracker.SiteIcon>
+  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
@@ -232,17 +232,17 @@ class FriendRow extends React.Component<FriendRowProps> {
 
 export type BioTeamProofsProps = {
   onAddIdentity?: () => void
-  assertionKeys?: Array<string>
+  assertionKeys?: ReadonlyArray<string>
   backgroundColorType: BackgroundColorType
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   notAUser: boolean
-  suggestionKeys?: Array<string>
+  suggestionKeys?: ReadonlyArray<string>
   username: string
   reason: string
   name: string
   sbsAvatarUrl?: string
   service: string
-  serviceIcon?: Array<T.Tracker.SiteIcon>
+  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   fullName?: string
   title: string
 }

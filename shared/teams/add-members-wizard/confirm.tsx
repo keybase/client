@@ -159,7 +159,7 @@ const AddMembersConfirm = () => {
 // Show no more than 20 assertions in "already in team" section.
 const alreadyInTeamLimit = 20
 
-const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
+const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
   const invitedStr = React.useMemo(() => {
     if (assertions.length > alreadyInTeamLimit) {
       const left = assertions.length - alreadyInTeamLimit
@@ -412,7 +412,7 @@ const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   )
   const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
   const onAdd = React.useCallback(
-    (toAdd: Array<T.Teams.ChannelNameID>) => {
+    (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
       addMembersWizardSetDefaultChannels(toAdd)
     },
     [addMembersWizardSetDefaultChannels]

@@ -21,7 +21,9 @@ const headerBackgroundColorType = (
 }
 
 const filterWebOfTrustEntries = memoize(
-  (webOfTrustEntries: Array<T.Tracker.WebOfTrustEntry> | undefined): Array<T.Tracker.WebOfTrustEntry> =>
+  (
+    webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
+  ): Array<T.Tracker.WebOfTrustEntry> =>
     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
 )
 
@@ -159,8 +161,8 @@ const Connected = (ownProps: OwnProps) => {
     notAUser && !!stateProps.service
       ? [stateProps.username]
       : stateProps._assertions
-      ? [...stateProps._assertions.entries()].sort((a, b) => a[1].priority - b[1].priority).map(e => e[0])
-      : undefined
+        ? [...stateProps._assertions.entries()].sort((a, b) => a[1].priority - b[1].priority).map(e => e[0])
+        : undefined
 
   // For 'phone' or 'email' profiles do not display placeholder assertions.
   const service = stateProps.service
