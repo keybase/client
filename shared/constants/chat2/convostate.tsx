@@ -304,6 +304,7 @@ export type ConvoState = ConvoStore & {
   getExplodingMode: () => number
   isMetaGood: () => boolean
   isCaughtUp: () => boolean
+  getConvID: () => Uint8Array
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -363,7 +364,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     if (!messageID) return false
     try {
       const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(get().id),
+        conversationID: get().getConvID(),
         downloadToCache,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
         messageID,
@@ -725,12 +726,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
-        const {id: conversationIDKey} = get()
         try {
           await T.RPCChat.localAddBotMemberRpcPromise(
             {
               botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
-              convID: T.Chat.keyToConversationID(conversationIDKey),
+              convID: get().getConvID(),
               role: restricted ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
               username,
             },
@@ -856,7 +856,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
               arg: {
                 ...ephemeralData,
-                conversationID: T.Chat.keyToConversationID(conversationIDKey),
+                conversationID: get().getConvID(),
                 filename: Styles.unnormalizePath(p.path),
                 identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
                 metadata: new Uint8Array(),
@@ -882,7 +882,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         C.useChatState.getState().dispatch.navigateToInbox()
         C.useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-          conversationID: T.Chat.keyToConversationID(get().id),
+          conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           status: reportUser ? T.RPCChat.ConversationStatus.reported : T.RPCChat.ConversationStatus.blocked,
         })
@@ -933,7 +933,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         await T.RPCChat.localDismissJourneycardRpcPromise({
           cardType: cardType,
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
         }).catch((error: unknown) => {
           if (error instanceof RPCError) {
             logger.error(`Failed to dismiss journeycard: ${error.message}`)
@@ -949,7 +949,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await T.RPCChat.localSetBotMemberSettingsRpcPromise(
             {
               botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
-              convID: T.Chat.keyToConversationID(get().id),
+              convID: get().getConvID(),
               username,
             },
             Common.waitingKeyBotAdd
@@ -990,7 +990,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         await T.RPCChat.localSetConversationStatusLocalRpcPromise(
           {
-            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            conversationID: get().getConvID(),
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             status: hide ? T.RPCChat.ConversationStatus.ignored : T.RPCChat.ConversationStatus.unfiled,
           },
@@ -1002,7 +1002,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     ignorePinnedMessage: () => {
       const f = async () => {
         await T.RPCChat.localIgnorePinnedMessageRpcPromise({
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
         })
       }
       C.ignorePromise(f())
@@ -1016,7 +1016,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     joinConversation: () => {
       const f = async () => {
         await T.RPCChat.localJoinConversationByIDLocalRpcPromise(
-          {convID: T.Chat.keyToConversationID(get().id)},
+          {convID: get().getConvID()},
           Common.waitingKeyJoinConversation
         )
       }
@@ -1029,7 +1029,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
         await T.RPCChat.localLeaveConversationLocalRpcPromise(
-          {convID: T.Chat.keyToConversationID(get().id)},
+          {convID: get().getConvID()},
           Common.waitingKeyLeaveConversation
         )
       }
@@ -1094,7 +1094,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               },
             },
             params: {
-              convID: T.Chat.keyToConversationID(conversationIDKey),
+              convID: get().getConvID(),
               fromMsgID,
               num: 50,
               typ: viewType,
@@ -1252,7 +1252,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             params: {
               cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-              conversationID: T.Chat.keyToConversationID(conversationIDKey),
+              conversationID: get().getConvID(),
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               knownRemotes,
               pagination,
@@ -1324,7 +1324,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
           assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
           backInTime,
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           messageID: id,
         })
@@ -1382,7 +1382,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     loadOrangeLine: why => {
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(get().id)
+        const convID = get().getConvID()
         const readMsgID = get().meta.readMsgID
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
@@ -1464,7 +1464,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // else just write it
         logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
+          conversationID: get().getConvID(),
           forceUnread: false,
           msgID: readMsgID,
         })
@@ -1584,7 +1584,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await T.RPCChat.localPostDeleteNonblockRpcPromise(
             {
               clientPrev: 0,
-              conversationID: T.Chat.keyToConversationID(get().id),
+              conversationID: get().getConvID(),
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               outboxID: null,
               supersedes: message.id,
@@ -1607,7 +1607,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         await T.RPCChat.localPostDeleteHistoryByAgeRpcPromise({
           age: 0,
-          conversationID: T.Chat.keyToConversationID(get().id),
+          conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           tlfName: meta.tlfname,
           tlfPublic: false,
@@ -1643,7 +1643,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           {
             body: text,
             clientPrev: getClientPrev(),
-            conversationID: T.Chat.keyToConversationID(get().id),
+            conversationID: get().getConvID(),
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: Common.generateOutboxID(),
             target: {
@@ -1744,7 +1744,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const meta = get().meta
         const tlfName = meta.tlfname
-        const conversationIDKey = get().id
         const clientPrev = getClientPrev()
 
         get().dispatch.sendTyping.cancel()
@@ -1781,7 +1780,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               ...ephemeralData,
               body: text,
               clientPrev,
-              conversationID: T.Chat.keyToConversationID(conversationIDKey),
+              conversationID: get().getConvID(),
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               outboxID: undefined,
               replyTo,
@@ -1880,7 +1879,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     mute: m => {
       const f = async () => {
         await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-          conversationID: T.Chat.keyToConversationID(get().id),
+          conversationID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           status: m ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled,
         })
@@ -2302,7 +2301,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     pinMessage: msgID => {
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(get().id)
+        const convID = get().getConvID()
         try {
           if (msgID) {
             await T.RPCChat.localPinMessageRpcPromise({convID, msgID})
@@ -2320,10 +2319,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     refreshBotRoleInConv: username => {
       const f = async () => {
         let role: T.RPCGen.TeamRole | undefined
-        const conversationIDKey = get().id
         try {
           role = await T.RPCChat.localGetTeamRoleInConversationRpcPromise({
-            convID: T.Chat.keyToConversationID(conversationIDKey),
+            convID: get().getConvID(),
             username,
           })
         } catch (error) {
@@ -2349,11 +2347,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.botSettings.delete(username)
       })
-      const conversationIDKey = get().id
       const f = async () => {
         try {
           const settings = await T.RPCChat.localGetBotMemberSettingsRpcPromise({
-            convID: T.Chat.keyToConversationID(conversationIDKey),
+            convID: get().getConvID(),
             username,
           })
           set(s => {
@@ -2370,7 +2367,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     removeBotMember: username => {
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(get().id)
+        const convID = get().getConvID()
         try {
           await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Common.waitingKeyBotRemove)
           closeBotModal()
@@ -2402,7 +2399,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // let them back in after they reset
       const f = async () => {
         await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           username,
         })
       }
@@ -2460,7 +2457,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     sendAudioRecording: (path, duration, amps) => {
       const f = async () => {
-        const conversationIDKey = get().id
         const outboxID = Common.generateOutboxID()
         const clientPrev = getClientPrev()
         const ephemeralLifetime = get().explodingMode
@@ -2477,7 +2473,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             arg: {
               ...ephemeralData,
               callerPreview,
-              conversationID: T.Chat.keyToConversationID(conversationIDKey),
+              conversationID: get().getConvID(),
               filename: path,
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               metadata: new Uint8Array(),
@@ -2500,7 +2496,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       typing => {
         const f = async () => {
           await T.RPCChat.localUpdateTypingRpcPromise({
-            conversationID: T.Chat.keyToConversationID(get().id),
+            conversationID: get().getConvID(),
             typing,
           })
         }
@@ -2516,7 +2512,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setConvRetentionPolicy: _policy => {
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(get().id)
+        const convID = get().getConvID()
         let policy: T.RPCChat.RetentionPolicy | undefined
         try {
           policy = C.Teams.retentionPolicyToServiceRetentionPolicy(_policy)
@@ -2698,7 +2694,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 },
                 params: {
                   cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-                  conversationID: T.Chat.keyToConversationID(conversationIDKey),
+                  conversationID: get().getConvID(),
                   identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
                   knownRemotes: [],
                   pagination,
@@ -2729,7 +2725,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
+          conversationID: get().getConvID(),
           forceUnread: true,
           msgID,
         })
@@ -2765,7 +2761,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         logger.info(`Setting minWriterRole to ${role} for convID ${get().id}`)
         await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           role: T.RPCGen.TeamRole[role],
         })
       }
@@ -2890,7 +2886,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               opts: {
                 afterContext: 0,
                 beforeContext: 0,
-                convID: T.Chat.keyToConversationID(conversationIDKey),
+                convID: get().getConvID(),
                 isRegex: false,
                 matchMentions: false,
                 maxBots: 0,
@@ -2941,7 +2937,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         await T.RPCChat.localToggleMessageCollapseRpcPromise({
           collapse: !isCollapsed,
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           msgID: messageID,
         })
       }
@@ -2969,7 +2965,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await T.RPCChat.localPostReactionNonblockRpcPromise({
             body: emoji,
             clientPrev: getClientPrev(),
-            conversationID: T.Chat.keyToConversationID(get().id),
+            conversationID: get().getConvID(),
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: Common.generateOutboxID(),
             supersedes: id,
@@ -3015,7 +3011,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         await T.RPCChat.localPostDeleteNonblockRpcPromise(
           {
             clientPrev: 0,
-            conversationID: T.Chat.keyToConversationID(get().id),
+            conversationID: get().getConvID(),
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             outboxID: null,
             supersedes: messageID,
@@ -3031,7 +3027,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         unfurlTogglePrompt(messageID, domain, false)
         await T.RPCChat.localResolveUnfurlPromptRpcPromise({
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           msgID: T.Chat.messageIDToNumber(messageID),
           result,
@@ -3048,7 +3044,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       text => {
         const f = async () => {
           await T.RPCChat.localUpdateUnsentTextRpcPromise({
-            conversationID: T.Chat.keyToConversationID(get().id),
+            conversationID: get().getConvID(),
             text,
             tlfName: get().meta.tlfname,
           })
@@ -3080,7 +3076,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         await T.RPCChat.localSetAppNotificationSettingsLocalRpcPromise({
           channelWide: notificationsGlobalIgnoreMentions,
-          convID: T.Chat.keyToConversationID(get().id),
+          convID: get().getConvID(),
           settings: [
             {
               deviceType: T.RPCGen.DeviceType.desktop,
@@ -3137,6 +3133,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
+    getConvID: () => {
+      return T.Chat.keyToConversationID(get().id)
+    },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode
       const meta = get().meta
