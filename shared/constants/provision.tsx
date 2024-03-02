@@ -82,7 +82,7 @@ type Step =
 type ExtractType<T> = T extends {type: infer U} ? U : never
 type StepTypes = ExtractType<Step>
 
-type Store = {
+type Store = T.Immutable<{
   autoSubmit: Array<Step>
   callbackMap: Map<StepTypes, () => void>
   codePageIncomingTextCode: string
@@ -98,7 +98,7 @@ type Store = {
   passphrase: string
   provisionStep: number
   username: string
-}
+}>
 const initialStore: Store = {
   autoSubmit: [],
   callbackMap: new Map(),
@@ -148,7 +148,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (idx !== -1) {
         s.autoSubmit.splice(idx)
       }
-      s.autoSubmit.push(step)
+      s.autoSubmit.push(T.castDraft(step))
     })
   }
 

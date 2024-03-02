@@ -1,3 +1,4 @@
+import type * as T from './types'
 import * as Z from '@/util/zustand'
 import * as C from '.'
 import {formatTimeForPopup} from '@/util/timestamp'
@@ -12,9 +13,9 @@ type Job = {
   error?: string
 }
 
-type Store = {
+type Store = T.Immutable<{
   jobs: Map<string, Job>
-}
+}>
 const initialStore: Store = {
   jobs: new Map(),
 }

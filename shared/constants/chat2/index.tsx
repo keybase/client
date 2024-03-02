@@ -362,7 +362,7 @@ export type State = Store & {
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
-    onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
+    onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
     paymentInfoReceived: (paymentInfo: T.Chat.ChatPaymentInfo) => void
     previewConversation: (p: {

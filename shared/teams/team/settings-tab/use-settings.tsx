@@ -1,8 +1,9 @@
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
-type Store = {
+type Store = T.Immutable<{
   allowOpenTrigger: number
-}
+}>
 
 const initialStore: Store = {
   allowOpenTrigger: 0,

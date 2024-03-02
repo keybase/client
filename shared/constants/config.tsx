@@ -42,7 +42,7 @@ export const publicFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export type Store = {
+export type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
   androidShare?:
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
@@ -106,7 +106,7 @@ export type Store = {
     x: number
     y: number
   }
-}
+}>
 
 const initialStore: Store = {
   allowAnimatedEmojis: true,
@@ -177,7 +177,7 @@ type State = Store & {
       onEngineConnectedDesktop?: () => void
       onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
       onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (path?: Array<any>) => void
+      persistRoute?: (path?: ReadonlyArray<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
       showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
@@ -280,10 +280,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
     const items = state.items || []
-    const goodState = items.reduce<State['gregorPushState']>((arr, {md, item}) => {
-      md && item && arr.push({item, md})
-      return arr
-    }, [])
+    const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
+      (arr, {md, item}) => {
+        md && item && arr.push({item, md})
+        return arr
+      },
+      []
+    )
     if (goodState.length !== items.length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
     }
@@ -922,13 +925,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     setAccounts: a => {
       set(s => {
         if (!isEqual(a, s.configuredAccounts)) {
-          s.configuredAccounts = a
+          s.configuredAccounts = T.castDraft(a)
         }
       })
     },
     setAndroidShare: share => {
       set(s => {
-        s.androidShare = share
+        s.androidShare = T.castDraft(share)
       })
       // already loaded, so just go now
       if (get().startup.loaded) {

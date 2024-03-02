@@ -8,7 +8,7 @@ export const enterPipelineWaitingKey = 'autoreset:EnterPipelineWaitingKey'
 export const actuallyResetWaitingKey = 'autoreset:ActuallyResetWaitingKey' // TODO not really set
 export const cancelResetWaitingKey = 'autoreset:cancelWaitingKey'
 
-type Store = {
+type Store = T.Immutable<{
   active: boolean
   afterSubmitResetPrompt: (action: T.RPCGen.ResetPromptResponse) => void
   endTime: number
@@ -16,7 +16,7 @@ type Store = {
   hasWallet: boolean
   skipPassword: boolean
   username: string
-}
+}>
 
 const initialStore: Store = {
   active: false,

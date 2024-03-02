@@ -8,7 +8,7 @@ export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'
 
 export const getFeaturedSorted = (
-  featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
+  featuredBotsMap: ReadonlyMap<string, T.RPCGen.FeaturedBot>
 ): Array<T.RPCGen.FeaturedBot> => {
   const featured = [...featuredBotsMap.values()]
   featured.sort((a: T.RPCGen.FeaturedBot, b: T.RPCGen.FeaturedBot) => {
@@ -27,12 +27,12 @@ type BotSearchResults = {
   users: ReadonlyArray<string>
 }
 
-type Store = {
+type Store = T.Immutable<{
   featuredBotsPage: number
   featuredBotsLoaded: boolean
   featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
   botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
-}
+}>
 
 const initialStore: Store = {
   botSearchResults: new Map(),
