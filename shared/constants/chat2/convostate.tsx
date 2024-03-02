@@ -1655,17 +1655,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           },
           Common.waitingKeyEditPost
         )
-
-        // TODO why do we need this?
-        // if (!m.id) {
-        //   const m = messageMap.get(ordinal)
-        //   if (m?.type === 'text') {
-        //     m.text = new HiddenString(text)
-        //   }
-        //   if (m?.type === 'attachment') {
-        //     m.title = text
-        //   }
-        // }
       }
       C.ignorePromise(f())
     },
