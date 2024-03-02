@@ -17,8 +17,9 @@ const makeAddEmailError = (err: RPCError): string => {
       return 'You have too many emails, delete one and try again.'
     case T.RPCGen.StatusCode.scinputerror:
       return 'Invalid email.'
+    default:
+      return err.message
   }
-  return err.message
 }
 
 const makeEmailRow = (): EmailRow => ({
