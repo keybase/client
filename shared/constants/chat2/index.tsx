@@ -1007,7 +1007,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             return arr
           }, [])
           if (loadMore) {
-            C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+            setTimeout(() => {
+              C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+            }, 1000)
           }
           const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
           // Update new untrusted
@@ -1059,7 +1061,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       })
       if (loadMore) {
-        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+        setTimeout(() => {
+          C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+        }, 1000)
       }
     },
     onEngineConnected: () => {

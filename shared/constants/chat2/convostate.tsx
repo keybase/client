@@ -1205,6 +1205,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
         const onGotThread = (thread: string) => {
+          console.log('aaaaaa ongotthread', thread)
           if (!thread) {
             return
           }
@@ -1244,6 +1245,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
         try {
+          console.log('aaaaaa loadingmore')
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
