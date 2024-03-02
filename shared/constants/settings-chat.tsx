@@ -8,7 +8,7 @@ export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitin
 
 export type ChatUnfurlState = {
   unfurlMode?: T.RPCChat.UnfurlMode
-  unfurlWhitelist?: Array<string>
+  unfurlWhitelist?: ReadonlyArray<string>
   unfurlError?: string
 }
 
@@ -19,10 +19,10 @@ export type ContactSettingsState = {
 
 export type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
 
-type Store = {
+type Store = T.Immutable<{
   contactSettings: ContactSettingsState
   unfurl: ChatUnfurlState
-}
+}>
 
 const initialStore: Store = {
   contactSettings: {
@@ -42,7 +42,7 @@ export type State = Store & {
     ) => void
     contactSettingsRefresh: () => void
     unfurlSettingsRefresh: () => void
-    unfurlSettingsSaved: (mode: T.RPCChat.UnfurlMode, whitelist: Array<string>) => void
+    unfurlSettingsSaved: (mode: T.RPCChat.UnfurlMode, whitelist: ReadonlyArray<string>) => void
     resetState: 'default'
   }
 }
@@ -124,7 +124,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     unfurlSettingsSaved: (unfurlMode, unfurlWhitelist) => {
       set(s => {
-        s.unfurl = {unfurlError: undefined, unfurlMode, unfurlWhitelist}
+        s.unfurl = T.castDraft({unfurlError: undefined, unfurlMode, unfurlWhitelist})
       })
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {

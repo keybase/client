@@ -78,14 +78,14 @@ type PhoneRow = {
   verified: boolean
 }
 
-type Store = {
+type Store = T.Immutable<{
   addedPhone: boolean
   defaultCountry?: string
   error: string
   pendingVerification: string
   phones?: Map<string, PhoneRow>
   verificationState?: 'success' | 'error'
-}
+}>
 
 const initialStore: Store = {
   addedPhone: false,

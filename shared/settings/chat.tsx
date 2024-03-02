@@ -97,10 +97,10 @@ export type Props = {
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in T.Teams.TeamID]: boolean}
-  groups: Map<string, NotificationsGroupState>
+  groups: T.Immutable<ReadonlyMap<string, NotificationsGroupState>>
   sound: boolean
   unfurlMode?: T.RPCChat.UnfurlMode
-  unfurlWhitelist?: Array<string>
+  unfurlWhitelist?: ReadonlyArray<string>
   unfurlError?: string
   onBack?: () => void
   onContactSettingsSave: (
@@ -111,9 +111,9 @@ export type Props = {
   ) => void
   onToggle: (groupName: string, name: string) => void
   onToggleSound: (notifySound: boolean) => void
-  onUnfurlSave: (mode: T.RPCChat.UnfurlMode, whitelist: Array<string>) => void
+  onUnfurlSave: (mode: T.RPCChat.UnfurlMode, whitelist: ReadonlyArray<string>) => void
   onRefresh: () => void
-  teamMeta: Array<T.Teams.TeamMeta>
+  teamMeta: ReadonlyArray<T.Teams.TeamMeta>
 }
 
 type State = {

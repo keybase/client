@@ -9,10 +9,10 @@ export const getUserBlocksWaitingKey = 'users:getUserBlocks'
 export const setUserBlocksWaitingKey = 'users:setUserBlocks'
 export const reportUserWaitingKey = 'users:reportUser'
 
-export type Store = {
+export type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
   infoMap: Map<string, T.Users.UserInfo>
-}
+}>
 
 const initialStore: Store = {
   blockMap: new Map(),
@@ -88,9 +88,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     replace: (infoMap, blockMap) => {
       set(s => {
-        s.infoMap = infoMap
+        s.infoMap = T.castDraft(infoMap)
         if (blockMap) {
-          s.blockMap = blockMap
+          s.blockMap = T.castDraft(blockMap)
         }
       })
     },

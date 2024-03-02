@@ -33,13 +33,13 @@ const makeEmailRow = (): EmailRow => ({
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 type EmailRow = Writeable<T.RPCGen.Email>
 
-type Store = {
+type Store = T.Immutable<{
   addedEmail: string // show banner with dismiss on account settings
   addingEmail: string
   emails: Map<string, EmailRow>
   error: string
   newEmail: string
-}
+}>
 
 const initialStore: Store = {
   addedEmail: '',

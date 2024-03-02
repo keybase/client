@@ -222,10 +222,10 @@ type State = Store & {
     onSaltpackStart: (op: T.Crypto.Operations) => void
     onSaltpackProgress: (op: T.Crypto.Operations, bytesComplete: number, bytesTotal: number) => void
     onSaltpackOpenFile: (op: T.Crypto.Operations, path: string) => void
-    onTeamBuildingFinished: (users: Set<T.TB.User>) => void
+    onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
     setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => void
-    setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
+    setRecipients: (recipients: ReadonlyArray<string>, hasSBS: boolean) => void
   }
 }
 
@@ -561,7 +561,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s[op].inProgress = true
       })
     },
-    onTeamBuildingFinished: (_users: Set<T.TB.User>) => {
+    onTeamBuildingFinished: _users => {
       const users = [..._users]
       let hasSBS = false as boolean
       const usernames = users.map(user => {
@@ -718,7 +718,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (hasSBS) {
           o.options.sign = true
         }
-        o.recipients = recipients
+        o.recipients = T.castDraft(recipients)
       })
       // mobile doesn't run anything automatically
       if (get().encrypt.inputType === 'text' && !Platform.isMobile) {

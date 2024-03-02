@@ -249,7 +249,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const userResults: Array<T.TB.User> | undefined = _searchResults
+  const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 

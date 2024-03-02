@@ -1,3 +1,4 @@
+import type * as T from '.'
 import type {WebOfTrustVerificationType} from './more'
 import type * as RPCTypes from './rpc-gen'
 
@@ -54,7 +55,7 @@ export type DetailsState =
   | 'notAUserYet'
   | 'unknown'
 
-export type Details = {
+export type Details = T.Immutable<{
   assertions?: Map<string, Assertion>
   bio?: string
   blocked: boolean
@@ -74,10 +75,10 @@ export type Details = {
   username: string
   resetBrokeTrack: boolean
   webOfTrustEntries?: ReadonlyArray<WebOfTrustEntry>
-}
+}>
 
 // Details for SBS profiles
-export type NonUserDetails = {
+export type NonUserDetails = T.Immutable<{
   assertionKey: string
   assertionValue: string
   description: string
@@ -95,7 +96,7 @@ export type NonUserDetails = {
   siteIconFull: SiteIconSet
   siteIconFullDarkmode: SiteIconSet
   siteURL: string // https://twitter.com/bob,
-}
+}>
 
 export type WebOfTrustEntry = {
   attestation: string

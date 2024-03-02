@@ -62,12 +62,12 @@ export type SettingsTab =
   | typeof settingsContactsTab
   | typeof settingsWhatsNewTab
 
-type Store = {
+type Store = T.Immutable<{
   checkPasswordIsCorrect?: boolean
   didToggleCertificatePinning?: boolean
   lockdownModeEnabled?: boolean
   proxyData?: T.RPCGen.ProxyData
-}
+}>
 
 const initialStore: Store = {
   checkPasswordIsCorrect: undefined,

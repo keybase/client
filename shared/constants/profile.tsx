@@ -41,7 +41,7 @@ export const blockUserWaitingKey = 'profile:blockUser'
 export const wotAuthorWaitingKey = 'profile:wotAuthor'
 export const AVATAR_SIZE = 128
 
-type Store = {
+type Store = T.Immutable<{
   blockUserModal?: 'waiting' | {error: string}
   errorCode?: number
   errorText: string
@@ -69,7 +69,7 @@ type Store = {
   username: string
   usernameValid: boolean
   wotAuthorError: string
-}
+}>
 const initialStore: Store = {
   blockUserModal: undefined,
   errorCode: undefined,
@@ -136,7 +136,7 @@ type State = Store & {
 }
 
 export const _useState = Z.createZustand<State>((set, get) => {
-  const clearErrors = (s: Store) => {
+  const clearErrors = (s: Z.WritableDraft<Store>) => {
     s.errorCode = undefined
     s.errorText = ''
     s.platformGeneric = undefined
@@ -145,7 +145,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     s.platformGenericURL = undefined
     s.username = ''
   }
-  const updateUsername = (s: Store) => {
+  const updateUsername = (s: Z.WritableDraft<Store>) => {
     let username = s.username
     let usernameValid = true
 

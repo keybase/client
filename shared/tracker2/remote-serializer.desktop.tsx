@@ -6,16 +6,16 @@ import {produce} from 'immer'
 type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
-  avatarRefreshCounter: Map<string, number>
-  followers: Set<string>
-  following: Set<string>
+  avatarRefreshCounter: ReadonlyMap<string, number>
+  followers: ReadonlySet<string>
+  following: ReadonlySet<string>
   darkMode: boolean
   trackerUsername: string
   username: string
   httpSrvAddress: string
   httpSrvToken: string
-  infoMap: Map<string, T.Users.UserInfo>
-  blockMap: Map<string, T.Users.BlockState>
+  infoMap: ReadonlyMap<string, T.Users.UserInfo>
+  blockMap: ReadonlyMap<string, T.Users.BlockState>
 } & T.Tracker.Details &
   Pick<T.Waiting.State, WaitingHoistedProps>
 
@@ -160,12 +160,14 @@ export const deserialize = (
       s.blockMap = new Map(blockMapArr)
     }
 
-    const details = s.tracker2.usernameToDetails.get(trackerUsername) ?? ({} as T.Tracker.Details)
+    const details = T.castDraft(
+      s.tracker2.usernameToDetails.get(trackerUsername) ?? ({} as T.Tracker.Details)
+    )
     details.username = trackerUsername
     details.resetBrokeTrack = false
     details.blocked = s.blockMap.get(trackerUsername)?.chatBlocked ?? details.blocked
     if (assertionsArr) {
-      details.assertions = new Map(assertionsArr)
+      details.assertions = T.castDraft(new Map(assertionsArr))
     }
     if (bio) {
       details.bio = bio
@@ -198,7 +200,7 @@ export const deserialize = (
       details.stellarHidden = stellarHidden
     }
     if (teamShowcase) {
-      details.teamShowcase = teamShowcase
+      details.teamShowcase = T.castDraft(teamShowcase)
     }
     s.tracker2.usernameToDetails.set(trackerUsername, T.castDraft(details))
   })

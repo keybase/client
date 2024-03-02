@@ -31,19 +31,19 @@ type KbfsDaemonStatus = {
 
 export type ProxyProps = {
   daemonHandshakeState: T.Config.DaemonHandshakeState
-  avatarRefreshCounter: Map<string, number>
-  conversationsToSend: Array<Conversation>
+  avatarRefreshCounter: ReadonlyMap<string, number>
+  conversationsToSend: ReadonlyArray<Conversation>
   darkMode?: boolean
   diskSpaceStatus: T.FS.DiskSpaceStatus
   endEstimate?: number
   files?: number
   fileName?: string
-  followers: Set<string>
-  following: Set<string>
+  followers: ReadonlySet<string>
+  following: ReadonlySet<string>
   kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
   loggedIn: boolean
-  remoteTlfUpdates: Array<RemoteTlfUpdates>
+  remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
   outOfDate: T.Config.OutOfDate
   totalSyncingBytes?: number
@@ -52,7 +52,7 @@ export type ProxyProps = {
   httpSrvToken: string
   windowShownCountNum: number
   navBadges: ReadonlyMap<C.Tabs.Tab, number>
-  infoMap: Map<string, T.Users.UserInfo>
+  infoMap: ReadonlyMap<string, T.Users.UserInfo>
 }
 
 export type SerializeProps = Omit<
@@ -204,7 +204,7 @@ export const deserialize = (
       s.windowShownCountNum = windowShownCountNum
     }
     if (conversationsToSend !== undefined) {
-      s.conversationsToSend = conversationsToSend
+      s.conversationsToSend = T.castDraft(conversationsToSend)
     }
     if (darkMode !== undefined) {
       s.darkMode = darkMode
@@ -231,7 +231,7 @@ export const deserialize = (
       s.navBadges = new Map(navBadgesArr)
     }
     if (remoteTlfUpdates !== undefined) {
-      s.remoteTlfUpdates = remoteTlfUpdates
+      s.remoteTlfUpdates = T.castDraft(remoteTlfUpdates)
     }
     if (showingDiskSpaceBanner !== undefined) {
       s.showingDiskSpaceBanner = showingDiskSpaceBanner
