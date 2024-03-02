@@ -129,7 +129,7 @@ const useResizeObserver = () => {
 // scrolling related things
 const useScrolling = (p: {
   containsLatestMessage: boolean
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   listRef: React.MutableRefObject<HTMLDivElement | null>
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
@@ -390,10 +390,10 @@ const useScrolling = (p: {
 }
 
 const useItems = (p: {
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
-  messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
+  messageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
   const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10

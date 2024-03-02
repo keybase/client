@@ -91,8 +91,8 @@ export const getMessageKey = (message: T.Chat.Message) =>
   `${message.conversationIDKey}:${T.Chat.ordinalToNumber(message.ordinal)}`
 
 export const getBotsAndParticipants = (
-  meta: T.Chat.ConversationMeta,
-  participantInfo: T.Chat.ParticipantInfo,
+  meta: T.Immutable<T.Chat.ConversationMeta>,
+  participantInfo: T.Immutable<T.Chat.ParticipantInfo>,
   sort?: boolean
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
@@ -111,7 +111,7 @@ export const getBotsAndParticipants = (
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
-  let participants: Array<string> = participantInfo.all
+  let participants: ReadonlyArray<string> = participantInfo.all
   if (meta.channelname === 'general') {
     participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)
@@ -228,8 +228,10 @@ export const messageAuthorIsBot = (
       : false // if we don't have team information, don't show bot icon
 }
 
-export const uiParticipantsToParticipantInfo = (uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>) => {
-  const participantInfo: T.Chat.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+export const uiParticipantsToParticipantInfo = (
+  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+): T.Chat.ParticipantInfo => {
+  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
   uiParticipants.forEach(part => {
     const {assertion, contactName, inConvName} = part
     participantInfo.all.push(assertion)

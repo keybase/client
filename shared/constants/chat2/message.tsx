@@ -613,7 +613,7 @@ export const uiMessageEditToMessage = (edit: T.RPCChat.MessageEdit, valid: T.RPC
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: T.RPCChat.MessageSystem,
-  reactions: Map<string, MessageTypes.ReactionDesc>,
+  reactions: ReadonlyMap<string, MessageTypes.ReactionDesc>,
   m: T.RPCChat.UIMessageValid
 ): T.Chat.Message | undefined => {
   switch (body.systemType) {
@@ -898,13 +898,13 @@ const validUIMessagetoMessage = (
           (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
         ),
         replyTo: m.replyTo
-          ? uiMessageToMessage(
+          ? (uiMessageToMessage(
               conversationIDKey,
               m.replyTo,
               currentUsername,
               getLastOrdinal,
               currentDeviceName
-            )
+            ) as any) // TODO better reply to handling
           : undefined,
         text: new HiddenString(rawText),
         unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
@@ -1376,10 +1376,13 @@ export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Messag
   return toRet as T.Chat.Message
 }
 
-export const upgradeMessage = (old: T.Chat.Message, m: T.Chat.Message): T.Chat.Message => {
+export const upgradeMessage = (
+  old: T.Immutable<T.Chat.Message>,
+  m: T.Immutable<T.Chat.Message>
+): T.Immutable<T.Chat.Message> => {
   const validUpgrade = (
-    old: T.Chat.MessageText | T.Chat.MessageAttachment,
-    m: T.Chat.MessageText | T.Chat.MessageAttachment
+    old: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>,
+    m: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>
   ) => {
     if (old.submitState !== 'pending' && m.submitState === 'pending') {
       // we may be making sure we got our pending message in the thread view, but if we already

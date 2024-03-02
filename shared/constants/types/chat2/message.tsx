@@ -6,6 +6,7 @@ import type * as RPCStellarTypes from '../rpc-stellar-gen'
 import type * as WalletTypes from '../wallets'
 import type * as TeamTypes from '../teams'
 import type HiddenString from '@/util/hidden-string'
+import type * as T from '@/constants/types'
 import type {DeviceType} from '../devices'
 import type {ServiceIdWithContact} from '../team-building'
 import type {Opaque} from '@/constants/types/ts'
@@ -16,17 +17,17 @@ export const numberToMessageID = (n: number) => n as MessageID
 export const numbersToMessageIDs = (a: ReadonlyArray<number>) => a as ReadonlyArray<MessageID>
 export const messageIDToNumber = (n: MessageID): number => n
 
-export type Reaction = {
+export type Reaction = T.Immutable<{
   timestamp: number
   username: string
-}
-export type ReactionDesc = {
+}>
+export type ReactionDesc = T.Immutable<{
   decorated: string
   users: Set<Reaction>
-}
-export type Reactions = Map<string, ReactionDesc>
+}>
+export type Reactions = ReadonlyMap<string, ReactionDesc>
 
-export type UnfurlMap = Map<string, RPCChatTypes.UIMessageUnfurlInfo>
+export type UnfurlMap = ReadonlyMap<string, RPCChatTypes.UIMessageUnfurlInfo>
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
@@ -64,7 +65,7 @@ export type PathAndOutboxID = {
 }
 
 // optional props here may never get set depending on the type
-type _MessageCommon = {
+type _MessageCommon = T.Immutable<{
   inlineVideoPlayable?: boolean
   title?: string
   isCollapsed?: boolean
@@ -107,46 +108,55 @@ type _MessageCommon = {
   ordinal: Ordinal
   outboxID?: OutboxID
   reactions?: Reactions
-  replyTo?: Message
   submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   timestamp: number
-}
-type _MessageWithDeviceInfo = {
+}>
+
+type _MessageWithDeviceInfo = T.Immutable<{
   deviceName: string
   deviceType: DeviceType
-}
+}>
 
-type _MessageWithDeletableEditable = {
+type _MessageWithDeletableEditable = T.Immutable<{
   isDeleteable: boolean
   isEditable: boolean
-}
+}>
 
-type _MessageWithReactions = {
+type _MessageWithReactions = T.Immutable<{
   reactions: Reactions
-}
+}>
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
 // Possibly as a result, some types have sentinel-valued fields hanging off them.
 
-export type MessagePlaceholder = {
+export type MessagePlaceholder = T.Immutable<{
   type: 'placeholder'
-} & _MessageCommon
+}> &
+  _MessageCommon
 
-export type MessageJourneycard = {
+export type MessageJourneycard = T.Immutable<{
   type: 'journeycard'
   cardType: RPCChatTypes.JourneycardType
   highlightMsgID: MessageID
   openTeam: boolean
-} & _MessageCommon
+}> &
+  _MessageCommon
 
 // We keep deleted messages around so the bookkeeping is simpler
-export type MessageDeleted = {
+export type MessageDeleted = T.Immutable<{
   type: 'deleted'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo
 
-export type MessageText = {
+export type MessageReplyTo = T.Immutable<{
+  type: MessageType
+  text?: HiddenString
+}> &
+  _MessageCommon
+
+export type MessageText = T.Immutable<{
   botUsername?: string
   decoratedText?: HiddenString
   exploded: boolean
@@ -160,13 +170,14 @@ export type MessageText = {
   mentionsAt: MentionsAt
   mentionsChannel: MentionsChannel
   mentionsChannelName: MentionsChannelName
-
-  replyTo?: Message
+  // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
+  replyTo?: MessageReplyTo
   text: HiddenString
   paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
   unfurls: UnfurlMap
   type: 'text'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions &
   _MessageWithDeletableEditable
@@ -189,7 +200,7 @@ export type MessageAttachmentTransferState =
   | 'mobileSaving'
   | undefined
 
-export type MessageAttachment = {
+export type MessageAttachment = T.Immutable<{
   attachmentType: AttachmentType
   audioAmps: ReadonlyArray<number>
   audioDuration: number
@@ -222,7 +233,8 @@ export type MessageAttachment = {
   transferErrMsg?: string
   type: 'attachment'
   videoDuration?: string
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions &
   _MessageWithDeletableEditable
@@ -238,16 +250,17 @@ export type ChatRequestInfo = {
   worthAtRequestTime: string
 }
 
-export type MessageRequestPayment = {
+export type MessageRequestPayment = T.Immutable<{
   note: HiddenString
   requestID: RPCStellarTypes.KeybaseRequestID
   requestInfo?: ChatRequestInfo // If null, we are waiting on this from the service,
   type: 'requestPayment'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions
 
-export type ChatPaymentInfo = {
+export type ChatPaymentInfo = T.Immutable<{
   accountID: WalletTypes.AccountID
   amountDescription: string
   delta: 'none' | 'increase' | 'decrease'
@@ -265,12 +278,13 @@ export type ChatPaymentInfo = {
   type: 'paymentInfo'
   worth: string
   worthAtSendTime: string
-}
+}>
 
-export type MessageSendPayment = {
+export type MessageSendPayment = T.Immutable<{
   paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
   type: 'sendPayment'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions
 
@@ -279,7 +293,7 @@ export type MessageSendPayment = {
 // conversation (e.g. teamname, isAdmin) rather than the message may have changed since
 // the message was created. Because of this it's probably more reliable to look at
 // other places in the store to get that information when possible.
-export type MessageSystemInviteAccepted = {
+export type MessageSystemInviteAccepted = T.Immutable<{
   adder: string
   inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text'
   invitee: string
@@ -287,39 +301,43 @@ export type MessageSystemInviteAccepted = {
   team: string
   role: TeamTypes.MaybeTeamRoleType
   type: 'systemInviteAccepted'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemSBSResolved = {
+export type MessageSystemSBSResolved = T.Immutable<{
   assertionUsername: string
   assertionService?: ServiceIdWithContact
   prover: string
   type: 'systemSBSResolved'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemSimpleToComplex = {
+export type MessageSystemSimpleToComplex = T.Immutable<{
   team: string
   type: 'systemSimpleToComplex'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemCreateTeam = {
+export type MessageSystemCreateTeam = T.Immutable<{
   creator: string
   team: string
   type: 'systemCreateTeam'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemGitPush = {
+export type MessageSystemGitPush = T.Immutable<{
   pusher: string
   pushType: RPCTypes.GitPushType
   refs: ReadonlyArray<RPCTypes.GitRefMetadata>
@@ -327,88 +345,98 @@ export type MessageSystemGitPush = {
   repoID: string
   team: string
   type: 'systemGitPush'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemAddedToTeam = {
+export type MessageSystemAddedToTeam = T.Immutable<{
   addee: string
   adder: string
   bulkAdds: ReadonlyArray<string>
   role: TeamTypes.MaybeTeamRoleType
   team: string
   type: 'systemAddedToTeam'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemJoined = {
+export type MessageSystemJoined = T.Immutable<{
   joiners: ReadonlyArray<string>
   leavers: ReadonlyArray<string>
   type: 'systemJoined'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable
 
-export type MessageSystemLeft = {
+export type MessageSystemLeft = T.Immutable<{
   type: 'systemLeft'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable
 
-export type MessageSystemChangeAvatar = {
+export type MessageSystemChangeAvatar = T.Immutable<{
   team: string
   type: 'systemChangeAvatar'
   user: string
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions
 
-export type MessageSystemNewChannel = {
+export type MessageSystemNewChannel = T.Immutable<{
   text: string
   type: 'systemNewChannel'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemText = {
+export type MessageSystemText = T.Immutable<{
   text: HiddenString
   type: 'systemText'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSetDescription = {
+export type MessageSetDescription = T.Immutable<{
   newDescription: HiddenString
   type: 'setDescription'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessagePin = {
+export type MessagePin = T.Immutable<{
   bodySummary: HiddenString
   pinnedMessageID: MessageID
   timestamp: number
   type: 'pin'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithReactions &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable
 
-export type MessageSetChannelname = {
+export type MessageSetChannelname = T.Immutable<{
   newChannelname: string
   type: 'setChannelname'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemChangeRetention = {
+export type MessageSystemChangeRetention = T.Immutable<{
   isInherit: boolean
   isTeam: boolean
   membersType: RPCChatTypes.ConversationMembersType
@@ -416,15 +444,17 @@ export type MessageSystemChangeRetention = {
   type: 'systemChangeRetention'
   user: string
   you: string
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemUsersAddedToConversation = {
+export type MessageSystemUsersAddedToConversation = T.Immutable<{
   usernames: ReadonlyArray<string>
   type: 'systemUsersAddedToConversation'
-} & _MessageCommon &
+}> &
+  _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable &
   _MessageWithReactions

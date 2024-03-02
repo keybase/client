@@ -77,9 +77,8 @@ type LoadMoreReason =
   | 'tab selected'
   | NavReason
 
-// TODO immutable back
 // per convo store
-type ConvoStore = {
+type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
@@ -100,11 +99,11 @@ type ConvoStore = {
   maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
-  messageOrdinals?: Array<T.Chat.Ordinal> // ordered ordinals in a thread,
+  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
-  mutualTeams: Array<T.Teams.TeamID>
+  mutualTeams: ReadonlyArray<T.Teams.TeamID>
   orangeAboveOrdinal: T.Chat.Ordinal // ordinal of the orange line,
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -113,11 +112,11 @@ type ConvoStore = {
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   threadSearchInfo: T.Chat.ThreadSearchInfo
   threadSearchQuery: string
-  typing: Set<string>
+  typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
   unsentText?: string
-}
+}>
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
@@ -505,7 +504,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const messagesAdd = (messages: Array<T.Chat.Message>, markAsRead = true) => {
     set(s => {
-      for (const m of messages) {
+      for (const _m of messages) {
+        const m = T.castDraft(_m)
         // we capture the highest one, cause sometimes we'll not track it in the map
         // aka for deleted or placeholders
         if (m.id > s.maxMsgIDSeen) {
@@ -2170,12 +2170,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const conversationIDKey = get().id
       const devicename = C.useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-      const message = Message.uiMessageToMessage(
-        conversationIDKey,
-        cMsg,
-        username,
-        getLastOrdinal,
-        devicename
+      const message = T.castDraft(
+        Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
       )
       if (message) {
         // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
@@ -2786,13 +2782,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setParticipants: p => {
       set(s => {
         if (!C.shallowEqual(s.participants.all, p.all)) {
-          s.participants.all = p.all
+          s.participants.all = T.castDraft(p.all)
         }
         if (!C.shallowEqual(s.participants.name, p.name)) {
-          s.participants.name = p.name
+          s.participants.name = T.castDraft(p.name)
         }
         if (!isEqual(s.participants.contactName, p.contactName)) {
-          s.participants.contactName = p.contactName
+          s.participants.contactName = T.castDraft(p.contactName)
         }
       })
     },
@@ -3130,11 +3126,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     updateReactions: updates => {
-      const {pendingOutboxToOrdinal, messageMap} = get()
       for (const u of updates) {
         const reactions = u.reactions
         const targetMsgID = u.targetMsgID
-        const targetOrdinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, u.targetMsgID)
+        const targetOrdinal = messageIDToOrdinal(
+          get().messageMap,
+          get().pendingOutboxToOrdinal,
+          u.targetMsgID
+        )
         if (!targetOrdinal) {
           logger.info(
             `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
@@ -3143,10 +3142,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
           return
         }
-        const m = messageMap.get(targetOrdinal)
-        if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-          m.reactions = reactions
-        }
+        set(s => {
+          const m = s.messageMap.get(targetOrdinal)
+          if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
+            m.reactions = T.castDraft(reactions)
+          }
+        })
       }
       get().dispatch.markThreadAsRead()
     },

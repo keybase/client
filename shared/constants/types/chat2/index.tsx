@@ -83,7 +83,7 @@ export type AttachmentViewStatus = 'loading' | 'success' | 'error'
 
 export type AttachmentViewInfo = {
   status: AttachmentViewStatus
-  messages: Array<_Message.Message>
+  messages: ReadonlyArray<_Message.Message>
   last: boolean
 }
 
@@ -125,11 +125,11 @@ export type CreateConversationError = {
   message: string
 }
 
-export type ParticipantInfo = {
+export type ParticipantInfo = T.Immutable<{
   all: Array<string> // all member usernames, including bots
   name: Array<string> // member usernames not including bots
   contactName: Map<string, string> // member username -> contact name
-}
+}>
 
 // Corresponds to skinTones in emoji-datasource.
 export type EmojiSkinTone = '1F3FA' | '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'

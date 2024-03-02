@@ -121,7 +121,10 @@ export const getEffectiveRetentionPolicy = (meta: T.Immutable<T.Chat.Conversatio
   return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
 }
 
-const copyOverOldValuesIfEqual = (oldMeta: T.Chat.ConversationMeta, newMeta: T.Chat.ConversationMeta) => {
+const copyOverOldValuesIfEqual = (
+  oldMeta: T.Immutable<T.Chat.ConversationMeta>,
+  newMeta: T.Immutable<T.Chat.ConversationMeta>
+) => {
   const merged = {...newMeta}
   if (C.shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
     merged.rekeyers = oldMeta.rekeyers
@@ -141,9 +144,9 @@ const copyOverOldValuesIfEqual = (oldMeta: T.Chat.ConversationMeta, newMeta: T.C
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
-  oldMeta: T.Chat.ConversationMeta,
-  newMeta: T.Chat.ConversationMeta
-): T.Chat.ConversationMeta => {
+  oldMeta: T.Immutable<T.Chat.ConversationMeta>,
+  newMeta: T.Immutable<T.Chat.ConversationMeta>
+): T.Immutable<T.Chat.ConversationMeta> => {
   if (newMeta.inboxVersion < oldMeta.inboxVersion) {
     // new is older, keep old
     return oldMeta
