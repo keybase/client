@@ -15,6 +15,7 @@ import {OrangeLineContext} from '../orange-line-context'
 const useOrangeLine = () => {
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
   const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)
+  const clearOrangeLine = C.useChatContext(s => s.dispatch.clearOrangeLine)
   const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
   const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
   const newMessageVisible = maxVisibleMsgID !== lastVisibleMsgIDRef.current
@@ -27,6 +28,15 @@ const useOrangeLine = () => {
   if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
     gotMessageWhileInactive.current = true
     loadOrangeLine('new message while inactive')
+  }
+
+  const mobileAppState = C.useConfigState(s => s.mobileAppState)
+  const lastMobileAppStateRef = React.useRef(mobileAppState)
+  if (mobileAppState !== lastMobileAppStateRef.current) {
+    lastMobileAppStateRef.current = mobileAppState
+    if (mobileAppState !== 'active') {
+      clearOrangeLine('mobile backgrounded')
+    }
   }
 
   const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)

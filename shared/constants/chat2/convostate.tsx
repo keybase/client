@@ -184,6 +184,7 @@ export type ConvoState = ConvoStore & {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
+    clearOrangeLine: (why: string) => void
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
@@ -912,6 +913,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.attachmentViewMap = new Map()
       })
     },
+    clearOrangeLine: why => {
+      logger.error('[CHATDEBUG] clearOrangeLine: ', why)
+      set(s => {
+        s.orangeAboveOrdinal = T.Chat.numberToOrdinal(0)
+      })
+    },
     dismissBlockButtons: teamID => {
       const f = async () => {
         try {
@@ -1291,7 +1298,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
         if (sd === 'none') {
-          get().dispatch.loadOrangeLine('load message no direction')
+          get().dispatch.loadOrangeLine(`load message no direction res:${reason}`)
         }
       }
 

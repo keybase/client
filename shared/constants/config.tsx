@@ -538,33 +538,39 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initNotifySound: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
-        const notifySound = val.b
-        if (typeof notifySound === 'boolean') {
-          set(s => {
-            s.notifySound = notifySound
-          })
-        }
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
+          const notifySound = val.b
+          if (typeof notifySound === 'boolean') {
+            set(s => {
+              s.notifySound = notifySound
+            })
+          }
+        } catch {}
       }
       ignorePromise(f())
     },
     initOpenAtLogin: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
-        const openAtLogin = val.b
-        if (typeof openAtLogin === 'boolean') {
-          get().dispatch.setOpenAtLogin(openAtLogin)
-        }
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
+          const openAtLogin = val.b
+          if (typeof openAtLogin === 'boolean') {
+            get().dispatch.setOpenAtLogin(openAtLogin)
+          }
+        } catch {}
       }
       ignorePromise(f())
     },
     initUseNativeFrame: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
-        const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-        set(s => {
-          s.useNativeFrame = useNativeFrame
-        })
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
+          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+          set(s => {
+            s.useNativeFrame = useNativeFrame
+          })
+        } catch {}
       }
       ignorePromise(f())
     },
@@ -629,11 +635,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             const {inboxRefresh} = C.useChatState.getState().dispatch
             inboxRefresh('bootstrap')
           }
-          const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows.i ?? -1
-          if (ri > 0) {
-            C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
-          }
+          try {
+            const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+            const ri = rows.i ?? -1
+            if (ri > 0) {
+              C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
+            }
+          } catch {}
         }
 
         getFollowerInfo()
