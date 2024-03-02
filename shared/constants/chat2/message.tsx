@@ -526,7 +526,7 @@ export const uiRequestInfoToChatRequestInfo = (
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  ps?: ReaonlyArray<T.RPCChat.UIPaymentInfo>
+  ps?: ReadonlyArray<T.RPCChat.UIPaymentInfo>
 ): MessageTypes.ChatPaymentInfo | undefined => {
   if (!ps || ps.length !== 1) {
     return undefined

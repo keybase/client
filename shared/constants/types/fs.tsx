@@ -18,21 +18,21 @@ export enum ProgressType {
   Loaded = 'loaded',
 }
 
-export type Device = {
-  readonly type: Devices.DeviceType
-  readonly name: string
-  readonly deviceID: string
-}
+export type Device = Readonly<{
+  type: Devices.DeviceType
+  name: string
+  deviceID: string
+}>
 
-export type ParticipantUnlock = {
-  readonly name: string
-  readonly devices: string
-}
+export type ParticipantUnlock = Readonly<{
+  name: string
+  devices: string
+}>
 
-export type ResetMember = {
-  readonly username: string
-  readonly uid: string
-}
+export type ResetMember = Readonly<{
+  username: string
+  uid: string
+}>
 
 // TODO: make structs above immutable
 
@@ -58,10 +58,10 @@ export const getTlfTypeFromPath = (path: Path): undefined | TlfType => {
   return str.startsWith('/keybase/private')
     ? TlfType.Private
     : str.startsWith('/keybase/public')
-    ? TlfType.Public
-    : str.startsWith('/keybase/team')
-    ? TlfType.Team
-    : undefined
+      ? TlfType.Public
+      : str.startsWith('/keybase/team')
+        ? TlfType.Team
+        : undefined
 }
 
 export enum TlfSyncMode {
@@ -70,18 +70,18 @@ export enum TlfSyncMode {
   Partial = 'partial',
 }
 
-export type TlfSyncEnabled = {
-  readonly mode: TlfSyncMode.Enabled
-}
+export type TlfSyncEnabled = Readonly<{
+  mode: TlfSyncMode.Enabled
+}>
 
-export type TlfSyncDisabled = {
-  readonly mode: TlfSyncMode.Disabled
-}
+export type TlfSyncDisabled = Readonly<{
+  mode: TlfSyncMode.Disabled
+}>
 
-export type TlfSyncPartial = {
-  readonly mode: TlfSyncMode.Partial
-  readonly enabledPaths: Array<Path>
-}
+export type TlfSyncPartial = Readonly<{
+  mode: TlfSyncMode.Partial
+  enabledPaths: ReadonlyArray<Path>
+}>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
@@ -90,30 +90,30 @@ export enum ConflictStateType {
   ManualResolvingLocalView = 'manual-resolving-local-view',
 }
 
-export type ConflictStateNormalView = {
-  readonly localViewTlfPaths: Array<Path>
-  readonly resolvingConflict: boolean
-  readonly stuckInConflict: boolean
-  readonly type: ConflictStateType.NormalView
-}
+export type ConflictStateNormalView = Readonly<{
+  localViewTlfPaths: ReadonlyArray<Path>
+  resolvingConflict: boolean
+  stuckInConflict: boolean
+  type: ConflictStateType.NormalView
+}>
 
-export type ConflictStateManualResolvingLocalView = {
-  readonly normalViewTlfPath: Path
-  readonly type: ConflictStateType.ManualResolvingLocalView
-}
+export type ConflictStateManualResolvingLocalView = Readonly<{
+  normalViewTlfPath: Path
+  type: ConflictStateType.ManualResolvingLocalView
+}>
 
 export type ConflictState = ConflictStateNormalView | ConflictStateManualResolvingLocalView
 
-export type Tlf = {
-  readonly conflictState: ConflictState
-  readonly isFavorite: boolean
-  readonly isIgnored: boolean
-  readonly isNew: boolean
-  readonly name: string
-  readonly resetParticipants: Array<string> // usernames
-  readonly syncConfig: TlfSyncConfig
-  readonly teamId: RPCTypes.TeamID
-  readonly tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
+export type Tlf = Readonly<{
+  conflictState: ConflictState
+  isFavorite: boolean
+  isIgnored: boolean
+  isNew: boolean
+  name: string
+  resetParticipants: ReadonlyArray<string> // usernames
+  syncConfig: TlfSyncConfig
+  teamId: RPCTypes.TeamID
+  tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
   /*
    * Disabled because SimpleFS API doesn't have problem_set yet. We might never
    * need these.
@@ -129,12 +129,12 @@ export type Tlf = {
    * // folder needs a rekey.
    * youCanUnlock?: I.List<Device>
    */
-}
+}>
 
 // name -> Tlf
 export type TlfList = Map<string, Tlf>
 
-export type Tlfs = {
+export type Tlfs = Readonly<{
   // additionalTlfs includes Tlfs that we care about but are not in one of
   // private, public, team. This could include Tlfs that are referenced by
   // non-preferred paths, such as /keybase/private/me,z,a or
@@ -145,12 +145,12 @@ export type Tlfs = {
   //
   // additionalTlfs should always have lower-priority than the three lists
   // (private, public, team). In other words, check those first.
-  readonly additionalTlfs: Map<Path, Tlf>
-  readonly loaded: boolean
-  readonly private: TlfList
-  readonly public: TlfList
-  readonly team: TlfList
-}
+  additionalTlfs: ReadonlyMap<Path, Tlf>
+  loaded: boolean
+  private: TlfList
+  public: TlfList
+  team: TlfList
+}>
 
 export enum PathKind {
   Root = 'root',
@@ -161,46 +161,46 @@ export enum PathKind {
   InTeamTlf = 'in-team-tlf',
 }
 
-export type ParsedPathRoot = {
-  readonly kind: PathKind.Root
-}
+export type ParsedPathRoot = Readonly<{
+  kind: PathKind.Root
+}>
 
-export type ParsedPathTlfList = {
-  readonly kind: PathKind.TlfList
-  readonly tlfType: TlfType
-}
+export type ParsedPathTlfList = Readonly<{
+  kind: PathKind.TlfList
+  tlfType: TlfType
+}>
 
-export type ParsedPathGroupTlf = {
-  readonly kind: PathKind.GroupTlf
-  readonly tlfName: string
-  readonly tlfType: TlfType.Private | TlfType.Public
-  readonly writers: Array<string>
-  readonly readers?: Array<string>
-}
+export type ParsedPathGroupTlf = Readonly<{
+  kind: PathKind.GroupTlf
+  tlfName: string
+  tlfType: TlfType.Private | TlfType.Public
+  writers: Array<string>
+  readers?: Array<string>
+}>
 
-export type ParsedPathTeamTlf = {
-  readonly kind: PathKind.TeamTlf
-  readonly tlfName: string
-  readonly tlfType: TlfType.Team
-  readonly team: string
-}
+export type ParsedPathTeamTlf = Readonly<{
+  kind: PathKind.TeamTlf
+  tlfName: string
+  tlfType: TlfType.Team
+  team: string
+}>
 
-export type ParsedPathInGroupTlf = {
-  readonly kind: PathKind.InGroupTlf
-  readonly tlfName: string
-  readonly tlfType: TlfType.Private | TlfType.Public
-  readonly writers: Array<string>
-  readonly readers?: Array<string>
-  readonly rest: Array<string>
-}
+export type ParsedPathInGroupTlf = Readonly<{
+  kind: PathKind.InGroupTlf
+  tlfName: string
+  tlfType: TlfType.Private | TlfType.Public
+  writers: Array<string>
+  readers?: Array<string>
+  rest: Array<string>
+}>
 
-export type ParsedPathInTeamTlf = {
-  readonly kind: PathKind.InTeamTlf
-  readonly tlfName: string
-  readonly tlfType: TlfType.Team
-  readonly team: string
-  readonly rest: Array<string>
-}
+export type ParsedPathInTeamTlf = Readonly<{
+  kind: PathKind.InTeamTlf
+  tlfName: string
+  tlfType: TlfType.Team
+  team: string
+  rest: Array<string>
+}>
 
 export type ParsedPath =
   | ParsedPathRoot
@@ -216,21 +216,21 @@ export enum PrefetchState {
   Complete = 'complete',
 }
 
-export type PrefetchNotStarted = {
-  readonly state: PrefetchState.NotStarted
-}
+export type PrefetchNotStarted = Readonly<{
+  state: PrefetchState.NotStarted
+}>
 
-export type PrefetchInProgress = {
-  readonly state: PrefetchState.InProgress
-  readonly startTime: number
-  readonly endEstimate: number
-  readonly bytesTotal: number
-  readonly bytesFetched: number
-}
+export type PrefetchInProgress = Readonly<{
+  state: PrefetchState.InProgress
+  startTime: number
+  endEstimate: number
+  bytesTotal: number
+  bytesFetched: number
+}>
 
-export type PrefetchComplete = {
-  readonly state: PrefetchState.Complete
-}
+export type PrefetchComplete = Readonly<{
+  state: PrefetchState.Complete
+}>
 
 export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
 
@@ -243,24 +243,28 @@ type _PathItemMetadata = {
   prefetchStatus: PrefetchStatus
 }
 
-export type FolderPathItem = {
-  readonly type: PathType.Folder
-  readonly children: Set<string>
-  readonly progress: ProgressType
-} & _PathItemMetadata
+export type FolderPathItem = Readonly<{
+  type: PathType.Folder
+  children: Set<string>
+  progress: ProgressType
+}> &
+  _PathItemMetadata
 
-export type SymlinkPathItem = {
-  readonly type: PathType.Symlink
-  readonly linkTarget: string
-} & _PathItemMetadata
+export type SymlinkPathItem = Readonly<{
+  type: PathType.Symlink
+  linkTarget: string
+}> &
+  _PathItemMetadata
 
-export type FilePathItem = {
-  readonly type: PathType.File
-} & _PathItemMetadata
+export type FilePathItem = Readonly<{
+  type: PathType.File
+}> &
+  _PathItemMetadata
 
-export type UnknownPathItem = {
-  readonly type: PathType.Unknown
-} & _PathItemMetadata
+export type UnknownPathItem = Readonly<{
+  type: PathType.Unknown
+}> &
+  _PathItemMetadata
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
@@ -287,14 +291,14 @@ export enum EditType {
   NewFolder = 'new-folder',
   Rename = 'rename',
 }
-export type Edit = {
-  readonly type: EditType
-  readonly parentPath: Path
-  readonly name: string
+export type Edit = Readonly<{
+  type: EditType
+  parentPath: Path
+  name: string
   // For new folders, this is the automatically generated hint.
-  readonly originalName: string
-  readonly error?: string
-}
+  originalName: string
+  error?: string
+}>
 
 export enum SortSetting {
   NameAsc = 'name-asc',
@@ -303,9 +307,9 @@ export enum SortSetting {
   TimeDesc = 'time-desc',
 }
 
-export type PathUserSetting = {
-  readonly sort: SortSetting
-}
+export type PathUserSetting = Readonly<{
+  sort: SortSetting
+}>
 
 export type LocalPath = string
 
@@ -315,34 +319,34 @@ export enum DownloadIntent {
   Share = 'share',
 }
 
-export type DownloadState = {
-  readonly canceled: boolean
-  readonly done: boolean
-  readonly endEstimate: number
-  readonly error: string
-  readonly localPath: string
-  readonly progress: number
-}
+export type DownloadState = Readonly<{
+  canceled: boolean
+  done: boolean
+  endEstimate: number
+  error: string
+  localPath: string
+  progress: number
+}>
 
-export type DownloadInfo = {
-  readonly filename: string
-  readonly isRegularDownload: boolean
-  readonly path: Path
-  readonly startTime: number
-}
+export type DownloadInfo = Readonly<{
+  filename: string
+  isRegularDownload: boolean
+  path: Path
+  startTime: number
+}>
 
-export type Downloads = {
-  readonly info: Map<string, DownloadInfo>
-  readonly regularDownloads: Array<string>
-  readonly state: Map<string, DownloadState>
-}
+export type Downloads = Readonly<{
+  info: Map<string, DownloadInfo>
+  regularDownloads: Array<string>
+  state: Map<string, DownloadState>
+}>
 
-export type Uploads = {
-  readonly writingToJournal: Map<Path, RPCTypes.UploadState>
-  readonly totalSyncingBytes: number
-  readonly endEstimate?: number
-  readonly syncingPaths: Set<Path>
-}
+export type Uploads = Readonly<{
+  writingToJournal: Map<Path, RPCTypes.UploadState>
+  totalSyncingBytes: number
+  endEstimate?: number
+  syncingPaths: Set<Path>
+}>
 
 // 'both' is only supported on macOS
 export enum OpenDialogType {
@@ -364,18 +368,18 @@ export enum FileEditType {
   Unknown = 'unknown',
 }
 
-export type TlfEdit = {
-  readonly filename: string
-  readonly serverTime: number
-  readonly editType: FileEditType
-}
+export type TlfEdit = Readonly<{
+  filename: string
+  serverTime: number
+  editType: FileEditType
+}>
 
-export type TlfUpdate = {
-  readonly path: Path
-  readonly writer: string
-  readonly serverTime: number
-  readonly history: Array<TlfEdit>
-}
+export type TlfUpdate = Readonly<{
+  path: Path
+  writer: string
+  serverTime: number
+  history: Array<TlfEdit>
+}>
 
 export type UserTlfUpdates = Array<TlfUpdate>
 
@@ -389,29 +393,29 @@ export enum DestinationPickerSource {
   IncomingShare = 'incoming-share',
 }
 
-export type MoveOrCopySource = {
-  readonly type: DestinationPickerSource.MoveOrCopy
-  readonly path: Path
-}
+export type MoveOrCopySource = Readonly<{
+  type: DestinationPickerSource.MoveOrCopy
+  path: Path
+}>
 
-export type IncomingShareSource = {
-  readonly type: DestinationPickerSource.IncomingShare
-  readonly source: Array<RPCTypes.IncomingShareItem>
-}
+export type IncomingShareSource = Readonly<{
+  type: DestinationPickerSource.IncomingShare
+  source: Array<RPCTypes.IncomingShareItem>
+}>
 
-export type NoSource = {
-  readonly type: DestinationPickerSource.None
-}
+export type NoSource = Readonly<{
+  type: DestinationPickerSource.None
+}>
 
-export type DestinationPicker = {
+export type DestinationPicker = Readonly<{
   // id -> Path mapping. This is useful for mobile when we have multiple layers
   // stacked on top of each other, and we need to keep track of them for the
   // back button. We don't put this in routeProps directly as that'd
   // complicate stuff for desktop because we don't have something like a
   // routeToSibling.
-  readonly destinationParentPath: Array<Path>
-  readonly source: MoveOrCopySource | IncomingShareSource | NoSource
-}
+  destinationParentPath: Array<Path>
+  source: MoveOrCopySource | IncomingShareSource | NoSource
+}>
 
 export enum PathItemActionMenuView {
   Root = 'root',
@@ -419,44 +423,44 @@ export enum PathItemActionMenuView {
   ConfirmSaveMedia = 'confirm-save-media',
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
-export type PathItemActionMenu = {
-  readonly downloadID: string | undefined
-  readonly downloadIntent: DownloadIntent | undefined
-  readonly previousView: PathItemActionMenuView
-  readonly view: PathItemActionMenuView
-}
+export type PathItemActionMenu = Readonly<{
+  downloadID: string | undefined
+  downloadIntent: DownloadIntent | undefined
+  previousView: PathItemActionMenuView
+  view: PathItemActionMenuView
+}>
 
 export enum DriverStatusType {
   Unknown = 'unknown',
   Disabled = 'disabled',
   Enabled = 'enabled',
 }
-export type DriverStatusUnknown = {
-  readonly type: DriverStatusType.Unknown
-}
+export type DriverStatusUnknown = Readonly<{
+  type: DriverStatusType.Unknown
+}>
 
-export type DriverStatusDisabled = {
-  readonly type: DriverStatusType.Disabled
-  readonly isEnabling: boolean
+export type DriverStatusDisabled = Readonly<{
+  type: DriverStatusType.Disabled
+  isEnabling: boolean
   // macOS only
-  readonly kextPermissionError: boolean
-}
+  kextPermissionError: boolean
+}>
 
-export type DriverStatusEnabled = {
-  readonly type: DriverStatusType.Enabled
-  readonly isDisabling: boolean
+export type DriverStatusEnabled = Readonly<{
+  type: DriverStatusType.Enabled
+  isDisabling: boolean
   // windows only
-  readonly dokanOutdated: boolean
-  readonly dokanUninstallExecPath?: string
-}
+  dokanOutdated: boolean
+  dokanUninstallExecPath?: string
+}>
 
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
-export type SystemFileManagerIntegration = {
-  readonly directMountDir: string
-  readonly driverStatus: DriverStatus
-  readonly preferredMountDirs: Array<string>
-}
+export type SystemFileManagerIntegration = Readonly<{
+  directMountDir: string
+  driverStatus: DriverStatus
+  preferredMountDirs: Array<string>
+}>
 
 export enum KbfsDaemonRpcStatus {
   Connected = 'connected',
@@ -468,60 +472,60 @@ export enum KbfsDaemonOnlineStatus {
   Trying = 'trying',
   Online = 'online',
 }
-export type KbfsDaemonStatus = {
-  readonly rpcStatus: KbfsDaemonRpcStatus
-  readonly onlineStatus: KbfsDaemonOnlineStatus
-}
+export type KbfsDaemonStatus = Readonly<{
+  rpcStatus: KbfsDaemonRpcStatus
+  onlineStatus: KbfsDaemonOnlineStatus
+}>
 
-export type SyncingFoldersProgress = {
-  readonly bytesFetched: number
-  readonly bytesTotal: number
-  readonly endEstimate: number
-  readonly start: number
-}
+export type SyncingFoldersProgress = Readonly<{
+  bytesFetched: number
+  bytesTotal: number
+  endEstimate: number
+  start: number
+}>
 
 export enum DiskSpaceStatus {
   Ok = 'ok',
   Warning = 'warning',
   Error = 'error',
 }
-export type OverallSyncStatus = {
-  readonly syncingFoldersProgress: SyncingFoldersProgress
-  readonly diskSpaceStatus: DiskSpaceStatus
+export type OverallSyncStatus = Readonly<{
+  syncingFoldersProgress: SyncingFoldersProgress
+  diskSpaceStatus: DiskSpaceStatus
   // showingBanner tracks whether we need to show the banner.
   // It's mostly derived from diskSpaceStatus above, but it has to appear
   // in the state since the user can dismiss it.
-  readonly showingBanner: boolean
-}
+  showingBanner: boolean
+}>
 
 export enum SoftError {
   NoAccess = 'no-access',
   Nonexistent = 'non-existent',
 }
 
-export type SoftErrors = {
-  readonly pathErrors: Map<Path, SoftError>
-  readonly tlfErrors: Map<Path, SoftError>
-}
+export type SoftErrors = Readonly<{
+  pathErrors: Map<Path, SoftError>
+  tlfErrors: Map<Path, SoftError>
+}>
 
-export type Settings = {
-  readonly isLoading: boolean
-  readonly loaded: boolean
-  readonly sfmiBannerDismissed: boolean
-  readonly spaceAvailableNotificationThreshold: number
-  readonly syncOnCellular: boolean
-}
+export type Settings = Readonly<{
+  isLoading: boolean
+  loaded: boolean
+  sfmiBannerDismissed: boolean
+  spaceAvailableNotificationThreshold: number
+  syncOnCellular: boolean
+}>
 
-export type PathInfo = {
-  readonly deeplinkPath: string
-  readonly platformAfterMountPath: string
-}
+export type PathInfo = Readonly<{
+  deeplinkPath: string
+  platformAfterMountPath: string
+}>
 
-export type FileContext = {
-  readonly contentType: string
-  readonly viewType: RPCTypes.GUIViewType
-  readonly url: string
-}
+export type FileContext = Readonly<{
+  contentType: string
+  viewType: RPCTypes.GUIViewType
+  url: string
+}>
 
 export type Visibility = TlfType | undefined
 
@@ -672,17 +676,17 @@ export type FolderRPCWithMeta = {
   reset_members?: Array<ResetMember>
 }
 
-export type FavoriteFolder = {
-  readonly name: string
-  readonly private: boolean
-  readonly folderType: RPCTypes.FolderType
-  readonly problem_set?: {
+export type FavoriteFolder = Readonly<{
+  name: string
+  private: boolean
+  folderType: RPCTypes.FolderType
+  problem_set?: {
     solution_kids: {[K in string]: Array<string>}
     can_self_help: boolean
   }
-  readonly team_id?: string
-  readonly reset_members?: Array<ResetMember>
-}
+  team_id?: string
+  reset_members?: Array<ResetMember>
+}>
 
 export enum FileViewType {
   Text = 'text',
@@ -692,11 +696,11 @@ export enum FileViewType {
   Default = 'default',
 }
 
-export type ResetMetadata = {
-  readonly name: string
-  readonly visibility: Visibility
-  readonly resetParticipants: Array<string>
-}
+export type ResetMetadata = Readonly<{
+  name: string
+  visibility: Visibility
+  resetParticipants: Array<string>
+}>
 
 export enum NonUploadPathItemBadgeType {
   Download = 'download',
