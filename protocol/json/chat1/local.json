@@ -4299,7 +4299,7 @@
         },
         {
           "type": "int64",
-          "name": "MessagesComplete"
+          "name": "messagesComplete"
         },
         {
           "type": {
@@ -6539,6 +6539,10 @@
         {
           "name": "jobID",
           "type": "ArchiveJobID"
+        },
+        {
+          "name": "deleteOutputPath",
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",

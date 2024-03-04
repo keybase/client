@@ -484,6 +484,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.Indexer = search.NewIndexer(g)
 	g.AddDbNukeHook(g.Indexer, "Indexer")
 	g.ArchiveRegistry = chat.NewChatArchiveRegistry(g, ri)
+	g.AddDbNukeHook(g.ArchiveRegistry, "ChatArchiveRegistry")
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers

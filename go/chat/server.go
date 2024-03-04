@@ -4100,7 +4100,7 @@ func (h *Server) ArchiveChatDelete(ctx context.Context, arg chat1.ArchiveChatDel
 		return nil
 	}
 
-	return h.G().ArchiveRegistry.Delete(ctx, arg.JobID)
+	return h.G().ArchiveRegistry.Delete(ctx, arg.JobID, arg.DeleteOutputPath)
 }
 
 func (h *Server) ArchiveChatPause(ctx context.Context, arg chat1.ArchiveChatPauseArg) (err error) {

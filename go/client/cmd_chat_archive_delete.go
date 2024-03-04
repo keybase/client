@@ -13,7 +13,8 @@ import (
 
 type CmdChatArchiveDelete struct {
 	libkb.Contextified
-	jobID chat1.ArchiveJobID
+	jobID            chat1.ArchiveJobID
+	deleteOutputPath bool
 }
 
 func NewCmdChatArchiveDeleteRunner(g *libkb.GlobalContext) *CmdChatArchiveDelete {
@@ -31,6 +32,12 @@ func newCmdChatArchiveDelete(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 			cl.ChooseCommand(NewCmdChatArchiveDeleteRunner(g), "archive-delete", c)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "delete-output-path",
+				Usage: "Delete the locally archived data",
+			},
+		},
 	}
 }
 
@@ -42,6 +49,7 @@ func (c *CmdChatArchiveDelete) Run() error {
 
 	arg := chat1.ArchiveChatDeleteArg{
 		JobID:            c.jobID,
+		DeleteOutputPath: c.deleteOutputPath,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
@@ -61,6 +69,7 @@ func (c *CmdChatArchiveDelete) ParseArgv(ctx *cli.Context) (err error) {
 		return fmt.Errorf("job-id is required")
 	}
 	c.jobID = chat1.ArchiveJobID(ctx.Args().Get(0))
+	c.deleteOutputPath = ctx.Bool("delete-output-path")
 	return nil
 }
 

@@ -6608,7 +6608,7 @@ type ArchiveChatJob struct {
 	Status           ArchiveChatJobStatus                 `codec:"status" json:"status"`
 	Err              string                               `codec:"err" json:"err"`
 	MessagesTotal    int64                                `codec:"messagesTotal" json:"messagesTotal"`
-	MessagesComplete int64                                `codec:"MessagesComplete" json:"MessagesComplete"`
+	MessagesComplete int64                                `codec:"messagesComplete" json:"messagesComplete"`
 	Checkpoints      map[string]ArchiveChatConvCheckpoint `codec:"checkpoints" json:"checkpoints"`
 }
 
@@ -7434,6 +7434,7 @@ type ArchiveChatListArg struct {
 
 type ArchiveChatDeleteArg struct {
 	JobID            ArchiveJobID                 `codec:"jobID" json:"jobID"`
+	DeleteOutputPath bool                         `codec:"deleteOutputPath" json:"deleteOutputPath"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 

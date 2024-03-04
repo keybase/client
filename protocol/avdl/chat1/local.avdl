@@ -1496,7 +1496,7 @@ protocol local {
     string err; // Set iff status == ERROR
     // Overall progress
     int64 messagesTotal;
-    int64 MessagesComplete;
+    int64 messagesComplete;
     // convID -> checkpoint
     map<string, ArchiveChatConvCheckpoint> checkpoints;
   }
@@ -1515,7 +1515,7 @@ protocol local {
     map<ArchiveJobID, ArchiveChatJob> jobHistory;
   }
 
-  void archiveChatDelete(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void archiveChatDelete(ArchiveJobID jobID, boolean deleteOutputPath, keybase1.TLFIdentifyBehavior identifyBehavior);
   void archiveChatPause(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
   void archiveChatResume(ArchiveJobID jobID, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

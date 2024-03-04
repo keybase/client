@@ -16,12 +16,15 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/chatrender"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"golang.org/x/sync/errgroup"
 )
@@ -31,21 +34,22 @@ type ChatArchiveRegistry struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	stopCh chan struct{}
+	started bool
+	uid     gregor1.UID
+	// Have we populated from disk?
+	inited bool
 	// Delay before we restart paused jobs on startup
 	resumeJobsDelay time.Duration
 	flushDelay      time.Duration
+	stopCh          chan struct{}
 	clock           clockwork.Clock
 	eg              errgroup.Group
-	started         bool
-	// Have we populated from disk?
-	inited bool
 	// Changes to flush to disk?
 	dirty        bool
-	uid          gregor1.UID
 	remoteClient func() chat1.RemoteInterface
 	runningJobs  map[chat1.ArchiveJobID]types.CancelArchiveFn
 
+	edb        *encrypteddb.EncryptedDB
 	jobHistory chat1.ArchiveChatHistory
 }
 
@@ -64,6 +68,12 @@ func NewArchiveJobNotFoundError(jobID chat1.ArchiveJobID) ArchiveJobNotFoundErro
 var _ error = ArchiveJobNotFoundError{}
 
 func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.RemoteInterface) *ChatArchiveRegistry {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
+	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	r := &ChatArchiveRegistry{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ChatArchiveRegistry", false),
@@ -72,6 +82,7 @@ func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.Remote
 		flushDelay:   15 * time.Second,
 		runningJobs:  make(map[chat1.ArchiveJobID]types.CancelArchiveFn),
 		jobHistory:   chat1.ArchiveChatHistory{JobHistory: make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob)},
+		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 	switch r.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -91,14 +102,14 @@ func (r *ChatArchiveRegistry) dbKey() libkb.DbKey {
 	}
 }
 
-func (r *ChatArchiveRegistry) initLocked() error {
+func (r *ChatArchiveRegistry) initLocked(ctx context.Context) error {
 	if !r.started {
 		return errors.New("not started")
 	}
 	if r.inited {
 		return nil
 	}
-	found, err := r.G().LocalChatDb.GetIntoMsgpack(&r.jobHistory, r.dbKey())
+	found, err := r.edb.Get(ctx, r.dbKey(), &r.jobHistory)
 	if err != nil {
 		return err
 	}
@@ -109,9 +120,9 @@ func (r *ChatArchiveRegistry) initLocked() error {
 	return nil
 }
 
-func (r *ChatArchiveRegistry) flushLocked() error {
+func (r *ChatArchiveRegistry) flushLocked(ctx context.Context) error {
 	if r.dirty {
-		err := r.G().LocalChatDb.PutObjMsgpack(r.dbKey(), nil, r.jobHistory)
+		err := r.edb.Put(ctx, r.dbKey(), r.jobHistory)
 		if err != nil {
 			return err
 		}
@@ -132,7 +143,7 @@ func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
 			func() {
 				r.Lock()
 				defer r.Unlock()
-				err := r.flushLocked()
+				err := r.flushLocked(ctx)
 				if err != nil {
 					r.Debug(ctx, "flushLoop: failed to flush: %s", err)
 				}
@@ -141,23 +152,25 @@ func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
 	}
 }
 
-func (r *ChatArchiveRegistry) resumeAllBgJobs() error {
-	ctx := context.Background()
+func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) error {
 	select {
 	case <-r.stopCh:
 		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	case <-time.After(r.resumeJobsDelay):
 	}
 	r.Lock()
 	defer r.Unlock()
-	err := r.initLocked()
+	err := r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
 	for _, job := range r.jobHistory.JobHistory {
 		if job.Status == chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED {
 			go func(job chat1.ArchiveChatJob) {
-				_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(context.Background(), job.Request)
+				ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewSimpleIdentifyNotifier(r.G()))
+				_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(ctx, job.Request)
 				if err != nil {
 					r.Debug(ctx, err.Error())
 				}
@@ -165,6 +178,32 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs() error {
 		}
 	}
 	return nil
+}
+
+func (r *ChatArchiveRegistry) monitorAppState() error {
+	appState := keybase1.MobileAppState_FOREGROUND
+	ctx, cancel := context.WithCancel(context.Background())
+	for {
+		select {
+		case <-r.stopCh:
+			cancel()
+			return nil
+		case appState = <-r.G().MobileAppState.NextUpdate(&appState):
+			switch appState {
+			case keybase1.MobileAppState_FOREGROUND:
+				go func() {
+					ierr := r.resumeAllBgJobs(ctx)
+					if ierr != nil {
+						r.Debug(ctx, ierr.Error())
+					}
+				}()
+			default:
+				cancel()
+				ctx, cancel = context.WithCancel(context.Background())
+				r.bgPauseAllJobsLocked(ctx)
+			}
+		}
+	}
 }
 
 // Resumes previously BACKGROUND_PAUSED jobs, after a delay.
@@ -181,10 +220,13 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.eg.Go(func() error {
 		return r.flushLoop(r.stopCh)
 	})
-	r.eg.Go(r.resumeAllBgJobs)
+	r.eg.Go(func() error {
+		return r.resumeAllBgJobs(context.Background())
+	})
+	r.eg.Go(r.monitorAppState)
 }
 
-func (r *ChatArchiveRegistry) bgPauseAllJobsLocked() {
+func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) {
 	for jobID, cancel := range r.runningJobs {
 		job := cancel()
 		job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
@@ -193,7 +235,7 @@ func (r *ChatArchiveRegistry) bgPauseAllJobsLocked() {
 	r.runningJobs = make(map[chat1.ArchiveJobID]func() chat1.ArchiveChatJob)
 
 	r.dirty = true
-	_ = r.flushLocked()
+	_ = r.flushLocked(ctx)
 }
 
 // Pause running jobs marking as BACKGROUND_PAUSED
@@ -204,7 +246,7 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if r.started {
 		r.started = false
-		r.bgPauseAllJobsLocked()
+		r.bgPauseAllJobsLocked(ctx)
 		close(r.stopCh)
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")
@@ -217,6 +259,17 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 	}
 	return ch
 
+}
+
+func (r *ChatArchiveRegistry) OnDbNuke(mctx libkb.MetaContext) (err error) {
+	defer r.Trace(mctx.Ctx(), &err, "ChatArchiveRegistry.OnDbNuke")()
+	r.Lock()
+	defer r.Unlock()
+	if !r.started {
+		return nil
+	}
+	r.inited = false
+	return nil
 }
 
 type ByJobStartedAt []chat1.ArchiveChatJob
@@ -236,7 +289,7 @@ func (r *ChatArchiveRegistry) List(ctx context.Context) (res chat1.ArchiveChatLi
 	defer r.Trace(ctx, &err, "List")()
 	r.Lock()
 	defer r.Unlock()
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -252,7 +305,7 @@ func (r *ChatArchiveRegistry) Get(ctx context.Context, jobID chat1.ArchiveJobID)
 	defer r.Trace(ctx, &err, "Get(%s)", jobID)()
 	r.Lock()
 	defer r.Unlock()
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -264,11 +317,11 @@ func (r *ChatArchiveRegistry) Get(ctx context.Context, jobID chat1.ArchiveJobID)
 	return job, nil
 }
 
-func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJobID) (err error) {
+func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJobID, deleteOutputPath bool) (err error) {
 	defer r.Trace(ctx, &err, "Delete(%s)", jobID)()
 	r.Lock()
 	defer r.Unlock()
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -279,12 +332,18 @@ func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJob
 		cancel()
 		delete(r.runningJobs, jobID)
 	}
-
-	if _, ok := r.jobHistory.JobHistory[jobID]; !ok {
+	job, ok := r.jobHistory.JobHistory[jobID]
+	if !ok {
 		return NewArchiveJobNotFoundError(jobID)
 	}
 	delete(r.jobHistory.JobHistory, jobID)
 	r.dirty = true
+	if deleteOutputPath {
+		err = os.RemoveAll(job.Request.OutputPath)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -292,7 +351,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.CancelArchiv
 	defer r.Trace(ctx, &err, "Set(%+v)", job)()
 	r.Lock()
 	defer r.Unlock()
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -319,7 +378,7 @@ func (r *ChatArchiveRegistry) Pause(ctx context.Context, jobID chat1.ArchiveJobI
 	r.Lock()
 	defer r.Unlock()
 
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -354,7 +413,7 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 	r.Lock()
 	defer r.Unlock()
 
-	err = r.initLocked()
+	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
