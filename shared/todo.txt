@@ -10,4 +10,6 @@ send from someone else
 go online
 makes load call but gets no data
 can sometimes show a placeholder which never resolves
+(remote tiemout to get placeholder again and see what the deal is)
 aaa logging in
+debug hidden msg logging

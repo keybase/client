@@ -501,7 +501,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
   }
 
-  const messagesAdd = (messages: Array<T.Chat.Message>, markAsRead = true) => {
+  const messagesAdd = (messages: Array<T.Chat.Message>, _why: string, markAsRead = true) => {
     set(s => {
       for (const _m of messages) {
         const m = T.castDraft(_m)
@@ -1096,7 +1096,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                   })
                   // inject them into the message map
-                  messagesAdd([message], false)
+                  messagesAdd([message], 'gallery inject', false)
                 }
               },
             },
@@ -1205,7 +1205,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
         const onGotThread = (thread: string) => {
-          console.log('aaaaaa ongotthread', thread)
           if (!thread) {
             return
           }
@@ -1232,7 +1231,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
 
           if (messages.length) {
-            messagesAdd(messages)
+            messagesAdd(messages, 'load more ongotthread')
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({
@@ -1245,7 +1244,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
         try {
-          console.log('aaaaaa loadingmore')
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
@@ -1350,7 +1348,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             devicename
           )
           if (goodMessage?.type === 'attachment') {
-            messagesAdd([goodMessage])
+            messagesAdd([goodMessage], 'loadnextattachment')
             let ordinal = goodMessage.ordinal
             // sent?
             if (goodMessage.outboxID && !get().messageMap.get(ordinal)) {
@@ -2182,13 +2180,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             // keep this
             message.ordinal = ordinal
             const next = Message.upgradeMessage(existing, message)
-            messagesAdd([next])
+            messagesAdd([next], 'incoming existing attachupload')
           } else {
-            messagesAdd([message])
+            messagesAdd([message], 'incoming new attachupload')
           }
         } else {
           // A normal message
-          messagesAdd([message])
+          messagesAdd([message], 'incoming general')
         }
       } else if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
         const {valid} = cMsg
@@ -2206,7 +2204,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 devicename
               )
               if (modMessage) {
-                messagesAdd([modMessage])
+                messagesAdd([modMessage], 'onincoming edit')
               }
             }
             break
@@ -2280,7 +2278,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           toAdd.push(message)
         })
       })
-      messagesAdd(toAdd)
+      messagesAdd(toAdd, 'messages updated')
     },
     openFolder: () => {
       const meta = get().meta
