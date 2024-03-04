@@ -1,15 +1,3 @@
 Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
-
-
-
-send messages:
-off offline:
-send from someone else
-go online
-makes load call but gets no data
-can sometimes show a placeholder which never resolves
-(remote tiemout to get placeholder again and see what the deal is)
-aaa logging in
-debug hidden msg logging
