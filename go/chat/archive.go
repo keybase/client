@@ -518,21 +518,16 @@ func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, cp chat1.
 }
 
 func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJob, conv chat1.ConversationLocal) error {
-	var f *os.File
-	var cp chat1.ArchiveChatConvCheckpoint
-	{
-		c.Lock()
-		var ok bool
-		cp, ok = job.Checkpoints[conv.Info.Id.DbShortFormString()]
-		c.Unlock()
-		if !ok {
-			cp = chat1.ArchiveChatConvCheckpoint{
-				Pagination: chat1.Pagination{Num: defaultPageSize},
-				Offset:     0,
-			}
+	c.Lock()
+	cp, ok := job.Checkpoints[conv.Info.Id.DbShortFormString()]
+	c.Unlock()
+	if !ok {
+		cp = chat1.ArchiveChatConvCheckpoint{
+			Pagination: chat1.Pagination{Num: defaultPageSize},
+			Offset:     0,
 		}
 	}
-	// Update our checkpoint with our committed state
+
 	convArchivePath := path.Join(job.Request.OutputPath, c.archiveName(conv), "chat.txt")
 	f, err := os.OpenFile(convArchivePath, os.O_RDWR|os.O_CREATE, libkb.PermFile)
 	if err != nil {
@@ -548,7 +543,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 	}
 	defer f.Close()
 
-	firstPage := true
+	firstPage := cp.Offset == 0
 	for !cp.Pagination.Last {
 		thread, err := c.G().ConvSource.Pull(ctx, conv.Info.Id, c.uid,
 			chat1.GetThreadReason_ARCHIVE, nil,
