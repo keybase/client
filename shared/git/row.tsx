@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openURL from '@/util/open-url'
 
-export const NewContext = React.createContext(new Set())
+export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 type OwnProps = {
   id: string

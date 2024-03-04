@@ -168,7 +168,7 @@ function figureType(type, prefix = '') {
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
-        return `Array<${prefix}${capitalize(type.items)}> | null`
+        return `ReadonlyArray<${prefix}${capitalize(type.items)}> | null`
       case 'map':
         return `{[key: string]: ${figureType(type.values)}} | null`
       default:
@@ -377,7 +377,7 @@ function parseVariant(t, project) {
         } else if (typeof c.body === 'string') {
           bodyType = capitalize(c.body)
         } else if (c.body.type === 'array') {
-          bodyType = `Array<${capitalize(c.body.items)}>`
+          bodyType = `ReadonlyArray<${capitalize(c.body.items)}>`
         }
         const bodyStr = c.body ? `, ${label}: ${bodyType}` : ''
         return `{ ${t.switch.name}: ${type}.${label}${bodyStr} }`
@@ -493,7 +493,7 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
-${project.hasEngine ? 'type WaitingKey = string | Array<string>' : ''}
+${project.hasEngine ? 'type WaitingKey = string | ReadonlyArray<string>' : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 

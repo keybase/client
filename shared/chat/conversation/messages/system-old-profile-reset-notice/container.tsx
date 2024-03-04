@@ -12,7 +12,7 @@ const Container = () => {
     C.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const startConversation = (participants: Array<string>) => {
+  const startConversation = (participants: ReadonlyArray<string>) => {
     previewConversation({participants, reason: 'fromAReset'})
   }
   const props = {

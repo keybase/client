@@ -15,9 +15,9 @@ type OwnProps = {
 
 const getStillRows = memoize(
   (
-    pathItems: Map<T.FS.Path, T.FS.PathItem>,
-    parentPath: T.FS.Path,
-    names: Set<string>
+    pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
+    parentPath: T.Immutable<T.FS.Path>,
+    names: ReadonlySet<string>
   ): Array<RowTypes.StillRowItem> =>
     [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
       const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
@@ -48,7 +48,11 @@ const filePlaceholderRows = _getPlaceholderRows(T.FS.PathType.File)
 const folderPlaceholderRows = _getPlaceholderRows(T.FS.PathType.Folder)
 
 const _makeInTlfRows = memoize(
-  (parentPath: T.FS.Path, edits: Map<T.FS.EditID, T.FS.Edit>, stillRows: Array<RowTypes.StillRowItem>) => {
+  (
+    parentPath: T.Immutable<T.FS.Path>,
+    edits: T.Immutable<Map<T.FS.EditID, T.FS.Edit>>,
+    stillRows: T.Immutable<Array<RowTypes.StillRowItem>>
+  ) => {
     const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
     const newFolderRows: Array<SortableRowItem> = relevantEdits
       .filter(([_, edit]) => edit.type === T.FS.EditType.NewFolder)
@@ -99,8 +103,8 @@ const getInTlfItemsFromStateProps = (
 
 const getTlfRowsFromTlfs = memoize(
   (
-    tlfs: Map<string, T.FS.Tlf>,
-    tlfType: T.FS.TlfType,
+    tlfs: T.Immutable<Map<string, T.FS.Tlf>>,
+    tlfType: T.Immutable<T.FS.TlfType>,
     username: string,
     destinationPickerIndex?: number
   ): Array<SortableRowItem> =>
@@ -196,8 +200,8 @@ const Container = (o: OwnProps) => {
     emptyMode: !normalRowItems.length
       ? 'empty'
       : !filteredRowItems.length
-      ? 'not-empty-but-no-match'
-      : ('not-empty' as Props['emptyMode']),
+        ? 'not-empty-but-no-match'
+        : ('not-empty' as Props['emptyMode']),
     items: [
       ...(o.headerRows || []),
       // don't show top bar in destinationPicker.

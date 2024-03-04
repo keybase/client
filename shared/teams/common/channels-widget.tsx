@@ -6,10 +6,10 @@ import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
 
 type Props = {
-  channels: Array<T.Teams.ChannelNameID>
+  channels: ReadonlyArray<T.Teams.ChannelNameID>
   disableGeneral?: boolean
-  disabledChannels?: Array<T.Teams.ChannelNameID>
-  onAddChannel: (toAdd: Array<T.Teams.ChannelNameID>) => void
+  disabledChannels?: ReadonlyArray<T.Teams.ChannelNameID>
+  onAddChannel: (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => void
   onRemoveChannel: (toRemove: T.Teams.ChannelNameID) => void
   teamID: T.Teams.TeamID
 }
@@ -40,9 +40,9 @@ export const ChannelsWidget = (props: Props) => (
 
 type ChannelInputProps = {
   disableGeneral?: boolean
-  disabledChannels?: Array<T.Teams.ChannelNameID>
-  onAdd: (toAdd: Array<T.Teams.ChannelNameID>) => void
-  selected: Array<T.Teams.ChannelNameID>
+  disabledChannels?: ReadonlyArray<T.Teams.ChannelNameID>
+  onAdd: (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => void
+  selected: ReadonlyArray<T.Teams.ChannelNameID>
   teamID: T.Teams.TeamID
 }
 

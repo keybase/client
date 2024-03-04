@@ -1,4 +1,5 @@
 import * as Z from '@/util/zustand'
+import type * as T from '@/constants/types'
 import type {RenderableEmoji} from '@/util/emoji'
 
 export type PickKey = 'addAlias' | 'chatInput' | 'reaction'
@@ -6,9 +7,9 @@ type PickerValue = {
   emojiStr: string
   renderableEmoji: RenderableEmoji
 }
-type Store = {
+type Store = T.Immutable<{
   pickerMap: Map<PickKey, PickerValue | undefined>
-}
+}>
 const initialStore: Store = {
   pickerMap: new Map(),
 }

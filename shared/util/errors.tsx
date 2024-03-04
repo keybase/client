@@ -81,10 +81,11 @@ export const niceError = (e: RPCError) => {
       return 'Looks like this user was deleted, or something'
     case T.RPCGen.StatusCode.scstreameof:
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
+    default: {
+      const caps = capitalize(e.desc || e.message || 'Unknown error')
+      return caps.endsWith('.') ? `${caps}.` : caps
+    }
   }
-
-  const caps = capitalize(e.desc || e.message || 'Unknown error')
-  return caps.endsWith('.') ? `${caps}.` : caps
 }
 
 function isRPCError(error: RPCError | Error): error is RPCError {

@@ -36,9 +36,9 @@ export type Account = {
   name: string
 }
 
-type Store = {
+type Store = T.Immutable<{
   accountMap: Map<string, Account>
-}
+}>
 
 const initialStore: Store = {
   accountMap: new Map(),

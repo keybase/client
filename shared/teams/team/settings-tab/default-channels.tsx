@@ -50,7 +50,7 @@ const DefaultChannels = (props: Props) => {
   // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
   const canEdit = C.useTeamsState(s => ['admin', 'owner'].includes(C.Teams.getRole(s, teamID)))
 
-  const onAdd = (channels: Array<T.Teams.ChannelNameID>) => {
+  const onAdd = (channels: ReadonlyArray<T.Teams.ChannelNameID>) => {
     setWaiting(true)
     const convs = defaultChannels
       .concat(channels)

@@ -1,3 +1,4 @@
+import * as T from '@/constants/types'
 import type * as ConfigConstants from '@/constants/config'
 import {produce} from 'immer'
 
@@ -32,7 +33,7 @@ export const deserialize = (
       s.darkMode = darkMode
     }
     if (devices !== undefined) {
-      s.devices = devices
+      s.devices = T.castDraft(devices)
     }
     if (paperKeyError !== undefined) {
       s.paperKeyError = paperKeyError

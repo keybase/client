@@ -22,9 +22,9 @@ export const transformer = (
 const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
 
 const getBotRestrictBlockMap = (
-  settings: Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
+  settings: ReadonlyMap<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
   conversationIDKey: T.Chat.ConversationIDKey,
-  bots: Array<string>
+  bots: ReadonlyArray<string>
 ) => {
   const blocks = new Map<string, boolean>()
   bots.forEach(b => {
@@ -105,8 +105,8 @@ type UseDataSourceProps = {
 
 const getMaxCmdLength = memoize(
   (
-    suggestBotCommands: Array<T.RPCChat.ConversationCommand>,
-    suggestCommands: Array<T.RPCChat.ConversationCommand>
+    suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
+    suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
   ) =>
     suggestCommands
       .concat(suggestBotCommands)

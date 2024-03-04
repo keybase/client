@@ -27,19 +27,19 @@ const Container = () => {
 
   const onSelectUser = C.useProfileState(s => s.dispatch.showUserProfile)
   const props = {
-    acceptedInvites: acceptedInvites,
-    error: error,
-    inviteEmail: inviteEmail,
-    inviteMessage: inviteMessage,
-    onClearError: onClearError,
-    onGenerateInvitation: onGenerateInvitation,
-    onReclaimInvitation: onReclaimInvitation,
-    onRefresh: onRefresh,
-    onSelectPendingInvite: onSelectPendingInvite,
-    onSelectUser: onSelectUser,
-    pendingInvites: pendingInvites,
-    showMessageField: showMessageField,
-    waitingForResponse: waitingForResponse,
+    acceptedInvites,
+    error,
+    inviteEmail,
+    inviteMessage,
+    onClearError,
+    onGenerateInvitation,
+    onReclaimInvitation,
+    onRefresh,
+    onSelectPendingInvite,
+    onSelectUser,
+    pendingInvites,
+    showMessageField,
+    waitingForResponse,
   }
   return <Invites {...props} />
 }

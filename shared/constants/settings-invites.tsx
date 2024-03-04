@@ -31,11 +31,11 @@ type Invitation = {
   url: string
 }
 
-type Store = {
+type Store = T.Immutable<{
   pendingInvites: Array<PendingInvite>
   acceptedInvites: Array<AcceptedInvite>
   error: string
-}
+}>
 
 const initialStore: Store = {
   acceptedInvites: [],

@@ -6,7 +6,7 @@ import {formatAudioRecordDuration} from '@/util/timestamp'
 import {isMobile} from '@/constants/platform'
 
 type VisProps = {
-  amps: Array<number>
+  amps: ReadonlyArray<number>
   playedRatio: number
   height: number
   maxWidth?: number
@@ -64,7 +64,7 @@ type Props = {
   duration: number
   maxWidth?: number
   url: string
-  visAmps: Array<number>
+  visAmps: ReadonlyArray<number>
 }
 
 const AudioPlayer = (props: Props) => {

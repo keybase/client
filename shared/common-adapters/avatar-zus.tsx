@@ -1,8 +1,9 @@
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
-type Store = {
+type Store = T.Immutable<{
   counts: Map<string, number>
-}
+}>
 
 const initialStore: Store = {
   counts: new Map(),

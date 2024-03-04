@@ -11,7 +11,7 @@ const Kb = {
 }
 
 type Props = {
-  usernames: Array<string>
+  usernames: ReadonlyArray<string>
   maxShown: number
   size: AvatarSize
   layout: 'horizontal' | 'vertical'

@@ -12,7 +12,7 @@ type Props = {botUsername: string}
 const BotTeamPicker = (props: Props) => {
   const botUsername = props.botUsername
   const [term, setTerm] = React.useState('')
-  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
+  const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const submit = C.useRPC(T.RPCChat.localAddBotConvSearchRpcPromise)

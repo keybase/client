@@ -203,12 +203,12 @@ export const guiIDToUsername = (state: State, guiID: string) => {
 export const showableWotEntry = (entry: T.Tracker.WebOfTrustEntry): boolean =>
   entry.status === T.RPCGen.WotStatusType.accepted || entry.status === T.RPCGen.WotStatusType.proposed
 
-export type Store = {
+export type Store = T.Immutable<{
   showTrackerSet: Set<string>
   usernameToDetails: Map<string, T.Tracker.Details>
   proofSuggestions: Array<T.Tracker.Assertion>
   usernameToNonUserDetails: Map<string, T.Tracker.NonUserDetails>
-}
+}>
 
 const initialStore: Store = {
   proofSuggestions: [],
@@ -290,7 +290,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             profileLoadWaitingKey
           )
           set(s => {
-            s.proofSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? []
+            s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -319,7 +319,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.info(`Showing tracker for assertion: ${assertion}`)
           s.showTrackerSet.add(username)
         }
-        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
+        const d = mapGetEnsureValue(s.usernameToDetails, username, T.castDraft({...noDetails}))
         d.assertions = new Map() // just remove for now, maybe keep them
         d.guiID = guiID
         d.reason = reason
@@ -365,7 +365,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
           set(s => {
-            const d = getDetails(s, assertion)
+            const d = T.castDraft(getDetails(s, assertion))
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
@@ -387,7 +387,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const fs = await T.RPCGen.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
           set(s => {
-            const d = getDetails(s, assertion)
+            const d = T.castDraft(getDetails(s, assertion))
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
@@ -431,7 +431,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const {assertion, ...rest} = p
                 const {usernameToNonUserDetails} = s
                 const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
               return
             } else {
@@ -447,7 +447,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const {assertion, ...rest} = p
                 const {usernameToNonUserDetails} = s
                 const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+                usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
               })
             }
           }
@@ -465,7 +465,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (!username) return
         const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
         const {unverifiedNumFollowers, unverifiedNumFollowing} = card
-        const d = getDetails(s, username)
+        const d = T.castDraft(getDetails(s, username))
         d.bio = bio
         d.blocked = blocked
         // These will be overridden by a later updateFollows, if it happens (will
@@ -475,7 +475,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         d.fullname = fullName
         d.location = location
         d.stellarHidden = stellarHidden
-        d.teamShowcase =
+        d.teamShowcase = T.castDraft(
           teamShowcase?.map(t => ({
             description: t.description,
             isOpen: t.open,
@@ -483,6 +483,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             name: t.fqName,
             publicAdmins: t.publicAdmins ?? [],
           })) ?? []
+        )
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
@@ -492,7 +493,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = getDetails(s, username)
+        const d = T.castDraft(getDetails(s, username))
         d.resetBrokeTrack = true
         d.reason = `${username} reset their account since you last followed them.`
       })
@@ -502,7 +503,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const {guiID} = row
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = getDetails(s, username)
+        const d = T.castDraft(getDetails(s, username))
         const assertions = d.assertions ?? new Map()
         d.assertions = assertions
         const assertion = rpcAssertionToAssertion(row)
@@ -514,16 +515,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const {numProofsToCheck, guiID} = summary
         const username = guiIDToUsername(s, guiID)
         if (!username) return
-        const d = getDetails(s, username)
+        const d = T.castDraft(getDetails(s, username))
         d.numAssertionsExpected = numProofsToCheck
       })
     },
     notifyUserBlocked: b => {
       set(s => {
         const {blocker, blocks} = b
-        const d = getDetails(s, blocker)
+        const d = T.castDraft(getDetails(s, blocker))
         const toProcess = Object.entries(blocks ?? {}).map(
-          ([username, userBlocks]) => [username, getDetails(s, username), userBlocks || []] as const
+          ([username, userBlocks]) =>
+            [username, T.castDraft(getDetails(s, username)), userBlocks || []] as const
         )
         toProcess.forEach(([username, det, userBlocks]) => {
           userBlocks.forEach(blockState => {
@@ -633,7 +635,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     replace: usernameToDetails => {
       set(s => {
-        s.usernameToDetails = usernameToDetails
+        s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
     resetState: 'default',
@@ -660,7 +662,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const newReason =
           reason ||
           (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
-        const d = getDetails(s, username)
+        const d = T.castDraft(getDetails(s, username))
         // Don't overwrite the old reason if the user reset.
         if (!d.resetBrokeTrack || d.reason.length === 0) {
           d.reason = newReason || d.reason

@@ -15,7 +15,7 @@ const baseHeight = C.isMobile ? 440 : 378 // Change this when layout changes
 export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 type Props = {
-  resetParticipants: Array<string>
+  resetParticipants: ReadonlyArray<string>
   onReAddToTeam: (username: string) => () => void
   onViewProfile: (username: string) => () => void
   onOpenWithoutResetUsers: () => void

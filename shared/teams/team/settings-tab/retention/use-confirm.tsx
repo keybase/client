@@ -1,9 +1,9 @@
 import * as Z from '@/util/zustand'
 import type * as T from '@/constants/types'
 
-type Store = {
+type Store = T.Immutable<{
   confirmed: T.Retention.RetentionPolicy | undefined
-}
+}>
 const initialStore: Store = {
   confirmed: undefined,
 }

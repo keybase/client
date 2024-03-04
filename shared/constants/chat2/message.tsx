@@ -10,7 +10,7 @@ import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
-export const getMessageRenderType = (m: T.Chat.Message): T.Chat.RenderMessageType => {
+export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
       if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
@@ -526,7 +526,7 @@ export const uiRequestInfoToChatRequestInfo = (
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  ps?: Array<T.RPCChat.UIPaymentInfo>
+  ps?: ReadonlyArray<T.RPCChat.UIPaymentInfo>
 ): MessageTypes.ChatPaymentInfo | undefined => {
   if (!ps || ps.length !== 1) {
     return undefined
@@ -613,7 +613,7 @@ export const uiMessageEditToMessage = (edit: T.RPCChat.MessageEdit, valid: T.RPC
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: T.RPCChat.MessageSystem,
-  reactions: Map<string, MessageTypes.ReactionDesc>,
+  reactions: ReadonlyMap<string, MessageTypes.ReactionDesc>,
   m: T.RPCChat.UIMessageValid
 ): T.Chat.Message | undefined => {
   switch (body.systemType) {
@@ -793,8 +793,9 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
         res.showPlayButton = true
       }
     }
-    res.audioAmps = preview.image.audioAmps || []
-    res.audioAmps.length = Math.min(res.audioAmps.length, maxAmpsLength)
+    const aa = [...(preview.image.audioAmps ?? [])]
+    aa.length = Math.min(aa.length, maxAmpsLength)
+    res.audioAmps = aa
   } else if (preview.assetType === T.RPCChat.AssetMetadataType.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -857,7 +858,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.flip:
     case T.RPCChat.MessageType.text: {
       let rawText: string
-      let payments: Array<T.RPCChat.TextPayment> | undefined
+      let payments: ReadonlyArray<T.RPCChat.TextPayment> | undefined
       switch (m.messageBody.messageType) {
         case T.RPCChat.MessageType.flip:
           rawText = m.messageBody.flip.text
@@ -897,13 +898,13 @@ const validUIMessagetoMessage = (
           (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
         ),
         replyTo: m.replyTo
-          ? uiMessageToMessage(
+          ? (uiMessageToMessage(
               conversationIDKey,
               m.replyTo,
               currentUsername,
               getLastOrdinal,
               currentDeviceName
-            )
+            ) as any) // TODO better reply to handling
           : undefined,
         text: new HiddenString(rawText),
         unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
@@ -1375,10 +1376,13 @@ export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Messag
   return toRet as T.Chat.Message
 }
 
-export const upgradeMessage = (old: T.Chat.Message, m: T.Chat.Message): T.Chat.Message => {
+export const upgradeMessage = (
+  old: T.Immutable<T.Chat.Message>,
+  m: T.Immutable<T.Chat.Message>
+): T.Immutable<T.Chat.Message> => {
   const validUpgrade = (
-    old: T.Chat.MessageText | T.Chat.MessageAttachment,
-    m: T.Chat.MessageText | T.Chat.MessageAttachment
+    old: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>,
+    m: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>
   ) => {
     if (old.submitState !== 'pending' && m.submitState === 'pending') {
       // we may be making sure we got our pending message in the thread view, but if we already

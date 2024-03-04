@@ -38,7 +38,7 @@ export const getChannelsWaitingKey = (teamID: T.Teams.TeamID) => `getChannels:${
 export const createChannelWaitingKey = (teamID: T.Teams.TeamID) => `createChannel:${teamID}`
 export const settingsWaitingKey = (teamID: T.Teams.TeamID) => `teamSettings:${teamID}`
 export const retentionWaitingKey = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
-export const addMemberWaitingKey = (teamID: T.Teams.TeamID, ...usernames: Array<string>) =>
+export const addMemberWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `teamAdd:${teamID};${usernames.join(',')}`
 export const addInviteWaitingKey = (teamname: T.Teams.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
@@ -54,7 +54,7 @@ export const loadWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `loadWel
 export const setWelcomeMessageWaitingKey = (teamID: T.Teams.TeamID) => `setWelcomeMessage:${teamID}`
 export const loadTeamTreeActivityWaitingKey = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`
-export const editMembershipWaitingKey = (teamID: T.Teams.TeamID, ...usernames: Array<string>) =>
+export const editMembershipWaitingKey = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
   `editMembership:${teamID};${usernames.join(',')}`
 export const updateChannelNameWaitingKey = (teamID: T.Teams.TeamID) => `updateChannelName:${teamID}`
 
@@ -67,7 +67,7 @@ export const initialMemberInfo = Object.freeze<T.Teams.MemberInfo>({
 })
 
 export const rpcDetailsToMemberInfos = (
-  members: Array<T.RPCGen.TeamMemberDetails>
+  members: ReadonlyArray<T.RPCGen.TeamMemberDetails>
 ): Map<string, T.Teams.MemberInfo> => {
   const infos: Array<[string, T.Teams.MemberInfo]> = []
   members.forEach(({fullName, joinTime, needsPUK, status, username, role}) => {
@@ -299,7 +299,7 @@ export const retentionPolicies = {
 }
 
 export const userIsRoleInTeamWithInfo = (
-  memberInfo: Map<string, T.Teams.MemberInfo>,
+  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
   username: string,
   role: T.Teams.TeamRoleType
 ): boolean => {
@@ -324,7 +324,7 @@ export const userIsRoleInTeam = (
 }
 export const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 export const userInTeamNotBotWithInfo = (
-  memberInfo: Map<string, T.Teams.MemberInfo>,
+  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
   username: string
 ): boolean => {
   const memb = memberInfo.get(username)
@@ -391,7 +391,7 @@ export const getDisabledReasonsForRolePicker = (
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
   const teamDetails = _useState.getState().teamDetails.get(teamID)
-  const members: Map<string, T.Teams.MemberInfo> =
+  const members: ReadonlyMap<string, T.Teams.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
@@ -497,8 +497,8 @@ export const isInTeam = (state: State, teamname: T.Teams.Teamname): boolean =>
 export const isInSomeTeam = (state: State): boolean =>
   [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
-export const getTeamResetUsers = (state: State, teamID: T.Teams.TeamID): Set<string> =>
-  state.teamIDToResetUsers.get(teamID) || new Set()
+export const getTeamResetUsers = (state: State, teamID: T.Teams.TeamID): ReadonlySet<string> =>
+  state.teamIDToResetUsers.get(teamID) ?? new Set()
 
 // Sorts teamnames canonically.
 export function sortTeamnames(a: string, b: string) {
@@ -513,7 +513,7 @@ export function sortTeamnames(a: string, b: string) {
   }
 }
 
-export const sortTeamsByName = memoize((teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>) =>
+export const sortTeamsByName = memoize((teamMeta: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
@@ -632,7 +632,7 @@ export const getTeamMemberLastActivity = (
 ): number | null => state.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
-  list: Array<T.RPCGen.AnnotatedMemberInfo>
+  list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>
 ): Map<T.Teams.TeamID, T.Teams.TeamMeta> => {
   return new Map(
     list.map(t => [
@@ -651,11 +651,12 @@ export const teamListToMeta = (
   )
 }
 
-type InviteDetails = {inviteLinks: Array<T.Teams.InviteLink>; invites: Set<T.Teams.InviteInfo>}
+type InviteDetails = {inviteLinks: ReadonlyArray<T.Teams.InviteLink>; invites: Set<T.Teams.InviteInfo>}
+type InviteDetailsMutable = {inviteLinks: Array<T.Teams.InviteLink>; invites: Set<T.Teams.InviteInfo>}
 const annotatedInvitesToInviteDetails = (
-  annotatedInvites: Array<T.RPCGen.AnnotatedTeamInvite> = []
+  annotatedInvites: ReadonlyArray<T.RPCGen.AnnotatedTeamInvite> = []
 ): InviteDetails =>
-  annotatedInvites.reduce<InviteDetails>(
+  annotatedInvites.reduce<InviteDetailsMutable>(
     (invitesAndLinks, annotatedInvite) => {
       const inviteMD = annotatedInvite.inviteMetadata
       const teamInvite = inviteMD.invite
@@ -827,8 +828,8 @@ export const ratchetTeamVersion = (newVersion: T.Teams.TeamVersion, oldVersion?:
     : newVersion
 
 export const dedupAddingMembeers = (
-  _existing: Array<T.Teams.AddingMember>,
-  toAdds: Array<T.Teams.AddingMember>
+  _existing: ReadonlyArray<T.Teams.AddingMember>,
+  toAdds: ReadonlyArray<T.Teams.AddingMember>
 ) => {
   const existing = [..._existing]
   for (const toAdd of toAdds) {
@@ -889,7 +890,7 @@ export const maybeGetSparseMemberInfo = (state: State, teamID: string, username:
   return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
-export const countValidInviteLinks = (inviteLinks: Array<T.Teams.InviteLink>): Number => {
+export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): Number => {
   return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
       return t + 1
@@ -898,10 +899,10 @@ export const countValidInviteLinks = (inviteLinks: Array<T.Teams.InviteLink>): N
   }, 0)
 }
 
-export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<T.Teams.InviteLink>) =>
+export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
 
-export type Store = {
+export type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   addUserToTeamsResults: string
   addUserToTeamsState: T.Teams.AddUserToTeamsState
@@ -955,7 +956,7 @@ export type Store = {
   teamMemberToTreeMemberships: Map<T.Teams.TeamID, Map<string, T.Teams.TeamTreeMemberships>>
   teamMemberToLastActivity: Map<T.Teams.TeamID, Map<string, number>>
   teamProfileAddList: Array<T.Teams.TeamProfileAddList>
-}
+}>
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
@@ -1021,7 +1022,7 @@ export type State = Store & {
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
-      toAdd?: Array<T.Teams.ChannelNameID>,
+      toAdd?: ReadonlyArray<T.Teams.ChannelNameID>,
       toRemove?: T.Teams.ChannelNameID
     ) => void
     addTeamWithChosenChannels: (teamID: T.Teams.TeamID) => void
@@ -1140,7 +1141,7 @@ export type State = Store & {
       clearAll?: boolean
     ) => void
     setNewTeamInfo: (
-      deletedTeams: Array<T.RPCGen.DeletedTeamInfo>,
+      deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
       newTeams: Set<T.Teams.TeamID>,
       teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
     ) => void
@@ -1309,7 +1310,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           if (item?.item?.body) {
             const body = item.item.body
             msgID = item.md?.msgID
-            teams = C.Gregor.bodyToJSON(body)
+            teams = C.Gregor.bodyToJSON(body) as Array<string>
           } else {
             logger.info(
               `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -1476,7 +1477,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     cancelAddMembersWizard: () => {
       set(s => {
-        s.addMembersWizard = {...addMembersWizardEmptyState}
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState})
       })
       C.useRouterState.getState().dispatch.clearModals()
     },
@@ -1816,8 +1817,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const teamID = await T.RPCGen.teamsTeamCreateFancyRpcPromise({teamInfo}, teamCreationWaitingKey)
           set(s => {
-            s.newTeamWizard = newTeamWizardEmptyState
-            s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+            s.newTeamWizard = T.castDraft(newTeamWizardEmptyState)
+            s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
           })
           C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
           C.useRouterState.getState().dispatch.clearModals()
@@ -1833,7 +1834,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     finishedAddMembersWizard: () => {
       set(s => {
-        s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
       })
       C.useRouterState.getState().dispatch.clearModals()
     },
@@ -1958,7 +1959,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             {includeImplicitTeams: false, userAssertion: username},
             teamsLoadedWaitingKey
           )
-          const teams: Array<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
+          const teams: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
           const teamnames: Array<string> = []
           const teamNameToID = new Map<string, T.Teams.TeamID>()
           teams.forEach(team => {
@@ -2110,7 +2111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             customResponseIncomingCallMap: {
               'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
                 set(s => {
-                  s.teamInviteDetails.inviteDetails = params.details
+                  s.teamInviteDetails.inviteDetails = T.castDraft(params.details)
                 })
                 if (!deeplink) {
                   C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
@@ -2156,11 +2157,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     launchNewTeamWizardOrModal: subteamOf => {
       set(s => {
-        s.newTeamWizard = {
+        s.newTeamWizard = T.castDraft({
           ...newTeamWizardEmptyState,
           parentTeamID: subteamOf,
           teamType: 'subteam',
-        }
+        })
       })
 
       if (subteamOf) {
@@ -2219,7 +2220,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               }
             }
             const details = annotatedTeamToDetails(team)
-            s.teamDetails.set(teamID, details)
+            s.teamDetails.set(teamID, T.castDraft(details))
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2467,9 +2468,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           chosenChannels = i
         }
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
-          const body = C.Gregor.bodyToJSON(i.item.body)
+          const body = C.Gregor.bodyToJSON(i.item.body) as undefined | {id: T.Teams.TeamID; username: string}
           if (body) {
-            const request: {id: T.Teams.TeamID; username: string} = body
+            const request = body
             const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
             requests.add(request.username)
           }
@@ -2479,7 +2480,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
       get().dispatch.setTeamsWithChosenChannels(
-        new Set<T.Teams.Teamname>(C.Gregor.bodyToJSON(chosenChannels?.item.body))
+        new Set<T.Teams.Teamname>(C.Gregor.bodyToJSON(chosenChannels?.item.body) as Array<string>)
       )
     },
     openInviteLink: (inviteID, inviteKey) => {
@@ -2582,7 +2583,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             inviteID: get().teamInviteDetails.inviteID,
           })
           set(s => {
-            s.teamInviteDetails.inviteDetails = details
+            s.teamInviteDetails.inviteDetails = T.castDraft(details)
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2740,7 +2741,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
       set(s => {
-        s.deletedTeams = deletedTeams
+        s.deletedTeams = T.castDraft(deletedTeams)
         s.newTeams = newTeams
         s.teamIDToResetUsers = teamIDToResetUsers
       })
@@ -2929,11 +2930,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setTeamWizardSubteamMembers: members => {
       set(s => {
-        s.addMembersWizard = {
+        s.addMembersWizard = T.castDraft({
           ...addMembersWizardEmptyState,
           addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
           teamID: T.Teams.newTeamWizardTeamID,
-        }
+        })
       })
       C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
     },
@@ -3036,7 +3037,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     startAddMembersWizard: teamID => {
       set(s => {
-        s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
       })
       C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamFromWhere')
     },

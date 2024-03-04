@@ -5,7 +5,7 @@ import {RPCError} from '@/util/errors'
 import * as T from './types'
 
 const settingsWaitingKey = 'settings:generic'
-type Store = {
+type Store = T.Immutable<{
   error: string
   hasPGPKeyOnServer?: boolean
   newPassword: string
@@ -14,7 +14,7 @@ type Store = {
   newPasswordError: string
   randomPW?: boolean
   rememberPassword: boolean
-}
+}>
 
 const initialStore: Store = {
   error: '',

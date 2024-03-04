@@ -1,12 +1,12 @@
 import type * as T from './types'
 import * as Z from '@/util/zustand'
 
-export type Store = {
+export type Store = T.Immutable<{
   deviceID: T.RPCGen.DeviceID
   deviceName: string
   uid: string
   username: string
-}
+}>
 
 const initialStore: Store = {
   deviceID: '',

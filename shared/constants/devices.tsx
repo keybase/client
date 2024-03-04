@@ -8,14 +8,15 @@ const initialStore: T.Devices.State = {
   isNew: new Set(),
 }
 
-type State = T.Devices.State & {
-  dispatch: {
-    load: () => void
-    clearBadges: () => void
-    resetState: 'default'
-    setBadges: (set: Set<string>) => void
-  }
-}
+type State = T.Devices.State &
+  T.Immutable<{
+    dispatch: {
+      load: () => void
+      clearBadges: () => void
+      resetState: 'default'
+      setBadges: (set: Set<string>) => void
+    }
+  }>
 
 export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
@@ -104,16 +105,18 @@ export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
   return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as T.Devices.IconNumber
 }
 
-const getNextDeviceIconNumberInner = memoize((devices: Map<T.Devices.DeviceID, T.Devices.Device>) => {
-  // Find the max device number and add one (+ one more since these are 1-indexed)
-  const result = {backup: 1, desktop: 1, mobile: 1}
-  devices.forEach(device => {
-    if (device.deviceNumberOfType >= result[device.type]) {
-      result[device.type] = device.deviceNumberOfType + 1
-    }
-  })
-  return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
-})
+const getNextDeviceIconNumberInner = memoize(
+  (devices: T.Immutable<Map<T.Devices.DeviceID, T.Devices.Device>>) => {
+    // Find the max device number and add one (+ one more since these are 1-indexed)
+    const result = {backup: 1, desktop: 1, mobile: 1}
+    devices.forEach(device => {
+      if (device.deviceNumberOfType >= result[device.type]) {
+        result[device.type] = device.deviceNumberOfType + 1
+      }
+    })
+    return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
+  }
+)
 export const useNextDeviceIconNumber = () => {
   const dm = _useState(s => s.deviceMap)
   return getNextDeviceIconNumberInner(dm)

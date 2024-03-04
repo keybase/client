@@ -88,7 +88,7 @@ const LogStats = (props: {num?: number}) => {
   )
   const [, setDoRender] = React.useState(0)
   const events = C.useConfigState(s => s.runtimeStats?.perfEvents)
-  const lastEventsRef = React.useRef(new WeakSet<Array<T.RPCGen.PerfEvent>>())
+  const lastEventsRef = React.useRef(new WeakSet<ReadonlyArray<T.RPCGen.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<T.RPCGen.PerfEvent>>([])
   if (events) {

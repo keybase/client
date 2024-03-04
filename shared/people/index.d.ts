@@ -2,10 +2,10 @@ import type * as React from 'react'
 import type * as T from '@/constants/types'
 
 export type Props = {
-  oldItems: Array<T.People.PeopleScreenItem>
-  newItems: Array<T.People.PeopleScreenItem>
+  oldItems: T.Immutable<Array<T.People.PeopleScreenItem>>
+  newItems: T.Immutable<Array<T.People.PeopleScreenItem>>
   // wotUpdates: Map<string, T.People.WotUpdate>
-  followSuggestions: Array<T.People.FollowSuggestion>
+  followSuggestions: ReadonlyArray<T.People.FollowSuggestion>
   getData: (markViewed?: boolean, force?: boolean) => void
   onClickUser: (username: string) => void
   onOpenAccountSwitcher?: () => void

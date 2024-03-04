@@ -8,8 +8,8 @@ type Props = {
   channelname: string
   isAdHoc: boolean
   isBigTeam: boolean
-  joiners: Array<string>
-  leavers: Array<string>
+  joiners: ReadonlyArray<string>
+  leavers: ReadonlyArray<string>
   onAuthorClick: (username: string) => void
   onManageChannels: () => void
   onManageNotifications: () => void

@@ -19,7 +19,7 @@ if (DEFER_INCOMING_DURING_DEBUG) {
   console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
 }
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)

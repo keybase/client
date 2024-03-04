@@ -1,12 +1,12 @@
 import type * as T from './types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 
-export type Store = {
+export type Store = T.Immutable<{
   hasPermissions: boolean
   justSignedUp: boolean
   showPushPrompt: boolean
   token: string
-}
+}>
 
 export type State = Store & {
   dispatch: {

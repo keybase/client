@@ -33,7 +33,7 @@ export type Props<Item> = {
   style?: CustomStyles<'flex' | 'flexDirection', {}>
   indexAsKey?: boolean
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
-  items: Array<Item>
+  items: ReadonlyArray<Item>
   renderItem: (index: number, item: Item) => React.ReactElement | null
   itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItem2Auto
   estimatedItemHeight?: number

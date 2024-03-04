@@ -1,7 +1,8 @@
 import type * as T from './types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
-export type Store = {
+
+export type Store = T.Immutable<{
   alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
   importEnabled?: boolean
   importError: string
@@ -11,7 +12,7 @@ export type Store = {
   permissionStatus: PermissionStatus
   userCountryCode?: string
   waitingToShowJoinedModal: boolean
-}
+}>
 
 export type State = Store & {
   dispatch: {

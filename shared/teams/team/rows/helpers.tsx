@@ -18,7 +18,7 @@ const getWeights = (manageMembers: boolean) => {
 }
 
 export const getOrderedMemberArray = (
-  memberInfo: Map<string, T.Teams.MemberInfo> | undefined,
+  memberInfo: ReadonlyMap<string, T.Teams.MemberInfo> | undefined,
   you: string | undefined,
   yourOperations: T.Teams.TeamOperations
 ): Array<T.Teams.MemberInfo> =>
@@ -47,7 +47,7 @@ export const getOrderedMemberArray = (
         )
     : []
 
-export const getOrderedBotsArray = (memberInfo: Map<string, T.Teams.MemberInfo> | undefined) =>
+export const getOrderedBotsArray = (memberInfo: ReadonlyMap<string, T.Teams.MemberInfo> | undefined) =>
   memberInfo
     ? [...memberInfo.values()]
         .sort((a, b) => a.username.localeCompare(b.username))

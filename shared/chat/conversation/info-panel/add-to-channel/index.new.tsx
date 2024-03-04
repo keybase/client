@@ -6,18 +6,9 @@ import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
-import {memoize} from '@/util/memoize'
 import {ModalTitle, useChannelParticipants} from '@/teams/common'
 
-type Props = {
-  teamID: T.Teams.TeamID
-}
-
-const sortMembers = memoize((members: T.Teams.TeamDetails['members']) =>
-  [...members.values()]
-    .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
-    .sort((a, b) => a.username.localeCompare(b.username))
-)
+type Props = {teamID: T.Teams.TeamID}
 
 const AddToChannel = (props: Props) => {
   const {teamID} = props
@@ -31,7 +22,11 @@ const AddToChannel = (props: Props) => {
   const {channelname} = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
-  const allMembers = sortMembers(teamDetails.members)
+  const allMembers = React.useMemo(() => {
+    return [...teamDetails.members.values()]
+      .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+      .sort((a, b) => a.username.localeCompare(b.username))
+  }, [teamDetails.members])
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
   )

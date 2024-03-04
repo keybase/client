@@ -1,4 +1,5 @@
 // Metadata about a conversation.
+import type * as T from '@/constants/types'
 import type * as Common from './common'
 import type * as Message from './message'
 import type * as RPCChatTypes from '../rpc-chat-gen'
@@ -16,7 +17,7 @@ export type PinnedMessageInfo = {
   pinnerUsername: string
 }
 
-export type ConversationMeta = {
+export type ConversationMeta = T.Immutable<{
   botAliases: {[key: string]: string}
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
@@ -61,4 +62,4 @@ export type ConversationMeta = {
   tlfname: string // just used for rpc calls,
   trustedState: MetaTrustedState
   wasFinalizedBy: string // a conversation can be finalized but not superseded,
-}
+}>

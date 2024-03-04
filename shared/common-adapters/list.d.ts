@@ -4,7 +4,7 @@ import type {StylesCrossPlatform} from '@/styles'
 export type Props<Item> = {
   bounces?: boolean // mobile only
   indexAsKey?: boolean
-  items: Array<Item>
+  items: ReadonlyArray<Item>
   style?: StylesCrossPlatform
   contentContainerStyle?: StylesCrossPlatform
   fixedHeight?: number

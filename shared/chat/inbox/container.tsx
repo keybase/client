@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 const makeBigRows = (
-  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>
+  bigTeams: ReadonlyArray<T.RPCChat.UIInboxBigTeamRow>
 ): Array<
   T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
 > => {
@@ -42,7 +42,7 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>
+  smallTeams: ReadonlyArray<T.RPCChat.UIInboxSmallTeamRow>
 ): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
     const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)

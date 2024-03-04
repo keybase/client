@@ -1,12 +1,10 @@
 import * as C from '.'
+import type * as T from './types'
 import * as Z from '@/util/zustand'
 
-type Store = {
-  active: boolean
-}
-const initialStore: Store = {
-  active: true,
-}
+type Store = T.Immutable<{active: boolean}>
+const initialStore: Store = {active: true}
+
 type State = Store & {
   dispatch: {
     resetState: 'default'
@@ -20,12 +18,9 @@ export const _useState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
-      const {dispatch} = C.getConvoState(C.Chat.getSelectedConversation())
-      dispatch.markThreadAsRead()
+      const cs = C.getConvoState(C.Chat.getSelectedConversation())
+      cs.dispatch.markThreadAsRead()
     },
   }
-  return {
-    ...initialStore,
-    dispatch,
-  }
+  return {...initialStore, dispatch}
 })
