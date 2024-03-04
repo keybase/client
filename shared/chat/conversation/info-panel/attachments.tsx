@@ -630,7 +630,7 @@ export const useAttachmentSections = (
             if (m.type !== 'text') {
               return l
             }
-            if (!m.unfurls.size) {
+            if (!m.unfurls?.size) {
               l.push({
                 author: m.author,
                 ctime: m.timestamp,

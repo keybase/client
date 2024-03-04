@@ -10,6 +10,8 @@ import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
+const noString = new HiddenString('')
+
 export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
@@ -141,7 +143,7 @@ type Minimum = {
 
 const makeMessageMinimum = {
   author: '',
-  bodySummary: new HiddenString(''),
+  bodySummary: noString,
   conversationIDKey: noConversationIDKey,
   id: T.Chat.numberToMessageID(0),
   isDeleteable: false,
@@ -203,13 +205,12 @@ export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageT
   inlinePaymentSuccessful: false,
   isDeleteable: true,
   isEditable: true,
-  mentionsAt: new Set(),
+  mentionsAt: undefined,
   mentionsChannel: 'none',
-  mentionsChannelName: new Map(),
-  reactions: new Map(),
-  text: new HiddenString(''),
+  reactions: undefined,
+  text: noString,
   type: 'text',
-  unfurls: new Map(),
+  unfurls: undefined,
   ...m,
 })
 
@@ -230,9 +231,6 @@ export const makeMessageAttachment = (
   isCollapsed: false,
   isDeleteable: true,
   isEditable: true,
-  mentionsAt: new Set(),
-  mentionsChannel: 'none',
-  mentionsChannelName: new Map(),
   previewHeight: 0,
   previewURL: '',
   previewWidth: 0,
@@ -262,7 +260,7 @@ export const makeMessageRequestPayment = (
   m?: Partial<MessageTypes.MessageRequestPayment>
 ): MessageTypes.MessageRequestPayment => ({
   ...makeMessageCommon,
-  note: new HiddenString(''),
+  note: noString,
   reactions: new Map(),
   requestID: '',
   type: 'requestPayment',
@@ -277,7 +275,7 @@ export const makeChatPaymentInfo = (
   delta: 'none',
   fromUsername: '',
   issuerDescription: '',
-  note: new HiddenString(''),
+  note: noString,
   paymentID: T.Wallets.noPaymentID,
   showCancel: false,
   sourceAmount: '',
@@ -375,7 +373,7 @@ export const makeMessageSystemText = (
 ): MessageTypes.MessageSystemText => ({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: new Map(),
-  text: new HiddenString(''),
+  text: noString,
   type: 'systemText',
   ...m,
 })
@@ -416,7 +414,7 @@ const makeMessageSetDescription = (
   m?: Partial<MessageTypes.MessageSetDescription>
 ): MessageTypes.MessageSetDescription => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  newDescription: new HiddenString(''),
+  newDescription: noString,
   reactions: new Map(),
   type: 'setDescription',
   ...m,
@@ -580,35 +578,6 @@ export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): MessageTypes
       return arr
     }, [])
   )
-
-const channelMentionToMentionsChannel = (channelMention: T.RPCChat.ChannelMention) => {
-  switch (channelMention) {
-    case T.RPCChat.ChannelMention.all:
-      return 'all'
-    case T.RPCChat.ChannelMention.here:
-      return 'here'
-    default:
-      return 'none'
-  }
-}
-
-export const uiMessageEditToMessage = (edit: T.RPCChat.MessageEdit, valid: T.RPCChat.UIMessageValid) => {
-  const text = new HiddenString(edit.body || '')
-
-  const mentionsAt = new Set(valid.atMentions || [])
-  const mentionsChannel = channelMentionToMentionsChannel(valid.channelMention)
-  const mentionsChannelName: Map<string, T.Chat.ConversationIDKey> = new Map(
-    (valid.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-  )
-
-  return {
-    mentionsAt,
-    mentionsChannel,
-    mentionsChannelName,
-    messageID: edit.messageID,
-    text,
-  }
-}
 
 const uiMessageToSystemMessage = (
   minimum: Minimum,
@@ -805,7 +774,7 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
 }
 
 export const getMapUnfurl = (message: T.Chat.Message): T.RPCChat.UnfurlGenericDisplay | undefined => {
-  const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
+  const unfurls = message.type === 'text' && message.unfurls?.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
     ? unfurls[0].unfurl.unfurlType === T.RPCChat.UnfurlType.generic &&
       unfurls[0].unfurl.generic.mapInfo &&
@@ -835,7 +804,7 @@ const validUIMessagetoMessage = (
   const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
-    bodySummary: new HiddenString(m.bodySummary),
+    bodySummary: m.bodySummary ? new HiddenString(m.bodySummary) : noString,
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt || undefined,
     deviceType: T.Devices.stringToDeviceType(m.senderDeviceType),
@@ -892,11 +861,6 @@ const validUIMessagetoMessage = (
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
         isEditable: m.isEditable,
-        mentionsAt: new Set(m.atMentions || []),
-        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
-        mentionsChannelName: new Map(
-          (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-        ),
         replyTo: m.replyTo
           ? (uiMessageToMessage(
               conversationIDKey,
@@ -971,11 +935,6 @@ const validUIMessagetoMessage = (
         inlineVideoPlayable,
         isCollapsed: m.isCollapsed,
         isEditable: m.isEditable,
-        mentionsAt: new Set(m.atMentions || []),
-        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
-        mentionsChannelName: new Map(
-          (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-        ),
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -1023,7 +982,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.requestpayment:
       return makeMessageRequestPayment({
         ...common,
-        note: new HiddenString(m.decoratedTextBody ?? ''),
+        note: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : noString,
         requestID: m.messageBody.requestpayment.requestID,
         requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo ?? undefined),
       })

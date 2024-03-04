@@ -1829,9 +1829,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             m.mentionsAt = new Set()
             m.text = new HiddenString('')
           }
-          if (m.type === 'attachment') {
-            m.mentionsAt = new Set()
-          }
         })
       })
     },

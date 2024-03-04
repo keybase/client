@@ -51,7 +51,6 @@ export const outboxIDToString = (o: OutboxID): string => o
 
 export type MentionsAt = Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
-export type MentionsChannelName = Map<string, Common.ConversationIDKey>
 
 export type MessageExplodeDescription = {
   text: string
@@ -167,14 +166,13 @@ export type MessageText = T.Immutable<{
   inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
   inlinePaymentSuccessful: boolean
   flipGameID?: string
-  mentionsAt: MentionsAt
+  mentionsAt?: MentionsAt
   mentionsChannel: MentionsChannel
-  mentionsChannelName: MentionsChannelName
   // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
   replyTo?: MessageReplyTo
   text: HiddenString
   paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
-  unfurls: UnfurlMap
+  unfurls: undefined | UnfurlMap
   type: 'text'
 }> &
   _MessageCommon &
@@ -221,9 +219,6 @@ export type MessageAttachment = T.Immutable<{
   // id: MessageID  that of first attachment message, not second attachment-uploaded message,
   inlineVideoPlayable: boolean
   isCollapsed: boolean
-  mentionsAt: MentionsAt
-  mentionsChannel: MentionsChannel
-  mentionsChannelName: MentionsChannelName
   previewHeight: number
   previewWidth: number
   previewTransferState?: 'downloading' // only for preview,
