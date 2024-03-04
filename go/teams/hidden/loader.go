@@ -145,7 +145,6 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	if len(links) > 0 && links[len(links)-1].Seqno() >= max {
 		return nil
 	}
-	mctx.Debug("@@@", links, maxUncommittedSeqnoPromised, l.LastSeqno(), l.MaxRatchet())
 	return libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorServerWitholdingLinks,
 		"Server promised a hidden chain up to %d, but never received; is it withholding?", max)
 }
