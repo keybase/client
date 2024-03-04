@@ -98,11 +98,11 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
 
+import logger from '@/logger'
 export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(e => {
-    if (__DEV__) {
-      console.error('ignorePromise error', e)
-    }
+    // likely remove this after some time
+    logger.error('ignorePromise error', e)
   })
 }
 

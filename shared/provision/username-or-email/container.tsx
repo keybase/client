@@ -23,6 +23,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
         inlineError = SignupConstants.usernameHint
         inlineSignUpLink = false
         break
+      default:
     }
   }
   return {inlineError, inlineSignUpLink}

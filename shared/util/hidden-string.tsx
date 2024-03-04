@@ -4,9 +4,9 @@ class HiddenString {
   stringValue: () => string
   constructor(stringValue: string) {
     this.stringValue = () => stringValue
-    if (__DEV__) {
-      this.debugString = stringValue
-    }
+    // if (__DEV__) {
+    //   this.debugString = stringValue
+    // }
   }
 
   toString(): string {
