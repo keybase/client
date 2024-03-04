@@ -123,7 +123,7 @@ type _MessageWithDeletableEditable = T.Immutable<{
 }>
 
 type _MessageWithReactions = T.Immutable<{
-  reactions: Reactions
+  reactions: undefined | Reactions
 }>
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
