@@ -60,7 +60,7 @@ require (
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
 	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
-	github.com/sergi/go-diff v1.2.0
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/stathat/go v1.0.0
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
