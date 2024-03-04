@@ -37,7 +37,7 @@ func TestMakeHiddenRespFromTeamLeaf(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			hr, err := makeHiddenRespFromTeamLeaf(libkb.MetaContext{}, test.leaf, testSeqno)
+			hr, err := makeHiddenRespFromTeamLeaf(libkb.MetaContext{}, testSeqno)
 			if test.shouldError {
 				require.Error(t, err)
 				require.IsType(t, libkb.HiddenMerkleError{}, err)
@@ -46,9 +46,6 @@ func TestMakeHiddenRespFromTeamLeaf(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, test.respType, hr.RespType)
 				require.Equal(t, testSeqno, hr.UncommittedSeqno)
-				if test.respType == libkb.MerkleHiddenResponseTypeOK {
-					require.Equal(t, keybase1.SeqType_TEAM_PRIVATE_HIDDEN, hr.CommittedHiddenTail.ChainType)
-				}
 			}
 		})
 	}

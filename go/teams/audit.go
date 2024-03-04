@@ -301,8 +301,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				team:   probe.TeamSeqno,
 				// leave linkID nil, it's not needed...
 			}
-			if probe.TeamHiddenSeqno > 0 {
-			}
 		}
 	}
 
