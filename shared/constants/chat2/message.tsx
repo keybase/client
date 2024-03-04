@@ -57,7 +57,7 @@ export const getPaymentMessageInfo = (
   accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
   message: T.Chat.MessageSendPayment | T.Chat.MessageText
 ) => {
-  const maybePaymentInfo = accountsInfoMap.get(message.id)
+  const maybePaymentInfo = accountsInfoMap?.get(message.id)
   if (!maybePaymentInfo) {
     return message.paymentInfo
   }

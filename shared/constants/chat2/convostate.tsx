@@ -81,7 +81,7 @@ type LoadMoreReason =
 type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
-  accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+  accountsInfoMap: undefined | Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
   attachmentViewMap: Map<T.RPCChat.GalleryItemTyp, T.Chat.AttachmentViewInfo>
   badge: number
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
@@ -2059,6 +2059,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               throw new Error(errMsg)
             }
             set(s => {
+              if (!s.accountsInfoMap) {
+                s.accountsInfoMap = new Map()
+              }
               s.accountsInfoMap.set(msgID, requestInfo)
             })
           }
@@ -2292,6 +2295,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
+        if (!s.accountsInfoMap) {
+          s.accountsInfoMap = new Map()
+        }
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
     },

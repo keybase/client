@@ -52,7 +52,7 @@ const getRequestMessageInfo = (
   accountsInfoMap: C.Chat.ConvoState['accountsInfoMap'],
   message: T.Chat.MessageRequestPayment
 ) => {
-  const maybeRequestInfo = accountsInfoMap.get(message.id)
+  const maybeRequestInfo = accountsInfoMap?.get(message.id)
   if (!maybeRequestInfo) {
     return message.requestInfo
   }

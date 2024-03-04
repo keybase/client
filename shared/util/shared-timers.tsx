@@ -29,8 +29,8 @@ class Timers {
   _refs: RefMap = {}
   _timers: Array<Timer> = []
 
-  constructor(debug: boolean) {
-    if (debug) {
+  constructor() {
+    if (printOutstandingTimerListeners) {
       setInterval(() => {
         if (Object.keys(this._refs).length) {
           logger.localLog('Outstanding shared timer listener debugger:', this._refs)
@@ -98,6 +98,6 @@ class Timers {
   }
 }
 
-const sharedTimer = new Timers(printOutstandingTimerListeners)
+const sharedTimer = new Timers()
 
 export default sharedTimer

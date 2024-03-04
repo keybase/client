@@ -24,7 +24,7 @@ let config = {
 // Developer settings
 if (__DEV__) {
   config.printOutstandingRPCs = true
-  config.printOutstandingTimerListeners = true
+  config.printOutstandingTimerListeners = false
   config.printRPC = true
   config.printRPCStats = true
   config.printRPCWaitingSession = false
