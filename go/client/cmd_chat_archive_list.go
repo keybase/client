@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -43,16 +44,25 @@ func (c *CmdChatArchiveList) Run() error {
 		return err
 	}
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Found %d job(s)\n", len(res.Jobs))
+	ui.Printf("Found %d job(s)\n\n", len(res.Jobs))
 	for _, job := range res.Jobs {
+		var percent int
+		if job.MessagesTotal > 0 {
+			percent = int((100 * job.MessagesComplete) / job.MessagesTotal)
+		}
 		ui.Printf(`Job ID: %s
 Output Path: %s
-Started At: %s
+Started At: %s (%s)
 Status: %s
-`, job.Request.JobID, job.Request.OutputPath, gregor1.FromTime(job.StartedAt).Format("2006-01-02 15:04:05"), job.Status.String())
+Progress: %d%% (%d of %d messages archived)
+`, job.Request.JobID, job.Request.OutputPath,
+			chatrender.FmtTime(gregor1.FromTime(job.StartedAt), chatrender.RenderOptions{UseDateTime: true}),
+			chatrender.FmtTime(gregor1.FromTime(job.StartedAt), chatrender.RenderOptions{}),
+			job.Status.String(), percent, job.MessagesComplete, job.MessagesTotal)
 		if job.Err != "" {
 			ui.Printf("Err: %s\n", job.Err)
 		}
+		ui.Printf("\n")
 	}
 	return nil
 }

@@ -1178,8 +1178,12 @@ export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly 
 =======
 export type ArchiveChatConvCheckpoint = {readonly pagination: Pagination; readonly offset: Int64}
 export type ArchiveChatHistory = {readonly jobHistory?: {[key: string]: ArchiveChatJob} | null}
+<<<<<<< HEAD
 export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String; readonly checkpoints?: {[key: string]: ArchiveChatConvCheckpoint} | null}
 >>>>>>> f5710a02e9 (pause/resume in memory)
+=======
+export type ArchiveChatJob = {readonly request: ArchiveChatJobRequest; readonly startedAt: Gregor1.Time; readonly status: ArchiveChatJobStatus; readonly err: String; readonly int64: MessagesTotal; readonly int64: MessagesComplete; readonly checkpoints?: {[key: string]: ArchiveChatConvCheckpoint} | null}
+>>>>>>> acbe7b2e0c (x)
 export type ArchiveChatJobRequest = {readonly jobID: ArchiveJobID; readonly outputPath: String; readonly query?: GetInboxLocalQuery | null; readonly compress: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
 export type ArchiveChatListRes = {readonly jobs?: Array<ArchiveChatJob> | null}
 export type ArchiveChatRes = {readonly outputPath: String; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}

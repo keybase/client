@@ -4294,6 +4294,14 @@
           "name": "err"
         },
         {
+          "type": "int64",
+          "name": "messagesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "MessagesComplete"
+        },
+        {
           "type": {
             "type": "map",
             "values": "ArchiveChatConvCheckpoint",

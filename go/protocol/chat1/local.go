@@ -6603,19 +6603,23 @@ func (o ArchiveChatConvCheckpoint) DeepCopy() ArchiveChatConvCheckpoint {
 }
 
 type ArchiveChatJob struct {
-	Request     ArchiveChatJobRequest                `codec:"request" json:"request"`
-	StartedAt   gregor1.Time                         `codec:"startedAt" json:"startedAt"`
-	Status      ArchiveChatJobStatus                 `codec:"status" json:"status"`
-	Err         string                               `codec:"err" json:"err"`
-	Checkpoints map[string]ArchiveChatConvCheckpoint `codec:"checkpoints" json:"checkpoints"`
+	Request          ArchiveChatJobRequest                `codec:"request" json:"request"`
+	StartedAt        gregor1.Time                         `codec:"startedAt" json:"startedAt"`
+	Status           ArchiveChatJobStatus                 `codec:"status" json:"status"`
+	Err              string                               `codec:"err" json:"err"`
+	MessagesTotal    int64                                `codec:"messagesTotal" json:"messagesTotal"`
+	MessagesComplete int64                                `codec:"MessagesComplete" json:"MessagesComplete"`
+	Checkpoints      map[string]ArchiveChatConvCheckpoint `codec:"checkpoints" json:"checkpoints"`
 }
 
 func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
 	return ArchiveChatJob{
-		Request:   o.Request.DeepCopy(),
-		StartedAt: o.StartedAt.DeepCopy(),
-		Status:    o.Status.DeepCopy(),
-		Err:       o.Err,
+		Request:          o.Request.DeepCopy(),
+		StartedAt:        o.StartedAt.DeepCopy(),
+		Status:           o.Status.DeepCopy(),
+		Err:              o.Err,
+		MessagesTotal:    o.MessagesTotal,
+		MessagesComplete: o.MessagesComplete,
 		Checkpoints: (func(x map[string]ArchiveChatConvCheckpoint) map[string]ArchiveChatConvCheckpoint {
 			if x == nil {
 				return nil
