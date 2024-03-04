@@ -39,8 +39,21 @@ const useOrangeLine = () => {
     }
   }
 
-  const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
-  return orangeLine
+  const storeOrangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
+  const orangeLineRef = React.useRef(storeOrangeLine)
+  // we can't load this again due to stale and other things so lets just keep its state while we're mounted
+  // and never move forward unless its totally gone
+  // move if we moved back due to mark as unread
+  if (storeOrangeLine) {
+    if (!orangeLineRef.current || orangeLineRef.current > storeOrangeLine) {
+      orangeLineRef.current = storeOrangeLine
+    }
+  } else {
+    // allow a clear
+    orangeLineRef.current = storeOrangeLine
+  }
+
+  return orangeLineRef.current
 }
 
 const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal}) {
