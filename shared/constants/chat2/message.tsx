@@ -220,7 +220,7 @@ export const makeMessageAttachment = (
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
-  audioAmps: [],
+  audioAmps: undefined,
   audioDuration: 0,
   fileName: '',
   fileSize: 0,
@@ -234,7 +234,7 @@ export const makeMessageAttachment = (
   previewHeight: 0,
   previewURL: '',
   previewWidth: 0,
-  reactions: new Map(),
+  reactions: undefined,
   showPlayButton: false,
   title: '',
   transferProgress: 0,
@@ -261,7 +261,7 @@ export const makeMessageRequestPayment = (
 ): MessageTypes.MessageRequestPayment => ({
   ...makeMessageCommon,
   note: noString,
-  reactions: new Map(),
+  reactions: undefined,
   requestID: '',
   type: 'requestPayment',
   ...m,
@@ -294,7 +294,7 @@ export const makeMessageSendPayment = (
   m?: Partial<MessageTypes.MessageSendPayment>
 ): MessageTypes.MessageSendPayment => ({
   ...makeMessageCommon,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'sendPayment',
   ...m,
 })
@@ -303,8 +303,8 @@ const makeMessageSystemJoined = (
   m?: Partial<MessageTypes.MessageSystemJoined>
 ): MessageTypes.MessageSystemJoined => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  joiners: [],
-  leavers: [],
+  joiners: undefined,
+  leavers: undefined,
   type: 'systemJoined',
   ...m,
 })
@@ -324,7 +324,7 @@ const makeMessageSystemAddedToTeam = (
   addee: '',
   adder: '',
   bulkAdds: [],
-  reactions: new Map(),
+  reactions: undefined,
   role: 'none',
   team: '',
   type: 'systemAddedToTeam',
@@ -340,7 +340,7 @@ const makeMessageSystemInviteAccepted = (
   inviteType: 'none',
   invitee: '',
   inviter: '',
-  reactions: new Map(),
+  reactions: undefined,
   role: 'none',
   team: '',
   type: 'systemInviteAccepted',
@@ -353,7 +353,7 @@ export const makeMessageSystemSBSResolved = (
   ...makeMessageCommonNoDeleteNoEdit,
   assertionUsername: '',
   prover: '',
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemSBSResolved',
   ...m,
 })
@@ -362,7 +362,7 @@ const makeMessageSystemSimpleToComplex = (
   m?: Partial<MessageTypes.MessageSystemSimpleToComplex>
 ): MessageTypes.MessageSystemSimpleToComplex => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemSimpleToComplex',
   ...m,
@@ -372,7 +372,7 @@ export const makeMessageSystemText = (
   m?: Partial<MessageTypes.MessageSystemText>
 ): MessageTypes.MessageSystemText => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   text: noString,
   type: 'systemText',
   ...m,
@@ -383,7 +383,7 @@ export const makeMessageSystemCreateTeam = (
 ): MessageTypes.MessageSystemCreateTeam => ({
   ...makeMessageCommonNoDeleteNoEdit,
   creator: '',
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemCreateTeam',
   ...m,
@@ -401,7 +401,7 @@ export const makeMessageSystemGitPush = (
   ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
-  reactions: new Map(),
+  reactions: undefined,
   refs: [],
   repo: '',
   repoID: '',
@@ -415,7 +415,7 @@ const makeMessageSetDescription = (
 ): MessageTypes.MessageSetDescription => ({
   ...makeMessageCommonNoDeleteNoEdit,
   newDescription: noString,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'setDescription',
   ...m,
 })
@@ -423,7 +423,7 @@ const makeMessageSetDescription = (
 const makeMessagePin = (m?: Partial<MessageTypes.MessagePin>): MessageTypes.MessagePin => ({
   ...makeMessageCommonNoDeleteNoEdit,
   pinnedMessageID: T.Chat.numberToMessageID(0),
-  reactions: new Map(),
+  reactions: undefined,
   type: 'pin',
   ...m,
 })
@@ -433,7 +433,7 @@ const makeMessageSetChannelname = (
 ): MessageTypes.MessageSetChannelname => ({
   ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
-  reactions: new Map(),
+  reactions: undefined,
   type: 'setChannelname',
   ...m,
 })
@@ -445,7 +445,7 @@ const makeMessageSystemChangeRetention = (
   isInherit: false,
   isTeam: false,
   membersType: 0,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemChangeRetention',
   user: '',
   you: '',
@@ -456,7 +456,7 @@ const makeMessageSystemUsersAddedToConversation = (
   m?: Partial<MessageTypes.MessageSystemUsersAddedToConversation>
 ): MessageTypes.MessageSystemUsersAddedToConversation => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemUsersAddedToConversation',
   usernames: [],
   ...m,
@@ -466,7 +466,7 @@ const makeMessageSystemChangeAvatar = (
   m?: Partial<MessageTypes.MessageSystemChangeAvatar>
 ): MessageTypes.MessageSystemChangeAvatar => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemChangeAvatar',
   user: '',
@@ -477,7 +477,7 @@ const makeMessageSystemNewChannel = (
   m?: Partial<MessageTypes.MessageSystemNewChannel>
 ): MessageTypes.MessageSystemNewChannel => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   text: '',
   type: 'systemNewChannel',
   ...m,
@@ -556,33 +556,35 @@ export const uiPaymentInfoToChatPaymentInfo = (
   })
 }
 
-export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): MessageTypes.Reactions =>
-  new Map(
-    Object.keys(r.reactions ?? {}).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
-      if (r.reactions?.[emoji]) {
-        arr.push([
-          emoji,
-          {
-            decorated: r.reactions[emoji]!.decorated,
-            users: new Set(
-              Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
-                makeReaction({
-                  timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
-                  username,
-                })
-              )
-            ),
-          },
-        ])
-      }
-      return arr
-    }, [])
-  )
+export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | MessageTypes.Reactions =>
+  r.reactions
+    ? new Map(
+        Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
+          if (r.reactions?.[emoji]) {
+            arr.push([
+              emoji,
+              {
+                decorated: r.reactions[emoji]!.decorated,
+                users: new Set(
+                  Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
+                    makeReaction({
+                      timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
+                      username,
+                    })
+                  )
+                ),
+              },
+            ])
+          }
+          return arr
+        }, [])
+      )
+    : undefined
 
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: T.RPCChat.MessageSystem,
-  reactions: ReadonlyMap<string, MessageTypes.ReactionDesc>,
+  reactions: undefined | ReadonlyMap<string, MessageTypes.ReactionDesc>,
   m: T.RPCChat.UIMessageValid
 ): T.Chat.Message | undefined => {
   switch (body.systemType) {
@@ -871,7 +873,7 @@ const validUIMessagetoMessage = (
             ) as any) // TODO better reply to handling
           : undefined,
         text: new HiddenString(rawText),
-        unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
+        unfurls: m.unfurls ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,
       })
     }
     case T.RPCChat.MessageType.attachmentuploaded: // fallthrough

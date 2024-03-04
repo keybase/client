@@ -200,7 +200,7 @@ export type MessageAttachmentTransferState =
 
 export type MessageAttachment = T.Immutable<{
   attachmentType: AttachmentType
-  audioAmps: ReadonlyArray<number>
+  audioAmps: undefined | ReadonlyArray<number>
   audioDuration: number
   decoratedText?: HiddenString
   showPlayButton: boolean
@@ -360,8 +360,8 @@ export type MessageSystemAddedToTeam = T.Immutable<{
   _MessageWithReactions
 
 export type MessageSystemJoined = T.Immutable<{
-  joiners: ReadonlyArray<string>
-  leavers: ReadonlyArray<string>
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
   type: 'systemJoined'
 }> &
   _MessageCommon &

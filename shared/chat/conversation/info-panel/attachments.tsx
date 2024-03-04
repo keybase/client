@@ -546,7 +546,7 @@ export const useAttachmentSections = (
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
                   typ:
-                    m.audioAmps.length > 0
+                    (m.audioAmps?.length ?? 0) > 0
                       ? ThumbTyp.AUDIO
                       : m.videoDuration
                         ? ThumbTyp.VIDEO

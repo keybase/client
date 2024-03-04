@@ -299,7 +299,7 @@ export type ConvoState = ConvoStore & {
       notificationsGlobalIgnoreMentions: boolean
     ) => void
     updateReactions: (
-      updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions: T.Chat.Reactions}>
+      updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>
     ) => void
   }
   getExplodingMode: () => number
