@@ -296,7 +296,7 @@ func TestAutogitCommitFile(t *testing.T) {
 	email1 := "user1@keyba.se"
 	time1 := time.Now()
 	hash1 := addFileToWorktreeWithInfo(
-		t, repo, worktreeFS, "foo", "hello", msg1, user1, email1, time1)
+		t, repo, worktreeFS, "foo", "hello\n\nworld\n", msg1, user1, email1, time1)
 	commitWorktree(ctx, t, config, h, worktreeFS)
 
 	t.Log("Check the first commit -- no diff")
@@ -319,7 +319,7 @@ func TestAutogitCommitFile(t *testing.T) {
 	email2 := "user2@keyba.se"
 	time2 := time1.Add(1 * time.Minute)
 	hash2 := addFileToWorktreeWithInfo(
-		t, repo, worktreeFS, "foo", "hello world", msg2, user2, email2, time2)
+		t, repo, worktreeFS, "foo", "hello\n\nworld\nhello world\n", msg2, user2, email2, time2)
 	commitWorktree(ctx, t, config, h, worktreeFS)
 
 	commit1, err := repo.CommitObject(hash1)
@@ -343,8 +343,10 @@ func TestAutogitCommitFile(t *testing.T) {
 index %s..%s 100644
 --- a/foo
 +++ b/foo
-@@ -1 +1 @@
--hello
+@@ -1,3 +1,4 @@
+ hello
+ 
+ world
 +hello world
 `, entry1.Hash.String(), entry2.Hash.String())
 	f2, err := rootFS.Open(
