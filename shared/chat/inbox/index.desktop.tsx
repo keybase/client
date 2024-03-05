@@ -378,7 +378,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       </Kb.Box>
     </Kb.ErrorBoundary>
   )
-  // }
 })
 
 const styles = Kb.Styles.styleSheetCreate(
