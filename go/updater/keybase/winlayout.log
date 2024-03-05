@@ -3,10 +3,10 @@ NOTE: this is a phony log for unit testing
 [2F98:1DF4][2016-06-23T13:30:03]i001: Burn v3.10.2.2516, Windows v10.0 (Build 10586: Service Pack 0), path: C:\Users\Steve\AppData\Local\Temp\{AF1AE293-D5E6-4106-B5EB-8EB97596AFE4}\.cr\Keybase_1.0.16-20160621133121+95ba468.386.exe
 [2F98:1DF4][2016-06-23T13:30:03]i000: Initializing string variable 'DokanProduct64' to value '{65A3A964-3DC3-0100-0000-160621082245}'
 [2F98:1DF4][2016-06-23T13:30:03]i000: Initializing string variable 'DokanProduct86' to value '{65A3A986-3DC3-0100-0000-160621082245}'
-[2F98:1DF4][2016-06-23T13:30:03]i009: Command Line: '-burn.clean.room=c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe /layout /quiet /log c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log'
+[2F98:1DF4][2016-06-23T13:30:03]i009: Command Line: '-burn.clean.room=c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe /layout /quiet /log c:\work\src\github.com\keybase\client\go\updater\keybase\winlayout.log'
 [2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleOriginalSource' to value 'c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\Keybase_1.0.16-20160621133121+95ba468.386.exe'
 [2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleOriginalSourceFolder' to value 'c:\work\src\github.com\keybase\client\packaging\windows\10.0.16.45\'
-[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'LOGPATH_PROP' to value 'c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log'
+[2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'LOGPATH_PROP' to value 'c:\work\src\github.com\keybase\client\go\updater\keybase\winlayout.log'
 [2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleName' to value 'Keybase'
 [2F98:1DF4][2016-06-23T13:30:03]i000: Setting string variable 'WixBundleManufacturer' to value 'Keybase, Inc.'
 [2F98:3D58][2016-06-23T13:30:03]i000: Setting numeric variable 'WixStdBALanguageId' to value 1033
@@ -53,7 +53,7 @@ NOTE: this is a phony log for unit testing
 [2F98:1DF4][2016-06-23T13:30:03]i500: Shutting down, exit code: 0x0
 [2F98:1DF4][2016-06-23T13:30:03]i410: Variable: DokanProduct64 = {65A3A964-3DC3-0100-0000-160621082245}
 [2F98:1DF4][2016-06-23T13:30:03]i410: Variable: DokanProduct86 = {65A3A986-3DC3-0100-0000-160621082245}
-[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: LOGPATH_PROP = c:\work\src\github.com\keybase\go-updater\keybase\winlayout.log
+[2F98:1DF4][2016-06-23T13:30:03]i410: Variable: LOGPATH_PROP = c:\work\src\github.com\keybase\client\go\updater\keybase\winlayout.log
 [2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleAction = 2
 [2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleElevated = 0
 [2F98:1DF4][2016-06-23T13:30:03]i410: Variable: WixBundleFileVersion = 1.0.16.45

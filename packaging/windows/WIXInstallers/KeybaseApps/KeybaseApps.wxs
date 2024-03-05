@@ -111,7 +111,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="updaterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
+        <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\updater\service\upd.exe" Checksum="yes"/>
       </Component>
       <Component Id="prompter.exe" Guid="{238016CC-6D9B-4B88-8618-EC1203F89CBF}">
         <CreateFolder />
@@ -119,7 +119,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
+        <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>
