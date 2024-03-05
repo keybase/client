@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/go-updater/process"
+	"github.com/keybase/client/go/updater/process"
 )
 
 // TerminateApp will stop the Keybase (UI) app

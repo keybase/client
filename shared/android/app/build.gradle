@@ -5,7 +5,7 @@ import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
 
 // KB: app version
-def VERSION_NAME = "6.2.7"
+def VERSION_NAME = "6.2.8"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -142,7 +142,7 @@ Integer getVersionCode() {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
         standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10516799 // plus bump it so its above the old version code
+    return Integer.parseInt(stdout.toString().trim()) + 10517780 // plus bump it so its above the old version code
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())

@@ -52,7 +52,7 @@ icon_path="$client_dir/media/icons/Keybase.icns"
 saltpack_icon="$client_dir/media/icons/saltpack.icns"
 
 echo "Loading release tool"
-(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/client/go/release")
 release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 
@@ -205,7 +205,7 @@ package_electron() {(
   yarn install --pure-lockfile --ignore-engines
   yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --saltpackIcon="$saltpack_icon"  --outDir="$build_dir" --arch="$electron_arch"
 
-  # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
+  # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/client/go/updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
   ln -s "Keybase" "Electron"
 
@@ -245,7 +245,7 @@ update_plist() {(
 
 sign() {(
   cd "$out_dir"
-  code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   # need to sign some stuff from electron that doesn't get picked up for some reason
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib"
   codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib"

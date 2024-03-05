@@ -1,1 +1,2 @@
-• Fix connection errors due to expired CA certificate
+• Fix link previews to some web sites.
+• Bug fixes and improvements

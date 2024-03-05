@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MaxDelayInCommittingHiddenLinks = 7 * 24 * time.Hour
+	MaxDelayInCommittingHiddenLinks = 30 * 24 * time.Hour
 )
 
 // LoaderPackage contains a snapshot of the hidden team chain, used during the process of loading a team.

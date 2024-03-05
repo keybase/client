@@ -45,14 +45,13 @@ build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir=${CLIENT_DIR:-"$gopath/src/github.com/keybase/client"}
 kbfs_dir="$client_dir/go/kbfs"
-updater_dir=${UPDATER_DIR:-"$gopath/src/github.com/keybase/go-updater"}
-
-if [ ! "$nopull" = "1" ]; then
-  "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
-fi
+updater_dir=${UPDATER_DIR:-"$gopath/src/github.com/keybase/client/go/updater"}
+echo "client_dir: $client_dir"
+echo "kbfs_dir: $kbfs_dir"
+echo "updater_dir: $updater_dir"
 
 echo "Loading release tool"
-(cd "$client_dir/go/buildtools"; go install "github.com/keybase/release")
+(cd "$client_dir/go/buildtools"; go install "github.com/keybase/client/go/release")
 release_bin="$GOPATH/bin/release"
 echo "$(go version)"
 
@@ -75,8 +74,6 @@ fi
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit=$(git -C "$client_dir" log -1 --pretty=format:%h) --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  echo "Checking updater CI"
-  "$release_bin" wait-ci --repo="go-updater" --commit=$(git -C "$updater_dir" log -1 --pretty=format:%h) --context="continuous-integration/travis-ci/push"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
