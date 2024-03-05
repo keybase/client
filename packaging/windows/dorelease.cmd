@@ -21,19 +21,12 @@ if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
-:: NOTE: We depend on the bot or caller to checkout client first
-call:checkout_keybase go-updater, %UpdaterRevision% || goto:build_error || EXIT /B 1
-call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 1
-
-::wait for CI
-if [%UpdateChannel%] == [SmokeCI] call:check_ci  || EXIT /B 1
-
 :done_ci
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr /C:"Version = " %GOPATH%\src\github.com\keybase\client\go\libkb\version.go') do set LIBKB_VER=%%x
 
 :: release
-pushd %GOPATH%\src\github.com\keybase\release
+pushd %GOPATH%\src\github.com\keybase\client\go\release
 del release.exe
 go build
 IF %ERRORLEVEL% NEQ 0 (
@@ -69,7 +62,7 @@ if %UpdateChannel% NEQ "None" (
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
     echo "Creating index files"
-    %GOPATH%\src\github.com\keybase\release\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
+    %GOPATH%\src\github.com\keybase\client\go\release\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
 ) else (
     echo "No update channel"
 )
@@ -111,7 +104,7 @@ if [%UpdateChannel%] NEQ [Smoke2] (
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
-%GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
+%GOPATH%\src\github.com\keybase\client\go\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
 %OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
 %OUTPUT% "https://prerelease.keybase.io/windows/"
 :no_smokeb
@@ -149,7 +142,7 @@ EXIT /B 1
 for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short^=8 HEAD') do set clientCommit=%%i
 echo [%clientCommit%]
 :: need GITHUB_TOKEN
-pushd %GOPATH%\src\github.com\keybase\release
+pushd %GOPATH%\src\github.com\keybase\client\go\release
 go build || goto:build_error || EXIT /B 1
 release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
 popd
