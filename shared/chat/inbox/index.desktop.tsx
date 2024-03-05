@@ -1,3 +1,5 @@
+// TODO we could use context and connected rows better to avoid so much
+// prop drilling / thrash due to props changing inside
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as TInbox from './index.d'
