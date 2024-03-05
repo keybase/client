@@ -206,22 +206,24 @@ export type ConvoState = ConvoStore & {
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
     loadOrangeLine: (why: string) => void
-    loadOlderMessagesDueToScroll: (oldest: T.Chat.Ordinal) => void
-    loadNewerMessagesDueToScroll: (newest: T.Chat.Ordinal) => void
-    loadMoreMessages: (p: {
-      forceContainsLatestCalc?: boolean
-      forceClear?: boolean
-      messageIDControl?: T.RPCChat.MessageIDControl
-      centeredMessageID?: {
-        conversationIDKey: T.Chat.ConversationIDKey
-        messageID: T.Chat.MessageID
-        highlightMode: T.Chat.CenterOrdinalHighlightMode
-      }
-      reason: LoadMoreReason
-      knownRemotes?: ReadonlyArray<string>
-      scrollDirection?: ScrollDirection
-      numberOfMessagesToLoad?: number
-    }) => void
+    loadOlderMessagesDueToScroll: (numOrdinals: number) => void
+    loadNewerMessagesDueToScroll: (numOrdinals: number) => void
+    loadMoreMessages: DebouncedFunc<
+      (p: {
+        forceContainsLatestCalc?: boolean
+        forceClear?: boolean
+        messageIDControl?: T.RPCChat.MessageIDControl
+        centeredMessageID?: {
+          conversationIDKey: T.Chat.ConversationIDKey
+          messageID: T.Chat.MessageID
+          highlightMode: T.Chat.CenterOrdinalHighlightMode
+        }
+        reason: LoadMoreReason
+        knownRemotes?: ReadonlyArray<string>
+        scrollDirection?: ScrollDirection
+        numberOfMessagesToLoad?: number
+      }) => void
+    >
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
@@ -299,7 +301,7 @@ export type ConvoState = ConvoStore & {
       notificationsGlobalIgnoreMentions: boolean
     ) => void
     updateReactions: (
-      updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions: T.Chat.Reactions}>
+      updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>
     ) => void
   }
   getExplodingMode: () => number
@@ -653,12 +655,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     set(s => {
       const m = s.messageMap.get(targetOrdinal)
       if (m && Message.isMessageWithReactions(m)) {
-        const reactions = m.reactions
         const rs = {
-          decorated: reactions.get(emoji)?.decorated ?? decorated,
-          users: reactions.get(emoji)?.users ?? new Set(),
+          decorated: m.reactions?.get(emoji)?.decorated ?? decorated,
+          users: m.reactions?.get(emoji)?.users ?? new Set(),
         }
-        reactions.set(emoji, rs)
+        if (!m.reactions) {
+          m.reactions = new Map()
+        }
+        m.reactions.set(emoji, rs)
         const existing = [...rs.users].find(r => r.username === username)
         if (existing) {
           // found an existing reaction. remove it from our list
@@ -667,7 +671,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // no existing reaction. add this one to the map
         rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
         if (rs.users.size === 0) {
-          reactions.delete(emoji)
+          m.reactions.delete(emoji)
         }
       }
     })
@@ -718,11 +722,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     })
   }
 
-  // used by loadMoreMessages
-  let scrollBackOldest = T.Chat.numberToOrdinal(-1)
-  let scrollBackOldestTime = 0
-  let scrollForwardNewest = T.Chat.numberToOrdinal(-1)
-  let scrollForwardNewestTime = 0
+  let lastScrollNumOrdinals = 0
+  let lastScrollTime = 0
+  const okToLoadMore = (n: number) => {
+    const now = Date.now()
+    if (n !== lastScrollNumOrdinals) {
+      lastScrollNumOrdinals = n
+      lastScrollTime = now
+      return true
+    }
+
+    const delta = now - lastScrollTime
+    const ok = delta > 500
+    if (ok) {
+      lastScrollNumOrdinals = n
+      lastScrollTime = now
+    }
+    return ok
+  }
 
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
@@ -1031,6 +1048,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     jumpToRecent: () => {
       setMessageCenterOrdinal()
+      get().dispatch.messagesClear()
       get().dispatch.loadMoreMessages({reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
@@ -1149,19 +1167,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'centered',
       })
     },
-    loadMoreMessages: p => {
+    loadMoreMessages: throttle(p => {
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-      const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
+      const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
+      let forceClear = p.forceClear ?? false
+
+      if (centeredMessageID) {
+        forceClear = true
+      }
 
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
-        scrollBackOldest = T.Chat.numberToOrdinal(-1)
-        scrollBackOldestTime = 0
-        scrollForwardNewest = T.Chat.numberToOrdinal(-1)
-        scrollForwardNewestTime = 0
         get().dispatch.messagesClear()
       }
 
@@ -1276,7 +1295,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             waitingKey: loadingKey,
           })
-
           if (get().isMetaGood()) {
             set(s => {
               s.meta.offline = results.offline
@@ -1303,19 +1321,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       C.ignorePromise(f())
-    },
-
-    loadNewerMessagesDueToScroll: newest => {
-      const now = new Date().getTime()
-      if (scrollForwardNewest === newest) {
-        const delta = now - scrollForwardNewestTime
-        if (delta < 1000) {
-          logger.info('bail: already made this call too soon')
-          return
-        }
+    }, 500),
+    loadNewerMessagesDueToScroll: numOrdinals => {
+      if (!numOrdinals) {
+        return
       }
-      scrollForwardNewest = newest
-      scrollForwardNewestTime = now
+
+      if (!okToLoadMore(numOrdinals)) {
+        return
+      }
+
       get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
@@ -1365,23 +1380,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       return f()
     },
-    loadOlderMessagesDueToScroll: oldest => {
+    loadOlderMessagesDueToScroll: numOrdinals => {
       if (!get().moreToLoad) {
         logger.info('bail: scrolling back and at the end')
-        return true
+        return
       }
 
-      const now = new Date().getTime()
-      if (scrollBackOldest === oldest) {
-        const delta = now - scrollBackOldestTime
-        if (delta < 1000) {
-          logger.info('bail: already made this call too soon')
-          return false
-        }
+      if (!numOrdinals) {
+        return
       }
-      scrollBackOldest = oldest
-      scrollBackOldestTime = now
-      return get().dispatch.loadMoreMessages({
+
+      if (!okToLoadMore(numOrdinals)) {
+        return
+      }
+
+      get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll back',
         scrollDirection: 'back',
@@ -1826,9 +1839,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             m.flipGameID = ''
             m.mentionsAt = new Set()
             m.text = new HiddenString('')
-          }
-          if (m.type === 'attachment') {
-            m.mentionsAt = new Set()
           }
         })
       })

@@ -29,7 +29,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   }
 
   const joiners2 = React.useMemo(() => {
-    return !joiners.length && !leavers.length ? [author] : joiners
+    return !joiners?.length && !leavers?.length ? [author] : joiners
   }, [joiners, leavers, author])
 
   const props = {

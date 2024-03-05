@@ -51,7 +51,6 @@ export const outboxIDToString = (o: OutboxID): string => o
 
 export type MentionsAt = Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
-export type MentionsChannelName = Map<string, Common.ConversationIDKey>
 
 export type MessageExplodeDescription = {
   text: string
@@ -123,7 +122,7 @@ type _MessageWithDeletableEditable = T.Immutable<{
 }>
 
 type _MessageWithReactions = T.Immutable<{
-  reactions: Reactions
+  reactions: undefined | Reactions
 }>
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
@@ -167,14 +166,13 @@ export type MessageText = T.Immutable<{
   inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
   inlinePaymentSuccessful: boolean
   flipGameID?: string
-  mentionsAt: MentionsAt
+  mentionsAt?: MentionsAt
   mentionsChannel: MentionsChannel
-  mentionsChannelName: MentionsChannelName
   // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
   replyTo?: MessageReplyTo
   text: HiddenString
   paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
-  unfurls: UnfurlMap
+  unfurls: undefined | UnfurlMap
   type: 'text'
 }> &
   _MessageCommon &
@@ -202,7 +200,7 @@ export type MessageAttachmentTransferState =
 
 export type MessageAttachment = T.Immutable<{
   attachmentType: AttachmentType
-  audioAmps: ReadonlyArray<number>
+  audioAmps: undefined | ReadonlyArray<number>
   audioDuration: number
   decoratedText?: HiddenString
   showPlayButton: boolean
@@ -221,9 +219,6 @@ export type MessageAttachment = T.Immutable<{
   // id: MessageID  that of first attachment message, not second attachment-uploaded message,
   inlineVideoPlayable: boolean
   isCollapsed: boolean
-  mentionsAt: MentionsAt
-  mentionsChannel: MentionsChannel
-  mentionsChannelName: MentionsChannelName
   previewHeight: number
   previewWidth: number
   previewTransferState?: 'downloading' // only for preview,
@@ -340,7 +335,7 @@ export type MessageSystemCreateTeam = T.Immutable<{
 export type MessageSystemGitPush = T.Immutable<{
   pusher: string
   pushType: RPCTypes.GitPushType
-  refs: ReadonlyArray<RPCTypes.GitRefMetadata>
+  refs: undefined | ReadonlyArray<RPCTypes.GitRefMetadata>
   repo: string
   repoID: string
   team: string
@@ -354,7 +349,7 @@ export type MessageSystemGitPush = T.Immutable<{
 export type MessageSystemAddedToTeam = T.Immutable<{
   addee: string
   adder: string
-  bulkAdds: ReadonlyArray<string>
+  bulkAdds: undefined | ReadonlyArray<string>
   role: TeamTypes.MaybeTeamRoleType
   team: string
   type: 'systemAddedToTeam'
@@ -365,8 +360,8 @@ export type MessageSystemAddedToTeam = T.Immutable<{
   _MessageWithReactions
 
 export type MessageSystemJoined = T.Immutable<{
-  joiners: ReadonlyArray<string>
-  leavers: ReadonlyArray<string>
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
   type: 'systemJoined'
 }> &
   _MessageCommon &

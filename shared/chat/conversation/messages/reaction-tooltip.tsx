@@ -64,10 +64,10 @@ const ReactionTooltip = (p: OwnProps) => {
     }))
   }, [navigateAppend, onHidden, ordinal])
 
-  let reactions = [..._reactions.keys()]
+  let reactions = [...(_reactions?.keys() ?? [])]
     .map(emoji => ({
       emoji,
-      users: [...(_reactions.get(emoji)?.users ?? new Set())]
+      users: [...(_reactions?.get(emoji)?.users ?? new Set())]
         // Earliest users go at the top
         .sort((a, b) => a.timestamp - b.timestamp)
         .map(r => ({

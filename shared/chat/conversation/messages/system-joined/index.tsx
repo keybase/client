@@ -8,8 +8,8 @@ type Props = {
   channelname: string
   isAdHoc: boolean
   isBigTeam: boolean
-  joiners: ReadonlyArray<string>
-  leavers: ReadonlyArray<string>
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
   onAuthorClick: (username: string) => void
   onManageChannels: () => void
   onManageNotifications: () => void
@@ -17,39 +17,48 @@ type Props = {
   timestamp: number
 }
 
+const none = new Array<string>()
 const Joined = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} alignSelf="flex-start">
-    {props.joiners.length ? <MultiUserJoinedNotice {...props} joiners={props.joiners} leavers={[]} /> : null}
-    {props.leavers.length ? <MultiUserJoinedNotice {...props} joiners={[]} leavers={props.leavers} /> : null}
+    {props.joiners?.length ? (
+      <MultiUserJoinedNotice {...props} joiners={props.joiners} leavers={none} />
+    ) : null}
+    {props.leavers?.length ? (
+      <MultiUserJoinedNotice {...props} joiners={none} leavers={props.leavers} />
+    ) : null}
   </Kb.Box2>
 )
 
-const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
-    <UserNotice>
-      <Kb.Text type="BodySmall" style={{paddingBottom: Kb.Styles.globalMargins.xxtiny}} lineClamp={2}>
-        {props.joiners.length > 0 ? getAddedUsernames(props.joiners) : getAddedUsernames(props.leavers)}
-        {` ${props.leavers.length > props.joiners.length ? 'left' : 'joined'} ${
-          props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`
-        }`}
-        {props.timestamp ? (
-          <Kb.Text type="BodyTiny" style={styles.timestamp}>
-            {' ' + formatTimeForChat(props.timestamp)}
-          </Kb.Text>
-        ) : null}
-      </Kb.Text>
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.avatarLine}>
-        <Kb.AvatarLine
-          usernames={props.joiners.length > 0 ? props.joiners : props.leavers}
-          maxShown={3}
-          size={32}
-          layout="horizontal"
-          alignSelf="flex-start"
-        />
-      </Kb.Box2>
-    </UserNotice>
-  </Kb.Box2>
-)
+const MultiUserJoinedNotice = (props: Props) => {
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
+      <UserNotice>
+        <Kb.Text type="BodySmall" style={{paddingBottom: Kb.Styles.globalMargins.xxtiny}} lineClamp={2}>
+          {(props.joiners?.length ?? 0) > 0
+            ? getAddedUsernames(props.joiners)
+            : getAddedUsernames(props.leavers)}
+          {` ${(props.leavers?.length ?? 0) > (props.joiners?.length ?? 0) ? 'left' : 'joined'} ${
+            props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`
+          }`}
+          {props.timestamp ? (
+            <Kb.Text type="BodyTiny" style={styles.timestamp}>
+              {' ' + formatTimeForChat(props.timestamp)}
+            </Kb.Text>
+          ) : null}
+        </Kb.Text>
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.avatarLine}>
+          <Kb.AvatarLine
+            usernames={((props.joiners?.length ?? 0) > 0 ? props.joiners : props.leavers) ?? none}
+            maxShown={3}
+            size={32}
+            layout="horizontal"
+            alignSelf="flex-start"
+          />
+        </Kb.Box2>
+      </UserNotice>
+    </Kb.Box2>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -22,7 +22,8 @@ const YouAdded = (props: YouAddedProps) => (
 )
 
 const maxUsernamesToShow = 1
-const getAddedUsernames = (usernames: ReadonlyArray<string>) => {
+const getAddedUsernames = (usernames?: ReadonlyArray<string>) => {
+  if (!usernames) return []
   const diff = Math.max(0, usernames.length - maxUsernamesToShow)
   const othersStr = diff ? ` and ${diff} other${diff > 1 ? 's' : ''}` : ''
   const users = usernames.slice(0, maxUsernamesToShow)

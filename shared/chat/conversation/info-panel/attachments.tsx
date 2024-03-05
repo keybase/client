@@ -546,7 +546,7 @@ export const useAttachmentSections = (
                   onClick: () => onMediaClick(m),
                   previewURL: m.previewURL,
                   typ:
-                    m.audioAmps.length > 0
+                    (m.audioAmps?.length ?? 0) > 0
                       ? ThumbTyp.AUDIO
                       : m.videoDuration
                         ? ThumbTyp.VIDEO
@@ -630,7 +630,7 @@ export const useAttachmentSections = (
             if (m.type !== 'text') {
               return l
             }
-            if (!m.unfurls.size) {
+            if (!m.unfurls?.size) {
               l.push({
                 author: m.author,
                 ctime: m.timestamp,

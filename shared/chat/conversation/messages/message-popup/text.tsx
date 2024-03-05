@@ -33,7 +33,7 @@ const PopText = (ownProps: OwnProps) => {
             return `created a new team repository called ${m.repo}`
           case T.RPCGen.GitPushType.default:
             return m.refs
-              .map(ref => {
+              ?.map(ref => {
                 const commits =
                   ref.commits?.map(
                     c =>

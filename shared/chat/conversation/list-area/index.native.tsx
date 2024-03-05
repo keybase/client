@@ -35,8 +35,8 @@ const useScrolling = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
-  const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
+  const {cidChanged, listRef, centeredOrdinal, messageOrdinals} = p
+  const numOrdinals = messageOrdinals.length
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
@@ -67,8 +67,8 @@ const useScrolling = (p: {
   })
 
   const onEndReached = React.useCallback(() => {
-    loadOlderMessages(oldestOrdinal)
-  }, [loadOlderMessages, oldestOrdinal])
+    loadOlderMessages(numOrdinals)
+  }, [loadOlderMessages, numOrdinals])
 
   return {
     onEndReached,
