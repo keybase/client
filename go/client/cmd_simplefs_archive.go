@@ -4,6 +4,7 @@
 package client
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/keybase/cli"
@@ -58,10 +59,22 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 	}
 }
 
-func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc) {
+func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision *keybase1.KBFSRevision) {
+	revisionExtendedDescription := func() string {
+		if currentTLFRevision == nil {
+			return ""
+		}
+		jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
+		if jobRevision == *currentTLFRevision {
+			return " (up to date with TLF)"
+		}
+
+		return fmt.Sprintf(" (behind TLF @ %d)", *currentTLFRevision)
+	}()
+
 	ui.Printf("Job ID: %s\n", desc.JobID)
 	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
-	ui.Printf("TLF Revision: %v\n", desc.KbfsPathWithRevision.ArchivedParam.Revision())
+	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription)
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
 	ui.Printf("Staging Path: %s\n", desc.StagingPath)
 	ui.Printf("Zip File Path: %s\n", desc.ZipFilePath)
@@ -84,7 +97,7 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 		return err
 	}
 
-	printSimpleFSArchiveJobDesc(c.G().UI.GetTerminalUI(), &desc)
+	printSimpleFSArchiveJobDesc(c.G().UI.GetTerminalUI(), &desc, nil)
 
 	return nil
 }
@@ -208,7 +221,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	})
 	for _, jobID := range jobIDs {
 		job := status.Jobs[jobID]
-		printSimpleFSArchiveJobDesc(ui, &job.Desc)
+		printSimpleFSArchiveJobDesc(ui, &job.Desc, &job.CurrentTLFRevision)
 		{
 			ui.Printf("Phase:")
 			for _, p := range []keybase1.SimpleFSArchiveJobPhase{

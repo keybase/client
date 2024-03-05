@@ -797,6 +797,7 @@ protocol SimpleFS {
   record SimpleFSArchiveJobStatus {
     SimpleFSArchiveJobDesc desc;
     SimpleFSArchiveJobPhase phase;
+    KBFSRevision currentTLFRevision;
     int todoCount;
     int inProgressCount;
     int completeCount;

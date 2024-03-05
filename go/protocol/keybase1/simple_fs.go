@@ -1823,22 +1823,24 @@ func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
 }
 
 type SimpleFSArchiveJobStatus struct {
-	Desc            SimpleFSArchiveJobDesc  `codec:"desc" json:"desc"`
-	Phase           SimpleFSArchiveJobPhase `codec:"phase" json:"phase"`
-	TodoCount       int                     `codec:"todoCount" json:"todoCount"`
-	InProgressCount int                     `codec:"inProgressCount" json:"inProgressCount"`
-	CompleteCount   int                     `codec:"completeCount" json:"completeCount"`
-	TotalCount      int                     `codec:"totalCount" json:"totalCount"`
+	Desc               SimpleFSArchiveJobDesc  `codec:"desc" json:"desc"`
+	Phase              SimpleFSArchiveJobPhase `codec:"phase" json:"phase"`
+	CurrentTLFRevision KBFSRevision            `codec:"currentTLFRevision" json:"currentTLFRevision"`
+	TodoCount          int                     `codec:"todoCount" json:"todoCount"`
+	InProgressCount    int                     `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount      int                     `codec:"completeCount" json:"completeCount"`
+	TotalCount         int                     `codec:"totalCount" json:"totalCount"`
 }
 
 func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 	return SimpleFSArchiveJobStatus{
-		Desc:            o.Desc.DeepCopy(),
-		Phase:           o.Phase.DeepCopy(),
-		TodoCount:       o.TodoCount,
-		InProgressCount: o.InProgressCount,
-		CompleteCount:   o.CompleteCount,
-		TotalCount:      o.TotalCount,
+		Desc:               o.Desc.DeepCopy(),
+		Phase:              o.Phase.DeepCopy(),
+		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
+		TodoCount:          o.TodoCount,
+		InProgressCount:    o.InProgressCount,
+		CompleteCount:      o.CompleteCount,
+		TotalCount:         o.TotalCount,
 	}
 }
 

@@ -3678,6 +3678,22 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 				statusJob.CompleteCount++
 			}
 		}
+		{ // get current revision
+			fb, _, err := k.getFolderBranchFromPath(ctx,
+				keybase1.NewPathWithKbfs(keybase1.KBFSPath{
+					Path: stateJob.Desc.KbfsPathWithRevision.Path}))
+			if err != nil {
+				return keybase1.SimpleFSArchiveStatus{}, err
+			}
+			if fb == (data.FolderBranch{}) {
+				return keybase1.SimpleFSArchiveStatus{}, nil
+			}
+			status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+			if err != nil {
+				return keybase1.SimpleFSArchiveStatus{}, err
+			}
+			statusJob.CurrentTLFRevision = keybase1.KBFSRevision(status.Revision)
+		}
 		status.Jobs[jobID] = statusJob
 	}
 	return status, nil
