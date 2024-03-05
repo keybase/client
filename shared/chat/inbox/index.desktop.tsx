@@ -36,26 +36,6 @@ const FakeRow = ({idx}: {idx: number}) => (
 
 const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
-const TheList = React.memo(function TheList(p: any) {
-  console.log('aaaaa teh list', p)
-  const {children, height, width, listRef, onItemsRendered, itemCount, itemSize, outerRef, itemData} = p
-  return (
-    <VariableSizeList
-      height={height}
-      width={width}
-      ref={listRef}
-      outerRef={outerRef}
-      onItemsRendered={onItemsRendered}
-      itemCount={itemCount}
-      itemSize={itemSize}
-      estimatedItemSize={56}
-      itemData={itemData}
-    >
-      {children}
-    </VariableSizeList>
-  )
-})
-
 const dragKey = '__keybase_inbox'
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
@@ -350,77 +330,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   lastUnreadIndices.current = unreadIndices
   lastUnreadTotal.current = unreadTotal
 
-  // const p = {
-  //   ...props,
-  //   calculateShowFloating,
-  //   calculateShowUnreadShortcutThrottled,
-  //   deltaNewSmallRows,
-  //   dragListRef,
-  //   dragY,
-  //   firstOffscreenIdx,
-  //   itemRenderer,
-  //   itemSizeGetter,
-  //   lastVisibleIdx,
-  //   listChild,
-  //   listRef,
-  //   mounted: mountedRef.current,
-  //   onDragOver,
-  //   onDragStart,
-  //   onDrop,
-  //   onItemsRendered,
-  //   onItemsRenderedDebounced,
-  //   scrollDiv,
-  //   scrollToBigTeams,
-  //   scrollToUnread,
-  //   setDragY,
-  //   setShowFloating,
-  //   setShowUnread,
-  //   setUnreadCount,
-  //   showFloating,
-  //   showUnread,
-  //   unreadCount,
-  // }
-
-  //   return <InboxOld {...p} />
-  //
-  // class InboxOld extends React.Component<
-  //   TInbox.Props & {
-  //     onItemsRenderedDebounced: (p: {visibleStartIndex: number; visibleStopIndex: number}) => void
-  //     scrollToUnread: () => void
-  //     deltaNewSmallRows: () => number
-  //     itemSizeGetter: (index: number) => 56 | 0 | 24 | 32 | 40 | 64 | 68 | 44 | 84 | 41
-  //     itemRenderer: (index: number, style: Object) => React.JSX.Element | null
-  //     onDragStart: (ev: React.DragEvent<HTMLDivElement>) => void
-  //     scrollDiv: React.RefObject<HTMLDivElement>
-  //     listRef: React.RefObject<VariableSizeList>
-  //     dragListRef: React.RefObject<HTMLDivElement>
-  //     dragY: number
-  //     setDragY: (y: number) => void
-  //     showFloating: boolean
-  //     setShowFloating: (show: boolean) => void
-  //     showUnread: boolean
-  //     setShowUnread: (show: boolean) => void
-  //     unreadCount: number
-  //     setUnreadCount: (count: number) => void
-  //     mounted: boolean
-  //     firstOffscreenIdx: React.MutableRefObject<number>
-  //     lastVisibleIdx: React.MutableRefObject<number>
-  //     calculateShowFloating: () => void
-  //     calculateShowUnreadShortcutThrottled: () => void
-  //     onDragOver: (e: React.DragEvent<HTMLDivElement>) => void
-  //     onDrop: () => void
-  //     listChild: ({index, style}: {index: number; style: Object}) => React.JSX.Element | null
-  //     onItemsRendered: ({
-  //       visibleStartIndex,
-  //       visibleStopIndex,
-  //     }: {
-  //       visibleStartIndex: number
-  //       visibleStopIndex: number
-  //     }) => void
-  //     scrollToBigTeams: () => void
-  //   }
-  // > {
-  //   render() {
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
@@ -430,13 +339,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     [dragY, rows, selectedConversationIDKey]
   )
 
-  React.useEffect(() => {
-    console.log('aaaaa inbox index mount<<<<<<<')
-    return () => {
-      console.log('aaaaa inbox index UNmount>>>>>>>>>')
-    }
-  }, [])
-
   return (
     <Kb.ErrorBoundary>
       <Kb.Box className="inbox-hover-container" style={styles.container}>
@@ -444,7 +346,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
           {rows.length ? (
             <AutoSizer>
               {(p: {height?: number; width?: number}) => {
-                console.log('aaaaa autosizer', p)
                 let {height = 1, width = 1} = p
                 if (isNaN(height)) {
                   height = 1
@@ -452,11 +353,12 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
                 if (isNaN(width)) {
                   width = 1
                 }
+
                 return (
-                  <TheList
+                  <VariableSizeList
                     height={height}
                     width={width}
-                    listRef={listRef}
+                    ref={listRef}
                     outerRef={scrollDiv}
                     onItemsRendered={onItemsRendered}
                     itemCount={rows.length}
@@ -465,7 +367,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
                     itemData={itemData}
                   >
                     {listChild}
-                  </TheList>
+                  </VariableSizeList>
                 )
               }}
             </AutoSizer>
