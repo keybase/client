@@ -4,6 +4,7 @@
 package simplefs
 
 import (
+	"archive/zip"
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
@@ -474,6 +475,10 @@ func (m *archiveManager) copyFile(ctx context.Context,
 	return m.copyFilePickupPrevious(ctx, srcDirFS, entryPathWithinJob, localPath, srcSeekOffset, mode)
 }
 
+func getWorkspaceDir(jobDesc keybase1.SimpleFSArchiveJobDesc) string {
+	return filepath.Join(jobDesc.StagingPath, "workspace")
+}
+
 func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ doCopying %s", jobID)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- doCopying %s err: %v", jobID, err) }()
@@ -508,7 +513,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	if err != nil {
 		return fmt.Errorf("srcContainingDirFS.Chroot error: %v", err)
 	}
-	dstBase := filepath.Join(desc.StagingPath, desc.TargetName)
+	dstBase := filepath.Join(getWorkspaceDir(desc), desc.TargetName)
 
 	entryPaths := make([]string, 0, len(manifest))
 	for entryPathWithinJob := range manifest {
@@ -618,7 +623,33 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 }
 
 func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error) {
-	return errors.New("not implemented")
+	m.simpleFS.log.CDebugf(ctx, "+ doZipping %s", jobID)
+	defer func() { m.simpleFS.log.CDebugf(ctx, "- doZipping %s err: %v", jobID, err) }()
+
+	jobDesc := func() keybase1.SimpleFSArchiveJobDesc {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		return m.state.Jobs[jobID].Desc
+	}()
+
+	workspaceDir := getWorkspaceDir(jobDesc)
+	fs := os.DirFS(workspaceDir)
+
+	zipFile, err := os.Create(jobDesc.ZipFilePath)
+	if err != nil {
+		return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
+	}
+	defer zipFile.Close()
+
+	zipWriter := zipWriterWrapper{zip.NewWriter(zipFile)}
+	defer zipWriter.Close()
+
+	err = zipWriter.AddFS(fs)
+	if err != nil {
+		return fmt.Errorf("zipWriter.AddFS error: %v", jobDesc.ZipFilePath, err)
+	}
+
+	return nil
 }
 
 func (m *archiveManager) zippingWorker(ctx context.Context) {

@@ -203,7 +203,9 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	for jobID := range status.Jobs {
 		jobIDs = append(jobIDs, jobID)
 	}
-	sort.Strings(jobIDs)
+	sort.Slice(jobIDs, func(i, j int) bool {
+		return status.Jobs[jobIDs[i]].Desc.StartTime.Before(status.Jobs[jobIDs[j]].Desc.StartTime)
+	})
 	for _, jobID := range jobIDs {
 		job := status.Jobs[jobID]
 		printSimpleFSArchiveJobDesc(ui, &job.Desc)
