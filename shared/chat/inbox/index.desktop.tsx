@@ -36,8 +36,25 @@ const FakeRow = ({idx}: {idx: number}) => (
 
 const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
-// TODO Replkace inbox autosizer with this
-const TheList = React.memo(function TheList(props: {}) {})
+const TheList = React.memo(function TheList(p: any) {
+  console.log('aaaaa teh list', p)
+  const {children, height, width, listRef, onItemsRendered, itemCount, itemSize, outerRef, itemData} = p
+  return (
+    <VariableSizeList
+      height={height}
+      width={width}
+      ref={listRef}
+      outerRef={outerRef}
+      onItemsRendered={onItemsRendered}
+      itemCount={itemCount}
+      itemSize={itemSize}
+      estimatedItemSize={56}
+      itemData={itemData}
+    >
+      {children}
+    </VariableSizeList>
+  )
+})
 
 const dragKey = '__keybase_inbox'
 
@@ -408,6 +425,18 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
 
+  const itemData = React.useMemo(
+    () => (dragY === -1 ? {rows, sel: selectedConversationIDKey} : dragY),
+    [dragY, rows, selectedConversationIDKey]
+  )
+
+  React.useEffect(() => {
+    console.log('aaaaa inbox index mount<<<<<<<')
+    return () => {
+      console.log('aaaaa inbox index UNmount>>>>>>>>>')
+    }
+  }, [])
+
   return (
     <Kb.ErrorBoundary>
       <Kb.Box className="inbox-hover-container" style={styles.container}>
@@ -415,6 +444,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
           {rows.length ? (
             <AutoSizer>
               {(p: {height?: number; width?: number}) => {
+                console.log('aaaaa autosizer', p)
                 let {height = 1, width = 1} = p
                 if (isNaN(height)) {
                   height = 1
@@ -423,19 +453,19 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
                   width = 1
                 }
                 return (
-                  <VariableSizeList
+                  <TheList
                     height={height}
                     width={width}
-                    ref={listRef}
+                    listRef={listRef}
                     outerRef={scrollDiv}
                     onItemsRendered={onItemsRendered}
                     itemCount={rows.length}
                     itemSize={itemSizeGetter}
                     estimatedItemSize={56}
-                    itemData={dragY === -1 ? {rows: rows, sel: selectedConversationIDKey} : dragY}
+                    itemData={itemData}
                   >
                     {listChild}
-                  </VariableSizeList>
+                  </TheList>
                 )
               }}
             </AutoSizer>

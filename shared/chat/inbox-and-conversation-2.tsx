@@ -11,6 +11,12 @@ import InfoPanel from './conversation/info-panel'
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
+  React.useEffect(() => {
+    console.log('aaaaa inboxandconvo index mount<<<<<<<')
+    return () => {
+      console.log('aaaaa inboxandconvo index UNmount>>>>>>>>>')
+    }
+  }, [])
   const conversationIDKey = props.conversationIDKey ?? C.Chat.noConversationIDKey
   const navKey = props.navKey ?? ''
   const inboxSearch = C.useChatState(s => s.inboxSearch)
