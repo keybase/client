@@ -15,7 +15,7 @@ import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '@/common-adapters/reanimated'
 
-const deriveTeamSoFar = (teamSoFar: Set<T.TB.User>): Array<T.TB.SelectedUser> =>
+const deriveTeamSoFar = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {
     let username = ''
     let serviceId: T.TB.ServiceIdWithContact
@@ -84,7 +84,7 @@ const TeamBuilding = (p: OwnProps) => {
   const _teamSoFar = C.useTBContext(s => s.teamSoFar)
   const userRecs = C.useTBContext(s => s.userRecs)
 
-  const userResults: Array<T.TB.User> | undefined = searchResults
+  const userResults: ReadonlyArray<T.TB.User> | undefined = searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 

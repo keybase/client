@@ -51,7 +51,7 @@ const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCod
 // When the notif is tapped we are only passed the message, use this as a marker
 // so we can handle it correctly.
 const contactNotifMarker = 'Your contact'
-const makeContactsResolvedMessage = (cts: Array<T.RPCGen.ProcessedContact>) => {
+const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedContact>>) => {
   if (cts.length === 0) {
     return ''
   }
@@ -223,7 +223,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           if (get().waitingToShowJoinedModal && resolved) {
             set(s => {
-              s.alreadyOnKeybase = resolved
+              s.alreadyOnKeybase = T.castDraft(resolved)
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {

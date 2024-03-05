@@ -8,9 +8,9 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 
 const prefix = 'keybase://'
-type Store = {
+type Store = T.Immutable<{
   keybaseLinkError: string
-}
+}>
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 

@@ -8,7 +8,7 @@ import {type Device} from './provision'
 
 export const waitingKey = 'recover-password:waiting'
 
-type Store = {
+type Store = T.Immutable<{
   devices: Array<Device>
   error: string
   paperKeyError: string
@@ -19,7 +19,7 @@ type Store = {
   }
   resetEmailSent?: boolean
   username: string
-}
+}>
 
 const initialStore: Store = {
   devices: [],

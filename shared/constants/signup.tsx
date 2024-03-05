@@ -22,7 +22,7 @@ export const defaultDevicename =
   (Platforms.isLinux ? 'Linux Device' : undefined) ||
   (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
 
-type Store = {
+type Store = T.Immutable<{
   devicename: string
   devicenameError: string
   email: string
@@ -36,7 +36,7 @@ type Store = {
   username: string
   usernameError: string
   usernameTaken: string
-}
+}>
 
 const initialStore: Store = {
   devicename: defaultDevicename,

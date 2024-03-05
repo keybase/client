@@ -354,7 +354,7 @@ let afterStartupDetails = (_done: boolean) => {}
 export const initPlatformListener = () => {
   let _lastPersist = ''
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.persistRoute = (path?: Array<any>) => {
+    s.dispatch.dynamic.persistRoute = (path?: ReadonlyArray<any>) => {
       const f = async () => {
         let param = {}
         let routeName = Tabs.peopleTab

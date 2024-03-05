@@ -30,7 +30,7 @@ export const selfToUser = (you: string): T.TB.User => ({
 
 export const searchWaitingKey = 'teamBuilding:search'
 
-export type Store = {
+export type Store = T.Immutable<{
   namespace: T.TB.AllowedNamespace
   error: string
   teamSoFar: Set<T.TB.User>
@@ -45,7 +45,7 @@ export type Store = {
   userRecs?: Array<T.TB.User>
   selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
-}
+}>
 export const initialStore: Store = {
   error: '',
   finishedSelectedRole: 'writer',

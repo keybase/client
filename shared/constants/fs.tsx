@@ -291,8 +291,10 @@ export const emptyFileContext: T.FS.FileContext = {
   viewType: T.RPCGen.GUIViewType.default,
 }
 
-export const getPathItem = (pathItems: Map<T.FS.Path, T.FS.PathItem>, path: T.FS.Path): T.FS.PathItem =>
-  pathItems.get(path) || (unknownPathItem as T.FS.PathItem)
+export const getPathItem = (
+  pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
+  path: T.Immutable<T.FS.Path>
+): T.Immutable<T.FS.PathItem> => pathItems.get(path) || (unknownPathItem as T.FS.PathItem)
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16
@@ -326,10 +328,10 @@ export const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(def
 export const pathTypeToTextType = (type: T.FS.PathType) =>
   type === T.FS.PathType.Folder ? 'BodySemibold' : 'Body'
 
-export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
+export const splitTlfIntoUsernames = (tlf: string): ReadonlyArray<string> =>
   tlf.split(' ')[0]?.replace(/#/g, ',').split(',') ?? []
 
-export const getUsernamesFromPath = (path: T.FS.Path): Array<string> => {
+export const getUsernamesFromPath = (path: T.FS.Path): ReadonlyArray<string> => {
   const elems = T.FS.getPathElements(path)
   return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2]!)
 }
@@ -384,7 +386,9 @@ export const emptyTlfEdit: T.FS.TlfEdit = {
   serverTime: 0,
 }
 
-const fsNotificationTypeToEditType = (fsNotificationType: number): T.FS.FileEditType => {
+const fsNotificationTypeToEditType = (
+  fsNotificationType: T.RPCChat.Keybase1.FSNotificationType
+): T.FS.FileEditType => {
   switch (fsNotificationType) {
     case T.RPCGen.FSNotificationType.fileCreated:
       return T.FS.FileEditType.Created
@@ -400,7 +404,7 @@ const fsNotificationTypeToEditType = (fsNotificationType: number): T.FS.FileEdit
 }
 
 export const userTlfHistoryRPCToState = (
-  history: Array<T.RPCGen.FSFolderEditHistory>
+  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
 ): T.FS.UserTlfUpdates => {
   let updates: Array<T.FS.TlfUpdate> = []
   history.forEach(folder => {
@@ -473,7 +477,10 @@ export const notFoundError = new Error('not found')
 
 export const makeEditID = (): T.FS.EditID => T.FS.stringToEditID(makeUUID())
 
-export const getTlfListFromType = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType): T.FS.TlfList => {
+export const getTlfListFromType = (
+  tlfs: T.Immutable<T.FS.Tlfs>,
+  tlfType: T.Immutable<T.FS.TlfType>
+): T.Immutable<T.FS.TlfList> => {
   switch (tlfType) {
     case T.FS.TlfType.Private:
       return tlfs.private
@@ -486,10 +493,10 @@ export const getTlfListFromType = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType): T.FS
   }
 }
 
-export const computeBadgeNumberForTlfList = (tlfList: T.FS.TlfList): number =>
+export const computeBadgeNumberForTlfList = (tlfList: T.Immutable<T.FS.TlfList>): number =>
   [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
-export const computeBadgeNumberForAll = (tlfs: T.FS.Tlfs): number =>
+export const computeBadgeNumberForAll = (tlfs: T.Immutable<T.FS.Tlfs>): number =>
   [T.FS.TlfType.Private, T.FS.TlfType.Public, T.FS.TlfType.Team]
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
@@ -500,12 +507,12 @@ export const getTlfPath = (path: T.FS.Path): T.FS.Path => {
 }
 
 export const getTlfListAndTypeFromPath = (
-  tlfs: T.FS.Tlfs,
-  path: T.FS.Path
-): {
+  tlfs: T.Immutable<T.FS.Tlfs>,
+  path: T.Immutable<T.FS.Path>
+): T.Immutable<{
   tlfList: T.FS.TlfList
   tlfType: T.FS.TlfType
-} => {
+}> => {
   const visibility = T.FS.getPathVisibility(path)
   switch (visibility) {
     case T.FS.TlfType.Private:
@@ -520,7 +527,7 @@ export const getTlfListAndTypeFromPath = (
 }
 
 export const unknownTlf = makeTlf({})
-export const getTlfFromPathInFavoritesOnly = (tlfs: T.FS.Tlfs, path: T.FS.Path): T.FS.Tlf => {
+export const getTlfFromPathInFavoritesOnly = (tlfs: T.Immutable<T.FS.Tlfs>, path: T.FS.Path): T.FS.Tlf => {
   const elems = T.FS.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
@@ -529,7 +536,7 @@ export const getTlfFromPathInFavoritesOnly = (tlfs: T.FS.Tlfs, path: T.FS.Path):
   return tlfList.get(elems[2]!) || unknownTlf
 }
 
-export const getTlfFromPath = (tlfs: T.FS.Tlfs, path: T.FS.Path): T.FS.Tlf => {
+export const getTlfFromPath = (tlfs: T.Immutable<T.FS.Tlfs>, path: T.FS.Path): T.FS.Tlf => {
   const fromFavorites = getTlfFromPathInFavoritesOnly(tlfs, path)
   return fromFavorites !== unknownTlf
     ? fromFavorites
@@ -761,7 +768,7 @@ export const getChatTarget = (path: T.FS.Path, me: string): string => {
   return 'conversation'
 }
 
-export const getSharePathArrayDescription = (paths: Array<T.FS.LocalPath>): string => {
+export const getSharePathArrayDescription = (paths: ReadonlyArray<T.FS.LocalPath>): string => {
   return !paths.length ? '' : paths.length === 1 ? T.FS.getPathName(paths[0]) : `${paths.length} items`
 }
 
@@ -769,13 +776,11 @@ export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): st
   picker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
     ? T.FS.getPathName(picker.source.path)
     : picker.source.type === T.FS.DestinationPickerSource.IncomingShare
-      ? Array.isArray(picker.source.source)
-        ? getSharePathArrayDescription(
-            picker.source.source
-              .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
-              .filter(Boolean)
-          )
-        : picker.source.source
+      ? getSharePathArrayDescription(
+          picker.source.source
+            .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
+            .filter(Boolean)
+        )
       : ''
 
 const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
@@ -826,10 +831,10 @@ export const tlfIsStuckInConflict = (tlf: T.FS.Tlf) =>
 
 export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
-  tlf: T.FS.Tlf,
-  pathItem: T.FS.PathItem,
-  uploadingPaths: Set<T.FS.Path>,
-  path: T.FS.Path
+  tlf: T.Immutable<T.FS.Tlf>,
+  pathItem: T.Immutable<T.FS.PathItem>,
+  uploadingPaths: T.Immutable<Set<T.FS.Path>>,
+  path: T.Immutable<T.FS.Path>
 ): T.FS.PathStatusIcon => {
   // There's no upload or sync for local conflict view.
   if (tlf.conflictState.type === T.FS.ConflictStateType.ManualResolvingLocalView) {
@@ -898,7 +903,7 @@ export const getMainBannerType = (
     return T.FS.MainBannerType.Offline
   } else if (kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Trying) {
     return T.FS.MainBannerType.TryingToConnect
-  } else if (overallSyncStatus.diskSpaceStatus === 'error') {
+  } else if (overallSyncStatus.diskSpaceStatus === T.FS.DiskSpaceStatus.Error) {
     return T.FS.MainBannerType.OutOfSpace
   } else {
     return T.FS.MainBannerType.None
@@ -947,8 +952,8 @@ export const hasPublicTag = (path: T.FS.Path): boolean => {
 }
 
 export const getPathUserSetting = (
-  pathUserSettings: Map<T.FS.Path, T.FS.PathUserSetting>,
-  path: T.FS.Path
+  pathUserSettings: T.Immutable<Map<T.FS.Path, T.FS.PathUserSetting>>,
+  path: T.Immutable<T.FS.Path>
 ): T.FS.PathUserSetting =>
   pathUserSettings.get(path) ||
   (T.FS.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
@@ -992,7 +997,7 @@ export const hideOrDisableInDestinationPicker = (
   destinationPickerIndex?: number
 ) => typeof destinationPickerIndex === 'number' && tlfType === T.FS.TlfType.Public && name !== username
 
-const noAccessErrorCodes = [
+const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scsimplefsnoaccess,
   T.RPCGen.StatusCode.scteamnotfound,
   T.RPCGen.StatusCode.scteamreaderror,
@@ -1000,7 +1005,7 @@ const noAccessErrorCodes = [
 
 export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   if (!isObject(error)) return
-  const code = (error as {code?: number}).code ?? -1
+  const code = (error as {code?: T.RPCGen.StatusCode}).code
   if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
     _useState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
@@ -1022,7 +1027,7 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
     _useState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
-  if (path && noAccessErrorCodes.includes(code)) {
+  if (path && code && noAccessErrorCodes.includes(code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
       _useState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
@@ -1037,29 +1042,29 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
   throw error
 }
 
-type Store = {
+type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   destinationPicker: T.FS.DestinationPicker
   downloads: T.FS.Downloads
   edits: T.FS.Edits
-  errors: Array<string>
-  fileContext: Map<T.FS.Path, T.FS.FileContext>
+  errors: ReadonlyArray<string>
+  fileContext: ReadonlyMap<T.FS.Path, T.FS.FileContext>
   folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
   overallSyncStatus: T.FS.OverallSyncStatus
   pathItemActionMenu: T.FS.PathItemActionMenu
   pathItems: T.FS.PathItems
-  pathInfos: Map<T.FS.Path, T.FS.PathInfo>
-  pathUserSettings: Map<T.FS.Path, T.FS.PathUserSetting>
+  pathInfos: ReadonlyMap<T.FS.Path, T.FS.PathInfo>
+  pathUserSettings: ReadonlyMap<T.FS.Path, T.FS.PathUserSetting>
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
   softErrors: T.FS.SoftErrors
   tlfUpdates: T.FS.UserTlfUpdates
   tlfs: T.FS.Tlfs
   uploads: T.FS.Uploads
-}
+}>
 const initialStore: Store = {
   badge: T.RPCGen.FilesTabBadge.none,
   criticalUpdate: false,
@@ -1174,7 +1179,11 @@ type State = Store & {
     moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    onPathChange: (clientID: string, path: string, topics: T.RPCGen.PathSubscriptionTopic[]) => void
+    onPathChange: (
+      clientID: string,
+      path: string,
+      topics: ReadonlyArray<T.RPCGen.PathSubscriptionTopic>
+    ) => void
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
@@ -1186,12 +1195,12 @@ type State = Store & {
     setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
     setEditName: (editID: T.FS.EditID, name: string) => void
     setFolderViewFilter: (filter?: string) => void
-    setIncomingShareSource: (source: Array<T.RPCGen.IncomingShareItem>) => void
+    setIncomingShareSource: (source: ReadonlyArray<T.RPCGen.IncomingShareItem>) => void
     setLastPublicBannerClosedTlf: (tlf: string) => void
     setMoveOrCopySource: (path: T.FS.Path) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
     setPathItemActionMenuView: (view: T.FS.PathItemActionMenuView) => void
-    setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
+    setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
@@ -1271,7 +1280,10 @@ const makeEntry = (d: T.RPCGen.Dirent, children?: Set<string>): T.FS.PathItem =>
   }
 }
 
-const updatePathItem = (oldPathItem: T.FS.PathItem, newPathItemFromAction: T.FS.PathItem): T.FS.PathItem => {
+const updatePathItem = (
+  oldPathItem: T.Immutable<T.FS.PathItem>,
+  newPathItemFromAction: T.Immutable<T.FS.PathItem>
+): T.Immutable<T.FS.PathItem> => {
   if (
     oldPathItem.type === T.FS.PathType.Folder &&
     newPathItemFromAction.type === T.FS.PathType.Folder &&
@@ -1546,10 +1558,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
               return
             }
             s.tlfs[visibility] = new Map(s.tlfs[visibility])
-            s.tlfs[visibility].set(elems[2] ?? '', {
-              ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
-              isIgnored: false,
-            })
+            s.tlfs[visibility].set(
+              elems[2] ?? '',
+              T.castDraft({
+                ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
+                isIgnored: false,
+              })
+            )
           })
         }
       }
@@ -1560,10 +1575,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         s.tlfs[visibility] = new Map(s.tlfs[visibility])
-        s.tlfs[visibility].set(elems[2] ?? '', {
-          ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
-          isIgnored: true,
-        })
+        s.tlfs[visibility].set(
+          elems[2] ?? '',
+          T.castDraft({
+            ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
+            isIgnored: true,
+          })
+        )
       })
       C.ignorePromise(f())
     },
@@ -1575,9 +1593,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
           const payload = {
-            private: new Map(),
-            public: new Map(),
-            team: new Map(),
+            private: new Map<string, T.FS.Tlf>(),
+            public: new Map<string, T.FS.Tlf>(),
+            team: new Map<string, T.FS.Tlf>(),
           } as const
           const fs = [
             ...(results.favoriteFolders
@@ -1617,9 +1635,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
           if (payload.private.size) {
             set(s => {
-              s.tlfs.private = payload.private
-              s.tlfs.public = payload.public
-              s.tlfs.team = payload.team
+              s.tlfs.private = T.castDraft(payload.private)
+              s.tlfs.public = T.castDraft(payload.public)
+              s.tlfs.team = T.castDraft(payload.team)
               s.tlfs.loaded = true
             })
             const counts = new Map<Tabs.Tab, number>()
@@ -1731,7 +1749,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     (newPathItem.type !== T.FS.PathType.Folder || !newPathItem.children.has(name)) &&
                     s.pathItems.delete(T.FS.pathConcat(path, name))
                 )
-              s.pathItems.set(path, newPathItem)
+              s.pathItems.set(path, T.castDraft(newPathItem))
             })
 
             // Remove Rename edits that are for path items that don't exist anymore in
@@ -1898,17 +1916,19 @@ export const _useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.tlfs.additionalTlfs.set(
                 tlfPath,
-                makeTlf({
-                  conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
-                  isFavorite,
-                  isIgnored,
-                  isNew,
-                  name: tlfName,
-                  resetParticipants: (folder.reset_members || []).map(({username}) => username),
-                  syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
-                  teamId: folder.team_id || '',
-                  tlfMtime: folder.mtime || 0,
-                })
+                T.castDraft(
+                  makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
+                    isFavorite,
+                    isIgnored,
+                    isNew,
+                    name: tlfName,
+                    resetParticipants: (folder.reset_members || []).map(({username}) => username),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                    teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
+                  })
+                )
               )
             })
           }
@@ -1973,7 +1993,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
 
           set(s => {
-            s.downloads.regularDownloads = regularDownloads
+            s.downloads.regularDownloads = T.castDraft(regularDownloads)
             s.downloads.state = state
 
             const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
@@ -2053,7 +2073,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const pathItem = makeEntry(dirent)
           set(s => {
             const oldPathItem = getPathItem(s.pathItems, path)
-            s.pathItems.set(path, updatePathItem(oldPathItem, pathItem))
+            s.pathItems.set(path, T.castDraft(updatePathItem(oldPathItem, pathItem)))
             s.softErrors.pathErrors.delete(path)
             s.softErrors.tlfErrors.delete(path)
           })
@@ -2105,17 +2125,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
             const oldTlfList = s.tlfs[tlfType]
             const oldTlfFromFavorites = oldTlfList.get(tlfName) || unknownTlf
             if (oldTlfFromFavorites !== unknownTlf) {
-              s.tlfs[tlfType] = new Map([...oldTlfList, [tlfName, {...oldTlfFromFavorites, syncConfig}]])
+              s.tlfs[tlfType] = T.castDraft(
+                new Map([...oldTlfList, [tlfName, {...oldTlfFromFavorites, syncConfig}]])
+              )
               return
             }
 
             const tlfPath = T.FS.pathConcat(T.FS.pathConcat(defaultPath, tlfType), tlfName)
             const oldTlfFromAdditional = s.tlfs.additionalTlfs.get(tlfPath) || unknownTlf
             if (oldTlfFromAdditional !== unknownTlf) {
-              s.tlfs.additionalTlfs = new Map([
-                ...s.tlfs.additionalTlfs,
-                [tlfPath, {...oldTlfFromAdditional, syncConfig}],
-              ])
+              s.tlfs.additionalTlfs = T.castDraft(
+                new Map([...s.tlfs.additionalTlfs, [tlfPath, {...oldTlfFromAdditional, syncConfig}]])
+              )
               return
             }
           })
@@ -2426,7 +2447,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setIncomingShareSource: source => {
       set(s => {
-        s.destinationPicker.source = {source, type: T.FS.DestinationPickerSource.IncomingShare}
+        s.destinationPicker.source = {
+          source: T.castDraft(source),
+          type: T.FS.DestinationPickerSource.IncomingShare,
+        }
       })
     },
     setLastPublicBannerClosedTlf: tlf => {
@@ -2462,7 +2486,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setPreferredMountDirs: preferredMountDirs => {
       set(s => {
-        s.sfmi.preferredMountDirs = preferredMountDirs
+        s.sfmi.preferredMountDirs = T.castDraft(preferredMountDirs)
       })
     },
     setSorting: (path, sortSetting) => {
@@ -2677,7 +2701,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
           set(s => {
-            s.tlfUpdates = userTlfHistoryRPCToState(writerEdits || [])
+            s.tlfUpdates = T.castDraft(userTlfHistoryRPCToState(writerEdits || []))
           })
         } catch (error) {
           errorToActionOrThrow(error)

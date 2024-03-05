@@ -50,8 +50,8 @@ const PopAttach = (ownProps: OwnProps) => {
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = React.useCallback(() => {
-    messageAttachmentNativeSave(message)
-  }, [messageAttachmentNativeSave, message])
+    messageAttachmentNativeSave(ordinal)
+  }, [messageAttachmentNativeSave, ordinal])
   const onSaveAttachment = C.isMobile && attachmentType === 'image' ? _onSaveAttachment : undefined
 
   const _onShareAttachment = React.useCallback(() => {

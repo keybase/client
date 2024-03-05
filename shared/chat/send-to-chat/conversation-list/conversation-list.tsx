@@ -59,7 +59,7 @@ const ConversationList = (props: Props) => {
   const [query, setQuery] = React.useState('')
   const [waiting, setWaiting] = React.useState(false)
   const [selected, setSelected] = React.useState(0)
-  const [results, setResults] = React.useState<Array<T.RPCChat.SimpleSearchInboxConvNamesHit>>([])
+  const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.SimpleSearchInboxConvNamesHit>>([])
   const submit = C.useRPC(T.RPCChat.localSimpleSearchInboxConvNamesRpcPromise)
   const [lastQuery, setLastQuery] = React.useState('init')
   if (lastQuery !== query) {
@@ -98,7 +98,7 @@ type ConversationListRenderProps = {
   selected: number
   setSelected: (selected: number) => void
   waiting: boolean
-  results: Array<T.RPCChat.SimpleSearchInboxConvNamesHit>
+  results: ReadonlyArray<T.RPCChat.SimpleSearchInboxConvNamesHit>
   setQuery: (query: string) => void
   onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }

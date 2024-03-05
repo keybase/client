@@ -18,7 +18,7 @@ const TeamPicker = (props: Props) => {
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Uint8Array | undefined>()
-  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
+  const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)

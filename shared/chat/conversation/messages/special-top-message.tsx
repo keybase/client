@@ -15,7 +15,7 @@ const ErrorMessage = () => {
   const createConversation = C.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = React.useCallback(
-    (allowedUsers: Array<string>) => {
+    (allowedUsers: ReadonlyArray<string>) => {
       createConversation(allowedUsers)
     },
     [createConversation]
@@ -27,7 +27,7 @@ const ErrorMessage = () => {
   }, [navigateToInbox])
   const onBack = Kb.Styles.isMobile ? _onBack : undefined
 
-  let createConversationDisallowedUsers: Array<string> = []
+  let createConversationDisallowedUsers: ReadonlyArray<string> = []
   let createConversationErrorDescription = ''
   let createConversationErrorHeader = ''
   let onCreateWithoutThem: (() => void) | undefined

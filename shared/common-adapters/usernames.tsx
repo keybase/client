@@ -43,7 +43,7 @@ export type Props = {
   suffixType?: TextType
   title?: string
   underline?: boolean
-  usernames: Array<string> | string
+  usernames: ReadonlyArray<string> | string
   withProfileCardPopup?: boolean
   fixOverdraw?: boolean | 'auto'
   virtualText?: boolean // desktop only see text.desktop

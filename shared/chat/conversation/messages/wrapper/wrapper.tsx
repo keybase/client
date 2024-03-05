@@ -98,7 +98,7 @@ const hasSuccessfulInlinePayments = (
 
 const useState = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
-    ordinals: Array<T.Chat.Ordinal>,
+    ordinals: ReadonlyArray<T.Chat.Ordinal>,
     hasReactions: boolean,
     message: T.Chat.Message
   ) => {

@@ -8,7 +8,7 @@ export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'
 
 export const getFeaturedSorted = (
-  featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
+  featuredBotsMap: ReadonlyMap<string, T.RPCGen.FeaturedBot>
 ): Array<T.RPCGen.FeaturedBot> => {
   const featured = [...featuredBotsMap.values()]
   featured.sort((a: T.RPCGen.FeaturedBot, b: T.RPCGen.FeaturedBot) => {
@@ -23,16 +23,16 @@ export const getFeaturedSorted = (
 }
 
 type BotSearchResults = {
-  bots: Array<T.RPCGen.FeaturedBot>
-  users: Array<string>
+  bots: ReadonlyArray<T.RPCGen.FeaturedBot>
+  users: ReadonlyArray<string>
 }
 
-type Store = {
+type Store = T.Immutable<{
   featuredBotsPage: number
   featuredBotsLoaded: boolean
   featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
   botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
-}
+}>
 
 const initialStore: Store = {
   botSearchResults: new Map(),
@@ -52,7 +52,7 @@ type State = Store & {
     setLoadedAllBots: (loaded: boolean) => void
     setLoadedBotPage: (page: number) => void
     setSearchFeaturedAndUsersResults: (query: string, results?: BotSearchResults) => void
-    updateFeaturedBots: (bots: Array<T.RPCGen.FeaturedBot>, page?: number) => void
+    updateFeaturedBots: (bots: ReadonlyArray<T.RPCGen.FeaturedBot>, page?: number) => void
   }
 }
 
@@ -104,7 +104,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     searchFeaturedAndUsers: query => {
       const f = async () => {
         let botRes: T.RPCGen.SearchRes | undefined
-        let userRes: Array<T.RPCGen.APIUserSearchResult> | undefined
+        let userRes: ReadonlyArray<T.RPCGen.APIUserSearchResult> | undefined
         try {
           const temp = await Promise.all([
             T.RPCGen.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, waitingKeyBotSearchFeatured),
@@ -179,7 +179,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setSearchFeaturedAndUsersResults: (query, results) => {
       set(s => {
-        s.botSearchResults.set(query, results)
+        s.botSearchResults.set(query, T.castDraft(results))
       })
     },
     updateFeaturedBots: (bots, page) => {

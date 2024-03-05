@@ -8,7 +8,7 @@ import {indefiniteArticle} from '@/util/string'
 type Props = {
   addee: string
   adder: string
-  bulkAdds: Array<string>
+  bulkAdds?: ReadonlyArray<string>
   role: T.Teams.MaybeTeamRoleType
   onManageNotifications: () => void
   onViewBot: () => void
@@ -77,7 +77,7 @@ const AddedToTeam = (props: Props) => {
     <UserNotice>
       <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: props.adder, you: props.you})}added{' '}
-        {getAddedUsernames(props.bulkAdds.length === 0 ? [props.addee] : props.bulkAdds)}
+        {getAddedUsernames(props.bulkAdds?.length ? props.bulkAdds : [props.addee])}
         {props.isTeam && ' to the team'}
         {role && ` as ${indefiniteArticle(role)} ${role}`}. <ManageComponent {...props} />
       </Kb.Text>

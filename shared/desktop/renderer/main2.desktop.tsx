@@ -167,8 +167,9 @@ const load = () => {
       for (let i = 0; i < 10; ++i) {
         console.log('DEBUG_DEFER on!!!')
       }
-      const e: any = <div>temp</div>
-      ReactDOM.createRoot(document.getElementById('root')!, e)
+      const e = <div>temp</div>
+      const root = document.getElementById('root')
+      root && ReactDOM.createRoot(root).render(e)
       setTimeout(() => {
         render()
       }, 5000)

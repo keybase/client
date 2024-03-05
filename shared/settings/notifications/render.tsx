@@ -9,7 +9,7 @@ type GroupProps = {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings?: Array<NotificationsSettingsState>
+  settings?: ReadonlyArray<NotificationsSettingsState>
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean

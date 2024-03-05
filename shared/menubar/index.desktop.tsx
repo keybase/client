@@ -28,7 +28,7 @@ export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsTo
   outOfDate: T.Config.OutOfDate
   showingDiskSpaceBanner: boolean
   username: string
-  navBadges: Map<string, number>
+  navBadges: ReadonlyMap<string, number>
   windowShownCount: number
 
   // UploadCountdownHOCProps
@@ -377,7 +377,7 @@ const iconMap = {
 
 type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
 
-const BadgeIcon = (p: {tab: Tabs; countMap: Map<string, number>; openApp: (t: Tabs) => void}) => {
+const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp: (t: Tabs) => void}) => {
   const {tab, countMap, openApp} = p
   const count = countMap.get(tab)
   const iconType = iconMap[tab]

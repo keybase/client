@@ -129,20 +129,19 @@ const useResizeObserver = () => {
 // scrolling related things
 const useScrolling = (p: {
   containsLatestMessage: boolean
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   listRef: React.MutableRefObject<HTMLDivElement | null>
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
+  const numOrdinals = messageOrdinals.length
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
-  const newestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? T.Chat.numberToOrdinal(-1)
-  const oldestOrdinal = messageOrdinals[0] ?? T.Chat.numberToOrdinal(-1)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
-      loadNewerMessagesDueToScroll(newestOrdinal)
-    }, [loadNewerMessagesDueToScroll, newestOrdinal]),
+      loadNewerMessagesDueToScroll(numOrdinals)
+    }, [loadNewerMessagesDueToScroll, numOrdinals]),
     200
   )
   const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
@@ -179,7 +178,7 @@ const useScrolling = (p: {
     const list = listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessages(oldestOrdinal)
+        loadOlderMessages(numOrdinals)
       } else if (
         !containsLatestMessage &&
         !isLockedToBottom() &&
@@ -188,7 +187,7 @@ const useScrolling = (p: {
         loadNewerMessages()
       }
     }
-  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, oldestOrdinal]) //,
+  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, numOrdinals])
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
@@ -390,10 +389,10 @@ const useScrolling = (p: {
 }
 
 const useItems = (p: {
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
-  messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
+  messageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
   const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10

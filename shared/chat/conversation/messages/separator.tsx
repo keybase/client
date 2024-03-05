@@ -2,11 +2,10 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {formatTimeForChat} from '@/util/timestamp'
+import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useChatDebugDump} from '@/constants/chat2/debug'
-import {formatTimeForConversationList} from '@/util/timestamp'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -215,7 +214,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
       // we don't show the label if its been too recent (2hrs)
-      const tooSoon = new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
       const orangeLineAbove =
         orangeOrdinal === ordinal
           ? tooSoon

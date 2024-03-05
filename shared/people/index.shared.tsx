@@ -10,7 +10,10 @@ import type {Props} from '.'
 import Todo from './todo/container'
 // import WotTask from './wot-task'
 
-const itemToComponent: (item: T.People.PeopleScreenItem, props: Props) => React.ReactNode = (item, props) => {
+const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
+  item,
+  props
+) => {
   switch (item.type) {
     case 'todo':
       return (

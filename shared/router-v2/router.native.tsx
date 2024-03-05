@@ -341,10 +341,11 @@ const RNApp = React.memo(function RNApp() {
     })
   }
   const barStyle = useBarStyle()
+  const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
 
   return (
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
-      <StatusBar barStyle={barStyle} />
+      {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking as any}

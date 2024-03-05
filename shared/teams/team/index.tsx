@@ -60,7 +60,7 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const getBots = memoize((members: Map<string, T.Teams.MemberInfo>) =>
+const getBots = memoize((members: ReadonlyMap<string, T.Teams.MemberInfo>) =>
   [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
 )
 const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {

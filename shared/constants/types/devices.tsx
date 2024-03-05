@@ -1,3 +1,4 @@
+import type * as T from '.'
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string
 
@@ -15,10 +16,10 @@ export type Device = {
   type: DeviceType
 }
 
-export type State = {
+export type State = T.Immutable<{
   deviceMap: Map<DeviceID, Device>
   isNew: Set<string>
-}
+}>
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
 export function stringToDeviceType(s: string): DeviceType {

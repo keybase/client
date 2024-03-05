@@ -87,7 +87,7 @@ type EncryptOptions = {
   sign: boolean
 }
 
-type Store = {
+type Store = T.Immutable<{
   decrypt: CommonStore
   encrypt: CommonStore & {
     meta: {
@@ -100,7 +100,7 @@ type Store = {
   }
   sign: CommonStore
   verify: CommonStore
-}
+}>
 
 export const Operations = {
   Decrypt: 'decrypt',
@@ -222,10 +222,10 @@ type State = Store & {
     onSaltpackStart: (op: T.Crypto.Operations) => void
     onSaltpackProgress: (op: T.Crypto.Operations, bytesComplete: number, bytesTotal: number) => void
     onSaltpackOpenFile: (op: T.Crypto.Operations, path: string) => void
-    onTeamBuildingFinished: (users: Set<T.TB.User>) => void
+    onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
     setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => void
-    setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
+    setRecipients: (recipients: ReadonlyArray<string>, hasSBS: boolean) => void
   }
 }
 
@@ -506,7 +506,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const e = s.encrypt
         resetOutput(e)
-        e.recipients = initialStore.encrypt.recipients
+        e.recipients = T.castDraft(initialStore.encrypt.recipients)
         // Reset options since they depend on the recipients
         e.options = initialStore.encrypt.options
         e.meta = initialStore.encrypt.meta
@@ -561,7 +561,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s[op].inProgress = true
       })
     },
-    onTeamBuildingFinished: (_users: Set<T.TB.User>) => {
+    onTeamBuildingFinished: _users => {
       const users = [..._users]
       let hasSBS = false as boolean
       const usernames = users.map(user => {
@@ -591,12 +591,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         switch (op) {
           case Operations.Encrypt:
-            s[op] = initialStore[op]
+            s[op] = T.castDraft(initialStore[op])
             break
           case Operations.Decrypt:
           case Operations.Sign:
           case Operations.Verify:
-            s[op] = initialStore[op]
+            s[op] = T.castDraft(initialStore[op])
             break
         }
       })
@@ -718,7 +718,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (hasSBS) {
           o.options.sign = true
         }
-        o.recipients = recipients
+        o.recipients = T.castDraft(recipients)
       })
       // mobile doesn't run anything automatically
       if (get().encrypt.inputType === 'text' && !Platform.isMobile) {

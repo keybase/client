@@ -38,7 +38,7 @@ export type AddToTeamProps = {
   addUserToTeamsState: T.Teams.AddUserToTeamsState
   loadTeamList: () => void
   onBack: () => void
-  teamProfileAddList: Array<T.Teams.TeamProfileAddList>
+  teamProfileAddList: ReadonlyArray<T.Teams.TeamProfileAddList>
   them: string
   waiting: boolean
 }

@@ -25,8 +25,8 @@ const useLoadDataForChannelPage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
   meta: T.Chat.ConversationMeta,
-  participants: string[],
-  bots: string[]
+  participants: ReadonlyArray<string>,
+  bots: ReadonlyArray<string>
 ) => {
   const prevSelectedTab = Container.usePrevious(selectedTab)
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)

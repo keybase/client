@@ -35,10 +35,10 @@ export type NotificationsGroupState = {
   unsub: boolean
 }
 
-type Store = {
+type Store = T.Immutable<{
   allowEdit: boolean
   groups: Map<string, NotificationsGroupState>
-}
+}>
 
 const initialStore: Store = {
   allowEdit: false,

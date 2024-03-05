@@ -4,7 +4,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
 import logger from '@/logger'
 
-export type Store = {
+export type Store = T.Immutable<{
   cancelLabel?: string
   prompt: string
   retryLabel?: string
@@ -12,7 +12,7 @@ export type Store = {
   submitLabel?: string
   type: T.RPCGen.PassphraseType
   windowTitle: string
-}
+}>
 const initialStore: Store = {
   cancelLabel: undefined,
   prompt: '',

@@ -1,3 +1,4 @@
+import type * as T from '../../types'
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
@@ -25,7 +26,7 @@ export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
 export type ThreadSearchInfo = {
   status: ThreadSearchStatus
-  hits: Array<_Message.Message>
+  hits: ReadonlyArray<_Message.Message>
   visible: boolean
 }
 
@@ -51,23 +52,23 @@ export type InboxSearchOpenTeamHit = {
   inTeam: boolean
   name: string
   memberCount: number
-  publicAdmins: Array<string>
+  publicAdmins: ReadonlyArray<string>
 }
 
 export type InboxSearchInfo = {
   indexPercent: number
-  botsResults: Array<RPCTypes.FeaturedBot>
+  botsResults: ReadonlyArray<RPCTypes.FeaturedBot>
   botsResultsSuggested: boolean
   botsStatus: InboxSearchStatus
-  nameResults: Array<InboxSearchConvHit>
+  nameResults: ReadonlyArray<InboxSearchConvHit>
   nameResultsUnread: boolean
   nameStatus: InboxSearchStatus
-  openTeamsResults: Array<InboxSearchOpenTeamHit>
+  openTeamsResults: ReadonlyArray<InboxSearchOpenTeamHit>
   openTeamsResultsSuggested: boolean
   openTeamsStatus: InboxSearchStatus
   query: string
   selectedIndex: number
-  textResults: Array<InboxSearchTextHit>
+  textResults: ReadonlyArray<InboxSearchTextHit>
   textStatus: InboxSearchStatus
 }
 
@@ -82,7 +83,7 @@ export type AttachmentViewStatus = 'loading' | 'success' | 'error'
 
 export type AttachmentViewInfo = {
   status: AttachmentViewStatus
-  messages: Array<_Message.Message>
+  messages: ReadonlyArray<_Message.Message>
   last: boolean
 }
 
@@ -112,10 +113,10 @@ export type BlockButtonsInfo = {
   adder: string
 }
 
-export type BotPublicCommands = {
+export type BotPublicCommands = T.Immutable<{
   loadError: boolean
   commands: Array<string>
-}
+}>
 
 export type CreateConversationError = {
   allowedUsers: Array<string>
@@ -124,11 +125,11 @@ export type CreateConversationError = {
   message: string
 }
 
-export type ParticipantInfo = {
+export type ParticipantInfo = T.Immutable<{
   all: Array<string> // all member usernames, including bots
   name: Array<string> // member usernames not including bots
   contactName: Map<string, string> // member username -> contact name
-}
+}>
 
 // Corresponds to skinTones in emoji-datasource.
 export type EmojiSkinTone = '1F3FA' | '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'

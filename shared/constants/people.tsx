@@ -343,12 +343,12 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-type Store = {
+type Store = T.Immutable<{
   followSuggestions: Array<T.People.FollowSuggestion>
   newItems: Array<T.People.PeopleScreenItem>
   oldItems: Array<T.People.PeopleScreenItem>
   resentEmail: string
-}
+}>
 const initialStore: Store = {
   followSuggestions: [],
   newItems: [],
@@ -483,10 +483,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
               s.followSuggestions = followSuggestions
             }
             if (!isEqual(newItems, s.newItems)) {
-              s.newItems = newItems
+              s.newItems = T.castDraft(newItems)
             }
             if (!isEqual(oldItems, s.oldItems)) {
-              s.oldItems = oldItems
+              s.oldItems = T.castDraft(oldItems)
             }
           })
           // never throw black bars

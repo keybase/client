@@ -63,7 +63,7 @@ function isKeybaseUserId(userId: string) {
 
 function followStateHelperWithId(
   me: string,
-  followingState: Set<string>,
+  followingState: ReadonlySet<string>,
   userId: string = ''
 ): T.TB.FollowingState {
   if (isKeybaseUserId(userId)) {
@@ -77,11 +77,11 @@ function followStateHelperWithId(
 }
 
 const expensiveDeriveResults = (
-  searchResults: Array<T.TB.User> | undefined,
-  teamSoFar: Set<T.TB.User>,
+  searchResults: ReadonlyArray<T.TB.User> | undefined,
+  teamSoFar: ReadonlySet<T.TB.User>,
   myUsername: string,
-  followingState: Set<string>,
-  preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
+  followingState: ReadonlySet<string>,
+  preExistingTeamMembers: ReadonlyMap<string, T.Teams.MemberInfo>
 ) =>
   searchResults?.map(info => {
     const label = info.label || ''
@@ -249,7 +249,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const userResults: Array<T.TB.User> | undefined = _searchResults
+  const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 

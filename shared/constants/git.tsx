@@ -3,7 +3,7 @@ import * as T from './types'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 
-const parseRepos = (results: Array<T.RPCGen.GitRepoResult>) => {
+const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
   const repos = new Map<string, T.Git.GitInfo>()
   results.forEach(result => {

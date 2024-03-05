@@ -1,6 +1,7 @@
+import type * as T from '.'
 import type {RPCError} from '@/util/errors'
 
-export type State = {
-  readonly counts: Map<string, number>
-  readonly errors: Map<string, RPCError | undefined>
-}
+export type State = T.Immutable<{
+  counts: Map<string, number>
+  errors: Map<string, RPCError | undefined>
+}>

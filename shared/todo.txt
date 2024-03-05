@@ -5,3 +5,10 @@ remove F1 debug in chat
 f6 for just a router remount?
 inbox remounts?
 inbox autosizer keeps firing
+inbox lost mount on tab change
+stellar nav, chat etc
+fasttext
+text selection delete issues
+email notifications dark mode
+exploded due to new device rendered wrong
+mem leak

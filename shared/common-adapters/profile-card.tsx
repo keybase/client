@@ -48,7 +48,7 @@ type Props = {
 const maxIcons = 4
 
 type ServiceIconsProps = {
-  userDetailsAssertions?: Map<string, T.Tracker.Assertion>
+  userDetailsAssertions?: ReadonlyMap<string, T.Tracker.Assertion>
 }
 
 const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | undefined => {

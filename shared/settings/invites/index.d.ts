@@ -2,7 +2,7 @@ import type * as React from 'react'
 import type {PendingInvite, AcceptedInvite} from '@/constants/settings-invites'
 
 export type Props = {
-  acceptedInvites: Array<AcceptedInvite>
+  acceptedInvites: ReadonlyArray<AcceptedInvite>
   error: string
   inviteEmail: string
   inviteMessage: string
@@ -12,7 +12,7 @@ export type Props = {
   onRefresh: () => void
   onSelectPendingInvite: (invite: PendingInvite) => void
   onSelectUser: (username: string) => void
-  pendingInvites: Array<PendingInvite>
+  pendingInvites: ReadonlyArray<PendingInvite>
   showMessageField: boolean
   waitingForResponse: boolean
 }

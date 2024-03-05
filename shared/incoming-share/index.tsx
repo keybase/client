@@ -112,7 +112,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   )
 }
 
-const getContentDescription = (items: Array<T.RPCGen.IncomingShareItem>) => {
+const getContentDescription = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   if (items.length === 0) {
     return undefined
   }
@@ -146,7 +146,7 @@ const getContentDescription = (items: Array<T.RPCGen.IncomingShareItem>) => {
   )
 }
 
-const useHeader = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
+const useHeader = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return {
@@ -165,7 +165,7 @@ const useHeader = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
   }
 }
 
-const useFooter = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
+const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const setIncomingShareSource = C.useFSState(s => s.dispatch.setIncomingShareSource)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
@@ -191,7 +191,7 @@ const useFooter = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
 }
 
 type IncomingShareProps = {
-  incomingShareItems: Array<T.RPCGen.IncomingShareItem>
+  incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
 }
 
 const IncomingShare = (props: IncomingShareProps) => {
@@ -257,8 +257,10 @@ const IncomingShareError = () => {
 }
 
 const useIncomingShareItems = () => {
-  const [incomingShareItems, setIncomingShareItems] = React.useState<Array<T.RPCGen.IncomingShareItem>>([])
-  const [incomingShareError, setIncomingShareError] = React.useState<any>(undefined)
+  const [incomingShareItems, setIncomingShareItems] = React.useState<
+    ReadonlyArray<T.RPCGen.IncomingShareItem>
+  >([])
+  const [incomingShareError, setIncomingShareError] = React.useState<unknown>(undefined)
 
   // iOS
   const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
@@ -335,7 +337,7 @@ const incomingShareTypeToString = (
   }
 }
 
-const isChatOnly = (items?: Array<T.RPCGen.IncomingShareItem>): boolean =>
+const isChatOnly = (items?: ReadonlyArray<T.RPCGen.IncomingShareItem>): boolean =>
   items?.length === 1 &&
   items[0]!.type === T.RPCGen.IncomingShareType.text &&
   !!items[0]!.content &&

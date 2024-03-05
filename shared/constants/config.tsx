@@ -36,13 +36,13 @@ export const defaultPublicPrefix = '/public/'
 export const noKBFSFailReason = "Can't connect to KBFS"
 const defaultTeamPrefix = '/team/'
 
-export const privateFolderWithUsers = (users: Array<string>) =>
+export const privateFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
-export const publicFolderWithUsers = (users: Array<string>) =>
+export const publicFolderWithUsers = (users: ReadonlyArray<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export type Store = {
+export type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
   androidShare?:
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
@@ -106,7 +106,7 @@ export type Store = {
     x: number
     y: number
   }
-}
+}>
 
 const initialStore: Store = {
   allowAnimatedEmojis: true,
@@ -177,7 +177,7 @@ type State = Store & {
       onEngineConnectedDesktop?: () => void
       onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
       onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (path?: Array<any>) => void
+      persistRoute?: (path?: ReadonlyArray<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
       showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
@@ -201,7 +201,7 @@ type State = Store & {
     onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
-    openUnlockFolders: (devices: Array<T.RPCGen.Device>) => void
+    openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -280,15 +280,18 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
     const items = state.items || []
-    const goodState = items.reduce<State['gregorPushState']>((arr, {md, item}) => {
-      md && item && arr.push({item, md})
-      return arr
-    }, [])
+    const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
+      (arr, {md, item}) => {
+        md && item && arr.push({item, md})
+        return arr
+      },
+      []
+    )
     if (goodState.length !== items.length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
     }
     set(s => {
-      s.gregorPushState = goodState
+      s.gregorPushState = T.castDraft(goodState)
     })
 
     const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
@@ -327,10 +330,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (!stats) {
         s.runtimeStats = stats
       } else {
-        s.runtimeStats = {
+        s.runtimeStats = T.castDraft({
           ...s.runtimeStats,
           ...stats,
-        }
+        })
       }
     })
   }
@@ -535,33 +538,39 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initNotifySound: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
-        const notifySound = val.b
-        if (typeof notifySound === 'boolean') {
-          set(s => {
-            s.notifySound = notifySound
-          })
-        }
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
+          const notifySound = val.b
+          if (typeof notifySound === 'boolean') {
+            set(s => {
+              s.notifySound = notifySound
+            })
+          }
+        } catch {}
       }
       ignorePromise(f())
     },
     initOpenAtLogin: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
-        const openAtLogin = val.b
-        if (typeof openAtLogin === 'boolean') {
-          get().dispatch.setOpenAtLogin(openAtLogin)
-        }
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
+          const openAtLogin = val.b
+          if (typeof openAtLogin === 'boolean') {
+            get().dispatch.setOpenAtLogin(openAtLogin)
+          }
+        } catch {}
       }
       ignorePromise(f())
     },
     initUseNativeFrame: () => {
       const f = async () => {
-        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
-        const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-        set(s => {
-          s.useNativeFrame = useNativeFrame
-        })
+        try {
+          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
+          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+          set(s => {
+            s.useNativeFrame = useNativeFrame
+          })
+        } catch {}
       }
       ignorePromise(f())
     },
@@ -626,11 +635,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             const {inboxRefresh} = C.useChatState.getState().dispatch
             inboxRefresh('bootstrap')
           }
-          const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows.i ?? -1
-          if (ri > 0) {
-            C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
-          }
+          try {
+            const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+            const ri = rows.i ?? -1
+            if (ri > 0) {
+              C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
+            }
+          } catch {}
         }
 
         getFollowerInfo()
@@ -922,13 +933,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     setAccounts: a => {
       set(s => {
         if (!isEqual(a, s.configuredAccounts)) {
-          s.configuredAccounts = a
+          s.configuredAccounts = T.castDraft(a)
         }
       })
     },
     setAndroidShare: share => {
       set(s => {
-        s.androidShare = share
+        s.androidShare = T.castDraft(share)
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
@@ -941,7 +952,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     setBadgeState: b => {
       if (get().badgeState === b) return
       set(s => {
-        s.badgeState = b
+        s.badgeState = T.castDraft(b)
       })
 
       const updateDevices = () => {
@@ -974,7 +985,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         if (!b) return
         const deletedTeams = b.deletedTeams || []
         const newTeams = new Set<string>(b.newTeams || [])
-        const teamsWithResetUsers: Array<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
         const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
         teamsWithResetUsers.forEach(entry => {
           const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())

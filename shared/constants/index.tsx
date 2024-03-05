@@ -98,8 +98,12 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
 
+import logger from '@/logger'
 export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
+  f.then(() => {}).catch(e => {
+    // likely remove this after some time
+    logger.error('ignorePromise error', e)
+  })
 }
 
 export const timeoutPromise = async (timeMs: number) =>

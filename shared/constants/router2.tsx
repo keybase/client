@@ -31,7 +31,8 @@ export const _getNavigator = () => {
 
 export const logState = () => {
   const rs = getRootState()
-  const safePaths = (ps: Array<{key?: string; name?: string}>) => ps.map(p => ({key: p.key, name: p.name}))
+  const safePaths = (ps: ReadonlyArray<{key?: string; name?: string}>) =>
+    ps.map(p => ({key: p.key, name: p.name}))
   const modals = safePaths(getModalStack(rs))
   const visible = safePaths(getVisiblePath(rs))
   return {loggedIn: _isLoggedIn(rs), modals, visible}
@@ -42,7 +43,7 @@ export const getRootState = (): NavState | undefined => {
   return navigationRef_.getRootState()
 }
 
-const _isLoggedIn = (s: NavState) => {
+const _isLoggedIn = (s: T.Immutable<NavState>) => {
   if (!s) {
     return false
   }
@@ -51,10 +52,14 @@ const _isLoggedIn = (s: NavState) => {
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: NavState) => {
+export const getVisiblePath = (navState?: T.Immutable<NavState>) => {
   const rs = navState || getRootState()
 
-  const findVisibleRoute = (arr: Array<Route>, s: NavState, depth: number): Array<Route> => {
+  const findVisibleRoute = (
+    arr: T.Immutable<Array<Route>>,
+    s: T.Immutable<NavState>,
+    depth: number
+  ): T.Immutable<Array<Route>> => {
     if (!s?.routes || s.index === undefined) {
       return arr
     }
@@ -89,7 +94,7 @@ export const getVisiblePath = (navState?: NavState) => {
   return vs
 }
 
-export const getModalStack = (navState?: NavState) => {
+export const getModalStack = (navState?: T.Immutable<NavState>) => {
   const rs = navState || getRootState()
   if (!rs) {
     return []
@@ -100,7 +105,7 @@ export const getModalStack = (navState?: NavState) => {
   return rs.routes?.slice(1) ?? []
 }
 
-export const getVisibleScreen = (navState?: NavState) => {
+export const getVisibleScreen = (navState?: T.Immutable<NavState>) => {
   const visible = getVisiblePath(navState)
   return visible.at(-1)
 }
@@ -150,7 +155,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
-export const getTab = (navState?: NavState): undefined | C.Tabs.Tab => {
+export const getTab = (navState?: T.Immutable<NavState>): undefined | C.Tabs.Tab => {
   const s = navState || getRootState()
   const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
@@ -260,10 +265,10 @@ export const useSafeFocusEffect = (fn: () => void) => {
   } catch (e) {}
 }
 
-type Store = {
+type Store = T.Immutable<{
   // only used for subscribing
   navState?: NavState
-}
+}>
 
 const initialStore: Store = {
   navState: undefined,

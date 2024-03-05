@@ -32,7 +32,7 @@ export type Props = {
   onHidden: () => void
   onJoinTeam: (teamname: string) => void
   onViewTeam: () => void
-  publicAdmins: Array<string>
+  publicAdmins: ReadonlyArray<string>
   visible: boolean
 }
 

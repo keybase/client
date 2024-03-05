@@ -9,7 +9,7 @@ export const maxHandshakeTries = 3
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-export type Store = {
+export type Store = T.Immutable<{
   error?: Error
   handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string
@@ -17,7 +17,7 @@ export type Store = {
   handshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   handshakeVersion: number
-}
+}>
 
 const initialStore: Store = {
   handshakeFailedReason: '',

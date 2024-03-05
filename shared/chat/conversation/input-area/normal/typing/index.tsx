@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
-const Names = (props: {names?: Set<string>}) => {
+const Names = (props: {names?: ReadonlySet<string>}) => {
   const textType = 'BodyTinySemibold'
   const names = [...(props.names ?? [])]
 

@@ -9,8 +9,8 @@ export type InviteProps = {
   openShareSheet: () => void
   openSMS: (phoneNumber: string) => void
   onDismiss: () => void
-  usernameToContactName: Map<string, string>
-  users: Array<string>
+  usernameToContactName: ReadonlyMap<string, string>
+  users: ReadonlyArray<string>
 }
 
 const BannerBox = (props: {
@@ -99,7 +99,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export {InviteBanner}

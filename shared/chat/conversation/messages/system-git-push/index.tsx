@@ -103,7 +103,7 @@ const GitPush = React.memo(function GitPush(p: Props) {
     case 'default':
       return (
         <>
-          {refs.map(ref => {
+          {refs?.map(ref => {
             const branchName = C.Chat.systemGitBranchName(ref)
             return (
               <GitPushCommon key={branchName}>

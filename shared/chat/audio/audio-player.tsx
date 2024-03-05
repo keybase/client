@@ -6,7 +6,7 @@ import {formatAudioRecordDuration} from '@/util/timestamp'
 import {isMobile} from '@/constants/platform'
 
 type VisProps = {
-  amps: Array<number>
+  amps: undefined | ReadonlyArray<number>
   playedRatio: number
   height: number
   maxWidth?: number
@@ -14,13 +14,13 @@ type VisProps = {
 
 const AudioVis = (props: VisProps) => {
   const {amps, playedRatio, maxWidth} = props
-  let threshold = Math.floor(amps.length * playedRatio)
+  let threshold = Math.floor((amps?.length ?? 0) * playedRatio)
   if (threshold > 0) {
     threshold += 2 // metering actually lags so compensate while actually playing
   }
 
   let maxHeight = 0
-  const content = amps.map((inamp, index) => {
+  const content = amps?.map((inamp, index) => {
     const amp = isNaN(inamp) || inamp < 0 ? 0 : inamp
     const prop = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05))
     const height = Math.floor(prop * props.height)
@@ -64,7 +64,7 @@ type Props = {
   duration: number
   maxWidth?: number
   url: string
-  visAmps: Array<number>
+  visAmps: undefined | ReadonlyArray<number>
 }
 
 const AudioPlayer = (props: Props) => {
