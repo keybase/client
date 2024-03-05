@@ -1,0 +1,16 @@
+var baseSetToString = require('./_baseSetToString'),
+    shortOut = require('./_shortOut');
+
+'use strict';
+
+/**
+ * Sets the `toString` method of `func` to return `string`.
+ *
+ * @private
+ * @param {Function} func The function to modify.
+ * @param {Function} string The `toString` result.
+ * @returns {Function} Returns `func`.
+ */
+var setToString = shortOut(baseSetToString);
+
+module.exports = setToString;
