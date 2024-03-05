@@ -335,7 +335,7 @@ export type MessageSystemCreateTeam = T.Immutable<{
 export type MessageSystemGitPush = T.Immutable<{
   pusher: string
   pushType: RPCTypes.GitPushType
-  refs: ReadonlyArray<RPCTypes.GitRefMetadata>
+  refs: undefined | ReadonlyArray<RPCTypes.GitRefMetadata>
   repo: string
   repoID: string
   team: string
@@ -349,7 +349,7 @@ export type MessageSystemGitPush = T.Immutable<{
 export type MessageSystemAddedToTeam = T.Immutable<{
   addee: string
   adder: string
-  bulkAdds: ReadonlyArray<string>
+  bulkAdds: undefined | ReadonlyArray<string>
   role: TeamTypes.MaybeTeamRoleType
   team: string
   type: 'systemAddedToTeam'

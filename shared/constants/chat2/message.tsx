@@ -323,7 +323,7 @@ const makeMessageSystemAddedToTeam = (
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
-  bulkAdds: [],
+  bulkAdds: undefined,
   reactions: undefined,
   role: 'none',
   team: '',
@@ -390,7 +390,7 @@ export const makeMessageSystemCreateTeam = (
 })
 
 const branchRefPrefix = 'refs/heads/'
-export const systemGitBranchName = (ref: MessageTypes.MessageSystemGitPush['refs'][number]) => {
+export const systemGitBranchName = (ref: T.RPCGen.GitRefMetadata) => {
   const {refName} = ref
   return refName.startsWith(branchRefPrefix) ? refName.substring(branchRefPrefix.length) : refName
 }
@@ -402,7 +402,7 @@ export const makeMessageSystemGitPush = (
   pushType: 0,
   pusher: '',
   reactions: undefined,
-  refs: [],
+  refs: undefined,
   repo: '',
   repoID: '',
   team: '',
