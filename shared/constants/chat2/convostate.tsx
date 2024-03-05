@@ -206,22 +206,24 @@ export type ConvoState = ConvoStore & {
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
     loadOrangeLine: (why: string) => void
-    loadOlderMessagesDueToScroll: () => void
-    loadNewerMessagesDueToScroll: () => void
-    loadMoreMessages: (p: {
-      forceContainsLatestCalc?: boolean
-      forceClear?: boolean
-      messageIDControl?: T.RPCChat.MessageIDControl
-      centeredMessageID?: {
-        conversationIDKey: T.Chat.ConversationIDKey
-        messageID: T.Chat.MessageID
-        highlightMode: T.Chat.CenterOrdinalHighlightMode
-      }
-      reason: LoadMoreReason
-      knownRemotes?: ReadonlyArray<string>
-      scrollDirection?: ScrollDirection
-      numberOfMessagesToLoad?: number
-    }) => void
+    loadOlderMessagesDueToScroll: (numOrdinals: number) => void
+    loadNewerMessagesDueToScroll: (numOrdinals: number) => void
+    loadMoreMessages: DebouncedFunc<
+      (p: {
+        forceContainsLatestCalc?: boolean
+        forceClear?: boolean
+        messageIDControl?: T.RPCChat.MessageIDControl
+        centeredMessageID?: {
+          conversationIDKey: T.Chat.ConversationIDKey
+          messageID: T.Chat.MessageID
+          highlightMode: T.Chat.CenterOrdinalHighlightMode
+        }
+        reason: LoadMoreReason
+        knownRemotes?: ReadonlyArray<string>
+        scrollDirection?: ScrollDirection
+        numberOfMessagesToLoad?: number
+      }) => void
+    >
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
@@ -720,6 +722,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     })
   }
 
+  let lastScrollNumOrdinals = 0
+  let lastScrollTime = 0
+  const okToLoadMore = (n: number) => {
+    const now = Date.now()
+    if (n !== lastScrollNumOrdinals) {
+      lastScrollNumOrdinals = n
+      lastScrollTime = now
+      return true
+    }
+
+    const delta = now - lastScrollTime
+    const ok = delta > 500
+    if (ok) {
+      lastScrollNumOrdinals = n
+      lastScrollTime = now
+    }
+    return ok
+  }
+
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -1027,6 +1048,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     jumpToRecent: () => {
       setMessageCenterOrdinal()
+      get().dispatch.messagesClear()
       get().dispatch.loadMoreMessages({reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
@@ -1146,12 +1168,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     loadMoreMessages: throttle(p => {
-      console.log('aaa <<<<<<<<<<<<<<<<<<<<<<<<<< loadmoremessages', p)
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-      const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
+      const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
+      let forceClear = p.forceClear ?? false
+
+      if (centeredMessageID) {
+        forceClear = true
+      }
 
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
@@ -1269,7 +1295,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             waitingKey: loadingKey,
           })
-
           if (get().isMetaGood()) {
             set(s => {
               s.meta.offline = results.offline
@@ -1297,13 +1322,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       C.ignorePromise(f())
     }, 500),
-    loadNewerMessagesDueToScroll: throttle(() => {
+    loadNewerMessagesDueToScroll: numOrdinals => {
+      if (!numOrdinals) {
+        return
+      }
+
+      if (!okToLoadMore(numOrdinals)) {
+        return
+      }
+
       get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
         scrollDirection: 'forward',
       })
-    }, 500),
+    },
     loadNextAttachment: async (from, backInTime) => {
       const fromMsg = get().messageMap.get(from)
       if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
@@ -1347,20 +1380,27 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       return f()
     },
-    loadOlderMessagesDueToScroll: throttle(() => {
+    loadOlderMessagesDueToScroll: numOrdinals => {
       if (!get().moreToLoad) {
         logger.info('bail: scrolling back and at the end')
-        return true
+        return
       }
 
-      return get().dispatch.loadMoreMessages({
+      if (!numOrdinals) {
+        return
+      }
+
+      if (!okToLoadMore(numOrdinals)) {
+        return
+      }
+
+      get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll back',
         scrollDirection: 'back',
       })
-    }, 500),
+    },
     loadOrangeLine: why => {
-      console.log('aaaa loadOrangeLine', why)
       const f = async () => {
         const convID = get().getConvID()
         const readMsgID = get().meta.readMsgID
@@ -2782,8 +2822,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     tabSelected: () => {
-      // get().dispatch.loadMoreMessages({reason: 'tab selected'})
-      // get().dispatch.markThreadAsRead()
+      get().dispatch.loadMoreMessages({reason: 'tab selected'})
+      get().dispatch.markThreadAsRead()
     },
     threadSearch: query => {
       set(s => {

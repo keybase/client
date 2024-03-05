@@ -135,12 +135,13 @@ const useScrolling = (p: {
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
+  const numOrdinals = messageOrdinals.length
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
-      loadNewerMessagesDueToScroll()
-    }, [loadNewerMessagesDueToScroll]),
+      loadNewerMessagesDueToScroll(numOrdinals)
+    }, [loadNewerMessagesDueToScroll, numOrdinals]),
     200
   )
   const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
@@ -177,7 +178,7 @@ const useScrolling = (p: {
     const list = listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessages()
+        loadOlderMessages(numOrdinals)
       } else if (
         !containsLatestMessage &&
         !isLockedToBottom() &&
@@ -186,7 +187,7 @@ const useScrolling = (p: {
         loadNewerMessages()
       }
     }
-  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom])
+  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, numOrdinals])
 
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
