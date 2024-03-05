@@ -206,8 +206,8 @@ export type ConvoState = ConvoStore & {
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
     loadOrangeLine: (why: string) => void
-    loadOlderMessagesDueToScroll: (oldest: T.Chat.Ordinal) => void
-    loadNewerMessagesDueToScroll: (newest: T.Chat.Ordinal) => void
+    loadOlderMessagesDueToScroll: () => void
+    loadNewerMessagesDueToScroll: () => void
     loadMoreMessages: (p: {
       forceContainsLatestCalc?: boolean
       forceClear?: boolean
@@ -720,12 +720,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     })
   }
 
-  // used by loadMoreMessages
-  let scrollBackOldest = T.Chat.numberToOrdinal(-1)
-  let scrollBackOldestTime = 0
-  let scrollForwardNewest = T.Chat.numberToOrdinal(-1)
-  let scrollForwardNewestTime = 0
-
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -1151,7 +1145,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'centered',
       })
     },
-    loadMoreMessages: p => {
+    loadMoreMessages: throttle(p => {
+      console.log('aaa <<<<<<<<<<<<<<<<<<<<<<<<<< loadmoremessages', p)
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
@@ -1160,10 +1155,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
-        scrollBackOldest = T.Chat.numberToOrdinal(-1)
-        scrollBackOldestTime = 0
-        scrollForwardNewest = T.Chat.numberToOrdinal(-1)
-        scrollForwardNewestTime = 0
         get().dispatch.messagesClear()
       }
 
@@ -1305,25 +1296,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       C.ignorePromise(f())
-    },
-
-    loadNewerMessagesDueToScroll: newest => {
-      const now = new Date().getTime()
-      if (scrollForwardNewest === newest) {
-        const delta = now - scrollForwardNewestTime
-        if (delta < 1000) {
-          logger.info('bail: already made this call too soon')
-          return
-        }
-      }
-      scrollForwardNewest = newest
-      scrollForwardNewestTime = now
+    }, 500),
+    loadNewerMessagesDueToScroll: throttle(() => {
       get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll forward',
         scrollDirection: 'forward',
       })
-    },
+    }, 500),
     loadNextAttachment: async (from, backInTime) => {
       const fromMsg = get().messageMap.get(from)
       if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
@@ -1367,29 +1347,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       return f()
     },
-    loadOlderMessagesDueToScroll: oldest => {
+    loadOlderMessagesDueToScroll: throttle(() => {
       if (!get().moreToLoad) {
         logger.info('bail: scrolling back and at the end')
         return true
       }
 
-      const now = new Date().getTime()
-      if (scrollBackOldest === oldest) {
-        const delta = now - scrollBackOldestTime
-        if (delta < 1000) {
-          logger.info('bail: already made this call too soon')
-          return false
-        }
-      }
-      scrollBackOldest = oldest
-      scrollBackOldestTime = now
       return get().dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
         reason: 'scroll back',
         scrollDirection: 'back',
       })
-    },
+    }, 500),
     loadOrangeLine: why => {
+      console.log('aaaa loadOrangeLine', why)
       const f = async () => {
         const convID = get().getConvID()
         const readMsgID = get().meta.readMsgID
@@ -2811,8 +2782,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     tabSelected: () => {
-      get().dispatch.loadMoreMessages({reason: 'tab selected'})
-      get().dispatch.markThreadAsRead()
+      // get().dispatch.loadMoreMessages({reason: 'tab selected'})
+      // get().dispatch.markThreadAsRead()
     },
     threadSearch: query => {
       set(s => {
