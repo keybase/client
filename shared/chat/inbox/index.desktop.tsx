@@ -138,11 +138,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     200
   )
 
-  const onDragOver = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const _onDragOver = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
     if (scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
-      setDragY(e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop)
+      const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop
+      setDragY(dy)
     }
   }, [])
+  const onDragOver = C.useThrottledCallback(_onDragOver, 100)
 
   const onDrop = React.useCallback(() => {
     const delta = deltaNewSmallRows()
