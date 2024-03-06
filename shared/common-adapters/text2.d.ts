@@ -17,5 +17,6 @@ type Props = {
   lineClamp?: number
   selectable?: boolean
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip' // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied,,
+  virtualText?: boolean // desktop only
 }
 export declare const Text2: (p: Props) => React.ReactNode
