@@ -9,7 +9,7 @@ import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} 
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
-import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
+import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
@@ -32,7 +32,6 @@ const _newRoutes: ReadonlyArray<RoutePlusTab> = [
   {route: fsNewRoutes, tab: Tabs.fsTab} as RoutePlusTab,
   {route: settingsNewRoutes, tab: Tabs.settingsTab} as RoutePlusTab,
   {route: teamsNewRoutes, tab: Tabs.teamsTab} as RoutePlusTab,
-  {route: walletsNewRoutes, tab: Tabs.walletsTab} as RoutePlusTab,
   {route: gitNewRoutes, tab: Tabs.gitTab} as RoutePlusTab,
 ]
 
@@ -54,7 +53,6 @@ export const tabRoots = {
   [Tabs.cryptoTab]: 'cryptoRoot',
   [Tabs.fsTab]: 'fsRoot',
   [Tabs.teamsTab]: 'teamsRoot',
-  [Tabs.walletsTab]: 'walletsRoot',
   [Tabs.gitTab]: 'gitRoot',
   [Tabs.devicesTab]: 'devicesRoot',
   [Tabs.settingsTab]: 'settingsRoot',

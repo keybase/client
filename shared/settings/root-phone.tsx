@@ -98,7 +98,6 @@ function SettingsNav() {
           text: 'Devices',
         },
         {
-          badgeNumber: badgeNumbers.get(C.Tabs.walletsTab),
           icon: 'iconfont-nav-2-wallets',
           onClick: () => onTabChange(C.Settings.settingsWalletsTab),
           text: 'Wallet',
