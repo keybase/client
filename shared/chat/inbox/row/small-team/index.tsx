@@ -46,7 +46,8 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
       const {meta} = s
       // only use layout if we don't have the meta at all
-      const maybeLayoutSnippet = meta.conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
+      const maybeLayoutSnippet =
+        meta.conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
       const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
       const snippetDecoration =
         meta.conversationIDKey === C.Chat.noConversationIDKey
