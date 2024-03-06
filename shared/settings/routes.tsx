@@ -52,6 +52,7 @@ export const sharedNewRoutes = {
   [Constants.settingsGitTab]: gitRoutes.gitRoot,
   [Constants.settingsInvitationsTab]: invitations,
   [Constants.settingsNotificationsTab]: notifications,
+  [Constants.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
   [Constants.settingsWhatsNewTab]: whatsNew,
   addEmail,
   addPhone,
@@ -77,15 +78,6 @@ const sharedNewModalRoutes = {
 export const newRoutes = {
   settingsRoot: C.isMobile ? (C.isPhone ? settingsRootPhone : settingsRootDesktop) : settingsRootDesktop,
   ...sharedNewRoutes,
-  ...(C.isMobile
-    ? C.isTablet
-      ? {}
-      : {
-          [Constants.settingsWalletsTab]: {
-            ...walletsRoutes.walletsRoot,
-          },
-        }
-    : undefined),
   [Constants.settingsScreenprotectorTab]: screenprotectorTab,
   [Constants.settingsContactsTab]: contactsTab,
   webLinks,

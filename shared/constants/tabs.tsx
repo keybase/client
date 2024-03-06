@@ -8,7 +8,6 @@ export const settingsTab = 'tabs.settingsTab'
 export const teamsTab = 'tabs.teamsTab'
 export const gitTab = 'tabs.gitTab'
 export const fsTab = 'tabs.fsTab'
-export const walletsTab = 'tabs.walletsTab'
 
 export type Tab =
   | typeof chatTab
@@ -21,7 +20,6 @@ export type Tab =
   | typeof teamsTab
   | typeof gitTab
   | typeof fsTab
-  | typeof walletsTab
 
 export type AppTab =
   | typeof peopleTab
@@ -29,7 +27,6 @@ export type AppTab =
   | typeof cryptoTab
   | typeof fsTab
   | typeof teamsTab
-  | typeof walletsTab
   | typeof gitTab
   | typeof devicesTab
   | typeof settingsTab
@@ -41,13 +38,12 @@ export const desktopTabs = [
   fsTab,
   cryptoTab,
   teamsTab,
-  walletsTab,
   gitTab,
   devicesTab,
   settingsTab,
 ] as const
 export const phoneTabs = [peopleTab, chatTab, fsTab, teamsTab, settingsTab] as const
-export const tabletTabs = [peopleTab, chatTab, fsTab, teamsTab, walletsTab, settingsTab] as const
+export const tabletTabs = [peopleTab, chatTab, fsTab, teamsTab, settingsTab] as const
 
 export const desktopTabMeta = {
   [chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -58,7 +54,6 @@ export const desktopTabMeta = {
   [peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
   [settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 
   // eslint-disable-next-line
   [loginTab]: undefined,

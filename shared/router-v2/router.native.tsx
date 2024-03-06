@@ -21,9 +21,8 @@ if (module.hot) {
   })
 }
 
-const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab] as const
-const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
-const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
+// just to get badge rollups
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
   [Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
@@ -31,7 +30,6 @@ const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
   [Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
   [Tabs.peopleTab, {icon: 'iconfont-nav-2-people', label: 'People'}],
   [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
-  [Tabs.walletsTab, {icon: 'iconfont-nav-2-wallets', label: 'Wallet'}],
 ] as const)
 
 type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']

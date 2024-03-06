@@ -2,7 +2,6 @@ Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
 
-stellar nav, chat etc
 fasttext
 text selection delete issues
 exploded due to new device rendered wrong

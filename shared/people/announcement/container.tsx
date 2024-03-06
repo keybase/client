@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
         }
         break
       case T.RPCGen.AppLinkType.wallet:
-        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.walletsTab)
+        switchTab(C.Tabs.settingsTab)
         if (C.isMobile) {
           navigateAppend(C.Settings.settingsWalletsTab)
         }
