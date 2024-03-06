@@ -4,6 +4,5 @@ remove F1 debug in chat
 
 fasttext
 text selection delete issues
-exploded due to new device rendered wrong
 mem leak
 f6 for just a router remount?

@@ -1,0 +1,18 @@
+import type * as CSS from '@/styles/css'
+import type * as React from 'react'
+import type {TextType} from './text.shared'
+
+type Props = {
+  children?: React.ReactNode // ideally just Text2 and string but this isn't easy
+  title?: string
+  className?: string
+  ref?: never
+  onClick?: never
+  onClickURL?: never
+  onLongPress?: never
+  onLongPressURL?: never
+  onPress?: never
+  style?: CSS.StylesCrossPlatform
+  type?: TextType
+}
+export declare const Text2: (p: Props) => React.ReactNode
