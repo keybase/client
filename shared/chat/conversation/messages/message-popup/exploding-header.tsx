@@ -41,7 +41,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
   }
 
   render() {
-    const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
+    const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = this.props
     const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
     const info = (
       <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
