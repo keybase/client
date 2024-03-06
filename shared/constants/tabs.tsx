@@ -41,7 +41,6 @@ export const desktopTabs = [
   fsTab,
   cryptoTab,
   teamsTab,
-  walletsTab,
   gitTab,
   devicesTab,
   settingsTab,
@@ -58,7 +57,6 @@ export const desktopTabMeta = {
   [peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
   [settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 
   // eslint-disable-next-line
   [loginTab]: undefined,
