@@ -95,9 +95,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
       size="full-width"
       style={styles.searchBox}
       icon="iconfont-search"
-      placeholderText={
-        isSearching ? 'Search your chats...' : Kb.Styles.isMobile ? 'Search your chats' : 'Search'
-      }
+      placeholderText="Search"
       hotkey="k"
       showXOverride={isSearching ? true : undefined}
       value={filter}
