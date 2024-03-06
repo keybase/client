@@ -24,16 +24,21 @@ const styles = Styles.styleSheetCreate(() =>
 )
 
 export const Text2 = React.memo(function Text2(p: Props) {
-  const {type: _type, style: _style, children, lineClamp} = p
+  const {type: _type, style: _style, children, lineClamp, selectable, ellipsizeMode} = p
   const type = _type ?? 'BodySmall'
+  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const style = React.useMemo(() => {
     const baseStyle: Styles.StylesCrossPlatform = styles[type]
-    if (_style) return [baseStyle, _style]
-    return baseStyle
-  }, [type, _style])
+    const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
+    return Styles.collapseStyles([baseStyle, _style, overdrawStyle])
+  }, [type, _style, canFixOverdraw])
+
+  const clampProps = React.useMemo(() => {
+    return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
+  }, [ellipsizeMode, lineClamp])
 
   return (
-    <RCTText style={style} numberOfLines={lineClamp}>
+    <RCTText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
       ⚠{children}
     </RCTText>
   )

@@ -92,9 +92,9 @@ const TeamRow = (props: Props) => {
                 style={styles.bodyLeftText}
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text fixOverdraw={true} type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  <Kb.Text2 type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
                     {teamMeta.teamname}
-                  </Kb.Text>
+                  </Kb.Text2>
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
