@@ -14,5 +14,6 @@ type Props = {
   onPress?: never
   style?: CSS.StylesCrossPlatform
   type?: TextType
+  lineClamp?: number
 }
 export declare const Text2: (p: Props) => React.ReactNode

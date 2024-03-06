@@ -224,7 +224,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text
+        <Kb.Text2
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -232,7 +232,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
           ])}
         >
           Draft:
-        </Kb.Text>
+        </Kb.Text2>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>
