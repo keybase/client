@@ -113,17 +113,24 @@ const useState = (ordinal: T.Chat.Ordinal) => {
   }
 
   const getEcrType = (message: T.Chat.Message, you: string) => {
-    if (!you) {
+    const {errorReason, type, submitState} = message
+    if (!errorReason) {
       return EditCancelRetryType.NONE
     }
-    const {errorReason, type, submitState} = message
-    if (
-      !errorReason ||
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed') ||
-      (message.type === 'text' && message.flipGameID)
-    ) {
+    if (!you) {
+      return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
+    }
+
+    // custom renderer
+    if (message.type === 'text' && message.flipGameID) {
       return EditCancelRetryType.NONE
+    }
+
+    if (
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed')
+    ) {
+      return EditCancelRetryType.NOACTION
     }
 
     const {outboxID, errorTyp} = message
@@ -319,6 +326,7 @@ const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
 // Author
 enum EditCancelRetryType {
   NONE,
+  NOACTION,
   CANCEL,
   EDIT_CANCEL,
   RETRY_CANCEL,
@@ -326,13 +334,14 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = C.useChatContext(
+  const {failureDescription, outboxID, exploding} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID
       const reason = m?.errorReason ?? ''
+      const exploding = m?.exploding ?? false
       const failureDescription = `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-      return {failureDescription, outboxID}
+      return {exploding, failureDescription, outboxID}
     })
   )
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
@@ -348,11 +357,12 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     outboxID && messageRetry(outboxID)
   }, [messageRetry, outboxID])
 
-  const cancel = (
-    <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
-      Cancel
-    </Kb.Text>
-  )
+  const cancel =
+    ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
+      <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
+        Cancel
+      </Kb.Text>
+    ) : null
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
@@ -375,7 +385,12 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   return (
     <Kb.Text key="isFailed" type="BodySmall">
-      <Kb.Text type="BodySmall" style={styles.fail} virtualText={true}>
+      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
+        {exploding ? (
+          <>
+            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+          </>
+        ) : null}
         {`${failureDescription}. `}
       </Kb.Text>
       {action}
