@@ -443,7 +443,7 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 
 var _ types.ChatArchiveRegistry = (*ChatArchiveRegistry)(nil)
 
-const defaultPageSize = 1000
+const defaultPageSize = 999
 
 // Fullfil an archive query
 type ChatArchiver struct {
