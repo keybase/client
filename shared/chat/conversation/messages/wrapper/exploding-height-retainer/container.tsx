@@ -29,7 +29,6 @@ const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightReta
     exploded,
     explodedBy,
     exploding,
-    forceAsh,
     messageKey,
     retainHeight,
   }
