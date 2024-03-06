@@ -171,9 +171,6 @@ const styles = Kb.Styles.styleSheetCreate(
       revokedAt: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,
-        // marginBottom: -Kb.Styles.globalMargins.small,
-        // marginTop: Kb.Styles.globalMargins.small,
-        // minHeight: 40,
         width: '100%',
       },
       timerBox: Kb.Styles.platformStyles({
