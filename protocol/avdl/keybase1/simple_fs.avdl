@@ -794,6 +794,11 @@ protocol SimpleFS {
     Time lastUpdated;
   }
 
+  record SimpleFSArchiveJobErrorState {
+    string error;
+    Time nextRetry;
+  }
+
   record SimpleFSArchiveJobStatus {
     SimpleFSArchiveJobDesc desc;
     SimpleFSArchiveJobPhase phase;
@@ -802,6 +807,7 @@ protocol SimpleFS {
     int inProgressCount;
     int completeCount;
     int totalCount;
+    union{ null, SimpleFSArchiveJobErrorState } error;
   }
   record SimpleFSArchiveStatus {
     map<string, SimpleFSArchiveJobStatus> jobs; // job ID -> job status

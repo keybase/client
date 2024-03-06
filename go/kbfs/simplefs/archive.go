@@ -67,6 +67,11 @@ func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePa
 	return nil
 }
 
+type errorState struct {
+	err       error
+	nextRetry time.Time
+}
+
 type archiveManager struct {
 	simpleFS *SimpleFS
 
@@ -75,6 +80,17 @@ type archiveManager struct {
 	mu               sync.Mutex
 	state            *keybase1.SimpleFSArchiveState
 	jobCtxCancellers map[string]func()
+	// jobID -> errorState. Populated when an error has happened. It's only
+	// valid for these phases:
+	//
+	//   keybase1.SimpleFSArchiveJobPhase_Indexing
+	//   keybase1.SimpleFSArchiveJobPhase_Copying
+	//   keybase1.SimpleFSArchiveJobPhase_Zipping
+	//
+	// When nextRetry is current errorRetryWorker delete the errorState from
+	// this map, while also putting them back to the previous phase so the
+	// worker can pick it up.
+	errors map[string]errorState
 
 	indexingWorkerSignal chan struct{}
 	copyingWorkerSignal  chan struct{}
@@ -177,12 +193,17 @@ func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
 	return nil
 }
 
-func (m *archiveManager) getCurrentState(ctx context.Context) keybase1.SimpleFSArchiveState {
+func (m *archiveManager) getCurrentState(ctx context.Context) (
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.getCurrentState")
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.state.DeepCopy()
+	errorStates = make(map[string]errorState)
+	for jobID, errState := range m.errors {
+		errorStates[jobID] = errState
+	}
+	return m.state.DeepCopy(), errorStates
 }
 
 func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
@@ -216,6 +237,20 @@ func (m *archiveManager) startWorkerTask(ctx context.Context,
 		}
 	}
 	return "", nil, false
+}
+
+const archiveErrorRetryDuration = time.Minute
+
+func (m *archiveManager) setJobError(
+	ctx context.Context, jobID string, err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	nextRetry := time.Now().Add(archiveErrorRetryDuration)
+	m.simpleFS.log.CErrorf(ctx, "job %s nextRetry: %s", jobID, nextRetry)
+	m.errors[jobID] = errorState{
+		err:       err,
+		nextRetry: nextRetry,
+	}
 }
 
 func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err error) {
@@ -306,7 +341,7 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
 		default:
 			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s: %v", jobID, err)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Queued)
+			m.setJobError(ctx, jobID, err)
 		}
 
 		m.fluseStateFile(ctx)
@@ -614,7 +649,7 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Copied)
 		default:
 			m.simpleFS.log.CErrorf(jobCtx, "copying error on job %s: %v", jobID, err)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
+			m.setJobError(ctx, jobID, err)
 		}
 
 		m.fluseStateFile(ctx)
@@ -682,10 +717,83 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Done)
 		default:
 			m.simpleFS.log.CErrorf(jobCtx, "zipping error on job %s: %v", jobID, err)
-			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Copied)
+			m.setJobError(ctx, jobID, err)
 		}
 
 		m.fluseStateFile(ctx)
+	}
+}
+
+func (m *archiveManager) resetInterruptedPhaseLocked(ctx context.Context, jobID string) (changed bool) {
+	switch m.state.Jobs[jobID].Phase {
+	case keybase1.SimpleFSArchiveJobPhase_Indexing:
+		m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+			keybase1.SimpleFSArchiveJobPhase_Indexing,
+			keybase1.SimpleFSArchiveJobPhase_Queued)
+		m.changeJobPhaseLocked(ctx, jobID,
+			keybase1.SimpleFSArchiveJobPhase_Queued)
+		return true
+	case keybase1.SimpleFSArchiveJobPhase_Copying:
+		m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+			keybase1.SimpleFSArchiveJobPhase_Copying,
+			keybase1.SimpleFSArchiveJobPhase_Indexed)
+		m.changeJobPhaseLocked(ctx, jobID,
+			keybase1.SimpleFSArchiveJobPhase_Indexed)
+		return true
+	case keybase1.SimpleFSArchiveJobPhase_Zipping:
+		m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
+			keybase1.SimpleFSArchiveJobPhase_Zipping,
+			keybase1.SimpleFSArchiveJobPhase_Copied)
+		m.changeJobPhaseLocked(ctx, jobID,
+			keybase1.SimpleFSArchiveJobPhase_Copied)
+		return true
+	default:
+		m.simpleFS.log.CDebugf(ctx, "not resetting %s phase from %s", jobID,
+			m.state.Jobs[jobID].Phase)
+		return false
+	}
+}
+
+func (m *archiveManager) errorRetryWorker(ctx context.Context) {
+	ticker := time.NewTicker(time.Second * 5)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+
+		func() {
+			m.mu.Lock()
+			defer m.mu.Unlock()
+			jobIDs := make([]string, len(m.state.Jobs))
+			for jobID := range m.state.Jobs {
+				jobIDs = append(jobIDs, jobID)
+			}
+		loopJobIDs:
+			for _, jobID := range jobIDs {
+				errState, ok := m.errors[jobID]
+				if !ok {
+					continue loopJobIDs
+				}
+				if time.Now().Before(errState.nextRetry) {
+					continue loopJobIDs
+				}
+				m.simpleFS.log.CDebugf(ctx, "retrying job %s", jobID)
+				changed := m.resetInterruptedPhaseLocked(ctx, jobID)
+				if !changed {
+					m.simpleFS.log.CWarningf(ctx,
+						"job %s has an error state %v but an unexpected job phase",
+						jobID, errState.err)
+					continue loopJobIDs
+				}
+				delete(m.errors, jobID)
+
+				m.signal(m.indexingWorkerSignal)
+				m.signal(m.copyingWorkerSignal)
+				m.signal(m.zippingWorkerSignal)
+			}
+		}()
 	}
 }
 
@@ -695,12 +803,13 @@ func (m *archiveManager) start() {
 	go m.indexingWorker(m.simpleFS.makeContext(ctx))
 	go m.copyingWorker(m.simpleFS.makeContext(ctx))
 	go m.zippingWorker(m.simpleFS.makeContext(ctx))
+	go m.errorRetryWorker(m.simpleFS.makeContext(ctx))
 	m.signal(m.indexingWorkerSignal)
 	m.signal(m.copyingWorkerSignal)
 	m.signal(m.zippingWorkerSignal)
 }
 
-func (m *archiveManager) resetInterruptedPhases(ctx context.Context) {
+func (m *archiveManager) resetInterruptedPhasesLocked(ctx context.Context) {
 	// We don't resume indexing and zipping work, so just reset them here.
 	// Copying is resumable but we have per file state tracking so reset the
 	// phase here as well.
@@ -738,6 +847,7 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 	m = &archiveManager{
 		simpleFS:             simpleFS,
 		jobCtxCancellers:     make(map[string]func()),
+		errors:               make(map[string]errorState),
 		indexingWorkerSignal: make(chan struct{}, 1),
 		copyingWorkerSignal:  make(chan struct{}, 1),
 		zippingWorkerSignal:  make(chan struct{}, 1),
@@ -749,7 +859,7 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 		if m.state.Jobs == nil {
 			m.state.Jobs = make(map[string]keybase1.SimpleFSArchiveJobState)
 		}
-		m.resetInterruptedPhases(ctx)
+		m.resetInterruptedPhasesLocked(ctx)
 	default:
 		simpleFS.log.CErrorf(ctx, "loadArchiveStateFromJsonGz error ( %v ). Creating a new state.", err)
 		m.state = &keybase1.SimpleFSArchiveState{

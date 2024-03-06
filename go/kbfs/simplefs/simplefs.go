@@ -3657,7 +3657,7 @@ func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 	status keybase1.SimpleFSArchiveStatus, err error) {
 	ctx = k.makeContext(ctx)
-	state := k.archiveManager.getCurrentState(ctx)
+	state, errorStates := k.archiveManager.getCurrentState(ctx)
 	status = keybase1.SimpleFSArchiveStatus{
 		LastUpdated: state.LastUpdated,
 		Jobs:        make(map[string]keybase1.SimpleFSArchiveJobStatus),
@@ -3693,6 +3693,12 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 				return keybase1.SimpleFSArchiveStatus{}, err
 			}
 			statusJob.CurrentTLFRevision = keybase1.KBFSRevision(status.Revision)
+		}
+		if errState, ok := errorStates[jobID]; ok {
+			statusJob.Error = &keybase1.SimpleFSArchiveJobErrorState{
+				Error:     errState.err.Error(),
+				NextRetry: keybase1.ToTime(errState.nextRetry),
+			}
 		}
 		status.Jobs[jobID] = statusJob
 	}

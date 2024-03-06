@@ -1822,14 +1822,27 @@ func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
 	}
 }
 
+type SimpleFSArchiveJobErrorState struct {
+	Error     string `codec:"error" json:"error"`
+	NextRetry Time   `codec:"nextRetry" json:"nextRetry"`
+}
+
+func (o SimpleFSArchiveJobErrorState) DeepCopy() SimpleFSArchiveJobErrorState {
+	return SimpleFSArchiveJobErrorState{
+		Error:     o.Error,
+		NextRetry: o.NextRetry.DeepCopy(),
+	}
+}
+
 type SimpleFSArchiveJobStatus struct {
-	Desc               SimpleFSArchiveJobDesc  `codec:"desc" json:"desc"`
-	Phase              SimpleFSArchiveJobPhase `codec:"phase" json:"phase"`
-	CurrentTLFRevision KBFSRevision            `codec:"currentTLFRevision" json:"currentTLFRevision"`
-	TodoCount          int                     `codec:"todoCount" json:"todoCount"`
-	InProgressCount    int                     `codec:"inProgressCount" json:"inProgressCount"`
-	CompleteCount      int                     `codec:"completeCount" json:"completeCount"`
-	TotalCount         int                     `codec:"totalCount" json:"totalCount"`
+	Desc               SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
+	Phase              SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
+	CurrentTLFRevision KBFSRevision                  `codec:"currentTLFRevision" json:"currentTLFRevision"`
+	TodoCount          int                           `codec:"todoCount" json:"todoCount"`
+	InProgressCount    int                           `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
+	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
+	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
@@ -1841,6 +1854,13 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 		InProgressCount:    o.InProgressCount,
 		CompleteCount:      o.CompleteCount,
 		TotalCount:         o.TotalCount,
+		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error),
 	}
 }
 

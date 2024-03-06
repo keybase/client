@@ -1160,6 +1160,20 @@
     },
     {
       "type": "record",
+      "name": "SimpleFSArchiveJobErrorState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "error"
+        },
+        {
+          "type": "Time",
+          "name": "nextRetry"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SimpleFSArchiveJobStatus",
       "fields": [
         {
@@ -1189,6 +1203,13 @@
         {
           "type": "int",
           "name": "totalCount"
+        },
+        {
+          "type": [
+            null,
+            "SimpleFSArchiveJobErrorState"
+          ],
+          "name": "error"
         }
       ]
     },

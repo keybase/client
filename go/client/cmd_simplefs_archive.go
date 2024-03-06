@@ -243,6 +243,10 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		}
 		ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n",
 			job.TodoCount, job.InProgressCount, job.CompleteCount, job.TotalCount)
+		if job.Error != nil {
+			ui.Printf("Error: %s\n", job.Error.Error)
+			ui.Printf("Next Retry: %s\n", job.Error.NextRetry.Time())
+		}
 		ui.Printf("\n")
 	}
 
