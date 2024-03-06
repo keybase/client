@@ -10,7 +10,7 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
-import {type ViewToken, FlatList} from 'react-native'
+import {type ViewToken, FlatList, Alert} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
 
@@ -57,7 +57,7 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
 
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, navKey, selectedConversationIDKey} = p
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = p
-  const {neverLoaded, onNewChat} = p
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = p
 
   // used to close other rows
   const swipeCloseRef = React.useRef<null | (() => void)>(null)
@@ -215,12 +215,20 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
     }
   }, [])
 
-  const onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+  const onViewChangedImpl = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
     updateShowUnread()
     updateShowFloating()
   }
+
+  const onViewChangedImplRef = React.useRef(onViewChangedImpl)
+  onViewChangedImplRef.current = onViewChangedImpl
+
+  // must never change
+  const onViewChanged = React.useRef((data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+    onViewChangedImplRef.current(data)
+  }).current
 
   // Help us calculate row heights and offsets quickly
   const dividerIndexRef = React.useRef(-1)
@@ -297,9 +305,35 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
     </Kb.Text>
   ) : null
 
+  const promptSmallTeamsNum = React.useCallback(() => {
+    console.log('aaaa show prompt')
+    if (C.isIOS) {
+      Alert.prompt(
+        'Change shown',
+        'Number of conversations to show above this button',
+        ns => {
+          console.log('aaaa show prompt got', ns)
+          const n = parseInt(ns, 10)
+          if (n > 0) {
+            setInboxNumSmallRows(n)
+          }
+        },
+        'plain-text',
+        String(inboxNumSmallRows)
+      )
+    }
+  }, [inboxNumSmallRows, setInboxNumSmallRows])
+
+  const scrollToBigTeams = React.useCallback(() => {
+    if (smallTeamsExpanded) {
+      toggleSmallTeamsExpanded()
+    }
+    listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
+  }, [smallTeamsExpanded, toggleSmallTeamsExpanded, inboxNumSmallRows])
+
   const noChats = !neverLoaded && !isSearching && !rows.length && <NoChats onNewChat={onNewChat} />
   const floatingDivider = showFloating && !isSearching && allowShowFloatingButton && (
-    <BigTeamsDivider toggle={toggleSmallTeamsExpanded} />
+    <BigTeamsDivider toggle={scrollToBigTeams} onEdit={C.isIOS ? promptSmallTeamsNum : undefined} />
   )
 
   return (
