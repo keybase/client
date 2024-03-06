@@ -135,7 +135,8 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
         // only use layout if we don't have the meta at all
         const typers = !isInWidget ? s.typing : undefined
         const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
-        const maybeLayoutSnippet = conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
+        const maybeLayoutSnippet =
+          conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
 
         const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
         const isDecryptingSnippet =
@@ -223,7 +224,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text
+        <Kb.Text2
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -231,7 +232,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
           ])}
         >
           Draft:
-        </Kb.Text>
+        </Kb.Text2>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>

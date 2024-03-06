@@ -303,6 +303,9 @@ module.exports = {
   get Text() {
     return require('./text').default
   },
+  get Text2() {
+    return require('./text2').Text2
+  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
