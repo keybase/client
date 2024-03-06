@@ -7,6 +7,7 @@ export type Props = {
   messageKey: string
   style?: Styles.StylesCrossPlatform
   retainHeight: boolean
+  forceAsh: boolean
 }
 export declare const animationDuration: number
 

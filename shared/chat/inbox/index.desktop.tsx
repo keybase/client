@@ -258,7 +258,10 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rows.length !== lastRowsLength.current) {
-    listRef.current?.resetAfterIndex(0, true)
+    // this calls setstate so defer
+    setTimeout(() => {
+      listRef.current?.resetAfterIndex(0, true)
+    }, 0)
   }
 
   const calculateShowUnreadShortcut = React.useCallback(() => {

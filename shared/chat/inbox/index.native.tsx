@@ -306,13 +306,11 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
   ) : null
 
   const promptSmallTeamsNum = React.useCallback(() => {
-    console.log('aaaa show prompt')
     if (C.isIOS) {
       Alert.prompt(
         'Change shown',
         'Number of conversations to show above this button',
         ns => {
-          console.log('aaaa show prompt got', ns)
           const n = parseInt(ns, 10)
           if (n > 0) {
             setInboxNumSmallRows(n)
