@@ -94,6 +94,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
           doneExploding={!this.state.animating}
           exploded={this.props.retainHeight}
           explodedBy={this.props.explodedBy}
+          forceAsh={this.props.forceAsh}
           height={this.state.height}
         />
       </Kb.Box2Measure>
@@ -101,10 +102,28 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 }
 
-const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
-  const {doneExploding, explodedBy, exploded, height} = props
+const Ashes = (props: {
+  forceAsh: boolean
+  doneExploding: boolean
+  exploded: boolean
+  explodedBy?: string
+  height: number
+}) => {
+  const {doneExploding, explodedBy, exploded, height, forceAsh} = props
   let explodedTag: React.ReactNode = null
-  if (doneExploding) {
+  if (forceAsh) {
+    explodedTag = (
+      <Kb.Text
+        type="BodyTiny"
+        style={styles.exploded}
+        virtualText={true}
+        title="Exploding message sent before this device was provisioned"
+      >
+        Unavailable
+      </Kb.Text>
+    )
+  }
+  if (!explodedTag && doneExploding) {
     explodedTag = explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded}>
         <Kb.Text type="BodyTiny" virtualText={true}>

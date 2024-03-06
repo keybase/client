@@ -92,6 +92,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       >
         {this.state.children}
         <AnimatedAshTower
+          forceAsh={this.props.forceAsh}
           exploded={this.props.retainHeight}
           explodedBy={this.props.explodedBy}
           messageKey={this.props.messageKey}
@@ -107,6 +108,7 @@ type AshTowerProps = {
   explodedBy?: string
   messageKey: string
   numImages: number
+  forceAsh: boolean
 }
 
 type AshTowerState = {
@@ -216,7 +218,12 @@ class EmojiTower extends React.Component<
     return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
   }
 }
-const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+const AshTower = (props: {
+  forceAsh: boolean
+  explodedBy?: string
+  numImages: number
+  showExploded: boolean
+}) => {
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(
@@ -228,7 +235,15 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     )
   }
   let exploded: React.ReactNode = null
-  if (props.showExploded) {
+
+  if (props.forceAsh) {
+    exploded = (
+      <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={false}>
+        Unavailable
+      </Kb.Text>
+    )
+  }
+  if (!exploded && props.showExploded) {
     exploded = !props.explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={false}>
         EXPLODED
