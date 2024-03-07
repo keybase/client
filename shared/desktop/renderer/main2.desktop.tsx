@@ -13,6 +13,7 @@ import {dumpLogs} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
+import {debugWarning} from '@/logger'
 
 import type {default as NewMainType} from '../../app/main.desktop'
 
@@ -164,9 +165,7 @@ const load = () => {
     // let us load devtools first
     const DEBUG_DEFER = false as boolean
     if (DEBUG_DEFER) {
-      for (let i = 0; i < 10; ++i) {
-        console.log('DEBUG_DEFER on!!!')
-      }
+      debugWarning('DEBUG_DEFER on!!!')
       const e = <div>temp</div>
       const root = document.getElementById('root')
       root && ReactDOM.createRoot(root).render(e)

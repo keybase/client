@@ -24,9 +24,9 @@ const Friend = React.memo(function Friend(p: Props) {
           colorBroken={true}
           colorFollowing={true}
         />
-        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+        <Kb.Text2 type="BodySmall" lineClamp={1} style={styles.fullname}>
           {p.fullname}
-        </Kb.Text>
+        </Kb.Text2>
       </Kb.Box2>
     </Kb.ClickableBox>
   )

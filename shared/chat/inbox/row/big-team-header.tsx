@@ -12,10 +12,10 @@ type Props = {
 }
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
-  const {navKey, teamID, teamname} = props
+  const {teamID, teamname} = props
   const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
+  const onClick = () => navigateAppend({props: {teamID}, selected: 'team'})
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

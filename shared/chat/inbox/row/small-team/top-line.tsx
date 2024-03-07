@@ -133,9 +133,9 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
           <Names isSelected={isSelected} showBold={showBold} isInWidget={isInWidget} />
         </Kb.Box>
       </Kb.Box>
-      <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
+      <Kb.Text2 key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         <Timestamp />
-      </Kb.Text>
+      </Kb.Text2>
       {!Kb.Styles.isMobile && showGear && (
         <Kb.Icon
           type="iconfont-gear"

@@ -79,17 +79,16 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   ] as any)
 
   const name = (
-    <Kb.Text
+    <Kb.Text2
       lineClamp={1}
       type="Body"
-      fixOverdraw={Kb.Styles.isPhone}
       style={Kb.Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
     >
       #{' '}
       <Kb.Text type={selected ? 'BodySemibold' : 'Body'} fixOverdraw={Kb.Styles.isPhone} style={nameStyle}>
         {channelname}
       </Kb.Text>
-    </Kb.Text>
+    </Kb.Text2>
   )
 
   const mutedIcon = isMuted ? (

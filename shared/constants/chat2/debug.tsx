@@ -2,14 +2,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import logger from '@/logger'
+import logger, {debugWarning} from '@/logger'
 
 export const chatDebugEnabled = true as boolean
 
 if (chatDebugEnabled) {
-  for (let i = 0; i < 10; ++i) {
-    console.log('Debug chat enabled!')
-  }
+  debugWarning('Debug chat enabled!')
 }
 
 const dumpMap = new Map<string, () => string>()
