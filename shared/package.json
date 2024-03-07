@@ -127,7 +127,7 @@
     "react-native-screens": "3.29.0",
     "react-native-web": "0.19.10",
     "react-native-webview": "13.6.3",
-    "react-virtualized-auto-sizer": "1.0.21",
+    "react-virtualized-auto-sizer": "1.0.24",
     "react-window": "1.8.10",
     "shallowequal": "1.1.0",
     "@khanacademy/simple-markdown": "0.11.2",

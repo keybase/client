@@ -351,7 +351,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       <Kb.Box className="inbox-hover-container" style={styles.container}>
         <div style={styles.list} onDragEnd={onDrop} onDragOver={onDragOver} onDrop={onDrop} ref={dragListRef}>
           {rows.length ? (
-            <AutoSizer>
+            <AutoSizer doNotBailOutOnEmptyChildren={true}>
               {(p: {height?: number; width?: number}) => {
                 let {height = 1, width = 1} = p
                 if (isNaN(height)) {
