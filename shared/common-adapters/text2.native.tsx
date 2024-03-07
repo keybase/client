@@ -4,6 +4,14 @@ import {fontSizeToSizeStyle, metaData} from './text.meta.native'
 import type {Props} from './text2'
 import type {Text as RNText} from 'react-native'
 import type {TextType} from './text.shared'
+import {debugWarning} from '@/logger'
+
+const TEMP_MARK_V2 = __DEV__ && (false as boolean)
+const TEMP_SWITCH = __DEV__ && (false as boolean)
+
+if (TEMP_MARK_V2 || TEMP_SWITCH) {
+  debugWarning('Text2 flags on')
+}
 
 type RNTextProps = React.ComponentProps<typeof RNText>
 const RCTText = (props: RNTextProps) => {
@@ -23,23 +31,31 @@ const styles = Styles.styleSheetCreate(() =>
   }, {})
 )
 
-export const Text2 = React.memo(function Text2(p: Props) {
-  const {type: _type, style: _style, children, lineClamp, selectable, ellipsizeMode} = p
-  const type = _type ?? 'BodySmall'
-  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-  const style = React.useMemo(() => {
-    const baseStyle: Styles.StylesCrossPlatform = styles[type]
-    const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
-    return Styles.collapseStyles([baseStyle, _style, overdrawStyle])
-  }, [type, _style, canFixOverdraw])
+export const Text2 = TEMP_SWITCH
+  ? require('./text').default
+  : React.memo(function Text2(p: Props) {
+      const {type: _type, style: _style, children: _children, lineClamp, selectable, ellipsizeMode} = p
+      const type = _type ?? 'BodySmall'
+      const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
+      const style = React.useMemo(() => {
+        const baseStyle: Styles.StylesCrossPlatform = styles[type]
+        const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
+        return Styles.collapseStyles([baseStyle, _style, overdrawStyle])
+      }, [type, _style, canFixOverdraw])
 
-  const clampProps = React.useMemo(() => {
-    return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
-  }, [ellipsizeMode, lineClamp])
+      const clampProps = React.useMemo(() => {
+        return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
+      }, [ellipsizeMode, lineClamp])
 
-  return (
-    <RCTText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
-      ⚠{children}
-    </RCTText>
-  )
-})
+      let children = _children
+      if (TEMP_MARK_V2) {
+        if (children) {
+          children = ['⚠', children]
+        }
+      }
+      return (
+        <RCTText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
+          {children}
+        </RCTText>
+      )
+    })

@@ -1,7 +1,7 @@
 // Handles sending requests to the daemon
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
-import logger from '@/logger'
+import logger, {debugWarning} from '@/logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, MethodKey} from './types'
@@ -16,7 +16,7 @@ import type * as EngineGen from '../actions/engine-gen-gen'
 // only while debugging for now
 const DEFER_INCOMING_DURING_DEBUG = __DEV__ && (false as boolean)
 if (DEFER_INCOMING_DURING_DEBUG) {
-  console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
+  debugWarning('DEFER_INCOMING_DURING_DEBUG is On')
 }
 
 type WaitingKey = string | ReadonlyArray<string>

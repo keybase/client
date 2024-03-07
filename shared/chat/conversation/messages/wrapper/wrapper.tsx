@@ -369,9 +369,9 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
-      <Kb.Text2 type="BodySmall" virtualText={true}>
+      <Kb.Text type="BodySmall" virtualText={true}>
         {' or '}
-      </Kb.Text2>
+      </Kb.Text>
     ) : null
 
   const action: React.ReactNode =

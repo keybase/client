@@ -13,7 +13,7 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
-const TeamRow = (props: Props) => {
+const TeamRow = React.memo(function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
   const nav = Container.useSafeNavigation()
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
@@ -153,7 +153,7 @@ const TeamRow = (props: Props) => {
       {popup}
     </>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {

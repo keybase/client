@@ -166,11 +166,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     usernameNode
   )
 
-  const canFixOverdraw = React.useContext(Kb.Styles.CanFixOverdrawContext)
   const timestampNode = (
-    <Kb.Text type="BodyTiny" fixOverdraw={canFixOverdraw} virtualText={true} className="separator-text">
+    <Kb.Text2 type="BodyTiny" virtualText={true} className="separator-text">
       {formatTimeForChat(timestamp)}
-    </Kb.Text>
+    </Kb.Text2>
   )
 
   return (
