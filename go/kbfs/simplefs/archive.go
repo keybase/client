@@ -695,7 +695,6 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 	workspaceDir := getWorkspaceDir(jobDesc)
 
 	err = func() (err error) {
-		fs := os.DirFS(workspaceDir)
 		zipFile, err := os.Create(jobDesc.ZipFilePath)
 		if err != nil {
 			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
@@ -715,9 +714,9 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			}
 		}()
 
-		err = zipWriter.AddFS(fs)
+		err = zipWriter.AddDir(workspaceDir)
 		if err != nil {
-			return fmt.Errorf("zipWriter.AddFS error: %v", jobDesc.ZipFilePath, err)
+			return fmt.Errorf("zipWriter.AddFS to %s error: %v", jobDesc.ZipFilePath, err)
 		}
 
 		return nil
