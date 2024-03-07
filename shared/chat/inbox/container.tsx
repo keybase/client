@@ -134,6 +134,52 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   )
 })
 
+import {emojiRegex, emojiIndexByName} from '@/common-adapters/markdown/emoji-gen'
+import emojiRegexNew from 'emoji-regex'
+const TEST = () => {
+  const _emojiRegex2 = emojiRegexNew()
+  const emojiRegex2 = new RegExp(_emojiRegex2.source, _emojiRegex2.flags.replace('g', ''))
+  console.log('aaa start')
+  for (const key in emojiIndexByName) {
+    if (!emojiRegex.test(key) || !emojiRegex.test(emojiIndexByName[key] ?? '')) {
+      console.log(
+        'aaaa old',
+        key,
+        emojiIndexByName[key],
+        emojiRegex.test(key),
+        emojiRegex.test(emojiIndexByName[key] ?? '')
+      )
+    }
+    if (/*!emojiRegex2.test(key) ||*/ !emojiRegex2.test(emojiIndexByName[key] ?? '')) {
+      console.log(
+        'aaaa new',
+        key,
+        emojiIndexByName[key],
+        emojiRegex2.test(key),
+        emojiRegex2.test(emojiIndexByName[key] ?? '')
+      )
+    }
+  }
+
+  let s = Date.now()
+  for (let i = 0; i < 1000; ++i) {
+    for (const key in emojiIndexByName) {
+      emojiRegex.test(emojiIndexByName[key] ?? '')
+    }
+  }
+  console.log('aaaa old time', Date.now() - s)
+  s = Date.now()
+  for (let i = 0; i < 1000; ++i) {
+    for (const key in emojiIndexByName) {
+      emojiRegex2.test(emojiIndexByName[key] ?? '')
+    }
+  }
+  console.log('aaaa new time', Date.now() - s)
+
+  console.log('aaa end') //, emojiRegex)
+}
+TEST()
+
 const noSmallTeams = new Array<T.RPCChat.UIInboxSmallTeamRow>()
 const noBigTeams = new Array<T.RPCChat.UIInboxBigTeamRow>()
 const Connected = (ownProps: OwnProps) => {

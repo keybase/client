@@ -123,11 +123,10 @@ async function buildEmojiFile() {
     .join('|')
   const data = `/* eslint-disable */
 import emojiRegexNew from 'emoji-regex'
-const _emojiRegex2 = emojiRegexNew()
-const emojiRegex2 = new RegExp(_emojiRegex2.source, _emojiRegex2.flags.replace('g', ''))
+const emojiRegex2 = emojiRegexNew()
 export const spriteSheetWidth = ${swidth}
 export const spriteSheetHeight = ${sheight}
-export const emojiRegex = new RegExp(\`^(\${_emojiRegex2.source}|${regIndex})\`)
+export const emojiRegex = new RegExp(\`^(\${emojiRegex2.source}|${regIndex})\`)
 export const emojiIndexByName: {[key: string]: string} = JSON.parse(\`${JSON.stringify(
     emojiIndexByName,
     null,
