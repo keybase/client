@@ -4053,7 +4053,7 @@ func (h *Server) TrackGiphySelect(ctx context.Context, arg chat1.TrackGiphySelec
 	return chat1.TrackGiphySelectRes{}, err
 }
 
-func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (res chat1.ArchiveChatRes, err error) {
+func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJobRequest) (res chat1.ArchiveChatRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
 		h.identNotifier)
@@ -4064,18 +4064,69 @@ func (h *Server) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatArg) (res
 		return chat1.ArchiveChatRes{}, nil
 	}
 
-	progress := func(messagesComplete, messagesTotal int64) {
-		h.G().NotifyRouter.HandleChatArchiveProgress(ctx, arg.JobID, messagesComplete, messagesTotal)
-	}
-
-	outpath, err := NewChatArchiver(h.G(), uid, progress, h.remoteClient).ArchiveChat(ctx, arg)
+	outpath, err := NewChatArchiver(h.G(), uid, h.remoteClient).ArchiveChat(ctx, arg)
 	if err != nil {
 		return chat1.ArchiveChatRes{}, err
 	}
 
-	h.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
 	return chat1.ArchiveChatRes{
 		IdentifyFailures: identBreaks,
 		OutputPath:       outpath,
 	}, err
+}
+
+func (h *Server) ArchiveChatList(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res chat1.ArchiveChatListRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatList")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatList: not logged in: %s", err)
+		return chat1.ArchiveChatListRes{}, nil
+	}
+
+	return h.G().ArchiveRegistry.List(ctx)
+}
+
+func (h *Server) ArchiveChatDelete(ctx context.Context, arg chat1.ArchiveChatDeleteArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatDelete")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatDelete: not logged in: %s", err)
+		return nil
+	}
+
+	return h.G().ArchiveRegistry.Delete(ctx, arg.JobID, arg.DeleteOutputPath)
+}
+
+func (h *Server) ArchiveChatPause(ctx context.Context, arg chat1.ArchiveChatPauseArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatPause")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatPause: not logged in: %s", err)
+		return nil
+	}
+
+	return h.G().ArchiveRegistry.Pause(ctx, arg.JobID)
+}
+
+func (h *Server) ArchiveChatResume(ctx context.Context, arg chat1.ArchiveChatResumeArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks,
+		h.identNotifier)
+	defer h.Trace(ctx, &err, "ArchiveChatResume")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "ArchiveChatResume: not logged in: %s", err)
+		return nil
+	}
+
+	return h.G().ArchiveRegistry.Resume(ctx, arg.JobID)
 }

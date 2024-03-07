@@ -1,4 +1,5 @@
 import fs from 'fs'
+import {promises as fsp} from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource-apple'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -96,14 +97,34 @@ function genEmojiData() {
   return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
+const getSpriteSheetSize = async () => {
+  const sheet = path.join(__dirname, '../../node_modules/emoji-datasource-apple/img/apple/sheets/64.png')
+  // Read the first 24 bytes of the PNG file
+  const buffer = await fsp.readFile(sheet, {encoding: null, flag: 'r'})
+  const isPng = buffer.toString('utf-8', 1, 4) === 'PNG'
+  if (!isPng) {
+    throw new Error('bad sheet')
+  }
+
+  const singleWidth = 64 + 2 // 64px + 2px padding
+  // Extract width and height from the PNG header
+  const width = buffer.readUInt32BE(16)
+  const height = buffer.readUInt32BE(20)
+  return {sheight: height / singleWidth, swidth: width / singleWidth}
+}
+
 async function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
+
+  const {swidth, sheight} = await getSpriteSheetSize()
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
   const regIndex = Object.keys(emojiIndexByName)
     .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
     .join('|')
   const data = `/* eslint-disable */
+export const spriteSheetWidth = ${swidth}
+export const spriteSheetHeight = ${sheight}
 export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
 export const emojiIndexByName: {[key: string]: string} = JSON.parse(\`${JSON.stringify(
     emojiIndexByName,
@@ -127,4 +148,6 @@ export const commonTlds = ${JSON.stringify(commonTlds)}
 
 buildEmojiFile()
   .then(() => {})
-  .catch(() => {})
+  .catch(e => {
+    throw e
+  })

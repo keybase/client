@@ -17,7 +17,7 @@
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
   @typedef("bytes")  record FlipGameID {}
-  @typedef("bytes")  record ArchiveJobID {}
+  @typedef("string")  record ArchiveJobID {}
 
   record InboxVersInfo {
     gregor1.UID uid;

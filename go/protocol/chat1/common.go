@@ -130,15 +130,10 @@ func (o FlipGameID) DeepCopy() FlipGameID {
 	})(o)
 }
 
-type ArchiveJobID []byte
+type ArchiveJobID string
 
 func (o ArchiveJobID) DeepCopy() ArchiveJobID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
+	return o
 }
 
 type InboxVersInfo struct {
