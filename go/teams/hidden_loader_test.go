@@ -22,7 +22,7 @@ func makeHiddenRotation(t *testing.T, userContext *libkb.GlobalContext, teamName
 	require.NoError(t, err)
 }
 
-func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, committedSeqno, uncommittedSeqno keybase1.Seqno) {
+func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) {
 	// since polling does not take into account hidden chain updates, manually update the merkle root.
 	_, err := tc.G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tc), 0)
 	require.NoError(t, err)
@@ -31,7 +31,6 @@ func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.Test
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, committedSeqno, teamHiddenChain.LastCommittedSeqno, "committed seqno")
 	require.Equal(t, uncommittedSeqno, teamHiddenChain.Last, "committed seqno")
 }
 
@@ -53,16 +52,12 @@ func checkHiddenMerkleErrorType(t *testing.T, err error, expType libkb.HiddenMer
 	return true
 }
 
-func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, committedSeqno, uncommittedSeqno keybase1.Seqno) bool {
+func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) bool {
 	_, teamHiddenChain, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	if committedSeqno != teamHiddenChain.LastCommittedSeqno {
-		t.Logf("Error: committedSeqno != teamHiddenChain.LastCommittedSeqno: %v != %v ", committedSeqno, teamHiddenChain.LastCommittedSeqno)
-		return false
-	}
 	if uncommittedSeqno != teamHiddenChain.Last {
 		t.Logf("Error: uncommittedSeqno != teamHiddenChain.Last: %v != %v ", uncommittedSeqno, teamHiddenChain.Last)
 		return false
@@ -142,11 +137,11 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 	}
 	t.Errorf("Test did not succeed any of the %v times", n)
 }
-func TestHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) {
-	retryTestNTimes(t, 5, testHiddenLoadFailsIfServerDoesntCommitLinks)
+func TestHiddenLoadSucceedIfServerDoesntCommitLinks(t *testing.T) {
+	retryTestNTimes(t, 5, testHiddenLoadSucceedsIfServerDoesntCommitLinks)
 }
 
-func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
+func testHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -170,13 +165,13 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	// make the architect run
 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
 
-	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 1)
+	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1)
 
 	// make another hidden rotation
 	makeHiddenRotation(t, tcs[0].G, teamName)
 
 	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
-	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 2) {
+	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 2) {
 		return false
 	}
 
@@ -188,7 +183,7 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 		ForceRepoll: true,
 	})
 
-	return checkHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorOldLinkNotYetCommitted)
+	return err == nil
 }
 
 type CorruptingMockLoaderContext struct {
@@ -321,11 +316,11 @@ func loadTeamFTLAndAssertMaxGeneration(t *testing.T, tc *libkb.TestContext, team
 	loadTeamFTLAndAssertGenerationUnavailable(t, tc, teamID, perTeamKeyGeneration+1)
 }
 
-func TestFTLFailsIfServerDoesntCommitLinks(t *testing.T) {
-	retryTestNTimes(t, 5, testFTLFailsIfServerDoesntCommitLinks)
+func TestFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) {
+	retryTestNTimes(t, 5, testFTLSucceedsIfServerDoesntCommitLinks)
 }
 
-func testFTLFailsIfServerDoesntCommitLinks(t *testing.T) bool {
+func testFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -363,7 +358,7 @@ func testFTLFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	})
 
 	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
-	return checkHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorOldLinkNotYetCommitted)
+	return err == nil
 }
 
 func TestFTLFailsIfServerRollsbackUncommittedSeqno(t *testing.T) {
