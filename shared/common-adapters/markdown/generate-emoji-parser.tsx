@@ -117,15 +117,17 @@ async function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
 
   const {swidth, sheight} = await getSpriteSheetSize()
-  const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
+  const {emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const regIndex = Object.keys(emojiIndexByName)
     .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
     .join('|')
   const data = `/* eslint-disable */
+import emojiRegexNew from 'emoji-regex'
+const _emojiRegex2 = emojiRegexNew()
+const emojiRegex2 = new RegExp(_emojiRegex2.source, _emojiRegex2.flags.replace('g', ''))
 export const spriteSheetWidth = ${swidth}
 export const spriteSheetHeight = ${sheight}
-export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
+export const emojiRegex = new RegExp(\`^(\${_emojiRegex2.source}|${regIndex})\`)
 export const emojiIndexByName: {[key: string]: string} = JSON.parse(\`${JSON.stringify(
     emojiIndexByName,
     null,
