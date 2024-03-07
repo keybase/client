@@ -1,5 +1,6 @@
 import type {Props} from './emoji'
 import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
+import {spriteSheetWidth, spriteSheetHeight} from './markdown/emoji-gen'
 
 // Just the single set we use
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
@@ -31,8 +32,8 @@ const EmojiWrapper = (props: Props) => {
   if (!emoji) return null
 
   const {sheet_x, sheet_y} = emoji
-  const sheetColumns = 61
-  const sheetRows = 61
+  const sheetColumns = spriteSheetWidth
+  const sheetRows = spriteSheetHeight
   const multiplyX = 100 / (sheetColumns - 1)
   const multiplyY = 100 / (sheetRows - 1)
   const backgroundPosition = `${multiplyX * sheet_x}% ${multiplyY * sheet_y}%`
