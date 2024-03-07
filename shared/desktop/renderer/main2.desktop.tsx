@@ -13,7 +13,7 @@ import {dumpLogs} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
-import {debugWarning} from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
 
 import type {default as NewMainType} from '../../app/main.desktop'
 

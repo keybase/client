@@ -1,5 +1,6 @@
 import noop from 'lodash/noop'
 import KB2 from './util/electron.desktop'
+import {debugWarning} from '@/util/debug-warning'
 
 let config = {
   // Set this to true if you want to turn off most console logging so you can profile easier
@@ -40,7 +41,7 @@ config = {
 
 // If performance testing
 if (config.PERF) {
-  console.warn('\n\n\nlocal debug config.PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
+  debugWarning('local debug config.PERF is ONNNNNn')
 
   const c = console
   c.log = noop

@@ -1,7 +1,8 @@
 // Handles sending requests to the daemon
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
-import logger, {debugWarning} from '@/logger'
+import logger from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, MethodKey} from './types'
