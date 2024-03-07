@@ -798,6 +798,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// If we did get an update from the server (hiddenResp != nil) are not a
 	// restricted bot AND this is not a recursive load (arg.readSubteamID == nil),
 	// then the server should have given us hidden chain data.
+	if hiddenResp != nil && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE && !role.IsRestrictedBot() && arg.readSubteamID == nil {
+		return nil, libkb.NewHiddenChainDataMissingError("Not a restricted bot or recursive load, but the server did not return merkle hidden chain data")
+	}
 
 	// Update the hidden package with team metadata once we process all of the
 	// links. This is necessary since we need the role to be up to date to know
