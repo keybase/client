@@ -555,7 +555,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	}
 	sort.Strings(entryPaths)
 
-	// loopEntryPaths:
+loopEntryPaths:
 	for _, entryPathWithinJob := range entryPaths {
 		entry := manifest[entryPathWithinJob]
 		entry.State = keybase1.SimpleFSFileArchiveState_InProgress
@@ -580,30 +580,28 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
-			/* WIP
-						// Call Stat, which follows symlinks, to make sure the link doesn't
-						// escape outside the srcDirFS.
-						_, err = srcDirFS.Stat(entryPathWithinJob)
-						if err != nil {
-							m.simpleFS.log.CWarningf(ctx, "skipping %s due to srcDirFS.Stat error: %v", entryPathWithinJob, err)
-							continue loopEntryPaths
-						}
+			// Call Stat, which follows symlinks, to make sure the link doesn't
+			// escape outside the srcDirFS.
+			_, err = srcDirFS.Stat(entryPathWithinJob)
+			if err != nil {
+				m.simpleFS.log.CWarningf(ctx, "skipping %s due to srcDirFS.Stat error: %v", entryPathWithinJob, err)
+				continue loopEntryPaths
+			}
 
-						link, err := srcDirFS.Readlink(entryPathWithinJob)
-						if err != nil {
-							return fmt.Errorf("srcDirFS(%s) error: %v", entryPathWithinJob, err)
-						}
-						m.simpleFS.log.CInfof(ctx, "calling os.Symlink(%s, %s) ", link, localPath)
-						err = os.Symlink(link, localPath)
-						if err != nil {
-							return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
-						}
-						os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
-						if err != nil {
-							return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
-						}
+			link, err := srcDirFS.Readlink(entryPathWithinJob)
+			if err != nil {
+				return fmt.Errorf("srcDirFS(%s) error: %v", entryPathWithinJob, err)
+			}
+			m.simpleFS.log.CInfof(ctx, "calling os.Symlink(%s, %s) ", link, localPath)
+			err = os.Symlink(link, localPath)
+			if err != nil {
+				return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
+			}
+			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			if err != nil {
+				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
+			}
 			// TODO why doesn't AddFS return an error when hitting a symlink?
-			*/
 		default:
 			os.MkdirAll(filepath.Dir(localPath), 0755)
 			if err != nil {
@@ -704,7 +702,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		}
 		defer func() {
 			closeErr := zipFile.Close()
-			if err != nil {
+			if err == nil {
 				err = closeErr
 			}
 		}()
@@ -712,7 +710,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		zipWriter := zipWriterWrapper{zip.NewWriter(zipFile)}
 		defer func() {
 			closeErr := zipWriter.Close()
-			if err != nil {
+			if err == nil {
 				err = closeErr
 			}
 		}()
@@ -730,10 +728,10 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 	// Remove the workspace so we release the storage space early on before
 	// user dismisses the job.
-	// err = os.RemoveAll(workspaceDir)
-	// if err != nil {
-	// 	m.simpleFS.log.CWarningf(ctx, "removing workspace %s error %v", workspaceDir, err)
-	// }
+	err = os.RemoveAll(workspaceDir)
+	if err != nil {
+		m.simpleFS.log.CWarningf(ctx, "removing workspace %s error %v", workspaceDir, err)
+	}
 
 	return nil
 }
