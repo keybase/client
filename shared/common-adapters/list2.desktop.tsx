@@ -76,7 +76,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
   render() {
     if (this.props.items.length === 0) return null
     return (
-      <AutoSizer>
+      <AutoSizer doNotBailOutOnEmptyChildren={true}>
         {(p: {height?: number; width?: number}) => {
           let {height = 1, width = 1} = p
           if (isNaN(height)) {
