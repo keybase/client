@@ -1084,7 +1084,8 @@
       "symbols": [
         "ToDo_0",
         "InProgress_1",
-        "Complete_2"
+        "Complete_2",
+        "Skipped_3"
       ]
     },
     {
@@ -1199,6 +1200,10 @@
         {
           "type": "int",
           "name": "completeCount"
+        },
+        {
+          "type": "int",
+          "name": "skippedCount"
         },
         {
           "type": "int",

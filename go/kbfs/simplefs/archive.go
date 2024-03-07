@@ -587,6 +587,8 @@ loopEntryPaths:
 			_, err = srcDirFS.Stat(entryPathWithinJob)
 			if err != nil {
 				m.simpleFS.log.CWarningf(ctx, "skipping %s due to srcDirFS.Stat error: %v", entryPathWithinJob, err)
+				entry.State = keybase1.SimpleFSFileArchiveState_Skipped
+				manifest[entryPathWithinJob] = entry
 				continue loopEntryPaths
 			}
 
@@ -603,7 +605,8 @@ loopEntryPaths:
 			if err != nil {
 				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
 			}
-			// TODO why doesn't AddFS return an error when hitting a symlink?
+			entry.State = keybase1.SimpleFSFileArchiveState_Complete
+			manifest[entryPathWithinJob] = entry
 		default:
 			os.MkdirAll(filepath.Dir(localPath), 0755)
 			if err != nil {

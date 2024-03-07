@@ -1696,6 +1696,7 @@ const (
 	SimpleFSFileArchiveState_ToDo       SimpleFSFileArchiveState = 0
 	SimpleFSFileArchiveState_InProgress SimpleFSFileArchiveState = 1
 	SimpleFSFileArchiveState_Complete   SimpleFSFileArchiveState = 2
+	SimpleFSFileArchiveState_Skipped    SimpleFSFileArchiveState = 3
 )
 
 func (o SimpleFSFileArchiveState) DeepCopy() SimpleFSFileArchiveState { return o }
@@ -1704,12 +1705,14 @@ var SimpleFSFileArchiveStateMap = map[string]SimpleFSFileArchiveState{
 	"ToDo":       0,
 	"InProgress": 1,
 	"Complete":   2,
+	"Skipped":    3,
 }
 
 var SimpleFSFileArchiveStateRevMap = map[SimpleFSFileArchiveState]string{
 	0: "ToDo",
 	1: "InProgress",
 	2: "Complete",
+	3: "Skipped",
 }
 
 func (e SimpleFSFileArchiveState) String() string {
@@ -1841,6 +1844,7 @@ type SimpleFSArchiveJobStatus struct {
 	TodoCount          int                           `codec:"todoCount" json:"todoCount"`
 	InProgressCount    int                           `codec:"inProgressCount" json:"inProgressCount"`
 	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
+	SkippedCount       int                           `codec:"skippedCount" json:"skippedCount"`
 	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
 	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
 }
@@ -1853,6 +1857,7 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 		TodoCount:          o.TodoCount,
 		InProgressCount:    o.InProgressCount,
 		CompleteCount:      o.CompleteCount,
+		SkippedCount:       o.SkippedCount,
 		TotalCount:         o.TotalCount,
 		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
 			if x == nil {

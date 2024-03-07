@@ -2393,6 +2393,7 @@ export enum SimpleFSFileArchiveState {
   todo = 0,
   inprogress = 1,
   complete = 2,
+  skipped = 3,
 }
 
 export enum StatsSeverityLevel {
@@ -3272,7 +3273,7 @@ export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; rea
 export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
 export type SimpleFSArchiveJobErrorState = {readonly error: String; readonly nextRetry: Time}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase}
-export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly currentTLFRevision: KBFSRevision; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly totalCount: Int; readonly error?: SimpleFSArchiveJobErrorState | null}
+export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly currentTLFRevision: KBFSRevision; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly skippedCount: Int; readonly totalCount: Int; readonly error?: SimpleFSArchiveJobErrorState | null}
 export type SimpleFSArchiveState = {readonly jobs?: {[key: string]: SimpleFSArchiveJobState} | null; readonly lastUpdated: Time}
 export type SimpleFSArchiveStatus = {readonly jobs?: {[key: string]: SimpleFSArchiveJobStatus} | null; readonly lastUpdated: Time}
 export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}

@@ -766,7 +766,8 @@ protocol SimpleFS {
   enum SimpleFSFileArchiveState {
     ToDo_0,
     InProgress_1,
-    Complete_2
+    Complete_2,
+    Skipped_3
   }
   record SimpleFSArchiveFile {
     SimpleFSFileArchiveState state;
@@ -806,6 +807,7 @@ protocol SimpleFS {
     int todoCount;
     int inProgressCount;
     int completeCount;
+    int skippedCount;
     int totalCount;
     union{ null, SimpleFSArchiveJobErrorState } error;
   }

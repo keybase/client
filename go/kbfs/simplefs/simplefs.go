@@ -3692,6 +3692,8 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 				statusJob.InProgressCount++
 			case keybase1.SimpleFSFileArchiveState_Complete:
 				statusJob.CompleteCount++
+			case keybase1.SimpleFSFileArchiveState_Skipped:
+				statusJob.SkippedCount++
 			}
 		}
 		{ // get current revision
