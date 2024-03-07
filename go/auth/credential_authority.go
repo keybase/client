@@ -210,7 +210,7 @@ func (v *CredentialAuthority) pollOnce() error {
 }
 
 // runWithCancel runs an API call while listening for a shutdown of the CredentialAuthority.
-// If it gets one, it uses context-based cancelation to cancel the outstanding API call
+// If it gets one, it uses context-based cancellation to cancel the outstanding API call
 // (or sleep in the case of Poll()'ing).
 func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error) error {
 	ctx, cancel := context.WithCancel(context.Background())
