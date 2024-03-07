@@ -4611,10 +4611,10 @@ electron@28.1.4:
     "@types/node" "^18.11.18"
     extract-zip "^2.0.1"
 
-emoji-datasource-apple@15.0.1:
-  version "15.0.1"
-  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-15.0.1.tgz#c89026ae6b91f8825b7b624f51312f023faa2a45"
-  integrity sha512-8HAp6NHycqZ0yCzzngeUUJAwQ6OiwXHNH22NbVBSzDMbebaap9zP5//mlRbwqyOfweq7foGAcCvnNH/aEOcjWw==
+emoji-datasource-apple@15.1.2:
+  version "15.1.2"
+  resolved "https://registry.yarnpkg.com/emoji-datasource-apple/-/emoji-datasource-apple-15.1.2.tgz#b52e1a94f6ee57b7d56a274d922a8c614de8c826"
+  integrity sha512-32UZTK36x4DlvgD1smkmBlKmmJH7qUr5Qut4U/on2uQLGqNXGbZiheq6/LEA8xRQEUrmNrGEy25wpEI6wvYmTg==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
