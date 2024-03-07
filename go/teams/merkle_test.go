@@ -65,7 +65,7 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
 	// leaf.Private.SigID not checked
 	require.Nil(t, leaf.Public, "team public leaf")
-	require.Equal(t, libkb.MerkleHiddenResponseTypeABSENCEPROOF, hiddenResp.RespType)
+	require.Equal(t, libkb.MerkleHiddenResponseTypeOK, hiddenResp.RespType)
 	require.EqualValues(t, 0, hiddenResp.UncommittedSeqno)
 
 	// make a hidden rotation to later check that merkle/path returns the appropriate result
@@ -82,9 +82,9 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.ID, leaf.TeamID, "team id mismatch")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
-	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF || hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
+	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
-	if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF {
+	if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
 		t.Logf("The hidden rotation was not yet committed to the blind tree. This is expected.")
 	} else {
 		//  This can happen if the architect concurrently builds a new tree

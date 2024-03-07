@@ -2004,10 +2004,8 @@ type MerkleHiddenResponseType uint8
 const (
 	// the server did not include any hidden chain data
 	MerkleHiddenResponseTypeNONE MerkleHiddenResponseType = 1
-	// the server provided a proof of absence (or inclusion with an empty leaf) for
-	// the requested key
-	MerkleHiddenResponseTypeABSENCEPROOF MerkleHiddenResponseType = 2
-	// the server provided a valid inclusion proof for the returned leaf in the tree
+
+	// the server provided a valid inclusion or exclusion proof for the returned leaf in the tree
 	MerkleHiddenResponseTypeOK MerkleHiddenResponseType = 3
 
 	// All hidden checks should be skipped as the feature flag is off
