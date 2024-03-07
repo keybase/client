@@ -107,7 +107,7 @@ func getStateFilePath(simpleFS *SimpleFS) string {
 
 const archiveManagerCreationTimeout = 10 * time.Second
 
-func (m *archiveManager) fluseStateFileLocked(ctx context.Context) error {
+func (m *archiveManager) flushStateFileLocked(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -116,16 +116,16 @@ func (m *archiveManager) fluseStateFileLocked(ctx context.Context) error {
 	err := writeArchiveStateIntoJsonGz(ctx, m.simpleFS, getStateFilePath(m.simpleFS), m.state)
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx,
-			"archiveManager.fluseStateFileLocked: writing state file error: %v", err)
+			"archiveManager.flushStateFileLocked: writing state file error: %v", err)
 		return err
 	}
 	return nil
 }
 
-func (m *archiveManager) fluseStateFile(ctx context.Context) error {
+func (m *archiveManager) flushStateFile(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.fluseStateFileLocked(ctx)
+	return m.flushStateFileLocked(ctx)
 }
 
 func (m *archiveManager) signal(ch chan struct{}) {
@@ -137,15 +137,15 @@ func (m *archiveManager) signal(ch chan struct{}) {
 }
 
 func (m *archiveManager) shutdown(ctx context.Context) {
-	// OK to cancel before fluseStateFileLocked because we'll pass in the
-	// shutdown ctx ther.
+	// OK to cancel before flushStateFileLocked because we'll pass in the
+	// shutdown ctx there.
 	if m.ctxCancel != nil {
 		m.ctxCancel()
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.fluseStateFileLocked(ctx)
+	m.flushStateFileLocked(ctx)
 }
 
 func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
@@ -163,7 +163,7 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 	}
 	m.state.LastUpdated = keybase1.ToTime(time.Now())
 	m.signal(m.indexingWorkerSignal)
-	return m.fluseStateFileLocked(ctx)
+	return m.flushStateFileLocked(ctx)
 }
 
 func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
@@ -335,17 +335,16 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 		m.simpleFS.log.CDebugf(ctx, "indexing: %s", jobID)
 
 		err := m.doIndexing(jobCtx, jobID)
-		switch err {
-		case nil:
+		if err == nil {
 			m.simpleFS.log.CDebugf(jobCtx, "indexing done on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Indexed)
-		default:
+			m.signal(m.copyingWorkerSignal) // Done indexing! Notify the copying worker.
+		} else {
 			m.simpleFS.log.CErrorf(jobCtx, "indexing error on job %s: %v", jobID, err)
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.fluseStateFile(ctx)
-		m.signal(m.copyingWorkerSignal) // Done copying! Notify the copying worker.
+		m.flushStateFile(ctx)
 	}
 }
 
@@ -375,6 +374,25 @@ func newSHA256TeeReader(inner io.Reader) (r *sha256TeeReader) {
 	return r
 }
 
+func (m *archiveManager) ctxAwareCopy(
+	ctx context.Context, to io.Writer, from io.Reader) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		_, err := io.CopyN(to, from, 64*1024)
+		switch err {
+		case nil:
+		case io.EOF:
+			return nil
+		default:
+			return err
+		}
+	}
+}
+
 func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
 	localPath string, mode os.FileMode) (sha256Sum []byte, err error) {
@@ -387,7 +405,7 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	}
 	defer src.Close()
 
-	dst, err := os.OpenFile(localPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, mode)
+	dst, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		return nil, fmt.Errorf("os.OpenFile(%s) error: %v", localPath, err)
 	}
@@ -395,21 +413,9 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 
 	teeReader := newSHA256TeeReader(src)
 
-loopCopy:
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-		_, err := io.CopyN(dst, teeReader, 64*1024)
-		switch err {
-		case nil:
-		case io.EOF:
-			break loopCopy
-		default:
-			return nil, fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
-		}
+	err = m.ctxAwareCopy(ctx, dst, teeReader)
+	if err != nil {
+		return nil, fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
 	}
 
 	// We didn't continue from a previously interrupted copy, so don't
@@ -442,21 +448,9 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		}
 		defer dst.Close()
 
-	loopCopy:
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			_, err := io.CopyN(dst, src, 64*1024)
-			switch err {
-			case nil:
-			case io.EOF:
-				break loopCopy
-			default:
-				return fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
-			}
+		err = m.ctxAwareCopy(ctx, dst, src)
+		if err != nil {
+			return fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
 		}
 
 		return nil
@@ -466,39 +460,44 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 
 	// Calculate sha256 and check the sha256 of the copied file since we
 	// continued from a previously interrupted copy.
-	{
+	srcSHA256Sum, dstSHA256Sum, err := func() (srcSHA256Sum, dstSHA256Sum []byte, err error) {
 		_, err = src.Seek(0, io.SeekStart)
 		if err != nil {
-			return nil, fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
+			return nil, nil, fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
 		}
 		srcSHA256SumHasher := sha256.New()
 		_, err = io.Copy(srcSHA256SumHasher, src)
 		if err != nil {
-			return nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+			return nil, nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
 		}
-		srcSHA256Sum := srcSHA256SumHasher.Sum(nil)
+		srcSHA256Sum = srcSHA256SumHasher.Sum(nil)
 
 		dst, err := os.Open(localPath)
 		if err != nil {
-			return nil, fmt.Errorf("os.Open(%s) error: %v", localPath, err)
+			return nil, nil, fmt.Errorf("os.Open(%s) error: %v", localPath, err)
 		}
 		defer dst.Close()
 		dstSHA256SumHasher := sha256.New()
 		_, err = io.Copy(dstSHA256SumHasher, dst)
 		if err != nil {
-			return nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
+			return nil, nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
 		}
-		dstSHA256Sum := dstSHA256SumHasher.Sum(nil)
+		dstSHA256Sum = dstSHA256SumHasher.Sum(nil)
 
-		if !bytes.Equal(srcSHA256Sum, dstSHA256Sum) {
-			m.simpleFS.log.CInfof(ctx,
-				"file corruption is detected from a previous copy. Will copy from the beginning: ",
-				entryPathWithinJob)
-			return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
-		}
-
-		return srcSHA256Sum, nil
+		return srcSHA256Sum, dstSHA256Sum, nil
+	}()
+	if err != nil {
+		return nil, err
 	}
+
+	if !bytes.Equal(srcSHA256Sum, dstSHA256Sum) {
+		m.simpleFS.log.CInfof(ctx,
+			"file corruption is detected from a previous copy. Will copy from the beginning: ",
+			entryPathWithinJob)
+		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
+	}
+
+	return srcSHA256Sum, nil
 }
 
 func (m *archiveManager) copyFile(ctx context.Context,
@@ -556,6 +555,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	}
 	sort.Strings(entryPaths)
 
+	// loopEntryPaths:
 	for _, entryPathWithinJob := range entryPaths {
 		entry := manifest[entryPathWithinJob]
 		entry.State = keybase1.SimpleFSFileArchiveState_InProgress
@@ -563,9 +563,9 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 		updateManifest(manifest)
 
 		localPath := filepath.Join(dstBase, entryPathWithinJob)
-		srcFI, err := srcDirFS.Stat(entryPathWithinJob)
+		srcFI, err := srcDirFS.Lstat(entryPathWithinJob)
 		if err != nil {
-			return fmt.Errorf("srcDirFS.Stat(%s) error: %v", entryPathWithinJob, err)
+			return fmt.Errorf("srcDirFS.LStat(%s) error: %v", entryPathWithinJob, err)
 		}
 		switch {
 		case srcFI.IsDir():
@@ -580,7 +580,30 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
-			panic("todo")
+			/* WIP
+						// Call Stat, which follows symlinks, to make sure the link doesn't
+						// escape outside the srcDirFS.
+						_, err = srcDirFS.Stat(entryPathWithinJob)
+						if err != nil {
+							m.simpleFS.log.CWarningf(ctx, "skipping %s due to srcDirFS.Stat error: %v", entryPathWithinJob, err)
+							continue loopEntryPaths
+						}
+
+						link, err := srcDirFS.Readlink(entryPathWithinJob)
+						if err != nil {
+							return fmt.Errorf("srcDirFS(%s) error: %v", entryPathWithinJob, err)
+						}
+						m.simpleFS.log.CInfof(ctx, "calling os.Symlink(%s, %s) ", link, localPath)
+						err = os.Symlink(link, localPath)
+						if err != nil {
+							return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
+						}
+						os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+						if err != nil {
+							return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
+						}
+			// TODO why doesn't AddFS return an error when hitting a symlink?
+			*/
 		default:
 			os.MkdirAll(filepath.Dir(localPath), 0755)
 			if err != nil {
@@ -594,13 +617,16 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 
 			seek := int64(0)
 
-			dstFI, err := os.Stat(localPath)
+			dstFI, err := os.Lstat(localPath)
 			switch {
 			case os.IsNotExist(err): // simple copy from the start of file
 			case err == nil: // continue from a previously interrupted copy
-				seek = dstFI.Size()
+				if srcFI.Mode()&os.ModeSymlink == 0 {
+					seek = dstFI.Size()
+				}
+				// otherwise copy from the start of file
 			default:
-				return fmt.Errorf("os.Stat(%s) error: %v", localPath, err)
+				return fmt.Errorf("os.Lstat(%s) error: %v", localPath, err)
 			}
 
 			sha256Sum, err := m.copyFile(ctx, srcDirFS, entryPathWithinJob, localPath, seek, mode)
@@ -608,10 +634,14 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 				return err
 			}
 
+			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			if err != nil {
+				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
+			}
+
 			entry.Sha256SumHex = hex.EncodeToString(sha256Sum)
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
-			updateManifest(manifest)
 		}
 		updateManifest(manifest)
 	}
@@ -638,22 +668,19 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 		// check again on the next iteration.
 		m.signal(m.copyingWorkerSignal)
 
-		_, _ = jobID, jobCtx
-
 		m.simpleFS.log.CDebugf(ctx, "copying: %s", jobID)
 
 		err := m.doCopying(jobCtx, jobID)
-		switch err {
-		case nil:
+		if err == nil {
 			m.simpleFS.log.CDebugf(jobCtx, "copying done on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Copied)
-		default:
+			m.signal(m.zippingWorkerSignal) // Done copying! Notify the zipping worker.
+		} else {
 			m.simpleFS.log.CErrorf(jobCtx, "copying error on job %s: %v", jobID, err)
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.fluseStateFile(ctx)
-		m.signal(m.zippingWorkerSignal) // Done copying! Notify the zipping worker.
+		m.flushStateFile(ctx)
 	}
 }
 
@@ -668,21 +695,45 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 	}()
 
 	workspaceDir := getWorkspaceDir(jobDesc)
-	fs := os.DirFS(workspaceDir)
 
-	zipFile, err := os.Create(jobDesc.ZipFilePath)
+	err = func() (err error) {
+		fs := os.DirFS(workspaceDir)
+		zipFile, err := os.Create(jobDesc.ZipFilePath)
+		if err != nil {
+			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
+		}
+		defer func() {
+			closeErr := zipFile.Close()
+			if err != nil {
+				err = closeErr
+			}
+		}()
+
+		zipWriter := zipWriterWrapper{zip.NewWriter(zipFile)}
+		defer func() {
+			closeErr := zipWriter.Close()
+			if err != nil {
+				err = closeErr
+			}
+		}()
+
+		err = zipWriter.AddFS(fs)
+		if err != nil {
+			return fmt.Errorf("zipWriter.AddFS error: %v", jobDesc.ZipFilePath, err)
+		}
+
+		return nil
+	}()
 	if err != nil {
-		return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
+		return err
 	}
-	defer zipFile.Close()
 
-	zipWriter := zipWriterWrapper{zip.NewWriter(zipFile)}
-	defer zipWriter.Close()
-
-	err = zipWriter.AddFS(fs)
-	if err != nil {
-		return fmt.Errorf("zipWriter.AddFS error: %v", jobDesc.ZipFilePath, err)
-	}
+	// Remove the workspace so we release the storage space early on before
+	// user dismisses the job.
+	// err = os.RemoveAll(workspaceDir)
+	// if err != nil {
+	// 	m.simpleFS.log.CWarningf(ctx, "removing workspace %s error %v", workspaceDir, err)
+	// }
 
 	return nil
 }
@@ -706,21 +757,18 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 		// check again on the next iteration.
 		m.signal(m.zippingWorkerSignal)
 
-		_, _ = jobID, jobCtx
-
 		m.simpleFS.log.CDebugf(ctx, "zipping: %s", jobID)
 
 		err := m.doZipping(jobCtx, jobID)
-		switch err {
-		case nil:
+		if err == nil {
 			m.simpleFS.log.CDebugf(jobCtx, "zipping done on job %s", jobID)
 			m.changeJobPhase(jobCtx, jobID, keybase1.SimpleFSArchiveJobPhase_Done)
-		default:
+		} else {
 			m.simpleFS.log.CErrorf(jobCtx, "zipping error on job %s: %v", jobID, err)
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.fluseStateFile(ctx)
+		m.flushStateFile(ctx)
 	}
 }
 
@@ -814,29 +862,7 @@ func (m *archiveManager) resetInterruptedPhasesLocked(ctx context.Context) {
 	// Copying is resumable but we have per file state tracking so reset the
 	// phase here as well.
 	for jobID := range m.state.Jobs {
-		switch m.state.Jobs[jobID].Phase {
-		case keybase1.SimpleFSArchiveJobPhase_Indexing:
-			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
-				keybase1.SimpleFSArchiveJobPhase_Indexing,
-				keybase1.SimpleFSArchiveJobPhase_Queued)
-			copy := m.state.Jobs[jobID]
-			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Queued
-			m.state.Jobs[jobID] = copy
-		case keybase1.SimpleFSArchiveJobPhase_Copying:
-			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
-				keybase1.SimpleFSArchiveJobPhase_Copying,
-				keybase1.SimpleFSArchiveJobPhase_Indexed)
-			copy := m.state.Jobs[jobID]
-			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Indexed
-			m.state.Jobs[jobID] = copy
-		case keybase1.SimpleFSArchiveJobPhase_Zipping:
-			m.simpleFS.log.CDebugf(ctx, "resetting %s phase from %s to %s", jobID,
-				keybase1.SimpleFSArchiveJobPhase_Zipping,
-				keybase1.SimpleFSArchiveJobPhase_Copied)
-			copy := m.state.Jobs[jobID]
-			copy.Phase = keybase1.SimpleFSArchiveJobPhase_Copied
-			m.state.Jobs[jobID] = copy
-		}
+		_ = m.resetInterruptedPhaseLocked(ctx, jobID)
 	}
 }
 

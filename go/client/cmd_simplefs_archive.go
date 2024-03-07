@@ -27,10 +27,9 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	}
 }
 
-// CmdSimpleFSArchiveStart is the 'fs uploads' command.
+// CmdSimpleFSArchiveStart is the 'fs archive start' command.
 type CmdSimpleFSArchiveStart struct {
 	libkb.Contextified
-	jobID      string
 	outputPath string
 	kbfsPath   keybase1.KBFSPath
 }
@@ -102,9 +101,8 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 	return nil
 }
 
-// ParseArgv gets the optional -a switch.
+// ParseArgv parses the arguments.
 func (c *CmdSimpleFSArchiveStart) ParseArgv(ctx *cli.Context) error {
-	c.jobID = ctx.String("job-id")
 	c.outputPath = ctx.String("output-path")
 	p, err := makeSimpleFSPathWithArchiveParams(ctx.Args().First(), 0, "", "")
 	if err != nil {
@@ -123,7 +121,8 @@ func (c *CmdSimpleFSArchiveStart) GetUsage() libkb.Usage {
 	}
 }
 
-// CmdSimpleFSArchiveCancelOrDismiss is the 'fs uploads' command.
+// CmdSimpleFSArchiveCancelOrDismiss is the 'fs archive dismiss' and `fs
+// archive cancel' commands.
 type CmdSimpleFSArchiveCancelOrDismiss struct {
 	libkb.Contextified
 	jobIDs     []string
@@ -163,7 +162,7 @@ func (c *CmdSimpleFSArchiveCancelOrDismiss) Run() error {
 	return nil
 }
 
-// ParseArgv gets the optional -a switch.
+// ParseArgv parses the arguments.
 func (c *CmdSimpleFSArchiveCancelOrDismiss) ParseArgv(ctx *cli.Context) error {
 	c.jobIDs = ctx.Args()
 	return nil
@@ -178,7 +177,7 @@ func (c *CmdSimpleFSArchiveCancelOrDismiss) GetUsage() libkb.Usage {
 	}
 }
 
-// CmdSimpleFSArchiveStatus is the 'fs uploads' command.
+// CmdSimpleFSArchiveStatus is the 'fs archive status' command.
 type CmdSimpleFSArchiveStatus struct {
 	libkb.Contextified
 }
@@ -223,7 +222,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		job := status.Jobs[jobID]
 		printSimpleFSArchiveJobDesc(ui, &job.Desc, &job.CurrentTLFRevision)
 		{
-			ui.Printf("Phase:")
+			ui.Printf("Phase: %s (all phases:", job.Phase.String())
 			for _, p := range []keybase1.SimpleFSArchiveJobPhase{
 				keybase1.SimpleFSArchiveJobPhase_Queued,
 				keybase1.SimpleFSArchiveJobPhase_Indexing,
@@ -234,14 +233,14 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 				keybase1.SimpleFSArchiveJobPhase_Done,
 			} {
 				if p == job.Phase {
-					ui.Printf(" <%s> ", p.String())
+					ui.Printf(" <%s>", p.String())
 				} else {
-					ui.Printf(" [%s] ", p.String())
+					ui.Printf(" %s", p.String())
 				}
 			}
-			ui.Printf("\n")
+			ui.Printf(")\n")
 		}
-		ui.Printf("ToDo: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n",
+		ui.Printf("To Do: %d\nIn Progress: %d\nComplete: %d\nTotal: %d\n",
 			job.TodoCount, job.InProgressCount, job.CompleteCount, job.TotalCount)
 		if job.Error != nil {
 			ui.Printf("Error: %s\n", job.Error.Error)
@@ -253,7 +252,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	return nil
 }
 
-// ParseArgv gets the optional -a switch.
+// ParseArgv parses the arguments.
 func (c *CmdSimpleFSArchiveStatus) ParseArgv(ctx *cli.Context) error {
 	return nil
 }

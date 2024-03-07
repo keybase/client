@@ -251,6 +251,14 @@ export type MessageTypes = {
     inParam: {readonly username: String}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob': {
+    inParam: {readonly jobID: String}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSArchiveStart': {
+    inParam: {readonly kbfsPath: KBFSPath; readonly outputPath: String}
+    outParam: SimpleFSArchiveJobDesc
+  }
   'keybase.1.SimpleFS.simpleFSCancel': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -294,6 +302,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {
     inParam: {readonly path: Path}
     outParam: FolderSyncConfigAndStatus
+  }
+  'keybase.1.SimpleFS.simpleFSGetArchiveStatus': {
+    inParam: undefined
+    outParam: SimpleFSArchiveStatus
   }
   'keybase.1.SimpleFS.simpleFSGetDownloadInfo': {
     inParam: {readonly downloadID: String}
@@ -3741,6 +3753,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.teamsUi.confirmInviteLinkAccept'?: (params: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']) => void}) => void
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}) => void
 }
+export const SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSArchiveStartRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveStart', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancelDownload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancel', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckReachabilityRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheckReachability', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3752,6 +3766,7 @@ export const SimpleFSSimpleFSDismissDownloadRpcPromise = (params: MessageTypes['
 export const SimpleFSSimpleFSDismissUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissUpload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetArchiveStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetArchiveStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetFilesTabBadgeRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetFilesTabBadge', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4364,9 +4379,6 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.SimpleFS.simpleFSResetIndex'
 // 'keybase.1.SimpleFS.simpleFSGetIndexProgress'
 // 'keybase.1.SimpleFS.simpleFSCancelJournalUploads'
-// 'keybase.1.SimpleFS.simpleFSArchiveStart'
-// 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob'
-// 'keybase.1.SimpleFS.simpleFSGetArchiveStatus'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

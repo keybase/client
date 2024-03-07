@@ -1980,7 +1980,6 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
-
 	defer func() { k.doneSyncOp(ctx, err) }()
 
 	fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
@@ -3614,9 +3613,9 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 		// No zip file path is given. Assume mobile-like behavior where we
 		// generate a zip file inside the staging path. A share sheet will
 		// allow the user to download the zip file, and when user dismisses the
-		// job, the zip file along with other stuff in the stagin path is
+		// job, the zip file along with other stuff in the staging path is
 		// deleted.
-		desc.ZipFilePath = filepath.Join(desc.StagingPath, desc.TargetName+".aip")
+		desc.ZipFilePath = filepath.Join(desc.StagingPath, desc.TargetName+".zip")
 	} else if !strings.HasSuffix(desc.ZipFilePath, ".zip") {
 		desc.ZipFilePath = desc.ZipFilePath + ".zip"
 	}

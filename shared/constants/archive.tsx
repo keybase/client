@@ -1,8 +1,9 @@
-import type * as T from './types'
+import * as T from './types'
 import * as Z from '@/util/zustand'
 import * as C from '.'
-import {formatTimeForPopup} from '@/util/timestamp'
-import {downloadFolder} from '@/constants/platform'
+import { formatTimeForPopup } from '@/util/timestamp'
+import { downloadFolder } from '@/constants/platform'
+import * as FS from '@/constants/fs'
 
 type Job = {
   id: string
@@ -99,12 +100,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'kbfs':
-          if (path === '.') {
-            context = 'all kbfs'
-          } else {
-            context = `kbfs/${path}`
-          }
-          break
+          C.ignorePromise(startFSArchive())
+          return
       }
       // TODO outpath on mobile set by service
       set(s => {
@@ -138,3 +135,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+const startFSArchive = async (path: string, outPath: string) => {
+  await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
+    kbfsPath: FS.pathToRPCPath(path).kbfs,
+    outputPath: outPath,
+  })
+}
