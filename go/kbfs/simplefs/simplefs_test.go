@@ -5,6 +5,7 @@
 package simplefs
 
 import (
+	"archive/zip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -1798,4 +1799,80 @@ func TestProfiles(t *testing.T) {
 		libfs.ListProfileNames()...)
 	buf = readRemoteFile(ctx, t, sfs, pathAppend(path, "goroutine"))
 	require.NotEmpty(t, buf)
+}
+
+func TestArchiveSymlink(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := os.MkdirTemp(TempDirBase, "simpleFStest")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	t.Logf("temp dir:  %s", tempdir)
+
+	setCacheDirForTest(tempdir)
+	defer unsetCacheDirForTest()
+
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	// make a temp remote directory + file(s) we will clean up later
+	path1 := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, "test1.txt"), []byte("foo"))
+
+	// make some symlinks
+	{
+		{
+			linkName := "link1"
+			link := pathAppend(path1, linkName)
+			err := sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+				Target: "test1.txt",
+				Link:   link,
+			})
+			require.NoError(t, err)
+		}
+		{
+			linkName := "link-escaping"
+			link := pathAppend(path1, linkName)
+			err := sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+				Target: "../test1.txt",
+				Link:   link,
+			})
+			require.NoError(t, err)
+		}
+	}
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	desc, err := sfs.SimpleFSArchiveStart(ctx, keybase1.SimpleFSArchiveStartArg{
+		KbfsPath:   path1.Kbfs(),
+		OutputPath: filepath.Join(tempdir, "archive"),
+	})
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(tempdir, "archive.zip"), desc.ZipFilePath)
+
+	ticker := time.NewTicker(time.Millisecond * 100)
+loopWait:
+	for {
+		select {
+		case <-ctx.Done():
+			require.NoError(t, ctx.Err())
+		case <-ticker.C:
+		}
+		status, err := sfs.SimpleFSGetArchiveStatus(ctx)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(status.Jobs))
+		job := status.Jobs[desc.JobID]
+		t.Logf("got job status %#+v", job)
+		require.Nil(t, job.Error)
+		if job.Phase == keybase1.SimpleFSArchiveJobPhase_Done {
+			break loopWait
+		}
+	}
+
+	reader, err := zip.OpenReader(filepath.Join(tempdir, "archive.zip"))
+	defer reader.Close()
+	require.NoError(t, err)
+	require.Equal(t, 2, len(reader.File)) // file and one symlink
+
 }

@@ -47,6 +47,11 @@ func loadArchiveStateFromJsonGz(ctx context.Context, simpleFS *SimpleFS, filePat
 }
 
 func writeArchiveStateIntoJsonGz(ctx context.Context, simpleFS *SimpleFS, filePath string, s *keybase1.SimpleFSArchiveState) error {
+	err := os.MkdirAll(filepath.Dir(filePath), 0755)
+	if err != nil {
+		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: os.MkdirAll error: %v", err)
+		return err
+	}
 	f, err := os.Create(filePath)
 	if err != nil {
 		simpleFS.log.CErrorf(ctx, "writeArchiveStateIntoJsonGz: creating state file error: %v", err)
@@ -101,7 +106,7 @@ type archiveManager struct {
 
 func getStateFilePath(simpleFS *SimpleFS) string {
 	username := simpleFS.config.KbEnv().GetUsername()
-	cacheDir := simpleFS.config.KbEnv().GetCacheDir()
+	cacheDir := simpleFS.getCacheDir()
 	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", username))
 }
 
@@ -278,23 +283,16 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 		return err
 	}
 
-	manifest := make(map[string]keybase1.SimpleFSArchiveFile)
-	gotList := false
-loopReadList:
-	for {
-		listResult, err := m.simpleFS.SimpleFSReadList(ctx, opid)
-		if err != nil || len(listResult.Entries) == 0 {
-			if gotList {
-				break loopReadList
-			}
-		}
-		gotList = true
+	listResult, err := m.simpleFS.SimpleFSReadList(ctx, opid)
+	if err != nil {
+		return err
+	}
 
-		for _, e := range listResult.Entries {
-			manifest[e.Name] = keybase1.SimpleFSArchiveFile{
-				State:      keybase1.SimpleFSFileArchiveState_ToDo,
-				DirentType: e.DirentType,
-			}
+	manifest := make(map[string]keybase1.SimpleFSArchiveFile)
+	for _, e := range listResult.Entries {
+		manifest[e.Name] = keybase1.SimpleFSArchiveFile{
+			State:      keybase1.SimpleFSFileArchiveState_ToDo,
+			DirentType: e.DirentType,
 		}
 	}
 
@@ -580,6 +578,10 @@ loopEntryPaths:
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
+			os.MkdirAll(filepath.Dir(localPath), 0755)
+			if err != nil {
+				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
+			}
 			// Call Stat, which follows symlinks, to make sure the link doesn't
 			// escape outside the srcDirFS.
 			_, err = srcDirFS.Stat(entryPathWithinJob)

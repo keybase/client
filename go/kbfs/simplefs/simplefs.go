@@ -3567,9 +3567,26 @@ func (k *SimpleFS) SimpleFSCancelJournalUploads(
 		})
 }
 
+var cacheDirForTest = ""
+
+func setCacheDirForTest(d string) {
+	cacheDirForTest = d
+}
+
+func unsetCacheDirForTest() {
+	cacheDirForTest = ""
+}
+
+func (k *SimpleFS) getCacheDir() string {
+	if len(cacheDirForTest) != 0 {
+		return cacheDirForTest
+	}
+	return k.config.KbEnv().GetCacheDir()
+}
+
 func (k *SimpleFS) getStagingPath(ctx context.Context, jobID string) (stagingPath string) {
 	username := k.config.KbEnv().GetUsername()
-	cacheDir := k.config.KbEnv().GetCacheDir()
+	cacheDir := k.getCacheDir()
 	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s-%s", username, jobID))
 }
 

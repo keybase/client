@@ -428,6 +428,21 @@ func (s SimpleFSMock) SimpleFSCancelJournalUploads(
 	return nil
 }
 
+func (k SimpleFSMock) SimpleFSArchiveStart(ctx context.Context,
+	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
+	return keybase1.SimpleFSArchiveJobDesc{}, nil
+}
+
+func (k SimpleFSMock) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
+	jobID string) (err error) {
+	return nil
+}
+
+func (k SimpleFSMock) SimpleFSGetArchiveStatus(ctx context.Context) (
+	status keybase1.SimpleFSArchiveStatus, err error) {
+	return keybase1.SimpleFSArchiveStatus{}, nil
+}
+
 /*
  file source cases:
  1. file
