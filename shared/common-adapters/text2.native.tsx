@@ -4,7 +4,7 @@ import {fontSizeToSizeStyle, metaData} from './text.meta.native'
 import type {Props} from './text2'
 import type {Text as RNText} from 'react-native'
 import type {TextType} from './text.shared'
-import {debugWarning} from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
 
 const TEMP_MARK_V2 = __DEV__ && (false as boolean)
 const TEMP_SWITCH = __DEV__ && (false as boolean)

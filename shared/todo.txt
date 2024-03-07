@@ -2,7 +2,6 @@ Some short term todos:
 swipeable2 slow
 remove F1 debug in chat
 
-fasttext
 text selection delete issues
 mem leak
 f6 for just a router remount?

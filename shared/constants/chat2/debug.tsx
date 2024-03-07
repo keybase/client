@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import logger, {debugWarning} from '@/logger'
+import logger from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
 
 export const chatDebugEnabled = true as boolean
 

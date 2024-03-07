@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {metaData} from './text.meta.desktop'
 import type {Props} from './text2'
-import {debugWarning} from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
 
 const TEMP_MARK_V2 = __DEV__ && (false as boolean)
 const TEMP_SWITCH = __DEV__ && (false as boolean)
