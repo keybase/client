@@ -443,13 +443,16 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 
 var _ types.ChatArchiveRegistry = (*ChatArchiveRegistry)(nil)
 
-const defaultPageSize = 999
+const defaultPageSizeDesktop = 999
+const defaultPageSizeMobile = 300
 
 // Fullfil an archive query
 type ChatArchiver struct {
 	globals.Contextified
 	utils.DebugLabeler
 	uid gregor1.UID
+
+	pageSize int
 
 	sync.Mutex
 	messagesComplete int64
@@ -458,12 +461,19 @@ type ChatArchiver struct {
 }
 
 func NewChatArchiver(g *globals.Context, uid gregor1.UID, remoteClient func() chat1.RemoteInterface) *ChatArchiver {
-	return &ChatArchiver{
+	c := &ChatArchiver{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ChatArchiver", false),
 		uid:          uid,
 		remoteClient: remoteClient,
 	}
+	switch c.G().GetAppType() {
+	case libkb.MobileAppType:
+		c.pageSize = defaultPageSizeMobile
+	default:
+		c.pageSize = defaultPageSizeDesktop
+	}
+	return c
 }
 
 func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJobID, pagination chat1.Pagination) {
@@ -523,7 +533,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 	c.Unlock()
 	if !ok {
 		cp = chat1.ArchiveChatConvCheckpoint{
-			Pagination: chat1.Pagination{Num: defaultPageSize},
+			Pagination: chat1.Pagination{Num: c.pageSize},
 			Offset:     0,
 		}
 	}
@@ -620,7 +630,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 		// update our pagination so we can correctly fetch the next page and marking progress in our checkpoint.
 		firstPage = false
 		cp.Pagination = *thread.Pagination
-		cp.Pagination.Num = defaultPageSize
+		cp.Pagination.Num = c.pageSize
 		cp.Pagination.Previous = nil
 		ierr := c.checkpointConv(ctx, f, cp, conv.Info.Id, job)
 		if ierr != nil {
