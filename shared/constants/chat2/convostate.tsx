@@ -503,7 +503,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
   }
 
-  const messagesAdd = (messages: Array<T.Chat.Message>, _why: string, markAsRead = true) => {
+  const messagesAdd = (messages: Array<T.Chat.Message>, why: string, markAsRead = true) => {
+    logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
     set(s => {
       for (const _m of messages) {
         const m = T.castDraft(_m)
@@ -1223,7 +1224,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
 
         const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
-        const onGotThread = (thread: string) => {
+        const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
           }
@@ -1250,7 +1251,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
 
           if (messages.length) {
-            messagesAdd(messages, 'load more ongotthread')
+            messagesAdd(messages, `load more ongotthread: ${why}`)
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({
@@ -1265,8 +1266,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
-              'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
-              'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
+              'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
               'chat.1.chatUi.chatThreadStatus': p => {
                 logger.info(
                   `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
