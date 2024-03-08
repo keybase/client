@@ -284,7 +284,7 @@ func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, 
 	if l.data == nil || l.data.LinkReceiptTimes == nil {
 		return nil
 	}
-	for s, _ := range l.data.LinkReceiptTimes {
+	for s := range l.data.LinkReceiptTimes {
 		if s <= newCommittedSeqno {
 			continue
 		}
