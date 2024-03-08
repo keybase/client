@@ -30,8 +30,9 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 // CmdSimpleFSArchiveStart is the 'fs archive start' command.
 type CmdSimpleFSArchiveStart struct {
 	libkb.Contextified
-	outputPath string
-	kbfsPath   keybase1.KBFSPath
+	outputPath   string
+	kbfsPath     keybase1.KBFSPath
+	overwriteZip bool
 }
 
 // NewCmdSimpleFSArchiveStart creates a new cli.Command.
@@ -52,6 +53,10 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 			cli.StringFlag{
 				Name:  "o, output-path",
 				Usage: "[optional] specify a output path",
+			},
+			cli.BoolFlag{
+				Name:  "f, overwrite-zip",
+				Usage: "[optional] overwrite zip file if it already exists",
 			},
 		},
 		ArgumentHelp: "<KBFS path>",
@@ -89,8 +94,9 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 	desc, err := cli.SimpleFSArchiveStart(context.TODO(),
 		keybase1.SimpleFSArchiveStartArg{
-			OutputPath: c.outputPath,
-			KbfsPath:   c.kbfsPath,
+			OutputPath:   c.outputPath,
+			KbfsPath:     c.kbfsPath,
+			OverwriteZip: c.overwriteZip,
 		})
 	if err != nil {
 		return err
@@ -109,6 +115,7 @@ func (c *CmdSimpleFSArchiveStart) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.kbfsPath = p.Kbfs()
+	c.overwriteZip = ctx.Bool("overwrite-zip")
 	return nil
 }
 

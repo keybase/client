@@ -3606,7 +3606,8 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	ctx = k.makeContext(ctx)
 
 	desc := keybase1.SimpleFSArchiveJobDesc{
-		StartTime: keybase1.ToTime(time.Now()),
+		StartTime:    keybase1.ToTime(time.Now()),
+		OverwriteZip: arg.OverwriteZip,
 	}
 
 	desc.JobID, err = generateArchiveJobID()

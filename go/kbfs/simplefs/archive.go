@@ -707,7 +707,11 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 	workspaceDir := getWorkspaceDir(jobDesc)
 
 	err = func() (err error) {
-		zipFile, err := os.Create(jobDesc.ZipFilePath)
+		mode := os.O_WRONLY | os.O_CREATE | os.O_EXCL
+		if jobDesc.OverwriteZip {
+			mode = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+		}
+		zipFile, err := os.OpenFile(jobDesc.ZipFilePath, mode, 0666)
 		if err != nil {
 			return fmt.Errorf("os.Create(%s) error: %v", jobDesc.ZipFilePath, err)
 		}

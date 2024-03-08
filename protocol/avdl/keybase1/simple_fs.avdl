@@ -754,12 +754,13 @@ protocol SimpleFS {
   record SimpleFSArchiveJobDesc {
     string jobID;
     KBFSArchivedPath kbfsPathWithRevision;
+    boolean overwriteZip;
     Time startTime;
     string stagingPath; // CancelOrDismiss gets rid of this
     string targetName; // target inside the stagingPath
     string zipFilePath; // This could be either user specified (desktop), or inside the staging path.
   }
-  SimpleFSArchiveJobDesc simpleFSArchiveStart(KBFSPath kbfsPath /* must be a directory */, string outputPath);
+  SimpleFSArchiveJobDesc simpleFSArchiveStart(KBFSPath kbfsPath /* must be a directory */, string outputPath, boolean overwriteZip);
 
   void simpleFSArchiveCancelOrDismissJob(string jobID);
 

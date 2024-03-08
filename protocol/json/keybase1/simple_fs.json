@@ -1061,6 +1061,10 @@
           "name": "kbfsPathWithRevision"
         },
         {
+          "type": "boolean",
+          "name": "overwriteZip"
+        },
+        {
           "type": "Time",
           "name": "startTime"
         },
@@ -2063,6 +2067,10 @@
         {
           "name": "outputPath",
           "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
         }
       ],
       "response": "SimpleFSArchiveJobDesc"

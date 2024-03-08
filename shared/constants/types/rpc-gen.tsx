@@ -256,7 +256,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSArchiveStart': {
-    inParam: {readonly kbfsPath: KBFSPath; readonly outputPath: String}
+    inParam: {readonly kbfsPath: KBFSPath; readonly outputPath: String; readonly overwriteZip: Boolean}
     outParam: SimpleFSArchiveJobDesc
   }
   'keybase.1.SimpleFS.simpleFSCancel': {
@@ -3270,7 +3270,7 @@ export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRo
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
 export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
-export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
+export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
 export type SimpleFSArchiveJobErrorState = {readonly error: String; readonly nextRetry: Time}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase}
 export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly currentTLFRevision: KBFSRevision; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly skippedCount: Int; readonly totalCount: Int; readonly error?: SimpleFSArchiveJobErrorState | null}

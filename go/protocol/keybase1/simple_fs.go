@@ -1673,6 +1673,7 @@ func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
 type SimpleFSArchiveJobDesc struct {
 	JobID                string           `codec:"jobID" json:"jobID"`
 	KbfsPathWithRevision KBFSArchivedPath `codec:"kbfsPathWithRevision" json:"kbfsPathWithRevision"`
+	OverwriteZip         bool             `codec:"overwriteZip" json:"overwriteZip"`
 	StartTime            Time             `codec:"startTime" json:"startTime"`
 	StagingPath          string           `codec:"stagingPath" json:"stagingPath"`
 	TargetName           string           `codec:"targetName" json:"targetName"`
@@ -1683,6 +1684,7 @@ func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
 	return SimpleFSArchiveJobDesc{
 		JobID:                o.JobID,
 		KbfsPathWithRevision: o.KbfsPathWithRevision.DeepCopy(),
+		OverwriteZip:         o.OverwriteZip,
 		StartTime:            o.StartTime.DeepCopy(),
 		StagingPath:          o.StagingPath,
 		TargetName:           o.TargetName,
@@ -2209,8 +2211,9 @@ type SimpleFSCancelJournalUploadsArg struct {
 }
 
 type SimpleFSArchiveStartArg struct {
-	KbfsPath   KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
-	OutputPath string   `codec:"outputPath" json:"outputPath"`
+	KbfsPath     KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
+	OutputPath   string   `codec:"outputPath" json:"outputPath"`
+	OverwriteZip bool     `codec:"overwriteZip" json:"overwriteZip"`
 }
 
 type SimpleFSArchiveCancelOrDismissJobArg struct {
