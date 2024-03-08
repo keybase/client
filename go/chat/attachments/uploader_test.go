@@ -205,6 +205,15 @@ func TestAttachmentUploader(t *testing.T) {
 
 	outboxID, err = storage.NewOutboxID()
 	require.NoError(t, err)
+	filename = "../testdata/mysql.heic"
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "mysql", filename, md, nil)
+	require.NoError(t, err)
+	deliverCheck(true)
+	uploadStartCheck(true, outboxID)
+	successCheck(resChan)
+
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
 	filename = "../testdata/ship.jpg"
 	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
 	require.NoError(t, err)

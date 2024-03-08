@@ -38,3 +38,7 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil
 }
+
+func HEICToJPEG(ctx context.Context, log utils.DebugLabeler, basename string) (dat []byte, err error) {
+	return nil, nil
+}

@@ -61,10 +61,11 @@ func IsFatalImageErr(err error) bool {
 	return false
 }
 
-// Preview creates preview assets from src.  It returns an in-memory BufferSource
+// Preview creates preview assets from src. It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
 	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	defer log.Trace(ctx, &err, "Preview(%s)", contentType)()
 	defer func() {
 		if IsFatalImageErr(err) {
 			log.Debug(ctx, "squashing %v", err)
