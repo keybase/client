@@ -27,15 +27,17 @@ trusted by the client. In order to disable SSL pinning and allow TLS MITMing pro
 possible to switch the client to trust the public CA system. This can be done in one of three ways:
 
 ``` bash
-keybase config set disable-ssl-pinning true
+keybase config set disable-cert-pinning true
 # OR
 export DISABLE_SSL_PINNING="true"
 # OR
-keybase --disable-ssl-pinning
+keybase --disable-cert-pinning
 ```
 
 Note that enabling this option is NOT recommended. Enabling this option allows the proxy to view all traffic between
 the client and the Keybase servers.
+
+Be careful, the config option is "disable-cert-pinning" but the environment variable is "DISABLE_SSL_PINNING".
 
 */
 
