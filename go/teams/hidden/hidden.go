@@ -337,7 +337,8 @@ func ProcessHiddenResponseFunc(m libkb.MetaContext, teamID keybase1.TeamID, apiR
 func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.TeamID, apiRes *libkb.APIRes, blindHash merkletree2.Hash) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
 	lastHiddenSeqnoInt, err := apiRes.Body.AtKey("last_hidden_seqno").GetInt()
 	if err != nil {
-		return nil, err
+		m.Debug("Error decoding last_hidden_seqno (%v), assuming the server did not send it.", err.Error())
+		return &libkb.MerkleHiddenResponse{RespType: libkb.MerkleHiddenResponseTypeNONE}, nil
 	}
 	lastHiddenSeqno := keybase1.Seqno(lastHiddenSeqnoInt)
 	return makeHiddenRespFromTeamLeaf(m, lastHiddenSeqno)
