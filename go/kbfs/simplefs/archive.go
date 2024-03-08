@@ -110,8 +110,6 @@ func getStateFilePath(simpleFS *SimpleFS) string {
 	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", username))
 }
 
-const archiveManagerCreationTimeout = 10 * time.Second
-
 func (m *archiveManager) flushStateFileLocked(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
@@ -150,7 +148,10 @@ func (m *archiveManager) shutdown(ctx context.Context) {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.flushStateFileLocked(ctx)
+	err := m.flushStateFileLocked(ctx)
+	if err != nil {
+		m.simpleFS.log.CWarningf(ctx, "m.flushStateFileLocked error: %v", err)
+	}
 }
 
 func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
@@ -342,7 +343,10 @@ func (m *archiveManager) indexingWorker(ctx context.Context) {
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.flushStateFile(ctx)
+		err = m.flushStateFile(ctx)
+		if err != nil {
+			m.simpleFS.log.CWarningf(ctx, "m.flushStateFileLocked error: %v", err)
+		}
 	}
 }
 
@@ -567,18 +571,18 @@ loopEntryPaths:
 		}
 		switch {
 		case srcFI.IsDir():
-			os.MkdirAll(localPath, 0755)
+			err = os.MkdirAll(localPath, 0755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(%s) error: %v", localPath, err)
 			}
-			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			err = os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
 			if err != nil {
 				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
 			}
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		case srcFI.Mode()&os.ModeSymlink != 0: // symlink
-			os.MkdirAll(filepath.Dir(localPath), 0755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
@@ -601,14 +605,14 @@ loopEntryPaths:
 			if err != nil {
 				return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
 			}
-			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			err = os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
 			if err != nil {
 				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
 			}
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		default:
-			os.MkdirAll(filepath.Dir(localPath), 0755)
+			err = os.MkdirAll(filepath.Dir(localPath), 0755)
 			if err != nil {
 				return fmt.Errorf("os.MkdirAll(filepath.Dir(%s)) error: %v", localPath, err)
 			}
@@ -637,7 +641,7 @@ loopEntryPaths:
 				return err
 			}
 
-			os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
+			err = os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
 			if err != nil {
 				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
 			}
@@ -683,7 +687,10 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.flushStateFile(ctx)
+		err = m.flushStateFile(ctx)
+		if err != nil {
+			m.simpleFS.log.CWarningf(ctx, "m.flushStateFileLocked error: %v", err)
+		}
 	}
 }
 
@@ -770,7 +777,10 @@ func (m *archiveManager) zippingWorker(ctx context.Context) {
 			m.setJobError(ctx, jobID, err)
 		}
 
-		m.flushStateFile(ctx)
+		err = m.flushStateFile(ctx)
+		if err != nil {
+			m.simpleFS.log.CWarningf(ctx, "m.flushStateFileLocked error: %v", err)
+		}
 	}
 }
 

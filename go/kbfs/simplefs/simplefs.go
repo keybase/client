@@ -3634,7 +3634,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 		// deleted.
 		desc.ZipFilePath = filepath.Join(desc.StagingPath, desc.TargetName+".zip")
 	} else if !strings.HasSuffix(desc.ZipFilePath, ".zip") {
-		desc.ZipFilePath = desc.ZipFilePath + ".zip"
+		desc.ZipFilePath += ".zip"
 	}
 
 	// Pin the job to a specific revision so if the TLF changes during the

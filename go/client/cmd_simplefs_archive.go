@@ -125,9 +125,7 @@ func (c *CmdSimpleFSArchiveStart) GetUsage() libkb.Usage {
 // archive cancel' commands.
 type CmdSimpleFSArchiveCancelOrDismiss struct {
 	libkb.Contextified
-	jobIDs     []string
-	outputPath string
-	kbfsPath   keybase1.KBFSPath
+	jobIDs []string
 }
 
 // NewCmdSimpleFSArchiveCancelOrDismiss creates a new cli.Command.

@@ -1871,7 +1871,7 @@ loopWait:
 	}
 
 	reader, err := zip.OpenReader(filepath.Join(tempdir, "archive.zip"))
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 	require.NoError(t, err)
 	require.Equal(t, 2, len(reader.File)) // file and one symlink
 
