@@ -1,15 +1,28 @@
 // HiddenString tries to wrap a string value to prevent it from being easily
 // output as a string to log, file or console
+const valueKey = Symbol('valueKey')
+
 class HiddenString {
-  stringValue: () => string
+  [valueKey]: string = ''
+
   constructor(stringValue: string) {
-    this.stringValue = () => stringValue
-    // if (__DEV__) {
-    //   this.debugString = stringValue
-    // }
+    Object.defineProperty(this, valueKey, {
+      configurable: false,
+      enumerable: false,
+      value: stringValue,
+      writable: false,
+    })
   }
 
-  toString(): string {
+  stringValue() {
+    return this[valueKey]
+  }
+
+  toString() {
+    return '[HiddenString]'
+  }
+
+  toJSON() {
     return '[HiddenString]'
   }
 }

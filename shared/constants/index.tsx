@@ -99,6 +99,7 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   : never
 
 import logger from '@/logger'
+export {default as logger} from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
 
 export const ignorePromise = (f: Promise<void>) => {
