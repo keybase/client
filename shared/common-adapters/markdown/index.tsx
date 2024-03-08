@@ -138,12 +138,13 @@ const makeTextRegexp = () => {
 // Only allow a small set of characters before a url
 const textMatch = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
 
-const wrapInParagraph = (parse: SM.Parser, content: string, state: SM.State): Array<SM.SingleASTNode> => [
-  {
-    content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
-    type: 'paragraph',
-  },
-]
+const wrapInParagraph = (parse: SM.Parser, content: string, state: SM.State): Array<SM.SingleASTNode> => {
+  const oldInParagraph = state['inParagraph'] as boolean
+  state['inParagraph'] = true
+  const ret = [{content: SimpleMarkdown.parseInline(parse, content, state), type: 'paragraph'}]
+  state['inParagraph'] = oldInParagraph
+  return ret
+}
 
 const wordBoundaryLookBehind = /\B$/
 // Wraps the match to also check that the behind is not a text, but a boundary (like a space)
@@ -182,9 +183,11 @@ const rules: {[type: string]: SM.ParserRule} = {
     },
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
       const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
-      const blockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
-      const nextState = {...state, blockQuoteRecursionLevel: blockQuoteRecursionLevel + 1}
-      return {content: nestedParse(content, nextState)}
+      const oldBlockQuoteRecursionLevel: number = state['blockQuoteRecursionLevel'] || 0
+      state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel + 1
+      const ret = {content: nestedParse(content, state)}
+      state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel
+      return ret
     },
   },
   del: {
@@ -265,7 +268,11 @@ const rules: {[type: string]: SM.ParserRule} = {
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = Styles.isMobile ? capture[1]?.replace(/\n$/, '') ?? '' : capture[1] ?? ''
-      return {content: SimpleMarkdown.parseInline(nestedParse, content, {...state, inParagraph: true})}
+      const oldInParagraph = state['inParagraph'] as boolean
+      state['inParagraph'] = true
+      const ret = {content: SimpleMarkdown.parseInline(nestedParse, content, state)}
+      state['inParagraph'] = oldInParagraph
+      return ret
     },
   },
   quotedFence: {
@@ -350,7 +357,11 @@ const noRules: {[type: string]: SM.ParserRule} = {
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = (Styles.isMobile ? capture[1]?.replace(/\n$/, '') : capture[1]) ?? ''
-      return {content: SimpleMarkdown.parseInline(nestedParse, content, {...state, inParagraph: true})}
+      const oldInParagraph = state['inParagraph'] as boolean
+      state['inParagraph'] = true
+      const ret = {content: SimpleMarkdown.parseInline(nestedParse, content, state)}
+      state['inParagraph'] = oldInParagraph
+      return ret
     },
   },
   text: {

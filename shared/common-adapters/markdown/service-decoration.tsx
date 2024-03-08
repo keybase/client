@@ -100,7 +100,7 @@ const WarningLink = (props: WarningLinkProps) => {
 export type Props = {
   json: string
   allowFontScaling?: boolean
-  styleOverride: StyleOverride
+  styleOverride?: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
   disableEmojiAnimation: boolean
@@ -166,20 +166,20 @@ const ServiceDecoration = (p: Props) => {
         ? link
         : 'http://' + link
     return linkIsKeybaseLink(link) ? (
-      <KeybaseLink link={link} linkStyle={styleOverride.link} wrapStyle={styles['wrapStyle']} />
+      <KeybaseLink link={link} linkStyle={styleOverride?.link} wrapStyle={styles['wrapStyle']} />
     ) : parsed.link.punycode ? (
       <WarningLink
         url={openUrl}
         display={parsed.link.url}
         punycode={parsed.link.punycode}
-        linkStyle={styleOverride.link}
+        linkStyle={styleOverride?.link}
         wrapStyle={styles['wrapStyle']}
       />
     ) : (
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride.link])}
+        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.link])}
         title={parsed.link.url}
         onClickURL={openUrl}
         onLongPressURL={openUrl}
@@ -195,7 +195,7 @@ const ServiceDecoration = (p: Props) => {
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride.mailto])}
+        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.mailto])}
         title={parsed.mailto.url}
         onClickURL={openUrl}
         onLongPressURL={openUrl}
@@ -213,7 +213,7 @@ const ServiceDecoration = (p: Props) => {
           Styles.collapseStyles([
             styles['linkStyle'],
             linkStyle,
-            styleOverride.link,
+            styleOverride?.link,
           ]) as StylesTextCrossPlatform
         }
       />
@@ -236,12 +236,12 @@ const ServiceDecoration = (p: Props) => {
       RPCToEmojiData: typeof RPCToEmojiDataType
     }
     return renderEmoji({
-      customStyle: styleOverride.customEmoji,
+      customStyle: styleOverride?.customEmoji,
       emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),
       showTooltip: !parsed.emoji.isReacji,
       size:
         parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16,
-      style: styleOverride.emoji,
+      style: styleOverride?.emoji,
     })
   }
   return null
