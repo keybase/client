@@ -23,6 +23,8 @@ import KB2 from '@/util/electron'
 import NotifyPopup from '@/util/notify-popup'
 import {hexToUint8Array} from 'uint8array-extras'
 import assign from 'lodash/assign'
+import {clearChatTimeCache} from '@/util/timestamp'
+
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const makeThreadSearchInfo = (): T.Chat.ThreadSearchInfo => ({
@@ -260,6 +262,7 @@ export type ConvoState = ConvoStore & {
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
     resetState: 'default'
+    resetDeleteMe: true
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => void
@@ -2402,6 +2405,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'resetChatWithoutThem',
       })
     },
+    resetDeleteMe: true,
     resetLetThemIn: username => {
       // let them back in after they reset
       const f = async () => {
@@ -2423,6 +2427,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     selectedConversation: () => {
       const conversationIDKey = get().id
+      clearChatTimeCache()
 
       const fetchConversationBio = () => {
         const participantInfo = get().participants
@@ -3174,6 +3179,11 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   _stores.set(id, next)
   next.getState().dispatch.setupSubscriptions()
   return next
+}
+
+// debug only
+export function hasConvoState(id: T.Chat.ConversationIDKey) {
+  return _stores.has(id)
 }
 
 // non reactive call, used in actions/dispatches
