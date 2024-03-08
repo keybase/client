@@ -3,7 +3,7 @@
 const valueKey = Symbol('valueKey')
 
 class HiddenString {
-  [valueKey]: string = ''
+  private [valueKey]: string = ''
 
   constructor(stringValue: string) {
     Object.defineProperty(this, valueKey, {
@@ -28,3 +28,4 @@ class HiddenString {
 }
 
 export default HiddenString
+

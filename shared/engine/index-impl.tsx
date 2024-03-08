@@ -29,7 +29,7 @@ function capitalize(s: string) {
 class Engine {
   _onConnectedCB: (c: boolean) => void
   // Bookkeep old sessions
-  _deadSessionsMap: {[K in SessionIDKey]: true} = {}
+  // _deadSessionsMap: {[K in SessionIDKey]: true} = {}
   // Tracking outstanding sessions
   _sessionsMap: {[K in SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
@@ -267,7 +267,7 @@ class Engine {
       type: 'engineInternal',
     })
     delete this._sessionsMap[String(session.getId())] // eslint-disable-line
-    this._deadSessionsMap[String(session.getId())] = true
+    // this._deadSessionsMap[String(session.getId())] = true
   }
 
   // Reset the engine
