@@ -605,10 +605,8 @@ loopEntryPaths:
 			if err != nil {
 				return fmt.Errorf("os.Symlink(%s, %s) error: %v", link, localPath, err)
 			}
-			err = os.Chtimes(localPath, time.Time{}, srcFI.ModTime())
-			if err != nil {
-				return fmt.Errorf("os.Chtimes(%s) error: %v", localPath, err)
-			}
+			// Skipping Chtimes becasue there doesn't seem to be a way to
+			// change time on symlinks.
 			entry.State = keybase1.SimpleFSFileArchiveState_Complete
 			manifest[entryPathWithinJob] = entry
 		default:
