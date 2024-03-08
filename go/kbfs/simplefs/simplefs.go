@@ -3681,9 +3681,12 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 	}
 	for jobID, stateJob := range state.Jobs {
 		statusJob := keybase1.SimpleFSArchiveJobStatus{
-			Desc:       stateJob.Desc.DeepCopy(),
-			TotalCount: len(stateJob.Manifest),
-			Phase:      stateJob.Phase,
+			Desc:        stateJob.Desc.DeepCopy(),
+			TotalCount:  len(stateJob.Manifest),
+			Phase:       stateJob.Phase,
+			BytesCopied: stateJob.BytesCopied,
+			BytesZipped: stateJob.BytesZipped,
+			BytesTotal:  stateJob.BytesTotal,
 		}
 		for _, item := range stateJob.Manifest {
 			switch item.State {

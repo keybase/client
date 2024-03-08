@@ -1129,6 +1129,18 @@
         {
           "type": "SimpleFSArchiveJobPhase",
           "name": "phase"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesCopied"
+        },
+        {
+          "type": "int64",
+          "name": "bytesZipped"
         }
       ]
     },
@@ -1212,6 +1224,18 @@
         {
           "type": "int",
           "name": "totalCount"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesCopied"
+        },
+        {
+          "type": "int64",
+          "name": "bytesZipped"
         },
         {
           "type": [

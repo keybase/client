@@ -1739,9 +1739,12 @@ func (o SimpleFSArchiveFile) DeepCopy() SimpleFSArchiveFile {
 }
 
 type SimpleFSArchiveJobState struct {
-	Desc     SimpleFSArchiveJobDesc         `codec:"desc" json:"desc"`
-	Manifest map[string]SimpleFSArchiveFile `codec:"manifest" json:"manifest"`
-	Phase    SimpleFSArchiveJobPhase        `codec:"phase" json:"phase"`
+	Desc        SimpleFSArchiveJobDesc         `codec:"desc" json:"desc"`
+	Manifest    map[string]SimpleFSArchiveFile `codec:"manifest" json:"manifest"`
+	Phase       SimpleFSArchiveJobPhase        `codec:"phase" json:"phase"`
+	BytesTotal  int64                          `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied int64                          `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped int64                          `codec:"bytesZipped" json:"bytesZipped"`
 }
 
 func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
@@ -1759,7 +1762,10 @@ func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
 			}
 			return ret
 		})(o.Manifest),
-		Phase: o.Phase.DeepCopy(),
+		Phase:       o.Phase.DeepCopy(),
+		BytesTotal:  o.BytesTotal,
+		BytesCopied: o.BytesCopied,
+		BytesZipped: o.BytesZipped,
 	}
 }
 
@@ -1848,6 +1854,9 @@ type SimpleFSArchiveJobStatus struct {
 	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
 	SkippedCount       int                           `codec:"skippedCount" json:"skippedCount"`
 	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
+	BytesTotal         int64                         `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied        int64                         `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped        int64                         `codec:"bytesZipped" json:"bytesZipped"`
 	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
 }
 
@@ -1861,6 +1870,9 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 		CompleteCount:      o.CompleteCount,
 		SkippedCount:       o.SkippedCount,
 		TotalCount:         o.TotalCount,
+		BytesTotal:         o.BytesTotal,
+		BytesCopied:        o.BytesCopied,
+		BytesZipped:        o.BytesZipped,
 		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
 			if x == nil {
 				return nil

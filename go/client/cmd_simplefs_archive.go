@@ -227,7 +227,15 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		job := status.Jobs[jobID]
 		printSimpleFSArchiveJobDesc(ui, &job.Desc, &job.CurrentTLFRevision)
 		{
-			ui.Printf("Phase: %s (all phases:", job.Phase.String())
+			ui.Printf("Phase: %s ", job.Phase.String())
+			if job.Phase == keybase1.SimpleFSArchiveJobPhase_Copying {
+				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesCopied*100/job.BytesTotal, job.BytesCopied, job.BytesTotal)
+			} else if job.Phase == keybase1.SimpleFSArchiveJobPhase_Zipping {
+				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesZipped*100/job.BytesTotal, job.BytesZipped, job.BytesTotal)
+			} else {
+				ui.Printf("\n")
+			}
+			ui.Printf("       (all phases:")
 			for _, p := range []keybase1.SimpleFSArchiveJobPhase{
 				keybase1.SimpleFSArchiveJobPhase_Queued,
 				keybase1.SimpleFSArchiveJobPhase_Indexing,

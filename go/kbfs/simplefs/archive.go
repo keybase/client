@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -289,11 +290,16 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 		return err
 	}
 
+	var bytesTotal int64
 	manifest := make(map[string]keybase1.SimpleFSArchiveFile)
 	for _, e := range listResult.Entries {
 		manifest[e.Name] = keybase1.SimpleFSArchiveFile{
 			State:      keybase1.SimpleFSFileArchiveState_ToDo,
 			DirentType: e.DirentType,
+		}
+		if e.DirentType == keybase1.DirentType_FILE ||
+			e.DirentType == keybase1.DirentType_EXEC {
+			bytesTotal += int64(e.Size)
 		}
 	}
 
@@ -307,6 +313,7 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 			return
 		}
 		jobCopy.Manifest = manifest
+		jobCopy.BytesTotal = bytesTotal
 		m.state.Jobs[jobID] = jobCopy
 	}()
 	return nil
@@ -376,18 +383,23 @@ func newSHA256TeeReader(inner io.Reader) (r *sha256TeeReader) {
 	return r
 }
 
-func (m *archiveManager) ctxAwareCopy(
-	ctx context.Context, to io.Writer, from io.Reader) error {
+type bytesUpdaterFunc = func(delta int64)
+
+func ctxAwareCopy(
+	ctx context.Context, to io.Writer, from io.Reader,
+	bytesUpdater bytesUpdaterFunc) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		_, err := io.CopyN(to, from, 64*1024)
+		n, err := io.CopyN(to, from, 64*1024)
 		switch err {
 		case nil:
+			bytesUpdater(n)
 		case io.EOF:
+			bytesUpdater(n)
 			return nil
 		default:
 			return err
@@ -397,7 +409,8 @@ func (m *archiveManager) ctxAwareCopy(
 
 func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
-	localPath string, mode os.FileMode) (sha256Sum []byte, err error) {
+	localPath string, mode os.FileMode,
+	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ copyFileFromBeginning %s", entryPathWithinJob)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFileFromBeginning %s err: %v", entryPathWithinJob, err) }()
 
@@ -415,7 +428,7 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 
 	teeReader := newSHA256TeeReader(src)
 
-	err = m.ctxAwareCopy(ctx, dst, teeReader)
+	err = ctxAwareCopy(ctx, dst, teeReader, bytesCopiedUpdater)
 	if err != nil {
 		return nil, fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
 	}
@@ -427,7 +440,8 @@ func (m *archiveManager) copyFileFromBeginning(ctx context.Context,
 
 func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
-	localPath string, srcSeekOffset int64, mode os.FileMode) (sha256Sum []byte, err error) {
+	localPath string, srcSeekOffset int64, mode os.FileMode,
+	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ copyFilePickupPrevious %s", entryPathWithinJob)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- copyFilePickupPrevious %s err: %v", entryPathWithinJob, err) }()
 
@@ -450,7 +464,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		}
 		defer dst.Close()
 
-		err = m.ctxAwareCopy(ctx, dst, src)
+		err = ctxAwareCopy(ctx, dst, src, bytesCopiedUpdater)
 		if err != nil {
 			return fmt.Errorf("[%s] io.CopyN error: %v", entryPathWithinJob, err)
 		}
@@ -460,6 +474,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		return nil, err
 	}
 
+	var size int64
 	// Calculate sha256 and check the sha256 of the copied file since we
 	// continued from a previously interrupted copy.
 	srcSHA256Sum, dstSHA256Sum, err := func() (srcSHA256Sum, dstSHA256Sum []byte, err error) {
@@ -468,7 +483,7 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 			return nil, nil, fmt.Errorf("[%s] src.Seek error: %v", entryPathWithinJob, err)
 		}
 		srcSHA256SumHasher := sha256.New()
-		_, err = io.Copy(srcSHA256SumHasher, src)
+		size, err = io.Copy(srcSHA256SumHasher, src)
 		if err != nil {
 			return nil, nil, fmt.Errorf("[%s] io.Copy error: %v", entryPathWithinJob, err)
 		}
@@ -496,7 +511,8 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 		m.simpleFS.log.CInfof(ctx,
 			"file corruption is detected from a previous copy. Will copy from the beginning: ",
 			entryPathWithinJob)
-		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
+		bytesCopiedUpdater(-size)
+		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode, bytesCopiedUpdater)
 	}
 
 	return srcSHA256Sum, nil
@@ -504,11 +520,12 @@ func (m *archiveManager) copyFilePickupPrevious(ctx context.Context,
 
 func (m *archiveManager) copyFile(ctx context.Context,
 	srcDirFS billy.Filesystem, entryPathWithinJob string,
-	localPath string, srcSeekOffset int64, mode os.FileMode) (sha256Sum []byte, err error) {
+	localPath string, srcSeekOffset int64, mode os.FileMode,
+	bytesCopiedUpdater bytesUpdaterFunc) (sha256Sum []byte, err error) {
 	if srcSeekOffset == 0 {
-		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode)
+		return m.copyFileFromBeginning(ctx, srcDirFS, entryPathWithinJob, localPath, mode, bytesCopiedUpdater)
 	}
-	return m.copyFilePickupPrevious(ctx, srcDirFS, entryPathWithinJob, localPath, srcSeekOffset, mode)
+	return m.copyFilePickupPrevious(ctx, srcDirFS, entryPathWithinJob, localPath, srcSeekOffset, mode, bytesCopiedUpdater)
 }
 
 func getWorkspaceDir(jobDesc keybase1.SimpleFSArchiveJobDesc) string {
@@ -537,6 +554,15 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 		for k, v := range manifest {
 			job.Manifest[k] = v.DeepCopy()
 		}
+		m.state.Jobs[jobID] = job
+	}
+
+	updateBytesCopied := func(delta int64) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		// Can override directly since only one worker can work on a give job at a time.
+		job := m.state.Jobs[jobID]
+		job.BytesCopied += delta
 		m.state.Jobs[jobID] = job
 	}
 
@@ -634,7 +660,8 @@ loopEntryPaths:
 				return fmt.Errorf("os.Lstat(%s) error: %v", localPath, err)
 			}
 
-			sha256Sum, err := m.copyFile(ctx, srcDirFS, entryPathWithinJob, localPath, seek, mode)
+			sha256Sum, err := m.copyFile(ctx,
+				srcDirFS, entryPathWithinJob, localPath, seek, mode, updateBytesCopied)
 			if err != nil {
 				return err
 			}
@@ -692,6 +719,59 @@ func (m *archiveManager) copyingWorker(ctx context.Context) {
 	}
 }
 
+// zipWriterAddDir is adapted from zip.Writer.AddFS in go1.22.0 source because 1) we're
+// not on a version with this function yet, and 2) Go's AddFS doesn't support
+// symlinks; 3) we need bytesZippedUpdater here and we need to use CopyN for it.
+func zipWriterAddDir(ctx context.Context,
+	w *zip.Writer, dirPath string, bytesZippedUpdater bytesUpdaterFunc) error {
+	fsys := os.DirFS(dirPath)
+	return fs.WalkDir(fsys, ".", func(name string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		if !(info.Mode() &^ fs.ModeSymlink).IsRegular() {
+			return errors.New("zip: cannot add non-regular file except symlink")
+		}
+		h, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		h.Name = name
+		h.Method = zip.Deflate
+		fw, err := w.CreateHeader(h)
+		if err != nil {
+			return err
+		}
+		switch {
+		case info.Mode()&fs.ModeSymlink != 0:
+			target, err := os.Readlink(filepath.Join(dirPath, name))
+			if err != nil {
+				return err
+			}
+			_, err = fw.Write([]byte(filepath.ToSlash(target)))
+			if err != nil {
+				return err
+			}
+			return nil
+		default:
+			f, err := fsys.Open(name)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			ctxAwareCopy(ctx, fw, f, bytesZippedUpdater)
+			return nil
+		}
+	})
+}
+
 func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error) {
 	m.simpleFS.log.CDebugf(ctx, "+ doZipping %s", jobID)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- doZipping %s err: %v", jobID, err) }()
@@ -701,6 +781,25 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		defer m.mu.Unlock()
 		return m.state.Jobs[jobID].Desc
 	}()
+
+	// Reset BytesZipped.
+	func() {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		// Can override directly since only one worker can work on a give job at a time.
+		job := m.state.Jobs[jobID]
+		job.BytesZipped = 0
+		m.state.Jobs[jobID] = job
+	}()
+
+	updateBytesZipped := func(delta int64) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		// Can override directly since only one worker can work on a give job at a time.
+		job := m.state.Jobs[jobID]
+		job.BytesZipped += delta
+		m.state.Jobs[jobID] = job
+	}
 
 	workspaceDir := getWorkspaceDir(jobDesc)
 
@@ -720,7 +819,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			}
 		}()
 
-		zipWriter := zipWriterWrapper{zip.NewWriter(zipFile)}
+		zipWriter := zip.NewWriter(zipFile)
 		defer func() {
 			closeErr := zipWriter.Close()
 			if err == nil {
@@ -728,7 +827,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			}
 		}()
 
-		err = zipWriter.AddDir(workspaceDir)
+		err = zipWriterAddDir(ctx, zipWriter, workspaceDir, updateBytesZipped)
 		if err != nil {
 			return fmt.Errorf("zipWriter.AddFS to %s error: %v", jobDesc.ZipFilePath, err)
 		}

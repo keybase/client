@@ -779,6 +779,9 @@ protocol SimpleFS {
     SimpleFSArchiveJobDesc desc;
     map<string, SimpleFSArchiveFile> manifest; // path -> SimpleFSArchiveFile
     SimpleFSArchiveJobPhase phase;
+    int64 bytesTotal;
+    int64 bytesCopied;
+    int64 bytesZipped;
   }
   enum SimpleFSArchiveJobPhase {
     Queued_0,
@@ -810,6 +813,9 @@ protocol SimpleFS {
     int completeCount;
     int skippedCount;
     int totalCount;
+    int64 bytesTotal;
+    int64 bytesCopied;
+    int64 bytesZipped;
     union{ null, SimpleFSArchiveJobErrorState } error;
   }
   record SimpleFSArchiveStatus {
