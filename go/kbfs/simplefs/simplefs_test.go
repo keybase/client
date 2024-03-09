@@ -1817,7 +1817,6 @@ func TestArchiveSymlink(t *testing.T) {
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
-	// make a temp remote directory + file(s) we will clean up later
 	path1 := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, "test1.txt"), []byte("foo"))
 
@@ -1874,5 +1873,4 @@ loopWait:
 	defer func() { _ = reader.Close() }()
 	require.NoError(t, err)
 	require.Equal(t, 2, len(reader.File)) // file and one symlink
-
 }
