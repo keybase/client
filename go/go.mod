@@ -352,3 +352,5 @@ replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8
 replace bitbucket.org/ww/goautoneg => github.com/adjust/goautoneg v0.0.0-20150426214442-d788f35a0315
 
 replace os/exec => golang.org/x/sys/execabs v0.0.0-20211117180635-dee7805ff2e1
+
+replace camlistore.org v0.0.0-20161205184337-c55c8602d3ce => perkeep.org v0.0.0-20161205184337-c55c8602d3ce

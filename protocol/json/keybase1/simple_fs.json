@@ -1047,6 +1047,222 @@
           "name": "foldersLeft"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobDesc",
+      "fields": [
+        {
+          "type": "string",
+          "name": "jobID"
+        },
+        {
+          "type": "KBFSArchivedPath",
+          "name": "kbfsPathWithRevision"
+        },
+        {
+          "type": "boolean",
+          "name": "overwriteZip"
+        },
+        {
+          "type": "Time",
+          "name": "startTime"
+        },
+        {
+          "type": "string",
+          "name": "stagingPath"
+        },
+        {
+          "type": "string",
+          "name": "targetName"
+        },
+        {
+          "type": "string",
+          "name": "zipFilePath"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SimpleFSFileArchiveState",
+      "symbols": [
+        "ToDo_0",
+        "InProgress_1",
+        "Complete_2",
+        "Skipped_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveFile",
+      "fields": [
+        {
+          "type": "SimpleFSFileArchiveState",
+          "name": "state"
+        },
+        {
+          "type": "DirentType",
+          "name": "direntType"
+        },
+        {
+          "type": "string",
+          "name": "sha256SumHex"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobState",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveFile",
+            "keys": "string"
+          },
+          "name": "manifest"
+        },
+        {
+          "type": "SimpleFSArchiveJobPhase",
+          "name": "phase"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesCopied"
+        },
+        {
+          "type": "int64",
+          "name": "bytesZipped"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SimpleFSArchiveJobPhase",
+      "symbols": [
+        "Queued_0",
+        "Indexing_1",
+        "Indexed_2",
+        "Copying_3",
+        "Copied_4",
+        "Zipping_5",
+        "Done_6"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveState",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobState",
+            "keys": "string"
+          },
+          "name": "jobs"
+        },
+        {
+          "type": "Time",
+          "name": "lastUpdated"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobErrorState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "error"
+        },
+        {
+          "type": "Time",
+          "name": "nextRetry"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobStatus",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": "SimpleFSArchiveJobPhase",
+          "name": "phase"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "currentTLFRevision"
+        },
+        {
+          "type": "int",
+          "name": "todoCount"
+        },
+        {
+          "type": "int",
+          "name": "inProgressCount"
+        },
+        {
+          "type": "int",
+          "name": "completeCount"
+        },
+        {
+          "type": "int",
+          "name": "skippedCount"
+        },
+        {
+          "type": "int",
+          "name": "totalCount"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesCopied"
+        },
+        {
+          "type": "int64",
+          "name": "bytesZipped"
+        },
+        {
+          "type": [
+            null,
+            "SimpleFSArchiveJobErrorState"
+          ],
+          "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveStatus",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobStatus",
+            "keys": "string"
+          },
+          "name": "jobs"
+        },
+        {
+          "type": "Time",
+          "name": "lastUpdated"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1186,7 +1402,7 @@
         }
       ],
       "response": null,
-      "doc": "Begin recursive copy of directory \n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
+      "doc": "Begin recursive copy of directory\n\n   overwriteExistingFiles controls whether an existing file from `src` will\n   overwrite a file with the same name in `dest`; if `false`, an error will be\n   returned in that case.  For directories that share a name, the copy will\n   continue recursively into the directory without causing an error."
     },
     "simpleFSMove": {
       "request": [
@@ -1865,6 +2081,36 @@
         }
       ],
       "response": null
+    },
+    "simpleFSArchiveStart": {
+      "request": [
+        {
+          "name": "kbfsPath",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "outputPath",
+          "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
+        }
+      ],
+      "response": "SimpleFSArchiveJobDesc"
+    },
+    "simpleFSArchiveCancelOrDismissJob": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSGetArchiveStatus": {
+      "request": [],
+      "response": "SimpleFSArchiveStatus"
     }
   },
   "namespace": "keybase.1"

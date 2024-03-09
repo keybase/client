@@ -54,6 +54,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSSync(cl, g),
 			NewCmdSimpleFSUploads(cl, g),
 			NewCmdSimpleFSCancelUploads(cl, g),
+			NewCmdSimpleFSArchive(cl, g),
 			NewCmdSimpleFSSearch(cl, g),
 			NewCmdSimpleFSResetIndex(cl, g),
 			NewCmdSimpleFSIndexProgress(cl, g),

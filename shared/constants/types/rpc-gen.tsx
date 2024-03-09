@@ -251,6 +251,14 @@ export type MessageTypes = {
     inParam: {readonly username: String}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob': {
+    inParam: {readonly jobID: String}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSArchiveStart': {
+    inParam: {readonly kbfsPath: KBFSPath; readonly outputPath: String; readonly overwriteZip: Boolean}
+    outParam: SimpleFSArchiveJobDesc
+  }
   'keybase.1.SimpleFS.simpleFSCancel': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -294,6 +302,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {
     inParam: {readonly path: Path}
     outParam: FolderSyncConfigAndStatus
+  }
+  'keybase.1.SimpleFS.simpleFSGetArchiveStatus': {
+    inParam: undefined
+    outParam: SimpleFSArchiveStatus
   }
   'keybase.1.SimpleFS.simpleFSGetDownloadInfo': {
     inParam: {readonly downloadID: String}
@@ -2367,6 +2379,23 @@ export enum SignMode {
   clear = 2,
 }
 
+export enum SimpleFSArchiveJobPhase {
+  queued = 0,
+  indexing = 1,
+  indexed = 2,
+  copying = 3,
+  copied = 4,
+  zipping = 5,
+  done = 6,
+}
+
+export enum SimpleFSFileArchiveState {
+  todo = 0,
+  inprogress = 1,
+  complete = 2,
+  skipped = 3,
+}
+
 export enum StatsSeverityLevel {
   normal = 0,
   warning = 1,
@@ -3240,6 +3269,13 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
+export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
+export type SimpleFSArchiveJobErrorState = {readonly error: String; readonly nextRetry: Time}
+export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64}
+export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly currentTLFRevision: KBFSRevision; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly skippedCount: Int; readonly totalCount: Int; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64; readonly error?: SimpleFSArchiveJobErrorState | null}
+export type SimpleFSArchiveState = {readonly jobs?: {[key: string]: SimpleFSArchiveJobState} | null; readonly lastUpdated: Time}
+export type SimpleFSArchiveStatus = {readonly jobs?: {[key: string]: SimpleFSArchiveJobStatus} | null; readonly lastUpdated: Time}
 export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: ReadonlyArray<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
@@ -3718,6 +3754,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.teamsUi.confirmInviteLinkAccept'?: (params: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']) => void}) => void
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}) => void
 }
+export const SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSArchiveStartRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveStart', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancelDownload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancel', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckReachabilityRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheckReachability', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3729,6 +3767,7 @@ export const SimpleFSSimpleFSDismissDownloadRpcPromise = (params: MessageTypes['
 export const SimpleFSSimpleFSDismissUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissUpload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetArchiveStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetArchiveStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetFilesTabBadgeRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetFilesTabBadge', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

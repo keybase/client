@@ -1670,6 +1670,242 @@ func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
 	}
 }
 
+type SimpleFSArchiveJobDesc struct {
+	JobID                string           `codec:"jobID" json:"jobID"`
+	KbfsPathWithRevision KBFSArchivedPath `codec:"kbfsPathWithRevision" json:"kbfsPathWithRevision"`
+	OverwriteZip         bool             `codec:"overwriteZip" json:"overwriteZip"`
+	StartTime            Time             `codec:"startTime" json:"startTime"`
+	StagingPath          string           `codec:"stagingPath" json:"stagingPath"`
+	TargetName           string           `codec:"targetName" json:"targetName"`
+	ZipFilePath          string           `codec:"zipFilePath" json:"zipFilePath"`
+}
+
+func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
+	return SimpleFSArchiveJobDesc{
+		JobID:                o.JobID,
+		KbfsPathWithRevision: o.KbfsPathWithRevision.DeepCopy(),
+		OverwriteZip:         o.OverwriteZip,
+		StartTime:            o.StartTime.DeepCopy(),
+		StagingPath:          o.StagingPath,
+		TargetName:           o.TargetName,
+		ZipFilePath:          o.ZipFilePath,
+	}
+}
+
+type SimpleFSFileArchiveState int
+
+const (
+	SimpleFSFileArchiveState_ToDo       SimpleFSFileArchiveState = 0
+	SimpleFSFileArchiveState_InProgress SimpleFSFileArchiveState = 1
+	SimpleFSFileArchiveState_Complete   SimpleFSFileArchiveState = 2
+	SimpleFSFileArchiveState_Skipped    SimpleFSFileArchiveState = 3
+)
+
+func (o SimpleFSFileArchiveState) DeepCopy() SimpleFSFileArchiveState { return o }
+
+var SimpleFSFileArchiveStateMap = map[string]SimpleFSFileArchiveState{
+	"ToDo":       0,
+	"InProgress": 1,
+	"Complete":   2,
+	"Skipped":    3,
+}
+
+var SimpleFSFileArchiveStateRevMap = map[SimpleFSFileArchiveState]string{
+	0: "ToDo",
+	1: "InProgress",
+	2: "Complete",
+	3: "Skipped",
+}
+
+func (e SimpleFSFileArchiveState) String() string {
+	if v, ok := SimpleFSFileArchiveStateRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type SimpleFSArchiveFile struct {
+	State        SimpleFSFileArchiveState `codec:"state" json:"state"`
+	DirentType   DirentType               `codec:"direntType" json:"direntType"`
+	Sha256SumHex string                   `codec:"sha256SumHex" json:"sha256SumHex"`
+}
+
+func (o SimpleFSArchiveFile) DeepCopy() SimpleFSArchiveFile {
+	return SimpleFSArchiveFile{
+		State:        o.State.DeepCopy(),
+		DirentType:   o.DirentType.DeepCopy(),
+		Sha256SumHex: o.Sha256SumHex,
+	}
+}
+
+type SimpleFSArchiveJobState struct {
+	Desc        SimpleFSArchiveJobDesc         `codec:"desc" json:"desc"`
+	Manifest    map[string]SimpleFSArchiveFile `codec:"manifest" json:"manifest"`
+	Phase       SimpleFSArchiveJobPhase        `codec:"phase" json:"phase"`
+	BytesTotal  int64                          `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied int64                          `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped int64                          `codec:"bytesZipped" json:"bytesZipped"`
+}
+
+func (o SimpleFSArchiveJobState) DeepCopy() SimpleFSArchiveJobState {
+	return SimpleFSArchiveJobState{
+		Desc: o.Desc.DeepCopy(),
+		Manifest: (func(x map[string]SimpleFSArchiveFile) map[string]SimpleFSArchiveFile {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveFile, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Manifest),
+		Phase:       o.Phase.DeepCopy(),
+		BytesTotal:  o.BytesTotal,
+		BytesCopied: o.BytesCopied,
+		BytesZipped: o.BytesZipped,
+	}
+}
+
+type SimpleFSArchiveJobPhase int
+
+const (
+	SimpleFSArchiveJobPhase_Queued   SimpleFSArchiveJobPhase = 0
+	SimpleFSArchiveJobPhase_Indexing SimpleFSArchiveJobPhase = 1
+	SimpleFSArchiveJobPhase_Indexed  SimpleFSArchiveJobPhase = 2
+	SimpleFSArchiveJobPhase_Copying  SimpleFSArchiveJobPhase = 3
+	SimpleFSArchiveJobPhase_Copied   SimpleFSArchiveJobPhase = 4
+	SimpleFSArchiveJobPhase_Zipping  SimpleFSArchiveJobPhase = 5
+	SimpleFSArchiveJobPhase_Done     SimpleFSArchiveJobPhase = 6
+)
+
+func (o SimpleFSArchiveJobPhase) DeepCopy() SimpleFSArchiveJobPhase { return o }
+
+var SimpleFSArchiveJobPhaseMap = map[string]SimpleFSArchiveJobPhase{
+	"Queued":   0,
+	"Indexing": 1,
+	"Indexed":  2,
+	"Copying":  3,
+	"Copied":   4,
+	"Zipping":  5,
+	"Done":     6,
+}
+
+var SimpleFSArchiveJobPhaseRevMap = map[SimpleFSArchiveJobPhase]string{
+	0: "Queued",
+	1: "Indexing",
+	2: "Indexed",
+	3: "Copying",
+	4: "Copied",
+	5: "Zipping",
+	6: "Done",
+}
+
+func (e SimpleFSArchiveJobPhase) String() string {
+	if v, ok := SimpleFSArchiveJobPhaseRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type SimpleFSArchiveState struct {
+	Jobs        map[string]SimpleFSArchiveJobState `codec:"jobs" json:"jobs"`
+	LastUpdated Time                               `codec:"lastUpdated" json:"lastUpdated"`
+}
+
+func (o SimpleFSArchiveState) DeepCopy() SimpleFSArchiveState {
+	return SimpleFSArchiveState{
+		Jobs: (func(x map[string]SimpleFSArchiveJobState) map[string]SimpleFSArchiveJobState {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobState, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Jobs),
+		LastUpdated: o.LastUpdated.DeepCopy(),
+	}
+}
+
+type SimpleFSArchiveJobErrorState struct {
+	Error     string `codec:"error" json:"error"`
+	NextRetry Time   `codec:"nextRetry" json:"nextRetry"`
+}
+
+func (o SimpleFSArchiveJobErrorState) DeepCopy() SimpleFSArchiveJobErrorState {
+	return SimpleFSArchiveJobErrorState{
+		Error:     o.Error,
+		NextRetry: o.NextRetry.DeepCopy(),
+	}
+}
+
+type SimpleFSArchiveJobStatus struct {
+	Desc               SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
+	Phase              SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
+	CurrentTLFRevision KBFSRevision                  `codec:"currentTLFRevision" json:"currentTLFRevision"`
+	TodoCount          int                           `codec:"todoCount" json:"todoCount"`
+	InProgressCount    int                           `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
+	SkippedCount       int                           `codec:"skippedCount" json:"skippedCount"`
+	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
+	BytesTotal         int64                         `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied        int64                         `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped        int64                         `codec:"bytesZipped" json:"bytesZipped"`
+	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
+	return SimpleFSArchiveJobStatus{
+		Desc:               o.Desc.DeepCopy(),
+		Phase:              o.Phase.DeepCopy(),
+		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
+		TodoCount:          o.TodoCount,
+		InProgressCount:    o.InProgressCount,
+		CompleteCount:      o.CompleteCount,
+		SkippedCount:       o.SkippedCount,
+		TotalCount:         o.TotalCount,
+		BytesTotal:         o.BytesTotal,
+		BytesCopied:        o.BytesCopied,
+		BytesZipped:        o.BytesZipped,
+		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error),
+	}
+}
+
+type SimpleFSArchiveStatus struct {
+	Jobs        map[string]SimpleFSArchiveJobStatus `codec:"jobs" json:"jobs"`
+	LastUpdated Time                                `codec:"lastUpdated" json:"lastUpdated"`
+}
+
+func (o SimpleFSArchiveStatus) DeepCopy() SimpleFSArchiveStatus {
+	return SimpleFSArchiveStatus{
+		Jobs: (func(x map[string]SimpleFSArchiveJobStatus) map[string]SimpleFSArchiveJobStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobStatus, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Jobs),
+		LastUpdated: o.LastUpdated.DeepCopy(),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1986,6 +2222,19 @@ type SimpleFSCancelJournalUploadsArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
 
+type SimpleFSArchiveStartArg struct {
+	KbfsPath     KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
+	OutputPath   string   `codec:"outputPath" json:"outputPath"`
+	OverwriteZip bool     `codec:"overwriteZip" json:"overwriteZip"`
+}
+
+type SimpleFSArchiveCancelOrDismissJobArg struct {
+	JobID string `codec:"jobID" json:"jobID"`
+}
+
+type SimpleFSGetArchiveStatusArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2124,6 +2373,9 @@ type SimpleFSInterface interface {
 	SimpleFSResetIndex(context.Context) error
 	SimpleFSGetIndexProgress(context.Context) (SimpleFSIndexProgress, error)
 	SimpleFSCancelJournalUploads(context.Context, KBFSPath) error
+	SimpleFSArchiveStart(context.Context, SimpleFSArchiveStartArg) (SimpleFSArchiveJobDesc, error)
+	SimpleFSArchiveCancelOrDismissJob(context.Context, string) error
+	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3105,6 +3357,46 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSArchiveStart": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveStartArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveStartArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSArchiveStart(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSArchiveCancelOrDismissJob": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveCancelOrDismissJobArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveCancelOrDismissJobArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveCancelOrDismissJobArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSArchiveCancelOrDismissJob(ctx, typedArgs[0].JobID)
+					return
+				},
+			},
+			"simpleFSGetArchiveStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetArchiveStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetArchiveStatus(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3558,5 +3850,21 @@ func (c SimpleFSClient) SimpleFSGetIndexProgress(ctx context.Context) (res Simpl
 func (c SimpleFSClient) SimpleFSCancelJournalUploads(ctx context.Context, path KBFSPath) (err error) {
 	__arg := SimpleFSCancelJournalUploadsArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelJournalUploads", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveStart(ctx context.Context, __arg SimpleFSArchiveStartArg) (res SimpleFSArchiveJobDesc, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveStart", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveCancelOrDismissJob(ctx context.Context, jobID string) (err error) {
+	__arg := SimpleFSArchiveCancelOrDismissJobArg{JobID: jobID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetArchiveStatus(ctx context.Context) (res SimpleFSArchiveStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveStatus", []interface{}{SimpleFSGetArchiveStatusArg{}}, &res, 0*time.Millisecond)
 	return
 }
