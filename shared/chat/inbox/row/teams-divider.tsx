@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import {memoize} from '@/util/memoize'
 
 type Props = {
   hiddenCountDelta?: number
@@ -14,7 +13,7 @@ type Props = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
+const getRowCounts = (badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
 
@@ -26,7 +25,7 @@ const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T
   })
 
   return {badgeCount, hiddenCount}
-})
+}
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
@@ -37,7 +36,7 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
     return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
+  let {badgeCount, hiddenCount} = React.useMemo(() => getRowCounts(badges, rows), [badges, rows])
   badgeCount += smallTeamBadgeCount
   hiddenCount += totalSmallTeams
   if (!Kb.Styles.isMobile) {

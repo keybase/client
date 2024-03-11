@@ -2,7 +2,7 @@ import {isMobile} from '@/constants/platform'
 export const debugWarning = (s: string, ...w: Array<unknown>) => {
   if (isMobile) {
     for (let i = 0; i < 10; ++i) {
-      console.error('[aaa debugWarning]', s, ...w)
+      console.log('[aaa debugWarning]', s, ...w)
     }
   } else {
     console.log(
