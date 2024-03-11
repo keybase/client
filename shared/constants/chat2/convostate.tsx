@@ -1487,6 +1487,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // else just write it
         logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
+
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
           conversationID: get().getConvID(),
           forceUnread: false,

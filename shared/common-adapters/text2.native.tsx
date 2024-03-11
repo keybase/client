@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {fontSizeToSizeStyle, metaData} from './text.meta.native'
 import type {Props} from './text2'
-import type {Text as RNText} from 'react-native'
+import {Text as RNText} from 'react-native'
 import type {TextType} from './text.shared'
 import {debugWarning} from '@/util/debug-warning'
 
@@ -12,12 +12,13 @@ const TEMP_SWITCH = __DEV__ && (false as boolean)
 if (TEMP_MARK_V2 || TEMP_SWITCH) {
   debugWarning('Text2 flags on')
 }
-
-type RNTextProps = React.ComponentProps<typeof RNText>
-const RCTText = (props: RNTextProps) => {
-  const {onLongPress, onPress, onPressIn, onPressOut, ...p} = props
-  return React.createElement('RCTText', p)
-}
+// this is supposed to be faster with some tradeoffs but it doesn't work on text that updates
+// the value doesn't show up on the native side
+// type RNTextProps = React.ComponentProps<typeof RNText>
+// const RCTText = (props: RNTextProps) => {
+//   const {onLongPress, onPress, onPressIn, onPressOut, ...p} = props
+//   return React.createElement('RCTText', p)
+// }
 
 const styles = Styles.styleSheetCreate(() =>
   Object.keys(metaData()).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
@@ -40,7 +41,7 @@ export const Text2 = TEMP_SWITCH
       const style = React.useMemo(() => {
         const baseStyle: Styles.StylesCrossPlatform = styles[type]
         const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
-        return Styles.collapseStyles([baseStyle, _style, overdrawStyle])
+        return Styles.collapseStyles([baseStyle, overdrawStyle, _style])
       }, [type, _style, canFixOverdraw])
 
       const clampProps = React.useMemo(() => {
@@ -53,9 +54,10 @@ export const Text2 = TEMP_SWITCH
           children = ['⚠', children]
         }
       }
+
       return (
-        <RCTText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
+        <RNText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
           {children}
-        </RCTText>
+        </RNText>
       )
     })
