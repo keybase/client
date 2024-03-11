@@ -71,11 +71,13 @@ const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
+  const justQuit = C.useConfigState(s => s.justQuit)
   const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
   const setLockdownModeError = C.Waiting.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
   const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
+  const setJustQuit = C.useConfigState(s => s.dispatch.setJustQuit)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
@@ -156,6 +158,13 @@ const Advanced = () => {
           {C.isLinux ? <UseNativeFrame /> : null}
           {!C.isMobile && (
             <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
+          )}
+          {!C.isMobile && (
+            <Kb.Checkbox
+              label="Quit instead of minimizing to tray (restart required)"
+              checked={justQuit}
+              onCheck={setJustQuit}
+            />
           )}
           {!C.isMobile && (
             <Kb.Checkbox

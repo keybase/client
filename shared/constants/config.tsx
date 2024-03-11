@@ -76,6 +76,7 @@ export type Store = T.Immutable<{
   networkStatus?: {online: boolean; type: T.Config.ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
+  justQuit: boolean
   outOfDate: T.Config.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
@@ -126,6 +127,7 @@ const initialStore: Store = {
   installerRanCount: 0,
   isOnline: true,
   justDeletedSelf: '',
+  justQuit: false,
   justRevokedSelf: '',
   loadOnStartPhase: 'notStarted',
   loggedIn: false,
@@ -189,6 +191,7 @@ type State = Store & {
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
+    initJustQuit: () => void
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
     installerRan: () => void
@@ -215,6 +218,7 @@ type State = Store & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
+    setJustQuit: (justQuit: boolean) => void
     setLoggedIn: (l: boolean, causedByStartup: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNavigatorExists: () => void
@@ -234,6 +238,7 @@ type State = Store & {
 }
 
 export const openAtLoginKey = 'openAtLogin'
+export const justQuitKey = 'justQuit'
 export const _useConfigState = Z.createZustand<State>((set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
@@ -532,6 +537,16 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             await _checkForUpdate()
           } catch {}
           await timeoutPromise(3_600_000) // 1 hr
+        }
+      }
+      ignorePromise(f())
+    },
+    initJustQuit: () => {
+      const f = async () => {
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: justQuitKey})
+        const justQuit = val.b
+        if (typeof justQuit === 'boolean') {
+          get().dispatch.setJustQuit(justQuit)
         }
       }
       ignorePromise(f())
@@ -1047,6 +1062,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     setJustDeletedSelf: self => {
       set(s => {
         s.justDeletedSelf = self
+      })
+    },
+    setJustQuit: (justQuit: boolean) => {
+      set(s => {
+        s.justQuit = justQuit
       })
     },
     setLoggedIn: (loggedIn, causedByStartup) => {

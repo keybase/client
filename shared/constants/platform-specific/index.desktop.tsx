@@ -199,32 +199,44 @@ export const initPlatformListener = () => {
   setupReachabilityWatcher()
 
   C.useConfigState.subscribe((s, old) => {
-    if (s.openAtLogin === old.openAtLogin) return
-    const {openAtLogin} = s
-    const f = async () => {
-      if (__DEV__) {
-        console.log('onSetOpenAtLogin disabled for dev mode')
-        return
-      } else {
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: ConfigConstants.openAtLoginKey,
-          value: {b: openAtLogin, isNull: false},
-        })
-      }
-      if (isLinux || isWindows) {
-        const enabled =
-          (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
-        if (enabled !== openAtLogin) {
-          await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
-            logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
+    if (s.openAtLogin !== old.openAtLogin) {
+      const {openAtLogin} = s
+      const f = async () => {
+        if (__DEV__) {
+          console.log('onSetOpenAtLogin disabled for dev mode')
+          return
+        } else {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: ConfigConstants.openAtLoginKey,
+            value: {b: openAtLogin, isNull: false},
           })
         }
-      } else {
-        logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
-        await setOpenAtLogin?.(openAtLogin)
+        if (isLinux || isWindows) {
+          const enabled =
+            (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
+          if (enabled !== openAtLogin) {
+            await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
+              logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
+            })
+          }
+        } else {
+          logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
+          await setOpenAtLogin?.(openAtLogin)
+        }
       }
+      C.ignorePromise(f())
     }
-    C.ignorePromise(f())
+
+    if (s.justQuit !== old.justQuit) {
+      const {justQuit} = s
+      const f = async () => {
+        await T.RPCGen.configGuiSetValueRpcPromise({
+          path: ConfigConstants.justQuitKey,
+          value: {b: justQuit, isNull: false},
+        })
+      }
+      C.ignorePromise(f())
+    }
   })
 
   C.useDaemonState.subscribe((s, old) => {
@@ -237,6 +249,7 @@ export const initPlatformListener = () => {
   }
   C.useConfigState.getState().dispatch.initNotifySound()
   C.useConfigState.getState().dispatch.initOpenAtLogin()
+  C.useConfigState.getState().dispatch.initJustQuit()
   C.useConfigState.getState().dispatch.initAppUpdateLoop()
 
   C.useProfileState.setState(s => {

@@ -839,7 +839,7 @@ const plumbEvents = () => {
           .catch(() => {})
 
         if (action.payload.windowComponent !== 'menubar') {
-          menuHelper(remoteWindow)
+          menuHelper(remoteWindow, false)
         }
 
         if (showDevTools && !skipSecondaryDevtools) {
