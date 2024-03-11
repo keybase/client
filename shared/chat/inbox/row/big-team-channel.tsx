@@ -85,9 +85,9 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
       style={Kb.Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
     >
       #{' '}
-      <Kb.Text type={selected ? 'BodySemibold' : 'Body'} fixOverdraw={Kb.Styles.isPhone} style={nameStyle}>
+      <Kb.Text2 type={selected ? 'BodySemibold' : 'Body'} style={nameStyle}>
         {channelname}
-      </Kb.Text>
+      </Kb.Text2>
     </Kb.Text2>
   )
 
