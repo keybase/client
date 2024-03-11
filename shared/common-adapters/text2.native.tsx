@@ -44,8 +44,6 @@ export const Text2 = TEMP_SWITCH
         return Styles.collapseStyles([baseStyle, overdrawStyle, _style])
       }, [type, _style, canFixOverdraw])
 
-      // const style = Styles.collapseStyles([baseStyle, overdrawStyle, _style])
-
       const clampProps = React.useMemo(() => {
         return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
       }, [ellipsizeMode, lineClamp])
