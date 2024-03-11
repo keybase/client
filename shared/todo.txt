@@ -7,3 +7,6 @@ mem leak
 f6 for just a router remount?
 
 framepack, dispatch invocations
+join/leave msg issues w/ orange line
+mark read issues w/ orange line
+geiger
