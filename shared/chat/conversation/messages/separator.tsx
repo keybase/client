@@ -25,7 +25,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.invitee === you ? '' : message.invitee
     case 'setDescription': // fallthrough
     case 'pin': // fallthrough
-    case 'systemUsersAddedToConversation':
+    case 'systemUsersAddedToConversation': // fallthrough
       return message.author
     case 'systemSBSResolved':
       return message.prover
@@ -41,7 +41,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.author
   }
 
-  if (!pMessage) return message.author
+  if (!pMessage || pMessage.type === 'systemJoined') return message.author
 
   if (pMessage.author !== message.author) {
     return message.author
