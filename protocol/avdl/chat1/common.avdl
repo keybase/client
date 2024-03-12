@@ -95,7 +95,8 @@
     PLAINTEXTMOBILE_1,
     PLAINTEXTDESKTOP_2,
     DEFAULTSOUNDMOBILE_3,
-    DISABLETYPING_4
+    DISABLETYPING_4,
+    CONVERTHEIC_5
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;
