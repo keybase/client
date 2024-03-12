@@ -25,7 +25,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.invitee === you ? '' : message.invitee
     case 'setDescription': // fallthrough
     case 'pin': // fallthrough
-    case 'systemUsersAddedToConversation':
+    case 'systemUsersAddedToConversation': // fallthrough
       return message.author
     case 'systemSBSResolved':
       return message.prover
@@ -41,7 +41,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.author
   }
 
-  if (!pMessage) return message.author
+  if (!pMessage || pMessage.type === 'systemJoined') return message.author
 
   if (pMessage.author !== message.author) {
     return message.author
@@ -214,12 +214,14 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const showUsername = getUsernameToShow(m, pmessage, you)
       // we don't show the label if its been too recent (2hrs)
       const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-      const orangeLineAbove =
-        orangeOrdinal === ordinal
-          ? tooSoon
-            ? tooSoonString
-            : formatTimeForConversationList(m.timestamp)
+      const orangeLineAbove = orangeOrdinal === ordinal
+      const isJoinLeave = m.type === 'systemJoined'
+
+      const orangeTime =
+        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
+          ? formatTimeForConversationList(m.timestamp)
           : ''
+
       TEMP.current = {
         orangeOrdinal,
         ordinal,
@@ -241,7 +243,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
         // eslint-disable-next-line
         pmsg: (pmessage as any)?.text?.stringValue?.().length,
       }
-      return {orangeLineAbove, ordinal, showUsername}
+      return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
 
@@ -288,7 +290,8 @@ const useState = (ordinal: T.Chat.Ordinal) => {
 type SProps = {
   ordinal: T.Chat.Ordinal
   showUsername: string
-  orangeLineAbove: string
+  orangeLineAbove: boolean
+  orangeTime: string
 }
 
 const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
@@ -308,10 +311,8 @@ const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Or
   )
 })
 
-const tooSoonString = 'toosoon'
-
 const Separator = React.memo(function Separator(p: SProps) {
-  const {ordinal, orangeLineAbove, showUsername} = p
+  const {ordinal, orangeLineAbove, showUsername, orangeTime} = p
   return (
     <Kb.Box2
       direction="horizontal"
@@ -324,9 +325,9 @@ const Separator = React.memo(function Separator(p: SProps) {
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
-          {!C.isMobile && !showUsername && orangeLineAbove !== tooSoonString ? (
+          {orangeTime ? (
             <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
-              {orangeLineAbove}
+              {orangeTime}
             </Kb.Text>
           ) : null}
         </Kb.Box2>
@@ -342,7 +343,7 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove} = useStateFast(
+  const {ordinal, showUsername, orangeLineAbove, orangeTime} = useStateFast(
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
@@ -354,7 +355,12 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
   // )
   return ordinal && (showUsername || orangeLineAbove) ? (
-    <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
+    <Separator
+      ordinal={ordinal}
+      showUsername={showUsername}
+      orangeLineAbove={orangeLineAbove}
+      orangeTime={orangeTime}
+    />
   ) : null
 })
 
