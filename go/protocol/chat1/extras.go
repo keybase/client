@@ -2949,6 +2949,8 @@ func (g GlobalAppNotificationSetting) Usage() string {
 		return "Use the default system sound on mobile devices"
 	case GlobalAppNotificationSetting_DISABLETYPING:
 		return "Disable sending/receiving typing notifications"
+	case GlobalAppNotificationSetting_CONVERTHEIC:
+		return "Convert HEIC images to JPEG for chat attachments (macOS and iOS only)"
 	default:
 		return ""
 	}
@@ -2966,6 +2968,8 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 		return "default-sound-mobile"
 	case GlobalAppNotificationSetting_DISABLETYPING:
 		return "disable-typing"
+	case GlobalAppNotificationSetting_CONVERTHEIC:
+		return "convert-heic"
 	default:
 		return ""
 	}

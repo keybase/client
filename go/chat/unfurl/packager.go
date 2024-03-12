@@ -137,7 +137,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
 	pre, err := attachments.PreprocessAsset(ctx, p.G(), p.DebugLabeler, src, filename,
-		types.DummyNativeVideoHelper{}, nil)
+		types.DummyNativeVideoHelper{}, nil, p.ri)
 	if err != nil {
 		return res, err
 	}
