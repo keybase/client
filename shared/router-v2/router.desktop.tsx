@@ -32,29 +32,6 @@ const routesMinusRoots = (tab: DesktopTabs) => {
   }, {})
 }
 
-// we must ensure we don't keep remaking these components
-const tabScreensCache = new Map<DesktopTabs, ReturnType<typeof makeNavScreens>>()
-const makeTabStack = (tab: DesktopTabs) => {
-  const S = createNativeStackNavigator()
-
-  let tabScreens = tabScreensCache.get(tab)
-  if (!tabScreens) {
-    tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), S.Screen, false)
-    tabScreensCache.set(tab, tabScreens)
-  }
-
-  const TabStackNavigator = React.memo(function TabStackNavigator() {
-    return (
-      <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
-        {tabScreens}
-      </S.Navigator>
-    )
-  })
-
-  const Comp = () => <TabStackNavigator />
-  return Comp
-}
-
 type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
   return Object.keys(rs).map((name: keyof typeof routes) => {
@@ -86,13 +63,25 @@ const appTabsInnerOptions = {
   tabBarShowLabel: Kb.Styles.isTablet,
   tabBarStyle: Common.tabBarStyle,
 }
+
 const AppTabsInner = () => {
-  // so we have a stack per tab
   const tabStacks = React.useMemo(
-    () => Tabs.desktopTabs.map(tab => <Tab.Screen key={tab} name={tab} component={makeTabStack(tab)} />),
+    () =>
+      Tabs.desktopTabs.map(tab => {
+        const S = createNativeStackNavigator()
+        const tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), S.Screen, false)
+        const TabStackNavigator = React.memo(function TabStackNavigator() {
+          return (
+            <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
+              {tabScreens}
+            </S.Navigator>
+          )
+        })
+        const Comp = () => <TabStackNavigator />
+        return <Tab.Screen key={tab} name={tab} component={Comp} />
+      }),
     []
   )
-
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {tabStacks}
