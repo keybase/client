@@ -246,8 +246,7 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 			return p, err
 		}
 		if dat != nil {
-			filename = strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpeg"
-			p.Filename = filename
+			p.Filename = strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpeg"
 			p.ContentType = "image/jpeg"
 			p.SrcDat = dat
 
