@@ -9,6 +9,7 @@ import {mapGetEnsureValue} from '@/util/map'
 import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
+import {registerDebugClear} from '@/util/debug'
 
 const searchServices: Array<T.TB.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
 
@@ -475,6 +476,10 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 
 type MadeStore = UseBoundStore<StoreApi<State>>
 export const _stores = new Map<T.TB.AllowedNamespace, MadeStore>()
+
+registerDebugClear(() => {
+  _stores.clear()
+})
 
 const createTBStore = (namespace: T.TB.AllowedNamespace) => {
   const existing = _stores.get(namespace)

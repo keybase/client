@@ -14,6 +14,7 @@ import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {NavigateAppendType, RouteKeys} from '@/router-v2/route-params'
+import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -25,6 +26,11 @@ const DEBUG_NAV = __DEV__ && (false as boolean)
 export const navigationRef_: ReturnType<typeof createNavigationContainerRef> & {
   navigate: (s: string) => void
 } = createNavigationContainerRef()
+
+registerDebugClear(() => {
+  navigationRef_.current = null
+})
+
 export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
 }

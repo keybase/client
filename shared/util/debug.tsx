@@ -4,15 +4,28 @@ import {type LayoutChangeEvent, View, Pressable, Text} from 'react-native'
 const ENABLE_UNMOUNT_ALL = __DEV__ && (false as boolean)
 
 const debugClearCBs = new Array<() => void>()
+const debugUnClearCBs = new Array<() => void>()
 
+export const registerDebugUnClear = (cb: () => void) => {
+  debugUnClearCBs.push(cb)
+}
 export const registerDebugClear = (cb: () => void) => {
   debugClearCBs.push(cb)
 }
-export const debugClear = () => {
-  for (const cb of debugClearCBs) {
-    cb()
-  }
-}
+export const debugClear = __DEV__
+  ? () => {
+      for (const cb of debugClearCBs) {
+        cb()
+      }
+    }
+  : () => {}
+export const debugUnClear = __DEV__
+  ? () => {
+      for (const cb of debugUnClearCBs) {
+        cb()
+      }
+    }
+  : () => {}
 
 const UnmountAll = ({setShow}: {setShow: React.Dispatch<React.SetStateAction<boolean>>}) => {
   return (

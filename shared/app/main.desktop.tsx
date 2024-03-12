@@ -4,7 +4,8 @@ import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'
 import OutOfDate from './out-of-date'
 import Flags from '@/util/feature-flags'
-import {debugClear} from '@/util/debug'
+import RemoteProxies from '../desktop/remote/proxies.desktop'
+import {debugUnClear, debugClear} from '@/util/debug'
 
 type Props = {}
 
@@ -25,11 +26,16 @@ const Main = (_: Props) => {
     }
   }, [toggle])
   React.useEffect(() => {
-    show && debugClear()
+    if (show) {
+      debugUnClear()
+    } else {
+      debugClear()
+    }
   }, [show])
 
   return show ? (
     <>
+      <RemoteProxies />
       <Router />
       <ResetModal />
       <GlobalError />

@@ -203,7 +203,7 @@ type State = Store & {
     osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
-    resetState: () => void
+    resetState: (isDebug?: boolean) => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string) => void
@@ -902,7 +902,8 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.justRevokedSelf = ''
       })
     },
-    resetState: () => {
+    resetState: isDebug => {
+      if (isDebug) return
       set(s => ({
         ...s,
         ...initialStore,

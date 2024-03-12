@@ -24,6 +24,7 @@ import NotifyPopup from '@/util/notify-popup'
 import {hexToUint8Array} from 'uint8array-extras'
 import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
+import {registerDebugClear} from '@/util/debug'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -3171,6 +3172,10 @@ export const _stores = new Map<T.Chat.ConversationIDKey, MadeStore>()
 export const clearChatStores = () => {
   _stores.clear()
 }
+
+registerDebugClear(() => {
+  clearChatStores()
+})
 
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = _stores.get(id)

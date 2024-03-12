@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
+import {registerDebugClear} from '@/util/debug'
 
 export const chatDebugEnabled = true as boolean
 
@@ -12,6 +13,9 @@ if (chatDebugEnabled) {
 }
 
 const dumpMap = new Map<string, () => string>()
+registerDebugClear(() => {
+  dumpMap.clear()
+})
 
 const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {

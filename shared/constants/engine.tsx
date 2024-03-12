@@ -10,11 +10,12 @@ type State = Store & {
     onEngineConnected: () => void
     onEngineDisconnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
-export const _useState = Z.createZustand<State>(() => {
+export const _useState = Z.createZustand<State>(set => {
+  let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       C.useChatState.getState().dispatch.onEngineConnected()
@@ -30,7 +31,7 @@ export const _useState = Z.createZustand<State>(() => {
     },
     onEngineIncoming: action => {
       // defer a frame so its more like before
-      setTimeout(() => {
+      incomingTimeout = setTimeout(() => {
         C.useBotsState.getState().dispatch.onEngineIncoming(action)
         C.useChatState.getState().dispatch.onEngineIncoming(action)
         C.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
@@ -49,7 +50,10 @@ export const _useState = Z.createZustand<State>(() => {
         C.useUsersState.getState().dispatch.onEngineIncoming(action)
       }, 0)
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({...s, ...initialStore, dispatch: s.dispatch}))
+      clearTimeout(incomingTimeout)
+    },
   }
   return {
     ...initialStore,

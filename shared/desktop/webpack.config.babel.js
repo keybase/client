@@ -362,9 +362,6 @@ const config = (_, {mode}) => {
     target: 'electron-preload',
   })
 
-  if (debugUnusedChunks) {
-    return [viewConfig]
-  }
   return [nodeConfig, viewConfig, preloadConfig]
 }
 
