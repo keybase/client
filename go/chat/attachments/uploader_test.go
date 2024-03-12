@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -175,6 +176,19 @@ func TestAttachmentUploader(t *testing.T) {
 			require.Fail(t, "no upload")
 		}
 	}
+	// On non darwin we don't covert the heic.
+	successCheckNoHeicConvert := func(cb types.AttachmentUploaderResultCb) {
+		ch := cb.Wait()
+		select {
+		case res := <-ch:
+			require.Nil(t, res.Error)
+			require.Equal(t, md, res.Metadata)
+			require.Nil(t, res.Preview)
+			require.Equal(t, "image/heif", res.Object.MimeType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no upload")
+		}
+	}
 
 	successCheckEmpty := func(cb types.AttachmentUploaderResultCb) {
 		ch := cb.Wait()
@@ -210,7 +224,11 @@ func TestAttachmentUploader(t *testing.T) {
 	require.NoError(t, err)
 	deliverCheck(true)
 	uploadStartCheck(true, outboxID)
-	successCheck(resChan)
+	if runtime.GOOS == "darwin" {
+		successCheck(resChan)
+	} else {
+		successCheckNoHeicConvert(resChan)
+	}
 
 	outboxID, err = storage.NewOutboxID()
 	require.NoError(t, err)

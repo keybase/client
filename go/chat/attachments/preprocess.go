@@ -246,11 +246,8 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 			return p, err
 		}
 		if dat != nil {
-			filename = strings.TrimSuffix(filename, ".heic")
-			filename = strings.TrimSuffix(filename, ".HEIC")
-			filename = strings.TrimSuffix(filename, ".heif")
-			filename = strings.TrimSuffix(filename, ".HEIF")
-			p.Filename = filename + ".jpeg"
+			filename = strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpeg"
+			p.Filename = filename
 			p.ContentType = "image/jpeg"
 			p.SrcDat = dat
 
