@@ -842,6 +842,7 @@ export enum GlobalAppNotificationSetting {
   plaintextdesktop = 2,
   defaultsoundmobile = 3,
   disabletyping = 4,
+  convertheic = 5,
 }
 
 export enum HeaderPlaintextVersion {
