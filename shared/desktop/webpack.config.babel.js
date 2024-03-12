@@ -13,7 +13,7 @@ import CircularDependencyPlugin from 'circular-dependency-plugin'
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
-const debugUnusedChunks = false
+const debugUnusedChunks = true
 const enableCircularDepCheck = false
 
 if (enableWDYR || debugUnusedChunks || enableCircularDepCheck) {

@@ -7,6 +7,7 @@ import logger from '@/logger'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
+import {registerDebugClear} from '@/util/debug'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -27,6 +28,11 @@ const useConnectNavToState = () => {
           window.DEBUGNavigator = C.Router2.navigationRef_.current
           window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('@/constants')
+          registerDebugClear(() => {
+            window.DEBUGNavigator = undefined
+            window.DEBUGRouter2 = undefined
+            window.KBCONSTANTS = undefined
+          })
         }
       }
     }

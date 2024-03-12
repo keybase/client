@@ -4,6 +4,7 @@ import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'
 import OutOfDate from './out-of-date'
 import Flags from '@/util/feature-flags'
+import {debugClear} from '@/util/debug'
 
 type Props = {}
 
@@ -23,6 +24,10 @@ const Main = (_: Props) => {
       body.removeEventListener('keydown', toggle)
     }
   }, [toggle])
+  React.useEffect(() => {
+    show && debugClear()
+  }, [show])
+
   return show ? (
     <>
       <Router />

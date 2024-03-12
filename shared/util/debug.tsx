@@ -3,6 +3,17 @@ import {type LayoutChangeEvent, View, Pressable, Text} from 'react-native'
 
 const ENABLE_UNMOUNT_ALL = __DEV__ && (false as boolean)
 
+const debugClearCBs = new Array<() => void>()
+
+export const registerDebugClear = (cb: () => void) => {
+  debugClearCBs.push(cb)
+}
+export const debugClear = () => {
+  for (const cb of debugClearCBs) {
+    cb()
+  }
+}
+
 const UnmountAll = ({setShow}: {setShow: React.Dispatch<React.SetStateAction<boolean>>}) => {
   return (
     <View
@@ -33,13 +44,7 @@ export const useUnmountAll = ENABLE_UNMOUNT_ALL
       // clear debug globals
 
       setTimeout(() => {
-        DEBUGmadeEngine = undefined
-        DEBUGStore = undefined
-        DEBUGEngine = undefined
-        DEBUGLoaded = undefined
-        KBCONSTANTS = undefined
-        DEBUGNavigator = undefined
-        DEBUGRouter2 = undefined
+        debugClear()
       }, 1000)
 
       const unmountAll = <UnmountAll setShow={setShow} />
