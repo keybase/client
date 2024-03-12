@@ -27,6 +27,16 @@ const MultiUserJoinedNotice = (
   p: {who: ReadonlyArray<string>; join: boolean} & Omit<Props, 'leavers' | 'joiners'>
 ) => {
   const {who, join, isBigTeam, channelname, teamname, timestamp} = p
+
+  const shorten = Kb.Styles.isMobile && who.length > 1
+  const joinStr = ` ${join ? 'joined' : 'left'}${shorten ? '' : isBigTeam ? ` #${channelname}` : ` ${teamname}`}`
+
+  const ts = timestamp ? (
+    <Kb.Text type="BodyTiny" style={styles.timestamp}>
+      {' ' + formatTimeForChat(timestamp)}
+    </Kb.Text>
+  ) : null
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={{position: 'relative'}}>
       <UserNotice>
@@ -40,12 +50,8 @@ const MultiUserJoinedNotice = (
           <Kb.Text type="Body">•</Kb.Text>
           <Kb.Text type="BodySmall" lineClamp={2} title={who.join(', ')}>
             {getAddedUsernames(who)}
-            {` ${join ? 'joined' : 'left'} ${isBigTeam ? `#${channelname}.` : `${teamname}.`}`}
-            {timestamp ? (
-              <Kb.Text type="BodyTiny" style={styles.timestamp}>
-                {' ' + formatTimeForChat(timestamp)}
-              </Kb.Text>
-            ) : null}
+            {joinStr}
+            {shorten ? null : ts}
           </Kb.Text>
           <Kb.AvatarLine usernames={who} maxShown={3} size={16} layout="horizontal" alignSelf="flex-start" />
         </Kb.Box2>
