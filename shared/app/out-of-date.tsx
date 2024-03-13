@@ -20,7 +20,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 type Status = 'critical' | 'suggested' | 'ok' | 'checking'
-const OutOfData = () => {
+const OutOfDate = () => {
   const [message, setMessage] = React.useState('')
   const [status, setStatus] = React.useState<Status>('ok')
 
@@ -76,4 +76,4 @@ const OutOfData = () => {
     </Kb.Box2>
   )
 }
-export default OutOfData
+export default OutOfDate

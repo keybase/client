@@ -1,5 +1,14 @@
 import * as React from 'react'
 
+export const useLogMount = () => {
+  React.useEffect(() => {
+    console.log('aaaa mounted')
+    return () => {
+      console.log('aaaa UNmounted')
+    }
+  }, [])
+}
+
 // Get the mounted state of a component
 export const useIsMounted = () => {
   const mounted = React.useRef(true)

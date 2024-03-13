@@ -1,79 +1,28 @@
-import * as React from 'react'
-import {type LayoutChangeEvent, View, Pressable, Text} from 'react-native'
+export const ENABLE_F5_REMOUNTS = __DEV__ && (true as boolean)
 
-const ENABLE_UNMOUNT_ALL = __DEV__ && (false as boolean)
+const debugClearCBs = new Array<() => void>()
+const debugUnClearCBs = new Array<() => void>()
 
-const UnmountAll = ({setShow}: {setShow: React.Dispatch<React.SetStateAction<boolean>>}) => {
-  return (
-    <View
-      style={{
-        backgroundColor: 'red',
-        height: 40,
-        left: 0,
-        position: 'absolute',
-        top: 20,
-        width: 100,
-        zIndex: 999,
-      }}
-    >
-      <Pressable
-        onPress={() => {
-          setShow(s => !s)
-        }}
-      >
-        <Text>Swap All</Text>
-      </Pressable>
-    </View>
-  )
+export const registerDebugUnClear = (cb: () => void) => {
+  debugUnClearCBs.push(cb)
 }
-export const useUnmountAll = ENABLE_UNMOUNT_ALL
+export const registerDebugClear = (cb: () => void) => {
+  debugClearCBs.push(cb)
+}
+export const debugClear = __DEV__
   ? () => {
-      const [show, setShow] = React.useState(true)
-
-      // clear debug globals
-
-      setTimeout(() => {
-        DEBUGmadeEngine = undefined
-        DEBUGStore = undefined
-        DEBUGEngine = undefined
-        DEBUGLoaded = undefined
-        KBCONSTANTS = undefined
-        DEBUGNavigator = undefined
-        DEBUGRouter2 = undefined
-      }, 1000)
-
-      const unmountAll = <UnmountAll setShow={setShow} />
-      return {show, unmountAll}
+      for (const cb of debugClearCBs) {
+        cb()
+      }
     }
-  : () => {
-      return {show: true, unmountAll: null}
+  : () => {}
+export const debugUnClear = __DEV__
+  ? () => {
+      for (const cb of debugUnClearCBs) {
+        cb()
+      }
     }
-
-export const useDebugLayout = __DEV__
-  ? (cb?: () => void) => {
-      const sizeRef = React.useRef([0 as number, 0 as number] as const)
-      return React.useCallback(
-        (e: LayoutChangeEvent) => {
-          const height = e.nativeEvent.layout.height
-          const width = e.nativeEvent.layout.width
-          const [w, h] = sizeRef.current
-          sizeRef.current = [width, height]
-          if ((w && w !== width) || (h && h !== height)) {
-            console.log('[DEBUG] useDebugLayout', {
-              data: cb?.(),
-              h,
-              height,
-              w,
-              width,
-            })
-          }
-        },
-        [cb]
-      )
-    }
-  : () => {
-      return undefined
-    }
+  : () => {}
 
 // helper to debug method calls into an object
 export function createLoggingProxy<T extends {[key: string]: unknown}>(

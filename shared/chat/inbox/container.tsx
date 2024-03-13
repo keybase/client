@@ -201,11 +201,14 @@ const Connected = (ownProps: OwnProps) => {
     ...builderAfterBig,
   ]
   let rows = nextRows
+
+  const cachedRowsRef = React.useRef<Array<T.Chat.ChatInboxRowItem>>([])
+
   // TODO better fix later
-  if (isEqual(rows, cachedRows)) {
-    rows = cachedRows
+  if (isEqual(rows, cachedRowsRef.current)) {
+    rows = cachedRowsRef.current
   }
-  cachedRows = rows
+  cachedRowsRef.current = rows
 
   const _unreadIndices: Map<number, number> = new Map()
   let unreadTotal: number = 0
@@ -244,7 +247,6 @@ const Connected = (ownProps: OwnProps) => {
   return <InboxWrapper {...props} />
 }
 
-let cachedRows: Array<T.Chat.ChatInboxRowItem> = []
 const emptyMap = new Map()
 
 export default Connected

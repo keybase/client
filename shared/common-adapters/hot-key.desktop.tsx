@@ -1,5 +1,10 @@
 import * as React from 'react'
 import Mousetrap from 'mousetrap'
+import {registerDebugClear} from '@/util/debug'
+
+registerDebugClear(() => {
+  Mousetrap.reset()
+})
 
 // mousetrap is very simple. a bind will overwrite the binding. unbind unbinds it globally
 // we need to keep a stack to manage the state

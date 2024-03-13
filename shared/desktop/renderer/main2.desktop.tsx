@@ -5,7 +5,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/actions/remote-gen'
-import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
@@ -124,7 +123,6 @@ const render = (Component = Main) => {
   ReactDOM.createRoot(root).render(
     <Root>
       <DarkCSSInjector />
-      <RemoteProxies />
       <FontLoader />
       <div style={{display: 'flex', flex: 1}}>
         <Component />

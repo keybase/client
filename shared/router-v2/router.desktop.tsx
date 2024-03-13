@@ -6,7 +6,7 @@ import * as Shared from './router.shared'
 import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
 import Header from './header/index.desktop'
-import type {RouteMap} from '@/constants/types/router2'
+import type {RouteDef, RouteMap} from '@/constants/types/router2'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
@@ -32,30 +32,17 @@ const routesMinusRoots = (tab: DesktopTabs) => {
   }, {})
 }
 
-// we must ensure we don't keep remaking these components
-const tabScreensCache = new Map<DesktopTabs, ReturnType<typeof makeNavScreens>>()
-const makeTabStack = (tab: DesktopTabs) => {
-  const S = createNativeStackNavigator()
+type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 
-  let tabScreens = tabScreensCache.get(tab)
-  if (!tabScreens) {
-    tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), S.Screen, false)
-    tabScreensCache.set(tab, tabScreens)
+// to reduce closing over too much memory
+const makeOptions = (val: RouteDef) => {
+  return ({route, navigation}: any) => {
+    const no = getOptions(val)
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt}
   }
-
-  const TabStackNavigator = React.memo(function TabStackNavigator() {
-    return (
-      <S.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
-        {tabScreens}
-      </S.Navigator>
-    )
-  })
-
-  const Comp = () => <TabStackNavigator />
-  return Comp
 }
 
-type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
   return Object.keys(rs).map((name: keyof typeof routes) => {
     const val = rs[name]
@@ -66,11 +53,7 @@ const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) =>
         navigationKey={name}
         name={name}
         getComponent={val.getScreen}
-        options={({route, navigation}: any) => {
-          const no = getOptions(val)
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          return {...opt}
-        }}
+        options={makeOptions(val)}
       />
     )
   })
@@ -86,24 +69,32 @@ const appTabsInnerOptions = {
   tabBarShowLabel: Kb.Styles.isTablet,
   tabBarStyle: Common.tabBarStyle,
 }
-const AppTabsInner = () => {
-  // so we have a stack per tab
-  const tabStacks = React.useMemo(
-    () => Tabs.desktopTabs.map(tab => <Tab.Screen key={tab} name={tab} component={makeTabStack(tab)} />),
-    []
-  )
 
+const TabStack = createNativeStackNavigator()
+const TabStackNavigator = React.memo(function TabStackNavigator(p: {route: {name: string}}) {
+  const tab = p.route.name as DesktopTabs
+  const tabScreens = React.useMemo(
+    () => makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen, false),
+    [tab]
+  )
+  return (
+    <TabStack.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
+      {tabScreens}
+    </TabStack.Navigator>
+  )
+})
+
+const AppTabsInner = React.memo(function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
-      {tabStacks}
+      {Tabs.desktopTabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} component={TabStackNavigator} />
+      ))}
     </Tab.Navigator>
   )
-}
+})
 
-const AppTabs = React.memo(
-  AppTabsInner,
-  () => true // ignore all props
-)
+const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator()
 const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
@@ -126,7 +117,6 @@ const LoggedOut = React.memo(function LoggedOut() {
 })
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
@@ -148,6 +138,11 @@ const ElectronApp = React.memo(function ElectronApp() {
   const {loggedInLoaded, loggedIn, appState, onStateChange} = s
   const {navKey, initialState, onUnhandledAction} = s
   Shared.useSharedAfter(appState)
+
+  const ModalScreens = React.useMemo(
+    () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true),
+    []
+  )
 
   return (
     <NavigationContainer
