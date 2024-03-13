@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -1616,4 +1617,10 @@ func (k *KeybaseServiceBase) PutGitMetadata(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetKVStoreClient() keybase1.KvstoreInterface {
 	return k.kvstoreClient
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	return nil
 }

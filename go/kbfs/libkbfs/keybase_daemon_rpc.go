@@ -37,6 +37,8 @@ type KeybaseDaemonRPC struct {
 	server *rpc.Server
 
 	notifyService keybase1.NotifyServiceInterface
+
+	rawClient rpc.GenericClient
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -139,6 +141,7 @@ func (k *KeybaseDaemonRPC) fillClients(client rpc.GenericClient) {
 		keybase1.GitClient{Cli: client},
 		keybase1.KvstoreClient{Cli: client},
 	)
+	k.rawClient = client
 }
 
 type daemonLogUI struct {
@@ -474,4 +477,10 @@ func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
 	k.config.KBFSOps().RefreshCachedFavorites(ctx,
 		FavoritesRefreshModeInMainFavoritesLoop)
 	return nil
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	return k.rawClient
 }

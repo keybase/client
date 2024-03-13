@@ -171,6 +171,8 @@ export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceSh
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
 export const keybase1NotifySessionLoggedOut = 'engine-gen:keybase1NotifySessionLoggedOut'
+export const keybase1NotifySimpleFSSimpleFSArchiveStatusChanged =
+  'engine-gen:keybase1NotifySimpleFSSimpleFSArchiveStatusChanged'
 export const keybase1NotifyTeamAvatarUpdated = 'engine-gen:keybase1NotifyTeamAvatarUpdated'
 export const keybase1NotifyTeamNewlyAddedToTeam = 'engine-gen:keybase1NotifyTeamNewlyAddedToTeam'
 export const keybase1NotifyTeamTeamAbandoned = 'engine-gen:keybase1NotifyTeamTeamAbandoned'
@@ -1548,6 +1550,20 @@ const createKeybase1NotifySessionLoggedOut = (payload: {
     sessionID: number
   }
 }) => ({payload, type: keybase1NotifySessionLoggedOut as typeof keybase1NotifySessionLoggedOut})
+const createKeybase1NotifySimpleFSSimpleFSArchiveStatusChanged = (payload: {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['outParam']
+    ) => void
+  }
+}) => ({
+  payload,
+  type: keybase1NotifySimpleFSSimpleFSArchiveStatusChanged as typeof keybase1NotifySimpleFSSimpleFSArchiveStatusChanged,
+})
 const createKeybase1NotifyTeamAvatarUpdated = (payload: {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {
     sessionID: number
@@ -2502,6 +2518,9 @@ export type Keybase1NotifySessionClientOutOfDatePayload = ReturnType<
 >
 export type Keybase1NotifySessionLoggedInPayload = ReturnType<typeof createKeybase1NotifySessionLoggedIn>
 export type Keybase1NotifySessionLoggedOutPayload = ReturnType<typeof createKeybase1NotifySessionLoggedOut>
+export type Keybase1NotifySimpleFSSimpleFSArchiveStatusChangedPayload = ReturnType<
+  typeof createKeybase1NotifySimpleFSSimpleFSArchiveStatusChanged
+>
 export type Keybase1NotifyTeamAvatarUpdatedPayload = ReturnType<typeof createKeybase1NotifyTeamAvatarUpdated>
 export type Keybase1NotifyTeamNewlyAddedToTeamPayload = ReturnType<
   typeof createKeybase1NotifyTeamNewlyAddedToTeam
@@ -2803,6 +2822,7 @@ export type Actions =
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload
   | Keybase1NotifySessionLoggedOutPayload
+  | Keybase1NotifySimpleFSSimpleFSArchiveStatusChangedPayload
   | Keybase1NotifyTeamAvatarUpdatedPayload
   | Keybase1NotifyTeamNewlyAddedToTeamPayload
   | Keybase1NotifyTeamTeamAbandonedPayload

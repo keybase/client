@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	metrics "github.com/rcrowley/go-metrics"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -748,6 +749,10 @@ type KeybaseService interface {
 
 	// GetKVStoreClient returns a client for accessing the KVStore service.
 	GetKVStoreClient() keybase1.KvstoreInterface
+
+	// GetKeybaseDaemonRawClient returns the raw RPC client that can be used to
+	// construct protocol clients.
+	GetKeybaseDaemonRawClient() rpc.GenericClient
 
 	// Shutdown frees any resources associated with this
 	// instance. No other methods may be called after this is

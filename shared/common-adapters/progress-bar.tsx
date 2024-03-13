@@ -5,16 +5,27 @@ type Props = {
   ratio: number
   style?: Styles.StylesCrossPlatform
   fillStyle?: Styles.StylesCrossPlatform
+  flatRight?: boolean
+  flatLeft?: boolean
 }
 
-const ProgressBar = ({ratio, style, fillStyle}: Props) => {
+const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
   const animatedStyles = {
     ...styles.inner,
     ...fillStyle,
+    ...(flatLeft ? styles.flatLeft : {}),
+    ...(flatRight ? styles.flatRight : {}),
     width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
   }
   return (
-    <Box style={Styles.collapseStyles([styles.outer, style])}>
+    <Box
+      style={Styles.collapseStyles([
+        styles.outer,
+        style,
+        flatLeft ? styles.flatLeft : {},
+        flatRight ? styles.flatRight : {},
+      ])}
+    >
       <Box style={animatedStyles} />
     </Box>
   )
@@ -37,6 +48,8 @@ const styles = Styles.styleSheetCreate(() => ({
       boxShadow: `inset 0 1px 0 0 ${Styles.globalColors.black_05}`,
     },
   }),
+  flatLeft: {borderBottomLeftRadius: 0, borderTopLeftRadius: 0},
+  flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
 }))
 
 export default ProgressBar

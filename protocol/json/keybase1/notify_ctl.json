@@ -37,6 +37,10 @@
         },
         {
           "type": "boolean",
+          "name": "notifysimplefs"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {

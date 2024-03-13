@@ -5,7 +5,6 @@ package client
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -216,15 +215,7 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
 	ui.Printf("=== [Last updated: %v] ===\n\n", status.LastUpdated.Time())
-	jobIDs := make([]string, 0, len(status.Jobs))
-	for jobID := range status.Jobs {
-		jobIDs = append(jobIDs, jobID)
-	}
-	sort.Slice(jobIDs, func(i, j int) bool {
-		return status.Jobs[jobIDs[i]].Desc.StartTime.Before(status.Jobs[jobIDs[j]].Desc.StartTime)
-	})
-	for _, jobID := range jobIDs {
-		job := status.Jobs[jobID]
+	for _, job := range status.Jobs {
 		printSimpleFSArchiveJobDesc(ui, &job.Desc, &job.CurrentTLFRevision)
 		{
 			ui.Printf("Phase: %s ", job.Phase.String())

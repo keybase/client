@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -395,6 +396,11 @@ func (k KeybaseServiceMeasured) OnNonPathChange(
 // GetKVStoreClient implements the KeybaseService interface.
 func (k KeybaseServiceMeasured) GetKVStoreClient() keybase1.KvstoreInterface {
 	return k.delegate.GetKVStoreClient()
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface.
+func (k KeybaseServiceMeasured) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	return k.delegate.GetKeybaseDaemonRawClient()
 }
 
 // Shutdown implements the KeybaseService interface for

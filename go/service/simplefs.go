@@ -919,6 +919,17 @@ func (s *SimpleFSHandler) SimpleFSArchiveStart(ctx context.Context,
 	return cli.SimpleFSArchiveStart(ctx, arg)
 }
 
+// SimpleFSGetArchiveJobFreshness implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID string) (keybase1.SimpleFSArchiveJobFreshness, error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobFreshness{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSGetArchiveJobFreshness(ctx, jobID)
+}
+
 // SimpleFSArchiveCancelOrDismissJob implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 	jobID string) (err error) {

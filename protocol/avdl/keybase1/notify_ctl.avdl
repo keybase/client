@@ -11,6 +11,7 @@ protocol notifyCtl {
     boolean kbfsdesktop;
     boolean kbfslegacy;
     boolean kbfssubscription;
+    boolean notifysimplefs;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;

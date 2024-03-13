@@ -819,10 +819,13 @@ protocol SimpleFS {
     union{ null, SimpleFSArchiveJobErrorState } error;
   }
   record SimpleFSArchiveStatus {
-    map<string, SimpleFSArchiveJobStatus> jobs; // job ID -> job status
+    array<SimpleFSArchiveJobStatus> jobs; // increasing order by start time
     Time lastUpdated;
   }
   SimpleFSArchiveStatus simpleFSGetArchiveStatus();
 
-
+  record SimpleFSArchiveJobFreshness {
+    KBFSRevision currentTLFRevision;
+  }
+  SimpleFSArchiveJobFreshness simpleFSGetArchiveJobFreshness(string jobID);
 }

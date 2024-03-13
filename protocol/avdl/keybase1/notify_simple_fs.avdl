@@ -1,0 +1,6 @@
+
+@namespace("keybase.1")
+
+protocol NotifySimpleFS {
+  void simpleFSArchiveStatusChanged(SimpleFSArchiveStatus status) oneway;
+}
