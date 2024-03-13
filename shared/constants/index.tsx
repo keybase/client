@@ -139,7 +139,7 @@ export const useNav = () => {
   }
 }
 
-export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent} from './react'
+export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'
 export {isNetworkErr, RPCError} from '@/util/errors'
