@@ -6,25 +6,18 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
-type Route = ReturnType<typeof useNavigationBuilder>['state']['routes'][0]
-type Desc = ReturnType<typeof useNavigationBuilder>['descriptors'][0]
 
-const RouteBox = React.memo(function RouteBox(p: {
-  shouldRender: (key: string, selected: boolean) => boolean
-  route: Route
-  selected: boolean
-  desc: Desc
-}) {
-  const {shouldRender, selected, route, desc} = p
+const RouteBox = React.memo(function RouteBox(p: {fc?: () => React.ReactElement; selected: boolean}) {
+  const {fc, selected} = p
+  console.log('aaaa routebox render', selected, p.name, fc)
   return (
     <Kb.Box2
-      key={route.key}
       direction="vertical"
       fullHeight={true}
       fullWidth={true}
       style={selected ? undefined : styles.hidden}
     >
-      {shouldRender(route.key, selected) ? desc.render() : null}
+      {fc?.()}
     </Kb.Box2>
   )
 })
@@ -44,19 +37,16 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
 
   const renderedRef = React.useRef<{[key: string]: boolean}>({})
   // render if its been rendered before
-  const shouldRender = React.useCallback(
-    (key: string, selected: boolean) => {
-      if (renderedRef.current[key]) {
-        return true
-      }
-      if (selected) {
-        renderedRef.current[key] = true
-        return true
-      }
-      return false
-    },
-    [renderedRef]
-  )
+  const shouldRender = React.useCallback((key: string, selected: boolean) => {
+    if (renderedRef.current[key]) {
+      return true
+    }
+    if (selected) {
+      renderedRef.current[key] = true
+      return true
+    }
+    return false
+  }, [])
 
   const hasModals = C.useRouterState(s => C.Router2.getModalStack(s.navState).length > 0)
 
@@ -66,16 +56,12 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
         <TabBar state={state} navigation={navigation as any} />
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
-            const d = descriptors[route.key]
-            return d ? (
-              <RouteBox
-                shouldRender={shouldRender}
-                key={route.name}
-                selected={i === state.index}
-                route={route}
-                desc={d}
-              />
-            ) : null
+            const routeKey = route.key
+            const desc = descriptors[routeKey]
+            const selected = i === state.index
+            const needDesc = desc ? shouldRender(routeKey, selected) : false
+            const fc = needDesc ? desc?.render : undefined
+            return <RouteBox key={route.key} name={route.key} selected={selected} fc={fc} />
           })}
         </Kb.BoxGrow>
         <ModalBackdrop hasModals={hasModals} />
