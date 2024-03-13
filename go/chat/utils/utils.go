@@ -3084,13 +3084,13 @@ func IsDeletedConvError(err error) bool {
 const DisablePlaintextDesktopGregorKey = "disableplaintextdesktop"
 const ConvertHEICGregorKey = "convertheic"
 
-func SetBoolGregor(ctx context.Context, g *globals.Context, key string, disabled bool) error {
+func SetGregorBool(ctx context.Context, g *globals.Context, key string, disabled bool) error {
 	_, err := g.GregorState.UpdateCategory(ctx, key,
 		[]byte(strconv.FormatBool(disabled)), gregor1.TimeOrOffset{})
 	return err
 }
 
-func GetBoolGregor(ctx context.Context, g *globals.Context, key string, defaultVal bool) (bool, error) {
+func GetGregorBool(ctx context.Context, g *globals.Context, key string, defaultVal bool) (bool, error) {
 	st, err := g.GregorState.State(ctx)
 	if err != nil {
 		return false, err

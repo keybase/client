@@ -15,13 +15,13 @@ func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 	if err != nil {
 		return res, err
 	}
-	plaintextDesktopDisabled, err := utils.GetBoolGregor(ctx, g, utils.DisablePlaintextDesktopGregorKey, false)
+	plaintextDesktopDisabled, err := utils.GetGregorBool(ctx, g, utils.DisablePlaintextDesktopGregorKey, false)
 	if err != nil {
 		return res, err
 	}
 	settings.Settings[chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP] = !plaintextDesktopDisabled
 
-	convertHeic, err := utils.GetBoolGregor(ctx, g, utils.ConvertHEICGregorKey, true)
+	convertHeic, err := utils.GetGregorBool(ctx, g, utils.ConvertHEICGregorKey, true)
 	if err != nil {
 		return res, err
 	}
@@ -45,12 +45,12 @@ func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
 		switch gkey {
 		case chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
-			err = utils.SetBoolGregor(ctx, g, utils.DisablePlaintextDesktopGregorKey, !v)
+			err = utils.SetGregorBool(ctx, g, utils.DisablePlaintextDesktopGregorKey, !v)
 			if err != nil {
 				return err
 			}
 		case chat1.GlobalAppNotificationSetting_CONVERTHEIC:
-			err = utils.SetBoolGregor(ctx, g, utils.ConvertHEICGregorKey, v)
+			err = utils.SetGregorBool(ctx, g, utils.ConvertHEICGregorKey, v)
 			if err != nil {
 				return err
 			}

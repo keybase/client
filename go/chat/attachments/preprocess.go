@@ -241,7 +241,7 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 
 	// Convert heif to jpeg when possible
 	if p.ContentType == "image/heif" {
-		shouldConvertHEIC, err := utils.GetBoolGregor(ctx, g, utils.ConvertHEICGregorKey, true)
+		shouldConvertHEIC, err := utils.GetGregorBool(ctx, g, utils.ConvertHEICGregorKey, true)
 		if err != nil {
 			return p, err
 		}
