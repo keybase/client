@@ -3752,8 +3752,10 @@ func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
 	if rc == nil {
 		k.log.CWarningf(ctx,
 			"k.notifyUIStateChange: skipping notification because rawClient is nil")
+		return
 	}
 	client := keybase1.NotifySimpleFSClient{Cli: rc}
+
 	status, err := k.archiveStateToStatus(ctx, state, errorStates)
 	if err != nil {
 		k.log.CWarningf(ctx,

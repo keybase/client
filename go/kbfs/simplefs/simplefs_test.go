@@ -1861,7 +1861,7 @@ loopWait:
 		status, err := sfs.SimpleFSGetArchiveStatus(ctx)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(status.Jobs))
-		job := status.Jobs[desc.JobID]
+		job := status.Jobs[0]
 		t.Logf("got job status %#+v", job)
 		require.Nil(t, job.Error)
 		if job.Phase == keybase1.SimpleFSArchiveJobPhase_Done {
@@ -1872,5 +1872,11 @@ loopWait:
 	reader, err := zip.OpenReader(filepath.Join(tempdir, "archive.zip"))
 	defer func() { _ = reader.Close() }()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(reader.File)) // file and one symlink
+
+	files := map[string]bool{"manifest.json": true, "jdoe/test1.txt": true, "jdoe/link1": true}
+	require.Equal(t, len(files), len(reader.File))
+	for _, f := range reader.File {
+		delete(files, f.Name)
+	}
+	require.Equal(t, 0, len(files))
 }
