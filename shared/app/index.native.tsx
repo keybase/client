@@ -11,7 +11,7 @@ import {enableFreeze} from 'react-native-screens'
 import {setKeyboardUp} from '@/styles/keyboard-state'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
-import {useUnmountAll} from '@/util/debug'
+import {useUnmountAll} from '@/util/debug-react'
 
 enableFreeze(true)
 

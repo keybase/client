@@ -1,5 +1,6 @@
 import type * as Types from '.'
 import {toStringForLog} from '@/util/string'
+import {registerDebugClear} from '@/util/debug'
 
 const levelToFunction = {
   Action: 'log',
@@ -21,6 +22,9 @@ class RingLogger {
     this.logLevel = logLevel
     this.ringSize = ringSize
     this.consoleLog = console[levelToFunction[logLevel]].bind(console)
+    registerDebugClear(() => {
+      this.ringBuffer.length = 0
+    })
   }
 
   log = (...s: Array<any>) => {

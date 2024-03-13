@@ -1,5 +1,6 @@
 import {_useState as useDarkModeState} from '@/constants/darkmode'
 import type {StylesCrossPlatform} from '.'
+import {ENABLE_F5_REMOUNTS} from '@/util/debug'
 
 // Support a closure to enable simple dark mode.
 // transform is to allow native styleSheetCreate to convert the object
@@ -28,6 +29,11 @@ const styleSheetCreate = (f: () => MapToStyles, transform: Transform) => {
           darkModePrefCached = darkModePref
           darkCached = undefined
           lightCached = undefined
+        }
+
+        if (ENABLE_F5_REMOUNTS) {
+          const temp = transform(f())
+          return temp[key]
         }
 
         if (useDarkModeState.getState().isDarkMode()) {
