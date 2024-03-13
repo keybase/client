@@ -192,7 +192,7 @@ func (s *DevConvEmojiSource) addAdvanced(ctx context.Context, uid gregor1.UID,
 	}
 
 	sender := NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri)
-	_, msgID, err := attachments.NewSender(s.G(), s.ri).PostFileAttachment(ctx, sender, uid,
+	_, msgID, err := attachments.NewSender(s.G()).PostFileAttachment(ctx, sender, uid,
 		storageConv.GetConvID(), storageConv.Info.TlfName, keybase1.TLFVisibility_PRIVATE, nil, filename,
 		"", nil, 0, nil, nil)
 	if err != nil {

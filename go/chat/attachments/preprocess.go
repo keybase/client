@@ -217,7 +217,7 @@ func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res
 }
 
 func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src ReadResetter, filename string,
-	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes, ri func() chat1.RemoteInterface) (p Preprocess, err error) {
+	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
 		if p, err = processCallerPreview(ctx, g, *callerPreview); err != nil {
@@ -241,11 +241,11 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 
 	// Convert heif to jpeg when possible
 	if p.ContentType == "image/heif" {
-		settings, err := ri().GetGlobalAppNotificationSettings(ctx)
+		shouldConvertHEIC, err := utils.GetBoolGregor(ctx, g, utils.ConvertHEICGregorKey, true)
 		if err != nil {
 			return p, err
 		}
-		if settings.Settings[chat1.GlobalAppNotificationSetting_CONVERTHEIC] {
+		if shouldConvertHEIC {
 			dat, err := HEICToJPEG(ctx, log, filename)
 			if err != nil {
 				return p, err

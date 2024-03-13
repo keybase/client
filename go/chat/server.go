@@ -1193,12 +1193,12 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, &err, "MakePreview")()
-	return attachments.NewSender(h.G(), h.remoteClient).MakePreview(ctx, arg.Filename, arg.OutboxID)
+	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
 func (h *Server) MakeAudioPreview(ctx context.Context, arg chat1.MakeAudioPreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, &err, "MakeAudioPreview")()
-	return attachments.NewSender(h.G(), h.remoteClient).MakeAudioPreview(ctx, arg.Amps, arg.Duration)
+	return attachments.NewSender(h.G()).MakeAudioPreview(ctx, arg.Amps, arg.Duration)
 }
 
 func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
@@ -1233,7 +1233,7 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
-	outboxID, _, err := attachments.NewSender(h.G(), h.remoteClient).PostFileAttachmentMessage(ctx, sender,
+	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
 		arg.Arg.ConversationID, arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename,
 		arg.Arg.Title, arg.Arg.Metadata, arg.ClientPrev, arg.Arg.EphemeralLifetime,
 		arg.Arg.CallerPreview)
@@ -1265,7 +1265,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 
 	// Get base of message we are going to send
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgID, err := attachments.NewSender(h.G(), h.remoteClient).PostFileAttachment(ctx, sender, uid, arg.Arg.ConversationID,
+	_, msgID, err := attachments.NewSender(h.G()).PostFileAttachment(ctx, sender, uid, arg.Arg.ConversationID,
 		arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title,
 		arg.Arg.Metadata, 0, arg.Arg.EphemeralLifetime, arg.Arg.CallerPreview)
 	if err != nil {

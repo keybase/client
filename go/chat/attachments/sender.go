@@ -16,14 +16,12 @@ import (
 type Sender struct {
 	globals.Contextified
 	utils.DebugLabeler
-	ri func() chat1.RemoteInterface
 }
 
-func NewSender(g *globals.Context, ri func() chat1.RemoteInterface) *Sender {
+func NewSender(g *globals.Context) *Sender {
 	return &Sender{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Attachments.Sender", false),
-		ri:           ri,
 	}
 }
 
@@ -51,7 +49,7 @@ func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview 
 		return res, err
 	}
 	defer src.Close()
-	return PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview, s.ri)
+	return PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
 }
 
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
