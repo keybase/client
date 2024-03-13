@@ -6,10 +6,11 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
+type Desc = ReturnType<typeof useNavigationBuilder>['descriptors'][0]
 
-const RouteBox = React.memo(function RouteBox(p: {fc?: () => React.ReactElement; selected: boolean}) {
-  const {fc, selected} = p
-  console.log('aaaa routebox render', selected, p.name, fc)
+// not memo as it changes every time
+const RouteBox = (p: {desc?: Desc; selected: boolean}) => {
+  const {desc, selected} = p
   return (
     <Kb.Box2
       direction="vertical"
@@ -17,10 +18,10 @@ const RouteBox = React.memo(function RouteBox(p: {fc?: () => React.ReactElement;
       fullWidth={true}
       style={selected ? undefined : styles.hidden}
     >
-      {fc?.()}
+      {desc?.render()}
     </Kb.Box2>
   )
-})
+}
 
 const LeftTabNavigator = React.memo(function LeftTabNavigator({
   backBehavior,
@@ -60,8 +61,7 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
             const desc = descriptors[routeKey]
             const selected = i === state.index
             const needDesc = desc ? shouldRender(routeKey, selected) : false
-            const fc = needDesc ? desc?.render : undefined
-            return <RouteBox key={route.key} name={route.key} selected={selected} fc={fc} />
+            return <RouteBox key={route.name} selected={selected} desc={needDesc ? desc : undefined} />
           })}
         </Kb.BoxGrow>
         <ModalBackdrop hasModals={hasModals} />

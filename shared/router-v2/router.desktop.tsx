@@ -73,7 +73,10 @@ const appTabsInnerOptions = {
 const TabStack = createNativeStackNavigator()
 const TabStackNavigator = React.memo(function TabStackNavigator(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
-  const tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen, false)
+  const tabScreens = React.useMemo(
+    () => makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen, false),
+    [tab]
+  )
   return (
     <TabStack.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
       {tabScreens}
