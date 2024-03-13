@@ -13,12 +13,18 @@ import CircularDependencyPlugin from 'circular-dependency-plugin'
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
-const debugUnusedChunks = true
+const debugUnusedChunks = false
 const enableCircularDepCheck = false
+const evalDevtools = false
 
-if (enableWDYR || debugUnusedChunks || enableCircularDepCheck) {
+if (enableWDYR || debugUnusedChunks || enableCircularDepCheck || evalDevtools) {
   for (let i = 0; i < 10; ++i) {
-    console.error('Webpack debugging on!!!')
+    console.error('Webpack debugging on!!!', {
+      enableWDYR,
+      debugUnusedChunks,
+      enableCircularDepCheck,
+      evalDevtools,
+    })
   }
 }
 
@@ -159,7 +165,7 @@ const config = (_, {mode}) => {
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
-      devtool: 'eval', //isDev ? 'cheap-module-source-map' : 'source-map',
+      devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
