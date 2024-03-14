@@ -162,7 +162,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         duration: duration > 10 ? duration : 10,
         update: {
           duration: duration > 10 ? duration : 10,
-          // eslint-disable-next-line sort-keys
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           type: LayoutAnimation.Types[easing] || 'keyboard',
         },
       })
