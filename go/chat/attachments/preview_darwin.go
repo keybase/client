@@ -79,22 +79,14 @@ int HEICToJPEG(const char* inFilename) {
 }
 #else
 int HEICToJPEG(const char* inFilename) {
-    // Load the HEIC image
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSImage *heicImage = [[NSImage alloc] initWithContentsOfFile:filename];
-
     if (heicImage) {
-        // Get the representations of the image
         NSArray<NSImageRep *> *imageReps = [heicImage representations];
-
-        // Choose the first representation
         NSImageRep *imageRep = [imageReps firstObject];
-
         if (imageRep) {
-            // Convert to NSBitmapImageRep
             NSBitmapImageRep *bitmapRep = (NSBitmapImageRep *)imageRep;
             if (bitmapRep) {
-                // Get the JPEG data
                 imageData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{}];
 				return 0;
             }
