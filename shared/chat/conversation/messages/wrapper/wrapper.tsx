@@ -253,7 +253,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
           systemMessage: type.startsWith('system'),
-          // eslint-disable-next-line
+          // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
         onContextMenu: showPopup,

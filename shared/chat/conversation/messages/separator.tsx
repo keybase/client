@@ -222,27 +222,24 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
           ? formatTimeForConversationList(m.timestamp)
           : ''
 
+      /* eslint-disable sort-keys */
       TEMP.current = {
         orangeOrdinal,
         ordinal,
         previous,
         showUsername,
-        // eslint-disable-next-line
         mauthor: m.author,
         mbot: m.botUsername,
         mtype: m.type,
-        // eslint-disable-next-line
         mtime: m.timestamp,
         pauthor: pmessage?.author,
         pbot: pmessage?.botUsername,
         ptype: pmessage?.type,
-        // eslint-disable-next-line
         ptime: pmessage?.timestamp,
-        // eslint-disable-next-line
-        msg: (m as any).text?.stringValue?.().length,
-        // eslint-disable-next-line
-        pmsg: (pmessage as any)?.text?.stringValue?.().length,
+        msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
+        pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
       }
+      /* eslint-enable sort-keys */
       return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
