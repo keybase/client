@@ -1,4 +1,3 @@
-/* eslint-disable sort-keys */
 import './button.css'
 import * as React from 'react'
 import * as Styles from '@/styles'
@@ -261,11 +260,11 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
 })
 
 const typeToColorName = {
-  Default: 'blue',
-  Success: 'green',
   Danger: 'red',
-  Wallet: 'purple',
+  Default: 'blue',
   Dim: 'black',
+  Success: 'green',
+  Wallet: 'purple',
 }
 
 export const smallHeight = Styles.isMobile ? 32 : 28
@@ -363,16 +362,16 @@ const containerStyles = Styles.styleSheetCreate(() => {
   })
 
   return {
-    PrimaryDefault: {...common(), backgroundColor: Styles.globalColors.blue},
-    PrimarySuccess: {...common(), backgroundColor: Styles.globalColors.green},
     PrimaryDanger: {...common(), backgroundColor: Styles.globalColors.red},
-    PrimaryWallet: {...common(), backgroundColor: Styles.globalColors.purple},
+    PrimaryDefault: {...common(), backgroundColor: Styles.globalColors.blue},
     PrimaryDim: {...common(), backgroundColor: Styles.globalColors.grey},
-    SecondaryDefault: commonSecondaryWhiteBg,
-    SecondarySuccess: commonSecondaryWhiteBg,
+    PrimarySuccess: {...common(), backgroundColor: Styles.globalColors.green},
+    PrimaryWallet: {...common(), backgroundColor: Styles.globalColors.purple},
     SecondaryDanger: commonSecondaryWhiteBg,
-    SecondaryWallet: commonSecondaryWhiteBg,
+    SecondaryDefault: commonSecondaryWhiteBg,
     SecondaryDim: commonSecondaryWhiteBg,
+    SecondarySuccess: commonSecondaryWhiteBg,
+    SecondaryWallet: commonSecondaryWhiteBg,
   } as const
 })
 
@@ -380,10 +379,10 @@ const commonLabel = () =>
   Styles.platformStyles({
     common: {
       color: Styles.globalColors.whiteOrWhite,
-      textAlign: 'center',
       display: 'flex',
+      textAlign: 'center',
     },
-    isElectron: {whiteSpace: 'pre', userSelect: 'none'},
+    isElectron: {userSelect: 'none', whiteSpace: 'pre'},
     isMobile: {lineHeight: undefined},
   })
 
@@ -396,16 +395,16 @@ const labelStyles = Styles.styleSheetCreate(() => {
     backgroundColor: Styles.globalColors.fastBlank,
   }
   return {
-    PrimaryDefault: primaryWhiteBgLabel,
-    PrimarySuccess: primaryWhiteBgLabel,
     PrimaryDanger: primaryWhiteBgLabel,
-    PrimaryWallet: primaryWhiteBgLabel,
+    PrimaryDefault: primaryWhiteBgLabel,
     PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
-    SecondaryDefault: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.blueDark},
-    SecondarySuccess: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.greenDark},
+    PrimarySuccess: primaryWhiteBgLabel,
+    PrimaryWallet: primaryWhiteBgLabel,
     SecondaryDanger: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.redDark},
-    SecondaryWallet: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.purpleDark},
+    SecondaryDefault: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.blueDark},
     SecondaryDim: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.black_50},
+    SecondarySuccess: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.greenDark},
+    SecondaryWallet: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.purpleDark},
   } as const
 })
 
@@ -424,11 +423,11 @@ const backgroundColorContainerStyles = Styles.styleSheetCreate(
 const backgroundColorLabelStyles = Styles.styleSheetCreate(
   () =>
     ({
+      Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
       Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
-      Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
       Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
       Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
-      Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
+      Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
       Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
       Secondary: {...commonLabel(), color: Styles.globalColors.white},
     }) as const

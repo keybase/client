@@ -26,10 +26,7 @@ const Image2 = (p: Props) => {
     <>
       <img
         loading="lazy"
-        src={
-          // eslint-disable-next-line
-          src as any
-        }
+        src={src as any}
         style={style}
         onLoad={_onLoad}
         onError={onError}

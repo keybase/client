@@ -78,12 +78,13 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
+
+  const onReloadRef = React.useRef(onReload)
+  onReloadRef.current = onReload
+
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      reloadOnMount && onReload()
-      return () => {}
-      // TODO should have onReload but too many flakey containers use this
-      // eslint-disable-next-line
+      reloadOnMount && onReloadRef.current()
     }, [reloadOnMount])
   )
   if (!props.needsReload) {

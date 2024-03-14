@@ -10,9 +10,9 @@ if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
   throw new Error('Invalid platform: ' + platform)
 }
 const pathSep = path.sep
-// eslint-disable-next-line
-if (pathSep !== '/' && pathSep !== '\\') {
-  throw new Error('Invalid path sep:' + pathSep)
+const _pathSep = pathSep as string
+if (_pathSep !== '/' && _pathSep !== '\\') {
+  throw new Error('Invalid path sep:' + _pathSep)
 }
 
 const kb2: KB2['constants'] = {

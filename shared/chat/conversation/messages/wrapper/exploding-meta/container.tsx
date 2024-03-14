@@ -12,13 +12,32 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
 
   const ordinal = React.useContext(OrdinalContext)
 
-  const message = C.useChatContext(s => s.messageMap.get(ordinal))
-  if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
+  const {exploding, exploded, submitState, explodesAt, messageKey} = C.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal)
+      if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
+        return {
+          exploded: false,
+          explodesAt: 0,
+          exploding: false,
+          messageKey: '',
+          submitState: '',
+        }
+      }
+      const messageKey = C.Chat.getMessageKey(message)
+      const {exploding, exploded, submitState, explodingTime: explodesAt} = message
+      return {
+        exploded,
+        explodesAt,
+        exploding,
+        messageKey,
+        submitState,
+      }
+    })
+  )
+  if (!exploding) {
     return null
   }
-  const {exploded, submitState} = message
-  const explodesAt = message.explodingTime
-  const messageKey = C.Chat.getMessageKey(message)
   const pending = submitState === 'pending' || submitState === 'failed'
   const props = {
     exploded,

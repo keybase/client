@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
-import * as Container from '@/util/container'
 import {animationDuration} from '../exploding-height-retainer'
 import {HighlightedContext} from '../../ids-context'
 
@@ -39,10 +38,13 @@ type Props2 = {
 const ExplodingMeta = (p: Props) => {
   const {exploded, explodesAt, messageKey, onClick, pending} = p
 
+  const lastMessageKeyRef = React.useRef(messageKey)
   const [mode, setMode] = React.useState<Mode>('none')
-  Container.useDepChangeEffect(() => {
+
+  if (messageKey !== lastMessageKeyRef.current) {
+    lastMessageKeyRef.current = messageKey
     setMode('none')
-  }, [messageKey])
+  }
 
   const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)

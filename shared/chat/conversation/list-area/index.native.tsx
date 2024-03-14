@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Container from '@/util/container'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -151,9 +150,16 @@ const ConversationList = React.memo(function ConversationList() {
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  Container.useDepChangeEffect(() => {
-    centeredOrdinal && scrollToCentered()
-  }, [centeredOrdinal, scrollToCentered])
+  const lastCenteredOrdinal = React.useRef(0)
+  if (lastCenteredOrdinal.current !== centeredOrdinal) {
+    lastCenteredOrdinal.current = centeredOrdinal
+    if (centeredOrdinal) {
+      // let it render first
+      setTimeout(() => {
+        scrollToCentered()
+      }, 16)
+    }
+  }
 
   if (!markedInitiallyLoaded) {
     markedInitiallyLoaded = true

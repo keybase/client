@@ -136,7 +136,6 @@ const useScrolling = (p: {
   const conversationIDKey = C.useChatContext(s => s.id)
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const numOrdinals = messageOrdinals.length
-  const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
@@ -310,7 +309,10 @@ const useScrolling = (p: {
     }
   }, [cleanupDebounced])
 
+  const initScrollRef = React.useRef(false)
   React.useEffect(() => {
+    if (initScrollRef.current) return
+    initScrollRef.current = true
     if (!markedInitiallyLoaded) {
       markedInitiallyLoaded = true
       markInitiallyLoadedThreadAsRead()
@@ -323,9 +325,7 @@ const useScrolling = (p: {
     if (isLockedToBottom()) {
       scrollToBottom()
     }
-    // we only want this to happen once per mount
-    // eslint-disable-next-line
-  }, [])
+  }, [centeredOrdinal, isLockedToBottom, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
 
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
@@ -333,20 +333,29 @@ const useScrolling = (p: {
     scrollBottomOffsetRef.current = undefined
   }
 
-  const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
-  const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
+  const firstOrdinal = messageOrdinals[0]
+  const prevFirstOrdinal = Container.usePrevious(firstOrdinal)
+  const ordinalsLength = messageOrdinals.length
+  const prevOrdinalLength = Container.usePrevious(ordinalsLength)
 
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
     // didn't scroll up
-    if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
+    if (ordinalsLength === prevOrdinalLength || firstOrdinal === prevFirstOrdinal) return
     const {current} = listRef
     if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
       current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
-    // eslint-disable-next-line
-  }, [messageOrdinals])
+  }, [
+    ordinalsLength,
+    isLockedToBottom,
+    isMounted,
+    prevFirstOrdinal,
+    prevOrdinalLength,
+    listRef,
+    firstOrdinal,
+  ])
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
   const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
@@ -362,28 +371,34 @@ const useScrolling = (p: {
   scrollRef.current = {scrollDown, scrollToBottom, scrollUp}
 
   // go to editing message
-  Container.useDepChangeEffect(() => {
-    if (!editingOrdinal) return
-    const idx = messageOrdinals.indexOf(editingOrdinal)
-    if (idx === -1) return
-    const waypoints = listRef.current?.querySelectorAll('[data-key]')
-    if (!waypoints) return
-    // find an id that should be our parent
-    const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
-    const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
-    const found = findLast(allWaypoints, w => {
-      const key = w.dataset['key']
-      return key !== undefined && parseInt(key, 10) === toFind
-    })
-    found?.scrollIntoView({block: 'center', inline: 'nearest'})
-  }, [editingOrdinal, messageOrdinals])
+  const editingOrdinal = C.useChatContext(s => s.editing)
+  const lastEditingOrdinalRef = React.useRef(0)
+  if (lastEditingOrdinalRef.current !== editingOrdinal) {
+    lastEditingOrdinalRef.current = editingOrdinal
+    if (editingOrdinal) {
+      const idx = messageOrdinals.indexOf(editingOrdinal)
+      if (idx !== -1) {
+        const waypoints = listRef.current?.querySelectorAll('[data-key]')
+        if (waypoints) {
+          // find an id that should be our parent
+          const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
+          const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
+          const found = findLast(allWaypoints, w => {
+            const key = w.dataset['key']
+            return key !== undefined && parseInt(key, 10) === toFind
+          })
+          found?.scrollIntoView({block: 'center', inline: 'nearest'})
+        }
+      }
+    }
+  }
 
   // conversation changed
-  Container.useDepChangeEffect(() => {
+  if (conversationIDKeyChanged) {
     cleanupDebounced()
     lockedToBottomRef.current = true
     scrollToBottom()
-  }, [conversationIDKey, cleanupDebounced, scrollToBottom])
+  }
 
   return {isLockedToBottom, pointerWrapperRef, scrollToBottom, setListRef}
 }

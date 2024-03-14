@@ -254,20 +254,20 @@ const PlatformInput = (p: Props) => {
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const silentInput = React.useRef<Kb.PlainInput | null>(null)
+  const suggestionListStyle = React.useMemo(() => {
+    return Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
+  }, [height])
+  const suggestionSpinnerStyle = React.useMemo(() => {
+    return Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
+  }, [height])
   const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
     expanded,
     inputRef,
     onChangeText: p.onChangeText,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
-    suggestionListStyle: Kb.Styles.collapseStyles([
-      styles.suggestionList,
-      !!height && {marginBottom: height},
-    ]),
+    suggestionListStyle,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
-    suggestionSpinnerStyle: Kb.Styles.collapseStyles([
-      styles.suggestionSpinnerStyle,
-      !!height && {marginBottom: height},
-    ]),
+    suggestionSpinnerStyle,
   })
   const {cannotWrite, isEditing, isExploding} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
