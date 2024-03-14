@@ -144,7 +144,7 @@ const setupHMR = () => {
   }
 
   module.hot.accept(['../../app/main.desktop'], refreshMain)
-  module.hot.accept('@/common-adapters/index.js', () => {})
+  module.hot.accept(['../../common-adapters/index'], () => {})
 }
 
 const load = () => {
