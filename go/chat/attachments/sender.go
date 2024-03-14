@@ -27,12 +27,7 @@ func NewSender(g *globals.Context) *Sender {
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, &err, "MakePreview")()
-	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
-	if err != nil {
-		return res, err
-	}
-	defer src.Close()
-	pre, err := PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
+	pre, err := s.preprocess(ctx, filename, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -78,6 +73,7 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
 		}
 		assetMetadata = pre.BaseMetadata()
+		filename = pre.Filename
 	}
 
 	msg = chat1.MessagePlaintext{
