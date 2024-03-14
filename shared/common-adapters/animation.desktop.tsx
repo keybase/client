@@ -21,22 +21,22 @@ const useAnimationData = (type: AnimationType) => {
 
 const Animation = React.memo(function Animation(props: Props) {
   const {style, width, height, animationType} = props
-  const element = React.useRef<HTMLDivElement>(null)
+  const [element, setElement] = React.useState<HTMLDivElement | null>(null)
   const lottieInstance = React.useRef<null | ReturnType<typeof lottie.loadAnimation>>(null)
   const animationData = useAnimationData(animationType)
   React.useEffect(() => {
-    if (element.current) {
+    if (element) {
       lottieInstance.current?.destroy()
       lottieInstance.current = lottie.loadAnimation({
         animationData,
-        container: element.current,
+        container: element,
       })
     }
     return () => {
       lottieInstance.current?.destroy()
       lottieInstance.current = null
     }
-  }, [animationData])
+  }, [animationData, element])
   return (
     <Box className={props.className} style={props.containerStyle}>
       <div
@@ -47,7 +47,7 @@ const Animation = React.memo(function Animation(props: Props) {
             ...style,
           } as React.CSSProperties
         }
-        ref={element}
+        ref={setElement}
       />
     </Box>
   )

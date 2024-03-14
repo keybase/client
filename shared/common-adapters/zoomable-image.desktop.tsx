@@ -128,20 +128,22 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
   }
 
-  const divRef = React.useRef<HTMLDivElement>(null)
+  const [div, setDiv] = React.useState<null | HTMLDivElement>(null)
 
   React.useEffect(() => {
-    containerRef.current = {
-      divRef,
-      measure: () => {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  })
+    containerRef.current = div
+      ? {
+          divRef: {current: div},
+          measure: () => {
+            return div.getBoundingClientRect()
+          },
+        }
+      : null
+  }, [div])
 
   return (
     <div
-      ref={divRef}
+      ref={setDiv}
       style={style as any}
       onMouseMove={handleMouseMove}
       onWheel={handleWheel}

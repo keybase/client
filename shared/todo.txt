@@ -7,14 +7,6 @@ mem leak
 f6 for just a router remount?
 
 framepack, dispatch invocations
-
-react/chrome issues:
- inputs memory being retained: workaround select empty input before unmounting
- react internals: workarounds? patch? held dom nodes in class?
-addEventListener check refs to reacct and cleanup
-deskto router cached maps
 memoize-one remove
-
 useEffect with refs incorrect <<<<
-eslint disables
 WithTooltip as hook

@@ -8,12 +8,13 @@ type WatcherProps = Props & {
   onSuccess: (email: string) => void
 }
 const WatchForSuccess = (props: WatcherProps) => {
+  const {addedEmail, onSuccess} = props
   const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
   React.useEffect(() => {
-    if (props.addedEmail === addEmailInProgress) {
-      props.onSuccess(addEmailInProgress)
+    if (addedEmail === addEmailInProgress) {
+      onSuccess(addEmailInProgress)
     }
-  }, [props.addedEmail, addEmailInProgress, props])
+  }, [addedEmail, addEmailInProgress, onSuccess])
 
   const onCreate = (email: string, searchable: boolean) => {
     props.onCreate(email, searchable)

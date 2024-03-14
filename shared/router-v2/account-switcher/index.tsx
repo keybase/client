@@ -61,14 +61,15 @@ type AccountRowProps = {
   waiting: boolean
 }
 const AccountRow = (props: AccountRowProps) => {
+  const {waiting} = props
   const [clicked, setClicked] = React.useState(false)
   React.useEffect(() => {
-    if (!props.waiting) {
+    if (!waiting) {
       setClicked(false)
     }
-  }, [setClicked, props.waiting])
+  }, [setClicked, waiting])
 
-  const onClick = props.waiting
+  const onClick = waiting
     ? undefined
     : () => {
         setClicked(true)
@@ -80,7 +81,7 @@ const AccountRow = (props: AccountRowProps) => {
       icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={props.waiting ? styles.waiting : undefined}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>
           <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
           {(props.entry.fullName || !props.entry.account.hasStoredSecret) && (
             <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
