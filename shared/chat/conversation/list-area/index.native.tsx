@@ -154,7 +154,10 @@ const ConversationList = React.memo(function ConversationList() {
   if (lastCenteredOrdinal.current !== centeredOrdinal) {
     lastCenteredOrdinal.current = centeredOrdinal
     if (centeredOrdinal) {
-      scrollToCentered()
+      // let it render first
+      setTimeout(() => {
+        scrollToCentered()
+      }, 16)
     }
   }
 

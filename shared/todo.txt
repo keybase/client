@@ -17,3 +17,4 @@ memoize-one remove
 
 useEffect with refs incorrect <<<<
 eslint disables
+WithTooltip as hook
