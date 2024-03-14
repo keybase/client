@@ -951,7 +951,6 @@ func (n *NotifyRouter) HandleSimpleFSArchiveStatusChanged(ctx context.Context, s
 		// If the connection wants the `Kbfs` notification type
 		if n.getNotificationChannels(id).Notifysimplefs { // In the background do...
 			go func() {
-				// A send of a `FSSyncActivity` RPC with the notification
 				_ = (keybase1.NotifySimpleFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).SimpleFSArchiveStatusChanged(context.Background(), status)

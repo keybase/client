@@ -1846,33 +1846,31 @@ func (o SimpleFSArchiveJobErrorState) DeepCopy() SimpleFSArchiveJobErrorState {
 }
 
 type SimpleFSArchiveJobStatus struct {
-	Desc               SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
-	Phase              SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
-	CurrentTLFRevision KBFSRevision                  `codec:"currentTLFRevision" json:"currentTLFRevision"`
-	TodoCount          int                           `codec:"todoCount" json:"todoCount"`
-	InProgressCount    int                           `codec:"inProgressCount" json:"inProgressCount"`
-	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
-	SkippedCount       int                           `codec:"skippedCount" json:"skippedCount"`
-	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
-	BytesTotal         int64                         `codec:"bytesTotal" json:"bytesTotal"`
-	BytesCopied        int64                         `codec:"bytesCopied" json:"bytesCopied"`
-	BytesZipped        int64                         `codec:"bytesZipped" json:"bytesZipped"`
-	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
+	Desc            SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
+	Phase           SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
+	TodoCount       int                           `codec:"todoCount" json:"todoCount"`
+	InProgressCount int                           `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount   int                           `codec:"completeCount" json:"completeCount"`
+	SkippedCount    int                           `codec:"skippedCount" json:"skippedCount"`
+	TotalCount      int                           `codec:"totalCount" json:"totalCount"`
+	BytesTotal      int64                         `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied     int64                         `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped     int64                         `codec:"bytesZipped" json:"bytesZipped"`
+	Error           *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 	return SimpleFSArchiveJobStatus{
-		Desc:               o.Desc.DeepCopy(),
-		Phase:              o.Phase.DeepCopy(),
-		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
-		TodoCount:          o.TodoCount,
-		InProgressCount:    o.InProgressCount,
-		CompleteCount:      o.CompleteCount,
-		SkippedCount:       o.SkippedCount,
-		TotalCount:         o.TotalCount,
-		BytesTotal:         o.BytesTotal,
-		BytesCopied:        o.BytesCopied,
-		BytesZipped:        o.BytesZipped,
+		Desc:            o.Desc.DeepCopy(),
+		Phase:           o.Phase.DeepCopy(),
+		TodoCount:       o.TodoCount,
+		InProgressCount: o.InProgressCount,
+		CompleteCount:   o.CompleteCount,
+		SkippedCount:    o.SkippedCount,
+		TotalCount:      o.TotalCount,
+		BytesTotal:      o.BytesTotal,
+		BytesCopied:     o.BytesCopied,
+		BytesZipped:     o.BytesZipped,
 		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
 			if x == nil {
 				return nil

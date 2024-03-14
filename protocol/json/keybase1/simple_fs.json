@@ -1202,10 +1202,6 @@
           "name": "phase"
         },
         {
-          "type": "KBFSRevision",
-          "name": "currentTLFRevision"
-        },
-        {
           "type": "int",
           "name": "todoCount"
         },

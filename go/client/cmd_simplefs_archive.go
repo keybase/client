@@ -62,17 +62,17 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 	}
 }
 
-func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision *keybase1.KBFSRevision) {
+func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision keybase1.KBFSRevision) {
 	revisionExtendedDescription := func() string {
-		if currentTLFRevision == nil {
+		if currentTLFRevision == 0 {
 			return ""
 		}
 		jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
-		if jobRevision == *currentTLFRevision {
+		if jobRevision == currentTLFRevision {
 			return " (up to date with TLF)"
 		}
 
-		return fmt.Sprintf(" (behind TLF @ %d)", *currentTLFRevision)
+		return fmt.Sprintf(" (behind TLF @ %d)", currentTLFRevision)
 	}()
 
 	ui.Printf("Job ID: %s\n", desc.JobID)
@@ -101,7 +101,7 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 		return err
 	}
 
-	printSimpleFSArchiveJobDesc(c.G().UI.GetTerminalUI(), &desc, nil)
+	printSimpleFSArchiveJobDesc(c.G().UI.GetTerminalUI(), &desc, 0)
 
 	return nil
 }
@@ -207,16 +207,26 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		return err
 	}
 
-	status, err := cli.SimpleFSGetArchiveStatus(context.TODO())
+	ctx := context.Background()
+	status, err := cli.SimpleFSGetArchiveStatus(ctx)
 	if err != nil {
 		return err
+	}
+
+	currentTLFRevisions := make(map[string]keybase1.KBFSRevision, len(status.Jobs))
+	for _, job := range status.Jobs {
+		resp, err := cli.SimpleFSGetArchiveJobFreshness(ctx, job.Desc.JobID)
+		if err != nil {
+			return err
+		}
+		currentTLFRevisions[job.Desc.JobID] = resp.CurrentTLFRevision
 	}
 
 	ui := c.G().UI.GetTerminalUI()
 
 	ui.Printf("=== [Last updated: %v] ===\n\n", status.LastUpdated.Time())
 	for _, job := range status.Jobs {
-		printSimpleFSArchiveJobDesc(ui, &job.Desc, &job.CurrentTLFRevision)
+		printSimpleFSArchiveJobDesc(ui, &job.Desc, currentTLFRevisions[job.Desc.JobID])
 		{
 			ui.Printf("Phase: %s ", job.Phase.String())
 			if job.Phase == keybase1.SimpleFSArchiveJobPhase_Copying {
