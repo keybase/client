@@ -7,18 +7,11 @@ import * as T from './types'
 
 const securityGroup = 'security'
 const soundGroup = 'sound'
-const miscGroup = 'misc'
 const settingsWaitingKey = 'settings:generic'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 
 export type NotificationsSettingsState = {
-  name:
-    | 'newmessages'
-    | 'plaintextmobile'
-    | 'plaintextdesktop'
-    | 'defaultsoundmobile'
-    | 'disabletyping'
-    | 'convertheic'
+  name: 'newmessages' | 'plaintextmobile' | 'plaintextdesktop' | 'defaultsoundmobile' | 'disabletyping'
   subscribed: boolean
   description: string
 }
@@ -146,18 +139,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
               ],
           unsub: false,
         }
-        results.notifications[miscGroup] = {
-          settings: [
-            {
-              description: 'Convert HEIC images to JPEG for chat attachments',
-              description_h: 'Convert HEIC images to JPEG for chat attachments',
-              name: 'convertheic',
-              subscribed:
-                !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`],
-            },
-          ],
-          unsub: false,
-        }
 
         set(s => {
           s.allowEdit = true
@@ -219,7 +200,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const JSONPayload: Array<{key: string; value: string}> = []
         const chatGlobalArg: {[key: string]: boolean} = {}
         groups.forEach((group, groupName) => {
-          if (groupName === securityGroup || groupName === soundGroup || groupName === miscGroup) {
+          if (groupName === securityGroup || groupName === soundGroup) {
             // Special case this since it will go to chat settings endpoint
             group.settings.forEach(
               setting =>

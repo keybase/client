@@ -5,15 +5,13 @@ package attachments
 
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc
-#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia -framework Foundation -framework CoreGraphics -framework AppKit -framework UniformTypeIdentifiers -lobjc
+#cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia  -framework Foundation -framework CoreGraphics -lobjc
 
 #include <TargetConditionals.h>
 #include <AVFoundation/AVFoundation.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
 #include <ImageIO/ImageIO.h>
-#include <AppKit/AppKit.h>
-#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #if TARGET_OS_IPHONE
 #include <MobileCoreServices/MobileCoreServices.h>
 #endif
@@ -35,7 +33,7 @@ void MakeVideoThumbnail(const char* inFilename) {
 
 	CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
 	CGImageDestinationRef idst = CGImageDestinationCreateWithData(
-		mutableData, (CFStringRef)UTTypeJPEG.identifier, 1, NULL
+		mutableData, kUTTypeJPEG, 1, NULL
 	);
 	NSInteger exif             =    1;
 	CGFloat compressionQuality = 0.70;
@@ -63,31 +61,6 @@ int ImageLength() {
 
 int VideoDuration() {
 	return duration;
-}
-
-int HEICToJPEG(const char* inFilename) {
-    // Load the HEIC image
-	NSString* filename = [NSString stringWithUTF8String:inFilename];
-	NSImage *heicImage = [[NSImage alloc] initWithContentsOfFile:filename];
-
-    if (heicImage) {
-        // Get the representations of the image
-        NSArray<NSImageRep *> *imageReps = [heicImage representations];
-
-        // Choose the first representation
-        NSImageRep *imageRep = [imageReps firstObject];
-
-        if (imageRep) {
-            // Convert to NSBitmapImageRep
-            NSBitmapImageRep *bitmapRep = (NSBitmapImageRep *)imageRep;
-            if (bitmapRep) {
-                // Get the JPEG data
-                imageData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{}];
-				return 0;
-            }
-        }
-    }
-	return 1;
 }
 */
 import "C"
@@ -134,21 +107,6 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		PreviewHeight:  imagePreview.PreviewHeight,
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil
-}
-
-func HEICToJPEG(ctx context.Context, log utils.DebugLabeler, basename string) (dat []byte, err error) {
-	defer log.Trace(ctx, &err, "HEICToJPEG")()
-	cbasename := C.CString(basename)
-	defer C.free(unsafe.Pointer(cbasename))
-	ret := C.HEICToJPEG(cbasename)
-	if ret != 0 {
-		log.Debug(ctx, "unable to convert heic to jpeg")
-		return nil, nil
-	}
-	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
-	dat = make([]byte, C.ImageLength())
-	copy(dat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
-	return dat, nil
 }
 
 func LinkNoop() {}

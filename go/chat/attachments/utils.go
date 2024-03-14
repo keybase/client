@@ -315,10 +315,6 @@ func (b *BufReadResetter) Reset() error {
 	return nil
 }
 
-func (b *BufReadResetter) Close() error {
-	return nil
-}
-
 func AddPendingPreview(ctx context.Context, g *globals.Context, obr *chat1.OutboxRecord) error {
 	pre, err := NewPendingPreviews(g).Get(ctx, obr.OutboxID)
 	if err != nil {
