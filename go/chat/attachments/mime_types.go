@@ -31,6 +31,8 @@ var mimeTypes = map[string]string{
 	".exe":     "application/octet-stream",
 	".flv":     "video/x-flv",
 	".gif":     "image/gif",
+	".heic":    "image/heif",
+	".heif":    "image/heif",
 	".hqx":     "application/mac-binhex40",
 	".htc":     "text/x-component",
 	".htm":     "text/html",

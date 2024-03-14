@@ -5,38 +5,9 @@ import (
 	"strconv"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 )
-
-const disablePlaintextDesktopKey = "disableplaintextdesktop"
-
-func setPlaintextDesktopDisabled(ctx context.Context, g *globals.Context, disabled bool) error {
-	_, err := g.GregorState.UpdateCategory(ctx, disablePlaintextDesktopKey,
-		[]byte(strconv.FormatBool(disabled)), gregor1.TimeOrOffset{})
-	return err
-}
-
-func getPlaintextDesktopDisabled(ctx context.Context, g *globals.Context) (bool, error) {
-	st, err := g.GregorState.State(ctx)
-	if err != nil {
-		return false, err
-	}
-	cat, err := gregor1.ObjFactory{}.MakeCategory(disablePlaintextDesktopKey)
-	if err != nil {
-		return false, err
-	}
-	items, err := st.ItemsWithCategoryPrefix(cat)
-	if err != nil {
-		return false, err
-	}
-	if len(items) > 0 {
-		it := items[0]
-		body := string(it.Body().Bytes())
-		return strconv.ParseBool(body)
-	}
-	return false, nil
-}
 
 func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface) (
 	res chat1.GlobalAppNotificationSettings, err error) {
@@ -44,12 +15,17 @@ func getGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 	if err != nil {
 		return res, err
 	}
-	plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g)
+	plaintextDesktopDisabled, err := utils.GetGregorBool(ctx, g, utils.DisablePlaintextDesktopGregorKey, false)
 	if err != nil {
 		return res, err
 	}
-
 	settings.Settings[chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP] = !plaintextDesktopDisabled
+
+	convertHeic, err := utils.GetGregorBool(ctx, g, utils.ConvertHEICGregorKey, true)
+	if err != nil {
+		return res, err
+	}
+	settings.Settings[chat1.GlobalAppNotificationSetting_CONVERTHEIC] = convertHeic
 	return settings, nil
 }
 
@@ -69,7 +45,13 @@ func setGlobalAppNotificationSettings(ctx context.Context, g *globals.Context, r
 			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
 		switch gkey {
 		case chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
-			if err := setPlaintextDesktopDisabled(ctx, g, !v); err != nil {
+			err = utils.SetGregorBool(ctx, g, utils.DisablePlaintextDesktopGregorKey, !v)
+			if err != nil {
+				return err
+			}
+		case chat1.GlobalAppNotificationSetting_CONVERTHEIC:
+			err = utils.SetGregorBool(ctx, g, utils.ConvertHEICGregorKey, v)
+			if err != nil {
 				return err
 			}
 		default:
