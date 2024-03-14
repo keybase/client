@@ -7420,7 +7420,6 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 			chat1.GlobalAppNotificationSetting_PLAINTEXTDESKTOP: true,
 			chat1.GlobalAppNotificationSetting_PLAINTEXTMOBILE:  false,
 			chat1.GlobalAppNotificationSetting_DISABLETYPING:    false,
-			chat1.GlobalAppNotificationSetting_CONVERTHEIC:      true,
 		}
 
 		// convert the expectedSettings to the RPC format

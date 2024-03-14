@@ -217,7 +217,6 @@ class Chat extends React.Component<Props, State> {
 
   render() {
     const showDesktopSound = !C.isMobile && !C.isLinux
-    const showMisc = C.isDarwin
     const showMobileSound = !!this.props.groups.get('sound')?.settings.length
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -451,23 +450,6 @@ class Chat extends React.Component<Props, State> {
               </>
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-            <Kb.Text type="Header">Misc</Kb.Text>
-          </Kb.Box2>
-
-          {showMisc && (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-              {!!this.props.groups.get('misc')?.settings && (
-                <Group
-                  allowEdit={this.props.allowEdit}
-                  groupName="misc"
-                  onToggle={this.props.onToggle}
-                  settings={this.props.groups.get('misc')!.settings}
-                  unsubscribedFromAll={false}
-                />
-              )}
-            </Kb.Box2>
-          )}
         </Kb.ScrollView>
       </Kb.Box2>
     )
