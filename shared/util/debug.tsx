@@ -1,4 +1,4 @@
-export const ENABLE_F5_REMOUNTS = __DEV__ && (true as boolean)
+export const ENABLE_F5_REMOUNTS = __DEV__ && (false as boolean)
 
 const debugClearCBs = new Array<() => void>()
 const debugUnClearCBs = new Array<() => void>()

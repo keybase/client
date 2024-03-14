@@ -150,7 +150,7 @@ const ConversationList = React.memo(function ConversationList() {
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  const lastCenteredOrdinal = React.useRef(centeredOrdinal)
+  const lastCenteredOrdinal = React.useRef(0)
   if (lastCenteredOrdinal.current !== centeredOrdinal) {
     lastCenteredOrdinal.current = centeredOrdinal
     if (centeredOrdinal) {
