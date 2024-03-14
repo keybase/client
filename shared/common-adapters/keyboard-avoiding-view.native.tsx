@@ -50,7 +50,7 @@ type State = {
 class KeyboardAvoidingView extends React.Component<Props, State> {
   _bottom: number = 0
   _frame?: ViewLayout
-  _keyboardEvent?: KeyboardEvent
+  _keyboardEvent?: KeyboardEvent | undefined
   _subscriptions: Array<EventSubscription> = []
   viewRef: {current: React.ElementRef<typeof View> | null}
   _initialFrameHeight: number = 0
@@ -147,7 +147,8 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       return
     }
 
-    const {duration, easing, endCoordinates} = this._keyboardEvent
+    const {duration, easing: _easing, endCoordinates} = this._keyboardEvent
+    const easing = _easing as typeof _easing | undefined // i think this is possible...
     const height = await this._relativeKeyboardHeight(endCoordinates)
 
     if (this._bottom === height) {
@@ -155,7 +156,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     }
 
     const enabled = this.props.enabled ?? true
-    // eslint-disable-next-line
     if (enabled && duration && easing) {
       LayoutAnimation.configureNext({
         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m

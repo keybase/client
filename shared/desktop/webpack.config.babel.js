@@ -368,6 +368,7 @@ const config = (_, {mode}) => {
     target: 'electron-preload',
   })
 
+  return [viewConfig]
   return [nodeConfig, viewConfig, preloadConfig]
 }
 

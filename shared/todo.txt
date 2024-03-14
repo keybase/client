@@ -14,3 +14,6 @@ react/chrome issues:
 addEventListener check refs to reacct and cleanup
 deskto router cached maps
 memoize-one remove
+
+useEffect with refs<<<<
+eslint disables

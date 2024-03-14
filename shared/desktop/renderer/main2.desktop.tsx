@@ -132,8 +132,7 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  const accept = module.hot?.accept // eslint-disable-line
-  if (!accept) {
+  if (!module.hot?.accept) {
     return
   }
 
@@ -144,8 +143,8 @@ const setupHMR = () => {
     } catch (_) {}
   }
 
-  accept(['../../app/main.desktop'], refreshMain)
-  accept('@/common-adapters/index.js', () => {})
+  module.hot.accept(['../../app/main.desktop'], refreshMain)
+  module.hot.accept('@/common-adapters/index.js', () => {})
 }
 
 const load = () => {

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown/container'
@@ -173,10 +172,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     [messageEdit, injectText, messageSend, conversationIDKey, scrollToBottom, jumpToRecent, replyTo]
   )
 
-  Container.useDepChangeEffect(() => {
-    inputRef.current?.focus()
-  }, [inputRef, isEditing])
-
   const {inputRef: inputRefContext} = React.useContext(FocusContext)
   React.useEffect(() => {
     inputRefContext.current = inputRef.current
@@ -196,6 +191,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     setLastIsEditExploded(isEditExploded)
     if (isEditing && isEditExploded) {
       onCancelEditing()
+    }
+    if (isEditing) {
+      inputRef.current?.focus()
     }
   }
 
