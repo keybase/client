@@ -144,8 +144,14 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	if err := src.Reset(); err != nil {
 		return res, err
 	}
-	uploadPt := src
+
+	filename = pre.Filename
 	uploadLen := len(dat)
+	if pre.SrcDat != nil {
+		src = attachments.NewBufReadResetter(pre.SrcDat)
+		uploadLen = len(pre.SrcDat)
+	}
+	uploadPt := src
 	uploadMd := pre.BaseMetadata()
 	uploadContentType := pre.ContentType
 	if usePreview && pre.Preview != nil {

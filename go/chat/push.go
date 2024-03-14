@@ -613,7 +613,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg, nm.UntrustedTeamRole)
 				notificationSnippet := ""
 				if desktopNotification {
-					plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g.G())
+					plaintextDesktopDisabled, err := utils.GetGregorBool(ctx, g.G(), utils.DisablePlaintextDesktopGregorKey, false)
 					if err != nil {
 						g.Debug(ctx, "chat activity: unable to get app notification settings: %v defaulting to disable plaintext", err)
 					}
