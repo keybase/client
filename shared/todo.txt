@@ -15,5 +15,5 @@ addEventListener check refs to reacct and cleanup
 deskto router cached maps
 memoize-one remove
 
-useEffect with refs<<<<
+useEffect with refs incorrect <<<<
 eslint disables
