@@ -12,10 +12,12 @@ package attachments
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
 #include <ImageIO/ImageIO.h>
-#include <AppKit/AppKit.h>
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #if TARGET_OS_IPHONE
 #include <MobileCoreServices/MobileCoreServices.h>
+#include <UIKit/UIKit.h>
+#else
+#include <AppKit/AppKit.h>
 #endif
 
 NSData* imageData = NULL;
@@ -65,6 +67,17 @@ int VideoDuration() {
 	return duration;
 }
 
+#if TARGET_OS_IPHONE
+int HEICToJPEG(const char* inFilename) {
+	NSString* filename = [NSString stringWithUTF8String:inFilename];
+	UIImage* heicImage = [UIImage imageWithContentsOfFile:filename];
+	if (heicImage) {
+		imageData = UIImageJPEGRepresentation(heicImage, 1.0);
+		return 0;
+	}
+	return 1;
+}
+#else
 int HEICToJPEG(const char* inFilename) {
     // Load the HEIC image
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
@@ -89,6 +102,7 @@ int HEICToJPEG(const char* inFilename) {
     }
 	return 1;
 }
+#endif
 */
 import "C"
 import (
@@ -141,11 +155,11 @@ func HEICToJPEG(ctx context.Context, log utils.DebugLabeler, basename string) (d
 	cbasename := C.CString(basename)
 	defer C.free(unsafe.Pointer(cbasename))
 	ret := C.HEICToJPEG(cbasename)
-	if ret != 0 {
+	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
+	if ret != 0 || C.ImageLength() == 0 {
 		log.Debug(ctx, "unable to convert heic to jpeg")
 		return nil, nil
 	}
-	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
 	dat = make([]byte, C.ImageLength())
 	copy(dat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
 	return dat, nil
