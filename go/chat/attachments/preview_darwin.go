@@ -65,7 +65,7 @@ int VideoDuration() {
 	return duration;
 }
 
-void HEICToJPEG(const char* inFilename) {
+int HEICToJPEG(const char* inFilename) {
     // Load the HEIC image
 	NSString* filename = [NSString stringWithUTF8String:inFilename];
 	NSImage *heicImage = [[NSImage alloc] initWithContentsOfFile:filename];
@@ -83,9 +83,11 @@ void HEICToJPEG(const char* inFilename) {
             if (bitmapRep) {
                 // Get the JPEG data
                 imageData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{}];
+				return 0;
             }
         }
     }
+	return 1;
 }
 */
 import "C"
@@ -138,11 +140,12 @@ func HEICToJPEG(ctx context.Context, log utils.DebugLabeler, basename string) (d
 	defer log.Trace(ctx, &err, "HEICToJPEG")()
 	cbasename := C.CString(basename)
 	defer C.free(unsafe.Pointer(cbasename))
-	C.HEICToJPEG(cbasename)
-	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
-	if C.ImageLength() == 0 {
-		return nil, errors.New("no data returned from native")
+	ret := C.HEICToJPEG(cbasename)
+	if ret != 0 {
+		log.Debug(ctx, "unable to convert heic to jpeg")
+		return nil, nil
 	}
+	log.Debug(ctx, "HEICToJPEG: length: %d", C.ImageLength())
 	dat = make([]byte, C.ImageLength())
 	copy(dat, (*[1 << 30]byte)(C.ImageData())[0:C.ImageLength()])
 	return dat, nil
