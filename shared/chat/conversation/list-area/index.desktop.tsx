@@ -288,13 +288,10 @@ const useScrolling = (p: {
 
   const setListRef = React.useCallback(
     (list: HTMLDivElement | null) => {
-      console.log('aaa setlistref', list)
       if (listRef.current && listRef.current !== list) {
-        console.log('aaa REMOVE', listRef.current)
         listRef.current.removeEventListener('scroll', onScroll)
       }
       if (list) {
-        console.log('aaa ADD', list)
         list.addEventListener('scroll', onScroll, {passive: true})
       }
       listRef.current = list
