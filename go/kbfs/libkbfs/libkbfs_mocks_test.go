@@ -23,6 +23,7 @@ import (
 	kbun "github.com/keybase/client/go/kbun"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
@@ -2370,6 +2371,18 @@ func (m *MockKeybaseService) GetKVStoreClient() keybase1.KvstoreInterface {
 func (mr *MockKeybaseServiceMockRecorder) GetKVStoreClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKVStoreClient", reflect.TypeOf((*MockKeybaseService)(nil).GetKVStoreClient))
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *MockKeybaseService) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	return nil
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *MockKeybaseServiceMockRecorder) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	return nil
 }
 
 // GetTeamSettings mocks base method.
