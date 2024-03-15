@@ -260,14 +260,15 @@ const Header = () => (
 )
 
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
-  const filteredRole = filterRole(props.presetRole)
+  const {presetRole} = props
+  const filteredRole = filterRole(presetRole)
   const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
     filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   )
   React.useEffect(() => {
-    const newRole = filterRole(props.presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
+    const newRole = filterRole(presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
     setSelectedRole(newRole)
-  }, [props.presetRole])
+  }, [presetRole])
 
   // as because convincing TS that filtering this makes it a different type is hard
   const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<
@@ -303,10 +304,10 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
           <Kb.Button
             fullWidth={true}
-            disabled={selectedRole === props.presetRole}
+            disabled={selectedRole === presetRole}
             waiting={props.waiting}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
-            onClick={selectedRole === props.presetRole ? () => {} : () => props.onConfirm(selectedRole)}
+            onClick={selectedRole === presetRole ? () => {} : () => props.onConfirm(selectedRole)}
           />
         </Kb.ButtonBar>
       </Kb.Box2>

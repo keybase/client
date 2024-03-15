@@ -20,16 +20,16 @@ type Props = {
 }
 
 const LoginWrapper = (props: Props) => {
+  const {onLogin, loggedInMap, error, selectedUser: pselectedUser} = props
+
   const [password, setPassword] = React.useState('')
-  const [selectedUser, setSelectedUser] = React.useState(props.selectedUser)
+  const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
   const [showTyping, setShowTyping] = React.useState(false)
 
   const prevPassword = Container.usePrevious(password)
-  const prevError = Container.usePrevious(props.error)
+  const prevError = Container.usePrevious(error)
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
-
-  const {onLogin, loggedInMap} = props
 
   const onSubmit = React.useCallback(() => {
     onLogin(selectedUser, password)
@@ -51,13 +51,13 @@ const LoginWrapper = (props: Props) => {
 
   // Effects
   React.useEffect(() => {
-    if (!prevError && !!props.error) {
+    if (!prevError && !!error) {
       setPassword('')
     }
-  }, [prevError, props.error, setPassword])
+  }, [prevError, error, setPassword])
   React.useEffect(() => {
-    setSelectedUser(props.selectedUser)
-  }, [props.selectedUser, setSelectedUser])
+    setSelectedUser(pselectedUser)
+  }, [pselectedUser, setSelectedUser])
 
   React.useEffect(() => {
     if (!prevPassword && !!password) {
@@ -65,14 +65,14 @@ const LoginWrapper = (props: Props) => {
     }
   }, [password, prevPassword, loginError])
   React.useEffect(() => {
-    if (props.error === needPasswordError) {
+    if (error === needPasswordError) {
       setGotNeedPasswordError(true)
     }
-  }, [props.error, setGotNeedPasswordError])
+  }, [error, setGotNeedPasswordError])
 
   return (
     <Login
-      error={props.error}
+      error={error}
       needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={props.onFeedback}
       onForgotPassword={() => props.onForgotPassword(selectedUser)}

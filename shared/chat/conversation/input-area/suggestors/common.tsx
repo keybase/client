@@ -70,7 +70,7 @@ export function List<T>(p: ListProps<T>) {
     [selectedIndex, onSelected, ItemRenderer, keyExtractor]
   )
 
-  const lastSelectedIndex = React.useRef(-1)
+  const lastSelectedIndex = React.useRef(selectedIndex)
   if (lastSelectedIndex.current !== selectedIndex) {
     lastSelectedIndex.current = selectedIndex
     const sel = items[selectedIndex]
