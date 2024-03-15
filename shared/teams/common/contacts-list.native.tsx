@@ -57,7 +57,6 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
 type Props = {
   emailsDisabled?: boolean
   phonesDisabled?: boolean
-  disabledTooltip?: string
   ListHeaderComponent?: React.ComponentProps<typeof Kb.SectionList>['ListHeaderComponent']
   onSelect: (contact: Contact, checked: boolean) => void
   search: string
@@ -67,54 +66,40 @@ type Props = {
 
 type ContactRowProps = {
   disabled?: boolean
-  disabledTooltip?: string
   index: number
   item: Contact
   onSelect: Props['onSelect']
   selected: boolean
 }
-const ContactRow = React.memo(
-  ({item, disabled, disabledTooltip, index, onSelect, selected}: ContactRowProps) => {
-    const topText = item.name || item.valueFormatted || item.value
-    const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
-    const onCheck = (check: boolean) => onSelect(item, check)
-    const listItem = (
-      <Kb.ListItem2
-        type="Small"
-        firstItem={index === 0}
-        body={
-          <Kb.Box2 direction="vertical" alignItems="flex-start">
-            <Kb.Text type="BodySemibold">{topText}</Kb.Text>
-            {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
-          </Kb.Box2>
-        }
-        onClick={disabled ? undefined : () => onCheck(!selected)}
-        action={
-          <Kb.CheckCircle
-            checked={selected}
-            onCheck={onCheck}
-            style={styles.checkCircle}
-            disabled={disabled}
-          />
-        }
-        icon={
-          item.pictureUri ? (
-            <Kb.Image2 style={styles.thumbnail} src={item.pictureUri} />
-          ) : (
-            <Kb.Avatar size={32} username="" />
-          )
-        }
-      />
-    )
-    return disabledTooltip ? (
-      <Kb.WithTooltip showOnPressMobile={true} tooltip={disabledTooltip} multiline={true}>
-        {listItem}
-      </Kb.WithTooltip>
-    ) : (
-      listItem
-    )
-  }
-)
+const ContactRow = React.memo(({item, disabled, index, onSelect, selected}: ContactRowProps) => {
+  const topText = item.name || item.valueFormatted || item.value
+  const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
+  const onCheck = (check: boolean) => onSelect(item, check)
+  const listItem = (
+    <Kb.ListItem2
+      type="Small"
+      firstItem={index === 0}
+      body={
+        <Kb.Box2 direction="vertical" alignItems="flex-start">
+          <Kb.Text type="BodySemibold">{topText}</Kb.Text>
+          {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
+        </Kb.Box2>
+      }
+      onClick={disabled ? undefined : () => onCheck(!selected)}
+      action={
+        <Kb.CheckCircle checked={selected} onCheck={onCheck} style={styles.checkCircle} disabled={disabled} />
+      }
+      icon={
+        item.pictureUri ? (
+          <Kb.Image2 style={styles.thumbnail} src={item.pictureUri} />
+        ) : (
+          <Kb.Avatar size={32} username="" />
+        )
+      }
+    />
+  )
+  return listItem
+})
 
 const ContactsList = (props: Props) => {
   const contactInfo = useContacts()
@@ -148,7 +133,6 @@ const ContactsList = (props: Props) => {
             index={index}
             onSelect={onSelectForRows}
             disabled={disabled}
-            disabledTooltip={disabled ? props.disabledTooltip : undefined}
             selected={
               item.type === 'email'
                 ? props.selectedEmails.has(item.value)
