@@ -140,6 +140,10 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
               <Kb.Text type="BodyBold" lineClamp={1}>
                 {job.kbfsPath}
               </Kb.Text>
+              <Kb.Box style={{flex: 1}} />
+              {job.bytesTotal ? (
+                <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
+              ) : null}
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
