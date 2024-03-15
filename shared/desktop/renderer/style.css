@@ -528,6 +528,7 @@ input {
   position: relative;
 }
 .tooltip:before {
+  transition: opacity 0.2s ease-in-out;
   /* body small text */
   -webkit-font-smoothing: antialiased;
   align-items: center;
@@ -537,14 +538,13 @@ input {
   color: rgba(0, 0, 0, 0.85);
   color: var(--color-white);
   content: attr(data-tooltip);
-  display: none;
+  opacity: 0;
   flex-grow: 1;
   flex-shrink: 0;
   font-family: Keybase;
   font-size: 13px;
   font-weight: 400;
   justify-content: center;
-  left: 50%;
   line-height: 17px;
   margin-left: 15px;
   margin: 4px;
@@ -552,11 +552,33 @@ input {
   pointer-events: none;
   position: absolute;
   text-rendering: optimizeLegibility;
-  top: 0;
-  transform: translate(-50%, -100%);
   white-space: nowrap;
   z-index: 999;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
 }
+
+.tooltip-bottom-center:before {
+  transform: translate(-50%, 100%);
+}
+
+.tooltip-top-left:before {
+  transform: translate(-100%, -100%);
+}
+
+.tooltip-top-right:before {
+  transform: translate(0%, -100%);
+}
+
+.tooltip-bottom-left:before {
+  transform: translate(-100%, 100%);
+}
+
+.tooltip-bottom-right:before {
+  transform: translate(0%, 100%);
+}
+
 .tooltip:hover:before {
-  display: flex;
+  opacity: 1;
 }

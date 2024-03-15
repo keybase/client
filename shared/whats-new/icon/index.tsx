@@ -90,19 +90,18 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
     popupVisible ? setPopupVisible(false) : !!attachToRef.current && setPopupVisible(true)
   }, [popupVisible, setPopupVisible, attachToRef])
 
-  const boxRef = React.useRef<Kb.MeasureRef>(null)
-  const tooltip = Kb.useTooltip({attachTo: boxRef, position: 'bottom center', tooltip: keybaseFM})
   return (
     <>
       <Kb.Box style={styles.iconContainerMargins} onClick={onClick}>
         <Kb.Box2Measure
           direction="vertical"
-          ref={boxRef}
           style={styles.iconContainer}
+          tooltip={popupVisible ? undefined : keybaseFM}
           className={Kb.Styles.classNames(
             popupVisible
               ? ['background_color_black_10']
-              : ['hover_container', 'hover_background_color_black_10']
+              : ['hover_container', 'hover_background_color_black_10'],
+            'tooltip-bottom-left'
           )}
         >
           <Icon
@@ -114,7 +113,6 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
             newRelease={newRelease}
           />
         </Kb.Box2Measure>
-        {popupVisible ? null : tooltip}
       </Kb.Box>
       {!Kb.Styles.isMobile && popupVisible && (
         <Popup
