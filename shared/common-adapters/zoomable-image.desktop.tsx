@@ -43,7 +43,10 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }, [isZoomed])
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current || !imgRef.current) return
+    if (!containerRef.current || !imgRef.current) {
+      console.log('aaaa handleMouseMove bail')
+      return
+    }
 
     if (dragPan && !allowPan) return
 
@@ -55,7 +58,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     }
 
     const containerRect = containerRef.current.measure?.()
+    console.log('aaaa handleMouseMove call', containerRect)
     if (!containerRect) return
+
     const imgRect = imgRef.current.getBoundingClientRect()
     const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
     const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
@@ -128,7 +133,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
   }
 
-  const [div, setDiv] = React.useState<null | HTMLDivElement>(null)
+  const [div, divRef] = React.useState<null | HTMLDivElement>(null)
 
   React.useEffect(() => {
     containerRef.current = div
@@ -143,7 +148,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
   return (
     <div
-      ref={setDiv}
+      ref={divRef}
       style={style as any}
       onMouseMove={handleMouseMove}
       onWheel={handleWheel}
