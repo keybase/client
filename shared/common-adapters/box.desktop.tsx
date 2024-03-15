@@ -48,6 +48,7 @@ const useBox2Shared = (p: Box2Props) => {
   return {
     children,
     className,
+    'data-tooltip': tooltip,
     onContextMenu,
     onCopyCapture,
     onDragLeave,
@@ -60,7 +61,6 @@ const useBox2Shared = (p: Box2Props) => {
     onMouseUp,
     style,
     title,
-    ...(tooltip ? {'data-tooltip': tooltip} : {}),
   }
 }
 

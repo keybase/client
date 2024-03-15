@@ -525,6 +525,7 @@ input {
 }
 
 .tooltip {
+  position: relative;
 }
 .tooltip:before {
   /* body small text */
