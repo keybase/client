@@ -23,8 +23,6 @@ type KBFSJob = {
   kbfsRevision: number
   zipFilePath: string
 
-  currentKBFSRevision: number
-
   bytesTotal: number
   bytesCopied: number
   bytesZipped: number
@@ -36,10 +34,12 @@ type KBFSJob = {
 type Store = T.Immutable<{
   jobs: Map<string, Job>
   kbfsJobs: Map<string, KBFSJob> // id -> KBFSJob
+  kbfsJobsFreshness: Map<string, number> // id -> KBFS TLF Revision
 }>
 const initialStore: Store = {
   jobs: new Map(),
   kbfsJobs: new Map(),
+  kbfsJobsFreshness: new Map(),
 }
 
 type State = Store & {
@@ -49,6 +49,7 @@ type State = Store & {
     clearCompleted: () => void
     load: () => void
     loadKBFS: () => void
+    loadKBFSJobFreshness: (jobID: string) => void
     cancelOrDismissKBFS: (jobID: string) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
@@ -76,6 +77,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     set(s => ({
       ...s,
       kbfsJobs: new Map(
+        // order is retained
         (status.jobs || []).map(job => [
           job.desc.jobID,
           {
@@ -97,8 +99,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 ? job.desc.kbfsPathWithRevision.archivedParam.revision
                 : 0,
             zipFilePath: job.desc.zipFilePath,
-
-            currentKBFSRevision: job.currentTLFRevision,
 
             bytesTotal: job.bytesTotal,
             bytesCopied: job.bytesCopied,
@@ -152,6 +152,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadKBFS: async () => {
       const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
       setKBFSJobStatus(status)
+    },
+    loadKBFSJobFreshness: async (jobID: string) => {
+      const resp = await T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise({jobID})
+      set(s => ({
+        ...s,
+        kbfsJobsFreshness: new Map([...s.kbfsJobsFreshness, [jobID, resp.currentTLFRevision]]), // ordering doesn't matter here
+      }))
     },
     onEngineIncoming: action => {
       switch (action.type) {

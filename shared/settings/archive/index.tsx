@@ -86,37 +86,48 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
 
 const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
   const {id, index} = p
-  const m = C.useArchiveState(s => s.kbfsJobs.get(id))
+  const job = C.useArchiveState(s => s.kbfsJobs.get(id))
+  const currentTLFRevision = C.useArchiveState(s => s.kbfsJobsFreshness.get(id)) || 0
   const cancelOrDismiss = C.useArchiveState(s => s.dispatch.cancelOrDismissKBFS)
+
+  const loadKBFSJobFreshness = C.useArchiveState(s => s.dispatch.loadKBFSJobFreshness)
+  C.useOnMountOnce(() => {
+    loadKBFSJobFreshness(id)
+  })
 
   const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
-    if (Kb.Styles.isMobile || !m) {
+    if (Kb.Styles.isMobile || !job) {
       return
     }
-    openFinder?.(m.zipFilePath)
-  }, [m, openFinder])
+    openFinder?.(job.zipFilePath)
+  }, [job, openFinder])
 
   const onShare = React.useCallback(() => {
-    if (!Kb.Styles.isMobile || !m) {
+    if (!Kb.Styles.isMobile || !job) {
       return
     }
     C.PlatformSpecific.showShareActionSheet({
-      filePath: m.zipFilePath,
+      filePath: job.zipFilePath,
       mimeType: 'application/zip',
     })
       .then(() => {})
       .catch(() => {})
-  }, [m])
+  }, [job])
 
   const onCancelOrDismiss = React.useCallback(() => {
     cancelOrDismiss(id)
   }, [cancelOrDismiss, id])
 
-  if (!m) {
+  if (!job) {
     return null
   }
-  const progress = m.bytesTotal ? (m.bytesCopied * 0.8 + m.bytesZipped * 0.2) / m.bytesTotal : 0
+  const progress = job.bytesTotal ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal : 0
+  const errorStr = job.error ? `Error: ${job.error} | Retrying at ${job.errorNextRetry}` : null
+  const revisionBehindStr =
+    job.kbfsRevision < currentTLFRevision
+      ? `Archive revision ${job.kbfsRevision} behind TLF revision ${currentTLFRevision}. Make a new archive if needed.`
+      : null
   return (
     <Kb.ListItem2
       firstItem={index === -1}
@@ -127,7 +138,7 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
           <Kb.Box2 direction="vertical" style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
               <Kb.Text type="BodyBold" lineClamp={1}>
-                {m.kbfsPath}
+                {job.kbfsPath}
               </Kb.Text>
             </Kb.Box2>
             <Kb.Box2
@@ -140,11 +151,21 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
               <Kb.ProgressBar ratio={progress} />
               <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
               <Kb.Box style={{flex: 1}} />
-              <Kb.Text type={m.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{m.phase}</Kb.Text>
+              {errorStr && (
+                <Kb.WithTooltip tooltip={errorStr}>
+                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+                </Kb.WithTooltip>
+              )}
+              {revisionBehindStr && (
+                <Kb.WithTooltip tooltip={revisionBehindStr}>
+                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.yellowDark} />
+                </Kb.WithTooltip>
+              )}
+              <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.kbfsJobRight}>
-            <Kb.Text type="BodySmall">{m.started.toLocaleString()}</Kb.Text>
+            <Kb.Text type="BodySmall">{job.started.toLocaleString()}</Kb.Text>
             <Kb.Box2
               direction="horizontal"
               fullWidth={true}
@@ -152,7 +173,7 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
               gap="tiny"
               style={styles.kbfsActions}
             >
-              {m.phase === 'Done' ? (
+              {job.phase === 'Done' ? (
                 Kb.Styles.isMobile ? (
                   <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
                     Share
@@ -173,7 +194,7 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
                   Cancel
                 </Kb.Text>
               )}
-              {m.phase === 'Done' ? (
+              {job.phase === 'Done' ? (
                 <Kb.Text type="BodyPrimaryLink" onClick={onCancelOrDismiss}>
                   Dismiss
                 </Kb.Text>
