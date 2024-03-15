@@ -43,10 +43,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }, [isZoomed])
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current || !imgRef.current) {
-      console.log('aaaa handleMouseMove bail')
-      return
-    }
+    if (!containerRef.current || !imgRef.current) return
 
     if (dragPan && !allowPan) return
 
@@ -58,7 +55,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     }
 
     const containerRect = containerRef.current.measure?.()
-    console.log('aaaa handleMouseMove call', containerRect)
     if (!containerRect) return
 
     const imgRect = imgRef.current.getBoundingClientRect()
