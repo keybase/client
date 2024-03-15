@@ -42,6 +42,7 @@ const useBox2Shared = (p: Box2Props) => {
       box2_pointerEvents_none: pointerEvents === 'none',
       box2_reverse: reverse,
       box2_vertical: !horizontal,
+      tooltip: tooltip,
     },
     _className
   )

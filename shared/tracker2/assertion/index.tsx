@@ -157,7 +157,6 @@ const StellarValue = (p: Props) => {
     [menuItems]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  // const tooltip = Kb.useTooltip({attachTo: popupAnchor, tooltip: 'Stellar Federation Address'})
 
   const label = (
     <Kb.Text
@@ -400,9 +399,7 @@ const Assertion = React.memo(function Assertion(p: Props) {
     [items, header]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  const tooltipAnchor = React.useRef<Kb.MeasureRef>(null)
-  const _tooltip = Kb.useTooltip({attachTo: tooltipAnchor, tooltip: 'View proof'})
-  const tooltip = state === 'valid' || state === 'revoked' ? _tooltip : null
+  const tooltip = state === 'valid' || state === 'revoked' ? 'View proof' : undefined
 
   return (
     <Kb.Box2Measure
@@ -439,7 +436,7 @@ const Assertion = React.memo(function Assertion(p: Props) {
           )}
         </Kb.Text>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" ref={tooltipAnchor}>
+          <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
             <Kb.Icon
               type={stateToIcon(state)}
               fontSize={20}
@@ -455,7 +452,6 @@ const Assertion = React.memo(function Assertion(p: Props) {
               <Kb.Box2 direction="vertical" />
             )}
           </Kb.Box2Measure>
-          {tooltip}
         </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (

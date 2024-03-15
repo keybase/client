@@ -272,7 +272,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
       <Kb.Box2Measure
         direction="horizontal"
         fullWidth={true}
-        className={Kb.Styles.classNames(isSelected ? 'tab-selected' : 'tab', 'tooltip', 'tab-tooltip')}
+        className={Kb.Styles.classNames(isSelected ? 'tab-selected' : 'tab', 'tab-tooltip')}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
