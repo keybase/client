@@ -57,14 +57,16 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
 }
 
 const FloatingMenu = (props: Props) => {
-  const {snapPoints, items} = props
+  const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
-  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
+  const [bottomSheetModal, setBottomSheetModal] = React.useState<null | BottomSheetModal>(null)
   React.useEffect(() => {
-    bottomSheetModalRef.current?.present()
-  }, [])
+    if (visible && !isModal) {
+      bottomSheetModal?.present()
+    }
+  }, [bottomSheetModal, isModal, visible])
 
-  if (!props.visible && isModal === false) {
+  if (!visible && isModal === false) {
     return null
   }
 
@@ -93,7 +95,7 @@ const FloatingMenu = (props: Props) => {
         containerComponent={FullWindow}
         snapPoints={snapPoints}
         enableDynamicSizing={true}
-        ref={bottomSheetModalRef}
+        ref={setBottomSheetModal}
         handleStyle={styles.handleStyle}
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}

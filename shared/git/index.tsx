@@ -5,13 +5,9 @@ import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as T from '@/constants/types'
 import {memoize} from '@/util/memoize'
-import {union} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
 
 type OwnProps = {expanded?: string}
-
-// keep track in the module
-let moduleExpandedSet = new Set<string>()
 
 const getRepos = memoize((git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -25,7 +21,6 @@ const getRepos = memoize((git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
 )
 
 const Container = (ownProps: OwnProps) => {
-  const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const loading = C.Waiting.useAnyWaiting(C.Git.loadingWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(
     C.useShallow(s => {
@@ -52,16 +47,12 @@ const Container = (ownProps: OwnProps) => {
   )
 
   const [expandedSet, setExpandedSet] = React.useState(
-    new Set<string>(union(initialExpandedSet ?? new Set(), moduleExpandedSet))
+    ownProps.expanded ? new Set([ownProps.expanded]) : new Set()
   )
 
-  React.useEffect(() => {
-    moduleExpandedSet = expandedSet
-  }, [expandedSet])
-
   const toggleExpand = (id: string) => {
-    moduleExpandedSet.has(id) ? moduleExpandedSet.delete(id) : moduleExpandedSet.add(id)
-    setExpandedSet(new Set(moduleExpandedSet))
+    expandedSet.has(id) ? expandedSet.delete(id) : expandedSet.add(id)
+    setExpandedSet(new Set(expandedSet))
   }
 
   const makePopup = React.useCallback(
