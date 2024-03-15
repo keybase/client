@@ -89,29 +89,32 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
   const onClick = React.useCallback(() => {
     popupVisible ? setPopupVisible(false) : !!attachToRef.current && setPopupVisible(true)
   }, [popupVisible, setPopupVisible, attachToRef])
+
+  const boxRef = React.useRef<Kb.MeasureRef>(null)
+  const tooltip = Kb.useTooltip({attachTo: boxRef, position: 'bottom center', tooltip: keybaseFM})
   return (
     <>
-      <Kb.Box style={styles.iconContainerMargins}>
-        <Kb.WithTooltip disabled={popupVisible} tooltip={keybaseFM} position="bottom center">
-          <Kb.Box
-            style={styles.iconContainer}
+      <Kb.Box style={styles.iconContainerMargins} onClick={onClick}>
+        <Kb.Box2Measure
+          direction="vertical"
+          ref={boxRef}
+          style={styles.iconContainer}
+          className={Kb.Styles.classNames(
+            popupVisible
+              ? ['background_color_black_10']
+              : ['hover_container', 'hover_background_color_black_10']
+          )}
+        >
+          <Icon
+            badgeColor={badgeColor}
+            color={popupVisible ? popupVisibleColor : iconColor}
             className={Kb.Styles.classNames(
-              popupVisible
-                ? ['background_color_black_10']
-                : ['hover_container', 'hover_background_color_black_10']
+              color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
             )}
-            onClick={onClick}
-          >
-            <Icon
-              badgeColor={badgeColor}
-              color={popupVisible ? popupVisibleColor : iconColor}
-              className={Kb.Styles.classNames(
-                color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
-              )}
-              newRelease={newRelease}
-            />
-          </Kb.Box>
-        </Kb.WithTooltip>
+            newRelease={newRelease}
+          />
+        </Kb.Box2Measure>
+        {popupVisible ? null : tooltip}
       </Kb.Box>
       {!Kb.Styles.isMobile && popupVisible && (
         <Popup

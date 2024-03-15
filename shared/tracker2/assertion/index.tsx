@@ -156,27 +156,25 @@ const StellarValue = (p: Props) => {
     },
     [menuItems]
   )
-  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const tooltip = Kb.useTooltip({attachTo: popupAnchor, tooltip: 'Stellar Federation Address'})
 
-  return Kb.Styles.isMobile ? (
+  const label = (
     <Kb.Text
       type="BodyPrimaryLink"
+      onClick={Kb.Styles.isMobile ? undefined : showPopup}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
       {value}
     </Kb.Text>
+  )
+
+  return Kb.Styles.isMobile ? (
+    label
   ) : (
     <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
-      <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
-        <Kb.Text
-          type="BodyPrimaryLink"
-          onClick={showPopup}
-          style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
-        >
-          {value}
-        </Kb.Text>
-      </Kb.WithTooltip>
-      {popup}
+      {label}
+      {popup || tooltip}
     </Kb.Box2Measure>
   )
 }
