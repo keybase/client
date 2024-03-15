@@ -523,3 +523,39 @@ input {
 .clickable-box2 {
   cursor: pointer;
 }
+
+.tooltip {
+}
+.tooltip:before {
+  /* body small text */
+  -webkit-font-smoothing: antialiased;
+  align-items: center;
+  background-color: var(--color-black);
+  border-radius: 4px;
+  border-width: 0px;
+  color: rgba(0, 0, 0, 0.85);
+  color: var(--color-white);
+  content: attr(data-tooltip);
+  display: none;
+  flex-grow: 1;
+  flex-shrink: 0;
+  font-family: Keybase;
+  font-size: 13px;
+  font-weight: 400;
+  justify-content: center;
+  left: 50%;
+  line-height: 17px;
+  margin-left: 15px;
+  margin: 4px;
+  padding: 4px 8px;
+  pointer-events: none;
+  position: absolute;
+  text-rendering: optimizeLegibility;
+  top: 0;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  z-index: 999;
+}
+.tooltip:hover:before {
+  display: flex;
+}

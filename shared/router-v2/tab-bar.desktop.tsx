@@ -201,13 +201,14 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
+  const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = C.useCurrentUserState(s => s.username)
   const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
   const login = C.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             const accountRows = C.useConfigState.getState().configuredAccounts
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
@@ -219,14 +220,14 @@ const Tab = React.memo(function Tab(props: TabProps) {
             }
           }
         : undefined,
-    [login, index, current, onSelectTab, tab, setUserSwitching]
+    [login, isPeopleTab, current, onSelectTab, tab, setUserSwitching]
   )
 
   // no long press on desktop so a quick version
   const [mouseTime, setMouseTime] = React.useState(0)
   const onMouseUp = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             if (mouseTime && Date.now() - mouseTime > 1000) {
               onQuickSwitch?.()
@@ -234,37 +235,30 @@ const Tab = React.memo(function Tab(props: TabProps) {
             setMouseTime(0)
           }
         : undefined,
-    [index, onQuickSwitch, mouseTime]
+    [isPeopleTab, onQuickSwitch, mouseTime]
   )
   const onMouseDown = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             setMouseTime(Date.now())
           }
         : undefined,
-    [index]
+    [isPeopleTab]
   )
   const onMouseLeave = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             setMouseTime(0)
           }
         : undefined,
-    [index]
+    [isPeopleTab]
   )
 
   const onClick = React.useCallback(() => {
     onSelectTab(tab)
   }, [onSelectTab, tab])
-
-  const attachTo = React.useRef<Kb.MeasureRef>(null)
-  const tooltip = Kb.useTooltip({
-    attachTo,
-    toastClassName: 'tab-tooltip',
-    tooltip: `${label} (${Platforms.shortcutSymbol}${index + 1})`,
-  })
 
   return (
     <Kb.ClickableBox
@@ -278,9 +272,9 @@ const Tab = React.memo(function Tab(props: TabProps) {
       <Kb.Box2Measure
         direction="horizontal"
         fullWidth={true}
-        className={isSelected ? 'tab-selected' : 'tab'}
+        className={Kb.Styles.classNames(isSelected ? 'tab-selected' : 'tab', 'tooltip', 'tab-tooltip')}
         style={styles.tab}
-        ref={attachTo}
+        tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 style={styles.iconBox} direction="horizontal">
@@ -292,7 +286,6 @@ const Tab = React.memo(function Tab(props: TabProps) {
         </Kb.Text>
         <TabBadge name={tab} />
       </Kb.Box2Measure>
-      {tooltip}
     </Kb.ClickableBox>
   )
 })

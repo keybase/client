@@ -58,6 +58,7 @@ export type Box2Props = {
   gapEnd?: boolean
   ref?: never
   title?: string
+  tooltip?: string
 }
 
 /**
