@@ -11,3 +11,4 @@ memoize-one remove
 WithTooltip as hook
 
 CSS only tooltip?
+remove useTooltip and withtooltips
