@@ -5,5 +5,6 @@ type Props = {
   tooltip: string
   attachTo: React.RefObject<MeasureRef>
   position?: Position // on mobile only 'top center' and 'bottom center' are supported,,
+  toastClassName?: string
 }
 declare const useTooltip: (p: Props) => React.ReactNode

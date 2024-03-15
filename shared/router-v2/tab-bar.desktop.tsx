@@ -259,6 +259,13 @@ const Tab = React.memo(function Tab(props: TabProps) {
     onSelectTab(tab)
   }, [onSelectTab, tab])
 
+  const attachTo = React.useRef<Kb.MeasureRef>(null)
+  const tooltip = Kb.useTooltip({
+    attachTo,
+    toastClassName: 'tab-tooltip',
+    tooltip: `${label} (${Platforms.shortcutSymbol}${index + 1})`,
+  })
+
   return (
     <Kb.ClickableBox
       feedback={false}
@@ -268,27 +275,24 @@ const Tab = React.memo(function Tab(props: TabProps) {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
-      <Kb.WithTooltip
-        tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
-        toastClassName="tab-tooltip"
+      <Kb.Box2Measure
+        direction="horizontal"
+        fullWidth={true}
+        className={isSelected ? 'tab-selected' : 'tab'}
+        style={styles.tab}
+        ref={attachTo}
       >
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          className={isSelected ? 'tab-selected' : 'tab'}
-          style={styles.tab}
-        >
-          <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-          <Kb.Box2 style={styles.iconBox} direction="horizontal">
-            <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
-            {tab === Tabs.fsTab && <FilesTabBadge />}
-          </Kb.Box2>
-          <Kb.Text className="tab-label" type="BodySmallSemibold">
-            {label}
-          </Kb.Text>
-          <TabBadge name={tab} />
+        <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+        <Kb.Box2 style={styles.iconBox} direction="horizontal">
+          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
+          {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
-      </Kb.WithTooltip>
+        <Kb.Text className="tab-label" type="BodySmallSemibold">
+          {label}
+        </Kb.Text>
+        <TabBadge name={tab} />
+      </Kb.Box2Measure>
+      {tooltip}
     </Kb.ClickableBox>
   )
 })

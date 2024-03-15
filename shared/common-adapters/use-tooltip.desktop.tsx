@@ -10,7 +10,7 @@ const Kb = {
 }
 
 export const useTooltip = (p: Props) => {
-  const {tooltip, attachTo, position} = p
+  const {tooltip, attachTo, position, toastClassName} = p
 
   const [visible, setVisible] = React.useState(false)
   const onMouseOver = React.useCallback(() => {
@@ -43,7 +43,7 @@ export const useTooltip = (p: Props) => {
       visible={true}
       attachTo={attachTo}
       position={position || 'top center'}
-      // className={toastClassName}
+      className={toastClassName}
     >
       <Kb.Text
         center={!Styles.isMobile}
