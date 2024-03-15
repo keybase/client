@@ -399,6 +399,9 @@ const Assertion = React.memo(function Assertion(p: Props) {
     [items, header]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const tooltipAnchor = React.useRef<Kb.MeasureRef>(null)
+  const _tooltip = Kb.useTooltip({attachTo: tooltipAnchor, tooltip: 'View proof'})
+  const tooltip = state === 'valid' || state === 'revoked' ? _tooltip : null
 
   return (
     <Kb.Box2Measure
@@ -435,24 +438,23 @@ const Assertion = React.memo(function Assertion(p: Props) {
           )}
         </Kb.Text>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.WithTooltip tooltip={(state === 'valid' || state === 'revoked') && 'View proof'}>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-              <Kb.Icon
-                type={stateToIcon(state)}
-                fontSize={20}
-                hoverColor={assertionColorToColor(color)}
-                color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
-              />
-              {items ? (
-                <>
-                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
-                  {popup}
-                </>
-              ) : (
-                <Kb.Box2 direction="vertical" />
-              )}
-            </Kb.Box2>
-          </Kb.WithTooltip>
+          <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" ref={tooltipAnchor}>
+            <Kb.Icon
+              type={stateToIcon(state)}
+              fontSize={20}
+              hoverColor={assertionColorToColor(color)}
+              color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
+            />
+            {items ? (
+              <>
+                <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                {popup}
+              </>
+            ) : (
+              <Kb.Box2 direction="vertical" />
+            )}
+          </Kb.Box2Measure>
+          {tooltip}
         </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (
