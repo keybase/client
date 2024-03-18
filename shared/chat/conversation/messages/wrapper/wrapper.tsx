@@ -461,17 +461,17 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
 
   const revokedIcon = showRevoked ? (
-    <Kb.WithTooltip tooltip="Revoked device">
+    <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
       <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
 
   const bot = botname ? (
-    <Kb.WithTooltip tooltip={`Encrypted for @${botname}`}>
+    <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
       <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!coinsIcon || !!bot
@@ -484,15 +484,18 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const menu =
     C.isMobile || !shouldShowPopup ? null : (
-      <Kb.WithTooltip
+      <Kb.Box2
+        direction="vertical"
         tooltip="More actions..."
-        toastStyle={styles.moreActionsTooltip}
-        className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
+        className={Kb.Styles.classNames(
+          hasVisibleItems ? 'hover-opacity-full' : 'hover-visible',
+          'tooltip-bottom-left'
+        )}
       >
         <Kb.Box style={styles.ellipsis}>
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box>
-      </Kb.WithTooltip>
+      </Kb.Box2>
     )
 
   const visibleItems =
@@ -592,7 +595,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
       },
       ellipsis: Kb.Styles.platformStyles({
-        isElectron: {height: 4, paddingTop: 0},
+        isElectron: {paddingTop: 2},
         isMobile: {paddingTop: 4},
       }),
       emojiRow: Kb.Styles.platformStyles({

@@ -8,4 +8,3 @@ f6 for just a router remount?
 
 framepack, dispatch invocations
 memoize-one remove
-WithTooltip as hook

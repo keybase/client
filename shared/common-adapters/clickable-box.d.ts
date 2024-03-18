@@ -25,6 +25,7 @@ export type Props = {
   onMouseMove?: (event: React.MouseEvent) => void
   onMouseUp?: (event: React.MouseEvent) => void
   title?: string
+  tooltip?: string
 }
 
 export type Props2 = {

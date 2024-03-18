@@ -50,20 +50,22 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
       ] as any)}
     >
       {popup}
-      <Kb.Box2 direction="vertical" style={styles.explodingInsideWrapper}>
+      <Kb.Box2
+        direction="vertical"
+        style={styles.explodingInsideWrapper}
+        tooltip={explodingModeSeconds ? undefined : 'Timer'}
+      >
         {explodingModeSeconds ? (
           <Kb.Text type="BodyTinyBold" negative={true}>
             {formatDurationShort(explodingModeSeconds * 1000)}
           </Kb.Text>
         ) : (
-          <Kb.WithTooltip tooltip="Timer">
-            <Kb.Icon
-              className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
-              onClick={showPopup}
-              padding="xtiny"
-              type="iconfont-timer"
-            />
-          </Kb.WithTooltip>
+          <Kb.Icon
+            className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
+            onClick={showPopup}
+            padding="xtiny"
+            type="iconfont-timer"
+          />
         )}
       </Kb.Box2>
     </Kb.ClickableBox2>
@@ -105,15 +107,19 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
 
   return (
     <>
-      <Kb.WithTooltip tooltip="Emoji">
-        <Kb.Box2Measure direction="vertical" style={styles.icon} ref={popupAnchor}>
-          <Kb.Icon
-            color={showingPopup ? Kb.Styles.globalColors.black : undefined}
-            onClick={showPopup}
-            type="iconfont-emoji"
-          />
-        </Kb.Box2Measure>
-      </Kb.WithTooltip>
+      <Kb.Box2Measure
+        direction="vertical"
+        style={styles.icon}
+        ref={popupAnchor}
+        tooltip="Emoji"
+        className="tooltip-top-left"
+      >
+        <Kb.Icon
+          color={showingPopup ? Kb.Styles.globalColors.black : undefined}
+          onClick={showPopup}
+          type="iconfont-emoji"
+        />
+      </Kb.Box2Measure>
       {popup}
     </>
   )
@@ -124,11 +130,9 @@ const GiphyButton = React.memo(function GiphyButton() {
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
-    <Kb.WithTooltip tooltip="GIF">
-      <Kb.Box style={styles.icon}>
-        <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
-      </Kb.Box>
-    </Kb.WithTooltip>
+    <Kb.Box style={styles.icon} tooltip="GIF" className="tooltip-top-left">
+      <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
+    </Kb.Box>
   )
 })
 
@@ -165,12 +169,10 @@ const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRef
   }, [htmlInputRef])
 
   return (
-    <Kb.WithTooltip tooltip="Attachment">
-      <Kb.Box style={styles.icon}>
-        <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
-        <input type="file" style={styles.hidden} ref={htmlInputRef} onChange={pickFile} multiple={true} />
-      </Kb.Box>
-    </Kb.WithTooltip>
+    <Kb.Box style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
+      <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
+      <input type="file" style={styles.hidden} ref={htmlInputRef} onChange={pickFile} multiple={true} />
+    </Kb.Box>
   )
 })
 

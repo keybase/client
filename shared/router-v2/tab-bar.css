@@ -73,8 +73,9 @@
     }
   }
 }
-.tab-tooltip {
-  display: none !important;
+
+.tab-tooltip.tooltip:hover:before {
+  display: none;
 }
 
 @media all and (max-width: 800px) and (min-width: 0px) {
@@ -90,8 +91,9 @@
   :is(.tab-label, .username) {
     display: none !important;
   }
-  .tab-tooltip {
-    display: flex !important;
+
+  .tab-tooltip.tooltip:hover:before {
+    display: flex;
   }
   .tab-badge {
     position: absolute;

@@ -28,13 +28,15 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
-const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
+const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
   const ordinal = React.useContext(OrdinalContext)
-  const reactions = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    const reactions = message?.reactions
-    return reactions
-  })
+  const reactions = C.useChatContext(
+    C.useDeep(s => {
+      const message = s.messageMap.get(ordinal)
+      const reactions = message?.reactions
+      return reactions
+    })
+  )
 
   const emojis = React.useMemo(() => {
     return getOrderedReactions(reactions)

@@ -54,6 +54,7 @@ class Text extends React.Component<Props> {
       lineClamp5: props.lineClamp === 5,
       selectable: props.selectable,
       text_center: props.center,
+      tooltip: props.tooltip,
       virtualText: props.virtualText,
     })
   }
@@ -105,6 +106,7 @@ class Text extends React.Component<Props> {
         onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}
         style={Styles.collapseStyles([this.props.style]) as React.CSSProperties}
         data-virtual-text={this.props.virtualText ? this.props.children : undefined}
+        data-tooltip={this.props.tooltip}
       >
         {this.props.virtualText ? null : this.props.children}
       </span>

@@ -7,8 +7,10 @@ import {OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
+import isEqual from 'lodash/isEqual'
 
 // Encoding all 4 states as static objects so we don't re-render
+
 const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
@@ -111,10 +113,14 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   //   DEBUGOldTypeRef.current = subType
   // }, [ordinal, subType])
 
-  const style = React.useMemo(
-    () => getStyle(textType, isEditing, showCenteredHighlight),
-    [textType, isEditing, showCenteredHighlight]
-  )
+  const lastStyle = React.useRef<Kb.Styles.StylesCrossPlatform>({})
+  const style = React.useMemo(() => {
+    const s = getStyle(textType, isEditing, showCenteredHighlight)
+    if (!isEqual(s, lastStyle.current)) {
+      lastStyle.current = s
+    }
+    return lastStyle.current
+  }, [textType, isEditing, showCenteredHighlight])
 
   const children = React.useMemo(() => {
     return (

@@ -89,29 +89,30 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
   const onClick = React.useCallback(() => {
     popupVisible ? setPopupVisible(false) : !!attachToRef.current && setPopupVisible(true)
   }, [popupVisible, setPopupVisible, attachToRef])
+
   return (
     <>
-      <Kb.Box style={styles.iconContainerMargins}>
-        <Kb.WithTooltip disabled={popupVisible} tooltip={keybaseFM} position="bottom center">
-          <Kb.Box
-            style={styles.iconContainer}
+      <Kb.Box style={styles.iconContainerMargins} onClick={onClick}>
+        <Kb.Box2Measure
+          direction="vertical"
+          style={styles.iconContainer}
+          tooltip={popupVisible ? undefined : keybaseFM}
+          className={Kb.Styles.classNames(
+            popupVisible
+              ? ['background_color_black_10']
+              : ['hover_container', 'hover_background_color_black_10'],
+            'tooltip-bottom-left'
+          )}
+        >
+          <Icon
+            badgeColor={badgeColor}
+            color={popupVisible ? popupVisibleColor : iconColor}
             className={Kb.Styles.classNames(
-              popupVisible
-                ? ['background_color_black_10']
-                : ['hover_container', 'hover_background_color_black_10']
+              color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
             )}
-            onClick={onClick}
-          >
-            <Icon
-              badgeColor={badgeColor}
-              color={popupVisible ? popupVisibleColor : iconColor}
-              className={Kb.Styles.classNames(
-                color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
-              )}
-              newRelease={newRelease}
-            />
-          </Kb.Box>
-        </Kb.WithTooltip>
+            newRelease={newRelease}
+          />
+        </Kb.Box2Measure>
       </Kb.Box>
       {!Kb.Styles.isMobile && popupVisible && (
         <Popup

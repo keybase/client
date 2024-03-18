@@ -72,6 +72,7 @@ type Props = {
   style?: CSS.StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
   title?: string
+  tooltip?: string
   type: TextType
   underline?: boolean
   underlineNever?: boolean

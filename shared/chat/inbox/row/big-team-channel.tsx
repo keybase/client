@@ -37,29 +37,28 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
   const onSelectConversation = () => navigateToThread('inboxBig')
 
+  let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null
   switch (snippetDecoration) {
     case T.RPCChat.SnippetDecoration.pendingMessage:
+      outboxTooltip = 'Sending...'
       outboxIcon = (
-        <Kb.WithTooltip tooltip="Sending...">
-          <Kb.Icon
-            style={styles.icon}
-            sizeType="Small"
-            type={'iconfont-hourglass'}
-            color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
-          />
-        </Kb.WithTooltip>
+        <Kb.Icon
+          style={styles.icon}
+          sizeType="Small"
+          type={'iconfont-hourglass'}
+          color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
+        />
       )
       break
     case T.RPCChat.SnippetDecoration.failedPendingMessage:
+      outboxTooltip = 'Message failed to send'
       outboxIcon = (
-        <Kb.WithTooltip tooltip="Message failed to send">
-          <Kb.Icon
-            style={styles.icon}
-            type={'iconfont-exclamation'}
-            color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
-          />
-        </Kb.WithTooltip>
+        <Kb.Icon
+          style={styles.icon}
+          type={'iconfont-exclamation'}
+          color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
+        />
       )
       break
     default:
@@ -92,25 +91,23 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   )
 
   const mutedIcon = isMuted ? (
-    <Kb.WithTooltip tooltip="Muted conversation">
+    <Kb.Box2 direction="vertical" tooltip="Muted conversation">
       <Kb.Icon
         fixOverdraw={Kb.Styles.isPhone}
         color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
         style={styles.muted}
         type={Kb.Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
       />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const draftIcon = hasDraft ? (
-    <Kb.WithTooltip tooltip="Draft message">
-      <Kb.Icon
-        type="iconfont-edit"
-        style={styles.icon}
-        sizeType="Small"
-        color={selected ? Kb.Styles.globalColors.white : undefined}
-      />
-    </Kb.WithTooltip>
+    <Kb.Icon
+      type="iconfont-edit"
+      style={styles.icon}
+      sizeType="Small"
+      color={selected ? Kb.Styles.globalColors.white : undefined}
+    />
   ) : null
 
   return (
@@ -127,7 +124,13 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
         >
           {name}
           {mutedIcon}
-          <Kb.Box2 direction="horizontal" alignSelf="center" alignItems="center" style={styles.iconContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            alignSelf="center"
+            alignItems="center"
+            style={styles.iconContainer}
+            tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
+          >
             {draftIcon}
             {outboxIcon}
             {hasBadge && <Kb.Box style={styles.unread} />}

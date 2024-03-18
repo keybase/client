@@ -5,15 +5,15 @@ import type {MeasureRef} from './measure-ref'
 import './box.css'
 
 export const Box = (p: Props) => {
-  const {onLayout, ...rest} = p
-  return <div {...rest} />
+  const {onLayout, tooltip, className, ...rest} = p
+  return <div {...rest} className={Styles.classNames(className, {tooltip})} data-tooltip={tooltip} />
 }
 
 const useBox2Shared = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
   const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
-  const {style: _style, className: _className, title} = p
+  const {style: _style, className: _className, title, tooltip} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   const reverse = direction === 'verticalReverse' || direction === 'horizontalReverse'
 
@@ -42,12 +42,14 @@ const useBox2Shared = (p: Box2Props) => {
       box2_pointerEvents_none: pointerEvents === 'none',
       box2_reverse: reverse,
       box2_vertical: !horizontal,
+      tooltip,
     },
     _className
   )
   return {
     children,
     className,
+    'data-tooltip': tooltip,
     onContextMenu,
     onCopyCapture,
     onDragLeave,

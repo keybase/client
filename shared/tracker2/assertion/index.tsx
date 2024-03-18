@@ -156,26 +156,24 @@ const StellarValue = (p: Props) => {
     },
     [menuItems]
   )
-  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  return Kb.Styles.isMobile ? (
+  const label = (
     <Kb.Text
       type="BodyPrimaryLink"
+      onClick={Kb.Styles.isMobile ? undefined : showPopup}
+      tooltip={popup ? undefined : 'Stellar Federation Address'}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
       {value}
     </Kb.Text>
+  )
+
+  return Kb.Styles.isMobile ? (
+    label
   ) : (
     <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
-      <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
-        <Kb.Text
-          type="BodyPrimaryLink"
-          onClick={showPopup}
-          style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
-        >
-          {value}
-        </Kb.Text>
-      </Kb.WithTooltip>
+      {label}
       {popup}
     </Kb.Box2Measure>
   )
@@ -401,6 +399,7 @@ const Assertion = React.memo(function Assertion(p: Props) {
     [items, header]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const tooltip = state === 'valid' || state === 'revoked' ? 'View proof' : undefined
 
   return (
     <Kb.Box2Measure
@@ -437,24 +436,22 @@ const Assertion = React.memo(function Assertion(p: Props) {
           )}
         </Kb.Text>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.WithTooltip tooltip={(state === 'valid' || state === 'revoked') && 'View proof'}>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-              <Kb.Icon
-                type={stateToIcon(state)}
-                fontSize={20}
-                hoverColor={assertionColorToColor(color)}
-                color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
-              />
-              {items ? (
-                <>
-                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
-                  {popup}
-                </>
-              ) : (
-                <Kb.Box2 direction="vertical" />
-              )}
-            </Kb.Box2>
-          </Kb.WithTooltip>
+          <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
+            <Kb.Icon
+              type={stateToIcon(state)}
+              fontSize={20}
+              hoverColor={assertionColorToColor(color)}
+              color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
+            />
+            {items ? (
+              <>
+                <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                {popup}
+              </>
+            ) : (
+              <Kb.Box2 direction="vertical" />
+            )}
+          </Kb.Box2Measure>
         </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (

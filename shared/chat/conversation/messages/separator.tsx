@@ -143,19 +143,19 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 
   const ownerAdminTooltipIcon = allowCrown ? (
-    <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+    <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
       <Kb.Icon
         color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
       />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const botIcon = authorIsBot ? (
-    <Kb.WithTooltip tooltip="Bot">
+    <Kb.Box2 direction="vertical" tooltip="Bot">
       <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const botAliasOrUsername = botAlias ? (
