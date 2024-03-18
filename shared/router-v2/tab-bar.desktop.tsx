@@ -32,20 +32,19 @@ const Header = () => {
   const username = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const onProfileClick = () => showUserProfile(username)
-  const onClickWrapper = () => {
+  const onClickWrapper = React.useCallback(() => {
     setShowingMenu(false)
-    onProfileClick()
-  }
+    showUserProfile(username)
+  }, [showUserProfile, username])
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const stop = C.useSettingsState(s => s.dispatch.stop)
-  const onAddAccount = () => {
+  const onAddAccount = React.useCallback(() => {
     startProvision()
-  }
-  const onHelp = () => openURL('https://book.keybase.io')
+  }, [startProvision])
+  const onHelp = React.useCallback(() => openURL('https://book.keybase.io'), [])
   const dumpLogs = C.useConfigState(s => s.dispatch.dumpLogs)
-  const onQuit = () => {
+  const onQuit = React.useCallback(() => {
     if (!__DEV__) {
       if (isLinux) {
         stop(T.RPCGen.ExitCode.ok)
@@ -58,47 +57,61 @@ const Header = () => {
     setTimeout(() => {
       ctlQuit?.()
     }, 2000)
-  }
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSettings = () => switchTab(Tabs.settingsTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => navigateAppend(C.Settings.settingsLogOutTab)
+  }, [dumpLogs, stop])
 
-  const menuHeader = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-        <Kb.ConnectedNameWithIcon
-          username={username}
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSignOut = React.useCallback(() => navigateAppend(C.Settings.settingsLogOutTab), [navigateAppend])
+
+  const menuHeader = React.useMemo(
+    () => (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+          <Kb.ConnectedNameWithIcon
+            username={username}
+            onClick={onClickWrapper}
+            metaTwo={
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                {fullname}
+              </Kb.Text>
+            }
+          />
+        </Kb.ClickableBox>
+        <Kb.Button
+          label="View/Edit profile"
+          mode="Secondary"
           onClick={onClickWrapper}
-          metaTwo={
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-              {fullname}
-            </Kb.Text>
-          }
+          small={true}
+          style={styles.button}
         />
-      </Kb.ClickableBox>
-      <Kb.Button
-        label="View/Edit profile"
-        mode="Secondary"
-        onClick={onClickWrapper}
-        small={true}
-        style={styles.button}
-      />
-      <AccountSwitcher />
-    </Kb.Box2>
+        <AccountSwitcher />
+      </Kb.Box2>
+    ),
+    [onClickWrapper, username, fullname]
   )
 
-  const menuItems = (): Kb.MenuItems => [
-    {onClick: onAddAccount, title: 'Log in as another user'},
-    {onClick: onSettings, title: 'Settings'},
-    {onClick: onHelp, title: 'Help'},
-    {danger: true, onClick: onSignOut, title: 'Sign out'},
-    {danger: true, onClick: onQuit, title: 'Quit Keybase'},
-  ]
+  const menuItems = React.useMemo(
+    (): Kb.MenuItems => [
+      {onClick: onAddAccount, title: 'Log in as another user'},
+      {onClick: onSettings, title: 'Settings'},
+      {onClick: onHelp, title: 'Help'},
+      {danger: true, onClick: onSignOut, title: 'Sign out'},
+      {danger: true, onClick: onQuit, title: 'Quit Keybase'},
+    ],
+    [onAddAccount, onSettings, onHelp, onSignOut, onQuit]
+  )
+
+  const showMenu = React.useCallback(() => {
+    setShowingMenu(true)
+  }, [])
+  const hideMenu = React.useCallback(() => {
+    setShowingMenu(false)
+  }, [])
 
   return (
     <>
-      <Kb.ClickableBox onClick={() => setShowingMenu(true)}>
+      <Kb.ClickableBox onClick={showMenu}>
         <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"
@@ -130,12 +143,12 @@ const Header = () => {
       <Kb.FloatingMenu
         position="bottom left"
         containerStyle={styles.menu}
-        header={menuHeader()}
+        header={menuHeader}
         closeOnSelect={true}
         visible={showingMenu}
         attachTo={popupAnchor}
-        items={menuItems()}
-        onHidden={() => setShowingMenu(false)}
+        items={menuItems}
+        onHidden={hideMenu}
       />
     </>
   )
