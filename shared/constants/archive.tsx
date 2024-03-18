@@ -2,7 +2,6 @@ import * as T from './types'
 import * as Z from '@/util/zustand'
 import * as C from '.'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import {produce} from 'immer'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {downloadFolder} from '@/constants/platform'
 import * as FS from '@/constants/fs'
@@ -77,9 +76,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   const setKBFSJobStatus = (status: T.RPCGen.SimpleFSArchiveStatus) =>
-    set(s =>
-      produce(s, draft => {
-        draft.kbfsJobs = new Map(
+    set(
+      s =>
+        (s.kbfsJobs = new Map(
           // order is retained
           (status.jobs || []).map(job => [
             job.desc.jobID,
@@ -109,8 +108,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               zipFilePath: job.desc.zipFilePath,
             } as KBFSJob,
           ])
-        )
-      })
+        ))
     )
 
   const dispatch: State['dispatch'] = {
@@ -165,10 +163,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const resp = await T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise({jobID})
         set(s =>
-          produce(s, draft => {
-            // ordering doesn't matter here
-            draft.kbfsJobsFreshness.set(jobID, resp.currentTLFRevision)
-          })
+          // ordering doesn't matter here
+          s.kbfsJobsFreshness.set(jobID, resp.currentTLFRevision)
         )
       }
       C.ignorePromise(f())
