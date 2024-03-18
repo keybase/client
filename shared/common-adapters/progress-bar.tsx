@@ -13,8 +13,8 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
   const animatedStyles = {
     ...styles.inner,
     ...fillStyle,
-    ...(flatLeft ? styles.flatLeft : {}),
-    ...(flatRight ? styles.flatRight : {}),
+    ...(flatLeft && styles.flatLeft),
+    ...(flatRight && styles.flatRight),
     width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
   }
   return (
@@ -32,6 +32,8 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  flatLeft: {borderBottomLeftRadius: 0, borderTopLeftRadius: 0},
+  flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
   inner: {
     backgroundColor: Styles.globalColors.blue,
     borderRadius: 3,
@@ -48,8 +50,6 @@ const styles = Styles.styleSheetCreate(() => ({
       boxShadow: `inset 0 1px 0 0 ${Styles.globalColors.black_05}`,
     },
   }),
-  flatLeft: {borderBottomLeftRadius: 0, borderTopLeftRadius: 0},
-  flatRight: {borderBottomRightRadius: 0, borderTopRightRadius: 0},
 }))
 
 export default ProgressBar

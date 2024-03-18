@@ -84,7 +84,7 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
   )
 })
 
-const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
+const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   const {id, index} = p
   const job = C.useArchiveState(s => s.kbfsJobs.get(id))
   const currentTLFRevision = C.useArchiveState(s => s.kbfsJobsFreshness.get(id)) || 0
@@ -123,7 +123,9 @@ const KBFSJob = React.memo(function Job(p: {index: number; id: string}) {
     return null
   }
   const progress = job.bytesTotal ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal : 0
-  const errorStr = job.error ? `Error: ${job.error} | Retrying at ${job.errorNextRetry}` : null
+  const errorStr = job.error
+    ? `Error: ${job.error} | Retrying at ${job.errorNextRetry?.toLocaleString()}`
+    : null
   const revisionBehindStr =
     job.kbfsRevision < currentTLFRevision
       ? `Archive revision ${job.kbfsRevision} behind TLF revision ${currentTLFRevision}. Make a new archive if needed.`
@@ -232,8 +234,8 @@ const Archive = C.featureFlags.archive
 
       const jobMap = C.useArchiveState(s => s.jobs)
       const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
-      const jobs = React.useMemo(() => [...jobMap.keys()], [jobMap])
-      const kbfsJobs = React.useMemo(() => [...kbfsJobMap.keys()], [jobMap])
+      const jobs = [...jobMap.keys()]
+      const kbfsJobs = [...kbfsJobMap.keys()]
 
       const showClear = C.useArchiveState(s => {
         for (const job of s.jobs.values()) {
@@ -288,26 +290,26 @@ const Archive = C.featureFlags.archive
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   action: {flexShrink: 0},
-  kbfsActions: {justifyContent: 'flex-end', flexShrink: 0},
   clear: {alignSelf: 'flex-start', marginTop: 16},
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
   jobLeft: {flexGrow: 1, flexShrink: 1},
+  jobSub: {height: 22},
+  jobs: {
+    flexGrow: 1,
+    flexShrink: 1,
+    paddingLeft: Kb.Styles.isMobile ? 4 : 16,
+    paddingRight: Kb.Styles.isMobile ? 4 : 16,
+  },
+  kbfsActions: {flexShrink: 0, justifyContent: 'flex-end'},
+  kbfsCancel: {color: Kb.Styles.globalColors.red},
   kbfsJobLeft: {
     flexGrow: 1,
     flexShrink: 1,
     justifyContent: 'flex-end',
   },
   kbfsJobRight: {flexShrink: 0},
-  jobSub: {height: 22},
   kbfsProgress: {
     height: Kb.Styles.globalMargins.small,
-  },
-  kbfsCancel: {color: Kb.Styles.globalColors.red},
-  jobs: {
-    flexGrow: 1,
-    flexShrink: 1,
-    paddingLeft: Kb.Styles.isMobile ? 4 : 16,
-    paddingRight: Kb.Styles.isMobile ? 4 : 16,
   },
   scroll: {height: '100%', width: '100%'},
 }))

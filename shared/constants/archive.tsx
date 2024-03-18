@@ -2,6 +2,7 @@ import * as T from './types'
 import * as Z from '@/util/zustand'
 import * as C from '.'
 import * as EngineGen from '@/actions/engine-gen-gen'
+import {produce} from 'immer'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {downloadFolder} from '@/constants/platform'
 import * as FS from '@/constants/fs'
@@ -15,10 +16,12 @@ type Job = {
   error?: string
 }
 
+type KBFSJobPhase = 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copyied' | 'Zipping' | 'Done'
+
 type KBFSJob = {
   id: string
   started: Date
-  phase: 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copyied' | 'Zipping' | 'Done'
+  phase: KBFSJobPhase
   kbfsPath: string
   kbfsRevision: number
   zipFilePath: string
@@ -74,42 +77,41 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   const setKBFSJobStatus = (status: T.RPCGen.SimpleFSArchiveStatus) =>
-    set(s => ({
-      ...s,
-      kbfsJobs: new Map(
-        // order is retained
-        (status.jobs || []).map(job => [
-          job.desc.jobID,
-          {
-            id: job.desc.jobID,
-            started: new Date(job.desc.startTime),
-            phase: {
-              [T.RPCGen.SimpleFSArchiveJobPhase.queued]: 'Queued',
-              [T.RPCGen.SimpleFSArchiveJobPhase.indexing]: 'Indexing',
-              [T.RPCGen.SimpleFSArchiveJobPhase.indexed]: 'Indexed',
-              [T.RPCGen.SimpleFSArchiveJobPhase.copying]: 'Copying',
-              [T.RPCGen.SimpleFSArchiveJobPhase.copied]: 'Copied',
-              [T.RPCGen.SimpleFSArchiveJobPhase.zipping]: 'Zipping',
-              [T.RPCGen.SimpleFSArchiveJobPhase.done]: 'Done',
-            }[job.phase],
-            kbfsPath: job.desc.kbfsPathWithRevision.path,
-            kbfsRevision:
-              job.desc.kbfsPathWithRevision.archivedParam.KBFSArchivedType ==
-              T.RPCGen.KBFSArchivedType.revision
-                ? job.desc.kbfsPathWithRevision.archivedParam.revision
-                : 0,
-            zipFilePath: job.desc.zipFilePath,
-
-            bytesTotal: job.bytesTotal,
-            bytesCopied: job.bytesCopied,
-            bytesZipped: job.bytesZipped,
-
-            error: job.error?.error,
-            errorNextRetry: job.error?.nextRetry,
-          },
-        ])
-      ),
-    }))
+    set(s =>
+      produce(s, draft => {
+        draft.kbfsJobs = new Map(
+          // order is retained
+          (status.jobs || []).map(job => [
+            job.desc.jobID,
+            {
+              bytesCopied: job.bytesCopied,
+              bytesTotal: job.bytesTotal,
+              bytesZipped: job.bytesZipped,
+              error: job.error?.error,
+              errorNextRetry: job.error?.nextRetry,
+              id: job.desc.jobID,
+              kbfsPath: job.desc.kbfsPathWithRevision.path,
+              kbfsRevision:
+                job.desc.kbfsPathWithRevision.archivedParam.KBFSArchivedType ===
+                T.RPCGen.KBFSArchivedType.revision
+                  ? job.desc.kbfsPathWithRevision.archivedParam.revision
+                  : 0,
+              phase: {
+                [T.RPCGen.SimpleFSArchiveJobPhase.queued]: 'Queued',
+                [T.RPCGen.SimpleFSArchiveJobPhase.indexing]: 'Indexing',
+                [T.RPCGen.SimpleFSArchiveJobPhase.indexed]: 'Indexed',
+                [T.RPCGen.SimpleFSArchiveJobPhase.copying]: 'Copying',
+                [T.RPCGen.SimpleFSArchiveJobPhase.copied]: 'Copied',
+                [T.RPCGen.SimpleFSArchiveJobPhase.zipping]: 'Zipping',
+                [T.RPCGen.SimpleFSArchiveJobPhase.done]: 'Done',
+              }[job.phase],
+              started: new Date(job.desc.startTime),
+              zipFilePath: job.desc.zipFilePath,
+            } as KBFSJob,
+          ])
+        )
+      })
+    )
 
   const dispatch: State['dispatch'] = {
     cancel: id => {
@@ -117,6 +119,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.jobs.delete(id)
       })
+    },
+    cancelOrDismissKBFS: (jobID: string) => {
+      const f = async () => {
+        await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
+      }
+      C.ignorePromise(f())
     },
     clearCompleted: () => {
       // TODO
@@ -146,24 +154,31 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    cancelOrDismissKBFS: async (jobID: string) => {
-      await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
+    loadKBFS: () => {
+      const f = async () => {
+        const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
+        setKBFSJobStatus(status)
+      }
+      C.ignorePromise(f())
     },
-    loadKBFS: async () => {
-      const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
-      setKBFSJobStatus(status)
-    },
-    loadKBFSJobFreshness: async (jobID: string) => {
-      const resp = await T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise({jobID})
-      set(s => ({
-        ...s,
-        kbfsJobsFreshness: new Map([...s.kbfsJobsFreshness, [jobID, resp.currentTLFRevision]]), // ordering doesn't matter here
-      }))
+    loadKBFSJobFreshness: (jobID: string) => {
+      const f = async () => {
+        const resp = await T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise({jobID})
+        set(s =>
+          produce(s, draft => {
+            // ordering doesn't matter here
+            draft.kbfsJobsFreshness.set(jobID, resp.currentTLFRevision)
+          })
+        )
+      }
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
           setKBFSJobStatus(action.payload.params.status)
+          break
+        default:
           break
       }
     },
