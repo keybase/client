@@ -577,6 +577,18 @@ input {
   transform: translate(0%, 100%);
 }
 
+.tooltip-right:before {
+  transform: translate(5px, -50%);
+  top: 50%;
+  left: 100%;
+}
+.tooltip-left:before {
+  transform: translate(-5px, -50%);
+  top: 50%;
+  left: initial;
+  right: 100%;
+}
+
 .tooltip:hover:before {
   opacity: 1;
 }

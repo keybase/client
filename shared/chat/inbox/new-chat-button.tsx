@@ -18,24 +18,27 @@ const HeaderNewChatButton = () => {
   }, [appendNewChatBuilder])
   const content = React.useMemo(() => {
     return (
-      <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
-        <Kb.Box2 direction="vertical" style={styles.rainbowButtonContainer}>
-          <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
-            <Kb.Box style={styles.gradientRed} />
-            <Kb.Box style={styles.gradientOrange} />
-            <Kb.Box style={styles.gradientYellow} />
-            <Kb.Box style={styles.gradientGreen} />
-          </Kb.Box2>
-          <Kb.Button
-            label={'New chat'}
-            mode="Primary"
-            onClick={onNewChat}
-            small={true}
-            style={styles.rainbowButton}
-            type="Default"
-          />
+      <Kb.Box2
+        direction="vertical"
+        style={styles.rainbowButtonContainer}
+        tooltip={`(${Platforms.shortcutSymbol}N)`}
+        className="tooltip-right"
+      >
+        <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
+          <Kb.Box style={styles.gradientRed} />
+          <Kb.Box style={styles.gradientOrange} />
+          <Kb.Box style={styles.gradientYellow} />
+          <Kb.Box style={styles.gradientGreen} />
         </Kb.Box2>
-      </Kb.WithTooltip>
+        <Kb.Button
+          label={'New chat'}
+          mode="Primary"
+          onClick={onNewChat}
+          small={true}
+          style={styles.rainbowButton}
+          type="Default"
+        />
+      </Kb.Box2>
     )
   }, [onNewChat])
   return hide ? null : content
