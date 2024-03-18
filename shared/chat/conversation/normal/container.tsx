@@ -15,6 +15,7 @@ import {OrangeLineContext} from '../orange-line-context'
 const useOrangeLine = () => {
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
   const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)
+  const clearOrangeLine = C.useChatContext(s => s.dispatch.clearOrangeLine)
   const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
   const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
   const newMessageVisible = maxVisibleMsgID !== lastVisibleMsgIDRef.current
@@ -26,11 +27,33 @@ const useOrangeLine = () => {
   }
   if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
     gotMessageWhileInactive.current = true
-    loadOrangeLine()
+    loadOrangeLine('new message while inactive')
   }
 
-  const orangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
-  return orangeLine
+  const mobileAppState = C.useConfigState(s => s.mobileAppState)
+  const lastMobileAppStateRef = React.useRef(mobileAppState)
+  if (mobileAppState !== lastMobileAppStateRef.current) {
+    lastMobileAppStateRef.current = mobileAppState
+    if (mobileAppState !== 'active') {
+      clearOrangeLine('mobile backgrounded')
+    }
+  }
+
+  const storeOrangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
+  const orangeLineRef = React.useRef(storeOrangeLine)
+  // we can't load this again due to stale and other things so lets just keep its state while we're mounted
+  // and never move forward unless its totally gone
+  // move if we moved back due to mark as unread
+  if (storeOrangeLine) {
+    if (!orangeLineRef.current || orangeLineRef.current > storeOrangeLine) {
+      orangeLineRef.current = storeOrangeLine
+    }
+  } else {
+    // allow a clear
+    orangeLineRef.current = storeOrangeLine
+  }
+
+  return orangeLineRef.current
 }
 
 const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal}) {

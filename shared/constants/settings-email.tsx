@@ -17,8 +17,9 @@ const makeAddEmailError = (err: RPCError): string => {
       return 'You have too many emails, delete one and try again.'
     case T.RPCGen.StatusCode.scinputerror:
       return 'Invalid email.'
+    default:
+      return err.message
   }
-  return err.message
 }
 
 const makeEmailRow = (): EmailRow => ({
@@ -32,13 +33,13 @@ const makeEmailRow = (): EmailRow => ({
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 type EmailRow = Writeable<T.RPCGen.Email>
 
-type Store = {
+type Store = T.Immutable<{
   addedEmail: string // show banner with dismiss on account settings
   addingEmail: string
   emails: Map<string, EmailRow>
   error: string
   newEmail: string
-}
+}>
 
 const initialStore: Store = {
   addedEmail: '',
@@ -58,7 +59,7 @@ export type State = Store & {
       makeSearchable?: boolean
       verify?: boolean
     }) => void
-    notifyEmailAddressEmailsChanged: (list: T.RPCChat.Keybase1.Email[]) => void
+    notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void

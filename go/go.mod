@@ -59,7 +59,7 @@ require (
 	github.com/pkg/xattr v0.2.2
 	github.com/qrtz/nativemessaging v0.0.0-20161221035708-f4769a80e040
 	github.com/rcrowley/go-metrics v0.0.0-20161128210544-1f30fe9094a5
-	github.com/sergi/go-diff v1.2.0
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/shirou/gopsutil v2.18.13-0.20181231150826-db425313bfa8+incompatible
 	github.com/stathat/go v1.0.0
 	// NOTE: if stellar/go is updated, consider removing the `replace` directive
@@ -352,3 +352,5 @@ replace github.com/etcd-io/bbolt => go.etcd.io/bbolt v1.3.4-0.20191122203157-7f8
 replace bitbucket.org/ww/goautoneg => github.com/adjust/goautoneg v0.0.0-20150426214442-d788f35a0315
 
 replace os/exec => golang.org/x/sys/execabs v0.0.0-20211117180635-dee7805ff2e1
+
+replace camlistore.org v0.0.0-20161205184337-c55c8602d3ce => perkeep.org v0.0.0-20161205184337-c55c8602d3ce

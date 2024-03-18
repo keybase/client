@@ -31,8 +31,8 @@ const RemoteContainer = (d: DeserializeProps) => {
       for (const [id, badge] of badgeMap) {
         C.getConvoState(id).dispatch.badgesUpdated(badge)
       }
-      for (const [id, meta] of metaMap) {
-        C.getConvoState(id).dispatch.updateMeta(meta)
+      for (const [id, next] of metaMap) {
+        C.getConvoState(id).dispatch.updateMeta(next)
       }
     }, 1)
     return () => {

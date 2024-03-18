@@ -42,7 +42,17 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
     props.onMouseUp?.(e)
   }
 
-  const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = props
+  const {
+    style,
+    children,
+    underlayColor,
+    hoverColor,
+    onClick,
+    onDoubleClick,
+    className,
+    tooltip,
+    ...otherProps
+  } = props
 
   // filter out native-only calls
   const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, ...passThroughProps} =
@@ -88,6 +98,8 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
   return (
     <div
       ref={divRef}
+      className={Styles.classNames(className, {tooltip})}
+      data-tooltip={tooltip}
       {...passThroughProps}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}

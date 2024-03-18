@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 export type FollowSuggestion = T.People.FollowSuggestion
 
 export type Props = {
-  suggestions: Array<FollowSuggestion>
+  suggestions: ReadonlyArray<FollowSuggestion>
 }
 
 const FollowSuggestions = (props: Props) => (

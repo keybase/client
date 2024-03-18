@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 const makeBigRows = (
-  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>
+  bigTeams: ReadonlyArray<T.RPCChat.UIInboxBigTeamRow>
 ): Array<
   T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
 > => {
@@ -42,7 +42,7 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>
+  smallTeams: ReadonlyArray<T.RPCChat.UIInboxSmallTeamRow>
 ): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
     const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)
@@ -201,11 +201,14 @@ const Connected = (ownProps: OwnProps) => {
     ...builderAfterBig,
   ]
   let rows = nextRows
+
+  const cachedRowsRef = React.useRef<Array<T.Chat.ChatInboxRowItem>>([])
+
   // TODO better fix later
-  if (isEqual(rows, cachedRows)) {
-    rows = cachedRows
+  if (isEqual(rows, cachedRowsRef.current)) {
+    rows = cachedRowsRef.current
   }
-  cachedRows = rows
+  cachedRowsRef.current = rows
 
   const _unreadIndices: Map<number, number> = new Map()
   let unreadTotal: number = 0
@@ -244,7 +247,6 @@ const Connected = (ownProps: OwnProps) => {
   return <InboxWrapper {...props} />
 }
 
-let cachedRows: Array<T.Chat.ChatInboxRowItem> = []
 const emptyMap = new Map()
 
 export default Connected

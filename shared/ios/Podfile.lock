@@ -88,7 +88,7 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
-  - lottie-ios (4.4.0)
+  - lottie-ios (4.4.1)
   - lottie-react-native (6.6.0):
     - glog
     - lottie-ios (~> 4.4.0)
@@ -1459,7 +1459,7 @@ SPEC CHECKSUMS:
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
-  lottie-ios: ef1be1f90d54255f08e09d767950e43714661178
+  lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: b24edb4537f3cb3259c0ec512ed899d14e6e96d3
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 2544c0f1081a5fa12e108bb8cb40e5f4581ccd87
@@ -1527,4 +1527,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 67c9af5930718a3dec84b2ab25cbe1d916d6b4f0
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2

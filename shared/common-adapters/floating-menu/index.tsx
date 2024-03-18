@@ -56,15 +56,15 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
-const FloatingMenu = (props: Props) => {
-  const {snapPoints, items} = props
+const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
+  const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
   React.useEffect(() => {
     bottomSheetModalRef.current?.present()
   }, [])
 
-  if (!props.visible && isModal === false) {
+  if (!visible && isModal === false) {
     return null
   }
 
@@ -119,7 +119,7 @@ const FloatingMenu = (props: Props) => {
       {contents}
     </Kb.Overlay>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

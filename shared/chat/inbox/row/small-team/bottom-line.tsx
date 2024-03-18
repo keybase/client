@@ -12,9 +12,9 @@ type Props = {
   allowBold?: boolean
 }
 
-const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: string}) => {
-  const {type, color, tooltip} = p
-  const icon = (
+const SnippetDecoration = (p: {type: Kb.IconType; color: string}) => {
+  const {type, color} = p
+  return (
     <Kb.Icon
       color={color}
       type={type}
@@ -22,7 +22,6 @@ const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: strin
       style={styles.snippetDecoration}
     />
   )
-  return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
 const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.Styles.StylesCrossPlatform}) {
@@ -33,19 +32,19 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.
   let snippetDecoration: React.ReactNode
   let exploded = false
   const defaultIconColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20
+  let tooltip: string | undefined
 
   switch (decoration) {
     case T.RPCChat.SnippetDecoration.pendingMessage:
-      snippetDecoration = (
-        <SnippetDecoration type="iconfont-hourglass" color={defaultIconColor} tooltip="Sending…" />
-      )
+      tooltip = 'Sending…'
+      snippetDecoration = <SnippetDecoration type="iconfont-hourglass" color={defaultIconColor} />
       break
     case T.RPCChat.SnippetDecoration.failedPendingMessage:
+      tooltip = 'Failed to send'
       snippetDecoration = (
         <SnippetDecoration
           type="iconfont-exclamation"
           color={isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
-          tooltip="Failed to send"
         />
       )
       break
@@ -92,7 +91,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.
   return (
     <>
       {!!snippetDecoration && (
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 direction="vertical" centerChildren={true} tooltip={tooltip}>
           {snippetDecoration}
         </Kb.Box2>
       )}
@@ -135,7 +134,8 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
         // only use layout if we don't have the meta at all
         const typers = !isInWidget ? s.typing : undefined
         const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
-        const maybeLayoutSnippet = conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
+        const maybeLayoutSnippet =
+          conversationIDKey === C.Chat.noConversationIDKey ? layoutSnippet : undefined
 
         const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
         const isDecryptingSnippet =
@@ -223,7 +223,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-        <Kb.Text
+        <Kb.Text2
           type="BodySmall"
           style={Kb.Styles.collapseStyles([
             styles.draftLabel,
@@ -231,7 +231,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
           ])}
         >
           Draft:
-        </Kb.Text>
+        </Kb.Text2>
         <Kb.Markdown preview={true} style={style}>
           {draft}
         </Kb.Markdown>

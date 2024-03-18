@@ -21,8 +21,10 @@ const AlphabetIndex = (props: Props) => {
       sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
     })
   }, 200)
-  // eslint-disable-next-line
-  React.useEffect(storeMeasure, [props.measureKey])
+
+  React.useEffect(() => {
+    storeMeasure()
+  }, [storeMeasure, props.measureKey])
 
   const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(

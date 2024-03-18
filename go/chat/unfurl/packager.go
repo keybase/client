@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/keybase/client/go/avatars"
@@ -57,9 +58,19 @@ func (p *Packager) assetFilename(url string) string {
 }
 
 func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.ReadCloser, size int64, err error) {
-	resp, err := libkb.ProxyHTTPGet(p.G().ExternalG(), p.G().Env, url, "UnfurlPackager")
+	client := libkb.ProxyHTTPClient(p.G().ExternalG(), p.G().Env, "UnfurlPackager")
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	req.Header.Add("User-Agent", libkb.UserAgent)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return body, size, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, 0, fmt.Errorf("Status %s", resp.Status)
 	}
 	return resp.Body, resp.ContentLength, nil
 }
@@ -133,8 +144,14 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	if err := src.Reset(); err != nil {
 		return res, err
 	}
-	uploadPt := src
+
+	filename = pre.Filename
 	uploadLen := len(dat)
+	if pre.SrcDat != nil {
+		src = attachments.NewBufReadResetter(pre.SrcDat)
+		uploadLen = len(pre.SrcDat)
+	}
+	uploadPt := src
 	uploadMd := pre.BaseMetadata()
 	uploadContentType := pre.ContentType
 	if usePreview && pre.Preview != nil {

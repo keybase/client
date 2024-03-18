@@ -51,7 +51,7 @@ IF %ERRORLEVEL% NEQ 0 (
 popd
 
 :: Updater
-pushd %GOPATH%\src\github.com\keybase\go-updater\service
+pushd %GOPATH%\src\github.com\keybase\client\go\updater\service
 del upd.exe
 go build -a -o upd.exe
 IF %ERRORLEVEL% NEQ 0 (

@@ -69,8 +69,8 @@ type ExternalTeamProps = {
   info: T.RPCGen.UntrustedTeamInfo
 }
 
-const orderMembers = memoize((members?: Array<T.RPCGen.TeamMemberRole>) =>
-  (members || []).sort((memberA, memberB) =>
+const orderMembers = memoize((members?: ReadonlyArray<T.RPCGen.TeamMemberRole>) =>
+  [...(members || [])].sort((memberA, memberB) =>
     memberB.role === memberA.role
       ? memberA.username.localeCompare(memberB.username)
       : memberB.role - memberA.role

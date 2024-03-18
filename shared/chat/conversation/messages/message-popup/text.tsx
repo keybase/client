@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import openURL from '@/util/open-url'
@@ -21,8 +21,41 @@ const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const you = C.useCurrentUserState(s => s.username)
-  const message = m?.type === 'text' ? m : emptyMessage
-  const {text, conversationIDKey, author} = message
+  const message = m || emptyMessage
+  const {conversationIDKey, author} = message
+  const text = React.useMemo(() => {
+    switch (m?.type) {
+      case 'text':
+        return m.text.stringValue()
+      case 'systemGitPush':
+        switch (m.pushType) {
+          case T.RPCGen.GitPushType.createrepo:
+            return `created a new team repository called ${m.repo}`
+          case T.RPCGen.GitPushType.default:
+            return m.refs
+              ?.map(ref => {
+                const commits =
+                  ref.commits?.map(
+                    c =>
+                      `• ${c.commitHash.substring(0, 8)} - ${c.message.endsWith('\n') ? c.message.substring(0, c.message.length - 1) : c.message}`
+                  ) ?? []
+
+                const branchName = C.Chat.systemGitBranchName(ref)
+                const parts = [
+                  `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${m.repo}/${branchName}`,
+                  ...commits,
+                ]
+                return parts.join('\n')
+              })
+              .join('\n')
+          default:
+            return undefined
+        }
+      default:
+        return undefined
+    }
+  }, [m])
+
   const yourMessage = author === you
   const meta = C.useChatContext(s => s.meta)
   const {teamname} = meta
@@ -35,7 +68,7 @@ const PopText = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopy = React.useCallback(() => {
-    copyToClipboard(text.stringValue())
+    text && copyToClipboard(text)
   }, [copyToClipboard, text])
 
   const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
@@ -105,14 +138,16 @@ const PopText = (ownProps: OwnProps) => {
   }, [conversationIDKey, blockModalSingle, navigateAppend, author])
   const onUserFilter = C.isIOS && author && !yourMessage ? () => _onUserFilter : undefined
 
-  const i = useItems(ordinal, false, onHidden)
+  const i = useItems(ordinal, onHidden)
   const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemDelete, itemExplode, itemKick, itemProfile} = i
 
   const itemMap = onViewMap
     ? ([{icon: 'iconfont-location', onClick: onViewMap, title: 'View on Google Maps'}] as const)
     : []
-  const itemCopyText = [{icon: 'iconfont-clipboard', onClick: onCopy, title: 'Copy text'}] as const
+  const itemCopyText = text
+    ? ([{icon: 'iconfont-clipboard', onClick: onCopy, title: 'Copy text'}] as const)
+    : []
   const itemReplyPrivately = onReplyPrivately
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
     : []
@@ -183,7 +218,7 @@ const PopText = (ownProps: OwnProps) => {
     ...itemReport,
     ...itemFlag,
   ]
-  const header = useHeader(ordinal, false)
+  const header = useHeader(ordinal)
   const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (

@@ -89,9 +89,9 @@ const _getSeenVersions = (lastSeenVersion: string): SeenVersionsMap => {
   return seenVersions
 }
 
-type Store = {
+type Store = T.Immutable<{
   lastSeenVersion: string
-}
+}>
 const initialStore: Store = {
   lastSeenVersion: '',
 }

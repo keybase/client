@@ -9,6 +9,7 @@ import {mapGetEnsureValue} from '@/util/map'
 import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
+import {registerDebugClear} from '@/util/debug'
 
 const searchServices: Array<T.TB.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
 
@@ -30,7 +31,7 @@ export const selfToUser = (you: string): T.TB.User => ({
 
 export const searchWaitingKey = 'teamBuilding:search'
 
-export type Store = {
+export type Store = T.Immutable<{
   namespace: T.TB.AllowedNamespace
   error: string
   teamSoFar: Set<T.TB.User>
@@ -45,7 +46,7 @@ export type Store = {
   userRecs?: Array<T.TB.User>
   selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
-}
+}>
 export const initialStore: Store = {
   error: '',
   finishedSelectedRole: 'writer',
@@ -475,6 +476,10 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 
 type MadeStore = UseBoundStore<StoreApi<State>>
 export const _stores = new Map<T.TB.AllowedNamespace, MadeStore>()
+
+registerDebugClear(() => {
+  _stores.clear()
+})
 
 const createTBStore = (namespace: T.TB.AllowedNamespace) => {
   const existing = _stores.get(namespace)

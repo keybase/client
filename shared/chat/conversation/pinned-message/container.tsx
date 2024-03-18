@@ -44,15 +44,15 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
   const props = {
-    author: author,
+    author,
     dismissUnpins,
-    imageHeight: imageHeight,
-    imageURL: imageURL,
-    imageWidth: imageWidth,
+    imageHeight,
+    imageURL,
+    imageWidth,
     onClick,
     onDismiss: dismissUnpins ? onUnpin : onIgnore,
-    text: text,
-    unpinning: unpinning,
+    text,
+    unpinning,
   }
   return <PinnedMessage {...props} />
 })

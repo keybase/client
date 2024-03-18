@@ -14,7 +14,7 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
-// import {useDebugLayout} from '@/util/debug'
+// import {useDebugLayout} from '@/util/debug-react'
 
 export type Props = {
   ordinal: T.Chat.Ordinal
@@ -98,7 +98,7 @@ const hasSuccessfulInlinePayments = (
 
 const useState = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
-    ordinals: Array<T.Chat.Ordinal>,
+    ordinals: ReadonlyArray<T.Chat.Ordinal>,
     hasReactions: boolean,
     message: T.Chat.Message
   ) => {
@@ -113,17 +113,24 @@ const useState = (ordinal: T.Chat.Ordinal) => {
   }
 
   const getEcrType = (message: T.Chat.Message, you: string) => {
-    if (!you) {
+    const {errorReason, type, submitState} = message
+    if (!errorReason) {
       return EditCancelRetryType.NONE
     }
-    const {errorReason, type, submitState} = message
-    if (
-      !errorReason ||
-      (type !== 'text' && type !== 'attachment') ||
-      (submitState !== 'pending' && submitState !== 'failed') ||
-      (message.type === 'text' && message.flipGameID)
-    ) {
+    if (!you) {
+      return errorReason ? EditCancelRetryType.NOACTION : EditCancelRetryType.NONE
+    }
+
+    // custom renderer
+    if (message.type === 'text' && message.flipGameID) {
       return EditCancelRetryType.NONE
+    }
+
+    if (
+      (type !== 'text' && type !== 'attachment') ||
+      (submitState !== 'pending' && submitState !== 'failed')
+    ) {
+      return EditCancelRetryType.NOACTION
     }
 
     const {outboxID, errorTyp} = message
@@ -246,12 +253,10 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
           systemMessage: type.startsWith('system'),
-          // eslint-disable-next-line
+          // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
         onContextMenu: showPopup,
-        // attach popups to the message itself
-        ref: popupAnchor,
       }
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
@@ -303,6 +308,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
         showPopup={showPopup}
+        popupAnchor={popupAnchor}
       />
     </LongPressable>
   )
@@ -320,6 +326,7 @@ const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
 // Author
 enum EditCancelRetryType {
   NONE,
+  NOACTION,
   CANCEL,
   EDIT_CANCEL,
   RETRY_CANCEL,
@@ -327,13 +334,17 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = C.useChatContext(
+  const {failureDescription, outboxID, exploding} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID
       const reason = m?.errorReason ?? ''
-      const failureDescription = `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-      return {failureDescription, outboxID}
+      const exploding = m?.exploding ?? false
+      const failureDescription =
+        ecrType === EditCancelRetryType.NOACTION
+          ? reason
+          : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+      return {exploding, failureDescription, outboxID}
     })
   )
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
@@ -349,11 +360,12 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     outboxID && messageRetry(outboxID)
   }, [messageRetry, outboxID])
 
-  const cancel = (
-    <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
-      Cancel
-    </Kb.Text>
-  )
+  const cancel =
+    ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
+      <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel} virtualText={true}>
+        Cancel
+      </Kb.Text>
+    ) : null
 
   const or =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
@@ -376,7 +388,12 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 
   return (
     <Kb.Text key="isFailed" type="BodySmall">
-      <Kb.Text type="BodySmall" style={styles.fail} virtualText={true}>
+      <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
+        {exploding ? (
+          <>
+            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+          </>
+        ) : null}
         {`${failureDescription}. `}
       </Kb.Text>
       {action}
@@ -434,26 +451,27 @@ type RProps = {
   showCoinsIcon: boolean
   botname: string
   shouldShowPopup: boolean
+  popupAnchor: React.RefObject<Kb.MeasureRef>
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {showPopup, showSendIndicator, showCoinsIcon} = p
+  const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
 
   const revokedIcon = showRevoked ? (
-    <Kb.WithTooltip tooltip="Revoked device">
+    <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
       <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
 
   const bot = botname ? (
-    <Kb.WithTooltip tooltip={`Encrypted for @${botname}`}>
+    <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
       <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!coinsIcon || !!bot
@@ -466,20 +484,23 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const menu =
     C.isMobile || !shouldShowPopup ? null : (
-      <Kb.WithTooltip
+      <Kb.Box2
+        direction="vertical"
         tooltip="More actions..."
-        toastStyle={styles.moreActionsTooltip}
-        className={hasVisibleItems ? 'hover-opacity-full' : 'hover-visible'}
+        className={Kb.Styles.classNames(
+          hasVisibleItems ? 'hover-opacity-full' : 'hover-visible',
+          'tooltip-bottom-left'
+        )}
       >
         <Kb.Box style={styles.ellipsis}>
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box>
-      </Kb.WithTooltip>
+      </Kb.Box2>
     )
 
   const visibleItems =
     hasVisibleItems || menu ? (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
@@ -488,13 +509,14 @@ const RightSide = React.memo(function RightSide(p: RProps) {
           'hover-reverse-row': hasVisibleItems && menu,
           'hover-visible': !hasVisibleItems && menu,
         })}
+        ref={popupAnchor}
       >
         {menu}
         {explodingCountdown}
         {revokedIcon}
         {coinsIcon}
         {bot}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     ) : null
 
   return (
@@ -573,7 +595,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
       },
       ellipsis: Kb.Styles.platformStyles({
-        isElectron: {height: 4, paddingTop: 0},
+        isElectron: {paddingTop: 2},
         isMobile: {paddingTop: 4},
       }),
       emojiRow: Kb.Styles.platformStyles({

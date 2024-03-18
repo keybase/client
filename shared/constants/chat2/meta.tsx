@@ -98,7 +98,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
   }
 }
 
-const conversationMetadataToMetaSupersedeInfo = (metas?: Array<T.RPCChat.ConversationMetadata>) => {
+const conversationMetadataToMetaSupersedeInfo = (metas?: ReadonlyArray<T.RPCChat.ConversationMetadata>) => {
   const meta = metas?.find(m => m.idTriple.topicType === T.RPCChat.TopicType.chat && !!m.finalizeInfo)
 
   return meta ? supersededConversationIDToKey(meta.conversationID) : undefined
@@ -117,11 +117,14 @@ const getTeamType = (tt: {
   }
 }
 
-export const getEffectiveRetentionPolicy = (meta: T.Chat.ConversationMeta) => {
+export const getEffectiveRetentionPolicy = (meta: T.Immutable<T.Chat.ConversationMeta>) => {
   return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
 }
 
-const copyOverOldValuesIfEqual = (oldMeta: T.Chat.ConversationMeta, newMeta: T.Chat.ConversationMeta) => {
+const copyOverOldValuesIfEqual = (
+  oldMeta: T.Immutable<T.Chat.ConversationMeta>,
+  newMeta: T.Immutable<T.Chat.ConversationMeta>
+) => {
   const merged = {...newMeta}
   if (C.shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
     merged.rekeyers = oldMeta.rekeyers
@@ -141,9 +144,9 @@ const copyOverOldValuesIfEqual = (oldMeta: T.Chat.ConversationMeta, newMeta: T.C
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
-  oldMeta: T.Chat.ConversationMeta,
-  newMeta: T.Chat.ConversationMeta
-): T.Chat.ConversationMeta => {
+  oldMeta: T.Immutable<T.Chat.ConversationMeta>,
+  newMeta: T.Immutable<T.Chat.ConversationMeta>
+): T.Immutable<T.Chat.ConversationMeta> => {
   if (newMeta.inboxVersion < oldMeta.inboxVersion) {
     // new is older, keep old
     return oldMeta
@@ -391,7 +394,7 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   }
 }
 
-export const getRowParticipants = (participants: T.Chat.ParticipantInfo, username: string) =>
+export const getRowParticipants = (participants: T.Immutable<T.Chat.ParticipantInfo>, username: string) =>
   participants.name
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))

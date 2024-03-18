@@ -2,11 +2,10 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {formatTimeForChat} from '@/util/timestamp'
+import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
 import {useChatDebugDump} from '@/constants/chat2/debug'
-import {formatTimeForConversationList} from '@/util/timestamp'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -26,7 +25,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.invitee === you ? '' : message.invitee
     case 'setDescription': // fallthrough
     case 'pin': // fallthrough
-    case 'systemUsersAddedToConversation':
+    case 'systemUsersAddedToConversation': // fallthrough
       return message.author
     case 'systemSBSResolved':
       return message.prover
@@ -42,7 +41,7 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
       return message.author
   }
 
-  if (!pMessage) return message.author
+  if (!pMessage || pMessage.type === 'systemJoined') return message.author
 
   if (pMessage.author !== message.author) {
     return message.author
@@ -144,19 +143,19 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 
   const ownerAdminTooltipIcon = allowCrown ? (
-    <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+    <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
       <Kb.Icon
         color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
       />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const botIcon = authorIsBot ? (
-    <Kb.WithTooltip tooltip="Bot">
+    <Kb.Box2 direction="vertical" tooltip="Bot">
       <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
-    </Kb.WithTooltip>
+    </Kb.Box2>
   ) : null
 
   const botAliasOrUsername = botAlias ? (
@@ -167,11 +166,10 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     usernameNode
   )
 
-  const canFixOverdraw = React.useContext(Kb.Styles.CanFixOverdrawContext)
   const timestampNode = (
-    <Kb.Text type="BodyTiny" fixOverdraw={canFixOverdraw} virtualText={true} className="separator-text">
+    <Kb.Text2 type="BodyTiny" virtualText={true} className="separator-text">
       {formatTimeForChat(timestamp)}
-    </Kb.Text>
+    </Kb.Text2>
   )
 
   return (
@@ -215,35 +213,34 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
       // we don't show the label if its been too recent (2hrs)
-      const tooSoon = new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-      const orangeLineAbove =
-        orangeOrdinal === ordinal
-          ? tooSoon
-            ? tooSoonString
-            : formatTimeForConversationList(m.timestamp)
+      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const orangeLineAbove = orangeOrdinal === ordinal
+      const isJoinLeave = m.type === 'systemJoined'
+
+      const orangeTime =
+        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
+          ? formatTimeForConversationList(m.timestamp)
           : ''
+
+      /* eslint-disable sort-keys */
       TEMP.current = {
         orangeOrdinal,
         ordinal,
         previous,
         showUsername,
-        // eslint-disable-next-line
         mauthor: m.author,
         mbot: m.botUsername,
         mtype: m.type,
-        // eslint-disable-next-line
         mtime: m.timestamp,
         pauthor: pmessage?.author,
         pbot: pmessage?.botUsername,
         ptype: pmessage?.type,
-        // eslint-disable-next-line
         ptime: pmessage?.timestamp,
-        // eslint-disable-next-line
-        msg: (m as any).text?.stringValue?.().length,
-        // eslint-disable-next-line
-        pmsg: (pmessage as any)?.text?.stringValue?.().length,
+        msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
+        pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
       }
-      return {orangeLineAbove, ordinal, showUsername}
+      /* eslint-enable sort-keys */
+      return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
 
@@ -290,7 +287,8 @@ const useState = (ordinal: T.Chat.Ordinal) => {
 type SProps = {
   ordinal: T.Chat.Ordinal
   showUsername: string
-  orangeLineAbove: string
+  orangeLineAbove: boolean
+  orangeTime: string
 }
 
 const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Ordinal; username: string}) {
@@ -310,10 +308,8 @@ const TopSideWrapper = React.memo(function TopSideWrapper(p: {ordinal: T.Chat.Or
   )
 })
 
-const tooSoonString = 'toosoon'
-
 const Separator = React.memo(function Separator(p: SProps) {
-  const {ordinal, orangeLineAbove, showUsername} = p
+  const {ordinal, orangeLineAbove, showUsername, orangeTime} = p
   return (
     <Kb.Box2
       direction="horizontal"
@@ -326,9 +322,9 @@ const Separator = React.memo(function Separator(p: SProps) {
       {showUsername ? <TopSideWrapper username={showUsername} ordinal={ordinal} /> : null}
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
-          {!C.isMobile && !showUsername && orangeLineAbove !== tooSoonString ? (
+          {orangeTime ? (
             <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
-              {orangeLineAbove}
+              {orangeTime}
             </Kb.Text>
           ) : null}
         </Kb.Box2>
@@ -344,7 +340,7 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove} = useStateFast(
+  const {ordinal, showUsername, orangeLineAbove, orangeTime} = useStateFast(
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
@@ -356,7 +352,12 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
   // )
   return ordinal && (showUsername || orangeLineAbove) ? (
-    <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
+    <Separator
+      ordinal={ordinal}
+      showUsername={showUsername}
+      orangeLineAbove={orangeLineAbove}
+      orangeTime={orangeTime}
+    />
   ) : null
 })
 

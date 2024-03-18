@@ -2,7 +2,7 @@ import logger from '@/logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '@/constants/platform.desktop'
 import {printRPCBytes} from '@/local-debug'
-import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import KB2 from '@/util/electron.desktop'
 
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
@@ -11,9 +11,9 @@ const {isRenderer} = KB2.constants
 // used by node
 class NativeTransport extends TransportShared {
   constructor(
-    incomingRPCCallback: incomingRPCCallbackType,
-    connectCallback?: connectDisconnectCB,
-    disconnectCallback?: connectDisconnectCB
+    incomingRPCCallback: IncomingRPCCallbackType,
+    connectCallback?: ConnectDisconnectCB,
+    disconnectCallback?: ConnectDisconnectCB
   ) {
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
@@ -42,9 +42,9 @@ class NativeTransport extends TransportShared {
 
 class ProxyNativeTransport extends TransportShared {
   constructor(
-    incomingRPCCallback: incomingRPCCallbackType,
-    connectCallback?: connectDisconnectCB,
-    disconnectCallback?: connectDisconnectCB
+    incomingRPCCallback: IncomingRPCCallbackType,
+    connectCallback?: ConnectDisconnectCB,
+    disconnectCallback?: ConnectDisconnectCB
   ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
@@ -75,9 +75,9 @@ class ProxyNativeTransport extends TransportShared {
 }
 
 function createClient(
-  incomingRPCCallback: incomingRPCCallbackType,
-  connectCallback: connectDisconnectCB,
-  disconnectCallback: connectDisconnectCB
+  incomingRPCCallback: IncomingRPCCallbackType,
+  connectCallback: ConnectDisconnectCB,
+  disconnectCallback: ConnectDisconnectCB
 ) {
   if (!isRenderer) {
     return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
@@ -99,7 +99,7 @@ function createClient(
   }
 }
 
-function resetClient(client: createClientType) {
+function resetClient(client: CreateClientType) {
   client.transport.reset()
 }
 

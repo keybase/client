@@ -7,10 +7,11 @@ import {BigTeamsLabel} from './big-teams-label'
 
 type Props = {
   toggle: () => void
+  onEdit?: () => void
 }
 
 const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
-  const {toggle} = props
+  const {toggle, onEdit} = props
   const badgeCount = C.useChatState(s => s.bigTeamBadgeCount)
   return (
     <Kb.ClickableBox
@@ -31,6 +32,13 @@ const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
         <Kb.Box style={styles.icon}>
           <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Kb.Styles.isMobile ? 20 : 16} />
         </Kb.Box>
+        {onEdit ? (
+          <Kb.BoxGrow2>
+            <Kb.Box2 fullWidth={true} direction="vertical" alignItems="flex-end" style={styles.edit}>
+              <Kb.Icon type="iconfont-ellipsis" fontSize={Kb.Styles.isMobile ? 20 : 16} onClick={onEdit} />
+            </Kb.Box2>
+          </Kb.BoxGrow2>
+        ) : null}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -64,7 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       dividerBox: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           borderStyle: 'solid',
           borderTopColor: Kb.Styles.globalColors.black_10,
@@ -84,6 +91,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
+      edit: {justifyContent: 'center'},
       icon: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxRow,

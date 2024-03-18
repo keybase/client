@@ -213,20 +213,24 @@ const Header2 = () => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip tooltip={`Search in this chat (${C.shortcutSymbol}F)`}>
+            <Kb.Box2
+              className="tooltip-left"
+              direction="vertical"
+              tooltip={`Search in this chat (${C.shortcutSymbol}F)`}
+            >
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
-            </Kb.WithTooltip>
-            <Kb.WithTooltip tooltip="Open folder">
+            </Kb.Box2>
+            <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Open folder">
               <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
-            </Kb.WithTooltip>
-            <Kb.WithTooltip tooltip="Chat info & settings">
+            </Kb.Box2>
+            <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
               <Kb.Icon
                 color={infoPanelShowing ? Kb.Styles.globalColors.blue : undefined}
                 style={styles.clickable}
                 type="iconfont-info"
                 onClick={onToggleInfoPanel}
               />
-            </Kb.WithTooltip>
+            </Kb.Box2>
           </Kb.Box2>
         )}
       </Kb.Box2>

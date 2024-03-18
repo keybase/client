@@ -5,11 +5,11 @@ import {isMobile} from './platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-export type Store = {
+export type Store = T.Immutable<{
   darkModePreference: DarkModePreference
   systemDarkMode: boolean
   supported: boolean
-}
+}>
 
 const initialStore: Store = {
   darkModePreference: 'system',
@@ -36,18 +36,20 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadDarkPrefs: () => {
       const f = async () => {
-        const v = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
-        const preference = v.s
-        switch (preference) {
-          case 'system':
-          case 'alwaysDark': // fallthrough
-          case 'alwaysLight': // fallthrough
-            set(s => {
-              s.darkModePreference = preference
-            })
-            break
-          default:
-        }
+        try {
+          const v = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+          const preference = v.s
+          switch (preference) {
+            case 'system':
+            case 'alwaysDark': // fallthrough
+            case 'alwaysLight': // fallthrough
+              set(s => {
+                s.darkModePreference = preference
+              })
+              break
+            default:
+          }
+        } catch {}
       }
       ignorePromise(f())
     },

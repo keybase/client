@@ -105,7 +105,7 @@
       "type": "record",
       "name": "ArchiveJobID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -215,7 +215,8 @@
         "PLAINTEXTMOBILE_1",
         "PLAINTEXTDESKTOP_2",
         "DEFAULTSOUNDMOBILE_3",
-        "DISABLETYPING_4"
+        "DISABLETYPING_4",
+        "CONVERTHEIC_5"
       ]
     },
     {

@@ -4,12 +4,23 @@ import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
+import {registerDebugUnClear, registerDebugClear} from '@/util/debug'
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
-type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
+type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (() => void)}}
 
-const resetters: (() => void)[] = []
+const resetters: ((isDebug?: boolean) => void)[] = []
+const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
+
+registerDebugClear(() => {
+  resetAllStores(true)
+})
+// so we can rebootstrap
+registerDebugUnClear(() => {
+  resetAllStores()
+})
+
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
   initializer: StateCreator<T, [['zustand/immer', never]]>
@@ -18,21 +29,33 @@ export const createZustand = <T extends HasReset>(
   const store = create<T, [['zustand/immer', never]]>(f)
   // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
+
   const reset = initialState.dispatch.resetState
+  let resetFunc: () => void
   if (reset === 'default') {
-    resetters.push(() => {
+    resetFunc = () => {
       store.setState(initialState, true)
-    })
+    }
   } else {
-    resetters.push(reset)
+    resetFunc = reset
+  }
+
+  if (initialState.dispatch.resetDeleteMe) {
+    resettersAndDelete.push(resetFunc)
+  } else {
+    resetters.push(resetFunc)
   }
   return store
 }
 
-export const resetAllStores = () => {
+export const resetAllStores = (isDebug?: boolean) => {
   for (const resetter of resetters) {
-    resetter()
+    resetter(isDebug)
   }
+  for (const resetter of resettersAndDelete) {
+    resetter(isDebug)
+  }
+  resettersAndDelete.length = 0
 }
 
 export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>

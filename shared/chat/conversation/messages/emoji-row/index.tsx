@@ -69,24 +69,33 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal">
           <Kb.Divider style={styles.divider} vertical={true} />
-          <Kb.WithTooltip tooltip="React" position={this.props.tooltipPosition}>
-            <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
-              <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-            </Kb.Box>
-          </Kb.WithTooltip>
+          <Kb.Box
+            className="hover_container"
+            onClick={this._showPicker}
+            style={styles.iconContainer}
+            tooltip="React"
+          >
+            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
+          </Kb.Box>
           {!!this.props.onReply && (
-            <Kb.WithTooltip tooltip="Reply" position={this.props.tooltipPosition}>
-              <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
-                <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-              </Kb.Box>
-            </Kb.WithTooltip>
+            <Kb.Box
+              className="hover_container"
+              onClick={this.props.onReply}
+              style={styles.iconContainer}
+              tooltip="Reply"
+            >
+              <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
+            </Kb.Box>
           )}
           {!!this.props.onForward && (
-            <Kb.WithTooltip tooltip="Forward" position={this.props.tooltipPosition}>
-              <Kb.Box className="hover_container" onClick={this.props.onForward} style={styles.iconContainer}>
-                <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-              </Kb.Box>
-            </Kb.WithTooltip>
+            <Kb.Box
+              className="hover_container"
+              onClick={this.props.onForward}
+              style={styles.iconContainer}
+              tooltip="Forward"
+            >
+              <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
+            </Kb.Box>
           )}
         </Kb.Box2>
         {this.state.showingPicker && (

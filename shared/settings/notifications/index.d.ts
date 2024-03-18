@@ -1,9 +1,10 @@
+import type * as T from '@/constants/types'
 import type * as React from 'react'
 import type {NotificationsGroupState} from '@/constants/settings-notifications'
 
 export type Props = {
   allowEdit: boolean
-  groups: Map<string, NotificationsGroupState>
+  groups: T.Immutable<Map<string, NotificationsGroupState>>
   onBack?: () => void
   onClickYourAccount: () => void
   onToggle: (groupName: string, name: string) => void

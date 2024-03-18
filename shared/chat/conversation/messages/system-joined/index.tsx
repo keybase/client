@@ -3,59 +3,68 @@ import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv'
 import {formatTimeForChat} from '@/util/timestamp'
 type Props = {
-  author: string
-  authorIsYou: boolean
   channelname: string
-  isAdHoc: boolean
   isBigTeam: boolean
-  joiners: Array<string>
-  leavers: Array<string>
-  onAuthorClick: (username: string) => void
-  onManageChannels: () => void
-  onManageNotifications: () => void
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
   teamname: string
   timestamp: number
 }
 
-const Joined = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} alignSelf="flex-start">
-    {props.joiners.length ? <MultiUserJoinedNotice {...props} joiners={props.joiners} leavers={[]} /> : null}
-    {props.leavers.length ? <MultiUserJoinedNotice {...props} joiners={[]} leavers={props.leavers} /> : null}
-  </Kb.Box2>
-)
+const none = new Array<string>()
 
-const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
-    <UserNotice>
-      <Kb.Text type="BodySmall" style={{paddingBottom: Kb.Styles.globalMargins.xxtiny}} lineClamp={2}>
-        {props.joiners.length > 0 ? getAddedUsernames(props.joiners) : getAddedUsernames(props.leavers)}
-        {` ${props.leavers.length > props.joiners.length ? 'left' : 'joined'} ${
-          props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`
-        }`}
-        {props.timestamp ? (
-          <Kb.Text type="BodyTiny" style={styles.timestamp}>
-            {' ' + formatTimeForChat(props.timestamp)}
-          </Kb.Text>
-        ) : null}
-      </Kb.Text>
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.avatarLine}>
-        <Kb.AvatarLine
-          usernames={props.joiners.length > 0 ? props.joiners : props.leavers}
-          maxShown={3}
-          size={32}
-          layout="horizontal"
+const Joined = (props: Props) => {
+  const {joiners = none, leavers = none} = props
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} alignSelf="flex-start">
+      {joiners.length ? <MultiUserJoinedNotice {...props} who={joiners} join={true} /> : null}
+      {leavers.length ? <MultiUserJoinedNotice {...props} who={leavers} join={false} /> : null}
+    </Kb.Box2>
+  )
+}
+
+const MultiUserJoinedNotice = (
+  p: {who: ReadonlyArray<string>; join: boolean} & Omit<Props, 'leavers' | 'joiners'>
+) => {
+  const {who, join, isBigTeam, channelname, teamname, timestamp} = p
+
+  const shorten = Kb.Styles.isMobile && who.length > 1
+  const joinStr = ` ${join ? 'joined' : 'left'}${shorten ? '' : isBigTeam ? ` #${channelname}` : ` ${teamname}`}`
+
+  const ts = timestamp ? (
+    <Kb.Text type="BodyTiny" style={styles.timestamp}>
+      {' ' + formatTimeForChat(timestamp)}
+    </Kb.Text>
+  ) : null
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={{position: 'relative'}}>
+      <UserNotice>
+        <Kb.Box2
+          direction="horizontal"
+          gap="xtiny"
+          fullWidth={true}
           alignSelf="flex-start"
-        />
-      </Kb.Box2>
-    </UserNotice>
-  </Kb.Box2>
-)
+          style={{position: 'relative'}}
+        >
+          <Kb.Text type="Body">•</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={2} title={who.join(', ')}>
+            {getAddedUsernames(who)}
+            {joinStr}
+            {shorten ? null : ts}
+          </Kb.Text>
+          <Kb.AvatarLine usernames={who} maxShown={3} size={16} layout="horizontal" alignSelf="flex-start" />
+        </Kb.Box2>
+      </UserNotice>
+    </Kb.Box2>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatarLine: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: -2},
+        isElectron: {marginLeft: -2 + 48},
         isMobile: {marginLeft: -Kb.Styles.globalMargins.xsmall},
       }),
       container: {marginLeft: -40, paddingBottom: 4},

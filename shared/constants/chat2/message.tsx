@@ -10,7 +10,9 @@ import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
-export const getMessageRenderType = (m: T.Chat.Message): T.Chat.RenderMessageType => {
+const noString = new HiddenString('')
+
+export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
       if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
@@ -141,7 +143,7 @@ type Minimum = {
 
 const makeMessageMinimum = {
   author: '',
-  bodySummary: new HiddenString(''),
+  bodySummary: noString,
   conversationIDKey: noConversationIDKey,
   id: T.Chat.numberToMessageID(0),
   isDeleteable: false,
@@ -203,13 +205,12 @@ export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageT
   inlinePaymentSuccessful: false,
   isDeleteable: true,
   isEditable: true,
-  mentionsAt: new Set(),
+  mentionsAt: undefined,
   mentionsChannel: 'none',
-  mentionsChannelName: new Map(),
-  reactions: new Map(),
-  text: new HiddenString(''),
+  reactions: undefined,
+  text: noString,
   type: 'text',
-  unfurls: new Map(),
+  unfurls: undefined,
   ...m,
 })
 
@@ -219,7 +220,7 @@ export const makeMessageAttachment = (
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
-  audioAmps: [],
+  audioAmps: undefined,
   audioDuration: 0,
   fileName: '',
   fileSize: 0,
@@ -230,13 +231,10 @@ export const makeMessageAttachment = (
   isCollapsed: false,
   isDeleteable: true,
   isEditable: true,
-  mentionsAt: new Set(),
-  mentionsChannel: 'none',
-  mentionsChannelName: new Map(),
   previewHeight: 0,
   previewURL: '',
   previewWidth: 0,
-  reactions: new Map(),
+  reactions: undefined,
   showPlayButton: false,
   title: '',
   transferProgress: 0,
@@ -262,8 +260,8 @@ export const makeMessageRequestPayment = (
   m?: Partial<MessageTypes.MessageRequestPayment>
 ): MessageTypes.MessageRequestPayment => ({
   ...makeMessageCommon,
-  note: new HiddenString(''),
-  reactions: new Map(),
+  note: noString,
+  reactions: undefined,
   requestID: '',
   type: 'requestPayment',
   ...m,
@@ -277,7 +275,7 @@ export const makeChatPaymentInfo = (
   delta: 'none',
   fromUsername: '',
   issuerDescription: '',
-  note: new HiddenString(''),
+  note: noString,
   paymentID: T.Wallets.noPaymentID,
   showCancel: false,
   sourceAmount: '',
@@ -296,7 +294,7 @@ export const makeMessageSendPayment = (
   m?: Partial<MessageTypes.MessageSendPayment>
 ): MessageTypes.MessageSendPayment => ({
   ...makeMessageCommon,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'sendPayment',
   ...m,
 })
@@ -305,8 +303,8 @@ const makeMessageSystemJoined = (
   m?: Partial<MessageTypes.MessageSystemJoined>
 ): MessageTypes.MessageSystemJoined => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  joiners: [],
-  leavers: [],
+  joiners: undefined,
+  leavers: undefined,
   type: 'systemJoined',
   ...m,
 })
@@ -325,8 +323,8 @@ const makeMessageSystemAddedToTeam = (
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
-  bulkAdds: [],
-  reactions: new Map(),
+  bulkAdds: undefined,
+  reactions: undefined,
   role: 'none',
   team: '',
   type: 'systemAddedToTeam',
@@ -342,7 +340,7 @@ const makeMessageSystemInviteAccepted = (
   inviteType: 'none',
   invitee: '',
   inviter: '',
-  reactions: new Map(),
+  reactions: undefined,
   role: 'none',
   team: '',
   type: 'systemInviteAccepted',
@@ -355,7 +353,7 @@ export const makeMessageSystemSBSResolved = (
   ...makeMessageCommonNoDeleteNoEdit,
   assertionUsername: '',
   prover: '',
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemSBSResolved',
   ...m,
 })
@@ -364,7 +362,7 @@ const makeMessageSystemSimpleToComplex = (
   m?: Partial<MessageTypes.MessageSystemSimpleToComplex>
 ): MessageTypes.MessageSystemSimpleToComplex => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemSimpleToComplex',
   ...m,
@@ -374,8 +372,8 @@ export const makeMessageSystemText = (
   m?: Partial<MessageTypes.MessageSystemText>
 ): MessageTypes.MessageSystemText => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
-  text: new HiddenString(''),
+  reactions: undefined,
+  text: noString,
   type: 'systemText',
   ...m,
 })
@@ -385,11 +383,17 @@ export const makeMessageSystemCreateTeam = (
 ): MessageTypes.MessageSystemCreateTeam => ({
   ...makeMessageCommonNoDeleteNoEdit,
   creator: '',
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemCreateTeam',
   ...m,
 })
+
+const branchRefPrefix = 'refs/heads/'
+export const systemGitBranchName = (ref: T.RPCGen.GitRefMetadata) => {
+  const {refName} = ref
+  return refName.startsWith(branchRefPrefix) ? refName.substring(branchRefPrefix.length) : refName
+}
 
 export const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
@@ -397,8 +401,8 @@ export const makeMessageSystemGitPush = (
   ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
-  reactions: new Map(),
-  refs: [],
+  reactions: undefined,
+  refs: undefined,
   repo: '',
   repoID: '',
   team: '',
@@ -410,8 +414,8 @@ const makeMessageSetDescription = (
   m?: Partial<MessageTypes.MessageSetDescription>
 ): MessageTypes.MessageSetDescription => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  newDescription: new HiddenString(''),
-  reactions: new Map(),
+  newDescription: noString,
+  reactions: undefined,
   type: 'setDescription',
   ...m,
 })
@@ -419,7 +423,7 @@ const makeMessageSetDescription = (
 const makeMessagePin = (m?: Partial<MessageTypes.MessagePin>): MessageTypes.MessagePin => ({
   ...makeMessageCommonNoDeleteNoEdit,
   pinnedMessageID: T.Chat.numberToMessageID(0),
-  reactions: new Map(),
+  reactions: undefined,
   type: 'pin',
   ...m,
 })
@@ -429,7 +433,7 @@ const makeMessageSetChannelname = (
 ): MessageTypes.MessageSetChannelname => ({
   ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
-  reactions: new Map(),
+  reactions: undefined,
   type: 'setChannelname',
   ...m,
 })
@@ -441,7 +445,7 @@ const makeMessageSystemChangeRetention = (
   isInherit: false,
   isTeam: false,
   membersType: 0,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemChangeRetention',
   user: '',
   you: '',
@@ -452,7 +456,7 @@ const makeMessageSystemUsersAddedToConversation = (
   m?: Partial<MessageTypes.MessageSystemUsersAddedToConversation>
 ): MessageTypes.MessageSystemUsersAddedToConversation => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   type: 'systemUsersAddedToConversation',
   usernames: [],
   ...m,
@@ -462,7 +466,7 @@ const makeMessageSystemChangeAvatar = (
   m?: Partial<MessageTypes.MessageSystemChangeAvatar>
 ): MessageTypes.MessageSystemChangeAvatar => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   team: '',
   type: 'systemChangeAvatar',
   user: '',
@@ -473,7 +477,7 @@ const makeMessageSystemNewChannel = (
   m?: Partial<MessageTypes.MessageSystemNewChannel>
 ): MessageTypes.MessageSystemNewChannel => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
+  reactions: undefined,
   text: '',
   type: 'systemNewChannel',
   ...m,
@@ -520,7 +524,7 @@ export const uiRequestInfoToChatRequestInfo = (
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  ps?: Array<T.RPCChat.UIPaymentInfo>
+  ps?: ReadonlyArray<T.RPCChat.UIPaymentInfo>
 ): MessageTypes.ChatPaymentInfo | undefined => {
   if (!ps || ps.length !== 1) {
     return undefined
@@ -552,62 +556,35 @@ export const uiPaymentInfoToChatPaymentInfo = (
   })
 }
 
-export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): MessageTypes.Reactions =>
-  new Map(
-    Object.keys(r.reactions ?? {}).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
-      if (r.reactions?.[emoji]) {
-        arr.push([
-          emoji,
-          {
-            decorated: r.reactions[emoji]!.decorated,
-            users: new Set(
-              Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
-                makeReaction({
-                  timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
-                  username,
-                })
-              )
-            ),
-          },
-        ])
-      }
-      return arr
-    }, [])
-  )
-
-const channelMentionToMentionsChannel = (channelMention: T.RPCChat.ChannelMention) => {
-  switch (channelMention) {
-    case T.RPCChat.ChannelMention.all:
-      return 'all'
-    case T.RPCChat.ChannelMention.here:
-      return 'here'
-    default:
-      return 'none'
-  }
-}
-
-export const uiMessageEditToMessage = (edit: T.RPCChat.MessageEdit, valid: T.RPCChat.UIMessageValid) => {
-  const text = new HiddenString(edit.body || '')
-
-  const mentionsAt = new Set(valid.atMentions || [])
-  const mentionsChannel = channelMentionToMentionsChannel(valid.channelMention)
-  const mentionsChannelName: Map<string, T.Chat.ConversationIDKey> = new Map(
-    (valid.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-  )
-
-  return {
-    mentionsAt,
-    mentionsChannel,
-    mentionsChannelName,
-    messageID: edit.messageID,
-    text,
-  }
-}
+export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | MessageTypes.Reactions =>
+  r.reactions
+    ? new Map(
+        Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
+          if (r.reactions?.[emoji]) {
+            arr.push([
+              emoji,
+              {
+                decorated: r.reactions[emoji]!.decorated,
+                users: new Set(
+                  Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
+                    makeReaction({
+                      timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
+                      username,
+                    })
+                  )
+                ),
+              },
+            ])
+          }
+          return arr
+        }, [])
+      )
+    : undefined
 
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: T.RPCChat.MessageSystem,
-  reactions: Map<string, MessageTypes.ReactionDesc>,
+  reactions: undefined | ReadonlyMap<string, MessageTypes.ReactionDesc>,
   m: T.RPCChat.UIMessageValid
 ): T.Chat.Message | undefined => {
   switch (body.systemType) {
@@ -787,8 +764,9 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
         res.showPlayButton = true
       }
     }
-    res.audioAmps = preview.image.audioAmps || []
-    res.audioAmps.length = Math.min(res.audioAmps.length, maxAmpsLength)
+    const aa = [...(preview.image.audioAmps ?? [])]
+    aa.length = Math.min(aa.length, maxAmpsLength)
+    res.audioAmps = aa
   } else if (preview.assetType === T.RPCChat.AssetMetadataType.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -798,7 +776,7 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
 }
 
 export const getMapUnfurl = (message: T.Chat.Message): T.RPCChat.UnfurlGenericDisplay | undefined => {
-  const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
+  const unfurls = message.type === 'text' && message.unfurls?.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
     ? unfurls[0].unfurl.unfurlType === T.RPCChat.UnfurlType.generic &&
       unfurls[0].unfurl.generic.mapInfo &&
@@ -828,7 +806,7 @@ const validUIMessagetoMessage = (
   const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
-    bodySummary: new HiddenString(m.bodySummary),
+    bodySummary: m.bodySummary ? new HiddenString(m.bodySummary) : noString,
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt || undefined,
     deviceType: T.Devices.stringToDeviceType(m.senderDeviceType),
@@ -851,7 +829,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.flip:
     case T.RPCChat.MessageType.text: {
       let rawText: string
-      let payments: Array<T.RPCChat.TextPayment> | undefined
+      let payments: ReadonlyArray<T.RPCChat.TextPayment> | undefined
       switch (m.messageBody.messageType) {
         case T.RPCChat.MessageType.flip:
           rawText = m.messageBody.flip.text
@@ -885,22 +863,17 @@ const validUIMessagetoMessage = (
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
         isEditable: m.isEditable,
-        mentionsAt: new Set(m.atMentions || []),
-        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
-        mentionsChannelName: new Map(
-          (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-        ),
         replyTo: m.replyTo
-          ? uiMessageToMessage(
+          ? (uiMessageToMessage(
               conversationIDKey,
               m.replyTo,
               currentUsername,
               getLastOrdinal,
               currentDeviceName
-            )
+            ) as any) // TODO better reply to handling
           : undefined,
         text: new HiddenString(rawText),
-        unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
+        unfurls: m.unfurls ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,
       })
     }
     case T.RPCChat.MessageType.attachmentuploaded: // fallthrough
@@ -964,11 +937,6 @@ const validUIMessagetoMessage = (
         inlineVideoPlayable,
         isCollapsed: m.isCollapsed,
         isEditable: m.isEditable,
-        mentionsAt: new Set(m.atMentions || []),
-        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
-        mentionsChannelName: new Map(
-          (m.channelNameMentions || []).map(men => [men.name, T.Chat.stringToConversationIDKey(men.convID)])
-        ),
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -1016,7 +984,7 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.requestpayment:
       return makeMessageRequestPayment({
         ...common,
-        note: new HiddenString(m.decoratedTextBody ?? ''),
+        note: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : noString,
         requestID: m.messageBody.requestpayment.requestID,
         requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo ?? undefined),
       })
@@ -1369,10 +1337,13 @@ export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Messag
   return toRet as T.Chat.Message
 }
 
-export const upgradeMessage = (old: T.Chat.Message, m: T.Chat.Message): T.Chat.Message => {
+export const upgradeMessage = (
+  old: T.Immutable<T.Chat.Message>,
+  m: T.Immutable<T.Chat.Message>
+): T.Immutable<T.Chat.Message> => {
   const validUpgrade = (
-    old: T.Chat.MessageText | T.Chat.MessageAttachment,
-    m: T.Chat.MessageText | T.Chat.MessageAttachment
+    old: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>,
+    m: T.Immutable<T.Chat.MessageText | T.Chat.MessageAttachment>
   ) => {
     if (old.submitState !== 'pending' && m.submitState === 'pending') {
       // we may be making sure we got our pending message in the thread view, but if we already

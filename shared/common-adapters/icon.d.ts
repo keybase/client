@@ -39,6 +39,7 @@ export type Props = {
   sizeType?: SizeType
   padding?: keyof typeof globalMargins
   allowLazy?: boolean // desktop only
+  tooltip?: never // doesn't play well with icon since it uses before also
 }
 
 export declare const Icon: ReturnType<typeof React.forwardRef<MeasureRef, Props>>

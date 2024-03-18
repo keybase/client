@@ -91,7 +91,7 @@ func (n *ChatCLINotifications) ChatArchiveComplete(ctx context.Context,
 		return nil
 	}
 	w := n.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Archive download %s\n", ColorString(n.G(), "magenta", "finished"))
+	fmt.Fprintf(w, "Archive download %s\n", ColorString(n.G(), "blue", "finished"))
 	return nil
 }
 
@@ -103,7 +103,7 @@ func (n *ChatCLINotifications) ChatArchiveProgress(ctx context.Context,
 	percent := int((100 * arg.MessagesComplete) / arg.MessagesTotal)
 	if n.lastProgressPercent == 0 || percent == 100 || percent-n.lastProgressPercent >= 10 {
 		w := n.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Archive download progress %d%% (%d of %d messages downloaded)\n", percent,
+		fmt.Fprintf(w, "Archival download progress %d%% (%d of %d messages archived)\n", percent,
 			arg.MessagesComplete, arg.MessagesTotal)
 		n.lastProgressPercent = percent
 	}

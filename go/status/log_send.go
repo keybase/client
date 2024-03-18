@@ -11,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
@@ -233,11 +234,14 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 		return "", err
 	}
 
-	mctx.Debug("body size: %d", body.Len())
+	mctx.Debug("body size: %s", humanize.Bytes(uint64(body.Len())))
 
 	arg := libkb.APIArg{
-		Endpoint:    "logdump/send",
-		SessionType: libkb.APISessionTypeOPTIONAL,
+		Endpoint:        "logdump/send",
+		SessionType:     libkb.APISessionTypeOPTIONAL,
+		RetryCount:      6,
+		RetryMultiplier: 1.3,
+		InitialTimeout:  time.Minute,
 	}
 
 	resp, err := mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)

@@ -60,7 +60,7 @@ const InstallBotPopup = (props: Props) => {
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
-  const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
+  const [installInConvs, setInstallInConvs] = React.useState<ReadonlyArray<string>>([])
   const [disableDone, setDisableDone] = React.useState(false)
 
   const botPublicCommands = C.useChatState(s => s.botPublicCommands.get(botUsername))

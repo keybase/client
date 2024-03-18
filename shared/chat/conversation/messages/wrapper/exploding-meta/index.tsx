@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
-import * as Container from '@/util/container'
 import {animationDuration} from '../exploding-height-retainer'
 import {HighlightedContext} from '../../ids-context'
 
@@ -39,10 +38,13 @@ type Props2 = {
 const ExplodingMeta = (p: Props) => {
   const {exploded, explodesAt, messageKey, onClick, pending} = p
 
+  const lastMessageKeyRef = React.useRef(messageKey)
   const [mode, setMode] = React.useState<Mode>('none')
-  Container.useDepChangeEffect(() => {
+
+  if (messageKey !== lastMessageKeyRef.current) {
+    lastMessageKeyRef.current = messageKey
     setMode('none')
-  }, [messageKey])
+  }
 
   const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
@@ -163,30 +165,29 @@ class ExplodingMeta2 extends React.Component<Props2> {
       case 'countdown':
         children = (
           <Kb.Box2 direction="horizontal" gap="xtiny">
-            <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
-              <Kb.Box2
-                className="explodingTimeContainer"
-                direction="horizontal"
+            <Kb.Box2
+              className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-bottom-left')}
+              direction="horizontal"
+              tooltip="Exploding message"
+              style={Kb.Styles.collapseStyles([
+                styles.countdownContainer,
+                {backgroundColor},
+                this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                this.props.pending && styles.hidden,
+              ])}
+            >
+              <Kb.Text
+                className="explodingTimeText"
+                type="Body"
                 style={Kb.Styles.collapseStyles([
-                  styles.countdownContainer,
-                  {backgroundColor},
-                  this.props.isParentHighlighted && styles.countdownContainerHighlighted,
-                  this.props.pending && styles.hidden,
+                  styles.countdown,
+                  this.props.isParentHighlighted && styles.countdownHighlighted,
                 ])}
+                virtualText={true}
               >
-                <Kb.Text
-                  className="explodingTimeText"
-                  type="Body"
-                  style={Kb.Styles.collapseStyles([
-                    styles.countdown,
-                    this.props.isParentHighlighted && styles.countdownHighlighted,
-                  ])}
-                  virtualText={true}
-                >
-                  {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.WithTooltip>
+                {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
+              </Kb.Text>
+            </Kb.Box2>
           </Kb.Box2>
         )
         break

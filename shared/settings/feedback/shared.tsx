@@ -19,6 +19,7 @@ export const useSendFeedback = () => {
         return
       }
       try {
+        setError('')
         if (sendLogs) {
           await logger.dump()
         }

@@ -98,8 +98,15 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
 
+import logger from '@/logger'
+export {default as logger} from '@/logger'
+export {debugWarning} from '@/util/debug-warning'
+
 export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
+  f.then(() => {}).catch(e => {
+    // likely remove this after some time
+    logger.error('ignorePromise error', e)
+  })
 }
 
 export const timeoutPromise = async (timeMs: number) =>
@@ -132,7 +139,7 @@ export const useNav = () => {
   }
 }
 
-export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent} from './react'
+export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'
 export {isNetworkErr, RPCError} from '@/util/errors'

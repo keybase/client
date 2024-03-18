@@ -1,5 +1,5 @@
+import * as React from 'react'
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
@@ -63,7 +63,7 @@ function isKeybaseUserId(userId: string) {
 
 function followStateHelperWithId(
   me: string,
-  followingState: Set<string>,
+  followingState: ReadonlySet<string>,
   userId: string = ''
 ): T.TB.FollowingState {
   if (isKeybaseUserId(userId)) {
@@ -77,11 +77,11 @@ function followStateHelperWithId(
 }
 
 const expensiveDeriveResults = (
-  searchResults: Array<T.TB.User> | undefined,
-  teamSoFar: Set<T.TB.User>,
+  searchResults: ReadonlyArray<T.TB.User> | undefined,
+  teamSoFar: ReadonlySet<T.TB.User>,
   myUsername: string,
-  followingState: Set<string>,
-  preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
+  followingState: ReadonlySet<string>,
+  preExistingTeamMembers: ReadonlyMap<string, T.Teams.MemberInfo>
 ) =>
   searchResults?.map(info => {
     const label = info.label || ''
@@ -249,7 +249,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const userResults: Array<T.TB.User> | undefined = _searchResults
+  const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
@@ -265,7 +265,6 @@ export const ListBody = (
   // in the tab bar, so we just disconnect the shared value for now, likely can just leave this as-is
   // const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
   const onScroll = undefined
-  const oldEnterInputCounter = Container.usePrevious(enterInputCounter)
 
   const showResults = !!searchString
   const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
@@ -279,30 +278,30 @@ export const ListBody = (
     : undefined
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
-  Container.useDepChangeEffect(() => {
-    if (oldEnterInputCounter !== enterInputCounter) {
-      const userResultsToShow = showRecs ? flattenRecommendations(recommendations ?? []) : searchResults
-      const selectedResult =
-        !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
-      if (selectedResult) {
-        // We don't handle cases where they hit enter on someone that is already a
-        // team member
-        if (selectedResult.isPreExistingTeamMember) {
-          return
-        }
-        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-          onRemove(selectedResult.userId)
-          onChangeText('')
-        } else {
-          onAdd(selectedResult.userId)
-        }
-      } else if (!searchString && !!teamSoFar.length) {
-        // They hit enter with an empty search string and a teamSoFar
-        // We'll Finish the team building
-        onFinishTeamBuilding()
+  const lastEnterInputCounterRef = React.useRef(enterInputCounter)
+  if (lastEnterInputCounterRef.current !== enterInputCounter) {
+    lastEnterInputCounterRef.current = enterInputCounter
+    const userResultsToShow = showRecs ? flattenRecommendations(recommendations ?? []) : searchResults
+    const selectedResult =
+      !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
+    if (selectedResult) {
+      // We don't handle cases where they hit enter on someone that is already a
+      // team member
+      if (selectedResult.isPreExistingTeamMember) {
+        return
       }
+      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+        onRemove(selectedResult.userId)
+        onChangeText('')
+      } else {
+        onAdd(selectedResult.userId)
+      }
+    } else if (!searchString && !!teamSoFar.length) {
+      // They hit enter with an empty search string and a teamSoFar
+      // We'll Finish the team building
+      onFinishTeamBuilding()
     }
-  }, [oldEnterInputCounter, enterInputCounter])
+  }
 
   if (showRecPending || showLoading) {
     return (

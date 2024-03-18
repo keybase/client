@@ -10,14 +10,14 @@ import * as Tabs from './tabs'
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
 
-type Store = {
+type Store = T.Immutable<{
   badgeVersion: number
   desktopAppBadgeCount: number
   keyState: Map<NotificationKeys, boolean>
   mobileAppBadgeCount: number
   navBadges: Map<Tabs.Tab, number>
   widgetBadge: BadgeType
-}
+}>
 const initialStore: Store = {
   badgeVersion: -1,
   desktopAppBadgeCount: 0,
@@ -82,7 +82,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   return counts
 }
 export const _useState = Z.createZustand<State>((set, get) => {
-  const updateWidgetBadge = (s: State) => {
+  const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
     const {keyState} = s
     if (keyState.get('outOfSpace')) {

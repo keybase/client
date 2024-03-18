@@ -56,6 +56,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
     const containerRect = containerRef.current.measure?.()
     if (!containerRect) return
+
     const imgRect = imgRef.current.getBoundingClientRect()
     const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
     const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
@@ -137,7 +138,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
         return divRef.current?.getBoundingClientRect()
       },
     }
-  })
+  }, [])
 
   return (
     <div

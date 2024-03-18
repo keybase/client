@@ -523,3 +523,72 @@ input {
 .clickable-box2 {
   cursor: pointer;
 }
+
+.tooltip {
+  position: relative;
+}
+.tooltip:before {
+  transition: opacity 0.2s ease-in-out;
+  /* body small text */
+  -webkit-font-smoothing: antialiased;
+  align-items: center;
+  background-color: var(--color-black);
+  border-radius: 4px;
+  border-width: 0px;
+  color: rgba(0, 0, 0, 0.85);
+  color: var(--color-white);
+  content: attr(data-tooltip);
+  opacity: 0;
+  flex-grow: 1;
+  flex-shrink: 0;
+  font-family: Keybase;
+  font-size: 13px;
+  font-weight: 400;
+  justify-content: center;
+  line-height: 17px;
+  padding: 4px 8px;
+  pointer-events: none;
+  position: absolute;
+  text-rendering: optimizeLegibility;
+  white-space: nowrap;
+  z-index: 999;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+}
+
+.tooltip-bottom-center:before {
+  transform: translate(-50%, 100%);
+}
+
+.tooltip-top-left:before {
+  transform: translate(-100%, -100%);
+}
+
+.tooltip-top-right:before {
+  transform: translate(0%, -100%);
+}
+
+.tooltip-bottom-left:before {
+  transform: translate(-100%, 100%);
+}
+
+.tooltip-bottom-right:before {
+  transform: translate(0%, 100%);
+}
+
+.tooltip-right:before {
+  transform: translate(5px, -50%);
+  top: 50%;
+  left: 100%;
+}
+.tooltip-left:before {
+  transform: translate(-5px, -50%);
+  top: 50%;
+  left: initial;
+  right: 100%;
+}
+
+.tooltip:hover:before {
+  opacity: 1;
+}

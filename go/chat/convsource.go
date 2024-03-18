@@ -719,6 +719,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
+	s.Debug(ctx, "Pull: pagination req: %+v, pagination resp: %+v", pagination, boxed.Thread.Pagination)
 
 	// Set up public inbox info if we don't have one with members type from remote call. Assume this is a
 	// public chat here, since it is the only chance we have to unbox it.

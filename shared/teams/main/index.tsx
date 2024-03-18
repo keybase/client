@@ -15,15 +15,15 @@ type DeletedTeam = {
 export type OwnProps = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: Set<T.Teams.TeamID>
+  newTeams: ReadonlySet<T.Teams.TeamID>
   onHideChatBanner: () => void
   onManageChat: (teamID: T.Teams.TeamID) => void
   onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
   onViewTeam: (teamID: T.Teams.TeamID) => void
-  teamresetusers: Map<T.Teams.TeamID, Set<string>>
-  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
-  teams: Array<T.Teams.TeamMeta>
+  teamresetusers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
+  newTeamRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
+  teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
 type HeaderProps = {

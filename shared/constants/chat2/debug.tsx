@@ -3,21 +3,25 @@ import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
+import {debugWarning} from '@/util/debug-warning'
+import {registerDebugClear} from '@/util/debug'
 
 export const chatDebugEnabled = true as boolean
 
 if (chatDebugEnabled) {
-  for (let i = 0; i < 10; ++i) {
-    console.log('Debug chat enabled!')
-  }
+  debugWarning('Debug chat enabled!')
 }
 
 const dumpMap = new Map<string, () => string>()
+registerDebugClear(() => {
+  dumpMap.clear()
+})
 
 const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
       const cs = C.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
+      logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
       const m = cs.meta
       logger.error('[CHATDEBUG] meta: ', {
         inboxLocalVersion: m.inboxLocalVersion,
@@ -29,7 +33,7 @@ const chatDebugDump = chatDebugEnabled
         status: m.status,
         timestamp: m.timestamp,
       })
-      logger.error('[CHATDEBUG] pen: ', cs.pendingOutboxToOrdinal)
+      logger.error('[CHATDEBUG] pen: ', [...cs.pendingOutboxToOrdinal.entries()])
       logger.error(
         '[CHATDEBUG] mm: ',
         [...cs.messageMap.entries()].map(([k, v]) => {

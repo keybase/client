@@ -17,7 +17,7 @@
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
   @typedef("bytes")  record FlipGameID {}
-  @typedef("bytes")  record ArchiveJobID {}
+  @typedef("string")  record ArchiveJobID {}
 
   record InboxVersInfo {
     gregor1.UID uid;
@@ -95,7 +95,8 @@
     PLAINTEXTMOBILE_1,
     PLAINTEXTDESKTOP_2,
     DEFAULTSOUNDMOBILE_3,
-    DISABLETYPING_4
+    DISABLETYPING_4,
+    CONVERTHEIC_5
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;

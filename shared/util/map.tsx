@@ -17,6 +17,6 @@ export function mapGetEnsureValue<M extends Map<any, any>>(
   }
 }
 
-export function mapFilterByKey<M extends Map<any, any>>(map: M, keys: Set<string>): M {
-  return new Map([...map.entries()].filter(([k]) => keys.has(k))) as M
+export function mapFilterByKey<M extends ReadonlyMap<any, any>>(map: M, keys: ReadonlySet<string>): M {
+  return new Map([...map.entries()].filter(([k]) => keys.has(k))) as any as M
 }

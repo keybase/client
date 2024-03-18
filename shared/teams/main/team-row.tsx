@@ -13,7 +13,7 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
-const TeamRow = (props: Props) => {
+const TeamRow = React.memo(function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
   const nav = Container.useSafeNavigation()
   const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
@@ -92,9 +92,9 @@ const TeamRow = (props: Props) => {
                 style={styles.bodyLeftText}
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text fixOverdraw={true} type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  <Kb.Text2 type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
                     {teamMeta.teamname}
-                  </Kb.Text>
+                  </Kb.Text2>
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
@@ -153,7 +153,7 @@ const TeamRow = (props: Props) => {
       {popup}
     </>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {

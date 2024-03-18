@@ -6,7 +6,7 @@ import type * as T from '@/constants/types'
 
 export type Props = {
   errorMessage: string
-  malformedEmails: Set<string>
+  malformedEmails: ReadonlySet<string>
   name: string
   onClearInviteError: () => void
   onClose: () => void
@@ -30,7 +30,7 @@ const _makeDropdownItem = (item: string) => (
 
 type State = {
   invitees: string
-  malformedEmails: Set<string>
+  malformedEmails: ReadonlySet<string>
   role: T.Teams.TeamRoleType
   isRolePickerOpen: boolean
 }
@@ -71,7 +71,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.props.onClearInviteError()
   }
 
-  _setMalformedEmails = (malformedEmails: Set<string>) => {
+  _setMalformedEmails = (malformedEmails: ReadonlySet<string>) => {
     this.setState({invitees: [...malformedEmails].join('\n'), malformedEmails})
   }
 

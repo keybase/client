@@ -40,7 +40,13 @@ func (d *Dimension) Encode() string {
 }
 
 type Preprocess struct {
-	ContentType        string
+	// Detected content type of the input
+	ContentType string
+	// May differ from the caller's view if we convert the input
+	Filename string
+	// Only set if a conversion of the input bytes happens
+	SrcDat []byte
+
 	Preview            []byte
 	PreviewContentType string
 	BaseDim            *Dimension
@@ -227,11 +233,34 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 		}
 	}()
 
-	if p.ContentType, err = DetectMIMEType(ctx, src, filename); err != nil {
+	p.Filename = filename
+	p.ContentType, err = DetectMIMEType(ctx, src, filename)
+	if err != nil {
 		return p, err
 	}
+
+	// Convert heif to jpeg when possible
+	if p.ContentType == "image/heif" {
+		shouldConvertHEIC, err := utils.GetGregorBool(ctx, g, utils.ConvertHEICGregorKey, true)
+		if err != nil {
+			return p, err
+		}
+		if shouldConvertHEIC {
+			dat, err := HEICToJPEG(ctx, log, filename)
+			if err != nil {
+				return p, err
+			}
+			if dat != nil {
+				p.Filename = strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpeg"
+				p.ContentType = "image/jpeg"
+				p.SrcDat = dat
+
+				src = NewBufReadResetter(dat)
+			}
+		}
+	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-	previewRes, err := Preview(ctx, log, src, p.ContentType, filename, nvh)
+	previewRes, err := Preview(ctx, log, src, p.ContentType, p.Filename, nvh)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err

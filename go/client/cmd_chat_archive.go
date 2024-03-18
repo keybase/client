@@ -108,14 +108,17 @@ func (c *CmdChatArchive) Run() error {
 	if err != nil {
 		return err
 	}
+	jobID &= 0xFFFFFFF
 
-	arg := chat1.ArchiveChatArg{
-		JobID:            chat1.ArchiveJobID(fmt.Sprintf("chat-archive-%d", jobID)),
+	arg := chat1.ArchiveChatJobRequest{
+		JobID:            chat1.ArchiveJobID(fmt.Sprintf("arc-%d", jobID)),
 		OutputPath:       c.outputPath,
 		Compress:         c.compress,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("Starting archive %s \n", arg.JobID)
 
 	res, err := client.ArchiveChat(context.TODO(), arg)
 	if err != nil {
@@ -126,7 +129,6 @@ func (c *CmdChatArchive) Run() error {
 		return err
 	}
 
-	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Archive completed, saved at %s \n", outputPath)
 
 	return nil

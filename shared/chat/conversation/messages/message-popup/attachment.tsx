@@ -50,8 +50,8 @@ const PopAttach = (ownProps: OwnProps) => {
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = React.useCallback(() => {
-    messageAttachmentNativeSave(message)
-  }, [messageAttachmentNativeSave, message])
+    messageAttachmentNativeSave(ordinal)
+  }, [messageAttachmentNativeSave, ordinal])
   const onSaveAttachment = C.isMobile && attachmentType === 'image' ? _onSaveAttachment : undefined
 
   const _onShareAttachment = React.useCallback(() => {
@@ -67,7 +67,7 @@ const PopAttach = (ownProps: OwnProps) => {
   }, [downloadPath, openLocalPathInSystemFileManagerDesktop])
   const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
 
-  const i = useItems(ordinal, true, onHidden)
+  const i = useItems(ordinal, onHidden)
   const {itemBot, itemReaction, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemExplode, itemDelete, itemKick, itemProfile} = i
 
@@ -115,7 +115,7 @@ const PopAttach = (ownProps: OwnProps) => {
     ...itemPin,
   ]
 
-  const header = useHeader(ordinal, true)
+  const header = useHeader(ordinal)
   const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (

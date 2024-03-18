@@ -5,13 +5,16 @@ import {OrdinalContext, HighlightedContext} from '../ids-context'
 import type * as T from '@/constants/types'
 
 export const useReply = (ordinal: T.Chat.Ordinal) => {
-  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)
+  const showReplyTo = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    return m?.type === 'text' ? !!m.replyTo : false
+  })
   return showReplyTo ? <Reply /> : null
 }
 
 const emptyMessage = C.Chat.makeMessageText()
 
-const ReplyToContext = React.createContext<T.Chat.Message>(emptyMessage)
+const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(emptyMessage)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
@@ -37,9 +40,9 @@ const AvatarHolder = () => {
 const ReplyImage = () => {
   const replyTo = React.useContext(ReplyToContext)
   if (replyTo.type !== 'attachment') return null
-
-  const imageHeight = replyTo.previewHeight
   const imageURL = replyTo.previewURL
+  if (!imageURL) return null
+  const imageHeight = replyTo.previewHeight
   const imageWidth = replyTo.previewWidth
   const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
@@ -59,7 +62,7 @@ const ReplyText = () => {
     replyTo.type === 'attachment'
       ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
       : replyTo.type === 'text'
-        ? replyTo.text.stringValue()
+        ? replyTo.text?.stringValue() ?? ''
         : ''
 
   return text ? (
@@ -124,16 +127,16 @@ const Reply = React.memo(function Reply() {
   const ordinal = React.useContext(OrdinalContext)
   const replyTo = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
-    return m?.replyTo ?? emptyMessage
+    return m?.type === 'text' ? m.replyTo : undefined
   })
 
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const onClick = C.useEvent(() => {
-    const id = replyTo.id
+    const id = replyTo?.id ?? 0
     id && replyJump(id)
   })
 
-  if (!replyTo.id) return null
+  if (!replyTo?.id) return null
 
   const showEdited = !!replyTo.hasBeenEdited
   const isDeleted = replyTo.exploded || replyTo.type === 'deleted'

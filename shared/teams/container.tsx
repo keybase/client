@@ -20,12 +20,12 @@ const useHeaderActions = () => {
 }
 
 const orderTeamsImpl = (
-  teams: Map<string, T.Teams.TeamMeta>,
-  newRequests: C.Teams.State['newTeamRequests'],
-  teamIDToResetUsers: C.Teams.State['teamIDToResetUsers'],
-  newTeams: C.Teams.State['newTeams'],
-  sortOrder: T.Teams.TeamListSort,
-  activityLevels: T.Teams.ActivityLevels,
+  teams: ReadonlyMap<string, T.Teams.TeamMeta>,
+  newRequests: T.Immutable<C.Teams.State['newTeamRequests']>,
+  teamIDToResetUsers: T.Immutable<C.Teams.State['teamIDToResetUsers']>,
+  newTeams: T.Immutable<C.Teams.State['newTeams']>,
+  sortOrder: T.Immutable<T.Teams.TeamListSort>,
+  activityLevels: T.Immutable<T.Teams.ActivityLevels>,
   filter: string
 ): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()

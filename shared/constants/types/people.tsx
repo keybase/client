@@ -36,7 +36,7 @@ export type FollowedNotification = {
 
 export type FollowedNotificationItem = {
   type: 'follow' | 'contact'
-  newFollows: Array<FollowedNotification>
+  newFollows: ReadonlyArray<FollowedNotification>
   notificationTime: Date
   badged: boolean
   numAdditional?: number

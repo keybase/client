@@ -18,6 +18,7 @@ export type Props = {
   className?: string
   style?: any
   ref?: never
+  tooltip?: string
 }
 
 export type LayoutEvent = NativeSyntheticEvent<{
@@ -58,6 +59,7 @@ export type Box2Props = {
   gapEnd?: boolean
   ref?: never
   title?: string
+  tooltip?: string
 }
 
 /**

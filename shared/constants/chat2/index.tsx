@@ -52,7 +52,7 @@ export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   textStatus: 'initial',
 })
 
-export const getInboxSearchSelected = (inboxSearch: T.Chat.InboxSearchInfo) => {
+export const getInboxSearchSelected = (inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>) => {
   const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
   const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
   const firstOpenTeamResultIdx = nameResults.length
@@ -91,8 +91,8 @@ export const getMessageKey = (message: T.Chat.Message) =>
   `${message.conversationIDKey}:${T.Chat.ordinalToNumber(message.ordinal)}`
 
 export const getBotsAndParticipants = (
-  meta: T.Chat.ConversationMeta,
-  participantInfo: T.Chat.ParticipantInfo,
+  meta: T.Immutable<T.Chat.ConversationMeta>,
+  participantInfo: T.Immutable<T.Chat.ParticipantInfo>,
   sort?: boolean
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
@@ -111,7 +111,7 @@ export const getBotsAndParticipants = (
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
-  let participants: Array<string> = participantInfo.all
+  let participants: ReadonlyArray<string> = participantInfo.all
   if (meta.channelname === 'general') {
     participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)
@@ -153,23 +153,18 @@ export const makeInboxQuery = (
   convIDKeys: Array<T.Chat.ConversationIDKey>,
   allStatuses?: boolean
 ): T.RPCChat.GetInboxLocalQuery => {
+  const memerStatusKeys = ['active', 'removed', 'left', 'preview', 'reset', 'neverJoined'] as const
+  const statusKeys = ['unfiled', 'favorite', 'ignored', 'blocked', 'muted', 'reported'] as const
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(T.Chat.keyToConversationID),
-    memberStatus: Object.keys(T.RPCChat.ConversationMemberStatus)
-      .filter(
-        k =>
-          typeof T.RPCChat.ConversationMemberStatus[k as any] === 'number' &&
-          (!!allStatuses || !['neverJoined', 'left', 'removed'].includes(k as any))
-      )
-      .map(
-        k => T.RPCChat.ConversationMemberStatus[k as any]
-      ) as unknown as Array<T.RPCChat.ConversationMemberStatus>,
+    memberStatus: memerStatusKeys
+      .filter(k => !!allStatuses || !['neverJoined', 'left', 'removed'].includes(k))
+      .map(k => T.RPCChat.ConversationMemberStatus[k]),
     readOnly: false,
-    status: Object.keys(T.RPCChat.ConversationStatus)
-      .filter(k => typeof T.RPCChat.ConversationStatus[k as any] === 'number')
-      .filter(k => !['ignored', 'blocked', 'reported'].includes(k as any))
-      .map(k => T.RPCChat.ConversationStatus[k as any]) as unknown as Array<T.RPCChat.ConversationStatus>,
+    status: statusKeys
+      .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
+      .map(k => T.RPCChat.ConversationStatus[k]),
     tlfVisibility: T.RPCGen.TLFVisibility.private,
     topicType: T.RPCChat.TopicType.chat,
     unreadOnly: false,
@@ -233,8 +228,10 @@ export const messageAuthorIsBot = (
       : false // if we don't have team information, don't show bot icon
 }
 
-export const uiParticipantsToParticipantInfo = (uiParticipants: Array<T.RPCChat.UIParticipant>) => {
-  const participantInfo: T.Chat.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+export const uiParticipantsToParticipantInfo = (
+  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+): T.Chat.ParticipantInfo => {
+  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
   uiParticipants.forEach(part => {
     const {assertion, contactName, inConvName} = part
     participantInfo.all.push(assertion)
@@ -263,7 +260,7 @@ type PreviewReason =
   | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
-type Store = {
+type Store = T.Immutable<{
   // increments when the convo stores values change, badges and unread
   badgeCountsChanged: number
   botPublicCommands: Map<string, T.Chat.BotPublicCommands>
@@ -276,7 +273,7 @@ type Store = {
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   userReacjis: T.Chat.UserReacjis
-  userEmojis?: T.RPCChat.EmojiGroup[]
+  userEmojis?: Array<T.RPCChat.EmojiGroup>
   userEmojisForAutocomplete?: Array<T.RPCChat.Emoji>
   infoPanelShowing: boolean
   infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
@@ -288,7 +285,7 @@ type Store = {
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
-}
+}>
 
 const initialStore: Store = {
   badgeCountsChanged: 0,
@@ -321,12 +318,12 @@ export type State = Store & {
     badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
     clearMetas: () => void
     conversationErrored: (
-      allowedUsers: Array<string>,
-      disallowedUsers: Array<string>,
+      allowedUsers: ReadonlyArray<string>,
+      disallowedUsers: ReadonlyArray<string>,
       code: number,
       message: string
     ) => void
-    createConversation: (participants: Array<string>, highlightMessageID?: T.Chat.MessageID) => void
+    createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     findGeneralConvIDFromTeamID: (teamID: T.Teams.TeamID) => void
     fetchUserEmoji: (conversationIDKey?: T.Chat.ConversationIDKey, onlyInTeam?: boolean) => void
@@ -356,8 +353,8 @@ export type State = Store & {
     maybeChangeSelectedConv: () => void
     messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
-      metas: Array<T.Chat.ConversationMeta>,
-      removals?: Array<T.Chat.ConversationIDKey> // convs to remove
+      metas: ReadonlyArray<T.Chat.ConversationMeta>,
+      removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
@@ -367,18 +364,18 @@ export type State = Store & {
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
-    onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
-    onTeamBuildingFinished: (users: Set<T.TB.User>) => void
+    onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
+    onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
     paymentInfoReceived: (paymentInfo: T.Chat.ChatPaymentInfo) => void
     previewConversation: (p: {
-      participants?: Array<string>
+      participants?: ReadonlyArray<string>
       teamname?: string
       channelname?: string
       conversationIDKey?: T.Chat.ConversationIDKey // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
       highlightMessageID?: T.Chat.MessageID
       reason: PreviewReason
     }) => void
-    queueMetaToRequest: (ids: Array<T.Chat.ConversationIDKey>) => void
+    queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
     refreshBotPublicCommands: (username: string) => void
     resetConversationErrored: () => void
@@ -389,7 +386,7 @@ export type State = Store & {
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
     unboxRows: (ids: Array<T.Chat.ConversationIDKey>, force?: boolean) => void
-    updateCoinFlipStatus: (statuses: Array<T.RPCChat.UICoinFlipStatus>) => void
+    updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
     updateLastCoord: (coord: T.Chat.Coordinate) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
@@ -401,7 +398,7 @@ export type State = Store & {
 }
 
 // Only get the untrusted conversations out
-const untrustedConversationIDKeys = (ids: Array<T.Chat.ConversationIDKey>) =>
+const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
@@ -424,12 +421,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
       set(s => {
-        s.createConversationError = {
+        s.createConversationError = T.castDraft({
           allowedUsers,
           code,
           disallowedUsers,
           message,
-        }
+        })
       })
     },
     createConversation: (participants, highlightMessageID) => {
@@ -639,7 +636,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             const {inboxSearch} = s
             if (inboxSearch?.openTeamsStatus === 'inprogress') {
               inboxSearch.openTeamsResultsSuggested = suggested
-              inboxSearch.openTeamsResults = results
+              inboxSearch.openTeamsResults = T.castDraft(results)
               inboxSearch.openTeamsStatus = 'success'
             }
           })
@@ -652,7 +649,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             const {inboxSearch} = s
             if (inboxSearch?.botsStatus === 'inprogress') {
               inboxSearch.botsResultsSuggested = suggested
-              inboxSearch.botsResults = results
+              inboxSearch.botsResults = T.castDraft(results)
               inboxSearch.botsStatus = 'success'
             }
           })
@@ -704,7 +701,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           set(s => {
             const status = 'success'
             const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
-            s.inboxSearch = inboxSearch
+            s.inboxSearch = T.castDraft(inboxSearch)
             inboxSearch.textStatus = status
           })
         }
@@ -764,7 +761,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               set(s => {
                 const status = 'error'
                 const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
-                s.inboxSearch = inboxSearch
+                s.inboxSearch = T.castDraft(inboxSearch)
                 inboxSearch.textStatus = status
               })
             }
@@ -849,7 +846,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.staticConfig = {
               builtinCommands: (res.builtinCommands || []).reduce<T.Chat.StaticConfig['builtinCommands']>(
                 (map, c) => {
-                  map[c.typ] = c.commands || []
+                  map[c.typ] = T.castDraft(c.commands) || []
                   return map
                 },
                 {
@@ -876,7 +873,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           group.emojis?.forEach(e => newEmojis.push(e))
         })
         s.userEmojisForAutocomplete = newEmojis
-        s.userEmojis = results.emojis.emojis ?? []
+        s.userEmojis = T.castDraft(results.emojis.emojis) ?? []
       })
     },
     maybeChangeSelectedConv: () => {
@@ -954,8 +951,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         C.getConvoState(r).dispatch.setMeta()
       })
       metas.forEach(m => {
-        const {meta: oldMeta, dispatch} = C.getConvoState(m.conversationIDKey)
-        dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? Meta.updateMeta(oldMeta, m) : m)
+        const {meta: oldMeta, dispatch, isMetaGood} = C.getConvoState(m.conversationIDKey)
+        if (isMetaGood()) {
+          dispatch.updateMeta(Meta.updateMeta(oldMeta, m))
+        } else {
+          dispatch.setMeta(m)
+        }
       })
 
       const selectedConversation = Common.getSelectedConversation()
@@ -1386,7 +1387,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
       const {inbox} = action.payload.params
       const result = JSON.parse(inbox) as T.RPCChat.UnverifiedInboxUIItems
-      const items: Array<T.RPCChat.UnverifiedInboxUIItem> = result.items ?? []
+      const items: ReadonlyArray<T.RPCChat.UnverifiedInboxUIItem> = result.items ?? []
       // We get a subset of meta information from the cache even in the untrusted payload
       const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, item) => {
         const m = Meta.unverifiedInboxUIItemToConversationMeta(item)
@@ -1453,6 +1454,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const deselectAction = () => {
           if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
             get().dispatch.unboxRows([wasID], true)
+            C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
           }
         }
 
@@ -1716,7 +1718,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
-        maybeMentionMap.set(name, info)
+        maybeMentionMap.set(name, T.castDraft(info))
       })
     },
     setTrustedInboxHasLoaded: () => {
@@ -1728,7 +1730,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const {inboxSearch} = s
         if (enabled && !inboxSearch) {
-          s.inboxSearch = makeInboxSearchInfo()
+          s.inboxSearch = T.castDraft(makeInboxSearchInfo())
         } else if (!enabled && inboxSearch) {
           s.inboxSearch = undefined
         }
@@ -1794,7 +1796,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const {flipStatusMap} = s
         statuses.forEach(status => {
-          flipStatusMap.set(status.gameID, status)
+          flipStatusMap.set(status.gameID, T.castDraft(status))
         })
       })
     },
@@ -1810,7 +1812,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const layout = _layout as T.RPCChat.UIInboxLayout
 
           if (!isEqual(s.inboxLayout, layout)) {
-            s.inboxLayout = layout
+            s.inboxLayout = T.castDraft(layout)
           }
           s.inboxHasLoaded = !!layout
           if (!inboxHasLoaded) {
@@ -1852,7 +1854,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const {skinTone, topReacjis} = userReacjis
         s.userReacjis.skinTone = skinTone
-        s.userReacjis.topReacjis = topReacjis || defaultTopReacjis
+        s.userReacjis.topReacjis = T.castDraft(topReacjis) || defaultTopReacjis
       })
     },
     updatedGregor: items => {

@@ -295,11 +295,7 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 	}
 }
 
-// The equivalent of http.Get except it uses the proxy configured in Env
-// `instrumentationTag` should be a static tag for all requests identifying the
-// type of request we are proxying so we don't leak URL information to the
-// instrumenter.
-func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*http.Response, error) {
+func ProxyHTTPClient(g *GlobalContext, env *Env, instrumentationTag string) *http.Client {
 	xprt := NewInstrumentedRoundTripper(g, func(*http.Request) string { return instrumentationTag },
 		&http.Transport{
 			Proxy: MakeProxy(env),
@@ -307,6 +303,15 @@ func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*ht
 	client := &http.Client{
 		Transport: xprt,
 	}
+	return client
+}
+
+// The equivalent of http.Get except it uses the proxy configured in Env
+// `instrumentationTag` should be a static tag for all requests identifying the
+// type of request we are proxying so we don't leak URL information to the
+// instrumenter.
+func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*http.Response, error) {
+	client := ProxyHTTPClient(g, env, instrumentationTag)
 	return client.Get(u)
 }
 

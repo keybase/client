@@ -10,11 +10,12 @@ type State = Store & {
     onEngineConnected: () => void
     onEngineDisconnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
-export const _useState = Z.createZustand<State>(() => {
+export const _useState = Z.createZustand<State>(set => {
+  let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       C.useChatState.getState().dispatch.onEngineConnected()
@@ -29,24 +30,30 @@ export const _useState = Z.createZustand<State>(() => {
       C.useConfigState.getState().dispatch.onEngineDisonnected()
     },
     onEngineIncoming: action => {
-      C.useBotsState.getState().dispatch.onEngineIncoming(action)
-      C.useChatState.getState().dispatch.onEngineIncoming(action)
-      C.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
-      C.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
-      C.useConfigState.getState().dispatch.onEngineIncoming(action)
-      C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
-      C.useFSState.getState().dispatch.onEngineIncoming(action)
-      C.useNotifState.getState().dispatch.onEngineIncoming(action)
-      C.usePeopleState.getState().dispatch.onEngineIncoming(action)
-      C.usePinentryState.getState().dispatch.onEngineIncoming(action)
-      C.useSettingsState.getState().dispatch.onEngineIncoming(action)
-      C.useSignupState.getState().dispatch.onEngineIncoming(action)
-      C.useTeamsState.getState().dispatch.onEngineIncoming(action)
-      C.useTrackerState.getState().dispatch.onEngineIncoming(action)
-      C.useUFState.getState().dispatch.onEngineIncoming(action)
-      C.useUsersState.getState().dispatch.onEngineIncoming(action)
+      // defer a frame so its more like before
+      incomingTimeout = setTimeout(() => {
+        C.useBotsState.getState().dispatch.onEngineIncoming(action)
+        C.useChatState.getState().dispatch.onEngineIncoming(action)
+        C.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
+        C.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+        C.useConfigState.getState().dispatch.onEngineIncoming(action)
+        C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
+        C.useFSState.getState().dispatch.onEngineIncoming(action)
+        C.useNotifState.getState().dispatch.onEngineIncoming(action)
+        C.usePeopleState.getState().dispatch.onEngineIncoming(action)
+        C.usePinentryState.getState().dispatch.onEngineIncoming(action)
+        C.useSettingsState.getState().dispatch.onEngineIncoming(action)
+        C.useSignupState.getState().dispatch.onEngineIncoming(action)
+        C.useTeamsState.getState().dispatch.onEngineIncoming(action)
+        C.useTrackerState.getState().dispatch.onEngineIncoming(action)
+        C.useUFState.getState().dispatch.onEngineIncoming(action)
+        C.useUsersState.getState().dispatch.onEngineIncoming(action)
+      }, 0)
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({...s, ...initialStore, dispatch: s.dispatch}))
+      clearTimeout(incomingTimeout)
+    },
   }
   return {
     ...initialStore,

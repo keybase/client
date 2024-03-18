@@ -5,7 +5,7 @@ import * as C from '@/constants'
 // On click: clear the badges on the server and remove from things like tabs
 // Keep a local version of this which is only cleared on navigation blur
 const noBadges = new Set<string>()
-export const useLocalBadging = (storeSet: Set<string> | undefined, clearStoreBadges: () => void) => {
+export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clearStoreBadges: () => void) => {
   const [badged, setBadged] = React.useState(storeSet?.size ? storeSet : noBadges)
 
   // keep adding if we got new ones

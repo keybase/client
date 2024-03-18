@@ -31,14 +31,14 @@
     "paths": {
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"],
-      "@/*": ["./*"]
+      "@/*": ["./*"],
     },
     "resolveJsonModule": true,
     "sourceMap": false,
     "strict": true,
-    "target": "ESNext",
+    "target": "esnext",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
-    "typeRoots": ["./node_modules/@types/"]
+    "typeRoots": ["./node_modules/@types/"],
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"],
@@ -47,6 +47,6 @@
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
-    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
-  }
+    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"],
+  },
 }

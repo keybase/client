@@ -97,10 +97,10 @@ export type Props = {
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in T.Teams.TeamID]: boolean}
-  groups: Map<string, NotificationsGroupState>
+  groups: T.Immutable<ReadonlyMap<string, NotificationsGroupState>>
   sound: boolean
   unfurlMode?: T.RPCChat.UnfurlMode
-  unfurlWhitelist?: Array<string>
+  unfurlWhitelist?: ReadonlyArray<string>
   unfurlError?: string
   onBack?: () => void
   onContactSettingsSave: (
@@ -111,9 +111,9 @@ export type Props = {
   ) => void
   onToggle: (groupName: string, name: string) => void
   onToggleSound: (notifySound: boolean) => void
-  onUnfurlSave: (mode: T.RPCChat.UnfurlMode, whitelist: Array<string>) => void
+  onUnfurlSave: (mode: T.RPCChat.UnfurlMode, whitelist: ReadonlyArray<string>) => void
   onRefresh: () => void
-  teamMeta: Array<T.Teams.TeamMeta>
+  teamMeta: ReadonlyArray<T.Teams.TeamMeta>
 }
 
 type State = {
@@ -217,6 +217,7 @@ class Chat extends React.Component<Props, State> {
 
   render() {
     const showDesktopSound = !C.isMobile && !C.isLinux
+    const showMisc = C.isMac || C.isIOS
     const showMobileSound = !!this.props.groups.get('sound')?.settings.length
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -442,6 +443,25 @@ class Chat extends React.Component<Props, State> {
                         groupName="sound"
                         onToggle={this.props.onToggle}
                         settings={this.props.groups.get('sound')!.settings}
+                        unsubscribedFromAll={false}
+                      />
+                    )}
+                  </>
+                </Kb.Box2>
+              </>
+            )}
+            {showMisc && (
+              <>
+                <Kb.Divider style={styles.divider} />
+                <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.innerContainer}>
+                  <Kb.Text type="Header">Misc</Kb.Text>
+                  <>
+                    {!!this.props.groups.get('misc')?.settings && (
+                      <Group
+                        allowEdit={this.props.allowEdit}
+                        groupName="misc"
+                        onToggle={this.props.onToggle}
+                        settings={this.props.groups.get('misc')!.settings}
                         unsubscribedFromAll={false}
                       />
                     )}

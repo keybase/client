@@ -41,11 +41,10 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
   }
 
   render() {
-    const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
-    const whoRevoked = yourMessage ? 'You' : author
+    const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = this.props
     const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
     const info = (
-      <Kb.Box2 direction="vertical" style={styles.messageInfoContainer}>
+      <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
         <Kb.Box2 direction="horizontal">
           <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
             <Kb.Avatar username={author} size={16} onClick="profile" />
@@ -78,7 +77,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
             </Kb.Box2>
           </Kb.Box2>
         ) : null}
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text center={true} type="BodySmall">
             {formatTimeForPopup(timestamp)}
           </Kb.Text>
@@ -88,7 +87,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
               backgroundColor={Kb.Styles.globalColors.blue}
               style={styles.revokedAt}
             >
-              {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+              Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
             </Kb.PopupHeaderText>
           ) : null}
         </Kb.Box2>
@@ -172,9 +171,6 @@ const styles = Kb.Styles.styleSheetCreate(
       revokedAt: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,
-        marginBottom: -Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.small,
-        minHeight: 40,
         width: '100%',
       },
       timerBox: Kb.Styles.platformStyles({

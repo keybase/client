@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Container from '@/util/container'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -35,8 +34,8 @@ const useScrolling = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
-  const oldestOrdinal = messageOrdinals.at(-1) ?? T.Chat.numberToOrdinal(-1)
+  const {cidChanged, listRef, centeredOrdinal, messageOrdinals} = p
+  const numOrdinals = messageOrdinals.length
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
@@ -67,8 +66,8 @@ const useScrolling = (p: {
   })
 
   const onEndReached = React.useCallback(() => {
-    loadOlderMessages(oldestOrdinal)
-  }, [loadOlderMessages, oldestOrdinal])
+    loadOlderMessages(numOrdinals)
+  }, [loadOlderMessages, numOrdinals])
 
   return {
     onEndReached,
@@ -151,9 +150,16 @@ const ConversationList = React.memo(function ConversationList() {
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  Container.useDepChangeEffect(() => {
-    centeredOrdinal && scrollToCentered()
-  }, [centeredOrdinal, scrollToCentered])
+  const lastCenteredOrdinal = React.useRef(0)
+  if (lastCenteredOrdinal.current !== centeredOrdinal) {
+    lastCenteredOrdinal.current = centeredOrdinal
+    if (centeredOrdinal) {
+      // let it render first
+      setTimeout(() => {
+        scrollToCentered()
+      }, 16)
+    }
+  }
 
   if (!markedInitiallyLoaded) {
     markedInitiallyLoaded = true

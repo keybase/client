@@ -9,10 +9,10 @@ export const getUserBlocksWaitingKey = 'users:getUserBlocks'
 export const setUserBlocksWaitingKey = 'users:setUserBlocks'
 export const reportUserWaitingKey = 'users:reportUser'
 
-export type Store = {
+export type Store = T.Immutable<{
   blockMap: Map<string, T.Users.BlockState>
   infoMap: Map<string, T.Users.UserInfo>
-}
+}>
 
 const initialStore: Store = {
   blockMap: new Map(),
@@ -22,7 +22,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     getBio: (username: string) => void
-    getBlockState: (usernames: Array<string>) => void
+    getBlockState: (usernames: ReadonlyArray<string>) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     reportUser: (p: {
       username: string
@@ -33,8 +33,8 @@ export type State = Store & {
     }) => void
     resetState: 'default'
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
-    setUserBlocks: (blocks: Array<T.RPCGen.UserBlockArg>) => void
-    updates: (infos: Array<{name: string; info: Partial<T.Users.UserInfo>}>) => void
+    setUserBlocks: (blocks: ReadonlyArray<T.RPCGen.UserBlockArg>) => void
+    updates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
   }
 }
 
@@ -88,9 +88,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     replace: (infoMap, blockMap) => {
       set(s => {
-        s.infoMap = infoMap
+        s.infoMap = T.castDraft(infoMap)
         if (blockMap) {
-          s.blockMap = blockMap
+          s.blockMap = T.castDraft(blockMap)
         }
       })
     },
@@ -119,7 +119,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    updates: (infos: Array<{name: string; info: Partial<T.Users.UserInfo>}>) => {
+    updates: infos => {
       set(s => {
         for (const {name, info: i} of infos) {
           const user = mapGetEnsureValue(s.infoMap, name, {broken: false})

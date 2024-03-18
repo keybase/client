@@ -32,20 +32,19 @@ const Header = () => {
   const username = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const onProfileClick = () => showUserProfile(username)
-  const onClickWrapper = () => {
+  const onClickWrapper = React.useCallback(() => {
     setShowingMenu(false)
-    onProfileClick()
-  }
+    showUserProfile(username)
+  }, [showUserProfile, username])
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const stop = C.useSettingsState(s => s.dispatch.stop)
-  const onAddAccount = () => {
+  const onAddAccount = React.useCallback(() => {
     startProvision()
-  }
-  const onHelp = () => openURL('https://book.keybase.io')
+  }, [startProvision])
+  const onHelp = React.useCallback(() => openURL('https://book.keybase.io'), [])
   const dumpLogs = C.useConfigState(s => s.dispatch.dumpLogs)
-  const onQuit = () => {
+  const onQuit = React.useCallback(() => {
     if (!__DEV__) {
       if (isLinux) {
         stop(T.RPCGen.ExitCode.ok)
@@ -58,47 +57,61 @@ const Header = () => {
     setTimeout(() => {
       ctlQuit?.()
     }, 2000)
-  }
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSettings = () => switchTab(Tabs.settingsTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => navigateAppend(C.Settings.settingsLogOutTab)
+  }, [dumpLogs, stop])
 
-  const menuHeader = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-        <Kb.ConnectedNameWithIcon
-          username={username}
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSignOut = React.useCallback(() => navigateAppend(C.Settings.settingsLogOutTab), [navigateAppend])
+
+  const menuHeader = React.useMemo(
+    () => (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+          <Kb.ConnectedNameWithIcon
+            username={username}
+            onClick={onClickWrapper}
+            metaTwo={
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                {fullname}
+              </Kb.Text>
+            }
+          />
+        </Kb.ClickableBox>
+        <Kb.Button
+          label="View/Edit profile"
+          mode="Secondary"
           onClick={onClickWrapper}
-          metaTwo={
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-              {fullname}
-            </Kb.Text>
-          }
+          small={true}
+          style={styles.button}
         />
-      </Kb.ClickableBox>
-      <Kb.Button
-        label="View/Edit profile"
-        mode="Secondary"
-        onClick={onClickWrapper}
-        small={true}
-        style={styles.button}
-      />
-      <AccountSwitcher />
-    </Kb.Box2>
+        <AccountSwitcher />
+      </Kb.Box2>
+    ),
+    [onClickWrapper, username, fullname]
   )
 
-  const menuItems = (): Kb.MenuItems => [
-    {onClick: onAddAccount, title: 'Log in as another user'},
-    {onClick: onSettings, title: 'Settings'},
-    {onClick: onHelp, title: 'Help'},
-    {danger: true, onClick: onSignOut, title: 'Sign out'},
-    {danger: true, onClick: onQuit, title: 'Quit Keybase'},
-  ]
+  const menuItems = React.useMemo(
+    (): Kb.MenuItems => [
+      {onClick: onAddAccount, title: 'Log in as another user'},
+      {onClick: onSettings, title: 'Settings'},
+      {onClick: onHelp, title: 'Help'},
+      {danger: true, onClick: onSignOut, title: 'Sign out'},
+      {danger: true, onClick: onQuit, title: 'Quit Keybase'},
+    ],
+    [onAddAccount, onSettings, onHelp, onSignOut, onQuit]
+  )
+
+  const showMenu = React.useCallback(() => {
+    setShowingMenu(true)
+  }, [])
+  const hideMenu = React.useCallback(() => {
+    setShowingMenu(false)
+  }, [])
 
   return (
     <>
-      <Kb.ClickableBox onClick={() => setShowingMenu(true)}>
+      <Kb.ClickableBox onClick={showMenu}>
         <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"
@@ -130,12 +143,12 @@ const Header = () => {
       <Kb.FloatingMenu
         position="bottom left"
         containerStyle={styles.menu}
-        header={menuHeader()}
+        header={menuHeader}
         closeOnSelect={true}
         visible={showingMenu}
         attachTo={popupAnchor}
-        items={menuItems()}
-        onHidden={() => setShowingMenu(false)}
+        items={menuItems}
+        onHidden={hideMenu}
       />
     </>
   )
@@ -201,13 +214,14 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
+  const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = C.useCurrentUserState(s => s.username)
   const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
   const login = C.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             const accountRows = C.useConfigState.getState().configuredAccounts
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
@@ -219,14 +233,14 @@ const Tab = React.memo(function Tab(props: TabProps) {
             }
           }
         : undefined,
-    [login, index, current, onSelectTab, tab, setUserSwitching]
+    [login, isPeopleTab, current, onSelectTab, tab, setUserSwitching]
   )
 
   // no long press on desktop so a quick version
   const [mouseTime, setMouseTime] = React.useState(0)
   const onMouseUp = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             if (mouseTime && Date.now() - mouseTime > 1000) {
               onQuickSwitch?.()
@@ -234,25 +248,25 @@ const Tab = React.memo(function Tab(props: TabProps) {
             setMouseTime(0)
           }
         : undefined,
-    [index, onQuickSwitch, mouseTime]
+    [isPeopleTab, onQuickSwitch, mouseTime]
   )
   const onMouseDown = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             setMouseTime(Date.now())
           }
         : undefined,
-    [index]
+    [isPeopleTab]
   )
   const onMouseLeave = React.useMemo(
     () =>
-      index === 0
+      isPeopleTab
         ? () => {
             setMouseTime(0)
           }
         : undefined,
-    [index]
+    [isPeopleTab]
   )
 
   const onClick = React.useCallback(() => {
@@ -268,27 +282,27 @@ const Tab = React.memo(function Tab(props: TabProps) {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
-      <Kb.WithTooltip
+      <Kb.Box2Measure
+        direction="horizontal"
+        fullWidth={true}
+        className={Kb.Styles.classNames(
+          isSelected ? 'tab-selected' : 'tab',
+          'tab-tooltip',
+          'tooltip-top-right'
+        )}
+        style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
-        toastClassName="tab-tooltip"
       >
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          className={isSelected ? 'tab-selected' : 'tab'}
-          style={styles.tab}
-        >
-          <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-          <Kb.Box2 style={styles.iconBox} direction="horizontal">
-            <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
-            {tab === Tabs.fsTab && <FilesTabBadge />}
-          </Kb.Box2>
-          <Kb.Text className="tab-label" type="BodySmallSemibold">
-            {label}
-          </Kb.Text>
-          <TabBadge name={tab} />
+        <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+        <Kb.Box2 style={styles.iconBox} direction="horizontal">
+          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
+          {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
-      </Kb.WithTooltip>
+        <Kb.Text className="tab-label" type="BodySmallSemibold">
+          {label}
+        </Kb.Text>
+        <TabBadge name={tab} />
+      </Kb.Box2Measure>
     </Kb.ClickableBox>
   )
 })

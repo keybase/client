@@ -6,12 +6,12 @@ import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 
-const emptyAttach = C.Chat.makeMessageAttachment({})
 const emptyText = C.Chat.makeMessageText({})
 
-export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: () => void) => {
+export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
-  const message = isAttach ? (m?.type === 'attachment' ? m : emptyAttach) : m?.type === 'text' ? m : emptyText
+  const isAttach = m?.type === 'attachment'
+  const message = m || emptyText
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname} = meta
@@ -225,11 +225,11 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   }
 }
 
-export const useHeader = (ordinal: T.Chat.Ordinal, isAttach: boolean) => {
+export const useHeader = (ordinal: T.Chat.Ordinal) => {
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const you = C.useCurrentUserState(s => s.username)
-  const message = isAttach ? (m?.type === 'attachment' ? m : emptyAttach) : m?.type === 'text' ? m : emptyText
-  const {author, deviceType, deviceName, botUsername, timestamp, exploding} = message
+  const message = m || emptyText
+  const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you
   const deviceRevokedAt = message.deviceRevokedAt || undefined
   const mapUnfurl = C.Chat.getMapUnfurl(message)
@@ -240,9 +240,9 @@ export const useHeader = (ordinal: T.Chat.Ordinal, isAttach: boolean) => {
       author={author}
       hideTimer={message.submitState === 'pending' || message.submitState === 'failed'}
       botUsername={botUsername}
-      deviceName={deviceName}
+      deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
-      explodesAt={message.explodingTime}
+      explodesAt={explodingTime ?? 0}
       timestamp={timestamp}
       yourMessage={yourMessage}
     />
@@ -250,9 +250,9 @@ export const useHeader = (ordinal: T.Chat.Ordinal, isAttach: boolean) => {
     <MessagePopupHeader
       author={author}
       botUsername={botUsername}
-      deviceName={deviceName}
+      deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
-      deviceType={deviceType}
+      deviceType={deviceType ?? 'desktop'}
       isLast={false}
       isLocation={isLocation}
       timestamp={timestamp}

@@ -33,7 +33,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         />
       ) : null}
       <Kb.Box2 direction="vertical">
-        <Kb.Text
+        <Kb.Text2
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([
             props.selected ? styles.selectedText : styles.itemText,
@@ -41,8 +41,8 @@ export default function SettingsItem(props: SettingsItemProps) {
           ])}
         >
           {props.text}
-        </Kb.Text>
-        {props.text && props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+        </Kb.Text2>
+        {props.text && props.subText && <Kb.Text2 type="BodySmall">{props.subText}</Kb.Text2>}
       </Kb.Box2>
       {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (

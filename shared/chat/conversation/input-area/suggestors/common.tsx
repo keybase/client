@@ -1,4 +1,3 @@
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import SuggestionList from './suggestion-list'
@@ -71,10 +70,14 @@ export function List<T>(p: ListProps<T>) {
     [selectedIndex, onSelected, ItemRenderer, keyExtractor]
   )
 
-  Container.useDepChangeEffect(() => {
+  const lastSelectedIndex = React.useRef(selectedIndex)
+  if (lastSelectedIndex.current !== selectedIndex) {
+    lastSelectedIndex.current = selectedIndex
     const sel = items[selectedIndex]
-    sel && onSelected(sel, false)
-  }, [selectedIndex])
+    if (sel) {
+      onSelected(sel, false)
+    }
+  }
 
   onMoveRef.current = React.useCallback(
     (up: boolean) => {

@@ -2,7 +2,7 @@
 * [Dependencies](#dependencies)
 * [Troubleshooting](#troubleshooting)
 
-The complete SVG pipeline is as follows
+The complete SVG pipeline was as follows. Zeplin etc is gone
 
 Sketch Assets → Zeplin → Export to SVG → Optimized with SVGO → Download
 

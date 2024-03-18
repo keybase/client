@@ -228,6 +228,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     )
   }
   let exploded: React.ReactNode = null
+
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={false}>

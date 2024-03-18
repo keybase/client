@@ -7,7 +7,6 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import debounce from 'lodash/debounce'
 
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
@@ -44,11 +43,15 @@ const NewTeamInfo = () => {
 
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
-  // eslint-disable-next-line
+  const checkTeam = C.useDebouncedCallback(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100)
+  type TeamNameParams = Parameters<typeof checkTeam>
   const checkTeamNameTaken = React.useCallback(
-    debounce(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100),
-    []
+    (teamNames: TeamNameParams[0], cb: TeamNameParams[1], eb: TeamNameParams[2]) => {
+      checkTeam(teamNames, cb, eb)
+    },
+    [checkTeam]
   )
+
   React.useEffect(() => {
     if (name.length >= minLength) {
       checkTeamNameTaken(

@@ -7,9 +7,9 @@ import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
-  installInConvs: string[]
+  installInConvs: ReadonlyArray<string>
   setChannelPickerScreen: (show: boolean) => void
-  setInstallInConvs: (convs: string[]) => void
+  setInstallInConvs: (convs: ReadonlyArray<string>) => void
   setDisableDone: (disable: boolean) => void
   teamID: T.Teams.TeamID
   teamName: string
@@ -34,7 +34,7 @@ const getChannels = memoize(
   }
 )
 
-const toggleChannel = (convID: string, installInConvs: string[]) => {
+const toggleChannel = (convID: string, installInConvs: ReadonlyArray<string>) => {
   if (installInConvs.includes(convID)) {
     return installInConvs.filter(id => id !== convID)
   } else {

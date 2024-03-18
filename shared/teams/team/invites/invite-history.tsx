@@ -13,7 +13,7 @@ type Props = {teamID: T.Teams.TeamID}
 
 const splitInviteLinks = memoize(
   (
-    inviteLinks?: Array<T.Teams.InviteLink>
+    inviteLinks?: ReadonlyArray<T.Teams.InviteLink>
   ): {
     invalid: Array<T.Teams.InviteLink>
     valid: Array<T.Teams.InviteLink>

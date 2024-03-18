@@ -9,3 +9,6 @@ electron message images not showing in popup due to height missing?
 switch to expo-camera for barcode scanning
 
     run electron hash update
+
+framepack, dispatch invocations
+memoize-one remove

@@ -10,21 +10,23 @@ const initialStore: T.Waiting.State = {
 type State = T.Waiting.State & {
   dispatch: {
     resetState: 'default'
-    clear: (keys: string | Array<string>) => void
-    increment: (keys: string | Array<string>) => void
-    decrement: (keys: string | Array<string>, error?: RPCError) => void
-    batch: (changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>) => void
+    clear: (keys: string | ReadonlyArray<string>) => void
+    increment: (keys: string | ReadonlyArray<string>) => void
+    decrement: (keys: string | ReadonlyArray<string>, error?: RPCError) => void
+    batch: (
+      changes: ReadonlyArray<{key: string | ReadonlyArray<string>; increment: boolean; error?: RPCError}>
+    ) => void
   }
 }
 
-const getKeys = (k?: string | Array<string>) => {
+const getKeys = (k?: string | ReadonlyArray<string>) => {
   if (k === undefined) return []
   if (typeof k === 'string') return [k]
   return k
 }
 
 export const _useState = Z.createZustand<State>((set, get) => {
-  const changeHelper = (keys: string | Array<string>, diff: 1 | -1, error?: RPCError) => {
+  const changeHelper = (keys: string | ReadonlyArray<string>, diff: 1 | -1, error?: RPCError) => {
     set(s => {
       getKeys(keys).forEach(k => {
         const oldCount = s.counts.get(k) || 0

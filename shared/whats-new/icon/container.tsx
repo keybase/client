@@ -22,7 +22,7 @@ const IconContainer = (p: OwnProps) => {
 }
 
 // Whats New icon with popup which is connected to the badge state and marking release as seen.
-export const IconWithPopup = (p: PopupOwnProps) => {
+export const IconWithPopupDesktop = (p: PopupOwnProps) => {
   const {attachToRef, badgeColor, style, color} = p
   const newRelease = C.useWNState(s => s.anyVersionsUnseen())
   return (

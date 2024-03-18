@@ -172,11 +172,17 @@ const reactComponentsForMarkdownType = {
   },
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   blockQuote: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
-      <Box key={state.key} style={markdownStyles.quoteStyle}>
-        {output(node['content'], {...state, inBlockQuote: true})}
-      </Box>
-    ),
+    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      const oldInBlockQuote = state['inBlockQuote'] as boolean
+      state['inBlockQuote'] = true
+      const ret = (
+        <Box key={state.key} style={markdownStyles.quoteStyle}>
+          {output(node['content'], state)}
+        </Box>
+      )
+      state['inBlockQuote'] = oldInBlockQuote
+      return ret
+    },
   },
   del: {
     react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
@@ -191,19 +197,25 @@ const reactComponentsForMarkdownType = {
     ),
   },
   em: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
-      <Text
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([
-          markdownStyles.italicStyle,
-          state['insideStrong'] && markdownStyles.boldStyle,
-          state.styleOverride?.em,
-        ])}
-      >
-        {output(node['content'], {...state, insideEM: true})}
-      </Text>
-    ),
+    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      const oldInsideEM = state['insideEM'] as boolean
+      state['insideEM'] = true
+      const ret = (
+        <Text
+          type="Body"
+          key={state.key}
+          style={Styles.collapseStyles([
+            markdownStyles.italicStyle,
+            state['insideStrong'] && markdownStyles.boldStyle,
+            state.styleOverride?.em,
+          ])}
+        >
+          {output(node['content'], state)}
+        </Text>
+      )
+      state['insideEM'] = oldInsideEM
+      return ret
+    },
   },
   emoji: {
     react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
@@ -269,17 +281,23 @@ const reactComponentsForMarkdownType = {
       ),
   },
   paragraph: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
-      <Text
-        className={state.paragraphTextClassName}
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
-        allowFontScaling={state['allowFontScaling']}
-      >
-        {output(node['content'], {...state, inParagraph: true})}
-      </Text>
-    ),
+    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      const oldInParagraph = state['inParagraph'] as boolean
+      state['inParagraph'] = true
+      const ret = (
+        <Text
+          className={state.paragraphTextClassName}
+          type="Body"
+          key={state.key}
+          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
+          allowFontScaling={state['allowFontScaling']}
+        >
+          {output(node['content'], state)}
+        </Text>
+      )
+      state['inParagraph'] = oldInParagraph
+      return ret
+    },
   },
   serviceDecoration: {
     react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
@@ -288,7 +306,7 @@ const reactComponentsForMarkdownType = {
         key={state.key}
         allowFontScaling={state['allowFontScaling']}
         messageType={state.messageType}
-        styleOverride={state.styleOverride ?? {}}
+        styleOverride={state.styleOverride}
         styles={markdownStyles as any}
         disableBigEmojis={false}
         disableEmojiAnimation={false}
@@ -301,20 +319,26 @@ const reactComponentsForMarkdownType = {
     },
   },
   strong: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
-      <Text
-        type="BodySemibold"
-        key={state.key}
-        style={Styles.collapseStyles([
-          markdownStyles.boldStyle,
-          state['insideEM'] && markdownStyles.italicStyle,
-          state.styleOverride?.strong,
-        ])}
-        allowFontScaling={state['allowFontScaling']}
-      >
-        {output(node['content'], {...state, insideStrong: true})}
-      </Text>
-    ),
+    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      const oldInsideStrong = state['insideStrong'] as boolean
+      state['insideStrong'] = true
+      const ret = (
+        <Text
+          type="BodySemibold"
+          key={state.key}
+          style={Styles.collapseStyles([
+            markdownStyles.boldStyle,
+            state['insideEM'] && markdownStyles.italicStyle,
+            state.styleOverride?.strong,
+          ])}
+          allowFontScaling={state['allowFontScaling']}
+        >
+          {output(node['content'], state)}
+        </Text>
+      )
+      state['insideStrong'] = oldInsideStrong
+      return ret
+    },
   },
   text: SimpleMarkdown.defaultRules.text,
 }
@@ -356,16 +380,20 @@ export const bigEmojiOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     },
     paragraph: {
       react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
-        return (
+        const oldInParagraph = state['inParagraph'] as boolean
+        state['inParagraph'] = true
+        const ret = (
           <Text
             type="Body"
             key={state.key}
             style={markdownStyles.bigTextBlockStyle}
             allowFontScaling={state['allowFontScaling']}
           >
-            {output(node['content'], {...state, inParagraph: true})}
+            {output(node['content'], state)}
           </Text>
         )
+        state['inParagraph'] = oldInParagraph
+        return ret
       },
     },
   },
@@ -403,7 +431,7 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
           json={node['content']}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
-          styleOverride={state.styleOverride ?? {}}
+          styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
           disableEmojiAnimation={true}
@@ -434,7 +462,7 @@ export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
           json={node['content']}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
-          styleOverride={state.styleOverride ?? {}}
+          styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
           disableEmojiAnimation={state.disallowAnimation ?? true}
@@ -475,7 +503,7 @@ export const serviceOnlyNoWrapOutput: SM.Output<any> = SimpleMarkdown.outputFor(
           json={node['content']}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
-          styleOverride={state.styleOverride ?? {}}
+          styleOverride={state.styleOverride}
           styles={markdownStyles as any}
           disableBigEmojis={true}
           disableEmojiAnimation={state.disallowAnimation ?? true}

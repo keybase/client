@@ -4,7 +4,7 @@ import * as TrackerConstants from '@/constants/tracker2'
 import AccountSwitcher from './index'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
-  accountRows: Array<T>,
+  accountRows: ReadonlyArray<T>,
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 

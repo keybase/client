@@ -6,12 +6,12 @@ export type Props = {
   isNew: boolean
   mixedMode?: boolean
   mode: 'row' | 'default'
-  reset: boolean | Array<string>
+  reset: boolean | ReadonlyArray<string>
   tlfMtime: number
   tlfType: T.FS.Visibility
 }
 
-const getOtherResetText = (names: Array<string>): string => {
+const getOtherResetText = (names: ReadonlyArray<string>): string => {
   if (names.length === 1) {
     return `${names[0]} has reset or deleted their account.`
   } else if (names.length === 2) {
@@ -39,8 +39,8 @@ const resetText = (props: Props) => {
     props.reset === true
       ? 'Participants have to let you back in.'
       : props.reset
-      ? getOtherResetText(props.reset)
-      : null
+        ? getOtherResetText(props.reset)
+        : null
   return text ? (
     <Kb.Text
       type="BodySmallError"

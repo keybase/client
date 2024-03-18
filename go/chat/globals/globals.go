@@ -48,6 +48,7 @@ type ChatContext struct {
 	ParticipantsSource   types.ParticipantSource          // get team participants
 	EmojiSource          types.EmojiSource                // emoji support
 	EphemeralTracker     types.EphemeralTracker           // tracking of ephemeral msg caches
+	ArchiveRegistry      types.ChatArchiveRegistry        // Metadata store of chat archives
 }
 
 func (c *ChatContext) Describe() string {

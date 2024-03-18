@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-
-const branchRefPrefix = 'refs/heads/'
 
 type Props = {
   message: T.Chat.MessageSystemGitPush
@@ -104,11 +103,8 @@ const GitPush = React.memo(function GitPush(p: Props) {
     case 'default':
       return (
         <>
-          {refs.map(ref => {
-            let branchName = ref.refName
-            if (branchName.startsWith(branchRefPrefix)) {
-              branchName = branchName.substring(branchRefPrefix.length)
-            } // else show full ref
+          {refs?.map(ref => {
+            const branchName = C.Chat.systemGitBranchName(ref)
             return (
               <GitPushCommon key={branchName}>
                 <GitPushDefault

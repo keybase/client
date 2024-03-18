@@ -10,7 +10,7 @@ type OwnProps = {
   firstItem: boolean
 }
 
-export const NewContext = React.createContext(new Set())
+export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 const Container = React.memo(function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps

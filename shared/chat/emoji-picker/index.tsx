@@ -53,8 +53,8 @@ const getEmojiSections = memoize(
 
 const getFrequentSection = memoize(
   (
-    topReacjis: Array<T.RPCGen.UserReacji>,
-    customEmojiGroups: Array<T.RPCChat.EmojiGroup>,
+    topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
+    customEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
     emojisPerLine: number
   ): Section => {
     const {emojiNameMap} = _getData()
@@ -93,13 +93,13 @@ type Section = _Section<
 
 type Props = {
   addEmoji: () => void
-  topReacjis: Array<T.RPCGen.UserReacji>
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>
   filter?: string
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: T.Chat.EmojiSkinTone
-  customEmojiGroups?: T.RPCChat.EmojiGroup[]
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
   width: number
   waitingForEmoji?: boolean
 }
@@ -109,13 +109,13 @@ type State = {
 }
 
 type Bookmark = {
-  coveredSectionKeys: Set<string>
+  coveredSectionKeys: ReadonlySet<string>
   iconType: Kb.IconType
   sectionIndex: number
 }
 
 const emojiGroupsToEmojiArrayArray = (
-  emojiGroups: Array<T.RPCChat.EmojiGroup>
+  emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>
 ): Array<{emojis: Array<EmojiData>; name: string}> =>
   emojiGroups.map(emojiGroup => ({
     emojis:
@@ -126,7 +126,7 @@ const emojiGroupsToEmojiArrayArray = (
   }))
 
 const getCustomEmojiSections = memoize(
-  (emojiGroups: Array<T.RPCChat.EmojiGroup>, emojisPerLine: number): Array<Section> =>
+  (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>, emojisPerLine: number): Array<Section> =>
     emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
       data: chunkEmojis(group.emojis, emojisPerLine),
       key: group.name,
@@ -134,7 +134,7 @@ const getCustomEmojiSections = memoize(
     }))
 )
 
-const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) => {
+const getCustomEmojiIndex = memoize((emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   const mapper = new Map<string, EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
@@ -161,7 +161,7 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) =
 })
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
-const getResultFilter = (emojiGroups?: Array<T.RPCChat.EmojiGroup>) => {
+const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   const {emojiSearch} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
@@ -174,9 +174,9 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = memoize(
   (
     width: number,
-    topReacjis: Array<T.RPCGen.UserReacji>,
+    topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
     hideTopReacjis: boolean,
-    customEmojiGroups?: T.RPCChat.EmojiGroup[]
+    customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
   ) => {
     if (!width) {
       return {bookmarks: [], sections: []}
@@ -209,15 +209,16 @@ const getSectionsAndBookmarks = memoize(
     })
 
     if (customEmojiGroups?.length) {
+      const coveredSectionKeys = new Set<string>()
+      getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
+        coveredSectionKeys.add(section.key)
+        sections.push(section)
+      })
       const bookmark = {
-        coveredSectionKeys: new Set<string>(),
+        coveredSectionKeys,
         iconType: 'iconfont-keybase',
         sectionIndex: sections.length,
       } as Bookmark
-      getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
-        bookmark.coveredSectionKeys.add(section.key)
-        sections.push(section)
-      })
       bookmarks.push(bookmark)
     }
 

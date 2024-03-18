@@ -5,7 +5,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/actions/remote-gen'
-import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
@@ -13,6 +12,7 @@ import {dumpLogs} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
+import {debugWarning} from '@/util/debug-warning'
 
 import type {default as NewMainType} from '../../app/main.desktop'
 
@@ -123,7 +123,6 @@ const render = (Component = Main) => {
   ReactDOM.createRoot(root).render(
     <Root>
       <DarkCSSInjector />
-      <RemoteProxies />
       <FontLoader />
       <div style={{display: 'flex', flex: 1}}>
         <Component />
@@ -133,8 +132,7 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  const accept = module.hot?.accept // eslint-disable-line
-  if (!accept) {
+  if (!module.hot?.accept) {
     return
   }
 
@@ -145,8 +143,8 @@ const setupHMR = () => {
     } catch (_) {}
   }
 
-  accept(['../../app/main.desktop'], refreshMain)
-  accept('@/common-adapters/index.js', () => {})
+  module.hot.accept(['../../app/main.desktop'], refreshMain)
+  module.hot.accept(['../../common-adapters/index'], () => {})
 }
 
 const load = () => {
@@ -164,11 +162,10 @@ const load = () => {
     // let us load devtools first
     const DEBUG_DEFER = false as boolean
     if (DEBUG_DEFER) {
-      for (let i = 0; i < 10; ++i) {
-        console.log('DEBUG_DEFER on!!!')
-      }
-      const e: any = <div>temp</div>
-      ReactDOM.createRoot(document.getElementById('root')!, e)
+      debugWarning('DEBUG_DEFER on!!!')
+      const e = <div>temp</div>
+      const root = document.getElementById('root')
+      root && ReactDOM.createRoot(root).render(e)
       setTimeout(() => {
         render()
       }, 5000)

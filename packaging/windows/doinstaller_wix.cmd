@@ -38,7 +38,7 @@ echo KEYBASE_VERSION %KEYBASE_VERSION%
 popd
 
 :: prompter
-pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+pushd %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter
 msbuild WpfPrompter.sln /t:Clean
 msbuild WpfPrompter.sln /p:Configuration=Release /t:Build
 IF %ERRORLEVEL% NEQ 0 (
@@ -49,12 +49,12 @@ popd
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
-call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 
 :: Double check that keybase is codesigned
 %SIGNTOOL% verify /pa %PathName%
@@ -75,7 +75,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that updater is codesigned
-%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -93,7 +93,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that the prompter exe is codesigned
-%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -112,7 +112,7 @@ IF "%CONFIGURATION%"=="Debug" (
 )
 
 :: Here we rely on the previous steps checking out and building release.exe
-set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
+set ReleaseBin=%GOPATH%\src\github.com\keybase\client\go\release\release.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
