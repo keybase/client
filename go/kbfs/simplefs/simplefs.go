@@ -3748,7 +3748,14 @@ func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID str
 
 func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
-	rc := k.config.KeybaseService().GetKeybaseDaemonRawClient()
+	ks := k.config.KeybaseService()
+	if ks == nil {
+		k.log.CWarningf(ctx,
+			"k.notifyUIStateChange: skipping notification because KeybaseService() is nil")
+		return
+		return
+	}
+	rc := ks.GetKeybaseDaemonRawClient()
 	if rc == nil {
 		k.log.CWarningf(ctx,
 			"k.notifyUIStateChange: skipping notification because rawClient is nil")

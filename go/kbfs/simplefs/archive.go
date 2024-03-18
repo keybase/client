@@ -210,6 +210,7 @@ func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
 			job.Desc.StagingPath, jobID, err)
 	}
 
+	m.signal(m.notifyUIStateChangeSignal)
 	return nil
 }
 
