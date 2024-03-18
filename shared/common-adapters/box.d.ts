@@ -18,6 +18,7 @@ export type Props = {
   className?: string
   style?: any
   ref?: never
+  tooltip?: string
 }
 
 export type LayoutEvent = NativeSyntheticEvent<{

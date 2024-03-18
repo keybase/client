@@ -114,26 +114,18 @@ type AddButtonProps = {
   kind: 'phone number' | 'email'
   onClick: () => void
 }
-const AddButton = (props: AddButtonProps) => {
-  const btn = (
-    <Kb.Button
-      mode="Secondary"
-      onClick={props.onClick}
-      label={`Add ${props.kind}`}
-      small={true}
-      disabled={props.disabled}
-    />
-  )
-  return props.disabled ? (
-    <Kb.WithTooltip
-      tooltip={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}
-    >
-      {btn}
-    </Kb.WithTooltip>
-  ) : (
-    btn
-  )
-}
+const AddButton = (props: AddButtonProps) => (
+  <Kb.Button
+    mode="Secondary"
+    onClick={props.onClick}
+    label={`Add ${props.kind}`}
+    small={true}
+    disabled={props.disabled}
+    className="tooltip-top-right"
+    tooltip={props.disabled ? `You're already at the maximum ${props.kind}s` : undefined}
+  />
+)
+
 const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -163,7 +155,7 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-      <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
+      <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails || true} />
       <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
     </Kb.ButtonBar>
   </SettingsSection>

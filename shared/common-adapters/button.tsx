@@ -205,6 +205,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
       onMouseLeave={props.onMouseLeave}
       onMouseDown={props.onMouseDown}
       hoverColor={Styles.globalColors.transparent}
+      tooltip={props.tooltip}
     >
       {underlay}
       <Kb.Box
@@ -248,7 +249,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
       </Kb.Box>
     </Kb.ClickableBox>
   )
-  if (props.tooltip) {
+  if (props.disabled && props.tooltip && Styles.isMobile) {
     return (
       <Kb.WithTooltip tooltip={props.tooltip} showOnPressMobile={props.disabled}>
         {content}

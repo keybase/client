@@ -183,8 +183,8 @@ const ServicesIcons = (props: {
   const firstIconNoMargin = !props.isKeybaseResult
     ? !props.keybaseUsername && !props.prettyName && !props.displayLabel
     : props.prettyName
-    ? props.prettyName === props.keybaseUsername
-    : !props.displayLabel
+      ? props.prettyName === props.keybaseUsername
+      : !props.displayLabel
   return (
     <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} style={styles.services}>
       {serviceIds.map((serviceName, index) => {
@@ -192,20 +192,15 @@ const ServicesIcons = (props: {
           firstIconNoMargin && index === 0
             ? Kb.Styles.collapseStyles([styles.serviceIcon, {marginLeft: 0}])
             : styles.serviceIcon
+        // On desktop the styles need to be applied to the box parent if they are to work correctly
         return (
-          <Kb.WithTooltip
+          <Kb.Box2
+            direction="vertical"
             key={serviceName}
             tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
-            position="top center"
           >
-            {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
-            <Kb.Icon
-              sizeType="Small"
-              type={serviceIdToIconFont(serviceName)}
-              style={Kb.Styles.isMobile && iconStyle}
-              boxStyle={!Kb.Styles.isMobile && iconStyle}
-            />
-          </Kb.WithTooltip>
+            <Kb.Icon sizeType="Small" type={serviceIdToIconFont(serviceName)} style={iconStyle} />
+          </Kb.Box2>
         )
       })}
     </Kb.Box2>
@@ -341,7 +336,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bottomRowContainer: {
     alignItems: 'baseline',
     flexWrap: 'nowrap',
-    overflow: 'hidden',
   },
   bottomRowScrollContainer: {
     alignItems: 'baseline',

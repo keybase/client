@@ -363,7 +363,4 @@ module.exports = {
   get useTimeout() {
     return require('./use-timers').useTimeout
   },
-  get useTooltip() {
-    return require('./use-tooltip').useTooltip
-  },
 }

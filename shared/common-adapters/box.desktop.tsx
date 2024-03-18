@@ -5,8 +5,8 @@ import type {MeasureRef} from './measure-ref'
 import './box.css'
 
 export const Box = (p: Props) => {
-  const {onLayout, ...rest} = p
-  return <div {...rest} />
+  const {onLayout, tooltip, className, ...rest} = p
+  return <div {...rest} className={Styles.classNames(className, {tooltip})} data-tooltip={tooltip} />
 }
 
 const useBox2Shared = (p: Box2Props) => {
@@ -42,7 +42,7 @@ const useBox2Shared = (p: Box2Props) => {
       box2_pointerEvents_none: pointerEvents === 'none',
       box2_reverse: reverse,
       box2_vertical: !horizontal,
-      tooltip: tooltip,
+      tooltip,
     },
     _className
   )
