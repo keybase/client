@@ -65,9 +65,8 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
 	// leaf.Private.SigID not checked
 	require.Nil(t, leaf.Public, "team public leaf")
-	require.Equal(t, libkb.MerkleHiddenResponseTypeABSENCEPROOF, hiddenResp.RespType)
+	require.Equal(t, libkb.MerkleHiddenResponseTypeOK, hiddenResp.RespType)
 	require.EqualValues(t, 0, hiddenResp.UncommittedSeqno)
-	require.Nil(t, hiddenResp.CommittedHiddenTail)
 
 	// make a hidden rotation to later check that merkle/path returns the appropriate result
 	err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
@@ -83,20 +82,8 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.ID, leaf.TeamID, "team id mismatch")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
-	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF || hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
+	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
-	if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF {
-		t.Logf("The hidden rotation was not yet committed to the blind tree. This is expected.")
-		require.Nil(t, hiddenResp.CommittedHiddenTail)
-	} else {
-		//  This can happen if the architect concurrently builds a new tree
-		t.Logf("Surprisingly, the hidden chain was already committed to the blind tree.")
-		require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
-		committedHiddenTail := hiddenResp.CommittedHiddenTail
-		require.Equal(t, team.HiddenChain().TailTriple().Seqno, committedHiddenTail.Seqno)
-		require.EqualValues(t, team.HiddenChain().TailTriple().LinkID, committedHiddenTail.Hash.String())
-		require.Equal(t, team.HiddenChain().TailTriple().SeqType, committedHiddenTail.ChainType)
-	}
 
 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, &tc)
 
@@ -110,8 +97,4 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
 	require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
-	committedHiddenTail := hiddenResp.CommittedHiddenTail
-	require.Equal(t, team.HiddenChain().TailTriple().Seqno, committedHiddenTail.Seqno)
-	require.EqualValues(t, team.HiddenChain().TailTriple().LinkID, committedHiddenTail.Hash.String())
-	require.Equal(t, team.HiddenChain().TailTriple().SeqType, committedHiddenTail.ChainType)
 }

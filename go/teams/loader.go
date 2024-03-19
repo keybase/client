@@ -542,11 +542,7 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 }
 
 func (l *TeamLoader) checkHiddenResponse(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {
-	if hiddenResp.CommittedHiddenTail != nil {
-		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v CommittedSeqno %v", hiddenResp, hiddenResp.UncommittedSeqno, hiddenResp.CommittedHiddenTail.Seqno)
-	} else {
-		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v", hiddenResp, hiddenResp.UncommittedSeqno)
-	}
+	mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v", hiddenResp, hiddenResp.UncommittedSeqno)
 
 	switch hiddenResp.RespType {
 	case libkb.MerkleHiddenResponseTypeNONE:
