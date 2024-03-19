@@ -127,6 +127,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               kbfsrequest: false,
               kbfssubscription: true,
               keyfamily: false,
+              notifysimplefs: true,
               paperkeys: false,
               pgp: true,
               reachability: true,

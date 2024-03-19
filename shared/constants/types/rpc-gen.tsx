@@ -171,6 +171,10 @@ export type MessageTypes = {
     inParam: undefined
     outParam: void
   }
+  'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged': {
+    inParam: {readonly status: SimpleFSArchiveStatus}
+    outParam: void
+  }
   'keybase.1.NotifyTeam.avatarUpdated': {
     inParam: {readonly name: String; readonly formats?: ReadonlyArray<AvatarFormat> | null; readonly typ: AvatarUpdateType}
     outParam: void
@@ -302,6 +306,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {
     inParam: {readonly path: Path}
     outParam: FolderSyncConfigAndStatus
+  }
+  'keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness': {
+    inParam: {readonly jobID: String}
+    outParam: SimpleFSArchiveJobFreshness
   }
   'keybase.1.SimpleFS.simpleFSGetArchiveStatus': {
     inParam: undefined
@@ -3132,7 +3140,7 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: ReadonlyArray<SizedImage> | null; readonly siteIconDarkmode?: ReadonlyArray<SizedImage> | null; readonly siteIconFull?: ReadonlyArray<SizedImage> | null; readonly siteIconFullDarkmode?: ReadonlyArray<SizedImage> | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly chatemoji: Boolean; readonly chatemojicross: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean; readonly allowChatNotifySkips: Boolean; readonly chatarchive: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly notifysimplefs: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly chatemoji: Boolean; readonly chatemojicross: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean; readonly allowChatNotifySkips: Boolean; readonly chatarchive: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs} | {asyncOp: AsyncOps.read; read: ReadArgs} | {asyncOp: AsyncOps.write; write: WriteArgs} | {asyncOp: AsyncOps.copy; copy: CopyArgs} | {asyncOp: AsyncOps.move; move: MoveArgs} | {asyncOp: AsyncOps.remove; remove: RemoveArgs} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -3272,10 +3280,11 @@ export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolea
 export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
 export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
 export type SimpleFSArchiveJobErrorState = {readonly error: String; readonly nextRetry: Time}
+export type SimpleFSArchiveJobFreshness = {readonly currentTLFRevision: KBFSRevision}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64}
-export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly currentTLFRevision: KBFSRevision; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly skippedCount: Int; readonly totalCount: Int; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64; readonly error?: SimpleFSArchiveJobErrorState | null}
+export type SimpleFSArchiveJobStatus = {readonly desc: SimpleFSArchiveJobDesc; readonly phase: SimpleFSArchiveJobPhase; readonly todoCount: Int; readonly inProgressCount: Int; readonly completeCount: Int; readonly skippedCount: Int; readonly totalCount: Int; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64; readonly error?: SimpleFSArchiveJobErrorState | null}
 export type SimpleFSArchiveState = {readonly jobs?: {[key: string]: SimpleFSArchiveJobState} | null; readonly lastUpdated: Time}
-export type SimpleFSArchiveStatus = {readonly jobs?: {[key: string]: SimpleFSArchiveJobStatus} | null; readonly lastUpdated: Time}
+export type SimpleFSArchiveStatus = {readonly jobs?: ReadonlyArray<SimpleFSArchiveJobStatus> | null; readonly lastUpdated: Time}
 export type SimpleFSIndexProgress = {readonly overallProgress: IndexProgressRecord; readonly currFolder: Folder; readonly currProgress: IndexProgressRecord; readonly foldersLeft?: ReadonlyArray<Folder> | null}
 export type SimpleFSListResult = {readonly entries?: ReadonlyArray<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
@@ -3559,6 +3568,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => void
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}) => void
   'keybase.1.NotifySession.clientOutOfDate'?: (params: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}) => void
+  'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'?: (params: MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['inParam'] & {sessionID: number}) => void
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['inParam'] & {sessionID: number}) => void
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: MessageTypes['keybase.1.NotifyTeam.teamChangedByName']['inParam'] & {sessionID: number}) => void
   'keybase.1.NotifyTeam.teamDeleted'?: (params: MessageTypes['keybase.1.NotifyTeam.teamDeleted']['inParam'] & {sessionID: number}) => void
@@ -3697,6 +3707,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => void
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => void
   'keybase.1.NotifySession.clientOutOfDate'?: (params: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void}) => void
+  'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'?: (params: MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['outParam']) => void}) => void
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['outParam']) => void}) => void
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: MessageTypes['keybase.1.NotifyTeam.teamChangedByName']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamChangedByName']['outParam']) => void}) => void
   'keybase.1.NotifyTeam.teamDeleted'?: (params: MessageTypes['keybase.1.NotifyTeam.teamDeleted']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamDeleted']['outParam']) => void}) => void
@@ -3767,6 +3778,7 @@ export const SimpleFSSimpleFSDismissDownloadRpcPromise = (params: MessageTypes['
 export const SimpleFSSimpleFSDismissUploadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissUpload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSDismissUpload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetArchiveStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetArchiveStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetArchiveStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadStatusRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadStatus', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4259,6 +4271,7 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.NotifySession.loggedOut'
 // 'keybase.1.NotifySession.loggedIn'
 // 'keybase.1.NotifySession.clientOutOfDate'
+// 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'
 // 'keybase.1.NotifyTeam.teamChangedByID'
 // 'keybase.1.NotifyTeam.teamChangedByName'
 // 'keybase.1.NotifyTeam.teamDeleted'

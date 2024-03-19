@@ -1846,33 +1846,31 @@ func (o SimpleFSArchiveJobErrorState) DeepCopy() SimpleFSArchiveJobErrorState {
 }
 
 type SimpleFSArchiveJobStatus struct {
-	Desc               SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
-	Phase              SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
-	CurrentTLFRevision KBFSRevision                  `codec:"currentTLFRevision" json:"currentTLFRevision"`
-	TodoCount          int                           `codec:"todoCount" json:"todoCount"`
-	InProgressCount    int                           `codec:"inProgressCount" json:"inProgressCount"`
-	CompleteCount      int                           `codec:"completeCount" json:"completeCount"`
-	SkippedCount       int                           `codec:"skippedCount" json:"skippedCount"`
-	TotalCount         int                           `codec:"totalCount" json:"totalCount"`
-	BytesTotal         int64                         `codec:"bytesTotal" json:"bytesTotal"`
-	BytesCopied        int64                         `codec:"bytesCopied" json:"bytesCopied"`
-	BytesZipped        int64                         `codec:"bytesZipped" json:"bytesZipped"`
-	Error              *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
+	Desc            SimpleFSArchiveJobDesc        `codec:"desc" json:"desc"`
+	Phase           SimpleFSArchiveJobPhase       `codec:"phase" json:"phase"`
+	TodoCount       int                           `codec:"todoCount" json:"todoCount"`
+	InProgressCount int                           `codec:"inProgressCount" json:"inProgressCount"`
+	CompleteCount   int                           `codec:"completeCount" json:"completeCount"`
+	SkippedCount    int                           `codec:"skippedCount" json:"skippedCount"`
+	TotalCount      int                           `codec:"totalCount" json:"totalCount"`
+	BytesTotal      int64                         `codec:"bytesTotal" json:"bytesTotal"`
+	BytesCopied     int64                         `codec:"bytesCopied" json:"bytesCopied"`
+	BytesZipped     int64                         `codec:"bytesZipped" json:"bytesZipped"`
+	Error           *SimpleFSArchiveJobErrorState `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 	return SimpleFSArchiveJobStatus{
-		Desc:               o.Desc.DeepCopy(),
-		Phase:              o.Phase.DeepCopy(),
-		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
-		TodoCount:          o.TodoCount,
-		InProgressCount:    o.InProgressCount,
-		CompleteCount:      o.CompleteCount,
-		SkippedCount:       o.SkippedCount,
-		TotalCount:         o.TotalCount,
-		BytesTotal:         o.BytesTotal,
-		BytesCopied:        o.BytesCopied,
-		BytesZipped:        o.BytesZipped,
+		Desc:            o.Desc.DeepCopy(),
+		Phase:           o.Phase.DeepCopy(),
+		TodoCount:       o.TodoCount,
+		InProgressCount: o.InProgressCount,
+		CompleteCount:   o.CompleteCount,
+		SkippedCount:    o.SkippedCount,
+		TotalCount:      o.TotalCount,
+		BytesTotal:      o.BytesTotal,
+		BytesCopied:     o.BytesCopied,
+		BytesZipped:     o.BytesZipped,
 		Error: (func(x *SimpleFSArchiveJobErrorState) *SimpleFSArchiveJobErrorState {
 			if x == nil {
 				return nil
@@ -1884,25 +1882,34 @@ func (o SimpleFSArchiveJobStatus) DeepCopy() SimpleFSArchiveJobStatus {
 }
 
 type SimpleFSArchiveStatus struct {
-	Jobs        map[string]SimpleFSArchiveJobStatus `codec:"jobs" json:"jobs"`
-	LastUpdated Time                                `codec:"lastUpdated" json:"lastUpdated"`
+	Jobs        []SimpleFSArchiveJobStatus `codec:"jobs" json:"jobs"`
+	LastUpdated Time                       `codec:"lastUpdated" json:"lastUpdated"`
 }
 
 func (o SimpleFSArchiveStatus) DeepCopy() SimpleFSArchiveStatus {
 	return SimpleFSArchiveStatus{
-		Jobs: (func(x map[string]SimpleFSArchiveJobStatus) map[string]SimpleFSArchiveJobStatus {
+		Jobs: (func(x []SimpleFSArchiveJobStatus) []SimpleFSArchiveJobStatus {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]SimpleFSArchiveJobStatus, len(x))
-			for k, v := range x {
-				kCopy := k
+			ret := make([]SimpleFSArchiveJobStatus, len(x))
+			for i, v := range x {
 				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
+				ret[i] = vCopy
 			}
 			return ret
 		})(o.Jobs),
 		LastUpdated: o.LastUpdated.DeepCopy(),
+	}
+}
+
+type SimpleFSArchiveJobFreshness struct {
+	CurrentTLFRevision KBFSRevision `codec:"currentTLFRevision" json:"currentTLFRevision"`
+}
+
+func (o SimpleFSArchiveJobFreshness) DeepCopy() SimpleFSArchiveJobFreshness {
+	return SimpleFSArchiveJobFreshness{
+		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
 	}
 }
 
@@ -2235,6 +2242,10 @@ type SimpleFSArchiveCancelOrDismissJobArg struct {
 type SimpleFSGetArchiveStatusArg struct {
 }
 
+type SimpleFSGetArchiveJobFreshnessArg struct {
+	JobID string `codec:"jobID" json:"jobID"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2376,6 +2387,7 @@ type SimpleFSInterface interface {
 	SimpleFSArchiveStart(context.Context, SimpleFSArchiveStartArg) (SimpleFSArchiveJobDesc, error)
 	SimpleFSArchiveCancelOrDismissJob(context.Context, string) error
 	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
+	SimpleFSGetArchiveJobFreshness(context.Context, string) (SimpleFSArchiveJobFreshness, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3397,6 +3409,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetArchiveJobFreshness": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetArchiveJobFreshnessArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetArchiveJobFreshnessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetArchiveJobFreshnessArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetArchiveJobFreshness(ctx, typedArgs[0].JobID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3866,5 +3893,11 @@ func (c SimpleFSClient) SimpleFSArchiveCancelOrDismissJob(ctx context.Context, j
 
 func (c SimpleFSClient) SimpleFSGetArchiveStatus(ctx context.Context) (res SimpleFSArchiveStatus, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveStatus", []interface{}{SimpleFSGetArchiveStatusArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID string) (res SimpleFSArchiveJobFreshness, err error) {
+	__arg := SimpleFSGetArchiveJobFreshnessArg{JobID: jobID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -443,6 +443,9 @@
         "keybase1NotifySessionClientOutOfDate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void}"
         },
+        "keybase1NotifySimpleFSSimpleFSArchiveStatusChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged']['outParam']) => void}"
+        },
         "keybase1NotifyTeamTeamChangedByID": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamChangedByID']['outParam']) => void}"
         },

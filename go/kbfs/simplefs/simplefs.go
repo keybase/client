@@ -3670,14 +3670,12 @@ func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 	return k.archiveManager.cancelOrDismissJob(ctx, jobID)
 }
 
-// SimpleFSGetArchiveStatus implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
+func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) (
 	status keybase1.SimpleFSArchiveStatus, err error) {
-	ctx = k.makeContext(ctx)
-	state, errorStates := k.archiveManager.getCurrentState(ctx)
 	status = keybase1.SimpleFSArchiveStatus{
 		LastUpdated: state.LastUpdated,
-		Jobs:        make(map[string]keybase1.SimpleFSArchiveJobStatus),
+		Jobs:        make([]keybase1.SimpleFSArchiveJobStatus, 0, len(state.Jobs)),
 	}
 	for jobID, stateJob := range state.Jobs {
 		statusJob := keybase1.SimpleFSArchiveJobStatus{
@@ -3700,31 +3698,81 @@ func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 				statusJob.SkippedCount++
 			}
 		}
-		{ // get current revision
-			fb, _, err := k.getFolderBranchFromPath(ctx,
-				keybase1.NewPathWithKbfs(keybase1.KBFSPath{
-					Path: stateJob.Desc.KbfsPathWithRevision.Path}))
-			if err != nil {
-				return keybase1.SimpleFSArchiveStatus{}, err
-			}
-			if fb == (data.FolderBranch{}) {
-				return keybase1.SimpleFSArchiveStatus{}, nil
-			}
-			status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
-			if err != nil {
-				return keybase1.SimpleFSArchiveStatus{}, err
-			}
-			statusJob.CurrentTLFRevision = keybase1.KBFSRevision(status.Revision)
-		}
 		if errState, ok := errorStates[jobID]; ok {
 			statusJob.Error = &keybase1.SimpleFSArchiveJobErrorState{
 				Error:     errState.err.Error(),
 				NextRetry: keybase1.ToTime(errState.nextRetry),
 			}
 		}
-		status.Jobs[jobID] = statusJob
+		status.Jobs = append(status.Jobs, statusJob)
 	}
+	sort.Slice(status.Jobs, func(i, j int) bool {
+		return status.Jobs[i].Desc.StartTime.Before(status.Jobs[j].Desc.StartTime)
+	})
 	return status, nil
+}
+
+// SimpleFSGetArchiveStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
+	status keybase1.SimpleFSArchiveStatus, err error) {
+	ctx = k.makeContext(ctx)
+	state, errorStates := k.archiveManager.getCurrentState(ctx)
+	return k.archiveStateToStatus(ctx, state, errorStates)
+}
+
+// SimpleFSGetArchiveJobFreshness implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID string) (keybase1.SimpleFSArchiveJobFreshness, error) {
+	ctx = k.makeContext(ctx)
+	state, _ := k.archiveManager.getCurrentState(ctx)
+	stateJob, ok := state.Jobs[jobID]
+	if !ok {
+		return keybase1.SimpleFSArchiveJobFreshness{}, fmt.Errorf("job not found: %s", jobID)
+	}
+	fb, _, err := k.getFolderBranchFromPath(ctx,
+		keybase1.NewPathWithKbfs(keybase1.KBFSPath{
+			Path: stateJob.Desc.KbfsPathWithRevision.Path}))
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobFreshness{}, err
+	}
+	if fb == (data.FolderBranch{}) {
+		return keybase1.SimpleFSArchiveJobFreshness{}, nil
+	}
+	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	if err != nil {
+		return keybase1.SimpleFSArchiveJobFreshness{}, err
+	}
+	return keybase1.SimpleFSArchiveJobFreshness{
+		CurrentTLFRevision: keybase1.KBFSRevision(status.Revision),
+	}, nil
+}
+
+func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
+	ks := k.config.KeybaseService()
+	if ks == nil {
+		k.log.CWarningf(ctx,
+			"k.notifyUIStateChange: skipping notification because KeybaseService() is nil")
+		return
+		return
+	}
+	rc := ks.GetKeybaseDaemonRawClient()
+	if rc == nil {
+		k.log.CWarningf(ctx,
+			"k.notifyUIStateChange: skipping notification because rawClient is nil")
+		return
+	}
+	client := keybase1.NotifySimpleFSClient{Cli: rc}
+
+	status, err := k.archiveStateToStatus(ctx, state, errorStates)
+	if err != nil {
+		k.log.CWarningf(ctx,
+			"k.archiveStateToStatus error: %v", err)
+	}
+	err = client.SimpleFSArchiveStatusChanged(ctx, status)
+	if err != nil {
+		k.log.CWarningf(ctx,
+			"sending SimpleFSArchiveStatusChanged notification error: %v", err)
+	}
 }
 
 // Shutdown shuts down SimpleFS.

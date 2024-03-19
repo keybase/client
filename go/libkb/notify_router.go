@@ -37,6 +37,7 @@ type NotifyListener interface {
 	FavoritesChanged(uid keybase1.UID)
 	FSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg)
 	FSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg)
+	SimpleFSArchiveStatusChanged(status keybase1.SimpleFSArchiveStatus)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity, source chat1.ChatActivitySource)
@@ -144,6 +145,8 @@ func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                 
 func (n *NoopNotifyListener) FSSubscriptionNotify(arg keybase1.FSSubscriptionNotifyArg) {
 }
 func (n *NoopNotifyListener) FSSubscriptionNotifyPath(arg keybase1.FSSubscriptionNotifyPathArg) {
+}
+func (n *NoopNotifyListener) SimpleFSArchiveStatusChanged(status keybase1.SimpleFSArchiveStatus) {
 }
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
@@ -936,6 +939,27 @@ func (n *NotifyRouter) HandleFSSubscriptionNotifyPath(arg keybase1.FSSubscriptio
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.FSSubscriptionNotifyPath(arg)
+	})
+}
+
+func (n *NotifyRouter) HandleSimpleFSArchiveStatusChanged(ctx context.Context, status keybase1.SimpleFSArchiveStatus) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Notifysimplefs { // In the background do...
+			go func() {
+				_ = (keybase1.NotifySimpleFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SimpleFSArchiveStatusChanged(context.Background(), status)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.SimpleFSArchiveStatusChanged(status)
 	})
 }
 
