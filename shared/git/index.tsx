@@ -4,12 +4,11 @@ import * as React from 'react'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import {useLocalBadging} from '@/util/use-local-badging'
 
 type OwnProps = {expanded?: string}
 
-const getRepos = memoize((git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
+const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
     (pt, info) => {
       const target = info.teamname ? pt.teams : pt.personals
@@ -18,7 +17,6 @@ const getRepos = memoize((git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
     },
     {personals: [], teams: []}
   )
-)
 
 const Container = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.Git.loadingWaitingKey)
@@ -30,7 +28,7 @@ const Container = (ownProps: OwnProps) => {
     })
   )
   const {badged} = useLocalBadging(isNew, clearBadges)
-  const {personals, teams} = getRepos(idToInfo)
+  const {personals, teams} = React.useMemo(() => getRepos(idToInfo), [idToInfo])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {
