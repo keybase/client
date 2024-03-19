@@ -84,13 +84,6 @@ func TestMerkleWithHidden(t *testing.T) {
 	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
 	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
 	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
-	if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK {
-		t.Logf("The hidden rotation was not yet committed to the blind tree. This is expected.")
-	} else {
-		//  This can happen if the architect concurrently builds a new tree
-		t.Logf("Surprisingly, the hidden chain was already committed to the blind tree.")
-		require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
-	}
 
 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, &tc)
 
