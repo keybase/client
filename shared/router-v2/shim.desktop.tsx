@@ -186,10 +186,12 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     modal2Style: Kb.Styles.platformStyles({
       isElectron: {flexGrow: 1, pointerEvents: 'none'},
     }),
-    modalContainer: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      alignSelf: 'normal',
-    },
+    modalContainer: Kb.Styles.platformStyles({
+      isElectron: {
+        ...Kb.Styles.globalStyles.fillAbsolute,
+        alignSelf: 'normal',
+      },
+    }),
     modalModeDefault: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
