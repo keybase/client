@@ -23,7 +23,7 @@ import (
 	kbun "github.com/keybase/client/go/kbun"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
@@ -2373,16 +2373,18 @@ func (mr *MockKeybaseServiceMockRecorder) GetKVStoreClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKVStoreClient", reflect.TypeOf((*MockKeybaseService)(nil).GetKVStoreClient))
 }
 
-// GetKeybaseDaemonRawClient implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *MockKeybaseService) GetKeybaseDaemonRawClient() rpc.GenericClient {
-	return nil
+// GetKeybaseDaemonRawClient mocks base method.
+func (m *MockKeybaseService) GetKeybaseDaemonRawClient() rpc.GenericClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKeybaseDaemonRawClient")
+	ret0, _ := ret[0].(rpc.GenericClient)
+	return ret0
 }
 
-// GetKeybaseDaemonRawClient implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *MockKeybaseServiceMockRecorder) GetKeybaseDaemonRawClient() rpc.GenericClient {
-	return nil
+// GetKeybaseDaemonRawClient indicates an expected call of GetKeybaseDaemonRawClient.
+func (mr *MockKeybaseServiceMockRecorder) GetKeybaseDaemonRawClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeybaseDaemonRawClient", reflect.TypeOf((*MockKeybaseService)(nil).GetKeybaseDaemonRawClient))
 }
 
 // GetTeamSettings mocks base method.
