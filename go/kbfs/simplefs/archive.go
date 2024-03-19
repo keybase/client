@@ -159,11 +159,11 @@ func (m *archiveManager) shutdown(ctx context.Context) {
 }
 
 func (m *archiveManager) notifyUIStateChange(ctx context.Context) {
-	state, errorStates := m.getCurrentStateLocked(ctx)
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.notifyUIStateChange")
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.notifyUIStateChange")
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	state, errorStates := m.getCurrentStateLocked(ctx)
 	m.simpleFS.notifyUIStateChange(ctx, state, errorStates)
 }
 
