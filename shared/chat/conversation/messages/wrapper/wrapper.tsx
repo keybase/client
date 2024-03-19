@@ -489,7 +489,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         tooltip="More actions..."
         className={Kb.Styles.classNames(
           hasVisibleItems ? 'hover-opacity-full' : 'hover-visible',
-          'tooltip-bottom-left'
+          'tooltip-left'
         )}
       >
         <Kb.Box style={styles.ellipsis}>

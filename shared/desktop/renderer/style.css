@@ -538,6 +538,7 @@ input {
   color: rgba(0, 0, 0, 0.85);
   color: var(--color-white);
   content: attr(data-tooltip);
+  display: inline-flex;
   opacity: 0;
   flex-grow: 1;
   flex-shrink: 0;
