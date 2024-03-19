@@ -128,6 +128,9 @@
   "chat.1.local.trackGiphySelect": {
     "promise": true
   },
+  "chat.1.local.archiveChat": {
+    "promise": true
+  },
   "chat.1.local.ignorePinnedMessage": {
     "promise": true
   },
