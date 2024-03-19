@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
 import TeamTabs from './tabs/container'
@@ -60,13 +59,13 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const getBots = memoize((members: ReadonlyMap<string, T.Teams.MemberInfo>) =>
-  [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
-)
 const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
-  const _bots = getBots(teamDetails.members)
+  const _bots = React.useMemo(
+    () => [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot'),
+    [teamDetails.members]
+  )
   React.useEffect(() => {
     if (shouldLoad) {
       _bots.forEach(bot => {

@@ -3,25 +3,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {ModalTitle} from '@/teams/common'
 import {InviteItem} from './invite-item'
 import type {Section} from '@/common-adapters/section-list'
 
 type Props = {teamID: T.Teams.TeamID}
-
-const splitInviteLinks = memoize(
-  (
-    inviteLinks?: ReadonlyArray<T.Teams.InviteLink>
-  ): {
-    invalid: Array<T.Teams.InviteLink>
-    valid: Array<T.Teams.InviteLink>
-  } => ({
-    invalid: [...(inviteLinks || [])].filter(i => !i.isValid),
-    valid: [...(inviteLinks || [])].filter(i => i.isValid),
-  })
-)
 
 const InviteHistory = (props: Props) => {
   const teamID = props.teamID
@@ -33,7 +20,8 @@ const InviteHistory = (props: Props) => {
   const onClose = () => nav.safeNavigateUp()
   const onGenerate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
   const inviteLinks = teamDetails?.inviteLinks
-  const {invalid, valid} = splitInviteLinks(inviteLinks)
+  const invalid = inviteLinks?.filter(i => !i.isValid) ?? []
+  const valid = inviteLinks?.filter(i => i.isValid) ?? []
   const data: Array<T.Teams.InviteLink> = showingValid ? valid : invalid
   const sections: Array<Section<T.Teams.InviteLink>> = [
     {

@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import {memoize} from '@/util/memoize'
 import * as Container from '@/util/container'
 
 type Props = {
@@ -12,17 +11,16 @@ type Props = {
   inDestinationPicker?: boolean
 }
 
-// /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
-const getAncestors = memoize(path =>
-  path === C.FS.defaultPath
-    ? []
-    : T.FS.getPathElements(path)
-        .slice(1, -1)
-        .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.FS.defaultPath])
-)
-
 const Breadcrumb = (props: Props) => {
-  const ancestors = getAncestors(props.path || C.FS.defaultPath)
+  const apath = props.path || C.FS.defaultPath
+  // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
+  const ancestors = React.useMemo(() => {
+    return apath === C.FS.defaultPath
+      ? []
+      : T.FS.getPathElements(apath)
+          .slice(1, -1)
+          .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.FS.defaultPath])
+  }, [apath])
   const {inDestinationPicker} = props
   const nav = Container.useSafeNavigation()
   const onOpenPath = React.useCallback(

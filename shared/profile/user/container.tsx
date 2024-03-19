@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import Profile2, {type BackgroundColorType} from '.'
 
 export type OwnProps = {username: string}
@@ -20,12 +19,12 @@ const headerBackgroundColorType = (
   }
 }
 
-const filterWebOfTrustEntries = memoize(
-  (
-    webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
-  ): Array<T.Tracker.WebOfTrustEntry> =>
-    webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
-)
+// const filterWebOfTrustEntries = memoize(
+//   (
+//     webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
+//   ): Array<T.Tracker.WebOfTrustEntry> =>
+//     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
+// )
 
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
@@ -56,19 +55,19 @@ const Connected = (ownProps: OwnProps) => {
   }
 
   const followThem = C.useFollowerState(s => s.following.has(username))
-  const followsYou = C.useFollowerState(s => s.followers.has(username))
-  const mutualFollow = followThem && followsYou
+  // const followsYou = C.useFollowerState(s => s.followers.has(username))
+  // const mutualFollow = followThem && followsYou
   const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
   const nonUserDetails = C.useTrackerState(s => Constants.getNonUserDetails(s, username))
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
-      const {followersCount, followingCount, followers, following, reason, webOfTrustEntries = []} = d
+      const {followersCount, followingCount, followers, following, reason /*, webOfTrustEntries = []*/} = d
 
-      const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
-      const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
-      const vouchShowButton = mutualFollow && !hasAlreadyVouched
-      const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
+      // const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
+      // const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
+      // const vouchShowButton = mutualFollow && !hasAlreadyVouched
+      // const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
 
       return {
         ...commonProps,
@@ -84,9 +83,9 @@ const Connected = (ownProps: OwnProps) => {
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        vouchDisableButton,
-        vouchShowButton,
-        webOfTrustEntries: filteredWot,
+        // vouchDisableButton,
+        // vouchShowButton,
+        // webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -203,9 +202,9 @@ const Connected = (ownProps: OwnProps) => {
     title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
-    vouchDisableButton: stateProps.vouchDisableButton,
-    vouchShowButton: stateProps.vouchShowButton,
-    webOfTrustEntries: stateProps.webOfTrustEntries,
+    // vouchDisableButton: stateProps.vouchDisableButton,
+    // vouchShowButton: stateProps.vouchShowButton,
+    // webOfTrustEntries: stateProps.webOfTrustEntries,
   }
   return <Profile2 {...props} />
 }

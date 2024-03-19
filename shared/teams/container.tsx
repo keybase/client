@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '@/util/open-url'
-import {memoize} from '@/util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 
@@ -19,7 +18,7 @@ const useHeaderActions = () => {
   }
 }
 
-const orderTeamsImpl = (
+const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
   newRequests: T.Immutable<C.Teams.State['newTeamRequests']>,
   teamIDToResetUsers: T.Immutable<C.Teams.State['teamIDToResetUsers']>,
@@ -53,8 +52,6 @@ const orderTeamsImpl = (
     }
   })
 }
-
-const orderTeams = memoize(orderTeamsImpl)
 
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
@@ -105,6 +102,13 @@ const Connected = () => {
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   }
+
+  const teams = React.useMemo(
+    () =>
+      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
+    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
+  )
+
   const props = {
     deletedTeams: deletedTeams,
     loaded: loaded,
@@ -115,15 +119,7 @@ const Connected = () => {
     onReadMore,
     sawChatBanner,
     teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
-    teams: orderTeams(
-      _teams,
-      newTeamRequests,
-      teamIDToResetUsers,
-      newTeams,
-      sortOrder,
-      activityLevels,
-      filter
-    ),
+    teams,
   }
   return <Reloadable {...props} />
 }
