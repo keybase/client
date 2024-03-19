@@ -7,9 +7,9 @@ import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
-import {memoize} from '@/util/memoize'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar-zus'
+import shallowEqual from 'shallowequal'
 import type * as NotifConstants from '@/constants/notifications'
 
 const {showTray} = KB2.functions
@@ -46,11 +46,6 @@ const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteT
   }),
   writer: t.writer,
 })
-
-const getCachedUsernames = memoize(
-  (users: Array<string>) => new Set(users),
-  ([a], [b]) => C.shallowEqual(a, b)
-)
 
 const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
   if (a === b) return false
@@ -153,18 +148,22 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   )
 
   // filter some data based on visible users
-  const usernamesArr: Array<string> = []
-  tlfUpdates.forEach(update => usernamesArr.push(update.writer))
+  const _usernames = new Set<string>()
+  tlfUpdates.forEach(update => _usernames.add(update.writer))
   conversationsToSend.forEach(c => {
     if (c.teamType === 'adhoc') {
-      c.participants && usernamesArr.push(...c.participants)
+      c.participants?.forEach(p => _usernames.add(p))
     } else {
-      c.tlfname && usernamesArr.push(c.tlfname)
+      c.tlfname && _usernames.add(c.tlfname)
     }
   })
 
   // memoize so useMemos work below
-  const usernames = getCachedUsernames(usernamesArr)
+  const usernamesRef = React.useRef(_usernames)
+  if (!shallowEqual(Array.from(usernamesRef.current), Array.from(_usernames))) {
+    usernamesRef.current = _usernames
+  }
+  const usernames = usernamesRef.current
 
   const avatarRefreshCounter = useAvatarState(s => s.counts)
 

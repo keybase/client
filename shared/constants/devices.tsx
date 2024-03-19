@@ -1,7 +1,7 @@
+import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
 import * as T from './types'
-import {memoize} from '@/util/memoize'
 
 const initialStore: T.Devices.State = {
   deviceMap: new Map(),
@@ -105,19 +105,17 @@ export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
   return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as T.Devices.IconNumber
 }
 
-const getNextDeviceIconNumberInner = memoize(
-  (devices: T.Immutable<Map<T.Devices.DeviceID, T.Devices.Device>>) => {
+export const useNextDeviceIconNumber = () => {
+  const dm = _useState(s => s.deviceMap)
+  const next = React.useMemo(() => {
     // Find the max device number and add one (+ one more since these are 1-indexed)
     const result = {backup: 1, desktop: 1, mobile: 1}
-    devices.forEach(device => {
+    dm.forEach(device => {
       if (device.deviceNumberOfType >= result[device.type]) {
         result[device.type] = device.deviceNumberOfType + 1
       }
     })
     return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
-  }
-)
-export const useNextDeviceIconNumber = () => {
-  const dm = _useState(s => s.deviceMap)
-  return getNextDeviceIconNumberInner(dm)
+  }, [dm])
+  return next
 }

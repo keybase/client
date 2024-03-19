@@ -3,26 +3,22 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 
 type Props = {
   members: string[]
   teamID: T.Teams.TeamID
 }
 
-const getSubteamNames = memoize(
-  (state: C.Teams.State, teamID: T.Teams.TeamID): [string[], T.Teams.TeamID[]] => {
-    const subteamIDs = [...(C.useTeamsState.getState().teamDetails.get(teamID)?.subteams ?? [])]
-    return [subteamIDs.map(id => C.Teams.getTeamMeta(state, id).teamname), subteamIDs]
-  }
-)
-
 const ConfirmKickOut = (props: Props) => {
   const members = props.members
   const teamID = props.teamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
-  const [subteams, subteamIDs] = C.useTeamsState(s => getSubteamNames(s, teamID))
+  const _subteamIDs = C.useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
+  const subteamIDs = Array.from(_subteamIDs)
+  const subteams = C.useTeamsState(
+    C.useShallow(s => subteamIDs.map(id => C.Teams.getTeamMeta(s, id).teamname))
+  )
   const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => C.Teams.removeMemberWaitingKey(teamID, member)),

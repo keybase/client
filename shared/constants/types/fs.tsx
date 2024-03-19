@@ -1,7 +1,6 @@
 import * as RPCTypes from './rpc-gen'
 import type * as Devices from './devices'
 import {isWindows} from '../platform'
-import {memoize} from '@/util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '@/actions/fs-gen'
 
@@ -558,7 +557,7 @@ export const getPathNameFromElems = (elems: ReadonlyArray<string>): string => {
 }
 export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path => (!p ? '' : p.split('/').slice(0, -1).join('/'))
-export const getPathElements = memoize((p: Path): ReadonlyArray<string> => (!p ? [] : p.split('/').slice(1)))
+export const getPathElements = (p: Path): ReadonlyArray<string> => (!p ? [] : p.split('/').slice(1))
 export const getPathFromElements = (elems: ReadonlyArray<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: ReadonlyArray<string>) => {
   if (elems.length < 2 || !elems[1]) return undefined

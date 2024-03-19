@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {memoize} from '@/util/memoize'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -103,16 +102,6 @@ type UseDataSourceProps = {
   lastTextRef: React.MutableRefObject<string>
 }
 
-const getMaxCmdLength = memoize(
-  (
-    suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
-    suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
-  ) =>
-    suggestCommands
-      .concat(suggestBotCommands)
-      .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
-)
-
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const staticConfig = C.useChatState(s => s.staticConfig)
@@ -139,6 +128,14 @@ const useDataSource = (p: UseDataSourceProps) => {
       const sel = inputRef.current?.getSelection()
       if (sel) {
         if (!lastTextRef.current) return []
+
+        const getMaxCmdLength = (
+          suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
+          suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
+        ) =>
+          suggestCommands
+            .concat(suggestBotCommands)
+            .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
         const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
 
         // a little messy. Check if the message starts with '/' and that the cursor is

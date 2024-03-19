@@ -5,7 +5,6 @@ import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
-import {memoize} from '@/util/memoize'
 import capitalize from 'lodash/capitalize'
 
 type Props = {teamname: string}
@@ -69,13 +68,13 @@ type ExternalTeamProps = {
   info: T.RPCGen.UntrustedTeamInfo
 }
 
-const orderMembers = memoize((members?: ReadonlyArray<T.RPCGen.TeamMemberRole>) =>
+const orderMembers = (members?: ReadonlyArray<T.RPCGen.TeamMemberRole>) =>
   [...(members || [])].sort((memberA, memberB) =>
     memberB.role === memberA.role
       ? memberA.username.localeCompare(memberB.username)
       : memberB.role - memberA.role
   )
-)
+
 const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
   const members = orderMembers(info.publicMembers ?? undefined)
   const sections = [

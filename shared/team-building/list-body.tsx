@@ -11,7 +11,6 @@ import type * as Types from './types'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
-import {memoize} from '@/util/memoize'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 
@@ -76,7 +75,7 @@ function followStateHelperWithId(
   return 'NoState'
 }
 
-const expensiveDeriveResults = (
+const deriveSearchResults = (
   searchResults: ReadonlyArray<T.TB.User> | undefined,
   teamSoFar: ReadonlySet<T.TB.User>,
   myUsername: string,
@@ -101,8 +100,6 @@ const expensiveDeriveResults = (
     }
   })
 
-const deriveSearchResults = memoize(expensiveDeriveResults)
-
 // Flatten list of recommendation sections. After recommendations are organized
 // in sections, we also need a flat list of all recommendations to be able to
 // know how many we have in total (including "fake" "import contacts" row), and
@@ -125,83 +122,79 @@ const alphaSet = new Set(alphabet)
 const isAlpha = (letter: string) => alphaSet.has(letter)
 const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 
-const deriveRecommendation = memoize(expensiveDeriveResults)
-
 // Returns array with 28 entries
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
-const sortAndSplitRecommendations = memoize(
-  (
-    results: T.Unpacked<typeof deriveSearchResults>,
-    showingContactsButton: boolean
-  ): Array<Types.SearchRecSection> | undefined => {
-    if (!results) return undefined
+const sortAndSplitRecommendations = (
+  results: T.Unpacked<typeof deriveSearchResults>,
+  showingContactsButton: boolean
+): Array<Types.SearchRecSection> | undefined => {
+  if (!results) return undefined
 
-    const sections: Array<Types.SearchRecSection> = [
-      ...(showingContactsButton
-        ? [
-            {
-              data: [{isImportButton: true as const}],
-              label: '',
-              shortcut: false,
-            },
-          ]
-        : []),
+  const sections: Array<Types.SearchRecSection> = [
+    ...(showingContactsButton
+      ? [
+          {
+            data: [{isImportButton: true as const}],
+            label: '',
+            shortcut: false,
+          },
+        ]
+      : []),
 
-      {
-        data: [],
-        label: 'Recommendations',
-        shortcut: false,
-      },
-    ]
-    const recSectionIdx = sections.length - 1
-    const numSectionIdx = recSectionIdx + 27
-    results.forEach(rec => {
-      if (!rec.contact) {
-        sections[recSectionIdx]?.data.push(rec)
-        return
-      }
-      if (rec.prettyName || rec.displayLabel) {
-        // Use the first letter of the name we will display, but first normalize out
-        // any diacritics.
-        const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-        if (decodedLetter[0]) {
-          const letter = decodedLetter[0].toLowerCase()
-          if (isAlpha(letter)) {
-            // offset 1 to skip recommendations
-            const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
-            if (!sections[sectionIdx]) {
-              sections[sectionIdx] = {
-                data: [],
-                label: letter.toUpperCase(),
-                shortcut: true,
-              }
+    {
+      data: [],
+      label: 'Recommendations',
+      shortcut: false,
+    },
+  ]
+  const recSectionIdx = sections.length - 1
+  const numSectionIdx = recSectionIdx + 27
+  results.forEach(rec => {
+    if (!rec.contact) {
+      sections[recSectionIdx]?.data.push(rec)
+      return
+    }
+    if (rec.prettyName || rec.displayLabel) {
+      // Use the first letter of the name we will display, but first normalize out
+      // any diacritics.
+      const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
+      if (decodedLetter[0]) {
+        const letter = decodedLetter[0].toLowerCase()
+        if (isAlpha(letter)) {
+          // offset 1 to skip recommendations
+          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
+          if (!sections[sectionIdx]) {
+            sections[sectionIdx] = {
+              data: [],
+              label: letter.toUpperCase(),
+              shortcut: true,
             }
-            sections[sectionIdx]?.data.push(rec)
-          } else {
-            if (!sections[numSectionIdx]) {
-              sections[numSectionIdx] = {
-                data: [],
-                label: numSectionLabel,
-                shortcut: true,
-              }
-            }
-            sections[numSectionIdx]?.data.push(rec)
           }
+          sections[sectionIdx]?.data.push(rec)
+        } else {
+          if (!sections[numSectionIdx]) {
+            sections[numSectionIdx] = {
+              data: [],
+              label: numSectionLabel,
+              shortcut: true,
+            }
+          }
+          sections[numSectionIdx]?.data.push(rec)
         }
       }
-    })
-    if (results.length < 5) {
-      sections.push({
-        data: [{isSearchHint: true as const}],
-        label: '',
-        shortcut: false,
-      })
     }
-    return sections.filter(s => s.data.length > 0)
+  })
+  if (results.length < 5) {
+    sections.push({
+      data: [{isSearchHint: true as const}],
+      label: '',
+      shortcut: false,
+    })
   }
-)
+  return sections.filter(s => s.data.length > 0)
+}
 
 const emptyMap = new Map()
 
@@ -241,24 +234,18 @@ export const ListBody = (
   const userRecs = C.useTBContext(s => s.userRecs)
   const _teamSoFar = C.useTBContext(s => s.teamSoFar)
   const _searchResults = C.useTBContext(s => s.searchResults)
-  const _recommendations = deriveRecommendation(
-    userRecs,
-    _teamSoFar,
-    username,
-    following,
-    preExistingTeamMembers
+  const _recommendations = React.useMemo(
+    () => deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers),
+    [userRecs, _teamSoFar, username, following, preExistingTeamMembers]
   )
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const searchResults = deriveSearchResults(
-    userResults,
-    _teamSoFar,
-    username,
-    following,
-    preExistingTeamMembers
+  const searchResults = React.useMemo(
+    () => deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers),
+    [userResults, _teamSoFar, username, following, preExistingTeamMembers]
   )
 
   // TODO this crashes out renimated 3 https://github.com/software-mansion/react-native-reanimated/issues/2285
@@ -273,9 +260,10 @@ export const ListBody = (
   const showLoading = !!searchString && !searchResults
 
   const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
-  const recommendations = showRecs
-    ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
-    : undefined
+  const recommendations = React.useMemo(() => {
+    return showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
+  }, [showRecs, _recommendations, showingContactsButton])
+
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
   const lastEnterInputCounterRef = React.useRef(enterInputCounter)
