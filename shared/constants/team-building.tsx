@@ -222,7 +222,7 @@ async function specialContactSearch(users: T.TB.User[], query: string, region?: 
   } else if (validateEmailAddress(query)) {
     result = await apiSearchOne(query, 'email')
   }
-  if (result && !users.find(x => result && x.id === result.id)) {
+  if (result && !users.find(x => x.id === result.id)) {
     // Overwrite `prettyName` to make the special result stand out.
     result.prettyName = query
     return [result, ...users]

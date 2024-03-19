@@ -452,9 +452,12 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
 type Color = typeof colors
 type Names = keyof Color
 
+//https://github.com/facebook/react-native/pull/42117
+const dynamicColorsWorking = isIOS && !isNewArch
+
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
-if (isIOS && !isNewArch /* not working? */) {
+if (dynamicColorsWorking) {
   const {DynamicColorIOS: _DynamicColorIOS} = require('react-native')
   const DynamicColorIOS: (u: unknown) => string = _DynamicColorIOS
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
@@ -467,7 +470,7 @@ if (isIOS && !isNewArch /* not working? */) {
 
 export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
   const {isDarkMode} = useDarkModeState.getState()
-  if (isIOS) {
+  if (dynamicColorsWorking) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,
