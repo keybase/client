@@ -885,7 +885,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 metadata: new Uint8Array(),
                 outboxID: outboxIDs[i],
                 title: titles[i] ?? '',
-                tlfName: tlfName ?? '',
+                tlfName,
                 visibility: T.RPCGen.TLFVisibility.private,
               },
               clientPrev,
