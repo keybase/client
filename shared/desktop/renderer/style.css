@@ -553,9 +553,15 @@ input {
   text-rendering: optimizeLegibility;
   white-space: nowrap;
   z-index: 999;
-  top: 0;
   left: 50%;
   transform: translate(-50%, -100%);
+  /* move out so it doesn't affect measuring*/
+  top: -99999px;
+}
+
+.tooltip:hover:before {
+  opacity: 1;
+  top: initial;
 }
 
 .tooltip-bottom-center:before {
@@ -588,8 +594,4 @@ input {
   top: 50%;
   left: initial;
   right: 100%;
-}
-
-.tooltip:hover:before {
-  opacity: 1;
 }
