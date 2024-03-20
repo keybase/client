@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import debounce from 'lodash/debounce'
 import {isMobile} from '@/constants/platform'
 import chunk from 'lodash/chunk'
-import {memoize} from '@/util/memoize'
 import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
@@ -39,41 +38,37 @@ const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row
 // same.
 const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
 
-const getEmojiSections = memoize(
-  (emojisPerLine: number): Array<Section> =>
-    _getData().categories.map(
-      c =>
-        ({
-          data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
-          key: c.category,
-          title: c.category,
-        }) as const
-    )
-)
+const getEmojiSections = (emojisPerLine: number): Array<Section> =>
+  _getData().categories.map(
+    c =>
+      ({
+        data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
+        key: c.category,
+        title: c.category,
+      }) as const
+  )
 
-const getFrequentSection = memoize(
-  (
-    topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
-    customEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
-    emojisPerLine: number
-  ): Section => {
-    const {emojiNameMap} = _getData()
-    const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
-    const emojis = topReacjis.reduce<Array<EmojiData>>((arr, top) => {
-      const shortNameNoColons = top.name.replace(/:/g, '')
-      const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
-      if (emoji) {
-        arr.push(emoji)
-      }
-      return arr
-    }, [])
-    return {
-      data: chunkEmojis(emojis, emojisPerLine).slice(0, 4),
-      key: 'Frequently Used',
-      title: 'Frequently used',
+const getFrequentSection = (
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
+  customEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
+  emojisPerLine: number
+): Section => {
+  const {emojiNameMap} = _getData()
+  const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
+  const emojis = topReacjis.reduce<Array<EmojiData>>((arr, top) => {
+    const shortNameNoColons = top.name.replace(/:/g, '')
+    const emoji = emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
+    if (emoji) {
+      arr.push(emoji)
     }
+    return arr
+  }, [])
+  return {
+    data: chunkEmojis(emojis, emojisPerLine).slice(0, 4),
+    key: 'Frequently Used',
+    title: 'Frequently used',
   }
-)
+}
 
 const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
@@ -104,10 +99,6 @@ type Props = {
   waitingForEmoji?: boolean
 }
 
-type State = {
-  activeSectionKey: string
-}
-
 type Bookmark = {
   coveredSectionKeys: ReadonlySet<string>
   iconType: Kb.IconType
@@ -125,16 +116,17 @@ const emojiGroupsToEmojiArrayArray = (
     name: emojiGroup.name,
   }))
 
-const getCustomEmojiSections = memoize(
-  (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>, emojisPerLine: number): Array<Section> =>
-    emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
-      data: chunkEmojis(group.emojis, emojisPerLine),
-      key: group.name,
-      title: group.name,
-    }))
-)
+const getCustomEmojiSections = (
+  emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
+  emojisPerLine: number
+): Array<Section> =>
+  emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
+    data: chunkEmojis(group.emojis, emojisPerLine),
+    key: group.name,
+    title: group.name,
+  }))
 
-const getCustomEmojiIndex = memoize((emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
+const getCustomEmojiIndex = (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   const mapper = new Map<string, EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
@@ -158,7 +150,7 @@ const getCustomEmojiIndex = memoize((emojiGroups: ReadonlyArray<T.RPCChat.EmojiG
       }, new Array<EmojiData>()),
     get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
-})
+}
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
 const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
@@ -171,66 +163,64 @@ const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
 
 const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWidthWithPadding)
 
-const getSectionsAndBookmarks = memoize(
-  (
-    width: number,
-    topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
-    hideTopReacjis: boolean,
-    customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
-  ) => {
-    if (!width) {
-      return {bookmarks: [], sections: []}
-    }
+const getSectionsAndBookmarks = (
+  width: number,
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
+  hideTopReacjis: boolean,
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
+) => {
+  if (!width) {
+    return {bookmarks: [], sections: []}
+  }
 
-    const emojisPerLine = getEmojisPerLine(width)
-    const sections: Array<Section> = []
-    const bookmarks: Array<Bookmark> = []
+  const emojisPerLine = getEmojisPerLine(width)
+  const sections: Array<Section> = []
+  const bookmarks: Array<Bookmark> = []
 
-    if (topReacjis.length && !hideTopReacjis) {
-      const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
+  if (topReacjis.length && !hideTopReacjis) {
+    const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
+    bookmarks.push({
+      coveredSectionKeys: new Set([frequentSection.key]),
+      iconType: 'iconfont-clock',
+      sectionIndex: sections.length,
+    })
+    sections.push(frequentSection)
+  }
+
+  getEmojiSections(emojisPerLine).forEach(section => {
+    const cat = Data.categoryIcons as {[key: string]: Kb.IconType}
+    const categoryIcon = cat[section.title]
+    categoryIcon &&
       bookmarks.push({
-        coveredSectionKeys: new Set([frequentSection.key]),
-        iconType: 'iconfont-clock',
+        coveredSectionKeys: new Set([section.key]),
+        iconType: categoryIcon,
         sectionIndex: sections.length,
       })
-      sections.push(frequentSection)
-    }
+    sections.push(section)
+  })
 
-    getEmojiSections(emojisPerLine).forEach(section => {
-      const cat = Data.categoryIcons as {[key: string]: Kb.IconType}
-      const categoryIcon = cat[section.title]
-      categoryIcon &&
-        bookmarks.push({
-          coveredSectionKeys: new Set([section.key]),
-          iconType: categoryIcon,
-          sectionIndex: sections.length,
-        })
+  if (customEmojiGroups?.length) {
+    const coveredSectionKeys = new Set<string>()
+    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
+      coveredSectionKeys.add(section.key)
       sections.push(section)
     })
-
-    if (customEmojiGroups?.length) {
-      const coveredSectionKeys = new Set<string>()
-      getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
-        coveredSectionKeys.add(section.key)
-        sections.push(section)
-      })
-      const bookmark = {
-        coveredSectionKeys,
-        iconType: 'iconfont-keybase',
-        sectionIndex: sections.length,
-      } as Bookmark
-      bookmarks.push(bookmark)
-    }
-
-    sections.push({
-      data: [],
-      key: 'not-found',
-      title: 'not-found',
-    })
-
-    return {bookmarks, sections}
+    const bookmark = {
+      coveredSectionKeys,
+      iconType: 'iconfont-keybase',
+      sectionIndex: sections.length,
+    } as Bookmark
+    bookmarks.push(bookmark)
   }
-)
+
+  sections.push({
+    data: [],
+    key: 'not-found',
+    title: 'not-found',
+  })
+
+  return {bookmarks, sections}
+}
 
 const EmojiRow = React.memo(function EmojiRow(p: {
   row: Row
@@ -246,12 +236,17 @@ const EmojiRow = React.memo(function EmojiRow(p: {
   )
 })
 
-class EmojiPicker extends React.PureComponent<Props, State> {
-  state = {activeSectionKey: ''}
+const EmojiPicker = React.memo(function EmojiPicker(p: Props) {
+  const [activeSectionKey, setActiveSectionKey] = React.useState('')
+  const props = {...p, activeSectionKey, setActiveSectionKey}
+  return <EmojiPicker2 {...props} />
+})
 
-  private mounted = true
+class EmojiPicker2 extends React.PureComponent<
+  Props & {activeSectionKey: string; setActiveSectionKey: (s: string) => void}
+> {
   componentWillUnmount() {
-    this.mounted = false
+    this.onSectionChange.cancel()
   }
 
   private getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
@@ -284,8 +279,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     const content = (
       <Kb.Box2 key="bookmark" direction="horizontal" fullWidth={true} style={styles.bookmarkContainer}>
         {bookmarks.map((bookmark, bookmarkIndex) => {
-          const isActive = this.state.activeSectionKey
-            ? bookmark.coveredSectionKeys.has(this.state.activeSectionKey)
+          const isActive = this.props.activeSectionKey
+            ? bookmark.coveredSectionKeys.has(this.props.activeSectionKey)
             : bookmarkIndex === 0
           return (
             <Kb.Box
@@ -325,10 +320,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     </Kb.Box2>
   )
 
-  private onSectionChange = debounce(
-    (section: Section) => this.mounted && this.setState({activeSectionKey: section.key}),
-    200
-  )
+  private onSectionChange = debounce((section: Section) => this.props.setActiveSectionKey(section.key), 200)
 
   private makeNotFound = () => (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
