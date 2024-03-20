@@ -166,7 +166,7 @@ class ExplodingMeta2 extends React.Component<Props2> {
         children = (
           <Kb.Box2 direction="horizontal" gap="xtiny">
             <Kb.Box2
-              className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-bottom-left')}
+              className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-top-left')}
               direction="horizontal"
               tooltip="Exploding message"
               style={Kb.Styles.collapseStyles([
