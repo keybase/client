@@ -7,7 +7,7 @@ type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Search>>
 const Screen = (p: OwnProps) => {
   const {conversationIDKey, ...rest} = p.route.params
   return (
-    <C.Chat.ProviderScreen rp={p}>
+    <C.Chat.ProviderScreen rp={p} canBeNull={true}>
       <Search {...rest} />
     </C.Chat.ProviderScreen>
   )
