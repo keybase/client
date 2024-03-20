@@ -528,7 +528,7 @@ input {
   position: relative;
 }
 .tooltip:before {
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out 0.3s;
   /* body small text */
   -webkit-font-smoothing: antialiased;
   align-items: center;
@@ -564,32 +564,45 @@ input {
   top: initial;
 }
 
-.tooltip-bottom-center:before {
+.tooltip-bottom-center:hover:before {
+  opacity: 1;
+  top: initial;
   transform: translate(-50%, 100%);
 }
 
-.tooltip-top-left:before {
+.tooltip-top-left:hover:before {
+  opacity: 1;
+  top: initial;
   transform: translate(-100%, -100%);
 }
 
-.tooltip-top-right:before {
+.tooltip-top-right:hover:before {
+  opacity: 1;
+  top: initial;
   transform: translate(0%, -100%);
 }
 
-.tooltip-bottom-left:before {
+.tooltip-bottom-left:hover:before {
+  opacity: 1;
+  top: initial;
   transform: translate(-100%, 100%);
 }
 
-.tooltip-bottom-right:before {
+.tooltip-bottom-right:hover:before {
+  opacity: 1;
+  top: initial;
   transform: translate(0%, 100%);
 }
 
-.tooltip-right:before {
+.tooltip-right:hover:before {
+  opacity: 1;
   transform: translate(5px, -50%);
   top: 50%;
   left: 100%;
 }
-.tooltip-left:before {
+
+.tooltip-left:hover:before {
+  opacity: 1;
   transform: translate(-5px, -50%);
   top: 50%;
   left: initial;
