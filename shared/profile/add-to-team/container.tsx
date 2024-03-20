@@ -2,10 +2,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import {sendNotificationFooter} from '@/teams/role-picker'
 
-const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
+const getOwnerDisabledReason = (
+  selected: Set<string>,
+  teamNameToRole: Map<string, T.Teams.MaybeTeamRoleType>
+) => {
   return [...selected]
     .map(teamName => {
       if (C.Teams.isSubteam(teamName)) {
@@ -16,7 +18,7 @@ const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) =
       return ''
     })
     .find(v => !!v)
-})
+}
 
 type ExtraProps = {
   clearAddUserToTeamsResults: () => void
@@ -25,77 +27,102 @@ type ExtraProps = {
   _teamNameToRole: Map<string, T.Teams.MaybeTeamRoleType>
 }
 
-type SelectedTeamState = Set<string>
+const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
+  const {_teamNameToRole} = p
 
-type State = {
-  rolePickerOpen: boolean
-  selectedRole: T.Teams.TeamRoleType
-  sendNotification: boolean
-  selectedTeams: SelectedTeamState
-}
+  const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
 
-export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
-  state = {
-    rolePickerOpen: false,
-    selectedRole: 'writer' as const,
-    selectedTeams: new Set<string>(),
-    sendNotification: true,
+  const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
+  const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
+  const [sendNotification, setSendNotification] = React.useState(true)
+
+  const ownerDisabledReason = React.useMemo(
+    () => getOwnerDisabledReason(selectedTeams, _teamNameToRole),
+    [selectedTeams, _teamNameToRole]
+  )
+  const props = {
+    ...p,
+    ownerDisabledReason,
+    rolePickerOpen,
+    selectedRole,
+    selectedTeams,
+    sendNotification,
+    setRolePickerOpen,
+    setSelectedRole,
+    setSelectedTeams,
+    setSendNotification,
   }
 
+  return <AddToTeamStateWrapper2 {...props} />
+}
+
+class AddToTeamStateWrapper2 extends React.Component<
+  ExtraProps &
+    AddToTeamProps & {
+      ownerDisabledReason: string | undefined
+      selectedTeams: Set<string>
+      setSelectedTeams: (s: Set<string>) => void
+      setRolePickerOpen: React.Dispatch<React.SetStateAction<boolean>>
+      setSelectedRole: React.Dispatch<React.SetStateAction<T.Teams.TeamRoleType>>
+      setSendNotification: React.Dispatch<React.SetStateAction<boolean>>
+      rolePickerOpen: boolean
+      selectedRole: T.Teams.TeamRoleType
+      sendNotification: boolean
+    }
+> {
   componentDidMount() {
     this.props.clearAddUserToTeamsResults()
     this.props.loadTeamList()
   }
 
   onSave = () => {
-    this.props.onAddToTeams(this.state.selectedRole, [...this.state.selectedTeams])
+    this.props.onAddToTeams(this.props.selectedRole, [...this.props.selectedTeams])
   }
 
   toggleTeamSelected = (teamName: string, selected: boolean) => {
-    this.setState(({selectedTeams, selectedRole}) => {
-      const nextSelectedTeams = new Set(selectedTeams)
-      if (selected) {
-        nextSelectedTeams.add(teamName)
-      } else {
-        nextSelectedTeams.delete(teamName)
-      }
-      const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, this.props._teamNameToRole)
+    const nextSelectedTeams = new Set(this.props.selectedTeams)
+    if (selected) {
+      nextSelectedTeams.add(teamName)
+    } else {
+      nextSelectedTeams.delete(teamName)
+    }
+    const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, this.props._teamNameToRole)
 
-      return {
-        // If you selected them to be an owner, but they cannot be an owner,
-        // then fallback to admin
-        selectedRole: selectedRole === 'owner' && canNotBeOwner ? 'admin' : selectedRole,
-        selectedTeams: nextSelectedTeams,
-      }
-    })
+    // If you selected them to be an owner, but they cannot be an owner,
+    // then fallback to admin
+    this.props.setSelectedRole(
+      this.props.selectedRole === 'owner' && canNotBeOwner ? 'admin' : this.props.selectedRole
+    )
+    this.props.setSelectedTeams(nextSelectedTeams)
   }
 
   render() {
-    const {_teamNameToRole, clearAddUserToTeamsResults, onAddToTeams, ...rest} = this.props
-    const ownerDisabledReason = getOwnerDisabledReason(this.state.selectedTeams, _teamNameToRole)
+    const {ownerDisabledReason, _teamNameToRole, clearAddUserToTeamsResults, onAddToTeams, ...rest} =
+      this.props
     return (
       <AddToTeam
         {...rest}
         disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
-        onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
+        onOpenRolePicker={() => this.props.setRolePickerOpen(true)}
         onConfirmRolePicker={role => {
-          this.setState({rolePickerOpen: false, selectedRole: role})
+          this.props.setRolePickerOpen(false)
+          this.props.setSelectedRole(role)
         }}
         footerComponent={
           <>
-            {sendNotificationFooter('Announce them in team chats', this.state.sendNotification, nextVal =>
-              this.setState({sendNotification: nextVal})
+            {sendNotificationFooter('Announce them in team chats', this.props.sendNotification, nextVal =>
+              this.props.setSendNotification(nextVal)
             )}
           </>
         }
-        isRolePickerOpen={this.state.rolePickerOpen}
+        isRolePickerOpen={this.props.rolePickerOpen}
         onCancelRolePicker={() => {
-          this.setState({rolePickerOpen: false})
+          this.props.setRolePickerOpen(false)
         }}
-        selectedRole={this.state.selectedRole}
+        selectedRole={this.props.selectedRole}
         onToggle={this.toggleTeamSelected}
         onSave={this.onSave}
-        selectedTeams={this.state.selectedTeams}
+        selectedTeams={this.props.selectedTeams}
       />
     )
   }
