@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
@@ -5,7 +6,6 @@ import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
-import {memoize} from '@/util/memoize'
 
 type OwnProps = {
   path: T.FS.Path // path to the parent folder containering the rows,
@@ -13,29 +13,27 @@ type OwnProps = {
   headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
-const getStillRows = memoize(
-  (
-    pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
-    parentPath: T.Immutable<T.FS.Path>,
-    names: ReadonlySet<string>
-  ): Array<RowTypes.StillRowItem> =>
-    [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-      const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
-      const path = T.FS.pathConcat(parentPath, item.name)
-      return [
-        ...items,
-        {
-          key: `still:${name}`,
-          lastModifiedTimestamp: item.lastModifiedTimestamp,
-          name: item.name,
-          path,
-          // fields for sortable
-          rowType: RowTypes.RowType.Still,
-          type: item.type,
-        },
-      ]
-    }, [])
-)
+const getStillRows = (
+  pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
+  parentPath: T.Immutable<T.FS.Path>,
+  names: ReadonlySet<string>
+): Array<RowTypes.StillRowItem> =>
+  [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
+    const item = C.FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
+    const path = T.FS.pathConcat(parentPath, item.name)
+    return [
+      ...items,
+      {
+        key: `still:${name}`,
+        lastModifiedTimestamp: item.lastModifiedTimestamp,
+        name: item.name,
+        path,
+        // fields for sortable
+        rowType: RowTypes.RowType.Still,
+        type: item.type,
+      },
+    ]
+  }, [])
 
 const _getPlaceholderRows = (
   type: T.FS.PathType.File | T.FS.PathType.Folder
@@ -47,41 +45,39 @@ const _getPlaceholderRows = (
 const filePlaceholderRows = _getPlaceholderRows(T.FS.PathType.File)
 const folderPlaceholderRows = _getPlaceholderRows(T.FS.PathType.Folder)
 
-const _makeInTlfRows = memoize(
-  (
-    parentPath: T.Immutable<T.FS.Path>,
-    edits: T.Immutable<Map<T.FS.EditID, T.FS.Edit>>,
-    stillRows: T.Immutable<Array<RowTypes.StillRowItem>>
-  ) => {
-    const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
-    const newFolderRows: Array<SortableRowItem> = relevantEdits
-      .filter(([_, edit]) => edit.type === T.FS.EditType.NewFolder)
-      .map(([editID, edit]) => ({
-        editID,
-        editType: edit.type,
-        key: `edit:${T.FS.editIDToString(editID)}`,
-        name: edit.name,
-        // fields for sortable
-        rowType: RowTypes.RowType.NewFolder,
-        type: T.FS.PathType.Folder,
-      }))
-    const renameEdits = new Map(
-      relevantEdits
-        .filter(([_, edit]) => edit.type === T.FS.EditType.Rename)
-        .map(([editID, edit]) => [edit.originalName, editID])
+const _makeInTlfRows = (
+  parentPath: T.Immutable<T.FS.Path>,
+  edits: T.Immutable<Map<T.FS.EditID, T.FS.Edit>>,
+  stillRows: T.Immutable<Array<RowTypes.StillRowItem>>
+) => {
+  const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
+  const newFolderRows: Array<SortableRowItem> = relevantEdits
+    .filter(([_, edit]) => edit.type === T.FS.EditType.NewFolder)
+    .map(([editID, edit]) => ({
+      editID,
+      editType: edit.type,
+      key: `edit:${T.FS.editIDToString(editID)}`,
+      name: edit.name,
+      // fields for sortable
+      rowType: RowTypes.RowType.NewFolder,
+      type: T.FS.PathType.Folder,
+    }))
+  const renameEdits = new Map(
+    relevantEdits
+      .filter(([_, edit]) => edit.type === T.FS.EditType.Rename)
+      .map(([editID, edit]) => [edit.originalName, editID])
+  )
+  return newFolderRows.concat(
+    stillRows.map(row =>
+      renameEdits.has(row.name)
+        ? {
+            ...row,
+            editID: renameEdits.get(row.name),
+          }
+        : row
     )
-    return newFolderRows.concat(
-      stillRows.map(row =>
-        renameEdits.has(row.name)
-          ? {
-              ...row,
-              editID: renameEdits.get(row.name),
-            }
-          : row
-      )
-    )
-  }
-)
+  )
+}
 
 const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
@@ -97,30 +93,27 @@ const getInTlfItemsFromStateProps = (
   }
 
   const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
-
   return sortRowItems(_makeInTlfRows(path, stateProps._edits, stillRows), stateProps._sortSetting, '')
 }
 
-const getTlfRowsFromTlfs = memoize(
-  (
-    tlfs: T.Immutable<Map<string, T.FS.Tlf>>,
-    tlfType: T.Immutable<T.FS.TlfType>,
-    username: string,
-    destinationPickerIndex?: number
-  ): Array<SortableRowItem> =>
-    [...tlfs]
-      .filter(([_, {isIgnored}]) => !isIgnored)
-      .map(([name, {isNew, tlfMtime}]) => ({
-        disabled: Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
-        isNew,
-        key: `tlf:${name}`,
-        name,
-        rowType: RowTypes.RowType.Tlf,
-        tlfMtime,
-        tlfType,
-        type: T.FS.PathType.Folder,
-      }))
-)
+const getTlfRowsFromTlfs = (
+  tlfs: T.Immutable<Map<string, T.FS.Tlf>>,
+  tlfType: T.Immutable<T.FS.TlfType>,
+  username: string,
+  destinationPickerIndex?: number
+): Array<SortableRowItem> =>
+  [...tlfs]
+    .filter(([_, {isIgnored}]) => !isIgnored)
+    .map(([name, {isNew, tlfMtime}]) => ({
+      disabled: Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
+      isNew,
+      key: `tlf:${name}`,
+      name,
+      rowType: RowTypes.RowType.Tlf,
+      tlfMtime,
+      tlfType,
+      type: T.FS.PathType.Folder,
+    }))
 
 type StateProps = {
   _edits: T.FS.Edits
