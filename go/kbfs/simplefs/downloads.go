@@ -153,6 +153,10 @@ func (m *downloadManager) getFilenames(
 func (m *downloadManager) getDownloadPath(
 	ctx context.Context, filename, downloadID string) (
 	downloadPath string, err error) {
+	m.k.log.CDebugf(ctx, "+ downloadManager.getDownloadPath")
+	defer func() { m.k.log.CDebugf(ctx, "- downloadManager.getDownloadPath err=%+v", err) }()
+
+	m.k.log.CDebugf(ctx, "downloadManager.getDownloadPath m.getCacheDir()=%q", m.getCacheDir())
 	parentDir := filepath.Join(m.getCacheDir(), "simplefsdownload")
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", err
@@ -163,6 +167,10 @@ func (m *downloadManager) getDownloadPath(
 
 func (m *downloadManager) moveToDownloadFolder(
 	ctx context.Context, srcPath string, filename string) (localPath string, err error) {
+	m.k.log.CDebugf(ctx, "+ downloadManager.moveToDownloadFolder")
+	defer func() { m.k.log.CDebugf(ctx, "- downloadManager.moveToDownloadFolder err=%+v", err) }()
+
+	m.k.log.CDebugf(ctx, "downloadManager.moveToDownloadFolder m.getDownloadDir()=%q", m.getDownloadDir())
 	// There's no download on iOS; just saving to the photos library and
 	// sharing to other apps, both of which are handled in JS after the
 	// download (to the cache dir) finishes.
@@ -245,6 +253,9 @@ func (m *downloadManager) waitForDownload(ctx context.Context,
 func (m *downloadManager) startDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
 	downloadID string, err error) {
+	m.k.log.CDebugf(ctx, "+ downloadManager.startDownload")
+	defer func() { m.k.log.CDebugf(ctx, "- downloadManager.startDownload downloadID=%s err=%+v", downloadID, err) }()
+
 	opid, err := m.k.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return "", err
