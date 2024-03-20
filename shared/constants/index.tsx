@@ -102,7 +102,7 @@ import logger from '@/logger'
 export {default as logger} from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
 
-export const ignorePromise = (f: Promise<void>) => {
+export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {
   f.then(() => {}).catch(e => {
     // likely remove this after some time
     logger.error('ignorePromise error', e)

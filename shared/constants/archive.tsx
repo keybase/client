@@ -6,13 +6,14 @@ import {formatTimeForPopup} from '@/util/timestamp'
 import * as FS from '@/constants/fs'
 import {uint8ArrayToHex} from 'uint8array-extras'
 
-type Job = {
+type ChatJob = {
   id: string
   context: string
   started: string
   progress: number
   outPath: string
   error?: string
+  status: T.RPCChat.ArchiveChatJobStatus
 }
 
 type KBFSJobPhase = 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copyied' | 'Zipping' | 'Done'
@@ -34,12 +35,12 @@ type KBFSJob = {
 }
 
 type Store = T.Immutable<{
-  jobs: Map<string, Job>
+  chatJobs: Map<string, ChatJob>
   kbfsJobs: Map<string, KBFSJob> // id -> KBFSJob
   kbfsJobsFreshness: Map<string, number> // id -> KBFS TLF Revision
 }>
 const initialStore: Store = {
-  jobs: new Map(),
+  chatJobs: new Map(),
   kbfsJobs: new Map(),
   kbfsJobsFreshness: new Map(),
 }
@@ -47,9 +48,11 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     start: (type: 'chatid' | 'chatname' | 'kbfs', path: string, outPath: string) => void
-    cancel: (id: string) => void
-    clearCompleted: () => void
-    load: () => void
+    cancelChat: (id: string) => void
+    pauseChat: (id: string) => void
+    resumeChat: (id: string) => void
+    clearCompletedChat: () => void
+    loadChat: () => void
     loadKBFS: () => void
     loadKBFSJobFreshness: (jobID: string) => void
     cancelOrDismissKBFS: (jobID: string) => void
@@ -96,31 +99,27 @@ export const _useState = Z.createZustand<State>((set, get) => {
     })
   }
 
-  const setChatComplete = (_jobID: string) => {
-    // TODO
-    console.log('aaaa chatcomplete', _jobID)
+  const setChatComplete = (jobID: string) => {
+    set(s => {
+      const job = s.chatJobs.get(jobID)
+      if (!job) return
+      job.progress = 1
+    })
   }
-  const setChatProgress = (_p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
-    console.log('aaaa chatprogress', _p)
-    //TODO
+  const setChatProgress = (p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
+    const {jobID, messagesComplete, messagesTotal} = p
+    set(s => {
+      const job = s.chatJobs.get(jobID)
+      if (!job) return
+      job.progress = messagesTotal ? messagesComplete / messagesTotal : 0
+    })
   }
 
   const startChatArchive = (path: string, outPath: string) => {
     const f = async () => {
       const jobID = Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
-      const context = get().chatIDToDisplayname(path)
       const id = uint8ArrayToHex(jobID)
       try {
-        // TODO don't do this, have the service drive this
-        set(s => {
-          s.jobs.set(id, {
-            context,
-            id,
-            outPath,
-            progress: 0,
-            started: formatTimeForPopup(new Date().getTime()),
-          })
-        })
         await T.RPCChat.localArchiveChatRpcPromise({
           req: {
             compress: true,
@@ -135,34 +134,29 @@ export const _useState = Z.createZustand<State>((set, get) => {
             },
           },
         })
+        get().dispatch.loadChat()
       } catch (e) {
         set(s => {
-          const old = s.jobs.get(id)
+          const old = s.chatJobs.get(id)
           if (old) {
             old.error = String(e)
           }
         })
       }
-
-      // TODO outpath on mobile set by service
-      set(s => {
-        const nextKey = `${s.jobs.size + 1}`
-        s.jobs.set(nextKey, {
-          context,
-          id: nextKey,
-          outPath,
-          progress: 0,
-          started: formatTimeForPopup(new Date().getTime()),
-        })
-      })
     }
-
     C.ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {
-    cancel: _id => {
-      // TODO
+    cancelChat: jobID => {
+      const f = async () => {
+        await T.RPCChat.localArchiveChatDeleteRpcPromise({
+          deleteOutputPath: true,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+          jobID,
+        })
+      }
+      C.ignorePromise(f())
     },
     cancelOrDismissKBFS: (jobID: string) => {
       const f = async () => {
@@ -170,11 +164,49 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    clearCompleted: () => {
-      // TODO
+    clearCompletedChat: () => {
+      C.ignorePromise(
+        Promise.allSettled(
+          [...get().chatJobs.values()].map(async job => {
+            if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+              await T.RPCChat.localArchiveChatDeleteRpcPromise({
+                deleteOutputPath: C.isMobile,
+                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+                jobID: job.id,
+              })
+            }
+          })
+        )
+      )
+      get().dispatch.loadChat()
     },
-    load: () => {
-      // TODO
+    loadChat: () => {
+      const f = async () => {
+        const res = await T.RPCChat.localArchiveChatListRpcPromise({
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+        })
+
+        set(s => {
+          s.chatJobs.clear()
+          res.jobs?.forEach(job => {
+            const id = job.request.jobID
+            const convID = job.request.query?.convIDs?.[0]
+            const conversationIDKey = convID ? T.Chat.conversationIDToKey(convID) : T.Chat.noConversationIDKey
+            // TODO trying to convert ids to path but maybe should just plumb this
+            const context = C.getConvoState(conversationIDKey).meta.tlfname
+            s.chatJobs.set(id, {
+              context,
+              error: job.err,
+              id,
+              outPath: `${job.request.outputPath}.tar.gzip`,
+              progress: job.messagesTotal ? job.messagesComplete / job.messagesTotal : 0,
+              started: formatTimeForPopup(job.startedAt),
+              status: job.status,
+            })
+          })
+        })
+      }
+      C.ignorePromise(f())
     },
     loadKBFS: () => {
       const f = async () => {
@@ -208,15 +240,33 @@ export const _useState = Z.createZustand<State>((set, get) => {
           break
       }
     },
+    pauseChat: jobID => {
+      const f = async () => {
+        await T.RPCChat.localArchiveChatPauseRpcPromise({
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+          jobID,
+        })
+        get().dispatch.loadChat()
+      }
+      C.ignorePromise(f())
+    },
     resetState: 'default',
+    resumeChat: jobID => {
+      const f = async () => {
+        await T.RPCChat.localArchiveChatResumeRpcPromise({
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+          jobID,
+        })
+        get().dispatch.loadChat()
+      }
+      C.ignorePromise(f())
+    },
     start: (type, path, outPath) => {
       // let context = ''
       switch (type) {
         case 'chatid':
           startChatArchive(path, outPath)
           return
-
-        // break
         case 'chatname':
           // if (path === '.') {
           //   context = 'all chat'
