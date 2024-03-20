@@ -51,7 +51,6 @@ const Avatar = React.memo(function Avatar(props: Props) {
               imageStyles[props.size],
               {
                 borderRadius,
-                overflow: 'hidden',
                 opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
                 overflow: 'hidden',
               },
