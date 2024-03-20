@@ -8,7 +8,6 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
-import {memoize} from '@/util/memoize'
 import {useFsChildren, UploadButton} from '@/fs/common'
 
 export type Props = {
@@ -86,12 +85,12 @@ class Rows extends React.PureComponent<Props> {
     length: getRowHeight(items[index] || _unknownEmptyRowItem),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
-  _getTopVariableRowCountAndTotalHeight = memoize((items: Array<RowTypes.RowItem>) => {
+  _getTopVariableRowCountAndTotalHeight = (items: Array<RowTypes.RowItem>) => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return index === -1
       ? {count: items.length, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
-  })
+  }
   _getItemLayout = (index: number) => {
     const top = this._getTopVariableRowCountAndTotalHeight(this.props.items)
     if (index < top.count) {
@@ -107,7 +106,7 @@ class Rows extends React.PureComponent<Props> {
   // trigger a re-render when layout changes. Also encode items length into
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.
-  _getListKey = memoize((items: Array<RowTypes.RowItem>) => {
+  _getListKey = (items: Array<RowTypes.RowItem>) => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return (
       items
@@ -115,7 +114,7 @@ class Rows extends React.PureComponent<Props> {
         .map(row => getRowHeight(row).toString())
         .join('-') + `:${items.length}`
     )
-  })
+  }
 
   render() {
     return this.props.emptyMode !== 'not-empty' ? (
