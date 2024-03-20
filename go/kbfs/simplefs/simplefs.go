@@ -1510,6 +1510,9 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 	arg keybase1.SimpleFSCopyRecursiveArg) (err error) {
+	k.log.CDebugf(ctx, "+ SimpleFS.SimpleFSCopyRecursive art.Dest=%v", arg.Dest)
+	defer func() { k.log.CDebugf(ctx, "- SimpleFS.SimpleFSCopyRecursive err=%+v", err) }()
+
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
 		&arg.Src, &arg.Dest,
@@ -3255,6 +3258,9 @@ func (k *SimpleFS) SimpleFSGetDownloadInfo(
 // SimpleFSConfigureDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	k.log.CDebugf(ctx, "SimpleFS.SimpleFSConfigureDownload arg.CacheDirOverride=%q, arg.DownloadDirOverride=%q",
+		arg.CacheDirOverride, arg.DownloadDirOverride)
+
 	k.downloadManager.configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
 	return nil
 }
