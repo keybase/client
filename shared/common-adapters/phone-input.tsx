@@ -20,7 +20,6 @@ import {
   validateNumber,
   type CountryData,
 } from '@/util/phone-numbers'
-import {memoize} from '@/util/memoize'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
@@ -50,7 +49,7 @@ const getPlaceholder = (countryCode: string) =>
 const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 
-const pickerItems = memoize((countryData: {[key: string]: CountryData}) =>
+const pickerItems = (countryData: {[key: string]: CountryData}) =>
   [
     ...prioritizedCountries.map(code => countryData[code]),
     ...Object.values(countryData)
@@ -65,88 +64,85 @@ const pickerItems = memoize((countryData: {[key: string]: CountryData}) =>
         return cd
       }),
   ].map(cd => ({label: cd?.pickerText ?? '', value: cd?.alpha2 ?? ''}))
-)
-const menuItems = memoize(
-  (
-    countryData: {
-      [key: string]: CountryData
-    },
-    filter: string,
-    onClick: (selected: string) => void
-  ) => {
-    const strippedFilter = filterNumeric(filter)
-    const lowercaseFilter = filter.toLowerCase()
+const menuItems = (
+  countryData: {
+    [key: string]: CountryData
+  },
+  filter: string,
+  onClick: (selected: string) => void
+) => {
+  const strippedFilter = filterNumeric(filter)
+  const lowercaseFilter = filter.toLowerCase()
 
-    return Object.values<CountryData>(countryData)
-      .filter(cd => {
-        if (strippedFilter.length > 0) {
-          return filterNumeric(cd.callingCode).startsWith(strippedFilter)
+  return Object.values<CountryData>(countryData)
+    .filter(cd => {
+      if (strippedFilter.length > 0) {
+        return filterNumeric(cd.callingCode).startsWith(strippedFilter)
+      }
+      return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+    })
+    .sort((a: CountryData, b: CountryData) => {
+      // Special cases
+      for (const country of prioritizedCountries) {
+        const countryName = countryData[country]?.name
+        if (a.name === countryName) {
+          return -1
         }
-        return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
-      })
-      .sort((a: CountryData, b: CountryData) => {
-        // Special cases
-        for (const country of prioritizedCountries) {
-          const countryName = countryData[country]?.name
-          if (a.name === countryName) {
-            return -1
-          }
-          if (b.name === countryName) {
-            return 1
-          }
+        if (b.name === countryName) {
+          return 1
         }
+      }
 
-        // Numeric prefix matcher
-        if (strippedFilter.length > 0) {
-          const aCallingCode = filterNumeric(a.callingCode)
-          const bCallingCode = filterNumeric(b.callingCode)
+      // Numeric prefix matcher
+      if (strippedFilter.length > 0) {
+        const aCallingCode = filterNumeric(a.callingCode)
+        const bCallingCode = filterNumeric(b.callingCode)
 
-          // Exact match, fixes +47 (Norway and Svalbard) vs Bermuda's +471
-          if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
-            return -1
-          }
-          if (aCallingCode !== strippedFilter && bCallingCode === strippedFilter) {
-            return 1
-          }
-          if (aCallingCode === strippedFilter && bCallingCode === strippedFilter) {
-            return a.name.localeCompare(b.name)
-          }
-
-          const aCodeMatch = aCallingCode.startsWith(strippedFilter)
-          const bCodeMatch = bCallingCode.startsWith(strippedFilter)
-
-          // Either matches
-          if (aCodeMatch && !bCodeMatch) {
-            return -1
-          }
-          if (!aCodeMatch && bCodeMatch) {
-            return 1
-          }
-          // Both or none match perfectly, sort alphabetically
+        // Exact match, fixes +47 (Norway and Svalbard) vs Bermuda's +471
+        if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
+          return -1
+        }
+        if (aCallingCode !== strippedFilter && bCallingCode === strippedFilter) {
+          return 1
+        }
+        if (aCallingCode === strippedFilter && bCallingCode === strippedFilter) {
           return a.name.localeCompare(b.name)
         }
 
-        // Textual prefix matcher
-        const aPrefixMatch = a.name.toLowerCase().startsWith(lowercaseFilter)
-        const bPrefixMatch = b.name.toLowerCase().startsWith(lowercaseFilter)
-        if (aPrefixMatch && !bPrefixMatch) {
+        const aCodeMatch = aCallingCode.startsWith(strippedFilter)
+        const bCodeMatch = bCallingCode.startsWith(strippedFilter)
+
+        // Either matches
+        if (aCodeMatch && !bCodeMatch) {
           return -1
         }
-        if (!aPrefixMatch && bPrefixMatch) {
+        if (!aCodeMatch && bCodeMatch) {
           return 1
         }
-
-        // Fallback to alphabetical sorting
+        // Both or none match perfectly, sort alphabetically
         return a.name.localeCompare(b.name)
-      })
-      .map((cd: CountryData) => ({
-        alpha2: cd.alpha2,
-        onClick: () => onClick(cd.alpha2),
-        title: cd.pickerText,
-        view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
-      }))
-  }
-)
+      }
+
+      // Textual prefix matcher
+      const aPrefixMatch = a.name.toLowerCase().startsWith(lowercaseFilter)
+      const bPrefixMatch = b.name.toLowerCase().startsWith(lowercaseFilter)
+      if (aPrefixMatch && !bPrefixMatch) {
+        return -1
+      }
+      if (!aPrefixMatch && bPrefixMatch) {
+        return 1
+      }
+
+      // Fallback to alphabetical sorting
+      return a.name.localeCompare(b.name)
+    })
+    .map((cd: CountryData) => ({
+      alpha2: cd.alpha2,
+      onClick: () => onClick(cd.alpha2),
+      title: cd.pickerText,
+      view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
+    }))
+}
 
 const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
