@@ -1295,6 +1295,9 @@ func (k *SimpleFS) doCopyFromSource(
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
 	finalDstElem string, overwriteExistingFiles bool) (err error) {
+	k.log.CDebugf(ctx, "+ SimpleFS.doCopyFromSource dstPath=%v", dstPath)
+	defer func() { k.log.CDebugf(ctx, "- SimpleFS.doCopyFromSource err=%+v", err) }()
+
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -1308,6 +1311,7 @@ func (k *SimpleFS) doCopyFromSource(
 
 	src, err := srcFS.Open(srcFI.Name())
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopyFromSource(): srcFS.Open(%s) error: ", srcFI.Name(), err)
 		return err
 	}
 	defer src.Close()
@@ -1318,6 +1322,7 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	dst, err := dstFS.OpenFile(finalDstElem, mode, 0600)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopyFromSource(): dstFS.Open(%s) error: ", finalDstElem, err)
 		return err
 	}
 	defer dst.Close()
@@ -1342,24 +1347,32 @@ func (k *SimpleFS) doCopyFromSource(
 func (k *SimpleFS) doCopy(
 	ctx context.Context, opID keybase1.OpID,
 	srcPath, destPath keybase1.Path, overwriteExistingFiles bool) (err error) {
+	k.log.CDebugf(ctx, "+ SimpleFS.doCopy destPath=%v", destPath)
+	defer func() { k.log.CDebugf(ctx, "- SimpleFS.doCopy err=%+v", err) }()
+
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
 	srcFS, finalSrcElem, err := k.getFS(ctx, srcPath)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopy(): k.getFS(%v) error: ", srcPath, err)
 		return err
 	}
 	srcFI, err := srcFS.Stat(finalSrcElem)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopy(): srcFS.Stat(%v) error: ", finalSrcElem, err)
 		return err
 	}
 	if srcFI.IsDir() {
+		k.log.CDebugf(ctx, "doCopy(): srcFI.IsDir()")
 		// The byte count for making a single directory is meaningless.
 		k.setProgressTotals(opID, 0, 1)
 	} else {
+		k.log.CDebugf(ctx, "doCopy(): !srcFI.IsDir()")
 		k.setProgressTotals(opID, srcFI.Size(), 1)
 	}
 	destFS, finalDestElem, err := k.getFS(ctx, destPath)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopy(): k.getFS(destPath) error: ", err)
 		return err
 	}
 
@@ -1422,19 +1435,27 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 }
 
 func (k *SimpleFS) doCopyRecursive(ctx context.Context,
-	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool) error {
+	opID keybase1.OpID, src, dest keybase1.Path, overwriteExistingFiles bool) (err error) {
+	k.log.CDebugf(ctx, "+ SimpleFS.doCopyRecursive src=%v Dest=%v", src, dest)
+	defer func() { k.log.CDebugf(ctx, "- SimpleFS.doCopyRecursive err=%+v", err) }()
 	// Get the full byte/file count.
+	k.log.CDebugf(ctx, "doCopyRecursive(%v): getFSIfExists(%v) ", src)
 	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopyRecursive: getFSIfExists(%v) error: %v", src, err)
 		return err
 	}
+	k.log.CDebugf(ctx, "doCopyRecursive(): srcFS.Stat(%v)", finalSrcElem)
 	srcFI, err := srcFS.Stat(finalSrcElem)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopyRecursive(): srcFS.Stat(%v) error %v", finalSrcElem, err)
 		return err
 	}
 	if srcFI.IsDir() {
+		k.log.CDebugf(ctx, "doCopyRecursive(): srcFS.Chroot(%s) ", srcFI.Name())
 		chrootFS, err := srcFS.Chroot(srcFI.Name())
 		if err != nil {
+			k.log.CDebugf(ctx, "doCopyRecursive(): srcFS.Chroot(%s) error %v", srcFI.Name(), err)
 			return err
 		}
 		bytes, files, err := recursiveByteAndFileCount(chrootFS)
@@ -1444,12 +1465,15 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 		// Add one to files to account for the src dir itself.
 		k.setProgressTotals(opID, bytes, files+1)
 	} else {
+		k.log.CDebugf(ctx, "doCopyRecursive(): !srcFI.IsDir()")
 		// No need for recursive.
 		return k.doCopy(ctx, opID, src, dest, overwriteExistingFiles)
 	}
 
+	k.log.CDebugf(ctx, "doCopyRecursive(): k.getFS(%v)", dest)
 	destFS, finalDestElem, err := k.getFS(ctx, dest)
 	if err != nil {
+		k.log.CDebugf(ctx, "doCopyRecursive(): k.getFS error %v", err)
 		return err
 	}
 
@@ -1472,6 +1496,7 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 
 		srcFI, err := node.srcFS.Stat(node.srcFinalElem)
 		if err != nil {
+			k.log.CDebugf(ctx, "doCopyRecursive(): node.srcFS.Stat error: %v", err)
 			return err
 		}
 
@@ -1479,6 +1504,7 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 			ctx, opID, node.srcFS, srcFI, node.dest, node.destFS,
 			node.destFinalElem, overwriteExistingFiles)
 		if err != nil {
+			k.log.CDebugf(ctx, "doCopyRecursive(): k.doCopyFromSource error: %v", err)
 			return err
 		}
 
@@ -1486,16 +1512,19 @@ func (k *SimpleFS) doCopyRecursive(ctx context.Context,
 		if srcFI.IsDir() {
 			fis, err := node.srcFS.ReadDir(srcFI.Name())
 			if err != nil {
+				k.log.CDebugf(ctx, "doCopyRecursive(): node.srcFS.ReadDir error: %v", err)
 				return err
 			}
 
 			newSrcFS, err := node.srcFS.Chroot(node.srcFinalElem)
 			if err != nil {
+				k.log.CDebugf(ctx, "doCopyRecursive(): node.srcFS.Chroot error: %v", err)
 				return err
 			}
 
 			newDestFS, err := node.destFS.Chroot(node.destFinalElem)
 			if err != nil {
+				k.log.CDebugf(ctx, "doCopyRecursive(): node.destFS.Chroot error: %v", err)
 				return err
 			}
 
