@@ -5,7 +5,6 @@ import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
-import {memoize} from '@/util/memoize'
 import {userResultHeight} from './search-result/common-result'
 import {createAnimatedComponent} from '@/common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
@@ -78,6 +77,22 @@ const SectionList = createAnimatedComponent<
   SectionListProps<SectionType<Types.ResultData, Types.SearchRecSection>>
 >(Kb.SectionList)
 
+const _listIndexToSectionAndLocalIndex = (
+  highlightedIndex?: number,
+  sections?: Types.SearchRecSection[]
+): {index: number; section: Types.SearchRecSection} | undefined => {
+  if (highlightedIndex !== undefined && sections !== undefined) {
+    let index = highlightedIndex
+    for (const section of sections) {
+      if (index >= section.data.length) {
+        index -= section.data.length
+      } else {
+        return {index, section}
+      }
+    }
+  }
+  return
+}
 export const RecsAndRecos = (
   props: Pick<
     Types.Props,
@@ -99,25 +114,6 @@ export const RecsAndRecos = (
   const sectionListRef =
     React.useRef<Kb.SectionList<SectionType<Types.ResultData, Types.SearchRecSection>>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-
-  const _listIndexToSectionAndLocalIndex = memoize(
-    (
-      highlightedIndex?: number,
-      sections?: Types.SearchRecSection[]
-    ): {index: number; section: Types.SearchRecSection} | undefined => {
-      if (highlightedIndex !== undefined && sections !== undefined) {
-        let index = highlightedIndex
-        for (const section of sections) {
-          if (index >= section.data.length) {
-            index -= section.data.length
-          } else {
-            return {index, section}
-          }
-        }
-      }
-      return
-    }
-  )
 
   const _getRecLayout = (
     sections: Array<Types.SearchRecSection>,
@@ -157,7 +153,10 @@ export const RecsAndRecos = (
     return {index: indexInList, length, offset}
   }
 
-  const highlightDetails = _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
+  const highlightDetails = React.useMemo(
+    () => _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations),
+    [highlightedIndex, recommendations]
+  )
   return (
     <Kb.BoxGrow>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -179,8 +178,8 @@ export const RecsAndRecos = (
             return isImportContactsEntry(item)
               ? 'Import Contacts'
               : isSearchHintEntry(item)
-              ? 'New User Search Hint'
-              : item.userId
+                ? 'New User Search Hint'
+                : item.userId
           }}
           getItemLayout={_getRecLayout}
           renderItem={({index, item: result, section}) =>

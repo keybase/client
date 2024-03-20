@@ -8,7 +8,6 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
-import {memoize} from '@/util/memoize'
 import {useFsChildren, UploadButton} from '@/fs/common'
 
 export type Props = {
@@ -27,7 +26,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
 
 const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
-class Rows extends React.PureComponent<Props> {
+class Rows extends React.PureComponent<Props & {listKey: string}> {
   _rowRenderer = (_: number, item: RowTypes.RowItem) => {
     switch (item.rowType) {
       case RowTypes.RowType.Placeholder:
@@ -86,12 +85,12 @@ class Rows extends React.PureComponent<Props> {
     length: getRowHeight(items[index] || _unknownEmptyRowItem),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
-  _getTopVariableRowCountAndTotalHeight = memoize((items: Array<RowTypes.RowItem>) => {
+  _getTopVariableRowCountAndTotalHeight = (items: Array<RowTypes.RowItem>) => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return index === -1
       ? {count: items.length, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
-  })
+  }
   _getItemLayout = (index: number) => {
     const top = this._getTopVariableRowCountAndTotalHeight(this.props.items)
     if (index < top.count) {
@@ -103,19 +102,6 @@ class Rows extends React.PureComponent<Props> {
       offset: (index - top.count) * normalRowHeight + top.totalHeight,
     }
   }
-  // List2 caches offsets. So have the key derive from layouts so that we
-  // trigger a re-render when layout changes. Also encode items length into
-  // this, otherwise we'd get taller-than content rows when going into a
-  // smaller folder from a larger one.
-  _getListKey = memoize((items: Array<RowTypes.RowItem>) => {
-    const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
-    return (
-      items
-        .slice(0, index === -1 ? items.length : index)
-        .map(row => getRowHeight(row).toString())
-        .join('-') + `:${items.length}`
-    )
-  })
 
   render() {
     return this.props.emptyMode !== 'not-empty' ? (
@@ -136,7 +122,7 @@ class Rows extends React.PureComponent<Props> {
     ) : (
       <Kb.BoxGrow>
         <Kb.List2
-          key={this._getListKey(this.props.items)}
+          key={this.props.listKey}
           items={this.props.items}
           bounces={true}
           itemHeight={{
@@ -152,7 +138,22 @@ class Rows extends React.PureComponent<Props> {
 
 const RowsWithAutoLoad = (props: Props) => {
   useFsChildren(props.path, /* recursive */ true) // need recursive for the EMPTY tag
-  return <Rows {...props} />
+
+  // List2 caches offsets. So have the key derive from layouts so that we
+  // trigger a re-render when layout changes. Also encode items length into
+  // this, otherwise we'd get taller-than content rows when going into a
+  // smaller folder from a larger one.
+  const {items} = props
+  const listKey = React.useMemo(() => {
+    const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
+    return (
+      items
+        .slice(0, index === -1 ? items.length : index)
+        .map(row => getRowHeight(row).toString())
+        .join('-') + `:${items.length}`
+    )
+  }, [items])
+  return <Rows {...props} listKey={listKey} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(

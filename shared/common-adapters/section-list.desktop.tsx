@@ -7,7 +7,6 @@ import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
 import noop from 'lodash/noop'
-import {memoize} from '@/util/memoize'
 import {renderElementOrComponentOrNot} from '@/util/util'
 import type RL from 'react-list'
 import type {Props, Section, ItemTFromSectionT} from './section-list'
@@ -24,18 +23,76 @@ const Kb = {
  * as a sibling of the list. If you have wildly different header heights you'll definitely see things jumping around
  */
 
-type State = {
-  currentSectionFlatIndex: number
+function SectionList<T extends Section<any>>(p: Props<T>) {
+  const {sections, sectionKeyExtractor, keyExtractor} = p
+  const [currentSectionFlatIndex, setCurrentSectionFlatIndex] = React.useState(0)
+  const flatRef = React.useRef(new Array<FlatListElement<T>>())
+  const sectionIndexToFlatIndexRef = React.useRef(new Array<number>())
+  const listRef = React.useRef<RL>(null)
+  const mountedRef = React.useRef(true)
+  const props = {
+    ...p,
+    currentSectionFlatIndex,
+    flatRef,
+    listRef,
+    mountedRef,
+    sectionIndexToFlatIndexRef,
+    setCurrentSectionFlatIndex,
+  }
+
+  React.useMemo(() => {
+    sectionIndexToFlatIndexRef.current = []
+    flatRef.current = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
+      const flatSectionIndex = arr.length
+      sectionIndexToFlatIndexRef.current.push(flatSectionIndex)
+      arr.push({
+        flatSectionIndex,
+        key: sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
+        section,
+        sectionIndex,
+        type: 'header',
+      })
+      if (section.data.length) {
+        arr.push(
+          ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
+            flatSectionIndex,
+            indexWithinSection,
+            item,
+            key:
+              keyExtractor?.(item, indexWithinSection) || item.key || `${sectionIndex}-${indexWithinSection}`,
+            sectionIndex,
+            type: 'body' as const,
+          }))
+        )
+      } else {
+        // These placeholders allow us to get the first section's sticky header back on the screen if
+        // the item has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
+        // all the time), we need something in the ReactList to trigger the flatSectionIndex check
+        // to get the sticky header back on the screen.
+        arr.push({
+          flatSectionIndex,
+          sectionIndex,
+          type: 'placeholder',
+        })
+      }
+      return arr
+    }, [])
+  }, [sections, sectionKeyExtractor, keyExtractor])
+
+  return <SectionList2 {...props} />
 }
 
-class SectionList<T extends Section<any>> extends React.Component<Props<T>, State> {
-  _flat: Array<FlatListElement<T>> = []
-  _sectionIndexToFlatIndex: Array<number> = []
-  state = {currentSectionFlatIndex: 0}
-  _listRef = React.createRef<RL>()
-  _mounted = true
-
-  componentDidUpdate(prevProps: Props<T>, _: State) {
+class SectionList2<T extends Section<any>> extends React.Component<
+  Props<T> & {
+    currentSectionFlatIndex: number
+    flatRef: React.MutableRefObject<FlatListElement<T>[]>
+    listRef: React.RefObject<RL>
+    mountedRef: React.MutableRefObject<boolean>
+    sectionIndexToFlatIndexRef: React.MutableRefObject<number[]>
+    setCurrentSectionFlatIndex: React.Dispatch<React.SetStateAction<number>>
+  }
+> {
+  componentDidUpdate(prevProps: Props<T>) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(info => this.props.onEndReached?.(info))
@@ -44,25 +101,25 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
       this.props.selectedIndex !== -1 &&
       this.props.selectedIndex !== prevProps.selectedIndex &&
       this.props.selectedIndex !== undefined &&
-      this._listRef.current
+      this.props.listRef.current
     ) {
       const index = this._itemIndexToFlatIndex(this.props.selectedIndex)
       // If index is 1, scroll to 0 instead to show the first section header as well.
-      this._listRef.current.scrollAround(index === 1 ? 0 : index)
+      this.props.listRef.current.scrollAround(index === 1 ? 0 : index)
     }
   }
 
   componentWillUnmount() {
-    this._mounted = false
+    this.props.mountedRef.current = false
   }
 
   /* Methods from native SectionList */
   scrollToLocation(params?: {sectionIndex: number}) {
     // TODO desktop SectionList is limited to sectionIndex
     const sectionIndex = params?.sectionIndex
-    const flatIndex = sectionIndex && this._sectionIndexToFlatIndex[sectionIndex]
+    const flatIndex = sectionIndex && this.props.sectionIndexToFlatIndexRef.current[sectionIndex]
     if (typeof flatIndex === 'number') {
-      this._listRef.current?.scrollTo(flatIndex)
+      this.props.listRef.current?.scrollTo(flatIndex)
     }
   }
   recordInteraction() {
@@ -74,12 +131,12 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
   /* =============================== */
 
   _itemRenderer = (index: number, _: number | string, renderingSticky: boolean): React.ReactElement => {
-    const item = this._flat[index]
+    const item = this.props.flatRef.current[index]
     if (!item) {
       // data is switching out from under us. let things settle
       return <></>
     }
-    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
+    const section = this.props.flatRef.current[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
     if (!section) {
       // data is switching out from under us. let things settle
       return <></>
@@ -149,16 +206,12 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
   _onEndReached = once(info => this.props.onEndReached?.(info))
 
   _checkSticky = () => {
-    if (this._listRef.current) {
-      const [firstIndex] = this._listRef.current.getVisibleRange()
+    if (this.props.listRef.current) {
+      const [firstIndex] = this.props.listRef.current.getVisibleRange()
       if (firstIndex === undefined) return
-      const item = this._flat[firstIndex]
+      const item = this.props.flatRef.current[firstIndex]
       if (item) {
-        this.setState(p =>
-          p.currentSectionFlatIndex !== item.flatSectionIndex
-            ? {currentSectionFlatIndex: item.flatSectionIndex}
-            : null
-        )
+        this.props.setCurrentSectionFlatIndex(item.flatSectionIndex)
       }
     }
   }
@@ -175,14 +228,14 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
     if (!this.props.onSectionChange) {
       return
     }
-    const visibleRange = this._listRef.current?.getVisibleRange()
-    const sectionIndex = this._flat[visibleRange?.[0] ?? -1]?.sectionIndex ?? -1
+    const visibleRange = this.props.listRef.current?.getVisibleRange()
+    const sectionIndex = this.props.flatRef.current[visibleRange?.[0] ?? -1]?.sectionIndex ?? -1
     const section = this.props.sections[sectionIndex]
     section && this.props.onSectionChange(section)
   }
 
   private onScrollDelayed = () => {
-    if (!this._mounted) {
+    if (!this.props.mountedRef.current) {
       return
     }
     this.triggerOnSectionChangeIfNeeded()
@@ -193,57 +246,16 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
   private onScroll = (e: {currentTarget?: HTMLDivElement}) => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
     // getVisibleRange() is racy, so delay it.
-    setTimeout(() => this.onScrollDelayed())
+    setTimeout(() => this.onScrollDelayed(), 0)
   }
-
-  _flatten = memoize((sections: ReadonlyArray<T>) => {
-    this._sectionIndexToFlatIndex = []
-    this._flat = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
-      const flatSectionIndex = arr.length
-      this._sectionIndexToFlatIndex.push(flatSectionIndex)
-      arr.push({
-        flatSectionIndex,
-        key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
-        section,
-        sectionIndex,
-        type: 'header',
-      })
-      if (section.data.length) {
-        arr.push(
-          ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
-            flatSectionIndex,
-            indexWithinSection,
-            item,
-            key:
-              this.props.keyExtractor?.(item, indexWithinSection) ||
-              item.key ||
-              `${sectionIndex}-${indexWithinSection}`,
-            sectionIndex,
-            type: 'body' as const,
-          }))
-        )
-      } else {
-        // These placeholders allow us to get the first section's sticky header back on the screen if
-        // the item has no body items. Since we don't draw it in _itemRenderer (to avoid duplicating it
-        // all the time), we need something in the ReactList to trigger the flatSectionIndex check
-        // to get the sticky header back on the screen.
-        arr.push({
-          flatSectionIndex,
-          sectionIndex,
-          type: 'placeholder',
-        })
-      }
-      return arr
-    }, [])
-  })
 
   _itemIndexToFlatIndex = (_index: number) => {
     let index = _index
     if (index < 0) {
       return 0
     }
-    for (let i = 0; i < this._flat.length; i++) {
-      const item = this._flat[i]!
+    for (let i = 0; i < this.props.flatRef.current.length; i++) {
+      const item = this.props.flatRef.current[i]!
       if (item.type === 'body') {
         // are we there yet?
         if (index === 0) {
@@ -252,13 +264,13 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
         --index // no
       }
     }
-    return this._flat.length - 1
+    return this.props.flatRef.current.length - 1
   }
 
   private getItemSizeGetter = (index: number) => {
     const {getItemHeight, getSectionHeaderHeight} = this.props
     if (!getItemHeight || !getSectionHeaderHeight) return 0
-    const item = this._flat[index]
+    const item = this.props.flatRef.current[index]
     if (!item) {
       // data is switching out from under us. let things settle
       return 0
@@ -273,10 +285,9 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
   private itemRenderer = (index: number, key: any) => this._itemRenderer(index, key, false)
 
   render() {
-    this._flatten(this.props.sections)
     const stickyHeader =
       this.props.stickySectionHeadersEnabled &&
-      this._itemRenderer(this.state.currentSectionFlatIndex, this.state.currentSectionFlatIndex, true)
+      this._itemRenderer(this.props.currentSectionFlatIndex, this.props.currentSectionFlatIndex, true)
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -295,9 +306,9 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
                 ? this.getItemSizeGetter
                 : undefined
             }
-            length={this._flat.length}
-            extraData={this._flat as any}
-            ref={this._listRef}
+            length={this.props.flatRef.current.length}
+            extraData={this.props.flatRef.current as any}
+            ref={this.props.listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />
         </Kb.ScrollView>
