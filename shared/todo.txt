@@ -7,4 +7,4 @@ mem leak
 f6 for just a router remount?
 
 framepack, dispatch invocations
-memoize-one remove
+kbfs heic preview broken (at go level)

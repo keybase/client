@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
+import {isPathHEIC} from '@/constants/chat2'
 
 export type Info = {
   type: 'image' | 'file' | 'video'
@@ -24,140 +25,126 @@ type Props = {
   onSubmit: (titles: Array<string>, spoiler: boolean) => void
 }
 
-type State = {
-  index: number
-  titles: Array<string>
-  spoiler: boolean
-}
+const GetTitles = (p: Props) => {
+  const {pathAndInfos, titles: _titles, onSubmit: _onSubmit, onCancel} = p
+  const [index, setIndex] = React.useState(0)
+  const [titles, setTitles] = React.useState(pathAndInfos.map((_, idx) => _titles?.[idx] ?? ''))
+  const [spoiler, setSpoiler] = React.useState(false)
+  setSpoiler // TODO commented out
 
-class GetTitles extends React.Component<Props, State> {
-  state: State
+  const onNext = React.useCallback(
+    (e?: React.BaseSyntheticEvent) => {
+      e?.preventDefault()
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      index: 0,
-      spoiler: false,
-      titles: props.pathAndInfos.map((_, idx) => props.titles?.[idx] ?? ''),
-    }
-  }
+      const {info} = pathAndInfos[index] ?? {}
+      if (!info) return
 
-  _onNext = (e?: React.BaseSyntheticEvent) => {
-    e?.preventDefault()
+      const nextIndex = index + 1
 
-    const {info} = this.props.pathAndInfos[this.state.index] ?? {}
-    if (!info) return
+      // done
+      if (nextIndex === pathAndInfos.length) {
+        _onSubmit(titles, spoiler)
+      } else {
+        // go to next
+        setIndex(s => s + 1)
+      }
+    },
+    [index, pathAndInfos, titles, spoiler, setIndex, _onSubmit]
+  )
 
-    const nextIndex = this.state.index + 1
+  const onSubmit = React.useCallback(
+    (e?: React.BaseSyntheticEvent) => {
+      e?.preventDefault()
+      _onSubmit(titles, spoiler)
+    },
+    [_onSubmit, titles, spoiler]
+  )
 
-    // done
-    if (nextIndex === this.props.pathAndInfos.length) {
-      this.props.onSubmit(this.state.titles, this.state.spoiler)
-    } else {
-      // go to next
-      this.setState({index: nextIndex})
-    }
-  }
+  const updateTitle = React.useCallback(
+    (title: string) => {
+      setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
+    },
+    [index, titles]
+  )
 
-  _onSubmit = (e?: React.BaseSyntheticEvent) => {
-    e?.preventDefault()
-    this.props.onSubmit(this.state.titles, this.state.spoiler)
-  }
+  const {info, path} = pathAndInfos[index] ?? {}
+  const titleHint = 'Add a caption...'
+  if (!info) return null
 
-  _isLast = () => {
-    const numPaths = this.props.pathAndInfos.length
-    return this.state.index + 1 === numPaths
-  }
-
-  // Are we trying to upload multiple?
-  _multiUpload = () => {
-    return this.props.pathAndInfos.length > 1
-  }
-
-  _updateTitle = (title: string) => {
-    this.setState(state => ({
-      titles: [...state.titles.slice(0, state.index), title, ...state.titles.slice(state.index + 1)],
-    }))
-  }
-
-  render() {
-    const {info, path} = this.props.pathAndInfos[this.state.index] ?? {}
-    const titleHint = 'Add a caption...'
-    if (!info) return null
-
-    let preview: React.ReactNode = null
-    switch (info.type) {
-      case 'image':
-        preview = path ? <Kb.ZoomableImage src={info.url ?? path} style={styles.image} /> : null
-        break
-      case 'video':
-        preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
-        break
-      default: {
-        if (C.isMobile && path?.toLowerCase().endsWith('.heic')) {
-          preview = <Kb.ZoomableImage src={path} style={styles.image} />
-        } else {
-          preview = (
-            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-              <Kb.Icon type="icon-file-uploading-48" />
-            </Kb.Box2>
-          )
-        }
+  let preview: React.ReactNode = null
+  switch (info.type) {
+    case 'image':
+      preview = path ? <Kb.ZoomableImage src={info.url ?? path} style={styles.image} /> : null
+      break
+    case 'video':
+      preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
+      break
+    default: {
+      if (C.isIOS && path && isPathHEIC(path)) {
+        preview = <Kb.ZoomableImage src={path} style={styles.image} />
+      } else {
+        preview = (
+          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+            <Kb.Icon type="icon-file-uploading-48" />
+          </Kb.Box2>
+        )
       }
     }
+  }
 
-    return (
-      <Kb.PopupWrapper onCancel={this.props.onCancel}>
-        <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
-          <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-            <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-            {this.props.pathAndInfos.length > 0 && !Styles.isMobile && (
-              <Kb.Box2 direction="vertical" style={styles.filename}>
-                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                <Kb.Text type="BodySmall" center={true}>
-                  {info.filename} ({this.state.index + 1} of {this.props.pathAndInfos.length})
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-              <Kb.PlainInput
-                style={styles.input}
-                autoFocus={!Styles.isMobile}
-                autoCorrect={true}
-                placeholder={titleHint}
-                multiline={true}
-                rowsMin={2}
-                padding="tiny"
-                value={this.state.titles[this.state.index]}
-                onEnterKeyDown={this._onNext}
-                onChangeText={this._updateTitle}
-                selectTextOnFocus={true}
-              />
-              {/* (
+  const isLast = index + 1 === pathAndInfos.length
+  // Are we trying to upload multiple?
+  const multiUpload = pathAndInfos.length > 1
+
+  return (
+    <Kb.PopupWrapper onCancel={onCancel}>
+      <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
+        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
+          <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
+          {pathAndInfos.length > 0 && !Styles.isMobile && (
+            <Kb.Box2 direction="vertical" style={styles.filename}>
+              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+              <Kb.Text type="BodySmall" center={true}>
+                {info.filename} ({index + 1} of {pathAndInfos.length})
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+            <Kb.PlainInput
+              style={styles.input}
+              autoFocus={!Styles.isMobile}
+              autoCorrect={true}
+              placeholder={titleHint}
+              multiline={true}
+              rowsMin={2}
+              padding="tiny"
+              value={titles[index]}
+              onEnterKeyDown={onNext}
+              onChangeText={updateTitle}
+              selectTextOnFocus={true}
+            />
+            {/* (
                 <Kb.Checkbox
                   style={{alignSelf: 'flex-end'}}
                   label="Spoiler?"
-                  checked={this.state.spoiler}
-                  onCheck={c => this.setState({spoiler: c})}
+                  checked={spoiler}
+                  onCheck={setSpoiler}
                 />
               )*/}
-            </Kb.Box2>
           </Kb.Box2>
-          <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-            {!Styles.isMobile && (
-              <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
-            )}
-            {this._isLast() ? (
-              <Kb.WaitingButton fullWidth={!this._multiUpload()} onClick={this._onSubmit} label="Send" />
-            ) : (
-              <Kb.Button fullWidth={!this._multiUpload()} onClick={this._onNext} label="Next" />
-            )}
-            {this._multiUpload() ? <Kb.WaitingButton onClick={this._onSubmit} label="Send All" /> : null}
-          </Kb.ButtonBar>
         </Kb.Box2>
-      </Kb.PopupWrapper>
-    )
-  }
+        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+          {!Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
+          {isLast ? (
+            <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
+          ) : (
+            <Kb.Button fullWidth={!multiUpload} onClick={onNext} label="Next" />
+          )}
+          {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </Kb.PopupWrapper>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
