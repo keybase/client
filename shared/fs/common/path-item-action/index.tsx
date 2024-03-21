@@ -5,9 +5,9 @@ import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
 
-type ClickableProps = {
+export type ClickableProps = {
   onClick: () => void
-  ref: React.RefObject<Kb.MeasureRef>
+  mref: React.RefObject<Kb.MeasureRef>
 }
 
 type ClickableComponent = {
@@ -100,7 +100,7 @@ const PathItemAction = (props: Props) => {
   return (
     <>
       {props.clickable.type === 'component' && (
-        <props.clickable.component onClick={onClick} ref={popupAnchor} />
+        <props.clickable.component onClick={onClick} mref={popupAnchor} />
       )}
       {props.clickable.type === 'icon' && (
         <IconClickable

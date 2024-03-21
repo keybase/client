@@ -52,7 +52,10 @@ const PopAttach = (ownProps: OwnProps) => {
   const _onSaveAttachment = React.useCallback(() => {
     messageAttachmentNativeSave(ordinal)
   }, [messageAttachmentNativeSave, ordinal])
-  const onSaveAttachment = C.isMobile && attachmentType === 'image' ? _onSaveAttachment : undefined
+
+  const isOKHeic = C.isIOS && attachmentType === 'file' && message.fileName.toLowerCase().endsWith('.heic')
+  const onSaveAttachment =
+    (C.isMobile && attachmentType === 'image') || isOKHeic ? _onSaveAttachment : undefined
 
   const _onShareAttachment = React.useCallback(() => {
     messageAttachmentNativeShare(ordinal)

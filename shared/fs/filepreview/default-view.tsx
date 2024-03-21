@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
+import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 
 type DefaultViewProps = {
@@ -12,6 +12,7 @@ type DefaultViewProps = {
   showInSystemFileManager: () => void
 }
 
+const Share = (p: ClickableProps) => <Kb.Button key="share" label="Share" onClick={p.onClick} ref={p.mref} />
 const DefaultView = (props: DefaultViewProps) => {
   const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
   return (
@@ -46,9 +47,7 @@ const DefaultView = (props: DefaultViewProps) => {
               <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
               <PathItemAction
                 clickable={{
-                  component: ({onClick, ref}) => (
-                    <Kb.Button key="share" label="Share" onClick={onClick} ref={ref} />
-                  ),
+                  component: Share,
                   type: 'component',
                 }}
                 path={props.path}

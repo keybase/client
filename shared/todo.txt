@@ -7,4 +7,7 @@ mem leak
 f6 for just a router remount?
 
 framepack, dispatch invocations
-memoize-one remove
+
+show heic preview in get-titles (works)
+(preexisting) when forwarding an existing .heic (pre conversion changes) a broken image is shown
+also todo, check kbfs heic conversion, currently it’s commented out entirely

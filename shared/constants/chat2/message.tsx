@@ -18,11 +18,9 @@ export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.Ren
       if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
         return 'attachment:video'
       }
-      if (C.isMobile) {
-        // allow heic on mobile only
-        if (m.attachmentType === 'file' && m.fileName.toLowerCase().endsWith('.heic')) {
-          return 'attachment:image'
-        }
+      // allow heic on ios only
+      if (C.isIOS && m.attachmentType === 'file' && m.fileName.toLowerCase().endsWith('.heic')) {
+        return 'attachment:image'
       }
       return `attachment:${m.attachmentType}`
     default:
