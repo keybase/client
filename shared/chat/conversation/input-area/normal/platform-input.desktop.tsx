@@ -317,25 +317,23 @@ const SideButtons = (p: SideButtonsProps) => {
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const conversationIDKey = C.useChatContext(s => s.id)
 
-  const {chatDebugDump} = React.useContext(DebugChatDumpContext)
-
-  // TODO REMOVE
-  React.useEffect(() => {
-    if (!chatDebugEnabled) return
-    logger.error('[CHATDEBUG]: PlatformInput F1 inject')
-    const onKeydown = (e: KeyboardEvent) => {
-      if (e.key !== 'F1') {
-        return
-      }
-
-      chatDebugDump?.(conversationIDKey)
-    }
-    window.addEventListener('keydown', onKeydown)
-    return () => {
-      window.removeEventListener('keydown', onKeydown)
-    }
-  }, [conversationIDKey, chatDebugDump])
-  // TODO REMOVE
+  // uncomment for f1 debugging
+  // const {chatDebugDump} = React.useContext(DebugChatDumpContext)
+  // React.useEffect(() => {
+  //   if (!chatDebugEnabled) return
+  //   logger.error('[CHATDEBUG]: PlatformInput F1 inject')
+  //   const onKeydown = (e: KeyboardEvent) => {
+  //     if (e.key !== 'F1') {
+  //       return
+  //     }
+  //
+  //     chatDebugDump?.(conversationIDKey)
+  //   }
+  //   window.addEventListener('keydown', onKeydown)
+  //   return () => {
+  //     window.removeEventListener('keydown', onKeydown)
+  //   }
+  // }, [conversationIDKey, chatDebugDump])
 
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
