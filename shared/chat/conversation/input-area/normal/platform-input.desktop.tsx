@@ -10,8 +10,8 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
-import logger from '@/logger'
-import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
+// import logger from '@/logger'
+// import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
