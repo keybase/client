@@ -95,8 +95,6 @@ const GetTitles = (p: Props) => {
   // Are we trying to upload multiple?
   const multiUpload = pathAndInfos.length > 1
 
-  console.log('aaaaa get attach render', pathAndInfos)
-
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
