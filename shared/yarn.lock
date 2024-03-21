@@ -8907,7 +8907,6 @@ punycode@^2.1.0, punycode@^2.1.1:
 
 purepack@>=1, purepack@keybase/nullModule:
   version "0.0.0"
-  uid e0d7d7874eb4d1fd82056f92f146589186fe94f0
   resolved "https://codeload.github.com/keybase/nullModule/tar.gz/e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
 qrcode-generator@keybase/qrcode-generator#keybase-changes-off-140:
