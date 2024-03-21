@@ -65,6 +65,12 @@ const TeamPicker = (props: Props) => {
           preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
         }
         break
+      case 'file':
+        if (C.isIOS && message.fileName.toLowerCase().endsWith('.heic')) {
+          const src = message.fileURL || message.previewURL
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
+        }
+        break
       default:
     }
   }
