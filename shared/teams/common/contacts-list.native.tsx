@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Section as _Section} from '@/common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
-import {memoize} from '@/util/memoize'
 import {mapGetEnsureValue} from '@/util/map'
 
 type Section = _Section<Contact, {title: string}>
@@ -20,7 +19,7 @@ const categorize = (contact: Contact): string => {
     return 'Other'
   }
 }
-const filterAndSectionContacts = memoize((contacts: Contact[], search: string): Section[] => {
+const filterAndSectionContacts = (contacts: Contact[], search: string): Section[] => {
   const searchL = search.toLowerCase()
   const sectionMap: Map<string, Contact[]> = new Map()
   contacts
@@ -52,7 +51,7 @@ const filterAndSectionContacts = memoize((contacts: Contact[], search: string): 
     }
   }
   return sections
-})
+}
 
 type Props = {
   emailsDisabled?: boolean
@@ -104,7 +103,10 @@ const ContactRow = React.memo(({item, disabled, index, onSelect, selected}: Cont
 const ContactsList = (props: Props) => {
   const contactInfo = useContacts()
 
-  const sections = filterAndSectionContacts(contactInfo.contacts, props.search)
+  const sections = React.useMemo(
+    () => filterAndSectionContacts(contactInfo.contacts, props.search),
+    [contactInfo.contacts, props.search]
+  )
   const renderSectionHeader = ({section}: {section: Section}) => <Kb.SectionDivider label={section.title} />
   const keyExtractor = (item: Contact) => item.id
 

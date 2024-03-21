@@ -1202,10 +1202,6 @@
           "name": "phase"
         },
         {
-          "type": "KBFSRevision",
-          "name": "currentTLFRevision"
-        },
-        {
           "type": "int",
           "name": "todoCount"
         },
@@ -1252,15 +1248,24 @@
       "fields": [
         {
           "type": {
-            "type": "map",
-            "values": "SimpleFSArchiveJobStatus",
-            "keys": "string"
+            "type": "array",
+            "items": "SimpleFSArchiveJobStatus"
           },
           "name": "jobs"
         },
         {
           "type": "Time",
           "name": "lastUpdated"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveJobFreshness",
+      "fields": [
+        {
+          "type": "KBFSRevision",
+          "name": "currentTLFRevision"
         }
       ]
     }
@@ -2111,6 +2116,15 @@
     "simpleFSGetArchiveStatus": {
       "request": [],
       "response": "SimpleFSArchiveStatus"
+    },
+    "simpleFSGetArchiveJobFreshness": {
+      "request": [
+        {
+          "name": "jobID",
+          "type": "string"
+        }
+      ],
+      "response": "SimpleFSArchiveJobFreshness"
     }
   },
   "namespace": "keybase.1"

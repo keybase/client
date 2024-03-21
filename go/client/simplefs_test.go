@@ -443,6 +443,11 @@ func (k SimpleFSMock) SimpleFSGetArchiveStatus(ctx context.Context) (
 	return keybase1.SimpleFSArchiveStatus{}, nil
 }
 
+func (k SimpleFSMock) SimpleFSGetArchiveJobFreshness(
+	ctx context.Context, jobID string) (keybase1.SimpleFSArchiveJobFreshness, error) {
+	return keybase1.SimpleFSArchiveJobFreshness{}, nil
+}
+
 /*
  file source cases:
  1. file

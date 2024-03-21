@@ -18,7 +18,6 @@ import (
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/sig3"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -2005,10 +2004,14 @@ type MerkleHiddenResponseType uint8
 const (
 	// the server did not include any hidden chain data
 	MerkleHiddenResponseTypeNONE MerkleHiddenResponseType = 1
+
+	// Removed (not serving proofs anymore)
 	// the server provided a proof of absence (or inclusion with an empty leaf) for
 	// the requested key
-	MerkleHiddenResponseTypeABSENCEPROOF MerkleHiddenResponseType = 2
-	// the server provided a valid inclusion proof for the returned leaf in the tree
+	// MerkleHiddenResponseTypeABSENCEPROOF MerkleHiddenResponseType = 2
+
+	// the server provided a valid inclusion or exclusion proof for the returned leaf in the tree
+	// (however, we are currently not providing a proof)
 	MerkleHiddenResponseTypeOK MerkleHiddenResponseType = 3
 
 	// All hidden checks should be skipped as the feature flag is off
@@ -2016,9 +2019,8 @@ const (
 )
 
 type MerkleHiddenResponse struct {
-	RespType            MerkleHiddenResponseType `json:"resp_type"`
-	CommittedHiddenTail *sig3.Tail               `json:"committed_hidden_tail"`
-	UncommittedSeqno    keybase1.Seqno           `json:"uncommitted_seqno"`
+	RespType         MerkleHiddenResponseType `json:"resp_type"`
+	UncommittedSeqno keybase1.Seqno           `json:"uncommitted_seqno"`
 }
 
 func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
@@ -2026,13 +2028,6 @@ func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
 		return 0
 	}
 	return m.UncommittedSeqno
-}
-
-func (m *MerkleHiddenResponse) GetCommittedSeqno() keybase1.Seqno {
-	if m == nil || m.RespType != MerkleHiddenResponseTypeOK {
-		return 0
-	}
-	return m.CommittedHiddenTail.Seqno
 }
 
 type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)

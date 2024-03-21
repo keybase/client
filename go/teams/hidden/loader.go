@@ -284,14 +284,11 @@ func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, 
 	if l.data == nil || l.data.LinkReceiptTimes == nil {
 		return nil
 	}
-	for s, t := range l.data.LinkReceiptTimes {
+	for s := range l.data.LinkReceiptTimes {
 		if s <= newCommittedSeqno {
 			continue
 		}
-		if mctx.G().Clock().Since(t.Time()) > MaxDelayInCommittingHiddenLinks {
-			return libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorOldLinkNotYetCommitted,
-				"Link for seqno %v was added %v ago and has not been included in the blind tree yet.", s, mctx.G().Clock().Since(t.Time()))
-		}
+		// No longer forcing server to eventually commit links
 	}
 	return nil
 }
@@ -524,55 +521,7 @@ func (l *LoaderPackage) SetLastCommittedSeqno(mctx libkb.MetaContext, lcs keybas
 }
 
 func (l *LoaderPackage) CheckHiddenMerklePathResponseAndAddRatchets(mctx libkb.MetaContext, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {
-
 	oldHiddenTailSeqno := l.LastSeqno()
-	oldCommittedHiddenTailSeqno := l.LastCommittedSeqno()
-	lastCommittedHiddenTailSeqno := oldCommittedHiddenTailSeqno
-
-	switch hiddenResp.RespType {
-	case libkb.MerkleHiddenResponseTypeNONE:
-		return false, NewLoaderError("Logic error in CheckHiddenMerklePathResponseAndAddRatchets: should not call this function with a NONE response.")
-	case libkb.MerkleHiddenResponseTypeFLAGOFF:
-		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as feature flag is off")
-		return true, nil
-	case libkb.MerkleHiddenResponseTypeOK:
-		newCommittedHiddenTail := hiddenResp.CommittedHiddenTail
-		newCommittedHiddenTailSeqno := newCommittedHiddenTail.Seqno
-		lastCommittedHiddenTailSeqno = newCommittedHiddenTailSeqno
-
-		// ensure the server is self consistent in its answer
-		if hiddenResp.UncommittedSeqno < newCommittedHiddenTailSeqno {
-			return false, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInconsistentUncommittedSeqno,
-				"The server claims that the lastHiddenSeqno for this team (seqno %v) is smaller than the one in the blind merkle update it sent (%v)", hiddenResp.UncommittedSeqno, newCommittedHiddenTailSeqno)
-		}
-		// prevent rollbacks in the blind tree
-		if newCommittedHiddenTailSeqno < oldCommittedHiddenTailSeqno {
-			return false, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorRollbackCommittedSeqno,
-				"Server rollback of the blind merkle tree leaf: we had previously seen a leaf at seqno %v, but this update contains a leaf at seqno %v", oldCommittedHiddenTailSeqno, newCommittedHiddenTailSeqno)
-		}
-		// add ratchet to ensure consistency
-		err = l.AddUnblindedRatchet(mctx, newCommittedHiddenTail, int(mctx.G().Clock().Now().Unix()), keybase1.RatchetType_BLINDED)
-		if err != nil {
-			return false, err
-		}
-		err = l.SetLastCommittedSeqno(mctx, newCommittedHiddenTailSeqno)
-		if err != nil {
-			return false, err
-		}
-	case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
-		if oldCommittedHiddenTailSeqno > 0 {
-			return false, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorUnexpectedAbsenceProof,
-				"Server claimed (and proved) there are no committed hidden chain links in the chain, but we had previously seen a committed link with seqno %v", oldCommittedHiddenTailSeqno)
-		}
-	default:
-		return false, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInvalidHiddenResponseType,
-			"Unrecognized response type: %v", hiddenResp.RespType)
-	}
-
-	if err := l.VerifyOldChainLinksAreCommitted(mctx, lastCommittedHiddenTailSeqno); err != nil {
-		return false, err
-	}
-
 	if oldHiddenTailSeqno == hiddenResp.UncommittedSeqno {
 		hiddenIsFresh = true
 	} else if oldHiddenTailSeqno < hiddenResp.UncommittedSeqno {

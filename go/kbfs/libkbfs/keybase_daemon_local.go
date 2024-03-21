@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/ldbutils"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -449,6 +450,12 @@ func (k *KeybaseDaemonLocal) OnNonPathChange(
 
 // GetKVStoreClient implements the KeybaseService interface.
 func (k *KeybaseDaemonLocal) GetKVStoreClient() keybase1.KvstoreInterface {
+	return nil
+}
+
+// GetKeybaseDaemonRawClient implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseDaemonLocal) GetKeybaseDaemonRawClient() rpc.GenericClient {
 	return nil
 }
 

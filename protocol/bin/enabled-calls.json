@@ -438,10 +438,16 @@
   "keybase.1.SimpleFS.simpleFSGetArchiveStatus": {
     "promise": true
   },
+  "keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness": {
+    "promise": true
+  },
   "keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob": {
     "promise": true
   },
   "keybase.1.SimpleFS.simpleFSArchiveStart": {
+    "promise": true
+  },
+  "keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness": {
     "promise": true
   },
   "keybase.1.account.cancelReset": {

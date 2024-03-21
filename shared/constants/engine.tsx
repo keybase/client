@@ -39,6 +39,7 @@ export const _useState = Z.createZustand<State>(set => {
         C.useConfigState.getState().dispatch.onEngineIncoming(action)
         C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
         C.useFSState.getState().dispatch.onEngineIncoming(action)
+        C.useArchiveState.getState().dispatch.onEngineIncoming(action)
         C.useNotifState.getState().dispatch.onEngineIncoming(action)
         C.usePeopleState.getState().dispatch.onEngineIncoming(action)
         C.usePinentryState.getState().dispatch.onEngineIncoming(action)

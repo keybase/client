@@ -11,7 +11,6 @@ import openSMS from '@/util/sms'
 import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from './platform'
 import {mapGetEnsureValue} from '@/util/map'
-import {memoize} from '@/util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -513,12 +512,8 @@ export function sortTeamnames(a: string, b: string) {
   }
 }
 
-export const sortTeamsByName = memoize((teamMeta: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamMeta>) =>
+export const sortTeamsByName = (teamMeta: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
-)
-
-// sorted by name
-export const getSortedTeams = () => sortTeamsByName(_useState.getState().teamMeta)
 
 export const isAdmin = (type: T.Teams.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: T.Teams.MaybeTeamRoleType) => type === 'owner'

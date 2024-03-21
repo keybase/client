@@ -46,9 +46,9 @@ export type Props = {
   serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   fullName?: string // full name from external profile
   title: string
-  vouchShowButton: boolean
-  vouchDisableButton: boolean
-  webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry>
+  // vouchShowButton: boolean
+  // vouchDisableButton: boolean
+  // webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry>
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -159,7 +159,7 @@ type TabsProps = {
   selectedTab: string
   numFollowers: number | undefined
   numFollowing: number | undefined
-  numWebOfTrust: number | undefined
+  // numWebOfTrust: number | undefined
 }
 
 class Tabs extends React.Component<TabsProps> {
@@ -362,7 +362,7 @@ class User extends React.Component<Props2, State> {
         loadingFollowers={loadingFollowers}
         numFollowers={this.props.followersCount}
         numFollowing={this.props.followingCount}
-        numWebOfTrust={this.props.webOfTrustEntries.length}
+        // numWebOfTrust={this.props.webOfTrustEntries.length}
         onSelectTab={this._changeTab}
         selectedTab={this.state.selectedTab}
       />

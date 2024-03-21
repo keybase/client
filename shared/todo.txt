@@ -14,4 +14,4 @@ remove F1 debug in chat
 
 
 framepack, dispatch invocations
-memoize-one remove
+kbfs heic preview broken (at go level)

@@ -528,7 +528,7 @@ input {
   position: relative;
 }
 .tooltip:before {
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out 0.3s;
   /* body small text */
   -webkit-font-smoothing: antialiased;
   align-items: center;
@@ -538,6 +538,7 @@ input {
   color: rgba(0, 0, 0, 0.85);
   color: var(--color-white);
   content: attr(data-tooltip);
+  display: inline-flex;
   opacity: 0;
   flex-grow: 1;
   flex-shrink: 0;
@@ -552,43 +553,58 @@ input {
   text-rendering: optimizeLegibility;
   white-space: nowrap;
   z-index: 999;
-  top: 0;
   left: 50%;
   transform: translate(-50%, -100%);
-}
-
-.tooltip-bottom-center:before {
-  transform: translate(-50%, 100%);
-}
-
-.tooltip-top-left:before {
-  transform: translate(-100%, -100%);
-}
-
-.tooltip-top-right:before {
-  transform: translate(0%, -100%);
-}
-
-.tooltip-bottom-left:before {
-  transform: translate(-100%, 100%);
-}
-
-.tooltip-bottom-right:before {
-  transform: translate(0%, 100%);
-}
-
-.tooltip-right:before {
-  transform: translate(5px, -50%);
-  top: 50%;
-  left: 100%;
-}
-.tooltip-left:before {
-  transform: translate(-5px, -50%);
-  top: 50%;
-  left: initial;
-  right: 100%;
+  /* move out so it doesn't affect measuring*/
+  top: -99999px;
 }
 
 .tooltip:hover:before {
   opacity: 1;
+  top: initial;
+}
+
+.tooltip-bottom-center:hover:before {
+  opacity: 1;
+  top: initial;
+  transform: translate(-50%, 100%);
+}
+
+.tooltip-top-left:hover:before {
+  opacity: 1;
+  top: initial;
+  transform: translate(-100%, -100%);
+}
+
+.tooltip-top-right:hover:before {
+  opacity: 1;
+  top: initial;
+  transform: translate(0%, -100%);
+}
+
+.tooltip-bottom-left:hover:before {
+  opacity: 1;
+  top: initial;
+  transform: translate(-100%, 100%);
+}
+
+.tooltip-bottom-right:hover:before {
+  opacity: 1;
+  top: initial;
+  transform: translate(0%, 100%);
+}
+
+.tooltip-right:hover:before {
+  opacity: 1;
+  transform: translate(5px, -50%);
+  top: 50%;
+  left: 100%;
+}
+
+.tooltip-left:hover:before {
+  opacity: 1;
+  transform: translate(-5px, -50%);
+  top: 50%;
+  left: initial;
+  right: 100%;
 }

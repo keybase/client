@@ -65,7 +65,7 @@ js_tests() {
 
     yarn build-emoji
     check_rc $? 'yarn build-emoji failed!' 1
-    git diff --exit-code ../go
+    git diff --exit-code ../go/chat/storage/emoji_codemap.go
     check_rc $? 'unexpected generated emoji changes, did you forget to yarn build-emoji?' 1
 
     echo 'yarn tsc'

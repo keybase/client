@@ -5,7 +5,6 @@ import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {memoize} from '@/util/memoize'
 
 type DeletedTeam = {
   teamName: string
@@ -123,67 +122,62 @@ type Row = {key: React.Key} & (
   | {team: T.Teams.TeamMeta; type: 'team'}
 )
 
-class Teams extends React.PureComponent<Props> {
-  private teamsAndExtras = memoize(
-    (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
-      {key: '_buttons', type: '_buttons' as const},
-      {key: '_sortHeader', type: '_sortHeader' as const},
-      ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
-      ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
-      {key: '_footer', type: '_footer' as const},
-    ]
+const Teams = React.memo(function Teams(p: Props) {
+  const {deletedTeams, teams, onReadMore, onCreateTeam, onHideChatBanner, onJoinTeam} = p
+
+  const items = React.useMemo(
+    (): ReadonlyArray<Row> =>
+      [
+        {key: '_buttons', type: '_buttons'},
+        {key: '_sortHeader', type: '_sortHeader'},
+        ...deletedTeams.map(
+          dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam'}) as const
+        ),
+        ...teams.map(team => ({key: team.id, team, type: 'team'}) as const),
+        {key: '_footer', type: '_footer'},
+      ] as const,
+    [deletedTeams, teams]
   )
 
-  private onHideChatBanner = () => {
-    this.props.onHideChatBanner()
-  }
-
-  private renderItem = (index: number, item: Row) => {
-    switch (item.type) {
-      case '_banner':
-        return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.onHideChatBanner} />
-      case '_footer':
-        return <TeamsFooter empty={this.props.teams.length === 0} />
-      case '_buttons':
-        return (
-          <TeamBigButtons
-            onCreateTeam={this.props.onCreateTeam}
-            onJoinTeam={this.props.onJoinTeam}
-            empty={this.props.teams.length === 0}
-          />
-        )
-      case '_sortHeader':
-        return <SortHeader />
-      case 'deletedTeam': {
-        const {deletedBy, teamName} = item.team
-        return (
-          <Kb.Banner color="blue" key={'deletedTeamBannerFor' + teamName}>
-            <Kb.BannerParagraph
-              bannerColor="blue"
-              content={`The ${teamName} team was deleted by ${deletedBy}.`}
-            />
-          </Kb.Banner>
-        )
+  const renderItem = React.useCallback(
+    (index: number, item: Row) => {
+      switch (item.type) {
+        case '_banner':
+          return <Banner onReadMore={onReadMore} onHideChatBanner={onHideChatBanner} />
+        case '_footer':
+          return <TeamsFooter empty={teams.length === 0} />
+        case '_buttons':
+          return (
+            <TeamBigButtons onCreateTeam={onCreateTeam} onJoinTeam={onJoinTeam} empty={teams.length === 0} />
+          )
+        case '_sortHeader':
+          return <SortHeader />
+        case 'deletedTeam': {
+          const {deletedBy, teamName} = item.team
+          return (
+            <Kb.Banner color="blue" key={'deletedTeamBannerFor' + teamName}>
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={`The ${teamName} team was deleted by ${deletedBy}.`}
+              />
+            </Kb.Banner>
+          )
+        }
+        case 'team': {
+          const team = item.team
+          return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+        }
       }
-      case 'team': {
-        const team = item.team
-        return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
-      }
-    }
-  }
+    },
+    [onCreateTeam, onHideChatBanner, onJoinTeam, onReadMore, teams]
+  )
 
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.List
-          items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
-          renderItem={this.renderItem}
-          style={Kb.Styles.globalStyles.fullHeight}
-        />
-      </Kb.Box2>
-    )
-  }
-}
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.List items={items} renderItem={renderItem} style={Kb.Styles.globalStyles.fullHeight} />
+    </Kb.Box2>
+  )
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

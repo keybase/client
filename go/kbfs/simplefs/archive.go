@@ -20,6 +20,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -98,9 +100,10 @@ type archiveManager struct {
 	// worker can pick it up.
 	errors map[string]errorState
 
-	indexingWorkerSignal chan struct{}
-	copyingWorkerSignal  chan struct{}
-	zippingWorkerSignal  chan struct{}
+	indexingWorkerSignal      chan struct{}
+	copyingWorkerSignal       chan struct{}
+	zippingWorkerSignal       chan struct{}
+	notifyUIStateChangeSignal chan struct{}
 
 	ctxCancel func()
 }
@@ -155,6 +158,15 @@ func (m *archiveManager) shutdown(ctx context.Context) {
 	}
 }
 
+func (m *archiveManager) notifyUIStateChange(ctx context.Context) {
+	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.notifyUIStateChange")
+	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.notifyUIStateChange")
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	state, errorStates := m.getCurrentStateLocked(ctx)
+	m.simpleFS.notifyUIStateChange(ctx, state, errorStates)
+}
+
 func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {
 	m.simpleFS.log.CDebugf(ctx, "+ archiveManager.startJob %#+v", job)
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.startJob")
@@ -169,6 +181,7 @@ func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArch
 		Phase: keybase1.SimpleFSArchiveJobPhase_Queued,
 	}
 	m.state.LastUpdated = keybase1.ToTime(time.Now())
+	m.signal(m.notifyUIStateChangeSignal)
 	m.signal(m.indexingWorkerSignal)
 	return m.flushStateFileLocked(ctx)
 }
@@ -197,7 +210,17 @@ func (m *archiveManager) cancelOrDismissJob(ctx context.Context,
 			job.Desc.StagingPath, jobID, err)
 	}
 
+	m.signal(m.notifyUIStateChangeSignal)
 	return nil
+}
+
+func (m *archiveManager) getCurrentStateLocked(ctx context.Context) (
+	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
+	errorStates = make(map[string]errorState)
+	for jobID, errState := range m.errors {
+		errorStates[jobID] = errState
+	}
+	return m.state.DeepCopy(), errorStates
 }
 
 func (m *archiveManager) getCurrentState(ctx context.Context) (
@@ -206,11 +229,7 @@ func (m *archiveManager) getCurrentState(ctx context.Context) (
 	defer m.simpleFS.log.CDebugf(ctx, "- archiveManager.getCurrentState")
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	errorStates = make(map[string]errorState)
-	for jobID, errState := range m.errors {
-		errorStates[jobID] = errState
-	}
-	return m.state.DeepCopy(), errorStates
+	return m.getCurrentStateLocked(ctx)
 }
 
 func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
@@ -222,6 +241,7 @@ func (m *archiveManager) changeJobPhaseLocked(ctx context.Context,
 	}
 	copy.Phase = newPhase
 	m.state.Jobs[jobID] = copy
+	m.signal(m.notifyUIStateChangeSignal)
 }
 func (m *archiveManager) changeJobPhase(ctx context.Context,
 	jobID string, newPhase keybase1.SimpleFSArchiveJobPhase) {
@@ -315,6 +335,7 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 		jobCopy.Manifest = manifest
 		jobCopy.BytesTotal = bytesTotal
 		m.state.Jobs[jobID] = jobCopy
+		m.signal(m.notifyUIStateChangeSignal)
 	}()
 	return nil
 }
@@ -555,6 +576,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 			job.Manifest[k] = v.DeepCopy()
 		}
 		m.state.Jobs[jobID] = job
+		m.signal(m.notifyUIStateChangeSignal)
 	}
 
 	updateBytesCopied := func(delta int64) {
@@ -564,6 +586,7 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 		job := m.state.Jobs[jobID]
 		job.BytesCopied += delta
 		m.state.Jobs[jobID] = job
+		m.signal(m.notifyUIStateChangeSignal)
 	}
 
 	srcContainingDirFS, finalElem, err := m.simpleFS.getFSIfExists(ctx,
@@ -776,11 +799,16 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 	m.simpleFS.log.CDebugf(ctx, "+ doZipping %s", jobID)
 	defer func() { m.simpleFS.log.CDebugf(ctx, "- doZipping %s err: %v", jobID, err) }()
 
-	jobDesc := func() keybase1.SimpleFSArchiveJobDesc {
+	jobDesc, manifestBytes, err := func() (keybase1.SimpleFSArchiveJobDesc, []byte, error) {
 		m.mu.Lock()
 		defer m.mu.Unlock()
-		return m.state.Jobs[jobID].Desc
+		manifestBytes, err := json.MarshalIndent(m.state.Jobs[jobID].Manifest, "", "  ")
+		return m.state.Jobs[jobID].Desc, manifestBytes, err
 	}()
+	if err != nil {
+		return fmt.Errorf(
+			"getting jobDesc and manifestBytes for %s error: %v", jobID, err)
+	}
 
 	// Reset BytesZipped.
 	func() {
@@ -790,6 +818,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		job := m.state.Jobs[jobID]
 		job.BytesZipped = 0
 		m.state.Jobs[jobID] = job
+		m.signal(m.notifyUIStateChangeSignal)
 	}()
 
 	updateBytesZipped := func(delta int64) {
@@ -799,6 +828,7 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 		job := m.state.Jobs[jobID]
 		job.BytesZipped += delta
 		m.state.Jobs[jobID] = job
+		m.signal(m.notifyUIStateChangeSignal)
 	}
 
 	workspaceDir := getWorkspaceDir(jobDesc)
@@ -829,7 +859,18 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 		err = zipWriterAddDir(ctx, zipWriter, workspaceDir, updateBytesZipped)
 		if err != nil {
-			return fmt.Errorf("zipWriter.AddFS to %s error: %v", jobDesc.ZipFilePath, err)
+			return fmt.Errorf("zipWriterAddDir into %s error: %v", jobDesc.ZipFilePath, err)
+		}
+
+		{ // write the manifest
+			w, err := zipWriter.Create("manifest.json")
+			if err != nil {
+				return fmt.Errorf("zipWriter.Create into %s error: %v", jobDesc.ZipFilePath, err)
+			}
+			_, err = w.Write(manifestBytes)
+			if err != nil {
+				return fmt.Errorf("w.Write manifest into %s error: %v", jobDesc.ZipFilePath, err)
+			}
 		}
 
 		return nil
@@ -958,6 +999,20 @@ func (m *archiveManager) errorRetryWorker(ctx context.Context) {
 	}
 }
 
+func (m *archiveManager) notifyUIStateChangeWorker(ctx context.Context) {
+	limiter := rate.NewLimiter(rate.Every(time.Second/2), 1)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-m.notifyUIStateChangeSignal:
+		}
+		limiter.Wait(ctx)
+
+		m.notifyUIStateChange(ctx)
+	}
+}
+
 func (m *archiveManager) start() {
 	ctx := context.Background()
 	ctx, m.ctxCancel = context.WithCancel(ctx)
@@ -965,6 +1020,7 @@ func (m *archiveManager) start() {
 	go m.copyingWorker(m.simpleFS.makeContext(ctx))
 	go m.zippingWorker(m.simpleFS.makeContext(ctx))
 	go m.errorRetryWorker(m.simpleFS.makeContext(ctx))
+	go m.notifyUIStateChangeWorker(m.simpleFS.makeContext(ctx))
 	m.signal(m.indexingWorkerSignal)
 	m.signal(m.copyingWorkerSignal)
 	m.signal(m.zippingWorkerSignal)
@@ -984,12 +1040,13 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 	simpleFS.log.CDebugf(ctx, "+ newArchiveManager")
 	defer simpleFS.log.CDebugf(ctx, "- newArchiveManager")
 	m = &archiveManager{
-		simpleFS:             simpleFS,
-		jobCtxCancellers:     make(map[string]func()),
-		errors:               make(map[string]errorState),
-		indexingWorkerSignal: make(chan struct{}, 1),
-		copyingWorkerSignal:  make(chan struct{}, 1),
-		zippingWorkerSignal:  make(chan struct{}, 1),
+		simpleFS:                  simpleFS,
+		jobCtxCancellers:          make(map[string]func()),
+		errors:                    make(map[string]errorState),
+		indexingWorkerSignal:      make(chan struct{}, 1),
+		copyingWorkerSignal:       make(chan struct{}, 1),
+		zippingWorkerSignal:       make(chan struct{}, 1),
+		notifyUIStateChangeSignal: make(chan struct{}, 1),
 	}
 	stateFilePath := getStateFilePath(simpleFS)
 	m.state, err = loadArchiveStateFromJsonGz(ctx, simpleFS, stateFilePath)

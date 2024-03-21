@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
-import {memoize} from '@/util/memoize'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
@@ -13,30 +12,31 @@ type Props = {
   usernames?: Array<string> // undefined means the user themself
 }
 
-const getChannelsForList = memoize(
-  (channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>, usernames: string[]) => {
-    const processed = [...channels.values()].reduce(
-      ({list, general}: {general: T.Chat.ConversationMeta; list: Array<T.Chat.ConversationMeta>}, c) =>
-        c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
-      {general: C.Chat.makeConversationMeta(), list: []}
-    )
-    const {list, general} = processed
-    const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
-    const convIDKeysAvailable = sortedList
-      .map(c => c.conversationIDKey)
-      .filter(convIDKey => {
-        // TODO not reactive
-        const participants = C.getConvoState(convIDKey).participants.all
-        // At least one person is not in the channel
-        return usernames.some(member => !participants.includes(member))
-      })
-    return {
-      channelMetaGeneral: general,
-      channelMetasAll: [general, ...sortedList],
-      convIDKeysAvailable,
-    }
+const getChannelsForList = (
+  channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  usernames: string[]
+) => {
+  const processed = [...channels.values()].reduce(
+    ({list, general}: {general: T.Chat.ConversationMeta; list: Array<T.Chat.ConversationMeta>}, c) =>
+      c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
+    {general: C.Chat.makeConversationMeta(), list: []}
+  )
+  const {list, general} = processed
+  const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
+  const convIDKeysAvailable = sortedList
+    .map(c => c.conversationIDKey)
+    .filter(convIDKey => {
+      // TODO not reactive
+      const participants = C.getConvoState(convIDKey).participants.all
+      // At least one person is not in the channel
+      return usernames.some(member => !participants.includes(member))
+    })
+  return {
+    channelMetaGeneral: general,
+    channelMetasAll: [general, ...sortedList],
+    convIDKeysAvailable,
   }
-)
+}
 
 const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const teamID = props.teamID
@@ -47,9 +47,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const nav = Container.useSafeNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
-    channelMetas,
-    usernames
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = React.useMemo(
+    () => getChannelsForList(channelMetas, usernames),
+    [channelMetas, usernames]
   )
 
   C.Router2.useSafeFocusEffect(

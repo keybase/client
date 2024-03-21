@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/sig3"
 	"github.com/keybase/client/go/teams/hidden"
 	"github.com/keybase/pipeliner"
 )
@@ -302,12 +301,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				team:   probe.TeamSeqno,
 				// leave linkID nil, it's not needed...
 			}
-			if probe.TeamHiddenSeqno > 0 {
-				prev.hiddenResp = &libkb.MerkleHiddenResponse{
-					RespType:            libkb.MerkleHiddenResponseTypeOK,
-					CommittedHiddenTail: &sig3.Tail{Seqno: probe.TeamHiddenSeqno},
-				}
-			}
 		}
 	}
 
@@ -322,11 +315,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 	if low < *first {
 		m.Debug("bumping low sequence number to last merkle checkpoint: %s", *first)
 		low = *first
-	}
-
-	firstRootWithHidden, err := m.G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m)
-	if err != nil {
-		return 0, keybase1.Seqno(0), nil, err
 	}
 
 	probeTuples, err = a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, getAuditParams(m).NumPostProbes, history.PostProbesToRetry)
@@ -358,9 +346,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				return 0, keybase1.Seqno(0), probeTuples, NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
 			}
 		}
-		if err = checkProbeHidden(m, firstRootWithHidden, hiddenChain, &tuple, prev, latestMerkleSeqno, maxHiddenSeqno, auditMode); err != nil {
-			return 0, keybase1.Seqno(0), probeTuples, err
-		}
 
 		ret++
 
@@ -377,39 +362,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 	return ret, maxMerkleProbe, probeTuples, nil
 }
 
-func checkProbeHidden(m libkb.MetaContext, firstRootWithHidden keybase1.Seqno, hiddenChain map[keybase1.Seqno]keybase1.LinkID, tuple *probeTuple, prev *probeTuple, latestMerkleSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) error {
-	if auditMode == keybase1.AuditMode_STANDARD_NO_HIDDEN {
-		return nil
-	}
-	switch tuple.hiddenResp.RespType {
-	case libkb.MerkleHiddenResponseTypeFLAGOFF:
-		// pass
-	case libkb.MerkleHiddenResponseTypeNONE:
-		if tuple.merkle >= firstRootWithHidden {
-			return NewAuditError("the server did not return any hidden chain data at seqno %v (first root with hidden data: %v)", tuple.merkle, firstRootWithHidden)
-		}
-	case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
-		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF {
-			return NewAuditError("the server returned an absence proof at seqno %v, but the previous probe was not %+v", tuple.merkle, prev.hiddenResp)
-		}
-	case libkb.MerkleHiddenResponseTypeOK:
-		expHiddenLinkID, ok := hiddenChain[tuple.hiddenResp.CommittedHiddenTail.Seqno]
-		if !ok {
-			return NewAuditError("team hidden chain rollback: merkle seqno %v referred to hidden team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.hiddenResp.GetCommittedSeqno(), latestMerkleSeqno, maxHiddenSeqno)
-		}
-		if !expHiddenLinkID.Eq(tuple.hiddenResp.CommittedHiddenTail.Hash.Export()) {
-			return NewAuditError("hidden team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d",
-				tuple.hiddenResp.CommittedHiddenTail.Seqno, expHiddenLinkID, tuple.hiddenResp.CommittedHiddenTail.Hash.Export(), tuple.merkle)
-		}
-		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK && tuple.hiddenResp.CommittedHiddenTail.Seqno < prev.hiddenResp.CommittedHiddenTail.Seqno {
-			return NewAuditError("team hidden chain unexpected jump: %d > %d via merkle seqno %d", prev.hiddenResp.CommittedHiddenTail.Seqno, tuple.hiddenResp.CommittedHiddenTail.Seqno, tuple.merkle)
-		}
-	default:
-		return NewAuditError("Unrecognized hidden response type %+v", tuple.hiddenResp)
-	}
-	return nil
-}
-
 // doPreProbes probabilistically checks that no team occupied the slot before the team
 // in question was created. It selects probes from before the team was created. Each
 // probed leaf must not be occupied.
@@ -419,11 +371,6 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 	first := m.G().GetMerkleClient().FirstExaminableHistoricalRoot(m)
 	if first == nil {
 		return 0, nil, NewAuditError("cannot find a first modern merkle sequence")
-	}
-
-	firstRootWithHidden, err := m.G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m)
-	if err != nil {
-		return 0, probeTuples, err
 	}
 
 	probeTuples, err = a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkleSeqno, len(history.PreProbes), getAuditParams(m).NumPreProbes, history.PreProbesToRetry)
@@ -440,17 +387,6 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 			return 0, probeTuples, NewAuditError("merkle root should not have had a leaf for team %v: got %s/%d at merkle seqno %v",
 				history.ID, tuple.linkID, tuple.team, tuple.merkle)
 		}
-		if tuple.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
-			if tuple.merkle > firstRootWithHidden && auditMode != keybase1.AuditMode_STANDARD_NO_HIDDEN {
-				return 0, probeTuples, NewAuditError("did not get a hidden response but one was expected (at main seqno %v)", tuple.merkle)
-			}
-			// In this case, we did not expect any hidden response as we are
-			// either not authorized, or the hidden tree was not being used yet.
-			continue
-		}
-		if tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF && tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF {
-			return 0, probeTuples, NewAuditError("expected an ABSENCE PROOF (or the flag to be off) but got %+v instead", tuple.hiddenResp)
-		}
 	}
 	return len(probeTuples), probeTuples, nil
 }
@@ -462,10 +398,9 @@ func randSeqno(m libkb.MetaContext, lo keybase1.Seqno, hi keybase1.Seqno) (keyba
 }
 
 type probeTuple struct {
-	merkle     keybase1.Seqno
-	team       keybase1.Seqno
-	linkID     keybase1.LinkID
-	hiddenResp *libkb.MerkleHiddenResponse
+	merkle keybase1.Seqno
+	team   keybase1.Seqno
+	linkID keybase1.LinkID
 }
 
 func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, probes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int, probesToRetry []keybase1.Seqno) (ret []probeTuple, err error) {
@@ -522,11 +457,10 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 
 func (a *Auditor) lookupProbe(m libkb.MetaContext, teamID keybase1.TeamID, probe *probeTuple) (err error) {
 	defer m.Trace(fmt.Sprintf("Auditor#lookupProbe(%v,%v)", teamID, *probe), &err)()
-	leaf, _, hiddenResp, err := m.G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m, teamID.AsUserOrTeam(), probe.merkle, hidden.ProcessHiddenResponseFunc)
+	leaf, _, _, err := m.G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m, teamID.AsUserOrTeam(), probe.merkle, hidden.ProcessHiddenResponseFunc)
 	if err != nil {
 		return err
 	}
-	probe.hiddenResp = hiddenResp
 	if leaf == nil || leaf.Private == nil {
 		m.Debug("nil leaf at %v/%v", teamID, probe.merkle)
 		return nil
@@ -588,13 +522,6 @@ func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory,
 	}
 	if !link.Eq(tail) {
 		return NewAuditError("hidden chain tail mismatch (%s != %s) at chain link %d", link, tail, lastAudit.MaxHiddenSeqno)
-	}
-	if maxHiddenSeqno == 0 {
-		return NewAuditError("In the past we got an hidden chain up to %v, but now maxHiddenSeqno is 0", lastAudit.MaxHiddenSeqno)
-	}
-	link, ok = hiddenChain[maxHiddenSeqno]
-	if !ok || link.IsNil() {
-		return NewAuditError("given hidden chain didn't have a link at %d, but it was expected", maxHiddenSeqno)
 	}
 	return nil
 }
@@ -708,7 +635,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	}
 
 	for _, tuple := range postProbeTuples {
-		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: newAuditIndex, TeamSeqno: tuple.team, TeamHiddenSeqno: tuple.hiddenResp.GetCommittedSeqno()}
+		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: newAuditIndex, TeamSeqno: tuple.team}
 	}
 
 	if numPostProbes+numPreProbes == 0 {

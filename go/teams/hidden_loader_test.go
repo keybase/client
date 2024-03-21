@@ -22,7 +22,7 @@ func makeHiddenRotation(t *testing.T, userContext *libkb.GlobalContext, teamName
 	require.NoError(t, err)
 }
 
-func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, committedSeqno, uncommittedSeqno keybase1.Seqno) {
+func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) {
 	// since polling does not take into account hidden chain updates, manually update the merkle root.
 	_, err := tc.G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tc), 0)
 	require.NoError(t, err)
@@ -31,7 +31,6 @@ func loadTeamAndAssertCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.Test
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, committedSeqno, teamHiddenChain.LastCommittedSeqno, "committed seqno")
 	require.Equal(t, uncommittedSeqno, teamHiddenChain.Last, "committed seqno")
 }
 
@@ -53,16 +52,12 @@ func checkHiddenMerkleErrorType(t *testing.T, err error, expType libkb.HiddenMer
 	return true
 }
 
-func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, committedSeqno, uncommittedSeqno keybase1.Seqno) bool {
+func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) bool {
 	_, teamHiddenChain, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	if committedSeqno != teamHiddenChain.LastCommittedSeqno {
-		t.Logf("Error: committedSeqno != teamHiddenChain.LastCommittedSeqno: %v != %v ", committedSeqno, teamHiddenChain.LastCommittedSeqno)
-		return false
-	}
 	if uncommittedSeqno != teamHiddenChain.Last {
 		t.Logf("Error: uncommittedSeqno != teamHiddenChain.Last: %v != %v ", uncommittedSeqno, teamHiddenChain.Last)
 		return false
@@ -142,11 +137,11 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 	}
 	t.Errorf("Test did not succeed any of the %v times", n)
 }
-func TestHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) {
-	retryTestNTimes(t, 5, testHiddenLoadFailsIfServerDoesntCommitLinks)
+func TestHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) {
+	retryTestNTimes(t, 5, testHiddenLoadSucceedsIfServerDoesntCommitLinks)
 }
 
-func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
+func testHiddenLoadSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -170,13 +165,13 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	// make the architect run
 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
 
-	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 1)
+	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1)
 
 	// make another hidden rotation
 	makeHiddenRotation(t, tcs[0].G, teamName)
 
 	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
-	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 2) {
+	if !loadTeamAndCheckCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 2) {
 		return false
 	}
 
@@ -188,7 +183,7 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 		ForceRepoll: true,
 	})
 
-	return checkHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorOldLinkNotYetCommitted)
+	return err == nil
 }
 
 type CorruptingMockLoaderContext struct {
@@ -281,196 +276,6 @@ func TestHiddenLoadFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorServerWitholdingLinks)
 }
 
-func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
-	defer cleanup()
-
-	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
-
-	t.Logf("add B to the team so they can load it")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-
-	// There have been no hidden rotations yet.
-	loadTeamAndAssertNoHiddenChainExists(t, tcs[1], teamID)
-
-	makeHiddenRotation(t, tcs[0].G, teamName)
-
-	loadTeamAndAssertUncommittedSeqno(t, tcs[1], teamID, 1)
-
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
-
-	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 1)
-
-	// now load the team again, but this time we change the response from the server by altering the response type
-	teamLoader := tcs[1].G.GetTeamLoader().(*TeamLoader)
-	defaultWorld := teamLoader.world
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.RespType = 111
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorInvalidHiddenResponseType)
-
-	// now load the team again, but this time we change the response from the server by altering the hidden tail
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Seqno += 5
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorInconsistentUncommittedSeqno)
-
-	// now load the team again, but this time we change the response from the server by altering the hidden tail hash
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.Error(t, err)
-	require.IsType(t, hidden.RatchetError{}, err)
-
-	// now load the team again, but this time we change the response from the server into an absence proof
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
-				hiddenResp.CommittedHiddenTail = nil
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorUnexpectedAbsenceProof)
-
-	// now load the team again, but this time we change the response from the server by altering the hidden response type
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeNONE
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
-
-	makeHiddenRotation(t, tcs[0].G, teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
-	teamLoader.world = defaultWorld
-	tcs[1].G.SetTeamLoader(teamLoader)
-	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 2, 2)
-
-	// now load the team again, but this time we change the response from the server by rolling back the uncommitted seqno
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Seqno = 1
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetTeamLoader(teamLoader)
-
-	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorRollbackCommittedSeqno)
-}
-
-func TestHiddenLoadFailsIfHiddenTailIsTamperedBeforeFirstLoad(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
-	defer cleanup()
-
-	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
-
-	t.Logf("add B and C to the team so they can load it")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-
-	// There have been no hidden rotations yet.
-	loadTeamAndAssertNoHiddenChainExists(t, tcs[1], teamID)
-
-	makeHiddenRotation(t, tcs[0].G, teamName)
-
-	loadTeamAndAssertUncommittedSeqno(t, tcs[1], teamID, 1)
-
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
-
-	loadTeamAndAssertCommittedAndUncommittedSeqnos(t, tcs[1], teamID, 1, 1)
-
-	// now load the team again (using a fresh user), but this time we alter the
-	// hidden tail hash returned by the server
-	teamLoader := tcs[2].G.GetTeamLoader().(*TeamLoader)
-	defaultWorld := teamLoader.world
-	teamLoader.world = CorruptingMockLoaderContext{
-		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[2].G.SetTeamLoader(teamLoader)
-
-	_, _, err = teamLoader.Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.Error(t, err)
-	require.IsType(t, hidden.LoaderError{}, err)
-	require.Contains(t, err.Error(), "link ID at 1 fails to check against ratchet")
-}
-
 func loadTeamFTLAndAssertName(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, teamName keybase1.TeamName) {
 	res, err := tc.G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tc), keybase1.FastTeamLoadArg{
 		ID:           teamID,
@@ -511,11 +316,11 @@ func loadTeamFTLAndAssertMaxGeneration(t *testing.T, tc *libkb.TestContext, team
 	loadTeamFTLAndAssertGenerationUnavailable(t, tc, teamID, perTeamKeyGeneration+1)
 }
 
-func TestFTLFailsIfServerDoesntCommitLinks(t *testing.T) {
-	retryTestNTimes(t, 5, testFTLFailsIfServerDoesntCommitLinks)
+func TestFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) {
+	retryTestNTimes(t, 5, testFTLSucceedsIfServerDoesntCommitLinks)
 }
 
-func testFTLFailsIfServerDoesntCommitLinks(t *testing.T) bool {
+func testFTLSucceedsIfServerDoesntCommitLinks(t *testing.T) bool {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -553,7 +358,7 @@ func testFTLFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	})
 
 	// This has the potential to flake, if the architect runs concurrently and does make a new blind tree version.
-	return checkHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorOldLinkNotYetCommitted)
+	return err == nil
 }
 
 func TestFTLFailsIfServerRollsbackUncommittedSeqno(t *testing.T) {
@@ -636,170 +441,6 @@ func TestFTLFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(3)},
 	})
 	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorServerWitholdingLinks)
-}
-
-func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
-	defer cleanup()
-
-	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
-
-	t.Logf("add B to the team so they can load it")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 1)
-
-	makeHiddenRotation(t, tcs[0].G, teamName)
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 2)
-
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 2)
-
-	// now load the team again, but this time we change the response from the server by altering the hidden tail
-	ftl := tcs[1].G.GetFastTeamLoader().(*FastTeamChainLoader)
-	world := ftl.world
-	ftl.world = CorruptingMockLoaderContext{
-		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Seqno += 5
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetFastTeamLoader(ftl)
-
-	// since polling does not take into account hidden chain updates, manually update the merkle root.
-	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
-	require.NoError(t, err)
-	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
-		ID:                   teamID,
-		ForceRefresh:         true,
-		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorInconsistentUncommittedSeqno)
-
-	// now load the team again, but this time we change the response from the server by altering the hidden tail hash
-	ftl.world = CorruptingMockLoaderContext{
-		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetFastTeamLoader(ftl)
-
-	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
-	require.NoError(t, err)
-	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
-		ID:                   teamID,
-		ForceRefresh:         true,
-		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
-	})
-	require.Error(t, err)
-	require.IsType(t, hidden.RatchetError{}, err)
-
-	// now load the team again, but this time we change the response type of the server
-	ftl.world = CorruptingMockLoaderContext{
-		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
-				hiddenResp.CommittedHiddenTail = nil
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetFastTeamLoader(ftl)
-
-	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
-	require.NoError(t, err)
-	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
-		ID:                   teamID,
-		ForceRefresh:         true,
-		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
-	})
-	assertHiddenMerkleErrorType(t, err, libkb.HiddenMerkleErrorUnexpectedAbsenceProof)
-
-	// now load the team again, but this time we change the response from the server by altering the response type
-	ftl.world = CorruptingMockLoaderContext{
-		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeNONE
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[1].G.SetFastTeamLoader(ftl)
-
-	_, err = tcs[1].G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*tcs[1]), 0)
-	require.NoError(t, err)
-	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
-		ID:                   teamID,
-		ForceRefresh:         true,
-		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
-	})
-	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
-}
-
-func TestFTLFailsIfHiddenTailIsTamperedBeforeFirstLoad(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
-	defer cleanup()
-
-	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
-
-	t.Logf("add B and C to the team so they can load it")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
-	require.NoError(t, err)
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 1)
-
-	makeHiddenRotation(t, tcs[0].G, teamName)
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 2)
-
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[0])
-
-	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 2)
-
-	ftl := tcs[2].G.GetFastTeamLoader().(*FastTeamChainLoader)
-	world := ftl.world
-	ftl.world = CorruptingMockLoaderContext{
-		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
-			if hiddenResp != nil {
-				t.Logf("hiddenResp %v cit %v", hiddenResp, hiddenResp.CommittedHiddenTail)
-				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
-			}
-			return r1, r2, hiddenResp, lastMerkleRoot, err
-		},
-	}
-	tcs[2].G.SetFastTeamLoader(ftl)
-
-	_, err = tcs[2].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[2]), keybase1.FastTeamLoadArg{
-		ID:                   teamID,
-		ForceRefresh:         true,
-		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
-	})
-	require.Error(t, err)
-	require.IsType(t, hidden.LoaderError{}, err)
-	require.Contains(t, err.Error(), "link ID at 1 fails to check against ratchet")
 }
 
 func TestSubteamReaderFTL(t *testing.T) {
