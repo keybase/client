@@ -520,8 +520,8 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 		}
 		return fs, finalElem, nil
 	case keybase1.PathType_LOCAL:
-		fs = osfs.New(stdpath.Dir(path.Local()))
-		return fs, stdpath.Base(path.Local()), nil
+		fs = osfs.New(filepath.Dir(path.Local()))
+		return fs, filepath.Base(path.Local()), nil
 	default:
 		return nil, "", simpleFSError{reason: "Invalid path type"}
 	}
@@ -1295,7 +1295,7 @@ func (k *SimpleFS) doCopyFromSource(
 	srcFS billy.Filesystem, srcFI os.FileInfo,
 	dstPath keybase1.Path, dstFS billy.Filesystem,
 	finalDstElem string, overwriteExistingFiles bool) (err error) {
-	k.log.CDebugf(ctx, "+ SimpleFS.doCopyFromSource dstPath=%v", dstPath)
+	k.log.CDebugf(ctx, "+ SimpleFS.doCopyFromSource dstPath=%v finalDstElem=%v", dstPath)
 	defer func() { k.log.CDebugf(ctx, "- SimpleFS.doCopyFromSource err=%+v", err) }()
 
 	defer func() {
