@@ -12,6 +12,21 @@ import isEqual from 'lodash/isEqual'
 
 const noString = new HiddenString('')
 
+export const isPathHEIC = (path: string) => path.toLowerCase().endsWith('.heic')
+// real image or heic
+export const isImageViewable = (message: T.Chat.Message) => {
+  if (message.type === 'attachment') {
+    if (message.attachmentType === 'image') {
+      // regular image
+      return true
+    }
+    if (message.attachmentType === 'file' && C.isIOS && isPathHEIC(message.fileName)) {
+      return true
+    }
+  }
+  return false
+}
+
 export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
@@ -19,7 +34,7 @@ export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.Ren
         return 'attachment:video'
       }
       // allow heic on ios only
-      if (C.isIOS && m.attachmentType === 'file' && m.fileName.toLowerCase().endsWith('.heic')) {
+      if (isImageViewable(m)) {
         return 'attachment:image'
       }
       return `attachment:${m.attachmentType}`

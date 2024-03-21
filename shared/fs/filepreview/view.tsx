@@ -68,7 +68,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   switch (fileContext.viewType) {
     case T.RPCGen.GUIViewType.default: {
       // mobile client only supports heic now
-      if (C.isIOS && pathItem.name.toLowerCase().endsWith('.heic')) {
+      if (C.isIOS && C.Chat.isPathHEIC(pathItem.name)) {
         return (
           <>
             {reloadBanner}

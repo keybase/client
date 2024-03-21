@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
+import {isPathHEIC} from '@/constants/chat2'
 
 export type Info = {
   type: 'image' | 'file' | 'video'
@@ -79,7 +80,7 @@ const GetTitles = (p: Props) => {
       preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
       break
     default: {
-      if (C.isIOS && path?.toLowerCase().endsWith('.heic')) {
+      if (C.isIOS && path && isPathHEIC(path)) {
         preview = <Kb.ZoomableImage src={path} style={styles.image} />
       } else {
         preview = (
