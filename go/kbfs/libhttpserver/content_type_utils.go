@@ -230,4 +230,5 @@ var additionalMimeTypes = map[string]string{
 	".rss":   textPlainUtf8,
 	".tcl":   textPlainUtf8,
 	".tk":    textPlainUtf8,
+	".heic":  "image/heif",
 }
