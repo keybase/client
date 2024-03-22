@@ -1,6 +1,7 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {_useState as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isNewArch} from '@/constants/platform'
+import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 
 export const colors = {
   black: 'rgba(0, 0, 0, 0.85)',
@@ -458,10 +459,11 @@ const dynamicColorsWorking = isIOS && !isNewArch
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
 if (dynamicColorsWorking) {
-  const {DynamicColorIOS: _DynamicColorIOS} = require('react-native')
-  const DynamicColorIOS: (u: unknown) => string = _DynamicColorIOS
+  const {DynamicColorIOS} = require('react-native') as {
+    DynamicColorIOS: typeof DynamicColorIOSType
+  }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
-    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+    obj[name] = DynamicColorIOS({dark: darkColors[name] ?? '', light: colors[name] ?? ''})
     return obj
   }, {}) as Color
 } else {
@@ -497,7 +499,7 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
 }, {} as Color)
 
 if (__DEV__) {
-  const t = themed as any
+  const t = themed as unknown as {random: () => string}
   t.random = () =>
     `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(
       Math.random() * 256

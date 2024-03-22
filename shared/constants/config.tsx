@@ -439,6 +439,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
               get().dispatch.openUnlockFolders([])
             })
             .catch(e => {
+              if (!(e instanceof C.RPCError)) return
               set(s => {
                 s.unlockFoldersError = e.desc
               })
@@ -526,11 +527,12 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initAppUpdateLoop: () => {
       const f = async () => {
-        // eslint-disable-next-line
         while (true) {
           try {
+            // eslint-disable-next-line no-await-in-loop
             await _checkForUpdate()
           } catch {}
+          // eslint-disable-next-line no-await-in-loop
           await timeoutPromise(3_600_000) // 1 hr
         }
       }

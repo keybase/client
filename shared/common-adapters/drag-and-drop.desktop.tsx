@@ -21,14 +21,13 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     const f = async () => {
       if (!this._validDrag(e)) return
       const fileList = e.dataTransfer.files
-      const paths: Array<string> = fileList.length
-        ? (Array.prototype.map.call(fileList, f => f.path) as any)
-        : []
+      const paths: Array<string> = fileList.length ? Array.from(fileList).map(f => f.path) : []
       if (paths.length) {
         if (!this.props.allowFolders) {
           for (const path of paths) {
             // Check if any file is a directory and bail out if not
             try {
+              // eslint-disable-next-line no-await-in-loop
               const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
               if (isDir) {
                 // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
