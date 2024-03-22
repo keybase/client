@@ -10,8 +10,8 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
-import logger from '@/logger'
-import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
+// import logger from '@/logger'
+// import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
@@ -317,25 +317,23 @@ const SideButtons = (p: SideButtonsProps) => {
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const conversationIDKey = C.useChatContext(s => s.id)
 
-  const {chatDebugDump} = React.useContext(DebugChatDumpContext)
-
-  // TODO REMOVE
-  React.useEffect(() => {
-    if (!chatDebugEnabled) return
-    logger.error('[CHATDEBUG]: PlatformInput F1 inject')
-    const onKeydown = (e: KeyboardEvent) => {
-      if (e.key !== 'F1') {
-        return
-      }
-
-      chatDebugDump?.(conversationIDKey)
-    }
-    window.addEventListener('keydown', onKeydown)
-    return () => {
-      window.removeEventListener('keydown', onKeydown)
-    }
-  }, [conversationIDKey, chatDebugDump])
-  // TODO REMOVE
+  // uncomment for f1 debugging
+  // const {chatDebugDump} = React.useContext(DebugChatDumpContext)
+  // React.useEffect(() => {
+  //   if (!chatDebugEnabled) return
+  //   logger.error('[CHATDEBUG]: PlatformInput F1 inject')
+  //   const onKeydown = (e: KeyboardEvent) => {
+  //     if (e.key !== 'F1') {
+  //       return
+  //     }
+  //
+  //     chatDebugDump?.(conversationIDKey)
+  //   }
+  //   window.addEventListener('keydown', onKeydown)
+  //   return () => {
+  //     window.removeEventListener('keydown', onKeydown)
+  //   }
+  // }, [conversationIDKey, chatDebugDump])
 
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p

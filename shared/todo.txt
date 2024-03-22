@@ -1,10 +1,3 @@
 Some short term todos:
 swipeable2 slow
-remove F1 debug in chat
-
-text selection delete issues
 mem leak
-f6 for just a router remount?
-
-framepack, dispatch invocations
-kbfs heic preview broken (at go level)
