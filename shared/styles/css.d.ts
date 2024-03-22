@@ -20,6 +20,7 @@ type StyleKeys =
   | 'alignItems'
   | 'alignSelf'
   | 'backgroundColor'
+  | 'backgroundPosition'
   | 'backgroundRepeat'
   | 'backgroundSize'
   | 'border'
@@ -122,7 +123,7 @@ type _StylesMobileOverride = {
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign' | 'transform'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -133,11 +134,6 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
-  transform?:
-    | Array<
-        {translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number} | {rotate: string}
-      >
-    | string
 }
 
 export type _StylesCrossPlatform = {

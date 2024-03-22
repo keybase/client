@@ -83,18 +83,20 @@ class DragHeader extends React.Component<Props> {
 }
 
 const styles = {
-  closeIcon: Kb.Styles.collapseStyles([
-    Kb.Styles.desktopStyles.windowDraggingClickable,
-    Kb.Styles.desktopStyles.clickable,
-  ] as any),
-  container: Kb.Styles.collapseStyles([
-    Kb.Styles.globalStyles.flexBoxRow,
-    Kb.Styles.desktopStyles.noSelect,
-    {
+  closeIcon: Kb.Styles.platformStyles({
+    isElectron: {
+      ...Kb.Styles.desktopStyles.windowDraggingClickable,
+      ...Kb.Styles.desktopStyles.clickable,
+    },
+  }),
+  container: Kb.Styles.platformStyles({
+    isElectron: {
+      ...Kb.Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.desktopStyles.noSelect,
       paddingLeft: 10,
       paddingRight: 10,
     },
-  ] as any),
+  }),
   defaultContainer: {
     paddingBottom: 6,
     paddingTop: 6,
