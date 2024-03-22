@@ -170,7 +170,11 @@ export const initDesktopStyles = () => {
 }
 
 export const hairlineWidth = 1
-export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => o)
+
+type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
+export function styleSheetCreate<O extends NamedStyles>(styles: () => O) {
+  return styleSheetCreateProxy(styles, o => o)
+}
 
 export const useCollapseStyles = (
   styles: CSS.StylesCrossPlatform,
@@ -220,7 +224,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     return !!s && Object.keys(s).length
   })
   if (valid.length === 0) {
-    return undefined as any
+    return undefined
   }
   if (valid.length === 1) {
     const s = valid[0]
@@ -230,7 +234,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   }
 
   // jenkins doesn't support flat yet
-  const s = Object.assign({}, ...styles.flat())
+  const s = Object.assign({}, ...styles.flat()) as Object
   return Object.keys(s).length ? s : undefined
 }
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
@@ -247,7 +251,7 @@ export const headerExtraHeight = 0
 export const CanFixOverdrawContext = React.createContext(false)
 export const dontFixOverdraw = {canFixOverdraw: false}
 export const yesFixOverdraw = {canFixOverdraw: true}
-export const undynamicColor = (col: any) => col
+export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p

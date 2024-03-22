@@ -38,10 +38,12 @@ declare module 'framed-msgpack-rpc' {
   export type ErrorType = {code: number; desc: string}
   export type PayloadType = {
     method: string
-    param: Array<Object>
+    param: Array<{sessionID?: number}>
     response?: {
+      cancelled: boolean
+      seqid: number
       error?: (e: ErrorType) => void
-      result?: (r: unknown) => void
+      result?: (r?: unknown) => void
     }
   }
   export type incomingRPCCallbackType = (payload: PayloadType) => void
