@@ -104,11 +104,11 @@ type TextStyle = {
   cursor: string
   lineClamp?: number
   clickable?: CSS._StylesDesktop
-  userSelect?: any
+  userSelect?: string
   textDecoration?: string
   colorForBackground?: string
   styleOverride?: any
-  lineHeight?: any
+  lineHeight?: number
 }
 
 declare function getStyle(

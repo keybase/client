@@ -119,7 +119,7 @@ export const initPlatformListener = () => {
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
           if (level >= T.RPCGen.LogLevel.error) {
-            NotifyPopup(text.data, {})
+            NotifyPopup(text.data)
           }
           break
         }

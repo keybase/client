@@ -1,8 +1,8 @@
 import {isIOS} from '@/constants/platform'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 
-function NotifyPopup(title: string, opts: Object, _: number = -1, __?: string): void {
-  console.log('NotifyPopup: ', title, opts)
+function NotifyPopup(title: string): void {
+  console.log('NotifyPopup: ', title)
   isIOS &&
     PushNotificationIOS.addNotificationRequest({
       body: title,

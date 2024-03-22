@@ -44,11 +44,6 @@ export function toStringForLog(a: any): string {
     case 'function':
     // Fall through.
     default:
-      // Symbol (which flow doesn't recognize) or some
-      // implementation-defined thing.
-      if (a.toString) {
-        return a.toString()
-      }
-      return `Failed to turn item of type ${typeof a} to string in toStringForLog`
+      return String(a)
   }
 }

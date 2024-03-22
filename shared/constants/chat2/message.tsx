@@ -8,7 +8,6 @@ import logger from '@/logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
-import isEqual from 'lodash/isEqual'
 
 const noString = new HiddenString('')
 

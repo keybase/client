@@ -19,7 +19,7 @@ export const Sent = React.memo(function Sent(p: SentProps) {
   return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
-      onLayout={(e: any) => {
+      onLayout={e => {
         if (onceRef.current) {
           return
         }
