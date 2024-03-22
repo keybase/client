@@ -1290,49 +1290,6 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const specialMentions = ['here', 'channel', 'everyone']
 
-// TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
-// on non visible items so the cost might be higher
-export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Message): T.Chat.Message => {
-  if (!old) {
-    return msg
-  }
-
-  // only merge if its the same id and type
-  if (old.id !== msg.id || old.type !== msg.type) {
-    return msg
-  }
-
-  const m = msg as {[key: string]: any}
-  let toRet = {...m}
-
-  // if all props are the same then just use old
-  let allSame = true as boolean
-  const keys = Object.keys(old) as unknown as Array<keyof typeof old>
-  keys.forEach(key => {
-    switch (key) {
-      case 'bodySummary':
-      case 'decoratedText':
-      case 'text':
-        if (old[key]?.stringValue() === msg[key]?.stringValue()) {
-          toRet[key] = old[key]
-        } else {
-          allSame = false
-        }
-        break
-      default:
-        if (isEqual(old[key], msg[key])) {
-          toRet[key] = old[key]
-        } else {
-          allSame = false
-        }
-    }
-  })
-  if (allSame) {
-    toRet = old
-  }
-  return toRet as T.Chat.Message
-}
-
 export const upgradeMessage = (
   old: T.Immutable<T.Chat.Message>,
   m: T.Immutable<T.Chat.Message>
