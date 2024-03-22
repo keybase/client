@@ -47,7 +47,7 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
         !!explodingModeSeconds && {
           backgroundColor: Kb.Styles.globalColors.black,
         },
-      ] as any)}
+      ])}
     >
       {popup}
       <Kb.Box2
@@ -136,23 +136,18 @@ const GiphyButton = React.memo(function GiphyButton() {
   )
 })
 
-const fileListToPaths = (f: any): Array<string> =>
-  Array.prototype.map.call(f || [], (f: File) => {
-    // We rely on path being here, even though it's
-    // not part of the File spec.
-    return f.path
-  }) as any
+const fileListToPaths = (f: FileList): Array<string> => Array.from(f).map(f => f.path)
 
 const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
   const {htmlInputRef} = p
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
-    const paths = fileListToPaths(htmlInputRef.current?.files)
-    const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
+    const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
+    const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
       path && arr.push({path})
       return arr
     }, [])
-    if (pathAndOutboxIDs.length) {
+    if (pathAndOutboxIDs?.length) {
       navigateAppend(conversationIDKey => ({
         props: {conversationIDKey, pathAndOutboxIDs},
         selected: 'chatAttachmentGetTitles',
