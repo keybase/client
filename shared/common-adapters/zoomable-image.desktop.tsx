@@ -141,13 +141,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }, [])
 
   return (
-    <div
-      ref={divRef}
-      style={style as any}
-      onMouseMove={handleMouseMove}
-      onWheel={handleWheel}
-      onClick={handleClick}
-    >
+    <div ref={divRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
       <img
         onLoad={onLoaded}
         className="fade-anim-enter fade-anim-enter-active"

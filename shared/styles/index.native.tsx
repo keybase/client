@@ -198,4 +198,5 @@ export const urlEscapeFilePath = (path: string) => {
   return path
 }
 
-export const desktopStyleCast = (style: StylesCrossPlatform) => style as React.CSSProperties
+export const castStyleDesktop = (style: CollapsibleStyle) => style
+export const castStyleNative = (style: CollapsibleStyle) => style

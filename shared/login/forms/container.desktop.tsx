@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (
-    <div style={{...styles.container, ...outerStyle} as any}>
-      <div style={{...styles.innerContainer, ...style} as any}>{children}</div>
+    <div style={Kb.Styles.castStyleDesktop({...styles.container, ...outerStyle})}>
+      <div style={Kb.Styles.castStyleDesktop({...styles.innerContainer, ...style})}>{children}</div>
     </div>
   )
 }

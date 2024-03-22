@@ -266,3 +266,5 @@ export const urlEscapeFilePath = (path: string) => {
   }
   return path
 }
+export const castStyleDesktop = (style: CollapsibleStyle) => style
+export const castStyleNative = (style: CollapsibleStyle) => style

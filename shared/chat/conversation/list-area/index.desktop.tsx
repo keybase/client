@@ -605,11 +605,15 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
     <ErrorBoundary>
       <ResizeObserverContext.Provider value={resizeObserve}>
         <IntersectObserverContext.Provider value={intersectionObserve}>
-          <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+          <div
+            style={Kb.Styles.castStyleDesktop(styles.container)}
+            onClick={handleListClick}
+            onCopyCapture={onCopyCapture}
+          >
             <div
               className="chat-scroller"
               key={conversationIDKey}
-              style={styles.list as any}
+              style={Kb.Styles.castStyleDesktop(styles.list)}
               ref={setListRef}
             >
               <div style={styles.listContents} ref={setListContents}>

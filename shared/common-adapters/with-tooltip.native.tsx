@@ -96,12 +96,12 @@ const WithTooltip = (props: Props) => {
   }
 
   if (!props.showOnPressMobile || props.disabled) {
-    return <View style={props.containerStyle as any}>{props.children}</View>
+    return <View style={Styles.castStyleNative(props.containerStyle)}>{props.children}</View>
   }
 
   return (
     <>
-      <View style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
+      <View style={Styles.castStyleNative(props.containerStyle)} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </View>
       <FloatingBox style={animatedStyle}>

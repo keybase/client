@@ -2,6 +2,7 @@
 import type * as React from 'react'
 import type * as CSS from './css'
 export {default as globalColors} from './colors'
+import type {ViewStyle} from 'react-native'
 
 export declare const transition: (...properties: Array<string>) => {transition: string}
 
@@ -83,6 +84,8 @@ type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
 // TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform
 export declare function collapseStylesDesktop(styles: ReadonlyArray<CollapsibleStyle>): React.CSSProperties
+export declare function castStyleDesktop(style: CollapsibleStyle): React.CSSProperties
+export declare function castStyleNative(style: CollapsibleStyle): ViewStyle
 
 // new style, used in the common-adapters, not the components, can memo for you
 export declare function useCollapseStyles<

@@ -170,9 +170,9 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         let removingRows: Array<string> = []
         if (newSmallRows === 0) {
         } else if (newSmallRows > 0) {
-          expandingRows = new Array(newSmallRows).fill('')
+          expandingRows = new Array<string>(newSmallRows).fill('')
         } else {
-          removingRows = new Array(-newSmallRows).fill('')
+          removingRows = new Array<string>(-newSmallRows).fill('')
         }
         return (
           <div style={{...divStyle, position: 'relative'}}>
@@ -182,7 +182,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
                   className="grabLinesContainer"
                   draggable={row.showButton}
                   onDragStart={onDragStart}
-                  style={styles.grabber as any}
+                  style={Kb.Styles.castStyleDesktop(styles.grabber)}
                 >
                   <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
                     <Kb.Box2 direction="horizontal" style={styles.grabberLine} />

@@ -129,7 +129,10 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   }
 
   return (
-    <div className={Kb.Styles.classNames('ashbox', {'full-width': exploded})} style={styles.ashBox as any}>
+    <div
+      className={Kb.Styles.classNames('ashbox', {'full-width': exploded})}
+      style={Kb.Styles.castStyleDesktop(styles.ashBox)}
+    >
       {exploded && explodedTag}
       <FlameFront height={height} stop={doneExploding} />
     </div>

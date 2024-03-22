@@ -32,7 +32,10 @@ const GiphySearch = (props: Props) => {
       <Kb.Box2Div
         direction="vertical"
         ref={divRef}
-        style={Styles.collapseStyles([styles.scrollContainer, {overflowY: width ? 'auto' : 'scroll'} as any])}
+        style={Styles.collapseStyles([
+          styles.scrollContainer,
+          Styles.platformStyles({isElectron: {overflowY: width ? 'auto' : 'scroll'}}),
+        ])}
       >
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
           <Kb.Text style={styles.instructions} type="BodySmall">

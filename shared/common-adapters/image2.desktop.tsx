@@ -27,7 +27,7 @@ const Image2 = (p: Props) => {
       <img
         loading="lazy"
         src={typeof src === 'string' ? src : undefined}
-        style={style as any}
+        style={Styles.castStyleDesktop(style)}
         onLoad={_onLoad}
         onError={onError}
         onDragStart={onDragStart}

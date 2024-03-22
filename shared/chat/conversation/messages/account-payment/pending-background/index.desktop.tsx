@@ -8,9 +8,9 @@ const patternImage = backgroundURL('payment-pattern-80.png')
 const PendingBackground = (p: Props) => {
   const {children, style} = p
   return (
-    <div style={style as any}>
+    <div style={Kb.Styles.castStyleDesktop(style)}>
       <div style={styles.wrap}>
-        <div className="pendingBackground" style={styles.bg as any} />
+        <div className="pendingBackground" style={Kb.Styles.castStyleDesktop(styles.bg)} />
       </div>
       {children}
     </div>
