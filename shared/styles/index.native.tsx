@@ -126,9 +126,10 @@ export const useCollapseStyles = (
   // // rn allows falsy values so let memoized values through
   // return styles
 }
+export const useCollapseStylesDesktop = useCollapseStyles
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
-): ReadonlyArray<Object | null | false> => {
+): undefined | CollapsibleStyle | ReadonlyArray<Object | null | false> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {
@@ -142,16 +143,16 @@ export const collapseStyles = (
     return false
   })
   if (!nonNull.length) {
-    return undefined as any
+    return undefined
   }
   if (nonNull.length === 1) {
     const s = nonNull[0]
     if (typeof s === 'object') {
-      return s as any
+      return s
     }
   }
   // rn allows falsy values so let memoized values through
-  return styles as any
+  return styles
 }
 export const collapseStylesDesktop = collapseStyles
 export const transition = () => ({})

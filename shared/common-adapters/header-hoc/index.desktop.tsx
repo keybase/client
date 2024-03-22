@@ -18,11 +18,11 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
+  <Kb.Box style={Styles.collapseStylesDesktop([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]] as any)}
+        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
         type="iconfont-close"
         onClick={onCancel}
       />
@@ -86,23 +86,21 @@ const _headerStyle = {
   paddingLeft: Styles.globalMargins.small,
   paddingRight: Styles.globalMargins.small,
   position: 'relative',
-}
+} as const
 
 const _headerStyleThemed = {
-  dark: {
-    backgroundColor: Styles.globalColors.blueDarker2,
-  },
-  light: {
-    backgroundColor: Styles.globalColors.white,
-  },
+  dark: {backgroundColor: Styles.globalColors.blueDarker2},
+  light: {backgroundColor: Styles.globalColors.white},
 }
 
-const _styleClose = {
-  ...Styles.desktopStyles.clickable,
-  position: 'absolute',
-  right: Styles.globalMargins.small,
-  top: Styles.globalMargins.small,
-}
+const _styleClose = Styles.platformStyles({
+  isElectron: {
+    ...Styles.desktopStyles.clickable,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    top: Styles.globalMargins.small,
+  },
+})
 
 const _styleCloseThemed = {
   dark: {

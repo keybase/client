@@ -89,6 +89,10 @@ export declare function useCollapseStyles<
   IsMobile = false,
   Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform,
 >(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
+export declare function useCollapseStylesDesktop(
+  styles: CSS.StylesCrossPlatform,
+  memo?: boolean
+): React.CSSProperties
 
 export declare const windowStyle: {
   minWidth: number

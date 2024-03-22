@@ -216,6 +216,8 @@ export const useCollapseStyles = (
   old.current = ret
   return ret
 }
+
+export const useCollapseStylesDesktop = useCollapseStyles
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
