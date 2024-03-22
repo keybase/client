@@ -133,15 +133,19 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
-  transform?: Array<{translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number}>
+  transform?:
+    | Array<
+        {translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number} | {rotate: string}
+      >
+    | string
 }
 
 export type _StylesCrossPlatform = {
   [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
     ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
     : k extends keyof _StylesMobile
-    ? _StylesMobile[k] & _StylesDesktop[k]
-    : never
+      ? _StylesMobile[k] & _StylesDesktop[k]
+      : never
 }
 
 type _StylesCrossPlatformFalsy = _StylesCrossPlatform | undefined | null | false

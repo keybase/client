@@ -153,6 +153,7 @@ export const collapseStyles = (
   // rn allows falsy values so let memoized values through
   return styles as any
 }
+export const collapseStylesDesktop = collapseStyles
 export const transition = () => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
@@ -195,3 +196,5 @@ export const urlEscapeFilePath = (path: string) => {
   }
   return path
 }
+
+export const desktopStyleCast = (style: StylesCrossPlatform) => style as React.CSSProperties

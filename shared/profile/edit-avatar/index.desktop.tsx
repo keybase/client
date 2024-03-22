@@ -10,19 +10,20 @@ const {isDirectory} = KB2.functions
 
 const AVATAR_CONTAINER_SIZE = 300
 
-const validDrag = (e: React.DragEvent<any>) => {
-  return Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
+const validDrag = (e: React.DragEvent) => {
+  return Array.from(e.dataTransfer.types)
+    .map(t => t)
+    .includes('Files')
 }
 
-const getFile = async (fileList: {length?: number} | undefined): Promise<string> => {
-  const paths: Array<string> = fileList?.length
-    ? Array.prototype.map.call(fileList, f => f.path)
-    : ([] as any)
-  if (!paths.length) {
+const getFile = async (fileList: FileList | undefined): Promise<string> => {
+  const paths = fileList?.length ? Array.from(fileList).map(f => f.path) : undefined
+  if (!paths?.length) {
     return ''
   }
   for (const path of paths) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
       if (isDir) {
         return ''
@@ -75,7 +76,7 @@ const EditAvatar = (p: Props) => {
   const onImageLoad = () => {
     setLoading('loaded')
   }
-  const onDrop = (e: React.DragEvent<any>) => {
+  const onDrop = (e: React.DragEvent) => {
     const f = async () => {
       setDropping(false)
       setSerror(false)
@@ -154,9 +155,10 @@ const EditAvatar = (p: Props) => {
       <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
-        style={
-          Kb.Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam]) as any
-        }
+        style={Kb.Styles.collapseStylesDesktop([
+          styles.container,
+          createdTeam && styles.paddingTopForCreatedTeam,
+        ])}
       >
         {type === 'team' && createdTeam && !wizard && (
           <Kb.Box style={styles.createdBanner}>

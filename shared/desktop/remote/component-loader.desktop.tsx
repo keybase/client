@@ -27,7 +27,7 @@ type Props<DeserializeProps, SerializeProps> = {
   name: RemoteComponents
   params: string
   showOnProps: boolean
-  style?: Kb.Styles.StylesDesktop
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
@@ -51,7 +51,7 @@ function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<Deseri
   const [value, setValue] = React.useState(storeRef.current._value)
 
   return (
-    <div id="RemoteComponentRoot" style={p.style || (styles.container as any)}>
+    <div id="RemoteComponentRoot" style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}>
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
         <Root>{p.child(value)}</Root>
       </ErrorBoundary>
@@ -59,26 +59,29 @@ function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<Deseri
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: Kb.Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      display: 'block' as const,
-      height: '100%',
-      overflow: 'hidden',
-      width: '100%',
-    },
-  }),
-  errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
-  loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Kb.Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Kb.Styles.globalColors.white,
+          display: 'block' as const,
+          height: '100%',
+          overflow: 'hidden',
+          width: '100%',
+        },
+      }),
+      errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
+      loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
+    }) as const
+)
 
 export default function Loader<DeserializeProps, SerializeProps>(options: {
   child: (p: DeserializeProps) => React.ReactNode
   deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
   name: RemoteComponents
   params?: string
-  style?: Kb.Styles.StylesDesktop
+  style?: Kb.Styles.StylesCrossPlatform
   showOnProps?: boolean
 }) {
   initDesktopStyles()

@@ -10,12 +10,14 @@ load<DeserializeProps, SerializeProps>({
   deserialize,
   name: 'tracker2',
   params: username?.[1] ?? '',
-  style: {
-    backgroundColor: Kb.Styles.globalColors.transparent,
-    borderRadius: 8,
-    display: 'block',
-    height: '100%',
-    overflow: 'hidden',
-    width: '100%',
-  },
+  style: Kb.Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Kb.Styles.globalColors.transparent,
+      borderRadius: 8,
+      display: 'block',
+      height: '100%',
+      overflow: 'hidden',
+      width: '100%',
+    },
+  }),
 })

@@ -237,6 +237,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   const s = Object.assign({}, ...styles.flat()) as Object
   return Object.keys(s).length ? s : undefined
 }
+export const collapseStylesDesktop = collapseStyles
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
 
