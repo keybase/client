@@ -66,12 +66,6 @@ function SettingsNav() {
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   const statsShown = C.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onTabChange = React.useCallback(
-    (s: any) => {
-      navigateAppend(s)
-    },
-    [navigateAppend]
-  )
   const contactsLabel = C.useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
@@ -82,29 +76,39 @@ function SettingsNav() {
         ...(statsShown ? [{onClick: noop, text: 'perf'}] : []),
         {
           icon: 'iconfont-nav-2-crypto',
-          onClick: () => onTabChange(C.Settings.settingsCryptoTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsCryptoTab)
+          },
           text: 'Crypto',
         },
         {
           badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
-          onClick: () => onTabChange(C.Settings.settingsGitTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsGitTab)
+          },
           text: 'Git',
         },
         {
           badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
-          onClick: () => onTabChange(C.Settings.settingsDevicesTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsDevicesTab)
+          },
           text: 'Devices',
         },
         {
           icon: 'iconfont-nav-2-wallets',
-          onClick: () => onTabChange(C.Settings.settingsWalletsTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsWalletsTab)
+          },
           text: 'Wallet',
         },
         {
           iconComponent: WhatsNewIcon,
-          onClick: () => onTabChange(C.Settings.settingsWhatsNewTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsWhatsNewTab)
+          },
           subText: `What's new?`,
           text: keybaseFM,
         },
@@ -115,34 +119,48 @@ function SettingsNav() {
       data: [
         {
           badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
-          onClick: () => onTabChange(C.Settings.settingsAccountTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsAccountTab)
+          },
           text: 'Your account',
         },
         {
-          onClick: () => onTabChange(C.Settings.settingsChatTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsChatTab)
+          },
           text: 'Chat',
         },
         {
-          onClick: () => onTabChange(C.Settings.settingsContactsTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsContactsTab)
+          },
           text: contactsLabel,
         },
         {
-          onClick: () => onTabChange(C.Settings.settingsFsTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsFsTab)
+          },
           text: 'Files',
         },
         {
           badgeNumber: badgeNotifications ? 1 : 0,
-          onClick: () => onTabChange(C.Settings.settingsNotificationsTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsNotificationsTab)
+          },
           text: 'Notifications',
         },
         {
-          onClick: () => onTabChange(C.Settings.settingsDisplayTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsDisplayTab)
+          },
           text: 'Display',
         },
         ...(isAndroid
           ? [
               {
-                onClick: () => onTabChange(C.Settings.settingsScreenprotectorTab),
+                onClick: () => {
+                  navigateAppend(C.Settings.settingsScreenprotectorTab)
+                },
                 text: 'Screen protector',
               } as const,
             ]
@@ -152,12 +170,34 @@ function SettingsNav() {
     },
     {
       data: [
-        {onClick: () => onTabChange(C.Settings.settingsAboutTab), text: 'About'},
-        {onClick: () => onTabChange(C.Settings.settingsFeedbackTab), text: 'Feedback'},
-        {onClick: () => onTabChange(C.Settings.settingsAdvancedTab), text: 'Advanced'},
-        {onClick: () => onTabChange(C.Settings.settingsArchiveTab), text: 'Archive'},
         {
-          onClick: () => onTabChange(C.Settings.settingsLogOutTab),
+          onClick: () => {
+            navigateAppend(C.Settings.settingsAboutTab)
+          },
+          text: 'About',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsFeedbackTab)
+          },
+          text: 'Feedback',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsAdvancedTab)
+          },
+          text: 'Advanced',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsArchiveTab)
+          },
+          text: 'Archive',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsLogOutTab)
+          },
           text: 'Sign out',
           textColor: Kb.Styles.globalColors.red,
         },

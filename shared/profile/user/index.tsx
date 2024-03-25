@@ -472,7 +472,7 @@ class User extends React.Component<Props2, State> {
             {!Kb.Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
             {!!this.state.width && (
               <Kb.SectionList<Section>
-                key={this.props.username + this.state.width /* forc render on user change or width change */}
+                key={this.props.username + this.state.width /* force render on user change or width change */}
                 desktopReactListTypeOverride="variable"
                 desktopItemSizeEstimatorOverride={() => 113}
                 getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
