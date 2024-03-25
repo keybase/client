@@ -8,7 +8,7 @@ const SplashContainer = () => {
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = () => {
-    navigateAppend({props: {}, selected: 'feedback'})
+    navigateAppend('feedback')
   }
 
   const onRetry = () => {

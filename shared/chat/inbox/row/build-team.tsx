@@ -12,7 +12,7 @@ const BuildTeam = React.memo(function BuildTeam() {
     launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {
-    nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'})
+    nav.safeNavigateAppend('teamJoinTeamDialog')
   }
 
   return (

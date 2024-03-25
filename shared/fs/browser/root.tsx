@@ -17,7 +17,7 @@ type SectionListItem = {
   tlfType: T.FS.TlfType
 }
 
-const rootRows = [
+const rootRows: Array<SectionListItem> = [
   {
     name: T.FS.TlfType.Private,
     tlfType: T.FS.TlfType.Private,
@@ -34,10 +34,10 @@ const rootRows = [
 
 const getRenderItem =
   (destinationPickerIndex?: number) =>
-  ({item, section}: {item: {name: T.FS.TlfType; tlfType: T.FS.TlfType}; section: {key: string}}) =>
+  ({item, section}: {item: SectionListItem; section: {key: string}}) =>
     section.key === 'section-top' ? (
       <WrapRow>
-        <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
+        <TlfType name={item.name as T.FS.TlfType} destinationPickerIndex={destinationPickerIndex} />
       </WrapRow>
     ) : (
       <WrapRow>
@@ -107,7 +107,14 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
   const sections = [
     ...(destinationPickerIndex
       ? [] // don't show sfmi banner in destination picker
-      : [{data: [], key: 'banner-sfmi', keyExtractor: () => 'banner-sfmi-item', title: ''}]),
+      : [
+          {
+            data: new Array<SectionListItem>(),
+            key: 'banner-sfmi',
+            keyExtractor: () => 'banner-sfmi-item',
+            title: '',
+          },
+        ]),
     {
       data: rootRows,
       key: 'section-top',
@@ -127,7 +134,7 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
     <Kb.BoxGrow>
       <Kb.SectionList
         sections={sections}
-        renderItem={renderItem as any}
+        renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
       />
