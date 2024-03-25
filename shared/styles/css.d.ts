@@ -20,6 +20,7 @@ type StyleKeys =
   | 'alignItems'
   | 'alignSelf'
   | 'backgroundColor'
+  | 'backgroundPosition'
   | 'backgroundRepeat'
   | 'backgroundSize'
   | 'border'
@@ -122,7 +123,7 @@ type _StylesMobileOverride = {
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign' | 'transform'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -133,15 +134,14 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
-  transform?: Array<{translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number}>
 }
 
 export type _StylesCrossPlatform = {
   [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
     ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
     : k extends keyof _StylesMobile
-    ? _StylesMobile[k] & _StylesDesktop[k]
-    : never
+      ? _StylesMobile[k] & _StylesDesktop[k]
+      : never
 }
 
 type _StylesCrossPlatformFalsy = _StylesCrossPlatform | undefined | null | false

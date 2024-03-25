@@ -4,8 +4,8 @@ import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from '.'
 
-const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
-const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.png')
+const lightPatternImage = require('../../../../../images/payment-pattern-80.png') as number
+const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.png') as number
 
 const PendingBackground = (p: Props) => {
   const {children, style} = p
@@ -29,7 +29,7 @@ const PendingBackground = (p: Props) => {
       <NativeAnimated.Image
         resizeMode="repeat"
         source={source}
-        style={[styles.image, {transform: [{translateY: offset}] as any}]}
+        style={[styles.image, {transform: [{translateY: offset}]}]}
       />
       {children}
     </Kb.Box2>

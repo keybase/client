@@ -72,18 +72,18 @@ const Avatar = (props: Props) => {
       )}
       {(!!props.borderColor || props.isTeam) && (
         <div
-          style={
-            Styles.collapseStyles([
-              props.isTeam && styles.borderTeam,
-              !props.isTeam && styles.border,
-              props.borderColor &&
-                ({
+          style={Styles.collapseStylesDesktop([
+            props.isTeam && styles.borderTeam,
+            !props.isTeam && styles.border,
+            props.borderColor &&
+              Styles.platformStyles({
+                isElectron: {
                   boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
                     props.borderColor || Styles.globalColors.black_10
                   } ${props.isTeam ? 'inset' : ''}`,
-                } as any),
-            ]) as React.CSSProperties
-          }
+                },
+              }),
+          ])}
           className={Styles.classNames(
             {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
             avatarSizeClasName

@@ -34,7 +34,7 @@ export const waitingKeyMutualTeams = (conversationIDKey: T.Chat.ConversationIDKe
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
-export const loadThreadMessageTypes = Object.keys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
+export const loadThreadMessageTypes = C.enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
   (arr, key) => {
     switch (key) {
       case 'none':
@@ -47,7 +47,7 @@ export const loadThreadMessageTypes = Object.keys(T.RPCChat.MessageType).reduce<
         break
       default:
         {
-          const val = T.RPCChat.MessageType[key as any]
+          const val = T.RPCChat.MessageType[key]
           if (typeof val === 'number') {
             arr.push(val)
           }

@@ -87,8 +87,9 @@ const EditTeamWelcomeMessage = (props: Props) => {
             type="BodySmall"
             style={Kb.Styles.collapseStyles([
               styles.info,
-              !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden' as const},
-            ] as any)}
+              !(welcomeMessage.set && welcomeMessage.raw.length === 0) &&
+                Kb.Styles.platformStyles({isElectron: {visibility: 'hidden' as const}}),
+            ])}
           >
             No welcome note will be shown to new members.
           </Kb.Text>

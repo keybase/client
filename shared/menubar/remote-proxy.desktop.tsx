@@ -98,7 +98,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
   const darkMode = Kb.Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
-  const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
+  const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
 
   const remoteTlfUpdates = React.useMemo(
     () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),

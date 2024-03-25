@@ -99,7 +99,7 @@ const Container = (ownProps: OwnProps) => {
   const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
 
   const props = {
-    canUpload: _pathItem.type === 'folder' && _pathItem.writable,
+    canUpload: _pathItem.type === T.FS.PathType.Folder && _pathItem.writable,
     openAndUploadBoth,
     openAndUploadDirectory,
     openAndUploadFile,

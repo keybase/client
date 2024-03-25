@@ -8,7 +8,6 @@ import logger from '@/logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {noConversationIDKey} from '../types/chat2/common'
-import isEqual from 'lodash/isEqual'
 
 const noString = new HiddenString('')
 
@@ -491,7 +490,7 @@ const makeMessageSystemNewChannel = (
 ): MessageTypes.MessageSystemNewChannel => ({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: undefined,
-  text: '',
+  text: new HiddenString(''),
   type: 'systemNewChannel',
   ...m,
 })
@@ -718,7 +717,7 @@ const uiMessageToSystemMessage = (
         ? makeMessageSystemNewChannel({
             ...minimum,
             reactions,
-            text: m.decoratedTextBody,
+            text: new HiddenString(m.decoratedTextBody),
           })
         : undefined
     }
@@ -883,7 +882,7 @@ const validUIMessagetoMessage = (
               currentUsername,
               getLastOrdinal,
               currentDeviceName
-            ) as any) // TODO better reply to handling
+            ) as T.Chat.MessageReplyTo)
           : undefined,
         text: new HiddenString(rawText),
         unfurls: m.unfurls ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,
@@ -1289,66 +1288,6 @@ export const pathToAttachmentType = (path: string) => {
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
 export const specialMentions = ['here', 'channel', 'everyone']
-
-// TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
-// on non visible items so the cost might be higher
-export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Message): T.Chat.Message => {
-  if (!old) {
-    return msg
-  }
-
-  // only merge if its the same id and type
-  if (old.id !== msg.id || old.type !== msg.type) {
-    return msg
-  }
-
-  const m = msg as {[key: string]: any}
-  let toRet = {...m}
-
-  // if all props are the same then just use old
-  let allSame = true as boolean
-  Object.keys(old).forEach(key => {
-    const o = old as {[key: string]: any}
-    switch (key) {
-      case 'mentionsChannelName':
-      case 'reactions':
-      case 'mentionsAt':
-      case 'audioAmps':
-        if (C.shallowEqual([...o[key]], [...m[key]])) {
-          toRet[key] = o[key]
-        } else {
-          allSame = false
-        }
-        break
-      case 'bodySummary':
-      case 'decoratedText':
-      case 'text':
-        if (o[key]?.stringValue?.() === m[key]?.stringValue?.()) {
-          toRet[key] = o[key]
-        } else {
-          allSame = false
-        }
-        break
-      case 'unfurls':
-        if (isEqual(m[key], old[key])) {
-          toRet[key] = old[key]
-        } else {
-          allSame = false
-        }
-        break
-      default:
-        if (o[key] === m[key]) {
-          toRet[key] = o[key]
-        } else {
-          allSame = false
-        }
-    }
-  })
-  if (allSame) {
-    toRet = old
-  }
-  return toRet as T.Chat.Message
-}
 
 export const upgradeMessage = (
   old: T.Immutable<T.Chat.Message>,

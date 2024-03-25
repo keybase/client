@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '@/styles'
 import type {Props} from '.'
@@ -56,7 +55,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     () => ({
       paragraph: Styles.platformStyles({
         isElectron: {whiteSpace: 'nowrap'},
-      }) as StylesTextCrossPlatform,
+      }),
     }),
     []
   )
@@ -66,7 +65,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       <Kb.Box style={styles.container}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride}>
+          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride as any}>
             {title}
           </Kb.Markdown>
           <Kb.Icon
@@ -95,7 +94,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                 {isVideo ? (
                   <video
                     autoPlay={true}
-                    style={styles.videoFit as any}
+                    style={Kb.Styles.castStyleDesktop(styles.videoFit)}
                     controlsList="nodownload nofullscreen noremoteplayback"
                     controls={true}
                     ref={vidRef}

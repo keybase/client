@@ -122,6 +122,10 @@ export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   }
 }
 
+export function enumKeys<T extends Record<string, string | number>>(enumeration: T): (keyof T)[] {
+  return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
+}
+
 export const assertNever = (_: never) => undefined
 
 import {useNavigation} from '@react-navigation/core'

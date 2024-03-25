@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-computed-key */
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
@@ -88,7 +87,8 @@ const outDir = argv.outDir
 const saltpackIcon = argv.saltpackIcon
 const appCopyright = 'Copyright (c) 2024, Keybase'
 const companyName = 'Keybase, Inc.'
-const electronVersion = require('../package.json').devDependencies.electron
+const electronVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies
+  .electron
 console.log('Found electron version:', electronVersion)
 
 const packagerOpts: Options = {

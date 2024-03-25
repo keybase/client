@@ -14,7 +14,7 @@ const rateLimitPayloads: {
 
 function NotifyPopup(
   title: string,
-  opts: any,
+  opts?: {body?: string; sound?: boolean},
   rateLimitSeconds: number = -1,
   rateLimitKey?: string,
   onClick?: () => void,

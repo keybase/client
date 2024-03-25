@@ -10,13 +10,18 @@ type Props = {
 const Slice = (props: Props) => {
   const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
   const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
-  const styleRotate = Kb.Styles.isMobile
-    ? {transform: [{rotate: props.degrees + 'deg'}]}
-    : {transform: 'rotate(' + props.degrees + 'deg)'}
   return (
     <Kb.Box style={Kb.Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
       <Kb.Box style={Kb.Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.rotateContainer, styleRotate] as any)}>
+      <Kb.Box
+        style={Kb.Styles.collapseStyles([
+          styles.rotateContainer,
+          Kb.Styles.platformStyles({
+            isElectron: {transform: 'rotate(' + props.degrees + 'deg)'},
+            isMobile: {transform: [{rotate: props.degrees + 'deg'}]},
+          }),
+        ])}
+      >
         <Kb.Box style={Kb.Styles.collapseStyles([styles.leftFilled, styleFilled])} />
       </Kb.Box>
       <Kb.Box
@@ -30,7 +35,7 @@ const Slice = (props: Props) => {
 
 const AnimatedPieSlice = (props: Props) => {
   const {degrees} = props
-  return <Slice degrees={degrees} style={props.style as any} negative={props.negative} />
+  return <Slice degrees={degrees} style={props.style} negative={props.negative} />
 }
 
 const PieSlice = (props: Props) => {

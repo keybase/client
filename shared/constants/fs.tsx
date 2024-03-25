@@ -2365,8 +2365,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         try {
-          // eslint-disable-next-line
-          while (1) {
+          while (true) {
             const {syncingPaths, totalSyncingBytes, endEstimate} =
               await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
                 filter: T.RPCGen.ListFilter.filterSystemHidden,

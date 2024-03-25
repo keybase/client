@@ -33,7 +33,7 @@ class LoginRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box
-        onLayout={(evt: any) => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
+        onLayout={evt => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
         style={Kb.Styles.globalStyles.flexOne}
       >
         <NativeScrollView

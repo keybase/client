@@ -27,7 +27,7 @@ class SwitchToggle extends React.PureComponent<Props> {
   render() {
     return (
       <NativeAnimated.View
-        style={Styles.collapseStyles([
+        style={[
           styles.outer,
           {
             backgroundColor: this._offset.interpolate({
@@ -39,11 +39,9 @@ class SwitchToggle extends React.PureComponent<Props> {
             }),
           },
           this.props.style,
-        ] as any)}
+        ]}
       >
-        <NativeAnimated.View
-          style={Styles.collapseStyles([styles.inner, {marginLeft: this._offset}] as any)}
-        />
+        <NativeAnimated.View style={[styles.inner, {marginLeft: this._offset}]} />
       </NativeAnimated.View>
     )
   }

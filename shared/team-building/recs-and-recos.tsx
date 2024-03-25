@@ -212,7 +212,7 @@ export const RecsAndRecos = (
               />
             )
           }
-          renderSectionHeader={({section: {label}}: any) =>
+          renderSectionHeader={({section: {label}}) =>
             label && (!Kb.Styles.isMobile || label !== 'Recommendations') ? (
               <Kb.SectionDivider label={label} />
             ) : null

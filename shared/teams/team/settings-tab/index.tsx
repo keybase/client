@@ -192,20 +192,6 @@ const IgnoreAccessRequests = (props: SettingProps) =>
     </Kb.Box2>
   ) : null
 
-const toRolePickerPropsHelper = (state: State, setState: any) => ({
-  disabledReasonsForRolePicker: {
-    admin: `Users can't join open teams as admins.`,
-    owner: `Users can't join open teams as owners.`,
-    reader: '',
-    writer: '',
-  },
-  isRolePickerOpen: state.isRolePickerOpen,
-  newOpenTeamRole: state.newOpenTeamRole,
-  onCancelRolePicker: () => setState({isRolePickerOpen: false}),
-  onConfirmRolePicker: (role: any) => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
-  onOpenRolePicker: () => setState({isRolePickerOpen: true}),
-})
-
 // TODO: break out some of these into individual components, simplify state
 export class Settings extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -287,7 +273,21 @@ export class Settings extends React.Component<Props, State> {
   }
 
   render() {
-    const rolePickerProps = toRolePickerPropsHelper(this.state, (s: any) => this.setState(s))
+    const rolePickerProps = (() => ({
+      disabledReasonsForRolePicker: {
+        admin: `Users can't join open teams as admins.`,
+        owner: `Users can't join open teams as owners.`,
+        reader: '',
+        writer: '',
+      },
+      isRolePickerOpen: this.state.isRolePickerOpen,
+      newOpenTeamRole: this.state.newOpenTeamRole,
+      onCancelRolePicker: () => this.setState({isRolePickerOpen: false}),
+      onConfirmRolePicker: (role: State['newOpenTeamRole']) =>
+        this.setState({isRolePickerOpen: false, newOpenTeamRole: role}),
+      onOpenRolePicker: () => this.setState({isRolePickerOpen: true}),
+    }))()
+
     const submenuProps: SettingProps = {
       ...this.props,
       ...this.state,

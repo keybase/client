@@ -249,16 +249,16 @@ class Input extends React.PureComponent<Props, State> {
 
   _containerStyle = () => {
     return this.props.small
-      ? {
+      ? ({
           ...Styles.globalStyles.flexBoxRow,
           width: '100%',
-        }
-      : {
+        } as const)
+      : ({
           ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           marginBottom: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.small,
-        }
+        } as const)
   }
 
   _propTypeToSingleLineType = () => {
@@ -278,29 +278,37 @@ class Input extends React.PureComponent<Props, State> {
     const inputStyle = Styles.collapseStyles([
       styles.commonInput,
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
-      {
-        borderBottom: `1px solid ${underlineColor}`,
-        height: this.props.small ? 18 : 28,
-        maxWidth: 460,
-      },
-    ] as any)
+      Styles.platformStyles({
+        isElectron: {
+          borderBottom: `1px solid ${underlineColor}`,
+          height: this.props.small ? 18 : 28,
+          maxWidth: 460,
+        },
+      }),
+    ])
 
     const textareaStyle = Styles.collapseStyles([
       styles.commonInput,
       this.props.small
         ? styles.commonInputSmall
-        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
-      {
-        height: 'initial',
-        minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
-        paddingBottom: 0,
-        paddingTop: 0,
-        resize: 'none',
-        width: '100%',
-        wrap: 'off',
-        ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
-      },
-    ] as any)
+        : Styles.platformStyles({
+            isElectron: {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
+          }),
+      Styles.platformStyles({
+        isElectron: {
+          height: 'initial',
+          minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+          paddingBottom: 0,
+          paddingTop: 0,
+          resize: 'none',
+          width: '100%',
+          wrap: 'off',
+          ...(this.props.rowsMax
+            ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
+            : {overflowY: 'hidden'}),
+        },
+      }),
+    ])
 
     const value = this._getValue()
 
@@ -341,7 +349,7 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     return (
-      <Box style={Styles.collapseStyles([containerStyle, this.props.style] as any)}>
+      <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
         {!this.props.small && !this.props.hideLabel && (
           <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}

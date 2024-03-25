@@ -1,4 +1,4 @@
-import type {RouteMap, RouteDef, GetOptions} from '@/constants/types/router2'
+import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import type {PlatformWrapper} from './shim'
 
 export const _getOptions = (route: RouteDef): GetOptions | undefined => {
@@ -13,7 +13,7 @@ export const _shim = (
   isLoggedOut: boolean
 ) => {
   return Object.keys(routes).reduce<RouteMap>((map, route) => {
-    let _cached: any = null
+    let _cached: undefined | React.JSXElementConstructor<GetOptionsParams>
 
     const old = routes[route]
     if (!old) return map

@@ -1,7 +1,7 @@
-type PayloadType = {
+export type PayloadType = {
   method: string
-  param: Array<Object>
-  response?: Object
+  param: Array<{sessionID?: number}>
+  response?: {cancelled: boolean; seqid: number; result?: (r?: unknown) => void}
 }
 
 export type SendArg = [number, number, unknown, unknown]

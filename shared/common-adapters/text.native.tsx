@@ -122,7 +122,7 @@ class Text extends React.Component<Props> {
         ref={this.setRef}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy ?? 'simple'}
-        style={style as any}
+        style={style}
         {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}

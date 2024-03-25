@@ -3,6 +3,7 @@ import type * as Styles from '@/styles'
 import type * as T from '@/constants/types'
 
 export type Props = {
+  // TODO fix this type
   items: Array<any>
   keyExtractor?: (item: any, idx: number) => string
   renderItem: (index: number, item: any) => React.ReactElement

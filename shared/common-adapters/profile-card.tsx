@@ -137,9 +137,9 @@ const ProfileCard = ({
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isSelf = C.useCurrentUserState(s => s.username === username)
-  const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
-    assertion => assertion.state !== 'valid'
-  )
+  const hasBrokenProof = userDetails.assertions
+    ? [...userDetails.assertions.values()].find(assertion => assertion.state !== 'valid')
+    : false
   const [showFollowButton, setShowFollowButton] = React.useState(false)
   if (!showFollowButton) {
     const shouldShowFollowButton = !isSelf && !hasBrokenProof && !followThem && userDetails.state === 'valid'

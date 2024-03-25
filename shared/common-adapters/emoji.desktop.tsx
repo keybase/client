@@ -1,6 +1,7 @@
 import type {Props} from './emoji'
 import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 import {spriteSheetWidth, spriteSheetHeight} from './markdown/emoji-gen'
+import * as Styles from '@/styles'
 
 // Just the single set we use
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
@@ -44,15 +45,19 @@ const EmojiWrapper = (props: Props) => {
     <span
       className="emoji"
       title={name}
-      style={{
-        backgroundImage,
-        backgroundPosition,
-        backgroundSize,
-        display: 'inline-block',
-        height: size,
-        width: size,
-        ...(style as any),
-      }}
+      style={Styles.castStyleDesktop(
+        Styles.platformStyles({
+          isElectron: {
+            backgroundImage,
+            backgroundPosition,
+            backgroundSize,
+            display: 'inline-block',
+            height: size,
+            width: size,
+            ...style,
+          },
+        })
+      )}
     >
       {!props.disableSelecting && (
         <span className="emoji emoji-native">{unifiedToNative(emoji.unified)}</span>

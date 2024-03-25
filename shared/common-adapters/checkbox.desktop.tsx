@@ -18,12 +18,8 @@ const CHECKBOX_MARGIN = 8
 const Checkbox = (props: Props) => {
   return (
     <Kb.Box
-      style={Kb.Styles.collapseStyles([
-        styles.container,
-        !props.disabled && Styles.desktopStyles.clickable,
-        props.style,
-      ] as any)}
-      onClick={(e: any) =>
+      style={Kb.Styles.collapseStyles([styles.container, !props.disabled && styles.clickable, props.style])}
+      onClick={e =>
         // If something in labelComponent needs to catch a click without calling this, use
         // event.preventDefault()
         props.disabled || e.defaultPrevented ? undefined : props.onCheck && props.onCheck(!props.checked)
@@ -84,6 +80,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   checkboxInactive: {borderColor: Kb.Styles.globalColors.black_10},
   checkboxWhiteBorder: {borderColor: Kb.Styles.globalColors.white},
+  clickable: Kb.Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+    },
+  }),
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',

@@ -49,7 +49,7 @@ const QRScanner = (p: Props): React.ReactElement | null => {
               p.onBarCodeRead(data)
             }
       }
-      style={p.style as any}
+      style={p.style}
     />
   )
 }
