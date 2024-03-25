@@ -33,7 +33,7 @@ const ErrorMessage = () => {
   let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
-    if (code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+    if (code === (T.RPCGen.StatusCode.scteamcontactsettingsblock as number)) {
       if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
         // One-on-one conversation.
         createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`

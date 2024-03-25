@@ -27,7 +27,6 @@ class DragAndDrop extends React.PureComponent<Props, State> {
           for (const path of paths) {
             // Check if any file is a directory and bail out if not
             try {
-              // eslint-disable-next-line no-await-in-loop
               const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
               if (isDir) {
                 // TODO show a red error banner on failure: https://zpl.io/2jlkMLm

@@ -56,7 +56,8 @@ type PushN = {
 } & Data
 
 const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
-  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  const membersTypeNumber: T.RPCChat.ConversationMembersType =
+    typeof a === 'string' ? parseInt(a, 10) : a || -1
   switch (membersTypeNumber) {
     case T.RPCChat.ConversationMembersType.kbfs:
       return T.RPCChat.ConversationMembersType.kbfs

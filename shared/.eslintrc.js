@@ -176,7 +176,7 @@ module.exports = {
     'max-statements': 'off',
     'multiline-comment-style': 'off',
     'new-cap': 'off',
-    'no-await-in-loop': 'warn',
+    'no-await-in-loop': 'off',
     'no-console': 'off',
     'no-constant-condition': ['warn', {checkLoops: false}],
     'no-continue': 'off',

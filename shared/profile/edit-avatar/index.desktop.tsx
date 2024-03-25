@@ -23,7 +23,6 @@ const getFile = async (fileList: FileList | undefined): Promise<string> => {
   }
   for (const path of paths) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
       if (isDir) {
         return ''

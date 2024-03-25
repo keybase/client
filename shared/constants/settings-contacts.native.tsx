@@ -247,7 +247,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         increment(importContactsWaitingKey)
         const status = (await Contacts.requestPermissionsAsync()).status
 
-        if (status === 'granted' && thenToggleImportOn) {
+        if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
           get().dispatch.editContactImportEnabled(true, fromSettings)
         }
         set(s => {

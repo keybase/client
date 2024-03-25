@@ -529,10 +529,8 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         while (true) {
           try {
-            // eslint-disable-next-line no-await-in-loop
             await _checkForUpdate()
           } catch {}
-          // eslint-disable-next-line no-await-in-loop
           await timeoutPromise(3_600_000) // 1 hr
         }
       }
