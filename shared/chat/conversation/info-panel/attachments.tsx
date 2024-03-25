@@ -61,12 +61,44 @@ type Link = {
   snippet: string
   title?: string
   url?: string
+  key: string
   id: T.Chat.MessageID
 }
-type InfoPanelSection = Section<
-  any,
-  {title?: string; renderSectionHeader?: (info: {section: Section<any, any>}) => React.ReactNode}
->
+
+type ThumbData = {
+  images: {
+    debug: {
+      height: number
+      maxMediaThumbSize: number
+      width: number
+    }
+    sizing: {
+      dims: {
+        height: number
+        width: number
+      }
+      margins: {
+        marginBottom: number
+        marginLeft: number
+        marginRight: number
+        marginTop: number
+      }
+    }
+    thumb: Thumb
+  }[]
+  key: number
+}
+
+type InfoPanelSection = (
+  | Section<{key: string}, {title?: string}>
+  | Section<ThumbData, {title?: string}>
+  | Section<Doc, {title?: string}>
+  | Section<Link, {title?: string}>
+) & {
+  renderSectionHeader?: (props: {
+    section: unknown
+  }) => React.ReactElement<any, string | React.JSXElementConstructor<unknown>> | null
+}
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
@@ -382,7 +414,7 @@ const linkStyleOverride = {
 }
 
 type Props = {
-  renderTabs: () => React.ReactNode
+  renderTabs: () => React.ReactElement<any, string | React.JSXElementConstructor<unknown>> | null
   commonSections: Array<Section<{key: string}, {title?: string}>>
 }
 
@@ -398,7 +430,7 @@ export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
-): {sections: Array<Section<any, {title?: string}>>} => {
+): {sections: Array<InfoPanelSection>} => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
@@ -471,7 +503,10 @@ export const useAttachmentSections = (
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
   const commonSections: Array<InfoPanelSection> = [
-    ...p.commonSections,
+    ...p.commonSections.map(cs => ({
+      data: cs.data,
+      title: cs.title,
+    })),
     {
       data: [{key: 'avselector'}],
       key: 'avselector',
@@ -565,11 +600,11 @@ export const useAttachmentSections = (
               thumb,
             }))
             const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)
-            const data = dataChunked.map((images, i) => ({images, key: i}))
+            const data = dataChunked.map((images, i) => ({images, key: i})) as Array<ThumbData>
             return {
               data,
               key: month.key,
-              renderItem: ({item}: {item: T.Unpacked<typeof data>; index: number}) => (
+              renderItem: ({item}: {item: ThumbData; index: number}) => (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}
@@ -582,14 +617,16 @@ export const useAttachmentSections = (
               ),
               renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
               title: `${month.month} ${month.year}`,
-            }
+            } as InfoPanelSection
           })
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
       case T.RPCChat.GalleryItemTyp.doc:
         {
-          const docs = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(m => ({
+          const docs: Array<Doc & {ctime: number; key: string}> = (
+            attachmentInfo.messages as Array<T.Chat.MessageAttachment>
+          ).map(m => ({
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
@@ -605,7 +642,7 @@ export const useAttachmentSections = (
             progress: m.transferProgress,
           }))
 
-          const s = formMonths(docs).map(month => ({
+          const s: Array<Section<Doc>> = formMonths(docs).map(month => ({
             data: month.data,
             key: month.key,
             renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
@@ -616,17 +653,7 @@ export const useAttachmentSections = (
         break
       case T.RPCChat.GalleryItemTyp.link:
         {
-          const links = attachmentInfo.messages.reduce<
-            Array<{
-              author: string
-              ctime: number
-              key: string
-              snippet: string
-              title?: string
-              url?: string
-              id: T.Chat.MessageID
-            }>
-          >((l, m) => {
+          const links = attachmentInfo.messages.reduce<Array<Link>>((l, m) => {
             if (m.type !== 'text') {
               return l
             }
@@ -656,7 +683,7 @@ export const useAttachmentSections = (
             return l
           }, [])
 
-          const s = formMonths(links).map(month => ({
+          const s: Array<Section<Link>> = formMonths(links).map(month => ({
             data: month.data,
             key: month.key,
             renderItem: ({item}: {item: Link}) => {
@@ -724,7 +751,7 @@ const Attachments = (p: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) || null}
       sections={sections}
     />
   )

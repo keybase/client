@@ -86,7 +86,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
     {
       data: members.length ? members : ['empty'],
       key: 'membersSection',
-      renderItem: ({item, index}: any) => {
+      renderItem: ({item, index}: {item: T.RPCChat.Keybase1.TeamMemberRole | 'empty'; index: number}) => {
         return item === 'empty' ? (
           <Kb.Box2
             direction="vertical"
@@ -103,8 +103,8 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
         )
       },
     },
-  ]
-  const renderSectionHeader = ({section}: any) => {
+  ] as const
+  const renderSectionHeader = ({section}: {section: (typeof sections)[number]}) => {
     if (section.key === 'membersSection') {
       return (
         <Kb.Tabs

@@ -102,9 +102,11 @@ const makeSingleRow = (key: string, renderItem: () => React.ReactElement | null)
   renderItem,
 })
 
-const SectionList = createAnimatedComponent<SectionListProps<SectionType<string, {title?: string}>>>(
-  Kb.SectionList
-)
+type Sections =
+  | SectionType<string, {title?: string}>
+  | ReturnType<typeof useAttachmentSections>['sections'][number]
+
+const SectionList = createAnimatedComponent<SectionListProps<Sections>>(Kb.SectionList)
 
 const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
@@ -148,13 +150,13 @@ const Channel = (props: OwnProps) => {
     true // variable width
   )
 
-  const sections: Array<SectionType<string, {title?: string}>> = [headerSection]
+  const sections: Array<Sections> = [headerSection]
   switch (selectedTab) {
     case 'members':
       sections.push({
         data: participants,
         key: 'membersSection',
-        renderItem: ({index, item}) => (
+        renderItem: ({index, item}: {index: number; item: string}) => (
           <ChannelMemberRow
             conversationIDKey={conversationIDKey}
             teamID={teamID}
@@ -202,13 +204,13 @@ const Channel = (props: OwnProps) => {
       sections.push({
         data: bots,
         key: 'botsInThisConv',
-        renderItem: ({item}) => <BotRow teamID={teamID} username={item} />,
+        renderItem: ({item}: {item: string}) => <BotRow teamID={teamID} username={item} />,
         title: 'In this conversation:',
       })
       sections.push({
         data: botsInTeamNotInConv,
         key: 'botsInThisTeam',
-        renderItem: ({item}) => <BotRow teamID={teamID} username={item} />,
+        renderItem: ({item}: {item: string}) => <BotRow teamID={teamID} username={item} />,
         title: 'In this team:',
       })
       // TODO: consider adding featured bots here, pending getting an actual design for this tab
@@ -227,13 +229,12 @@ const Channel = (props: OwnProps) => {
     default:
   }
 
-  const renderSectionHeader = ({section}: {section: {title?: string}}) =>
-    section.title ? <Kb.SectionDivider label={section.title} /> : null
-
   return (
     <Kb.Box style={styles.container}>
       <SectionList
-        renderSectionHeader={renderSectionHeader}
+        renderSectionHeader={({section}) =>
+          section.title ? <Kb.SectionDivider label={section.title} /> : null
+        }
         stickySectionHeadersEnabled={Kb.Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
