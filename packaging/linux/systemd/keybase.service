@@ -16,7 +16,7 @@ EnvironmentFile=-%t/keybase/keybase.env
 EnvironmentFile=-%h/.config/keybase/keybase.autogen.env
 EnvironmentFile=-%h/.config/keybase/keybase.env
 
-ExecStart=/usr/bin/keybase --use-default-log-file --debug service
+ExecStart=/usr/bin/keybase --use-default-log-file service
 Restart=on-failure
 
 [Install]
