@@ -81,12 +81,8 @@ export type RouteProps2<RouteName extends keyof RootParamList> = {
   }
 }
 
-export function getRouteParams<T extends keyof RootParamList>(ownProps: any): RootParamList[T] {
-  return ownProps.route.params as RootParamList[T]
-}
-
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
-  route: any
+  route: unknown
 ): RootParamList[T] | undefined {
-  return route?.params
+  return (route as {params?: RootParamList[T]} | undefined)?.params
 }
