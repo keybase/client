@@ -13,7 +13,7 @@ import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
-import {useChatDebugDump} from '@/constants/chat2/debug'
+// import {useChatDebugDump} from '@/constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
@@ -179,49 +179,52 @@ const ConversationList = React.memo(function ConversationList() {
     }, 100)
   }, [extraData])
 
-  useChatDebugDump(
-    'listArea',
-    C.useEvent(() => {
-      if (!listRef.current) return ''
-      const {props, state} = listRef.current as {props: {extraData?: {}; data?: [number]}; state: any}
-      const {extraData, data} = props
-
-      const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as any)) as {
-        _layouts?: [unknown]
-        _renderWindowSize: unknown
-        _totalHeight: unknown
-        _totalWidth: unknown
-      }
-      const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-      // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
-      // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
-
-      console.log(listRef.current)
-
-      const items = data?.map((ordinal: number, idx: number) => {
-        const layout = _layouts?.[idx]
-        // const m = mm.get(ordinal) ?? ({} as any)
-        return {
-          idx,
-          layout,
-          ordinal,
-          // rid: m.id,
-          // rtype: m.type,
-        }
-      })
-
-      const details = {
-        // children,
-        _renderWindowSize,
-        _totalHeight,
-        _totalWidth,
-        data,
-        extraData,
-        items,
-      }
-      return JSON.stringify(details)
-    })
-  )
+  // useChatDebugDump(
+  //   'listArea',
+  //   C.useEvent(() => {
+  //     if (!listRef.current) return ''
+  //     const {props, state} = listRef.current as {
+  //       props: {extraData?: {}; data?: [number]}
+  //       state?: object
+  //     }
+  //     const {extraData, data} = props
+  //
+  //     // const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as unknown)) as {
+  //     //   _layouts?: [unknown]
+  //     //   _renderWindowSize: unknown
+  //     //   _totalHeight: unknown
+  //     //   _totalWidth: unknown
+  //     // }
+  //     // const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
+  //     // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
+  //     // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
+  //
+  //     console.log(listRef.current)
+  //
+  //     const items = data?.map((ordinal: number, idx: number) => {
+  //       const layout = _layouts?.[idx]
+  //       // const m = mm.get(ordinal) ?? ({} as any)
+  //       return {
+  //         idx,
+  //         layout,
+  //         ordinal,
+  //         // rid: m.id,
+  //         // rtype: m.type,
+  //       }
+  //     })
+  //
+  //     const details = {
+  //       // children,
+  //       _renderWindowSize,
+  //       _totalHeight,
+  //       _totalWidth,
+  //       data,
+  //       extraData,
+  //       items,
+  //     }
+  //     return JSON.stringify(details)
+  //   })
+  // )
 
   const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
 
