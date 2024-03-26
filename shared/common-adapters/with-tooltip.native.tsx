@@ -31,7 +31,10 @@ type Dims = {
 
 const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => (
   <Kb.Portal hostName="popup-root">
-    <Kb.Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
+    <Kb.Box
+      pointerEvents="box-none"
+      style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, props.style])}
+    >
       {props.children}
     </Kb.Box>
   </Kb.Portal>

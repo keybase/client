@@ -18,7 +18,7 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Kb.Box style={Styles.collapseStylesDesktop([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon
@@ -121,7 +121,7 @@ const _titleStyle = {
   position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
   right: 0,
   top: 0,
-}
+} as const
 
 const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({

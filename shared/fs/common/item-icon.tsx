@@ -97,7 +97,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
 }
 
 type TlfIconProps = {
-  badgeOverride?: any // TS freaking out IconType
+  badgeOverride?: Kb.IconType // TS freaking out IconType
   size: Size
   style?: Kb.Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: T.FS.TlfType

@@ -4,7 +4,7 @@ import type {MeasureRef} from './measure-ref'
 import type {View, NativeSyntheticEvent} from 'react-native'
 
 export type Props = {
-  onMoveShouldSetResponder?: any
+  onMoveShouldSetResponder?: () => boolean
   onMouseDown?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onMouseLeave?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onMouseUp?: (syntheticEvent: React.MouseEvent) => void // desktop only
@@ -16,7 +16,7 @@ export type Props = {
   children?: React.ReactNode
   collapsable?: boolean
   className?: string
-  style?: any
+  style?: StylesCrossPlatform
   ref?: never
   tooltip?: string
 }

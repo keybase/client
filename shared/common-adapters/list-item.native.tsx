@@ -68,7 +68,7 @@ function bodyContainerStyle(swipeToAction?: boolean) {
     marginLeft: 8,
     marginRight: swipeToAction ? 0 : 16,
     marginTop: 8,
-  }
+  } as const
 }
 
 export default ListItem

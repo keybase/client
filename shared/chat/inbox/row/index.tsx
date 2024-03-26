@@ -67,6 +67,6 @@ const _bigTeamLabelStyle = {
   alignItems: 'center',
   height: Kb.Styles.isMobile ? 32 : 24,
   marginLeft: Kb.Styles.globalMargins.tiny,
-}
+} as const
 
 export {makeRow}
