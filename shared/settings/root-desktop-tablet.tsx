@@ -10,7 +10,14 @@ const settingsSubRoutes = {
   ...sharedNewRoutes,
 }
 
-function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}: any) {
+function LeftTabNavigator({
+  initialRouteName,
+  children,
+  screenOptions,
+  backBehavior,
+}: Parameters<typeof useNavigationBuilder>[1] & {
+  backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
+}) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,

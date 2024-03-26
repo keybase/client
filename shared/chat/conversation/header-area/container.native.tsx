@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, useBackBadge} from './index.native'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '@/router-v2/route-params'
@@ -83,16 +84,16 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
 })
 export default HeaderBranchContainer
 
-const BadgeHeaderLeftArray = ({...rest}: any) => {
+const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
   const badgeNumber = useBackBadge()
-  return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
+  return <HeaderLeftArrow badgeNumber={badgeNumber} {...p} />
 }
 
 export const headerNavigationOptions = (route: unknown) => {
   const conversationIDKey =
     getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.Chat.noConversationIDKey
   return {
-    headerLeft: (props: any) => {
+    headerLeft: (props: HeaderBackButtonProps) => {
       const {onLabelLayout, labelStyle, ...rest} = props
       return (
         <C.ChatProvider id={conversationIDKey}>

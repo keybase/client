@@ -18,7 +18,7 @@ export type Props = {
   icon?: React.ReactNode
   children: React.ReactNode
   when?: Date
-  contentStyle?: any
+  contentStyle?: Kb.Styles.StylesCrossPlatform
   format?: 'single' | 'multi'
   iconContainerStyle?: Kb.Styles.StylesCrossPlatform
   buttons?: Array<TaskButton>

@@ -73,7 +73,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     if (!this.props.image) {
       throw new Error('Missing image when saving avatar')
     }
-    let crop
+    let crop: undefined | ReturnType<typeof this._getCropCoordinates>
     // Only set the cropping coordinates if they’ve zoomed the image.
     if (this._z) {
       crop = this._getCropCoordinates()

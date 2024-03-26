@@ -85,7 +85,7 @@ export type Props = {
   // preferred to use the props.styleOverride.preview flag for this
   //
   // TODO type this up or remove it
-  style?: any
+  style?: Styles.StylesCrossPlatform
   allowFontScaling?: boolean
   messageType?: T.Chat.MessageType
   // This changes the specific style for specific types of text

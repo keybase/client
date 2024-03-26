@@ -22,7 +22,7 @@ export function makeInsertMatcher(filter: string): RegExp {
   )
 }
 
-export function toStringForLog(a: any): string {
+export function toStringForLog(a: unknown): string {
   switch (typeof a) {
     case 'undefined':
       return 'undefined'

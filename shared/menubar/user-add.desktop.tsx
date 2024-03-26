@@ -130,7 +130,7 @@ const stylesButtonContainer = {
   justifyContent: 'center',
   paddingLeft: 4,
   paddingRight: 4,
-}
+} as const
 
 const stylesInputContainer = {
   ...globalStyles.flexBoxRow,
@@ -141,6 +141,6 @@ const stylesInputContainer = {
   overflow: 'hidden',
   paddingLeft: 6,
   paddingRight: 10,
-}
+} as const
 
 export default UserAdd

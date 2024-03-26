@@ -15,9 +15,9 @@ class RemoteStore<DeserializeProps, SerializeProps> {
   _onUpdated: (a: DeserializeProps) => void
 
   _registerForRemoteUpdate = () => {
-    ipcRendererOn?.('KBprops', (_event, action) => {
+    ipcRendererOn?.('KBprops', (_event: unknown, action: unknown) => {
       const old = this._value
-      this._value = this._deserialize(old, JSON.parse(action))
+      this._value = this._deserialize(old, JSON.parse(action as string) as Partial<SerializeProps>)
       if (this._gotPropsCallback) {
         this._gotPropsCallback()
         this._gotPropsCallback = undefined

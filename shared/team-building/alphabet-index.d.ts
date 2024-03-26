@@ -2,7 +2,7 @@ import type * as Kb from '@/common-adapters'
 export type Props = {
   labels: Array<string>
   showNumSection: boolean
-  measureKey?: any // change this when the position of AlphabetIndex on the screen changes
+  measureKey?: unknown // change this when the position of AlphabetIndex on the screen changes
   onScroll: (label: string) => void
   style?: Kb.Styles.StylesCrossPlatform
 }

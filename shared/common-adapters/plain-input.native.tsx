@@ -173,9 +173,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
-    const paddingStyles: any = this.props.padding
-      ? Styles.padding(Styles.globalMargins[this.props.padding])
-      : {}
+    const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
     return Styles.collapseStyles([
       styles.multiline,
       {

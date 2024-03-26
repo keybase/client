@@ -120,7 +120,7 @@ const ServiceDecoration = (p: Props) => {
   }
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
     let paymentID: T.Wallets.PaymentID | undefined
-    let error
+    let error: string | undefined
     if (
       parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.sent &&
       parsed.payment.result.sent

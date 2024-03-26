@@ -18,7 +18,7 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Kb.Box style={Styles.collapseStylesDesktop([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon
@@ -121,7 +121,7 @@ const _titleStyle = {
   position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
   right: 0,
   top: 0,
-}
+} as const
 
 const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
@@ -159,10 +159,15 @@ export const HeaderLeftBlank = () => (
   <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
 
-export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
+export const HeaderLeftArrow = (hp: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+  badgeNumber?: number
+}) =>
   hp.canGoBack ? (
     <LeftAction
-      badgeNumber={0}
+      badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}

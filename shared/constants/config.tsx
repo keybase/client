@@ -438,7 +438,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             .then(() => {
               get().dispatch.openUnlockFolders([])
             })
-            .catch(e => {
+            .catch((e: unknown) => {
               if (!(e instanceof C.RPCError)) return
               set(s => {
                 s.unlockFoldersError = e.desc

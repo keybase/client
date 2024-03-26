@@ -72,7 +72,7 @@ export type KB2 = {
     installCachedDokan?: () => Promise<void>
     uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<void>
-    ipcRendererOn?: (channel: string, cb: (event: any, action: any) => void) => void
+    ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => void
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always

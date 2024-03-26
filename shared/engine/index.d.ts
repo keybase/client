@@ -13,7 +13,7 @@ export declare class Engine {
   createSession(arg0: {
     incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
-    cancelHandler?: any
+    cancelHandler?: unknown
     dangling?: boolean
   }): Session
   _rpcOutgoing(p: {

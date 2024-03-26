@@ -204,11 +204,13 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           : null}
       </Kb.Box>
       <Kb.Box
-        style={{
-          ...Kb.Styles.desktopStyles.clickable,
-          marginRight: Kb.Styles.globalMargins.tiny,
-          position: 'relative',
-        }}
+        style={Kb.Styles.platformStyles({
+          isElectron: {
+            ...Kb.Styles.desktopStyles.clickable,
+            marginRight: Kb.Styles.globalMargins.tiny,
+            position: 'relative',
+          } as const,
+        })}
       >
         <Kb.Icon
           color={
@@ -387,7 +389,11 @@ const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp
   }
 
   return (
-    <Kb.Box style={{...Kb.Styles.desktopStyles.clickable, position: 'relative'}}>
+    <Kb.Box
+      style={Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.clickable, position: 'relative'},
+      })}
+    >
       <Kb.Icon
         color={
           Kb.Styles.isDarkMode()

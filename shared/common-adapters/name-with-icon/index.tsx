@@ -70,7 +70,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const BoxComponent = onClick ? ClickableBox : Box
   const adapterProps = getAdapterProps(size || 'default')
 
-  let avatarOrIcon
+  let avatarOrIcon: React.ReactNode
   if (isAvatar) {
     avatarOrIcon = (
       <Avatar

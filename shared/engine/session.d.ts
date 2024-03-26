@@ -38,7 +38,7 @@ declare class Session {
     incomingCallMap?: IncomingCallMap
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: string | ReadonlyArray<string>
-    invoke: (method: string, param: [Object] | undefined, cb: (err?: any, data?: any) => void) => void
+    invoke: (method: string, param: [Object] | undefined, cb: (err?: unknown, data?: unknown) => void) => void
     endHandler: (session: Session) => void
     cancelHandler?: (session: Session) => void
     dangling?: boolean

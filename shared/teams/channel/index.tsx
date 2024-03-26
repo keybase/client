@@ -250,9 +250,7 @@ const Channel = (props: OwnProps) => {
     case 'settings': {
       const settings: Section<string, {type: 'settings'}> = {
         data: ['settings'],
-        renderItem: () => (
-          <SettingsList isPreview={isPreview} renderTabs={() => undefined} commonSections={[]} />
-        ),
+        renderItem: () => <SettingsList isPreview={isPreview} renderTabs={() => null} commonSections={[]} />,
         type: 'settings',
       } as const
       sections.push(settings as InfoPanelSection)

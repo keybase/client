@@ -1047,7 +1047,7 @@ const outboxUIMessagetoMessage = (
       const title = o.title
       const fileName = o.filename
       let previewURL = ''
-      let pre
+      let pre: T.Chat.PreviewSpec
       if (o.preview) {
         previewURL =
           o.preview.location && o.preview.location.ltyp === T.RPCChat.PreviewLocationTyp.url

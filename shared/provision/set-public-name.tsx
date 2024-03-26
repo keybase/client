@@ -51,7 +51,7 @@ type Props = {
 const SetPublicName = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(C.Signup.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
-  const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
+  const debouncedSetReadyToShowError = debounce((ready: boolean) => setReadyToShowError(ready), 1000)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
   const disabled =
