@@ -107,7 +107,7 @@ type TextStyle = {
   userSelect?: string
   textDecoration?: string
   colorForBackground?: string
-  styleOverride?: any
+  styleOverride?: StylesTextCrossPlatform
   lineHeight?: number
 }
 

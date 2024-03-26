@@ -212,7 +212,7 @@ export const ListBody = (
     | 'onChangeText'
     | 'onFinishTeamBuilding'
   > & {
-    offset: any
+    offset: unknown
     enterInputCounter: number
   }
 ) => {

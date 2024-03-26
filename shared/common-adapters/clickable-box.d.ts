@@ -4,7 +4,7 @@ import type {MeasureRef} from './measure-ref'
 
 export type Props = {
   className?: string
-  children?: any
+  children?: React.ReactNode
   style?: Styles.StylesCrossPlatform
   onClick?: (event: React.BaseSyntheticEvent) => void
   onDoubleClick?: (event: React.BaseSyntheticEvent) => void

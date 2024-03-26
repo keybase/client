@@ -53,7 +53,7 @@ const setupApp = () => {
   C.initListeners()
   eng.listenersAreReady()
 
-  ipcRendererOn?.('KBdispatchAction', (_: any, action: unknown) => {
+  ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
       try {
         C.useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)

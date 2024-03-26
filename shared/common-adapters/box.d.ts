@@ -9,7 +9,7 @@ export type Props = {
   onMouseLeave?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onMouseUp?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onMouseOver?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onStartShouldSetResponder?: any
+  onStartShouldSetResponder?: () => boolean
   pointerEvents?: 'none' | 'box-none'
   onLayout?: (evt: LayoutEvent) => void // mobile only
   onClick?: (event: React.BaseSyntheticEvent) => void

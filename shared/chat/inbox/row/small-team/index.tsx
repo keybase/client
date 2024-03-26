@@ -39,9 +39,12 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       const typingSnippet = (() => {
         const typers = !isInWidget ? s.typing : undefined
         if (!typers?.size) return undefined
-        return typers.size === 1
-          ? `${typers.values().next().value as string} is typing...`
-          : 'Multiple people typing...'
+        if (typers.size === 1) {
+          const [t] = typers
+          return `${t} is typing...`
+        } else {
+          return 'Multiple people typing...'
+        }
       })()
 
       const {meta} = s

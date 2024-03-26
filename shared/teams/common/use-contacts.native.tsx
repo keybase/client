@@ -100,7 +100,7 @@ const useContacts = () => {
           setErrorMessage(undefined)
           setLoading(false)
         },
-        _err => {
+        (_err: unknown) => {
           const err = _err as {message: string}
           logger.warn('Error fetching contacts:', err)
           setErrorMessage(err.message)

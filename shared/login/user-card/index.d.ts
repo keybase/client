@@ -4,7 +4,7 @@ import type * as Kb from '@/common-adapters'
 
 export type Props = {
   avatarSize?: AvatarSize
-  avatarBackgroundStyle?: any
+  avatarBackgroundStyle?: Kb.Styles.StylesCrossPlatform
   lighterPlaceholders?: boolean
   onAvatarClicked?: () => void
   outerStyle?: Kb.Styles.StylesCrossPlatform

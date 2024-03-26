@@ -6,3 +6,4 @@ types:
 useAnimatedStyle
 suggestionsList
 navigation
+icon ref
