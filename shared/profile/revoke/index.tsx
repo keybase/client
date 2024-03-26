@@ -115,7 +115,7 @@ function formatMessage(platform: T.More.PlatformsExpandedType) {
   if (platform === 'pgp') {
     return 'Are you sure you want to drop your PGP key'
   }
-  let body
+  let body: string
   switch (platform) {
     case 'btc':
       body = 'Bitcoin address'
