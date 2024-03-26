@@ -101,13 +101,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps & {conversationIDKey
   private commonSections = [
     {
       data: [{key: 'header-item'}], // 'header' cannot be used as a key, RN uses that key.
-      key: 'header-section',
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
           {this.props.teamname && this.props.channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
-    },
+      type: 'header-section',
+    } as const,
   ]
 
   render() {

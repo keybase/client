@@ -503,10 +503,7 @@ export const useAttachmentSections = (
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
   const commonSections: Array<InfoPanelSection> = [
-    ...p.commonSections.map(cs => ({
-      data: cs.data,
-      title: cs.title,
-    })),
+    ...p.commonSections,
     {
       data: [{key: 'avselector'}],
       key: 'avselector',

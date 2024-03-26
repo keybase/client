@@ -6,11 +6,11 @@ import type {Section} from '@/common-adapters/section-list'
 import Participant from './participant'
 
 type Props = {
-  renderTabs: () => React.ReactElement<any, string | React.JSXElementConstructor<unknown>> | null
-  commonSections: Array<Section<{key: string}, {title?: string}>>
+  renderTabs: () => React.ReactElement | null
+  commonSections: Array<Section<unknown, {type: 'header-section'}>>
 }
 
-type InfoPanelSection = Section<
+type ParticipantSectionData =
   | {type: 'auditingItem'}
   | {type: 'spinnerItem'}
   | {key: string; type: 'common'}
@@ -21,12 +21,8 @@ type InfoPanelSection = Section<
       key: string
       username: string
       type: 'member'
-    },
-  {
-    title?: string
-    renderSectionHeader?: () => React.ReactElement<any, string | React.JSXElementConstructor<unknown>> | null
-  }
->
+    }
+type ParticipantSectionType = Section<ParticipantSectionData, {type: 'participant'}>
 
 const MembersTab = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -89,44 +85,37 @@ const MembersTab = (props: Props) => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = showUserProfile
 
-  const sections: Array<InfoPanelSection> = [
-    ...props.commonSections.map(
-      cs =>
-        ({
-          data: cs.data.map(d => ({...d, type: 'common'}) as const),
-          title: cs.title,
-        }) as const
-    ),
-    {
-      data: showSpinner
-        ? [{type: 'spinnerItem'} as const]
-        : [...(showAuditingBanner ? [{type: 'auditingItem'} as const] : []), ...participantsItems],
-      renderItem: ({index, item}: {index: number; item: InfoPanelSection['data'][number]}) => {
-        if (item.type === 'auditingItem') {
-          return (
-            <Kb.Banner color="grey" small={true}>
-              Auditing team members...
-            </Kb.Banner>
-          )
-        } else if (item.type === 'spinnerItem') {
-          return <Kb.ProgressIndicator type="Large" style={styles.membersSpinner} />
-        } else if (item.type === 'member') {
-          return (
-            <Participant
-              fullname={item.fullname}
-              isAdmin={item.isAdmin}
-              isOwner={item.isOwner}
-              username={item.username}
-              onShowProfile={onShowProfile}
-              firstItem={index === 0}
-            />
-          )
-        }
-        return null
-      },
-      renderSectionHeader: props.renderTabs,
+  const participantSection: ParticipantSectionType = {
+    data: showSpinner
+      ? [{type: 'spinnerItem'} as const]
+      : [...(showAuditingBanner ? [{type: 'auditingItem'} as const] : []), ...participantsItems],
+    renderItem: ({index, item}: {index: number; item: ParticipantSectionData}) => {
+      if (item.type === 'auditingItem') {
+        return (
+          <Kb.Banner color="grey" small={true}>
+            Auditing team members...
+          </Kb.Banner>
+        )
+      } else if (item.type === 'spinnerItem') {
+        return <Kb.ProgressIndicator type="Large" style={styles.membersSpinner} />
+      } else if (item.type === 'member') {
+        return (
+          <Participant
+            fullname={item.fullname}
+            isAdmin={item.isAdmin}
+            isOwner={item.isOwner}
+            username={item.username}
+            onShowProfile={onShowProfile}
+            firstItem={index === 0}
+          />
+        )
+      }
+      return null
     },
-  ]
+    type: 'participant',
+  }
+
+  const sections = [...props.commonSections, participantSection]
 
   return (
     <Kb.SectionList
@@ -134,8 +123,14 @@ const MembersTab = (props: Props) => {
       keyboardShouldPersistTaps="handled"
       desktopReactListTypeOverride="variable"
       desktopItemSizeEstimatorOverride={() => 56}
-      getItemHeight={item => (item.type === 'member' && item.username ? 56 : 0)}
-      renderSectionHeader={({section}) => section.renderSectionHeader?.() ?? null}
+      getItemHeight={(item, secIdx) => {
+        if (sections[secIdx]?.type === 'participant') {
+          const i = item as ParticipantSectionData
+          return i.type === 'member' && i.username ? 56 : 0
+        }
+        return 0
+      }}
+      renderSectionHeader={({section}) => (section.type === 'participant' ? props.renderTabs() : null)}
       sections={sections}
     />
   )
