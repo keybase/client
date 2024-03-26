@@ -182,7 +182,7 @@ const expandRow = (totalWidth: number, row: Array<Image>) => {
 }
 
 const pickRow = (totalWidth: number, longIndex: number, longRow: Array<Image>, shortRow: Array<Image>) => {
-  let compressed
+  let compressed: Array<Image>
   const expanded = expandRow(totalWidth, shortRow)
   try {
     compressed = compressRow(totalWidth, longRow)

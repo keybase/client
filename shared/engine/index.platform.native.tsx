@@ -17,7 +17,7 @@ class NativeTransport extends TransportShared {
   }
 
   // We're always connected, so call the callback
-  connect(cb: (err?: any) => void) {
+  connect(cb: (err?: unknown) => void) {
     cb()
   }
   is_connected() {
@@ -60,7 +60,7 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = (objs: any) => {
+  global.rpcOnJs = (objs: unknown) => {
     try {
       client.transport._dispatch(objs)
     } catch (e) {

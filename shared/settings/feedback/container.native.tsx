@@ -74,7 +74,7 @@ class FeedbackContainer extends React.Component<Props, State> {
       }
       run()
         .then(() => {})
-        .catch(err => {
+        .catch((err: unknown) => {
           logger.warn('err in sending logs', err)
           if (this.mounted) {
             this.setState({sendError: String(err), sending: false})

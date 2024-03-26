@@ -9,7 +9,7 @@ export type SendArg = [number, number, unknown, unknown]
 // Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
 // a list of arguments, but it expects exactly one element with keyed
 // arguments.
-export type InvokeType = (method: string, args: [Object], cb: (err: any, data: any) => void) => void
+export type InvokeType = (method: string, args: [Object], cb: (err: unknown, data: unknown) => void) => void
 export type CreateClientType = {
   transport: {
     needsConnect: boolean

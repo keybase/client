@@ -2,9 +2,8 @@ import {useIsMounted} from '@/constants/react'
 import * as React from 'react'
 import type {RPCError} from './errors'
 
-type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<infer U>
-  ? U
-  : RF
+type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> =
+  RF extends Promise<infer U> ? U : RF
 
 /** A hook to make an RPC call. This entirely skips our state layer and shouldn't be used if you need any side effects
 setResult is only called if you're still mounted
@@ -19,7 +18,8 @@ function useRPC<
   const isMounted = useIsMounted()
   const submit = React.useMemo(
     () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-      call(...args)
+      const called = call(...args) as Promise<RET>
+      called
         .then((result: RET) => {
           if (isMounted()) {
             setResult(result)

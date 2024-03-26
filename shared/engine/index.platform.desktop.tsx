@@ -53,7 +53,7 @@ class ProxyNativeTransport extends TransportShared {
   }
 
   // We're always connected, so call the callback
-  connect(cb: (err?: any) => void) {
+  connect(cb: (err?: unknown) => void) {
     cb()
   }
   is_connected() {
@@ -87,9 +87,9 @@ function createClient(
     )
 
     // plumb back data from the node side
-    ipcRendererOn?.('engineIncoming', (_e, data: Uint8Array) => {
+    ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
       try {
-        client.transport.packetize_data(data)
+        client.transport.packetize_data(data as Uint8Array)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
       }

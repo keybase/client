@@ -3,8 +3,8 @@ import type * as T from '../types'
 type NextURI = string
 
 export declare function showShareActionSheet(options: {
-  filePath?: any
-  message?: any
+  filePath?: string
+  message?: string
   mimeType: string
 }): Promise<{
   completed: boolean

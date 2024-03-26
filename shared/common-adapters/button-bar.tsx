@@ -12,7 +12,7 @@ type Props = {
   children: React.ReactNode
   fullWidth?: boolean
   small?: boolean // ignored by column,,,
-  style?: any
+  style?: Styles.StylesCrossPlatform
 }
 
 class ButtonBar extends React.PureComponent<Props> {

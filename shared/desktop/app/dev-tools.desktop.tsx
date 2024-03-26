@@ -10,7 +10,7 @@ export function setupDevToolsExtensions() {
         .then(async () => {
           await Electron.session.defaultSession.loadExtension(p, {allowFileAccess: true})
         })
-        .catch(e => {
+        .catch((e: unknown) => {
           console.log('loading dev extensions failed', e)
         })
     })

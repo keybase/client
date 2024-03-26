@@ -148,6 +148,6 @@ export const commonTlds = ${JSON.stringify(commonTlds)}
 
 buildEmojiFile()
   .then(() => {})
-  .catch(e => {
+  .catch((e: unknown) => {
     throw e
   })

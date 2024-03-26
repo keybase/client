@@ -79,7 +79,7 @@ const AudioVideo = (props: Props) => {
     }
     f()
       .then(() => {})
-      .catch(e => {
+      .catch((e: unknown) => {
         console.error('audio play fail', e)
       })
   }

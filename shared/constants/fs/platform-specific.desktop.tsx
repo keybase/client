@@ -21,7 +21,9 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
 
 const escapeBackslash = isWindows
   ? (pathElem: string): string =>
-      pathElem.replace(/‰/g, '‰2030').replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + uint8ArrayToHex(c))
+      pathElem
+        .replace(/‰/g, '‰2030')
+        .replace(/([<>:"/\\|?*])/g, (_, c: Uint8Array) => '‰' + uint8ArrayToHex(c))
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: string) =>
@@ -172,7 +174,7 @@ const initPlatformSpecific = () => {
               _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
               ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(Constants.parsePath(path).kind) ||
                 Constants.getPathItem(pathItems, path).type === T.FS.PathType.Folder
-            ).catch(e => Constants.errorToActionOrThrow(path, e))
+            ).catch((e: unknown) => Constants.errorToActionOrThrow(e, path))
           : new Promise<void>((resolve, reject) => {
               if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
                 // This usually indicates a developer error as
