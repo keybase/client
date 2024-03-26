@@ -509,6 +509,7 @@ export const useAttachmentSections = (
 
   const avSection: InfoPanelSection = {
     data: [{key: 'avselector'}],
+    key: 'avselector',
     renderItem: () => (
       <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
     ),
@@ -523,6 +524,7 @@ export const useAttachmentSections = (
 
   const loadMoreSection: InfoPanelSection = {
     data: [{key: 'load more'}],
+    key: 'load-more',
     renderItem: () => {
       const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
@@ -557,6 +559,7 @@ export const useAttachmentSections = (
   if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
     const noAttachmentsSection: InfoPanelSection = {
       data: [{key: 'no-attachments'}],
+      key: 'no-attachments',
       renderItem: () => (
         <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
           <Kb.Text type="BodySmall">No attachments</Kb.Text>
