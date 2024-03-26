@@ -97,10 +97,13 @@ export const initPlatformListener = () => {
           kbfsNotification(action.payload.params.notification, NotifyPopup)
           break
         case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
-          const f = async () =>
-            T.RPCGen.pgpPgpStorageDismissRpcPromise().catch(err => {
+          const f = async () => {
+            try {
+              await T.RPCGen.pgpPgpStorageDismissRpcPromise()
+            } catch (err) {
               console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-            })
+            }
+          }
           C.ignorePromise(f())
           break
         }
@@ -215,10 +218,12 @@ export const initPlatformListener = () => {
         const enabled =
           (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
         if (enabled !== openAtLogin) {
-          await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(error_ => {
+          try {
+            await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin})
+          } catch (error_) {
             const error = error_ as RPCError
             logger.warn(`Error in sending ctlSetOnLoginStartup: ${error.message}`)
-          })
+          }
         }
       } else {
         logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
