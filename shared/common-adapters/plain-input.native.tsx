@@ -167,21 +167,19 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (isIOS) {
       delete textStyle.lineHeight
     }
-    return Styles.collapseStyles([styles.common, textStyle] as any)
+    return Styles.collapseStyles([styles.common, textStyle as any])
   }
 
   _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
-    const paddingStyles: any = this.props.padding
-      ? Styles.padding(Styles.globalMargins[this.props.padding])
-      : {}
+    const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
     return Styles.collapseStyles([
       styles.multiline,
       {
-        minHeight: (this.props.rowsMin || defaultRowsToShow) * lineHeight,
+        minHeight: (this.props.rowsMin || defaultRowsToShow) * (lineHeight ?? 0),
       },
-      !!this.props.rowsMax && {maxHeight: this.props.rowsMax * lineHeight},
+      !!this.props.rowsMax && {maxHeight: this.props.rowsMax * (lineHeight ?? 0)},
       paddingStyles,
     ])
   }

@@ -70,14 +70,14 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const BoxComponent = onClick ? ClickableBox : Box
   const adapterProps = getAdapterProps(size || 'default')
 
-  let avatarOrIcon
+  let avatarOrIcon: React.ReactNode
   if (isAvatar) {
     avatarOrIcon = (
       <Avatar
         imageOverrideUrl={props.avatarImageOverride}
         editable={props.editableIcon}
         onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-        size={props.avatarSize || (props.horizontal ? commonHeight : (adapterProps.iconSize as any))}
+        size={props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)}
         showFollowingStatus={props.horizontal ? undefined : !props.hideFollowingOverlay}
         username={username}
         teamname={teamname}
@@ -128,7 +128,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       colorFollowing={props.colorFollowing}
       colorYou={props.notFollowingColorOverride || true}
       notFollowingColorOverride={props.notFollowingColorOverride}
-      style={size === 'smaller' ? {} : (styles.fullWidthText as any)}
+      style={size === 'smaller' ? undefined : (styles.fullWidthText as StylesTextCrossPlatform)}
       withProfileCardPopup={props.withProfileCardPopup}
     />
   )
@@ -136,21 +136,21 @@ const NameWithIcon = (props: NameWithIconProps) => {
     <TextOrComponent
       textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
       val={props.metaOne}
-      style={props.horizontal ? undefined : (styles.fullWidthText as any)}
+      style={props.horizontal ? undefined : (styles.fullWidthText as StylesTextCrossPlatform)}
     />
   )
   const metaTwo = (
     <TextOrComponent
       textType="BodySmall"
       val={props.metaTwo}
-      style={props.horizontal ? undefined : (styles.fullWidthText as any)}
+      style={props.horizontal ? undefined : (styles.fullWidthText as StylesTextCrossPlatform)}
     />
   )
   const botAlias = (
     <TextOrComponent
       textType="Header"
       val={props.botAlias}
-      style={props.horizontal ? styles.botAlias : (styles.fullWidthText as any)}
+      style={props.horizontal ? styles.botAlias : (styles.fullWidthText as StylesTextCrossPlatform)}
     />
   )
   const metas = props.horizontal ? (
@@ -308,7 +308,12 @@ const styles = Styles.styleSheetCreate(() => ({
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (
   size: Size
-): {iconSize: number; metaMargin: number; metaOneType: TextType; titleType: TextTypeBold} => {
+): {
+  iconSize: 16 | 24 | 32 | 64 | 48 | 128 | 96
+  metaMargin: number
+  metaOneType: TextType
+  titleType: TextTypeBold
+} => {
   switch (size) {
     case 'smaller':
       return {

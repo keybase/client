@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import Confirm, {type Props} from './confirm'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 
 type OwnProps = {
@@ -17,8 +17,8 @@ const Container = (ownProps: OwnProps) => {
   const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
   const download = C.useFSState(s => s.dispatch.download)
   const _confirm = React.useCallback(
-    ({view, previousView}: any) => {
-      download(path, view === 'confirm-save-media' ? 'saveMedia' : 'share')
+    ({view, previousView}: typeof _pathItemActionMenu) => {
+      download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
       setPathItemActionMenuView(previousView)
     },
     [setPathItemActionMenuView, download, path]
@@ -26,7 +26,7 @@ const Container = (ownProps: OwnProps) => {
   const props = {
     ...ownProps,
     action:
-      _pathItemActionMenu.view === 'confirm-save-media'
+      _pathItemActionMenu.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
         ? 'save-media'
         : ('send-to-other-app' as Props['action']),
     confirm: () => _confirm(_pathItemActionMenu),

@@ -56,11 +56,13 @@ const ZoomableImage = (p: Props) => {
     >
       <Kb.Box2
         direction="vertical"
-        style={{
-          height: boxH * manualScale,
-          transform: [{scaleX: 1 / manualScale}, {scaleY: 1 / manualScale}],
-          width: boxW * manualScale,
-        }}
+        style={Styles.platformStyles({
+          isMobile: {
+            height: boxH * manualScale,
+            transform: [{scaleX: 1 / manualScale}, {scaleY: 1 / manualScale}],
+            width: boxW * manualScale,
+          },
+        })}
       >
         <Kb.Image2
           contentFit="contain"

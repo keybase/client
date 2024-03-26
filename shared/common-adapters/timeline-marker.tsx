@@ -10,7 +10,7 @@ export type Props = {
   idx: number
   max: number
   type?: 'open' | 'closed'
-  style?: any
+  style?: Styles.StylesCrossPlatform
 }
 
 const TimelineMarker = ({idx, max, type, style}: Props) => (

@@ -201,19 +201,19 @@ class Input extends React.Component<Props, State> {
 
   private containerStyle = (underlineColor: Styles.Color) => {
     return this.props.small
-      ? {
+      ? ({
           ...Styles.globalStyles.flexBoxRow,
           backgroundColor: Styles.globalColors.fastBlank,
           borderBottomColor: underlineColor,
           borderBottomWidth: 1,
           flex: 1,
-        }
-      : {
+        } as const)
+      : ({
           ...Styles.globalStyles.flexBoxColumn,
           backgroundColor: Styles.globalColors.fastBlank,
           justifyContent: 'flex-start',
           maxWidth: 400,
-        }
+        } as const)
   }
 
   private onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
@@ -324,7 +324,7 @@ class Input extends React.Component<Props, State> {
     }
 
     return (
-      <Box style={[containerStyle, this.props.style]}>
+      <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
         {!this.props.small && !this.props.hideLabel && (
           <Text center={true} type="BodySmall" style={styles.floating}>
             {floatingHintText}

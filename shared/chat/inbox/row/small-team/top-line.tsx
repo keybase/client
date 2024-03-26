@@ -38,17 +38,12 @@ const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: bool
         showBold && styles.bold,
         {color: usernameColor},
         Kb.Styles.isMobile && {backgroundColor},
-      ]) as Kb.Styles.StylesCrossPlatform,
+      ]),
     [showBold, usernameColor, backgroundColor]
   )
 
   const teamContainerStyle = React.useMemo(
-    () =>
-      Kb.Styles.collapseStyles([
-        styles.teamTextStyle,
-        showBold && styles.bold,
-        {color: usernameColor},
-      ]) as Kb.Styles.StylesCrossPlatform,
+    () => Kb.Styles.collapseStyles([styles.teamTextStyle, showBold && styles.bold, {color: usernameColor}]),
     [showBold, usernameColor]
   )
   return typeof participants === 'string' ? (
@@ -121,7 +116,7 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
         showBold && styles.bold,
         styles.timestamp,
         tssubColor !== false && ({color: tssubColor} as any),
-      ]) as Kb.Styles.StylesCrossPlatform,
+      ]),
     [showBold, tssubColor]
   )
 

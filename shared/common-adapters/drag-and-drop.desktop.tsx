@@ -21,9 +21,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     const f = async () => {
       if (!this._validDrag(e)) return
       const fileList = e.dataTransfer.files
-      const paths: Array<string> = fileList.length
-        ? (Array.prototype.map.call(fileList, f => f.path) as any)
-        : []
+      const paths: Array<string> = fileList.length ? Array.from(fileList).map(f => f.path) : []
       if (paths.length) {
         if (!this.props.allowFolders) {
           for (const path of paths) {

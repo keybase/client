@@ -146,7 +146,7 @@ export function kbfsNotification(
   notification: T.RPCGen.FSNotification,
   notify: (
     title: string,
-    opts?: any,
+    opts?: {body?: string; sound?: boolean},
     rateLimitSeconds?: number,
     rateLimitKey?: string,
     onClick?: () => void,

@@ -32,32 +32,32 @@ const styles = Styles.styleSheetCreate(() =>
   }, {})
 )
 
-export const Text2 = TEMP_SWITCH
+export const Text2 = /*TEMP_SWITCH
   ? require('./text').default
-  : React.memo(function Text2(p: Props) {
-      const {type: _type, style: _style, children: _children, lineClamp, selectable, ellipsizeMode} = p
-      const type = _type ?? 'BodySmall'
-      const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-      const style = React.useMemo(() => {
-        const baseStyle: Styles.StylesCrossPlatform = styles[type]
-        const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
-        return Styles.collapseStyles([baseStyle, overdrawStyle, _style])
-      }, [type, _style, canFixOverdraw])
+  : */ React.memo(function Text2(p: Props) {
+  const {type: _type, style: _style, children: _children, lineClamp, selectable, ellipsizeMode} = p
+  const type = _type ?? 'BodySmall'
+  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
+  const style = React.useMemo(() => {
+    const baseStyle: Styles.StylesCrossPlatform = styles[type]
+    const overdrawStyle = canFixOverdraw ? {backgroundColor: Styles.globalColors.fastBlank} : undefined
+    return Styles.collapseStyles([baseStyle, overdrawStyle, _style])
+  }, [type, _style, canFixOverdraw])
 
-      const clampProps = React.useMemo(() => {
-        return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
-      }, [ellipsizeMode, lineClamp])
+  const clampProps = React.useMemo(() => {
+    return lineClamp ? {ellipsizeMode, numberOfLines: lineClamp} : undefined
+  }, [ellipsizeMode, lineClamp])
 
-      let children = _children
-      if (TEMP_MARK_V2) {
-        if (children) {
-          children = ['⚠', children]
-        }
-      }
+  let children = _children
+  if (TEMP_MARK_V2) {
+    if (children) {
+      children = ['⚠', children]
+    }
+  }
 
-      return (
-        <RNText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
-          {children}
-        </RNText>
-      )
-    })
+  return (
+    <RNText style={style} numberOfLines={lineClamp} selectable={selectable} {...clampProps}>
+      {children}
+    </RNText>
+  )
+})

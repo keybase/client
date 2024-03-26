@@ -36,13 +36,15 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
         </Kb.Text>
       </Kb.Box>
       <Kb.Box
-        style={{
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          flex: 1,
-          justifyContent: 'center',
-          marginLeft: 8,
-          overflow: 'auto',
-        }}
+        style={Kb.Styles.platformStyles({
+          isElectron: {
+            ...Kb.Styles.globalStyles.flexBoxColumn,
+            flex: 1,
+            justifyContent: 'center',
+            marginLeft: 8,
+            overflow: 'auto',
+          },
+        })}
       >
         <Kb.Box>
           {rekeyers.map(username => (

@@ -10,8 +10,10 @@ run electron hash update
 -------------------------
 Some short term todos:
 swipeable2 slow
-remove F1 debug in chat
+mem leak
 
-
-framepack, dispatch invocations
-kbfs heic preview broken (at go level)
+types:
+useAnimatedStyle
+suggestionsList
+navigation
+icon ref

@@ -103,7 +103,7 @@ export {default as logger} from '@/logger'
 export {debugWarning} from '@/util/debug-warning'
 
 export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(e => {
+  f.then(() => {}).catch((e: unknown) => {
     // likely remove this after some time
     logger.error('ignorePromise error', e)
   })
@@ -120,6 +120,10 @@ export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   } catch {
     return undefined
   }
+}
+
+export function enumKeys<T extends Record<string, string | number>>(enumeration: T): (keyof T)[] {
+  return Object.keys(enumeration).filter(key => typeof enumeration[key] === 'number') as (keyof T)[]
 }
 
 export const assertNever = (_: never) => undefined

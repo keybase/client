@@ -132,9 +132,9 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           style={styles.tlfParticipants}
           onClick={props.onSelectPath}
         >
-          {props.tlfType === 'team' ? (
+          {props.tlfType === T.FS.TlfType.Team ? (
             props.teamname
-          ) : props.tlfType === 'public' ? (
+          ) : props.tlfType === T.FS.TlfType.Public ? (
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               {props.participants.join(',')}
               <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} size="Small" title="PUBLIC" />

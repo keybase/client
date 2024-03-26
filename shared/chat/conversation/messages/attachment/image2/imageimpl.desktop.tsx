@@ -12,7 +12,7 @@ const Image2Impl = () => {
       src={previewURL}
       height={height}
       width={width}
-      style={styles.image as any}
+      style={Kb.Styles.castStyleDesktop(styles.image)}
     />
   )
 }

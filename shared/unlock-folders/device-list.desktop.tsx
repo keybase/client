@@ -34,7 +34,7 @@ const DeviceList = (props: Props) => (
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
     </Kb.Text>
-    <div style={styles.devicesContainer as any}>
+    <div style={Kb.Styles.collapseStylesDesktop([styles.devicesContainer])}>
       {props.devices.map(d => (
         <DeviceRow key={d.deviceID} device={d} />
       ))}

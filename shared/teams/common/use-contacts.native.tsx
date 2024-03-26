@@ -49,7 +49,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
       }
       region = defaultCountryCode
     } catch (error_) {
-      const error = error_ as any
+      const error = error_ as {message: string}
       logger.warn(`Error loading default country code: ${error.message}`)
     }
   }
@@ -100,7 +100,8 @@ const useContacts = () => {
           setErrorMessage(undefined)
           setLoading(false)
         },
-        err => {
+        (_err: unknown) => {
+          const err = _err as {message: string}
           logger.warn('Error fetching contacts:', err)
           setErrorMessage(err.message)
           setLoading(false)

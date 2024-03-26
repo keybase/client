@@ -16,8 +16,8 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
   )
 
   private renderMenuItem = (item: MenuItem, index: number) => {
-    let hoverClassName
-    let styleDisabled = {}
+    let hoverClassName: string | undefined
+    let styleDisabled: Styles.StylesCrossPlatform = {}
     if (!item.disabled) {
       hoverClassName = item.danger ? 'menu-hover-danger' : 'menu-hover'
     } else {
@@ -98,7 +98,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 
     return (
       <Box
-        onClick={(event: any) => {
+        onClick={event => {
           // never allow a click to go through
           event.stopPropagation()
         }}

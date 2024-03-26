@@ -10,6 +10,11 @@ import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 
+type Props = {
+  renderTabs: () => React.ReactElement | null
+  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+}
+
 const monthNames = [
   'January',
   'February',
@@ -61,11 +66,48 @@ type Link = {
   snippet: string
   title?: string
   url?: string
+  key: string
   id: T.Chat.MessageID
 }
+
+type ThumbData = {
+  images: {
+    debug: {
+      height: number
+      maxMediaThumbSize: number
+      width: number
+    }
+    sizing: {
+      dims: {
+        height: number
+        width: number
+      }
+      margins: {
+        marginBottom: number
+        marginLeft: number
+        marginRight: number
+        marginTop: number
+      }
+    }
+    thumb: Thumb
+  }[]
+  key: number
+}
+
+type SectionTypes =
+  | {type: 'doc'}
+  | {type: 'link'}
+  | {type: 'thumb'}
+  | {type: 'avselector'}
+  | {type: 'no-attachments'}
+  | {type: 'load-more'}
+  | {type: 'header-section'}
+
 type InfoPanelSection = Section<
-  any,
-  {title?: string; renderSectionHeader?: (info: {section: Section<any, any>}) => React.ReactNode}
+  unknown,
+  SectionTypes & {
+    renderSectionHeader?: (props: {section: SectionTypes}) => React.ReactElement | null
+  }
 >
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
@@ -381,11 +423,6 @@ const linkStyleOverride = {
   ]) as StylesTextCrossPlatform,
 }
 
-type Props = {
-  renderTabs: () => React.ReactNode
-  commonSections: Array<Section<{key: string}, {title?: string}>>
-}
-
 const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undefined => {
   if (info.last || info.status !== 'success') {
     return undefined
@@ -398,7 +435,7 @@ export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
-): {sections: Array<Section<any, {title?: string}>>} => {
+): {sections: Array<InfoPanelSection>} => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
@@ -470,19 +507,22 @@ export const useAttachmentSections = (
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
+  const avSection: InfoPanelSection = {
+    data: [{key: 'avselector'}],
+    key: 'avselector',
+    renderItem: () => (
+      <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
+    ),
+    renderSectionHeader: p.renderTabs,
+    type: 'avselector',
+  } as const
+
   const commonSections: Array<InfoPanelSection> = [
-    ...p.commonSections,
-    {
-      data: [{key: 'avselector'}],
-      key: 'avselector',
-      renderItem: () => (
-        <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
-      ),
-      renderSectionHeader: p.renderTabs,
-    },
+    ...(p.commonSections as Array<InfoPanelSection>),
+    avSection,
   ]
 
-  const loadMoreSection = {
+  const loadMoreSection: InfoPanelSection = {
     data: [{key: 'load more'}],
     key: 'load-more',
     renderItem: () => {
@@ -512,22 +552,22 @@ export const useAttachmentSections = (
       }
       return null
     },
-  }
+    type: 'load-more',
+  } as const
 
   let sections: Array<InfoPanelSection>
   if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
-    sections = [
-      {
-        data: [{key: 'no-attachments'}],
-        key: 'no-attachments',
-        renderItem: () => (
-          <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
-            <Kb.Text type="BodySmall">No attachments</Kb.Text>
-          </Kb.Box2>
-        ),
-      },
-    ]
-    sections = [...commonSections, ...sections, loadMoreSection]
+    const noAttachmentsSection: InfoPanelSection = {
+      data: [{key: 'no-attachments'}],
+      key: 'no-attachments',
+      renderItem: () => (
+        <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
+          <Kb.Text type="BodySmall">No attachments</Kb.Text>
+        </Kb.Box2>
+      ),
+      type: 'no-attachments',
+    } as const
+    sections = [...commonSections, noAttachmentsSection, loadMoreSection]
   } else {
     switch (selectedAttachmentView) {
       case T.RPCChat.GalleryItemTyp.media:
@@ -569,7 +609,7 @@ export const useAttachmentSections = (
             return {
               data,
               key: month.key,
-              renderItem: ({item}: {item: T.Unpacked<typeof data>; index: number}) => (
+              renderItem: ({item}: {item: ThumbData; index: number}) => (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}
@@ -582,14 +622,17 @@ export const useAttachmentSections = (
               ),
               renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
               title: `${month.month} ${month.year}`,
+              type: 'thumb',
             }
           })
-          sections = [...commonSections, ...s, loadMoreSection]
+          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
         }
         break
       case T.RPCChat.GalleryItemTyp.doc:
         {
-          const docs = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(m => ({
+          const docs: Array<Doc & {ctime: number; key: string}> = (
+            attachmentInfo.messages as Array<T.Chat.MessageAttachment>
+          ).map(m => ({
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
@@ -605,28 +648,22 @@ export const useAttachmentSections = (
             progress: m.transferProgress,
           }))
 
-          const s = formMonths(docs).map(month => ({
-            data: month.data,
-            key: month.key,
-            renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
-            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-          }))
-          sections = [...commonSections, ...s, loadMoreSection]
+          const s = formMonths(docs).map(
+            month =>
+              ({
+                data: month.data,
+                key: month.key,
+                renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
+                renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+                type: 'doc',
+              }) as const
+          )
+          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
         }
         break
       case T.RPCChat.GalleryItemTyp.link:
         {
-          const links = attachmentInfo.messages.reduce<
-            Array<{
-              author: string
-              ctime: number
-              key: string
-              snippet: string
-              title?: string
-              url?: string
-              id: T.Chat.MessageID
-            }>
-          >((l, m) => {
+          const links = attachmentInfo.messages.reduce<Array<Link>>((l, m) => {
             if (m.type !== 'text') {
               return l
             }
@@ -708,8 +745,9 @@ export const useAttachmentSections = (
               )
             },
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+            type: 'link',
           }))
-          sections = [...commonSections, ...s, loadMoreSection]
+          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
         }
         break
     }
@@ -724,7 +762,7 @@ const Attachments = (p: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) || null}
       sections={sections}
     />
   )

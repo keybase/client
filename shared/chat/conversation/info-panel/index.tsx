@@ -107,7 +107,8 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps & {conversationIDKey
           {this.props.teamname && this.props.channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
-    },
+      type: 'header-section',
+    } as const,
   ]
 
   render() {

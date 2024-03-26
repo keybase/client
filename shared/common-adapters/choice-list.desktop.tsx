@@ -1,6 +1,6 @@
 import {Box} from './box'
 import Text from './text'
-import Icon, {type IconType} from './icon'
+import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 import './choice-list.css'
@@ -15,18 +15,9 @@ const ChoiceList = ({options}: Props) => {
   return (
     <Kb.Box>
       {options.map((op, idx) => {
-        const iconType = op.icon as IconType
+        const iconType = op.icon
         return (
-          <Kb.Box
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexBoxRow,
-              Styles.desktopStyles.clickable,
-              styles.entry,
-            ] as any)}
-            key={idx}
-            className="cl-entry"
-            onClick={() => op.onClick()}
-          >
+          <Kb.Box style={styles.entry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
             <Kb.Box
               style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.iconContainer])}
               className="cl-icon-container"
@@ -51,10 +42,14 @@ const ChoiceList = ({options}: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  entry: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-    width: '100%',
-  },
+  entry: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.desktopStyles.clickable,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      width: '100%',
+    },
+  }),
   icon: {
     height: 48,
     width: 48,

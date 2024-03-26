@@ -32,7 +32,7 @@ const Image2 = (p: Props) => {
 
   return (
     <>
-      <Image source={src} style={style as any} onLoad={_onLoad} contentFit={contentFit} onError={_onError} />
+      <Image source={src} style={style} onLoad={_onLoad} contentFit={contentFit} onError={_onError} />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
   )

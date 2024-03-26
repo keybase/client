@@ -51,7 +51,9 @@ type UseSuggestorsProps = Pick<
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
+// nasty to mix these types but keeping this for now
 type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
+type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | 'emoji' | 'users']>[0]
 
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
@@ -59,7 +61,7 @@ type UseSyncInputProps = {
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
-  selectedItemRef: React.MutableRefObject<any>
+  selectedItemRef: React.MutableRefObject<undefined | SelectedType>
   lastTextRef: React.MutableRefObject<string>
 }
 const useSyncInput = (p: UseSyncInputProps) => {
@@ -155,7 +157,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
   }, [])
 
   const triggerTransform = React.useCallback(
-    (maybeValue: unknown, final = true) => {
+    (maybeValue: SelectedType | undefined, final = true) => {
       if (!inputRef.current || !active) {
         return
       }
@@ -167,7 +169,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const cursorInfo = getWordAtCursor()
       const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
-        value,
+        value as any,
         matchInfo.marker,
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
@@ -251,7 +253,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 }
 
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const selectedItemRef = React.useRef<any>()
+  const selectedItemRef = React.useRef<undefined | SelectedType>()
   const lastTextRef = React.useRef('')
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
@@ -307,8 +309,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   const onSelected = React.useCallback(
     (item: unknown, final: boolean) => {
-      selectedItemRef.current = item
-      triggerTransform(item, final)
+      selectedItemRef.current = item as SelectedType
+      triggerTransform(item as SelectedType, final)
     },
     [selectedItemRef, triggerTransform]
   )
@@ -358,7 +360,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 }
 
 type PopupProps = {
-  suggestionOverlayStyle: any
+  suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   children: React.ReactNode

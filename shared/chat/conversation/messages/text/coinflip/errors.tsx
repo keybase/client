@@ -30,7 +30,7 @@ const CoinFlipError = (props: Props) => {
 const CoinFlipGenericError = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const sendFeedback = () => {
-    navigateAppend({props: {}, selected: 'modalFeedback'})
+    navigateAppend('modalFeedback')
   }
   return (
     <Kb.Text selectable={true} style={styles.error} type="BodySmall">

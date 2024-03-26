@@ -16,7 +16,7 @@ const ProgressBar = ({ratio, style, fillStyle, flatLeft, flatRight}: Props) => {
     ...(flatLeft && styles.flatLeft),
     ...(flatRight && styles.flatRight),
     width: `${Math.max(0, Math.min(1, ratio)) * 100}%`,
-  }
+  } as const
   return (
     <Box
       style={Styles.collapseStyles([

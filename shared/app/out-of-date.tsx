@@ -28,7 +28,6 @@ const OutOfDate = () => {
     const f = async () => {
       await C.timeoutPromise(60_000) // don't bother checking during startup
       // check every hour
-      // eslint-disable-next-line
       while (true) {
         try {
           const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})

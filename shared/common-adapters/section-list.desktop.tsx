@@ -59,7 +59,9 @@ function SectionList<T extends Section<any>>(p: Props<T>) {
             indexWithinSection,
             item,
             key:
-              keyExtractor?.(item, indexWithinSection) || item.key || `${sectionIndex}-${indexWithinSection}`,
+              keyExtractor?.(item, indexWithinSection) ||
+              (item as {key?: string}).key ||
+              `${sectionIndex}-${indexWithinSection}`,
             sectionIndex,
             type: 'body' as const,
           }))
@@ -95,7 +97,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
   componentDidUpdate(prevProps: Props<T>) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
-      this._onEndReached = once(info => this.props.onEndReached?.(info))
+      this._onEndReached = once((info: {distanceFromEnd: number}) => this.props.onEndReached?.(info))
     }
     if (
       this.props.selectedIndex !== -1 &&
@@ -203,7 +205,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
   }, 100)
 
   // This matches the way onEndReached works for sectionlist on RN
-  _onEndReached = once(info => this.props.onEndReached?.(info))
+  _onEndReached = once((info: {distanceFromEnd: number}) => this.props.onEndReached?.(info))
 
   _checkSticky = () => {
     if (this.props.listRef.current) {
@@ -282,7 +284,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
         : 0
   }
 
-  private itemRenderer = (index: number, key: any) => this._itemRenderer(index, key, false)
+  private itemRenderer = (index: number, key: string | number) => this._itemRenderer(index, key, false)
 
   render() {
     const stickyHeader =
@@ -295,7 +297,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
         <Kb.ScrollView
           contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
-          onScroll={this.onScroll as any}
+          onScroll={this.onScroll}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           <SafeReactList
@@ -307,7 +309,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
                 : undefined
             }
             length={this.props.flatRef.current.length}
-            extraData={this.props.flatRef.current as any}
+            extraData={this.props.flatRef.current}
             ref={this.props.listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />

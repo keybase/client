@@ -77,9 +77,7 @@ const KBWebViewBase = (props: WebViewProps) => {
           onLoadStart={() => isMounted() && setLoading(true)}
           onLoadEnd={() => isMounted() && setLoading(false)}
           onLoadProgress={({nativeEvent}) => isMounted() && setProgress(nativeEvent.progress)}
-          onError={
-            onError ? (syntheticEvent: any) => onError(syntheticEvent.nativeEvent.description) : undefined
-          }
+          onError={syntheticEvent => onError?.(syntheticEvent.nativeEvent.description)}
           startInLoadingState={!!renderLoading}
           renderLoading={renderLoading}
           onShouldStartLoadWithRequest={

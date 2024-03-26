@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Styles from '@/styles'
+import * as Styles from '@/styles'
 import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
@@ -19,7 +19,7 @@ const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   return (
     <Text
       type="Body"
-      style={[sizeStyle.get(size), props.style as any]} // Mobile emoji need to be smaller with Proxima Nova
+      style={Styles.collapseStyles([sizeStyle.get(size), props.style])} // Mobile emoji need to be smaller with Proxima Nova
       allowFontScaling={props.allowFontScaling}
     >
       {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}

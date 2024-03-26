@@ -97,16 +97,19 @@ export const initPlatformListener = () => {
           kbfsNotification(action.payload.params.notification, NotifyPopup)
           break
         case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
-          const f = async () =>
-            T.RPCGen.pgpPgpStorageDismissRpcPromise().catch(err => {
+          const f = async () => {
+            try {
+              await T.RPCGen.pgpPgpStorageDismissRpcPromise()
+            } catch (err) {
               console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-            })
+            }
+          }
           C.ignorePromise(f())
           break
         }
         case EngineGen.keybase1NotifyServiceShutdown: {
           const {code} = action.payload.params
-          if (isWindows && code !== T.RPCGen.ExitCode.restart) {
+          if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
             console.log('Quitting due to service shutdown with code: ', code)
             // Quit just the app, not the service
             quitApp?.()
@@ -119,7 +122,7 @@ export const initPlatformListener = () => {
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
           if (level >= T.RPCGen.LogLevel.error) {
-            NotifyPopup(text.data, {})
+            NotifyPopup(text.data)
           }
           break
         }
@@ -215,9 +218,12 @@ export const initPlatformListener = () => {
         const enabled =
           (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
         if (enabled !== openAtLogin) {
-          await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
-            logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
-          })
+          try {
+            await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin})
+          } catch (error_) {
+            const error = error_ as RPCError
+            logger.warn(`Error in sending ctlSetOnLoginStartup: ${error.message}`)
+          }
         }
       } else {
         logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)

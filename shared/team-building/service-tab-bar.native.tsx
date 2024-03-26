@@ -56,7 +56,7 @@ const TabletBottomBorderExtension = React.memo(
         <AnimatedBox2
           direction="horizontal"
           fullWidth={true}
-          style={[
+          style={Kb.Styles.collapseStyles([
             {
               borderBottomWidth: 1,
               borderColor: Kb.Styles.globalColors.black_10,
@@ -64,8 +64,8 @@ const TabletBottomBorderExtension = React.memo(
               height: 2,
               position: 'absolute',
             },
-            animatedStyles,
-          ]}
+            Kb.Styles.platformStyles({isMobile: animatedStyles}),
+          ])}
         />
       </Kb.Box2>
     )
@@ -137,11 +137,11 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
-        style={[
+        style={Kb.Styles.collapseStyles([
           isActive ? styles.activeTabBar : styles.inactiveTabBar,
           isActive && {backgroundColor: serviceIdToAccentColor(service)},
-          animatedTransform,
-        ]}
+          Kb.Styles.platformStyles({isMobile: animatedTransform}),
+        ])}
       />
     </Kb.ClickableBox>
   )

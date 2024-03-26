@@ -18,11 +18,11 @@ export const HeaderHocHeader = ({
   rightActions,
   theme = 'light',
 }: Props) => (
-  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle] as any)}>
+  <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
       <Kb.Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]] as any)}
+        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
         type="iconfont-close"
         onClick={onCancel}
       />
@@ -86,23 +86,21 @@ const _headerStyle = {
   paddingLeft: Styles.globalMargins.small,
   paddingRight: Styles.globalMargins.small,
   position: 'relative',
-}
+} as const
 
 const _headerStyleThemed = {
-  dark: {
-    backgroundColor: Styles.globalColors.blueDarker2,
-  },
-  light: {
-    backgroundColor: Styles.globalColors.white,
-  },
+  dark: {backgroundColor: Styles.globalColors.blueDarker2},
+  light: {backgroundColor: Styles.globalColors.white},
 }
 
-const _styleClose = {
-  ...Styles.desktopStyles.clickable,
-  position: 'absolute',
-  right: Styles.globalMargins.small,
-  top: Styles.globalMargins.small,
-}
+const _styleClose = Styles.platformStyles({
+  isElectron: {
+    ...Styles.desktopStyles.clickable,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    top: Styles.globalMargins.small,
+  },
+})
 
 const _styleCloseThemed = {
   dark: {
@@ -123,7 +121,7 @@ const _titleStyle = {
   position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
   right: 0,
   top: 0,
-}
+} as const
 
 const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
@@ -161,10 +159,15 @@ export const HeaderLeftBlank = () => (
   <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
 
-export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
+export const HeaderLeftArrow = (hp: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+  badgeNumber?: number
+}) =>
   hp.canGoBack ? (
     <LeftAction
-      badgeNumber={0}
+      badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
       onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
       customIconColor={hp.tintColor}

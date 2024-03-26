@@ -31,7 +31,10 @@ type Dims = {
 
 const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => (
   <Kb.Portal hostName="popup-root">
-    <Kb.Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
+    <Kb.Box
+      pointerEvents="box-none"
+      style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, props.style])}
+    >
       {props.children}
     </Kb.Box>
   </Kb.Portal>
@@ -96,12 +99,12 @@ const WithTooltip = (props: Props) => {
   }
 
   if (!props.showOnPressMobile || props.disabled) {
-    return <View style={props.containerStyle as any}>{props.children}</View>
+    return <View style={Styles.castStyleNative(props.containerStyle)}>{props.children}</View>
   }
 
   return (
     <>
-      <View style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
+      <View style={Styles.castStyleNative(props.containerStyle)} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </View>
       <FloatingBox style={animatedStyle}>

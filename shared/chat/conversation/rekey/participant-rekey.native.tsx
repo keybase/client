@@ -15,7 +15,7 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
         <Kb.Text
           type="BodySmall"
           negative={true}
-          style={{color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17} as any}
+          style={{color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17}}
         >
           Can rekey this chat by opening the Keybase app.
         </Kb.Text>

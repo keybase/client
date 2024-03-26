@@ -55,10 +55,17 @@ export type RootParamList = RootParamListIncomingShare &
   Tabs
 
 export type RouteKeys = keyof RootParamList
+type AllOptional<T> = {
+  [K in keyof T]-?: undefined extends T[K] ? true : false
+}[keyof T] extends true
+  ? true
+  : false
 type Distribute<U> = U extends RouteKeys
   ? RootParamList[U] extends undefined
     ? U
-    : {selected: U; props: RootParamList[U]}
+    : AllOptional<RootParamList[U]> extends true
+      ? {selected: U; props: RootParamList[U]} | U
+      : {selected: U; props: RootParamList[U]}
   : never
 export type NavigateAppendType = Distribute<RouteKeys>
 
@@ -74,12 +81,8 @@ export type RouteProps2<RouteName extends keyof RootParamList> = {
   }
 }
 
-export function getRouteParams<T extends keyof RootParamList>(ownProps: any): RootParamList[T] {
-  return ownProps.route.params as RootParamList[T]
-}
-
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
-  route: any
+  route: unknown
 ): RootParamList[T] | undefined {
-  return route?.params
+  return (route as {params?: RootParamList[T]} | undefined)?.params
 }

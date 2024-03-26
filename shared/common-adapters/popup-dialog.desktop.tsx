@@ -11,7 +11,7 @@ const Kb = {
   Icon,
 }
 
-function stopBubbling(ev: any) {
+function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
   ev.stopPropagation()
 }
 

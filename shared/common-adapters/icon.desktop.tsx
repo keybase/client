@@ -192,10 +192,13 @@ function iconTypeToSrcSet(type: IconType) {
 }
 
 export function iconTypeToImgSet(imgMap: {[key: string]: IconType}, targetSize: number) {
-  const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
-  const sets = Object.keys(multsMap)
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
+  const sets = keys
     .map(mult => {
-      const img: string = imgMap[multsMap[mult]] as string
+      const m = multsMap[mult]
+      if (!m) return null
+      const img: string = imgMap[m] as string
       if (!img) return null
       const url = getAssetPath('images', 'icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
@@ -207,10 +210,13 @@ export function iconTypeToImgSet(imgMap: {[key: string]: IconType}, targetSize: 
 }
 
 export function urlsToImgSet(imgMap: {[key: number]: string}, targetSize: number) {
-  const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
-  const sets = Object.keys(multsMap)
+  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+  const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
+  const sets = keys
     .map(mult => {
-      const url = imgMap[multsMap[mult]]
+      const m = multsMap[mult]
+      if (!m) return null
+      const url = imgMap[m]
       if (!url) {
         return null
       }

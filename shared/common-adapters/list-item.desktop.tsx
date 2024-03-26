@@ -50,13 +50,14 @@ function actionStyle(extraMargin: boolean) {
   return extraMargin ? {marginRight: 32} : {marginRight: 16}
 }
 
-const bodyContainerStyle = (type: 'Large' | 'Small') => ({
-  flex: 2,
-  justifyContent: 'center',
-  marginBottom: type === 'Small' ? 4 : 8,
-  marginLeft: 8,
-  marginRight: 8,
-  marginTop: type === 'Small' ? 4 : 8,
-})
+const bodyContainerStyle = (type: 'Large' | 'Small') =>
+  ({
+    flex: 2,
+    justifyContent: 'center',
+    marginBottom: type === 'Small' ? 4 : 8,
+    marginLeft: 8,
+    marginRight: 8,
+    marginTop: type === 'Small' ? 4 : 8,
+  }) as const
 
 export default ListItem

@@ -100,7 +100,7 @@ const defaultStyle = {
   alignItems: 'center',
   height: Styles.globalMargins.medium,
   justifyContent: 'center',
-}
+} as const
 
 class SaveIndicator extends React.Component<Props, State> {
   private timeoutID?: ReturnType<typeof setInterval>
@@ -187,9 +187,7 @@ class SaveIndicator extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style] as any)}>
-        {this.getChildren()}
-      </Kb.Box>
+      <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style])}>{this.getChildren()}</Kb.Box>
     )
   }
 }

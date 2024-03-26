@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 
 const getOptions = {
   headerHideBorder: true,
@@ -10,9 +10,9 @@ const getOptions = {
 const Channel = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Channel>
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.Chat.ProviderScreen rp={p}>
     <Channel {...p.route.params} />
-  </React.Suspense>
+  </C.Chat.ProviderScreen>
 )
 
 const Page = {getOptions, getScreen: () => Screen}

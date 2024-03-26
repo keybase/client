@@ -71,16 +71,17 @@ const styleEntry = {
   paddingTop: Styles.globalMargins.tiny,
 }
 
-const styleIconContainer = (active: boolean) => ({
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'center',
-  borderRadius: (Styles.globalMargins.large + Styles.globalMargins.medium) / 2,
-  height: Styles.globalMargins.large + Styles.globalMargins.medium,
-  justifyContent: 'center',
-  ...(active ? {} : {backgroundColor: Styles.globalColors.greyLight}),
-  width: Styles.globalMargins.large + Styles.globalMargins.medium,
-})
+const styleIconContainer = (active: boolean) =>
+  ({
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderRadius: (Styles.globalMargins.large + Styles.globalMargins.medium) / 2,
+    height: Styles.globalMargins.large + Styles.globalMargins.medium,
+    justifyContent: 'center',
+    ...(active ? {} : {backgroundColor: Styles.globalColors.greyLight}),
+    width: Styles.globalMargins.large + Styles.globalMargins.medium,
+  }) as const
 
 const styleIcon = {
   height: Styles.globalMargins.large,
@@ -92,7 +93,7 @@ const styleInfoContainer = {
   flex: 1,
   justifyContent: 'center',
   marginLeft: Styles.globalMargins.small,
-}
+} as const
 
 const styleInfoTitle = {
   color: Styles.globalColors.blueDark,

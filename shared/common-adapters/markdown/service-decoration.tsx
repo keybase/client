@@ -114,13 +114,13 @@ const ServiceDecoration = (p: Props) => {
   let parsed: T.RPCChat.UITextDecoration
   try {
     const jsonString = uint8ArrayToString(base64ToUint8Array(json))
-    parsed = JSON.parse(jsonString)
+    parsed = JSON.parse(jsonString) as T.RPCChat.UITextDecoration
   } catch (e) {
     return null
   }
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
     let paymentID: T.Wallets.PaymentID | undefined
-    let error
+    let error: string | undefined
     if (
       parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.sent &&
       parsed.payment.result.sent

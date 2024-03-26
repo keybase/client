@@ -1,8 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text'
-
-type TextType = any
-// TODO: import { TextType } from '@/common-adapters/text';
+import type {TextType, StylesTextCrossPlatform} from '@/common-adapters/text'
 
 export type Props = {
   name: string

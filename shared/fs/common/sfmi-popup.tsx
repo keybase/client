@@ -29,7 +29,7 @@ const SFMIPopup = (props: Props) => {
         <Kb.Overlay style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
           <Kb.Box
             style={styles.container}
-            onClick={(e: any) => {
+            onClick={e => {
               e.stopPropagation()
             }}
           >

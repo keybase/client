@@ -14,8 +14,10 @@ const NewChannel = (props: Props) => {
       ({
         link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},
         paragraph: {
+          color: Kb.Styles.isMobile
+            ? Kb.Styles.globalColors.black_50
+            : Kb.Styles.globalColors.black_50OrWhite_40,
           fontSize: Kb.Styles.isMobile ? 15 : 13,
-          ...styles.text,
         },
       }) as const,
     []
@@ -25,11 +27,11 @@ const NewChannel = (props: Props) => {
     <UserNotice>
       <Kb.Markdown
         smallStandaloneEmoji={true}
-        styleOverride={descStyleOverride as any}
+        styleOverride={descStyleOverride}
         selectable={true}
         style={styles.text}
       >
-        {message.text}
+        {message.text.stringValue()}
       </Kb.Markdown>
       <Kb.Text
         onClick={onManageChannels}
@@ -42,15 +44,14 @@ const NewChannel = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  text: Kb.Styles.platformStyles({
-    isElectron: {
-      color: Kb.Styles.globalColors.black_50OrWhite_40,
-    },
-    isMobile: {
-      color: Kb.Styles.globalColors.black_50,
-    },
-  }),
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      text: Kb.Styles.platformStyles({
+        isElectron: {color: Kb.Styles.globalColors.black_50OrWhite_40},
+        isMobile: {color: Kb.Styles.globalColors.black_50},
+      }),
+    }) as const
+)
 
 export default NewChannel
