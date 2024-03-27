@@ -40,18 +40,6 @@ func assertHiddenMerkleErrorType(t *testing.T, err error, expType libkb.HiddenMe
 	require.Equal(t, err.(libkb.HiddenMerkleError).ErrorType(), expType)
 }
 
-func checkHiddenMerkleErrorType(t *testing.T, err error, expType libkb.HiddenMerkleErrorType) bool {
-	if err == nil {
-		t.Logf("nil err")
-		return false
-	}
-	if e, ok := err.(libkb.HiddenMerkleError); !ok || e.ErrorType() != expType {
-		t.Logf("err has the wrong type (opr the wrong HiddenMerkleErrorType): %+v (expected %v)", err, expType)
-		return false
-	}
-	return true
-}
-
 func loadTeamAndCheckCommittedAndUncommittedSeqnos(t *testing.T, tc *libkb.TestContext, teamID keybase1.TeamID, uncommittedSeqno keybase1.Seqno) bool {
 	_, teamHiddenChain, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
