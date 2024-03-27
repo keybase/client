@@ -148,10 +148,10 @@ const AnimatedExpand = (() => {
     return React.memo(function AnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
-      const topStyle: any = useAnimatedStyle(() => ({
+      const topStyle = useAnimatedStyle(() => ({
         transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}],
       }))
-      const bottomStyle: any = useAnimatedStyle(() => ({
+      const bottomStyle = useAnimatedStyle(() => ({
         transform: [
           {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
           {scaleX: -0.6},
