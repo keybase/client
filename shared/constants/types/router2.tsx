@@ -4,7 +4,7 @@ import type {NavigationContainerRef, NavigationState} from '@react-navigation/co
 type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 export type GetOptionsParams = {
-  navigation: NavigationContainerRef<KBRootParamList>
+  navigation: NavigationContainerRef<KBRootParamList> & {pop: () => void}
   route: Route
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'

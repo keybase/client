@@ -44,7 +44,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
         getComponent={val.getScreen}
         options={({route, navigation}) => {
           const no = getOptions(val)
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
+          const opt = typeof no === 'function' ? no({navigation, route} as any) : no
           return {
             ...opt,
             ...(isModal ? {animationEnabled: true} : {}),

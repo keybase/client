@@ -38,7 +38,7 @@ type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 const makeOptions = (val: RouteDef) => {
   return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
     const no = getOptions(val)
-    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
     return {...opt}
   }
 }
