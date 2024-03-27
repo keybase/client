@@ -3,7 +3,4 @@ swipeable2 slow
 mem leak
 
 types:
-useAnimatedStyle
-suggestionsList
 navigation
-icon ref

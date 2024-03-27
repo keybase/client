@@ -278,7 +278,7 @@ const useInitialStateChangeAfterLinking = (
   }, [onStateChange])
 
   // When we do a quick user switch let's go back to the last tab we were on
-  const lastLoggedInTab = React.useRef<string | undefined>(undefined)
+  const lastLoggedInTab = React.useRef<Tabs.Tab | undefined>(undefined)
   const lastLoggedIn = Container.usePrevious(loggedIn)
   if (!loggedIn && lastLoggedIn) {
     lastLoggedInTab.current = Constants.getTab()
