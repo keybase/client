@@ -38,20 +38,22 @@ if (isMobile && !skipAnimations) {
   if (isMobile) {
     console.log('\n\n\nDEBUG: mock ReAnimated enabled')
   }
-  Animated = {View: ({children}: {children: unknown}) => children} as any as typeof Animated
-  createAnimatedComponent = (f: any) => f
-  useSharedValue = (a: any, _oneWayReadsOnly?: boolean) => ({
-    addListener: () => {},
-    modify: () => {},
-    removeListener: () => {},
-    value: a,
-  })
-  withRepeat = (a: any) => a
-  useAnimatedStyle = (f: () => Object): any => f()
-  withTiming = (a: any) => a
-  withDelay = (a: any) => a
+  Animated = {View: ({children}: {children: unknown}) => children} as unknown as typeof Animated
+  createAnimatedComponent = ((f: unknown) => f) as typeof createAnimatedComponent
+  useSharedValue = function <Value>(a: Value, _oneWayReadsOnly?: boolean) {
+    return {
+      addListener: () => {},
+      modify: () => {},
+      removeListener: () => {},
+      value: a,
+    }
+  } as typeof useSharedValue
+  withRepeat = ((a: unknown) => a) as typeof withRepeat
+  useAnimatedStyle = ((f: () => Object): unknown => f()) as typeof useAnimatedStyle
+  withTiming = ((a: unknown) => a) as typeof withTiming
+  withDelay = ((a: unknown) => a) as typeof withDelay
   useAnimatedScrollHandler = () => () => {}
-  interpolate = (a: any) => a
+  interpolate = ((a: unknown) => a) as typeof interpolate
   useReducedMotion = () => false
 
   enum _Extrapolation {
@@ -60,7 +62,7 @@ if (isMobile && !skipAnimations) {
     EXTEND = 'extend',
   }
   Extrapolation = _Extrapolation as unknown as typeof Extrapolation
-  withSpring = (a: any) => a
+  withSpring = ((a: unknown) => a) as typeof withSpring
   if (!isDebuggingInChrome) {
     console.log('DEBUG: Mock ReAnimated enabled, yet not in chrome. Some animations will be missing')
   }

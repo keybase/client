@@ -1435,8 +1435,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (!wasChat && !isChat) {
           return
         }
-        const pParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = p?.params
-        const nParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = n?.params
+        const pParams = p?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+        const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
         const wasID = pParams?.conversationIDKey
         const isID = nParams?.conversationIDKey
 
@@ -1482,8 +1482,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const maybeChatTabSelected = () => {
         if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
           const n = Router2.getVisibleScreen(next)
-          const nParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = n?.params
-          const isID: string | undefined = nParams?.conversationIDKey
+          const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+          const isID = nParams?.conversationIDKey
           isID && C.getConvoState(isID).dispatch.tabSelected()
         }
       }

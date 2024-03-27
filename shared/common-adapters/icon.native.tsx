@@ -5,6 +5,7 @@ import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
 import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
+import type {MeasureRef} from './measure-ref'
 
 type TextProps = {
   children: React.ReactNode
@@ -109,8 +110,9 @@ const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
 })
 Image.displayName = 'IconImage'
 
+// This ref isn't correct but i'm not sure what would break if its changed now, TODO
 const Icon = React.memo<Props>(
-  React.forwardRef<any, Props>((p: Props, ref: any) => {
+  React.forwardRef<MeasureRef, Props>((p, ref) => {
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
@@ -138,7 +140,7 @@ const Icon = React.memo<Props>(
           style={hasContainer ? null : p.style}
           color={color}
           type={p.type}
-          ref={wrap ? undefined : ref}
+          ref={wrap ? undefined : (ref as any)}
           fontSize={p.fontSize}
           sizeType={sizeType}
           onClick={p.onClick}
@@ -152,14 +154,16 @@ const Icon = React.memo<Props>(
       if (typeof source !== 'number') {
         source = undefined
       }
-      icon = <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : ref} />
+      icon = (
+        <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : (ref as any)} />
+      )
     }
 
     return wrap ? (
       <TouchableOpacity
         onPress={p.onClick || undefined}
         activeOpacity={0.8}
-        ref={ref}
+        ref={ref as any}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}

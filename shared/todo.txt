@@ -11,9 +11,3 @@ run electron hash update
 Some short term todos:
 swipeable2 slow
 mem leak
-
-types:
-useAnimatedStyle
-suggestionsList
-navigation
-icon ref
