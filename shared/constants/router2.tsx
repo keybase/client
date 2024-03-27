@@ -16,7 +16,7 @@ import logger from '@/logger'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
-type Route = NavigationState['routes'][0]
+export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
 export type Navigator = NavigationContainerRef<KBRootParamList>

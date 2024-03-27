@@ -6,6 +6,7 @@ import {useBottom} from './bottom'
 import {OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 import isEqual from 'lodash/isEqual'
 
@@ -43,16 +44,13 @@ const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     return decoratedText ? decoratedText.stringValue() : text.stringValue()
   })
 
-  const styleOverride = React.useMemo(
-    () => (Kb.Styles.isMobile ? ({paragraph: style} as any) : undefined),
-    [style]
-  )
+  const styleOverride = React.useMemo(() => (Kb.Styles.isMobile ? {paragraph: style} : undefined), [style])
 
   return (
     <Kb.Markdown
       messageType="text"
       style={style}
-      styleOverride={styleOverride}
+      styleOverride={styleOverride as StyleOverride}
       allowFontScaling={true}
       context={String(ordinal)}
     >
