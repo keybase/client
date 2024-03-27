@@ -8,7 +8,7 @@ import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 
-const getTeamTakenMessage = (status: number): string => {
+const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
     case T.RPCGen.StatusCode.scteambadnamereserveddb:
       return Kb.Styles.isMobile
@@ -38,7 +38,9 @@ const NewTeamInfo = () => {
   )
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<number>(0)
+  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<T.RPCGen.StatusCode>(
+    T.RPCGen.StatusCode.scok
+  )
   const [teamNameTaken, setTeamNameTaken] = React.useState(false)
 
   // TODO this should check subteams too (ideally in go)

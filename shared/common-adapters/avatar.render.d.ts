@@ -24,7 +24,7 @@ export type Props = {
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean
   style?: StylesCrossPlatform
-  url: any
+  url: string | null
 }
 
 declare const Avatar: (p: Props) => React.ReactNode

@@ -162,7 +162,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
     if (C.isMobile) {
-      navigateAppend({props: {}, selected: C.Settings.settingsGitTab})
+      navigateAppend(C.Settings.settingsGitTab)
     } else {
       switchTab(C.Tabs.gitTab)
     }

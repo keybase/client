@@ -10,7 +10,6 @@ import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from '../root'
 import Rows from '../rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
-import {memoize} from '@/util/memoize'
 
 type OwnProps = {index: number}
 
@@ -21,13 +20,11 @@ const getDestinationParentPath = (dp: T.FS.DestinationPicker, ownProps: OwnProps
     ? T.FS.getPathParent(dp.source.path)
     : T.FS.stringToPath('/keybase'))
 
-const canWrite = memoize(
-  (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-    T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
-    Constants.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
-)
+const canWrite = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
+  T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
+  Constants.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
 
-const canCopy = memoize((dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
+const canCopy = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
   if (!canWrite(dp, pathItems, ownProps)) {
     return false
   }
@@ -39,20 +36,16 @@ const canCopy = memoize((dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, 
     return getDestinationParentPath(dp, ownProps) !== T.FS.getPathParent(source.path)
   }
   return undefined
-})
+}
 
-const canMove = memoize(
-  (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-    canCopy(dp, pathItems, ownProps) &&
-    dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-    Constants.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
-)
+const canMove = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
+  canCopy(dp, pathItems, ownProps) &&
+  dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
+  Constants.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
 
 const canBackUp = C.isMobile
-  ? memoize(
-      (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
-        T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
-    )
+  ? (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
+      T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {

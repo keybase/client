@@ -190,6 +190,6 @@ async function main() {
 
 main()
   .then(() => {})
-  .catch(e => {
+  .catch((e: unknown) => {
     console.error('Error generating', e)
   })

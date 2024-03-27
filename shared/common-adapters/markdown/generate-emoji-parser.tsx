@@ -1,5 +1,4 @@
-import fs from 'fs'
-import {promises as fsp} from 'fs'
+import {default as fs, promises as fsp} from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource-apple'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -149,6 +148,6 @@ export const commonTlds = ${JSON.stringify(commonTlds)}
 
 buildEmojiFile()
   .then(() => {})
-  .catch(e => {
+  .catch((e: unknown) => {
     throw e
   })

@@ -71,12 +71,14 @@ class Invites extends React.Component<Props, State> {
           </Kb.Banner>
         )}
         <Kb.Box
-          style={{
-            ...Kb.Styles.globalStyles.flexBoxColumn,
-            flex: 1,
-            overflow: 'auto',
-            padding: Kb.Styles.globalMargins.medium,
-          }}
+          style={Kb.Styles.platformStyles({
+            isElectron: {
+              ...Kb.Styles.globalStyles.flexBoxColumn,
+              flex: 1,
+              overflow: 'auto',
+              padding: Kb.Styles.globalMargins.medium,
+            },
+          })}
         >
           <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
             <Kb.LabeledInput
@@ -210,7 +212,9 @@ function AcceptedInviteItem(p: {invite: AcceptedInvite; onClick: () => void}) {
   const {invite, onClick} = p
   return (
     <Kb.Box
-      style={{...styles.inviteItem, ...Kb.Styles.desktopStyles.clickable, flexShrink: 0}}
+      style={Kb.Styles.platformStyles({
+        isElectron: {...styles.inviteItem, ...Kb.Styles.desktopStyles.clickable, flexShrink: 0},
+      })}
       onClick={onClick}
     >
       <Kb.Avatar username={invite.username} size={32} />

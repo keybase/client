@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import {memoize} from '@/util/memoize'
 import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
@@ -15,24 +14,25 @@ type Props = {
   teamName: string
 }
 
-const getChannels = memoize(
-  (channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>, searchText: string) => {
-    const matcher = makeInsertMatcher(searchText)
-    const regex = new RegExp(searchText, 'i')
-    return [...channelMetas.values()]
-      .filter(({channelname, description}) => {
-        if (!searchText) {
-          return true // no search text means show all
-        }
-        return (
-          // match channel name for search as subsequence (like the identity modal)
-          // match channel desc by strict substring (less noise in results)
-          channelname.search(matcher) !== -1 || description.search(regex) !== -1
-        )
-      })
-      .sort((a, b) => a.channelname.localeCompare(b.channelname))
-  }
-)
+const getChannels = (
+  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  searchText: string
+) => {
+  const matcher = makeInsertMatcher(searchText)
+  const regex = new RegExp(searchText, 'i')
+  return [...channelMetas.values()]
+    .filter(({channelname, description}) => {
+      if (!searchText) {
+        return true // no search text means show all
+      }
+      return (
+        // match channel name for search as subsequence (like the identity modal)
+        // match channel desc by strict substring (less noise in results)
+        channelname.search(matcher) !== -1 || description.search(regex) !== -1
+      )
+    })
+    .sort((a, b) => a.channelname.localeCompare(b.channelname))
+}
 
 const toggleChannel = (convID: string, installInConvs: ReadonlyArray<string>) => {
   if (installInConvs.includes(convID)) {
@@ -99,7 +99,11 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const rows = getChannels(props.channelMetas, searchText).map(meta => (
+  const channels = React.useMemo(
+    () => getChannels(props.channelMetas, searchText),
+    [props.channelMetas, searchText]
+  )
+  const rows = channels.map(meta => (
     <Row
       disabled={allSelected}
       key={meta.conversationIDKey}

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Box from '@/common-adapters/box'
-import {Keyboard, StyleSheet} from 'react-native'
+import * as Styles from '@/styles'
+import {Keyboard} from 'react-native'
 import {Portal} from '../portal.native'
 import type {Props} from '.'
 
@@ -21,7 +22,10 @@ const FloatingBox = (p: Props) => {
 
   return (
     <Kb.Portal hostName="popup-root">
-      <Kb.Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, containerStyle]}>
+      <Kb.Box
+        pointerEvents="box-none"
+        style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, containerStyle])}
+      >
         {children}
       </Kb.Box>
     </Kb.Portal>

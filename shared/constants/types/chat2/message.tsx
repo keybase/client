@@ -65,50 +65,56 @@ export type PathAndOutboxID = {
 
 // optional props here may never get set depending on the type
 type _MessageCommon = T.Immutable<{
-  inlineVideoPlayable?: boolean
-  title?: string
-  isCollapsed?: boolean
-  previewURL?: string
-  fileURL?: string
-  previewHeight?: number
-  previewWidth?: number
+  adder?: string
   attachmentType?: AttachmentType
-  fileName?: string
-  transferErrMsg?: string
-  transferState?: MessageAttachmentTransferState
-  fileType?: string // MIME type,
-  unfurls?: UnfurlMap
-  downloadPath?: string // string if downloaded,
+  audioAmps?: ReadonlyArray<number>
+  audioDuration?: number
   author: string
   bodySummary: HiddenString
+  decoratedText?: HiddenString
+  text?: HiddenString
   botUsername?: string
   cardType?: RPCChatTypes.JourneycardType
-  newChannelname?: string
-  invitee?: string
-  adder?: string
-  prover?: string
-  joiners?: ReadonlyArray<string>
-  leavers?: ReadonlyArray<string>
-  explodingUnreadable?: boolean
   conversationIDKey: Common.ConversationIDKey
-  deviceRevokedAt?: number
   deviceName?: string
+  deviceRevokedAt?: number
   deviceType?: DeviceType
+  downloadPath?: string // string if downloaded,
   errorReason?: string
   errorTyp?: number
   exploded?: boolean
+  explodedBy?: string // only if 'explode now' happened,
   exploding?: boolean
   explodingTime?: number
-  explodedBy?: string // only if 'explode now' happened,
+  explodingUnreadable?: boolean
+  fileName?: string
+  fileType?: string // MIME type,
+  fileURL?: string
   hasBeenEdited?: boolean
   id: MessageID
+  inlineVideoPlayable?: boolean
+  invitee?: string
+  isCollapsed?: boolean
   isDeleteable?: boolean
   isEditable?: boolean
+  joiners?: ReadonlyArray<string>
+  leavers?: ReadonlyArray<string>
+  mentionsAt?: MentionsAt
+  mentionsChannel?: MentionsChannel
+  newChannelname?: string
   ordinal: Ordinal
   outboxID?: OutboxID
+  previewHeight?: number
+  previewURL?: string
+  previewWidth?: number
+  prover?: string
   reactions?: Reactions
   submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   timestamp: number
+  title?: string
+  transferErrMsg?: string
+  transferState?: MessageAttachmentTransferState
+  unfurls?: UnfurlMap
 }>
 
 type _MessageWithDeviceInfo = T.Immutable<{
@@ -385,7 +391,7 @@ export type MessageSystemChangeAvatar = T.Immutable<{
   _MessageWithReactions
 
 export type MessageSystemNewChannel = T.Immutable<{
-  text: string
+  text: HiddenString
   type: 'systemNewChannel'
 }> &
   _MessageCommon &

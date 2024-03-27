@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
+import type * as Styles from '@/styles'
 import type {PlainInput} from '@/common-adapters'
 
 export type Props = {
@@ -16,7 +17,7 @@ export type Props = {
   showReplyPreview: boolean
   showTypingStatus: boolean
   suggestBotCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
-  suggestionOverlayStyle: unknown
+  suggestionOverlayStyle: Styles.StylesCrossPlatform
 }
 
 declare const PlatformInput: (p: Props) => React.ReactNode

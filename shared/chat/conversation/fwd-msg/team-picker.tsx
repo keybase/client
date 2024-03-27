@@ -66,6 +66,11 @@ const TeamPicker = (props: Props) => {
         }
         break
       default:
+        // heics
+        if (C.Chat.isImageViewable(message)) {
+          const src = message.fileURL || message.previewURL
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
+        }
     }
   }
 

@@ -77,7 +77,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
 
   private mounted = false
-  private inputRef: React.RefObject<any> = React.createRef()
+  private inputRef: React.RefObject<PlainInput> = React.createRef()
   private onBlur = () => {
     this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
@@ -103,7 +103,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   private clear = () => {
     this.update('')
   }
-  private cancel = (e?: any) => {
+  private cancel = (e?: React.BaseSyntheticEvent) => {
     this.blur()
     this.props.onCancel ? this.props.onCancel() : this.clear()
     e?.stopPropagation()

@@ -72,7 +72,7 @@ export const Title = () => {
   const styleOverride = React.useMemo(
     () =>
       Kb.Styles.isMobile
-        ? ({paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}} as any)
+        ? {paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}}
         : undefined,
     []
   )
@@ -102,7 +102,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   return (
     <Kb.Icon
       hint="Collapse"
-      style={isWhite ? styles.collapseLabelWhite : (styles.collapseLabel as any)}
+      style={isWhite ? (styles.collapseLabelWhite as any) : (styles.collapseLabel as any) /* TODO FIX */}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
     />

@@ -18,6 +18,6 @@ const ProgressIndicator = (p: Props) => {
 const style = {
   alignItems: 'center',
   justifyContent: 'center',
-}
+} as const
 
 export default ProgressIndicator

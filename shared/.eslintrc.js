@@ -93,7 +93,9 @@ module.exports = {
     '@typescript-eslint/no-throw-literal': 'off',
     '@typescript-eslint/no-type-alias': 'off',
     '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
-    '@typescript-eslint/no-unnecessary-condition': isFixMode ? 'off' : 'error',
+    '@typescript-eslint/no-unnecessary-condition': isFixMode
+      ? 'off'
+      : ['error', {allowConstantLoopConditions: true}],
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
@@ -174,8 +176,9 @@ module.exports = {
     'max-statements': 'off',
     'multiline-comment-style': 'off',
     'new-cap': 'off',
-    'no-await-in-loop': 'warn',
+    'no-await-in-loop': 'off',
     'no-console': 'off',
+    'no-constant-condition': ['warn', {checkLoops: false}],
     'no-continue': 'off',
     'no-duplicate-imports': 'off',
     'no-else-return': 'off',

@@ -6,16 +6,6 @@ declare module 'react-native/Libraries/Image/AssetRegistry' {
   type PackagerAsset = {[key: string]: unknown}
 }
 
-declare module '@react-spring/rafz' {
-  type frameLoop = any
-  var raf: {
-    now: any
-    batchedUpdates: any
-  }
-  type Timeout = any
-  type Rafz = any
-}
-
 declare module 'qrcode-generator' {
   const gen: (
     n: number,
@@ -50,11 +40,11 @@ declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
 
 declare module 'react-is' {
   import * as React from 'react'
-  export function isValidElementType(value: any): value is React.ElementType
+  export function isValidElementType(value: unknown): value is React.ElementType
 }
 
 declare module 'fs-extra' {
-  import type {StatSyncFn, copyFileSync} from 'fs'
+  import type {StatSyncFn} from 'fs'
   export const copy: (src: string, dst: string) => Promise<void>
   export const copySync: (src: string, dst: string, options?: {dereference?: boolean}) => void
   export const removeSync: (src: string) => void

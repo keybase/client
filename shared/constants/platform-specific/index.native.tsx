@@ -6,7 +6,7 @@ import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as Tabs from '../tabs'
-import NetInfo from '@react-native-community/netinfo'
+import * as NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '@/util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '@/logger'
@@ -492,7 +492,9 @@ export const initPlatformListener = () => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
+      C.useConfigState
+        .getState()
+        .dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
     }
     C.ignorePromise(f())
   })
@@ -554,7 +556,7 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
+    C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {
@@ -590,7 +592,7 @@ export const initPlatformListener = () => {
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
           if (level >= T.RPCGen.LogLevel.error) {
-            NotifyPopup(text.data, {})
+            NotifyPopup(text.data)
           }
           break
         }

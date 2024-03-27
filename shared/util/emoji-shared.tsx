@@ -8,7 +8,7 @@ export type EmojiData = {
   short_name: string
   short_names: Array<string>
   sort_order?: number
-  skin_variations?: {[K in T.Chat.EmojiSkinTone]: {unified?: string}}
+  skin_variations?: {[K in T.Chat.EmojiSkinTone]?: {unified?: string}}
   teamname?: string
   unified: string
   userEmojiRenderStock?: string
@@ -17,7 +17,10 @@ export type EmojiData = {
   sheet_y: number
 }
 export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
-export const emojiNameMap = Object.values(emojidata).reduce((res: {[K in string]: EmojiData}, emoji: any) => {
-  res[emoji.short_name] = emoji
-  return res
-}, {})
+export const emojiNameMap = Object.values(emojidata).reduce(
+  (res: {[K in string]: EmojiData}, emoji: EmojiData) => {
+    res[emoji.short_name] = emoji
+    return res
+  },
+  {}
+)

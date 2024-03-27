@@ -24,7 +24,7 @@ export type Props = {
 // you're changing one remember to change the other.
 
 export const TeamBotRow = (props: Props) => {
-  let descriptionLabel
+  let descriptionLabel: React.ReactNode = null
   const popupAnchor = React.useRef<Kb.MeasureRef>(null)
   const [showMenu, setShowMenu] = React.useState(false)
 

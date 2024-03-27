@@ -17,7 +17,6 @@ export function infoPanelWidth() {
   }
 }
 
-const emptyMap = new Map()
 const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
 export const useTeamHumans = (teamID: T.Teams.TeamID) => {
@@ -27,13 +26,13 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
     setLastTID(teamID)
     getMembers(teamID)
   }
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID)) || emptyMap
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const bots = React.useMemo(() => {
     const ret = new Set<string>()
-    teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))
+    teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))
     return ret
   }, [teamMembers])
-  const teamHumanCount = teamMembers.size - bots.size
+  const teamHumanCount = (teamMembers?.size ?? 0) - bots.size
   return {bots, teamHumanCount}
 }
 

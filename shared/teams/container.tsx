@@ -14,7 +14,7 @@ const useHeaderActions = () => {
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
+    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
   }
 }
 

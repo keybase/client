@@ -96,8 +96,8 @@ export function isEOFError(error: RPCError | Error) {
   return (
     isRPCError(error) &&
     error.code &&
-    error.code === transportErrors['EOF'] &&
-    error.message === transportErrors.msg[error.code]
+    (error.code as number) === transportErrors['EOF'] &&
+    error.message === transportErrors.msg[transportErrors['EOF']]
   )
 }
 

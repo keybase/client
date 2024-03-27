@@ -88,8 +88,8 @@ class OutgoingRequest extends Request {
 
   send() {
     this.updateWaiting(true)
-    this._invoke(this.method, [this.param], (err, data) => {
-      this._sendCallback(err, data)
+    this._invoke(this.method, [this.param], (err: unknown, data: unknown) => {
+      this._sendCallback(err as RPCError | undefined, data)
     })
   }
 

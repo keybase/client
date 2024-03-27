@@ -1,6 +1,6 @@
 declare function NotifyPopup(
   title: string,
-  opts?: any,
+  opts?: {body?: string; sound?: boolean},
   rateLimitSeconds?: number,
   rateLimitKey?: string,
   onClick?: () => void,

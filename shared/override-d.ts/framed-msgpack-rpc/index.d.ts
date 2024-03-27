@@ -27,7 +27,7 @@ declare module 'framed-msgpack-rpc' {
   }
 
   export const pack: {
-    set_opt: (k: string, v: any) => void
+    set_opt: (k: string, v: unknown) => void
   }
 
   export const dispatch: {
@@ -38,10 +38,12 @@ declare module 'framed-msgpack-rpc' {
   export type ErrorType = {code: number; desc: string}
   export type PayloadType = {
     method: string
-    param: Array<Object>
+    param: Array<{sessionID?: number}>
     response?: {
+      cancelled: boolean
+      seqid: number
       error?: (e: ErrorType) => void
-      result?: (r: unknown) => void
+      result?: (r?: unknown) => void
     }
   }
   export type incomingRPCCallbackType = (payload: PayloadType) => void
@@ -64,7 +66,7 @@ declare module 'framed-msgpack-rpc' {
       )
       send(u: unknown): boolean
       invoke(i: InvokeArgs, cb: (err: ErrorType, data: {}) => void): void
-      packetize_data(d: any): void
+      packetize_data(d: unknown): void
       needsConnect: boolean
       connect(b: (err?: unknown) => void): void
       _connect_critical_section(cb: unknown): void

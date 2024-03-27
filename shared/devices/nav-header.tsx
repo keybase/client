@@ -18,7 +18,7 @@ export const HeaderTitle = () => {
 
 export const HeaderRightActions = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onAdd = React.useCallback(() => navigateAppend({props: {}, selected: 'deviceAdd'}), [navigateAppend])
+  const onAdd = React.useCallback(() => navigateAppend('deviceAdd'), [navigateAppend])
   return (
     <Kb.Button
       small={true}

@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
 import {registerDebugClear} from '@/util/debug'
 
-export const chatDebugEnabled = true as boolean
+export const chatDebugEnabled = false as boolean
 
 if (chatDebugEnabled) {
   debugWarning('Debug chat enabled!')

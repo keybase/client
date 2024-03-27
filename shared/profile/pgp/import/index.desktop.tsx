@@ -48,4 +48,4 @@ const styleTerminal = {
   marginRight: -Kb.Styles.globalMargins.medium,
   padding: Kb.Styles.globalMargins.medium,
   textAlign: 'left',
-}
+} as const

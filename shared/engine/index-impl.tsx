@@ -9,9 +9,10 @@ import type {SessionID, SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
-import {resetClient, createClient, rpcLog, type CreateClientType} from './index.platform'
+import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
+import type {_useState as UseStateType} from '@/constants/engine'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -67,12 +68,13 @@ class Engine {
     this._onConnectedCB = onConnected
     // the node engine doesn't do this and we don't want to pull in any reqs
     if (allowIncomingCalls) {
-      this._engineConstantsIncomingCall =
-        require('@/constants/engine')._useState.getState().dispatch.onEngineIncoming
+      this._engineConstantsIncomingCall = (
+        require('@/constants/engine') as {_useState: typeof UseStateType}
+      )._useState.getState().dispatch.onEngineIncoming
     }
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
-      payload => this._rpcIncoming(payload as any),
+      payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
@@ -147,11 +149,7 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {
-    method: MethodKey
-    param: Array<{sessionID?: number}>
-    response?: {cancelled: boolean; seqid: number; result?: () => void}
-  }) {
+  _rpcIncoming(payload: PayloadType) {
     const {method, param: incomingParam, response} = payload
     const param = incomingParam.length ? incomingParam[0] || {} : {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}

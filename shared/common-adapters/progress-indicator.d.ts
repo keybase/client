@@ -1,7 +1,8 @@
 import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 export type Props = {
-  style?: any
+  style?: Styles.StylesCrossPlatform
   white?: boolean
   type?: 'Small' | 'Large' | 'Huge' // Huge is desktop-only
 }

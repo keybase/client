@@ -18,12 +18,9 @@ const useData = () => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
-      navigateAppend({
-        props: {},
-        selected: C.Settings.settingsFeedbackTab,
-      })
+      navigateAppend(C.Settings.settingsFeedbackTab)
     } else {
-      navigateAppend({props: {}, selected: 'feedback'})
+      navigateAppend('feedback')
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)

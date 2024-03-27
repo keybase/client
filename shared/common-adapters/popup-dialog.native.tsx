@@ -24,7 +24,7 @@ const coverStyle = {
   paddingLeft: Styles.globalMargins.large,
   paddingRight: Styles.globalMargins.large,
   paddingTop: Styles.globalMargins.small,
-}
+} as const
 
 const containerStyle = {
   ...Styles.globalStyles.flexBoxColumn,
@@ -32,6 +32,6 @@ const containerStyle = {
   borderRadius: 4,
   flexGrow: 1,
   position: 'relative',
-}
+} as const
 
 export default PopupDialog

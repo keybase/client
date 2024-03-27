@@ -17,7 +17,7 @@ export type Props<Item> = {
   onEndReached?: () => void
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement
   onEndReachedThreshold?: number // mobile only
-  onScroll?: (e: any) => void // mobile only
+  onScroll?: (e: unknown) => void // mobile only
   reAnimated?: boolean // mobile only, make list animated
 }
 

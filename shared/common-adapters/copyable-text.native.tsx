@@ -55,7 +55,7 @@ const styleBase = {
   minHeight: Styles.globalMargins.medium + Styles.globalMargins.tiny + 2 * Styles.globalMargins.small + 24,
   padding: 10,
   position: 'relative',
-}
+} as const
 
 const styleText = {
   ...Styles.globalStyles.fontTerminal,
@@ -69,7 +69,7 @@ const styleCopyToastContainer = {
   left: 0,
   position: 'absolute',
   right: 0,
-}
+} as const
 
 const styleCopyToast = {
   ...Styles.globalStyles.flexBoxRow,
@@ -79,7 +79,7 @@ const styleCopyToast = {
   height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
-}
+} as const
 
 const styleCopyToastText = {
   color: Styles.globalColors.white,

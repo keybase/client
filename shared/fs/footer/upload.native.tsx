@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '@/common-adapters/native-wrappers.native'
 
-const lightPatternImage = require('../../images/upload-pattern-80.png')
-const darkPatternImage = require('../../images/dark-upload-pattern-80.png')
+const lightPatternImage = require('../../images/upload-pattern-80.png') as number
+const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
 
 type UploadState = {
   backgroundTop: NativeAnimated.AnimatedValue
@@ -141,8 +141,8 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
                 {files
                   ? `Encrypting and uploading ${files} files...`
                   : totalSyncingBytes
-                  ? 'Encrypting and uploading...'
-                  : 'Done!'}
+                    ? 'Encrypting and uploading...'
+                    : 'Done!'}
               </Kb.Text>
               {!!timeLeft.length && (
                 <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>

@@ -90,7 +90,11 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   }
 }
 
-const Unreachable = (props: any) => (
+const Unreachable = (props: {
+  serviceIcon: T.Tracker.SiteIconSet
+  serviceSuffix: string
+  username: string
+}) => (
   <Kb.Box2
     direction="horizontal"
     gap="xtiny"

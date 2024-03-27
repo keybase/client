@@ -6,7 +6,7 @@ export type Reserve = {
 }
 
 export type AccountID = string
-export const noAccountID = 'NOACCOUNTID' as const
+export const noAccountID = 'NOACCOUNTID'
 export type PaymentID = StellarRPCTypes.PaymentID
 export const noPaymentID: PaymentID = 'NOPAYMENTID'
 

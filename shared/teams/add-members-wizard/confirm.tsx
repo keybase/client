@@ -209,7 +209,7 @@ const AddMoreMembers = () => {
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
       const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
       const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
-      const onAddEmail = () => nav.safeNavigateAppend({props: {}, selected: 'teamAddToTeamEmail'})
+      const onAddEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}

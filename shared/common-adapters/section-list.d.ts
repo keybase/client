@@ -10,7 +10,7 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   separators: {
     highlight: () => void
     unhighlight: () => void
-    updateProps: (select: 'leading' | 'trailing', newProps: any) => void
+    updateProps: (select: 'leading' | 'trailing', newProps: unknown) => void
   }
 }) => React.ReactElement | null // ;React.ReactNode
 
@@ -86,7 +86,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * depend on anything outside of the `data` prop, stick it here and treat it
    * immutably.
    */
-  extraData?: any
+  extraData?: unknown
 
   //////////////////////////////////////////////////////////////////////
   // Desktop-only props.

@@ -10,18 +10,19 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 const RestrictedItem = '---RESTRICTED---'
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
-  const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
+  const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
+  const [conversationIDKey, setConversationIDKey] = React.useState(cleanInConvIDKey)
   const generalConvID = C.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
   const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
-    if (!conversationIDKey && teamID) {
+    if (!cleanInConvIDKey && teamID) {
       if (!generalConvID) {
         findGeneralConvIDFromTeamID(teamID)
       } else {
         setConversationIDKey(generalConvID)
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
+  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
   return conversationIDKey
 }
 
@@ -36,9 +37,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const inConvIDKey = props.conversationIDKey
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  if (!inConvIDKey) return null
+  if (!conversationIDKey) return null
   return (
-    <C.ChatProvider id={inConvIDKey}>
+    <C.ChatProvider id={conversationIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
     </C.ChatProvider>
   )
@@ -138,7 +139,7 @@ const InstallBotPopup = (props: Props) => {
     })
   }
   const onFeedback = () => {
-    navigateAppend({props: {}, selected: 'feedback'})
+    navigateAppend('feedback')
   }
 
   const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
