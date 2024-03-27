@@ -13,19 +13,17 @@ import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type {NavigateAppendType, RouteKeys} from '@/router-v2/route-params'
+import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 // still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
-export type Navigator = NavigationContainerRef<any>
+export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
-export const navigationRef_: ReturnType<typeof createNavigationContainerRef> & {
-  navigate: (s: string) => void
-} = createNavigationContainerRef()
+export const navigationRef_ = createNavigationContainerRef<KBRootParamList>()
 
 registerDebugClear(() => {
   navigationRef_.current = null
