@@ -218,7 +218,9 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
     setDragOver(false)
   }
   const pick = () => {
-    C.ignorePromise(pickEmojisPromise().then(addFiles))
+    pickEmojisPromise()
+      .then(addFiles)
+      .catch(() => {})
   }
   return {dragOver, onDragLeave, onDragOver, onDrop, pick}
 }
