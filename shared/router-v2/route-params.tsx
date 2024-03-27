@@ -52,7 +52,7 @@ export type RootParamList = RootParamListIncomingShare &
   RootParamListDevices &
   RootParamListSettings &
   RootParamListGit &
-  Tabs
+  Tabs & {loggedIn: undefined}
 
 export type RouteKeys = keyof RootParamList
 type AllOptional<T> = {

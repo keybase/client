@@ -1070,7 +1070,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
         if (!C.isMobile) {
           const vs = C.Router2.getVisibleScreen()
-          const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = vs?.params
+          const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
           if (params?.conversationIDKey === get().id) {
             // select a convo
             const next = C.useChatState.getState().inboxLayout?.smallTeams?.[0]?.convID
@@ -1767,7 +1767,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-        const confirmRouteName = 'chatPaymentsConfirm'
         try {
           await T.RPCChat.localPostTextNonblockRpcListener({
             customResponseIncomingCallMap: {
@@ -1780,11 +1779,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-                const visibleScreen = C.Router2.getVisibleScreen()
-                if (visibleScreen && visibleScreen.name === confirmRouteName) {
-                  C.useRouterState.getState().dispatch.clearModals()
-                  return
-                }
                 if (canceled) {
                   get().dispatch.injectIntoInput(text)
                 }
