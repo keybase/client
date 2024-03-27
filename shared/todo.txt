@@ -1,6 +1,3 @@
 Some short term todos:
 swipeable2 slow
 mem leak
-
-types:
-navigation
