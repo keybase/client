@@ -5,7 +5,7 @@ import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
 import {FlatList} from 'react-native'
 
-const SuggestionList = (props: Props) => {
+function SuggestionList<I>(props: Props<I>) {
   if (
     !props.items.length &&
     (!props.suggestBotCommandsUpdateStatus ||
@@ -24,7 +24,7 @@ const SuggestionList = (props: Props) => {
         renderItem={({index, item}) => props.renderItem(index, item)}
         style={styles.noGrow}
         data={props.items}
-        keyExtractor={props.keyExtractor || (item => item)}
+        keyExtractor={props.keyExtractor || (item => String(item))}
         keyboardShouldPersistTaps="always"
         windowSize={10}
         onScrollToIndexFailed={noop}

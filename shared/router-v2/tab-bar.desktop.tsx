@@ -168,7 +168,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
   const username = C.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
-      navigation.navigate(keysMap[cmd] as string)
+      navigation.navigate(keysMap[cmd] as Tabs.Tab)
     },
     [navigation]
   )

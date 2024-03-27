@@ -6,7 +6,7 @@ import SafeReactList from '@/common-adapters/safe-react-list'
 import type RL from 'react-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
 
-class SuggestionList extends React.Component<Props> {
+class SuggestionList<I> extends React.Component<Props<I>> {
   private listRef = React.createRef<RL>()
 
   componentDidMount() {
@@ -14,14 +14,16 @@ class SuggestionList extends React.Component<Props> {
     this.forceUpdate()
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props<I>) {
     if (prevProps.selectedIndex !== this.props.selectedIndex && this.listRef.current) {
       this.listRef.current.scrollAround(this.props.selectedIndex)
     }
   }
 
-  private itemRenderer = (index: number) =>
-    this.props.renderItem(index, this.props.items[index]) as React.JSX.Element
+  private itemRenderer = (index: number) => {
+    const i = this.props.items[index]
+    return i ? (this.props.renderItem(index, i) as React.JSX.Element) : <></>
+  }
 
   render() {
     if (

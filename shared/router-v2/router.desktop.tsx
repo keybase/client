@@ -25,7 +25,7 @@ const tabRootsVals = Object.values(tabRoots).filter(root => {
 const routesMinusRoots = (tab: DesktopTabs) => {
   const keepVal = tabRoots[tab]
   return Object.keys(routes).reduce<RouteMap>((m, k) => {
-    if (k === keepVal || !tabRootsVals.includes(k as any)) {
+    if (k === keepVal || !tabRootsVals.includes(k as (typeof tabRootsVals)[number])) {
       m[k] = routes[k]
     }
     return m
@@ -36,9 +36,9 @@ type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
-  return ({route, navigation}: any) => {
+  return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
     const no = getOptions(val)
-    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
     return {...opt}
   }
 }
@@ -53,7 +53,7 @@ const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) =>
         navigationKey={name}
         name={name}
         getComponent={val.getScreen}
-        options={makeOptions(val)}
+        options={makeOptions(val) as any}
       />
     )
   })
