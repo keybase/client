@@ -9,14 +9,16 @@
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,
-    "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
-    "incremental": true,
+    // TEMP
+    "incremental": false,
+    // "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "noErrorTruncation": true,
+    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,
@@ -35,8 +37,8 @@
     "resolveJsonModule": true,
     "sourceMap": false,
     "strict": true,
-    "target": "esnext",
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
+    "target": "esnext"
+    // "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": ["**/node_modules", "./desktop/dist", "./desktop/build"],
