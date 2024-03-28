@@ -4282,6 +4282,13 @@
           "name": "request"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "matchingConvs"
+        },
+        {
           "type": "gregor1.Time",
           "name": "startedAt"
         },

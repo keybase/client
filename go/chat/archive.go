@@ -686,6 +686,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	// Presume to resume
 	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
 	jobInfo.Err = ""
+	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
 
 	// Setup to run each conv in parallel
 	eg, ctx := errgroup.WithContext(ctx)

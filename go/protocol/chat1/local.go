@@ -6604,6 +6604,7 @@ func (o ArchiveChatConvCheckpoint) DeepCopy() ArchiveChatConvCheckpoint {
 
 type ArchiveChatJob struct {
 	Request          ArchiveChatJobRequest                `codec:"request" json:"request"`
+	MatchingConvs    []InboxUIItem                        `codec:"matchingConvs" json:"matchingConvs"`
 	StartedAt        gregor1.Time                         `codec:"startedAt" json:"startedAt"`
 	Status           ArchiveChatJobStatus                 `codec:"status" json:"status"`
 	Err              string                               `codec:"err" json:"err"`
@@ -6614,7 +6615,18 @@ type ArchiveChatJob struct {
 
 func (o ArchiveChatJob) DeepCopy() ArchiveChatJob {
 	return ArchiveChatJob{
-		Request:          o.Request.DeepCopy(),
+		Request: o.Request.DeepCopy(),
+		MatchingConvs: (func(x []InboxUIItem) []InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]InboxUIItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.MatchingConvs),
 		StartedAt:        o.StartedAt.DeepCopy(),
 		Status:           o.Status.DeepCopy(),
 		Err:              o.Err,
