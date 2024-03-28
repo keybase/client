@@ -12,8 +12,8 @@
     // "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
     // TEMP
-    "incremental": false,
-    // "incremental": true,
+    // "incremental": false,
+    "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],

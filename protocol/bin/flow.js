@@ -11,7 +11,7 @@ const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-c
 // Sanity check this json file
 Object.keys(enabledCalls).forEach(rpc =>
   Object.keys(enabledCalls[rpc]).forEach(type => {
-    if (!['promise', 'incoming', 'engineListener'].includes(type)) {
+    if (!['promise', 'incoming', 'engineListener', 'custom'].includes(type)) {
       console.log(colors.red('ERROR! Invalid enabled call?\n\n '), rpc, type)
       process.exit(1)
     }
@@ -398,7 +398,7 @@ function writeActions() {
     actions: Object.keys(projects).reduce((map, p) => {
       const callMap = projects[p].incomingMaps
       callMap &&
-        Object.keys(callMap).reduce((map, method) => {
+        Object.keys(callMap).reduce((m, method) => {
           const name = method
             .replace(/'/g, '')
             .split('.')
@@ -411,10 +411,10 @@ function writeActions() {
             response = `, response: {error: ${p}Types.IncomingErrorCallback, result: (param: ${p}Types.MessageTypes[${method}]['outParam']) => void}`
           }
 
-          map[name] = {
+          m[name] = {
             params: `${p}Types.MessageTypes[${method}]['inParam'] ${response}`,
           }
-          return map
+          return m
         }, map)
       return map
     }, staticActions),
@@ -500,9 +500,10 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromise)
   const messageEngineListener = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineListener)
-  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
+  // const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
   const incomingMap = `\nexport type IncomingCallMapType = {
     ${Object.keys(project.incomingMaps)
+      .filter(im => enabledCall(im, 'incoming'))
       .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
       .join(',')}
     }`
@@ -512,6 +513,7 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
     : 'void'
   const customResponseIncomingMap = `\nexport type CustomResponseIncomingCallMap = {
     ${Object.keys(project.customResponseIncomingMaps)
+      .filter(im => enabledCall(im, 'custom'))
       .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
       .join(',')}
     }`
@@ -558,7 +560,7 @@ ${messageTypesData}
 function write(typeDefs, project) {
   // Need any for weird flow issue where it gets confused by multiple
   // incoming call map types
-  const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
+  //const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
 
   const typePrelude = `/* eslint-disable */
 

@@ -1598,10 +1598,6 @@ export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
 export type WelcomeMessageDisplay = {readonly set: Boolean; readonly display: String; readonly raw: String}
 
 export type IncomingCallMapType = {
-  'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam']) => void
-  'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam']) => void
-  'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam']) => void
-  'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam']) => void
   'chat.1.chatUi.chatThreadCached'?: (params: MessageTypes['chat.1.chatUi.chatThreadCached']['inParam']) => void
   'chat.1.chatUi.chatThreadFull'?: (params: MessageTypes['chat.1.chatUi.chatThreadFull']['inParam']) => void
   'chat.1.chatUi.chatThreadStatus'?: (params: MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam']) => void
@@ -1614,88 +1610,14 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => void
   'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']) => void
   'chat.1.chatUi.chatSearchBotHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) => void
-  'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam']) => void
   'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam']) => void
-  'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam']) => void
-  'chat.1.chatUi.chatStellarDataError'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam']) => void
   'chat.1.chatUi.chatStellarDone'?: (params: MessageTypes['chat.1.chatUi.chatStellarDone']['inParam']) => void
-  'chat.1.chatUi.chatGiphySearchResults'?: (params: MessageTypes['chat.1.chatUi.chatGiphySearchResults']['inParam']) => void
-  'chat.1.chatUi.chatGiphyToggleResultWindow'?: (params: MessageTypes['chat.1.chatUi.chatGiphyToggleResultWindow']['inParam']) => void
-  'chat.1.chatUi.chatShowManageChannels'?: (params: MessageTypes['chat.1.chatUi.chatShowManageChannels']['inParam']) => void
-  'chat.1.chatUi.chatCoinFlipStatus'?: (params: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam']) => void
-  'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam']) => void
-  'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam']) => void
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']) => void
-  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam']) => void
-  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam']) => void
-  'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam']) => void
-  'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam']) => void
-  'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam']) => void
-  'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam']) => void
-  'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam']) => void
-  'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam']) => void
-  'chat.1.NotifyChat.ChatTLFResolve'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFResolve']['inParam']) => void
-  'chat.1.NotifyChat.ChatInboxStale'?: (params: MessageTypes['chat.1.NotifyChat.ChatInboxStale']['inParam']) => void
-  'chat.1.NotifyChat.ChatThreadsStale'?: (params: MessageTypes['chat.1.NotifyChat.ChatThreadsStale']['inParam']) => void
-  'chat.1.NotifyChat.ChatTypingUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatTypingUpdate']['inParam']) => void
-  'chat.1.NotifyChat.ChatJoinedConversation'?: (params: MessageTypes['chat.1.NotifyChat.ChatJoinedConversation']['inParam']) => void
-  'chat.1.NotifyChat.ChatLeftConversation'?: (params: MessageTypes['chat.1.NotifyChat.ChatLeftConversation']['inParam']) => void
-  'chat.1.NotifyChat.ChatResetConversation'?: (params: MessageTypes['chat.1.NotifyChat.ChatResetConversation']['inParam']) => void
-  'chat.1.NotifyChat.ChatInboxSyncStarted'?: (params: MessageTypes['chat.1.NotifyChat.ChatInboxSyncStarted']['inParam']) => void
-  'chat.1.NotifyChat.ChatInboxSynced'?: (params: MessageTypes['chat.1.NotifyChat.ChatInboxSynced']['inParam']) => void
-  'chat.1.NotifyChat.ChatSetConvRetention'?: (params: MessageTypes['chat.1.NotifyChat.ChatSetConvRetention']['inParam']) => void
-  'chat.1.NotifyChat.ChatSetTeamRetention'?: (params: MessageTypes['chat.1.NotifyChat.ChatSetTeamRetention']['inParam']) => void
-  'chat.1.NotifyChat.ChatSetConvSettings'?: (params: MessageTypes['chat.1.NotifyChat.ChatSetConvSettings']['inParam']) => void
-  'chat.1.NotifyChat.ChatSubteamRename'?: (params: MessageTypes['chat.1.NotifyChat.ChatSubteamRename']['inParam']) => void
-  'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: MessageTypes['chat.1.NotifyChat.ChatKBFSToImpteamUpgrade']['inParam']) => void
-  'chat.1.NotifyChat.ChatAttachmentUploadStart'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam']) => void
-  'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadProgress']['inParam']) => void
-  'chat.1.NotifyChat.ChatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadProgress']['inParam']) => void
-  'chat.1.NotifyChat.ChatAttachmentDownloadComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatAttachmentDownloadComplete']['inParam']) => void
-  'chat.1.NotifyChat.ChatArchiveProgress'?: (params: MessageTypes['chat.1.NotifyChat.ChatArchiveProgress']['inParam']) => void
-  'chat.1.NotifyChat.ChatArchiveComplete'?: (params: MessageTypes['chat.1.NotifyChat.ChatArchiveComplete']['inParam']) => void
-  'chat.1.NotifyChat.ChatPaymentInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam']) => void
-  'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam']) => void
-  'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam']) => void
-  'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam']) => void
-  'chat.1.NotifyChat.ChatWelcomeMessageLoaded'?: (params: MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam']) => void
-  'chat.1.NotifyChat.ChatParticipantsInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatParticipantsInfo']['inParam']) => void
 }
 
 export type CustomResponseIncomingCallMap = {
-  'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}) => void
-  'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void}) => void
-  'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxConversation']['outParam']) => void}) => void
-  'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxFailed']['outParam']) => void}) => void
-  'chat.1.chatUi.chatThreadCached'?: (params: MessageTypes['chat.1.chatUi.chatThreadCached']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadCached']['outParam']) => void}) => void
-  'chat.1.chatUi.chatThreadFull'?: (params: MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void}) => void
-  'chat.1.chatUi.chatThreadStatus'?: (params: MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchHit'?: (params: MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchDone']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchDone']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchInboxStart'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxStart']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchInboxStart']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchInboxHit'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchInboxHit']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchInboxDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxDone']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchInboxDone']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchIndexStatus'?: (params: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchConvHits']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void}) => void
-  'chat.1.chatUi.chatSearchBotHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchBotHits']['outParam']) => void}) => void
-  'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void}) => void
-  'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['outParam']) => void}) => void
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['outParam']) => void}) => void
   'chat.1.chatUi.chatStellarDataError'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarDataError']['outParam']) => void}) => void
-  'chat.1.chatUi.chatStellarDone'?: (params: MessageTypes['chat.1.chatUi.chatStellarDone']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarDone']['outParam']) => void}) => void
-  'chat.1.chatUi.chatGiphySearchResults'?: (params: MessageTypes['chat.1.chatUi.chatGiphySearchResults']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatGiphySearchResults']['outParam']) => void}) => void
-  'chat.1.chatUi.chatGiphyToggleResultWindow'?: (params: MessageTypes['chat.1.chatUi.chatGiphyToggleResultWindow']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatGiphyToggleResultWindow']['outParam']) => void}) => void
-  'chat.1.chatUi.chatShowManageChannels'?: (params: MessageTypes['chat.1.chatUi.chatShowManageChannels']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatShowManageChannels']['outParam']) => void}) => void
-  'chat.1.chatUi.chatCoinFlipStatus'?: (params: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['outParam']) => void}) => void
-  'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void}) => void
-  'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void}) => void
-  'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => void
-  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}) => void
-  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}) => void
-  'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void}) => void
-  'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}) => void
-  'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void}) => void
 }
 export const localAddBotConvSearchRpcPromise = (params: MessageTypes['chat.1.local.addBotConvSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotConvSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotConvSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addBotConvSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.addBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotMember', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addBotMember']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1801,30 +1723,13 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.chatUi.chatInboxUnverified'
 // 'chat.1.chatUi.chatInboxConversation'
 // 'chat.1.chatUi.chatInboxFailed'
-// 'chat.1.chatUi.chatThreadCached'
-// 'chat.1.chatUi.chatThreadFull'
-// 'chat.1.chatUi.chatThreadStatus'
-// 'chat.1.chatUi.chatSearchHit'
-// 'chat.1.chatUi.chatSearchDone'
-// 'chat.1.chatUi.chatSearchInboxStart'
-// 'chat.1.chatUi.chatSearchInboxHit'
-// 'chat.1.chatUi.chatSearchInboxDone'
-// 'chat.1.chatUi.chatSearchIndexStatus'
-// 'chat.1.chatUi.chatSearchConvHits'
-// 'chat.1.chatUi.chatSearchTeamHits'
-// 'chat.1.chatUi.chatSearchBotHits'
 // 'chat.1.chatUi.chatConfirmChannelDelete'
-// 'chat.1.chatUi.chatStellarShowConfirm'
-// 'chat.1.chatUi.chatStellarDataConfirm'
-// 'chat.1.chatUi.chatStellarDataError'
-// 'chat.1.chatUi.chatStellarDone'
 // 'chat.1.chatUi.chatGiphySearchResults'
 // 'chat.1.chatUi.chatGiphyToggleResultWindow'
 // 'chat.1.chatUi.chatShowManageChannels'
 // 'chat.1.chatUi.chatCoinFlipStatus'
 // 'chat.1.chatUi.chatCommandMarkdown'
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
-// 'chat.1.chatUi.chatLoadGalleryHit'
 // 'chat.1.chatUi.chatWatchPosition'
 // 'chat.1.chatUi.chatClearWatch'
 // 'chat.1.chatUi.chatCommandStatus'
