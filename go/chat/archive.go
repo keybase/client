@@ -480,7 +480,7 @@ func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJo
 	c.Lock()
 	defer c.Unlock()
 	c.messagesComplete += int64(pagination.Num)
-	if c.messagesComplete > c.messagesTotal || pagination.Last {
+	if c.messagesComplete > c.messagesTotal {
 		// total messages is capped to the convs expunge, don't over report.
 		c.messagesComplete = c.messagesTotal
 	}
