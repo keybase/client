@@ -11,14 +11,14 @@ const getOptions = {
     ...Common.defaultNavigationOptions.headerLeftContainerStyle,
     minWidth: buttonWidth,
     width: buttonWidth,
-  },
+  } as Kb.Styles.StylesCrossPlatform,
   headerRight: () => <HeaderNewChatButton />,
   headerRightContainerStyle: {
     ...Common.defaultNavigationOptions.headerRightContainerStyle,
     minWidth: buttonWidth,
     paddingRight: 8,
     width: buttonWidth,
-  },
+  } as Kb.Styles.StylesCrossPlatform,
   headerTitle: () => (
     <Kb.Text type="BodyBig" center={true}>
       Chats

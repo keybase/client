@@ -29,7 +29,7 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    // "outDir": "./.tsOuts/.tsOut/emit",
+    "outDir": "./.tsOuts/.tsOut/emit",
     "paths": {
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"],
