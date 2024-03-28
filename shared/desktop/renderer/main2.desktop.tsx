@@ -1,5 +1,5 @@
 // Entry point to the chrome part of the app
-import Main from '../../app/main.desktop'
+import Main from '@/app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '@/constants'
 import * as React from 'react'
