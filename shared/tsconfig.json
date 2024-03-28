@@ -9,7 +9,7 @@
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,
-    // "emitDeclarationOnly": true,
+    "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
     // TEMP
     // "incremental": false,
@@ -19,7 +19,7 @@
     "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "noErrorTruncation": true,
-    "noEmit": true,
+    // "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,

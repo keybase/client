@@ -3,7 +3,6 @@ import * as T from '../types'
 import * as C from '..'
 import type * as ConvoConstants from './convostate'
 import HiddenString from '@/util/hidden-string'
-import invert from 'lodash/invert'
 import logger from '@/logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
@@ -70,7 +69,7 @@ export const getMessageID = (m: T.RPCChat.UIMessage) => {
 export const getPaymentMessageInfo = (
   accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
   message: T.Chat.MessageSendPayment | T.Chat.MessageText
-) => {
+): T.Chat.ChatPaymentInfo | undefined => {
   const maybePaymentInfo = accountsInfoMap.get(message.id)
   if (!maybePaymentInfo) {
     return message.paymentInfo
@@ -1133,10 +1132,6 @@ const errorUIMessagetoMessage = (
     ordinal: T.Chat.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
   })
-}
-
-export const journeyCardTypeToType = invert(T.RPCChat.JourneycardType) as {
-  [K in T.RPCChat.JourneycardType]: keyof typeof T.RPCChat.JourneycardType
 }
 
 const journeycardUIMessageToMessage = (
