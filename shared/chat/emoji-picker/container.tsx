@@ -1,19 +1,14 @@
-import * as C from './../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from './../../constants/types'
-import * as Data from './../../util/emoji'
-import type {LayoutEvent} from './../../common-adapters/box'
+import * as T from '@/constants/types'
+import * as Data from '@/util/emoji'
+import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
 import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
-import {
-  emojiDataToRenderableEmoji,
-  renderEmoji,
-  type EmojiData,
-  type RenderableEmoji,
-} from './../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, type RenderableEmoji} from '@/util/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {

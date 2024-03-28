@@ -1,13 +1,13 @@
 import * as Kb from '@/common-adapters'
 // TODO remove
 export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
-  const editing = {
+  const editing: Kb.Styles._StylesCrossPlatform = {
     borderRadius: 2,
     color: Kb.Styles.globalColors.blackOrBlack,
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.tiny,
   }
-  const sent = Kb.Styles.platformStyles({
+  const sent: Kb.Styles._StylesCrossPlatform = Kb.Styles.platformStyles({
     isElectron: {
       // Make text selectable. On mobile we implement that differently.
       cursor: 'text',
@@ -20,14 +20,12 @@ export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
       ...Kb.Styles.globalStyles.flexBoxColumn,
     },
   })
-  const sentEditing = {
+  const sentEditing: Kb.Styles._StylesCrossPlatform = {
     ...sent,
     ...editing,
   }
-  const pendingFail = {
-    ...sent,
-  }
-  const pendingFailEditing = {
+  const pendingFail = sent
+  const pendingFailEditing: Kb.Styles._StylesCrossPlatform = {
     ...pendingFail,
     ...editing,
   }

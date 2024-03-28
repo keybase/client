@@ -90,7 +90,7 @@ export const emojiSearch = (filter: string, maxResults: number) => {
   return res.map(r => r.emoji)
 }
 
-export const defaultHoverEmoji = emojiNameMap['potato'] || emojidata[0]
+export const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData
 
 export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   if (emoji.userEmojiRenderUrl || emoji.userEmojiRenderStock) {

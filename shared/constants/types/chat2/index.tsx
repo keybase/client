@@ -1,4 +1,4 @@
-import type * as T from '../../types'
+import type * as T from '@/constants/types'
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'

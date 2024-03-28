@@ -9,14 +9,17 @@
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,
-    "emitDeclarationOnly": true,
+    // "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
-    "incremental": true,
+    // TEMP
+    "incremental": false,
+    // "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "noErrorTruncation": true,
+    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,
@@ -30,22 +33,21 @@
     "paths": {
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"],
-      "@/*": ["./*"],
+      "@/*": ["./*"]
     },
     "resolveJsonModule": true,
     "sourceMap": false,
     "strict": true,
-    "target": "esnext",
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
-    "typeRoots": ["./node_modules/@types/"],
+    "target": "esnext"
+    // "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
-  "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"],
+  "exclude": ["**/node_modules", "./desktop/dist", "./desktop/build"],
   "watchOptions": {
     "watchFile": "useFsEvents",
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
-    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"],
-  },
+    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
+  }
 }
