@@ -11,6 +11,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": false,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",

@@ -560,7 +560,7 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'center',
         width: 36,
       },
-      hidden: {display: 'none'},
+      hidden: {height: 0, maxHeight: 0, maxWidth: 0, width: 0},
       iconBottom: {
         bottom: 0,
         left: 1,

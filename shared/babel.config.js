@@ -76,7 +76,7 @@ module.exports = function (api /*: any */) {
       ],
       presets: [
         // lets us set our own jsx above
-        ['module:metro-react-native-babel-preset', {useTransformReactJSXExperimental: true}],
+        ['module:@react-native/babel-preset', {useTransformReactJSXExperimental: true}],
       ],
       sourceMaps: true,
     }

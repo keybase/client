@@ -45,4 +45,11 @@
 #endif
 }
 
+- (BOOL)bridgelessEnabled
+{
+    return NO;
+}
+
 @end
+
+
