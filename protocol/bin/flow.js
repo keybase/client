@@ -212,13 +212,11 @@ function analyzeMessages(json, project) {
     const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
 
     if (isUIMethod) {
-      project.incomingMaps[
-        methodName
-      ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}) => void`
+      project.incomingMaps[methodName] = `(params: MessageTypes[${methodName}]['inParam']) => void`
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
-        ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => void`
+        ] = `(params: MessageTypes[${methodName}]['inParam'], response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => void`
       }
     }
 
@@ -414,7 +412,7 @@ function writeActions() {
           }
 
           map[name] = {
-            params: `${p}Types.MessageTypes[${method}]['inParam'] & {sessionID: number}${response}`,
+            params: `${p}Types.MessageTypes[${method}]['inParam'] ${response}`,
           }
           return map
         }, map)
