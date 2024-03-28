@@ -3,9 +3,6 @@ update patches
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 setnative not working on fabric, input should likely be controlled now
 
-electron message images not showing in popup due to height missing?
-switch to expo-camera for barcode scanning
-
 run electron hash update
 -------------------------
 Some short term todos:

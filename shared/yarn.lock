@@ -5287,12 +5287,12 @@ expo-av@13.10.5:
   resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-13.10.5.tgz#cdce4db8c0f896be88cc881994704a251a1e63ff"
   integrity sha512-w45oCoe+8PunDeM0rh/Ut6UaGh7OjEJOCjAiQy3nCxpA8FaXB17KaqpsvkAXIMvceHYWndH8+D29esUTS6wEsA==
 
-expo-barcode-scanner@12.9.3:
-  version "12.9.3"
-  resolved "https://registry.yarnpkg.com/expo-barcode-scanner/-/expo-barcode-scanner-12.9.3.tgz#b6be7975c7a347d5906255b2117eb8ea35dde275"
-  integrity sha512-I3zaKSINRMHbTc7sHIq14ug3fHkCsW4rweJF12yk0kHaympI2wxVgIo2DhzeZaYG1Ylkuj5aiKen3NuwDk1FSA==
+expo-camera@14.1.1:
+  version "14.1.1"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-14.1.1.tgz#f500c37dc112090bd5d2f30917087f7faf59318b"
+  integrity sha512-ANxQYy2P9qXxRoLWs7Gs3y7NM7OpYr7Q1H6kmQwJxHjjuJSc2qhwhY10I138d0fzB0h0p8NF1ezqIrqWct5AvQ==
   dependencies:
-    expo-image-loader "~4.6.0"
+    invariant "^2.2.4"
 
 expo-clipboard@5.0.1:
   version "5.0.1"

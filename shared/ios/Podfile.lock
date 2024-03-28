@@ -4,11 +4,6 @@ PODS:
   - EXAV (13.10.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXBarCodeScanner (12.9.3):
-    - EXImageLoader
-    - ExpoModulesCore
-    - ZXingObjC/OneD
-    - ZXingObjC/PDF417
   - EXConstants (15.4.5):
     - ExpoModulesCore
   - EXContacts (12.8.2):
@@ -27,6 +22,10 @@ PODS:
     - React-Core
   - Expo (50.0.14):
     - ExpoModulesCore
+  - ExpoCamera (14.1.1):
+    - ExpoModulesCore
+    - ZXingObjC/OneD
+    - ZXingObjC/PDF417
   - ExpoClipboard (5.0.1):
     - ExpoModulesCore
   - ExpoFileSystem (16.0.8):
@@ -1161,7 +1160,6 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
-  - EXBarCodeScanner (from `../node_modules/expo-barcode-scanner/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
@@ -1169,6 +1167,7 @@ DEPENDENCIES:
   - EXLocation (from `../node_modules/expo-location/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - Expo (from `../node_modules/expo`)
+  - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
@@ -1264,8 +1263,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
     :path: "../node_modules/expo-av/ios"
-  EXBarCodeScanner:
-    :path: "../node_modules/expo-barcode-scanner/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXContacts:
@@ -1280,6 +1277,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-media-library/ios"
   Expo:
     :path: "../node_modules/expo"
+  ExpoCamera:
+    :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
     :path: "../node_modules/expo-clipboard/ios"
   ExpoFileSystem:
@@ -1425,7 +1424,6 @@ SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
   EXAV: 07e50f934907fa8274dd06fbcd20ee4b9478c619
-  EXBarCodeScanner: d59fd943cebee3f913ebf4ffde0d05d344da8b78
   EXConstants: 988aa430ca0f76b43cd46b66e7fae3287f9cc2fc
   EXContacts: 5fcab84e1f1a562934e688d422117f9a33169c37
   EXFont: f20669cb266ef48b004f1eb1f2b20db96cd1df9f
@@ -1433,6 +1431,7 @@ SPEC CHECKSUMS:
   EXLocation: a631bd8dc4e7db986fb27edb7fc9ea8174ebe249
   EXMediaLibrary: 59077ec70ec8b0460447fadebaa1ba7361a18efe
   Expo: e01a77c6fa4bc80a6d1bb949cda1d12d21044abd
+  ExpoCamera: 53f5ef81bab088b2edcf94d05e4da3bc84f46383
   ExpoClipboard: b597982124f067ff9f5b89093eb3d97898d5d877
   ExpoFileSystem: eecaf6796aed0f4dd20042dc2ca2cac6c4bc1185
   ExpoHaptics: 28a771b630353cd6e8dcf1b1e3e693e38ad7c3c3
