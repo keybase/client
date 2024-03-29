@@ -2,10 +2,11 @@
   "compilerOptions": {
     // TEMP
     // start
-    "emitDeclarationOnly": true,
-    // "noEmit": true,
-    // "incremental": false,
-    "incremental": true,
+    // "emitDeclarationOnly": true,
+    "noEmit": true,
+    "incremental": false,
+    // "incremental": true,
+    // "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
     // end
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
@@ -41,10 +42,16 @@
     "sourceMap": false,
     "strict": true,
     "target": "esnext"
-    // "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
-  "exclude": ["**/node_modules", "./desktop/dist", "./desktop/build"],
+  "exclude": [
+    "**/node_modules",
+    "./desktop/dist",
+    "./desktop/build",
+    "./common-adapters/icon.constants-gen.desktop.tsx",
+    "./common-adapters/icon.constants-gen.native.tsx",
+    "./common-adapters/icon.constants-gen.shared.tsx"
+  ],
   "watchOptions": {
     "watchFile": "useFsEvents",
     "watchDirectory": "useFsEvents",

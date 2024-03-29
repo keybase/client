@@ -148,10 +148,12 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
   return {
     category: category ?? '',
     name: undefined,
+    non_qualified: '',
     sheet_x: -1,
     sheet_y: -1,
     short_name: emoji.alias,
     short_names: [emoji.alias],
+    sort_order: -1,
     teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
