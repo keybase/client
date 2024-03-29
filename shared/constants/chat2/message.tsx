@@ -40,7 +40,7 @@ export const getMessageRenderType = (m: T.Immutable<T.Chat.Message>): T.Chat.Ren
       return m.type
   }
 }
-export const isMessageWithReactions = (message: T.Chat.Message): message is T.Chat.MessagesWithReactions => {
+export const isMessageWithReactions = (message: T.Chat.Message) => {
   return (
     !(
       message.type === 'placeholder' ||

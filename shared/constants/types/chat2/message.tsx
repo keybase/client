@@ -49,146 +49,123 @@ export type OutboxID = string
 export const stringToOutboxID = (s: string): OutboxID => s
 export const outboxIDToString = (o: OutboxID): string => o
 
-export type MentionsAt = Set<string>
+export type MentionsAt = ReadonlySet<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 
-export type MessageExplodeDescription = {
+export interface MessageExplodeDescription {
   text: string
   seconds: number
 }
 
-export type PathAndOutboxID = {
+export interface PathAndOutboxID {
   path: string
   outboxID?: RPCChatTypes.OutboxID
   url?: string // if its a kbfs path
 }
 
 // optional props here may never get set depending on the type
-type _MessageCommon = T.Immutable<{
-  adder?: string
-  attachmentType?: AttachmentType
-  audioAmps?: ReadonlyArray<number>
-  audioDuration?: number
-  author: string
-  bodySummary: HiddenString
-  decoratedText?: HiddenString
-  text?: HiddenString
-  botUsername?: string
-  cardType?: RPCChatTypes.JourneycardType
-  conversationIDKey: Common.ConversationIDKey
-  deviceName?: string
-  deviceRevokedAt?: number
-  deviceType?: DeviceType
-  downloadPath?: string // string if downloaded,
-  errorReason?: string
-  errorTyp?: number
-  exploded?: boolean
-  explodedBy?: string // only if 'explode now' happened,
-  exploding?: boolean
-  explodingTime?: number
-  explodingUnreadable?: boolean
-  fileName?: string
-  fileType?: string // MIME type,
-  fileURL?: string
-  hasBeenEdited?: boolean
-  id: MessageID
-  inlineVideoPlayable?: boolean
-  invitee?: string
-  isCollapsed?: boolean
-  isDeleteable?: boolean
-  isEditable?: boolean
-  joiners?: ReadonlyArray<string>
-  leavers?: ReadonlyArray<string>
-  mentionsAt?: MentionsAt
-  mentionsChannel?: MentionsChannel
-  newChannelname?: string
-  ordinal: Ordinal
-  outboxID?: OutboxID
-  previewHeight?: number
-  previewURL?: string
-  previewWidth?: number
-  prover?: string
-  reactions?: Reactions
-  submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
-  timestamp: number
-  title?: string
-  transferErrMsg?: string
-  transferState?: MessageAttachmentTransferState
-  unfurls?: UnfurlMap
-}>
-
-type _MessageWithDeviceInfo = T.Immutable<{
-  deviceName: string
-  deviceType: DeviceType
-}>
-
-type _MessageWithDeletableEditable = T.Immutable<{
-  isDeleteable: boolean
-  isEditable: boolean
-}>
-
-type _MessageWithReactions = T.Immutable<{
-  reactions: undefined | Reactions
-}>
+interface _MessageCommon {
+  readonly adder?: string
+  readonly attachmentType?: AttachmentType
+  readonly audioAmps?: ReadonlyArray<number>
+  readonly audioDuration?: number
+  readonly author: string
+  readonly bodySummary: HiddenString
+  readonly decoratedText?: HiddenString
+  readonly text?: HiddenString
+  readonly botUsername?: string
+  readonly cardType?: RPCChatTypes.JourneycardType
+  readonly conversationIDKey: Common.ConversationIDKey
+  readonly deviceName?: string
+  readonly deviceRevokedAt?: number
+  readonly deviceType?: DeviceType
+  readonly downloadPath?: string // string if downloaded,
+  readonly errorReason?: string
+  readonly errorTyp?: number
+  readonly exploded?: boolean
+  readonly explodedBy?: string // only if 'explode now' happened,
+  readonly exploding?: boolean
+  readonly explodingTime?: number
+  readonly explodingUnreadable?: boolean
+  readonly fileName?: string
+  readonly fileType?: string // MIME type,
+  readonly fileURL?: string
+  readonly hasBeenEdited?: boolean
+  readonly id: MessageID
+  readonly inlineVideoPlayable?: boolean
+  readonly invitee?: string
+  readonly isCollapsed?: boolean
+  readonly isDeleteable?: boolean
+  readonly isEditable?: boolean
+  readonly joiners?: ReadonlyArray<string>
+  readonly leavers?: ReadonlyArray<string>
+  readonly mentionsAt?: MentionsAt
+  readonly mentionsChannel?: MentionsChannel
+  readonly newChannelname?: string
+  readonly ordinal: Ordinal
+  readonly outboxID?: OutboxID
+  readonly previewHeight?: number
+  readonly previewURL?: string
+  readonly previewWidth?: number
+  readonly prover?: string
+  readonly reactions?: Reactions
+  readonly submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
+  readonly timestamp: number
+  readonly title?: string
+  readonly transferErrMsg?: string
+  readonly transferState?: MessageAttachmentTransferState
+  readonly unfurls?: UnfurlMap
+}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
 // Possibly as a result, some types have sentinel-valued fields hanging off them.
 
-export type MessagePlaceholder = T.Immutable<{
-  type: 'placeholder'
-}> &
-  _MessageCommon
+export interface MessagePlaceholder extends _MessageCommon {
+  readonly type: 'placeholder'
+}
 
-export type MessageJourneycard = T.Immutable<{
-  type: 'journeycard'
-  cardType: RPCChatTypes.JourneycardType
-  highlightMsgID: MessageID
-  openTeam: boolean
-}> &
-  _MessageCommon
+export interface MessageJourneycard extends _MessageCommon {
+  readonly type: 'journeycard'
+  readonly cardType: RPCChatTypes.JourneycardType
+  readonly highlightMsgID: MessageID
+  readonly openTeam: boolean
+}
 
 // We keep deleted messages around so the bookkeeping is simpler
-export type MessageDeleted = T.Immutable<{
-  type: 'deleted'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo
+export interface MessageDeleted extends _MessageCommon {
+  readonly type: 'deleted'
+}
 
-export type MessageReplyTo = T.Immutable<{
-  type: MessageType
-  text?: HiddenString
-}> &
-  _MessageCommon
+export interface MessageReplyTo extends _MessageCommon {
+  readonly type: MessageType
+  readonly text?: HiddenString
+}
 
-export type MessageText = T.Immutable<{
-  botUsername?: string
-  decoratedText?: HiddenString
-  exploded: boolean
-  explodedBy: string // only if 'explode now' happened,
-  exploding: boolean
-  explodingTime: number
-  explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
-  inlinePaymentSuccessful: boolean
-  flipGameID?: string
-  mentionsAt?: MentionsAt
-  mentionsChannel: MentionsChannel
+export interface MessageText extends _MessageCommon {
+  readonly botUsername?: string
+  readonly decoratedText?: HiddenString
+  readonly exploded: boolean
+  readonly explodedBy: string // only if 'explode now' happened,
+  readonly exploding: boolean
+  readonly explodingTime: number
+  readonly explodingUnreadable: boolean // if we can't read this message bc we have no keys,
+  readonly inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
+  readonly inlinePaymentSuccessful: boolean
+  readonly flipGameID?: string
+  readonly mentionsAt?: MentionsAt
+  readonly mentionsChannel: MentionsChannel
   // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
-  replyTo?: MessageReplyTo
-  text: HiddenString
-  paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
-  unfurls: undefined | UnfurlMap
-  type: 'text'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithReactions &
-  _MessageWithDeletableEditable
+  readonly replyTo?: MessageReplyTo
+  readonly text: HiddenString
+  readonly paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
+  readonly unfurls: undefined | UnfurlMap
+  readonly type: 'text'
+}
 
 export type AttachmentType = 'image' | 'file' | 'audio'
 
-export type PreviewSpec = {
+export interface PreviewSpec {
   attachmentType: AttachmentType
   audioAmps: ReadonlyArray<number>
   audioDuration: number
@@ -204,43 +181,39 @@ export type MessageAttachmentTransferState =
   | 'mobileSaving'
   | undefined
 
-export type MessageAttachment = T.Immutable<{
-  attachmentType: AttachmentType
-  audioAmps: undefined | ReadonlyArray<number>
-  audioDuration: number
-  decoratedText?: HiddenString
-  showPlayButton: boolean
-  fileURL: string
-  fileURLCached: boolean
-  previewURL: string
-  fileType: string // MIME type,
-  downloadPath?: string // string if downloaded,
-  exploded: boolean
-  explodedBy: string // only if 'explode now' happened,
-  exploding: boolean
-  explodingTime: number
-  explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  fileName: string
-  fileSize: number
+export interface MessageAttachment extends _MessageCommon {
+  readonly attachmentType: AttachmentType
+  readonly audioAmps: undefined | ReadonlyArray<number>
+  readonly audioDuration: number
+  readonly decoratedText?: HiddenString
+  readonly showPlayButton: boolean
+  readonly fileURL: string
+  readonly fileURLCached: boolean
+  readonly previewURL: string
+  readonly fileType: string // MIME type,
+  readonly downloadPath?: string // string if downloaded,
+  readonly exploded: boolean
+  readonly explodedBy: string // only if 'explode now' happened,
+  readonly exploding: boolean
+  readonly explodingTime: number
+  readonly explodingUnreadable: boolean // if we can't read this message bc we have no keys,
+  readonly fileName: string
+  readonly fileSize: number
   // id: MessageID  that of first attachment message, not second attachment-uploaded message,
-  inlineVideoPlayable: boolean
-  isCollapsed: boolean
-  previewHeight: number
-  previewWidth: number
-  previewTransferState?: 'downloading' // only for preview,
-  title: string
-  transferProgress: number // 0-1 // only for the file,
-  transferState?: MessageAttachmentTransferState
-  transferErrMsg?: string
-  type: 'attachment'
-  videoDuration?: string
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithReactions &
-  _MessageWithDeletableEditable
+  readonly inlineVideoPlayable: boolean
+  readonly isCollapsed: boolean
+  readonly previewHeight: number
+  readonly previewWidth: number
+  readonly previewTransferState?: 'downloading' // only for preview,
+  readonly title: string
+  readonly transferProgress: number // 0-1 // only for the file,
+  readonly transferState?: MessageAttachmentTransferState
+  readonly transferErrMsg?: string
+  readonly type: 'attachment'
+  readonly videoDuration?: string
+}
 
-export type ChatRequestInfo = {
+export interface ChatRequestInfo {
   amount: string
   amountDescription: string
   asset: WalletTypes.Asset
@@ -251,214 +224,147 @@ export type ChatRequestInfo = {
   worthAtRequestTime: string
 }
 
-export type MessageRequestPayment = T.Immutable<{
-  note: HiddenString
-  requestID: RPCStellarTypes.KeybaseRequestID
-  requestInfo?: ChatRequestInfo // If null, we are waiting on this from the service,
-  type: 'requestPayment'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithReactions
+export interface MessageRequestPayment extends _MessageCommon {
+  readonly note: HiddenString
+  readonly requestID: RPCStellarTypes.KeybaseRequestID
+  readonly requestInfo?: ChatRequestInfo // If null, we are waiting on this from the service,
+  readonly type: 'requestPayment'
+}
 
-export type ChatPaymentInfo = T.Immutable<{
-  accountID: WalletTypes.AccountID
-  amountDescription: string
-  delta: 'none' | 'increase' | 'decrease'
-  fromUsername: string
-  issuerDescription: string
-  note: HiddenString
-  paymentID: WalletTypes.PaymentID
-  sourceAmount: string
-  sourceAsset: WalletTypes.AssetDescription
-  status: WalletTypes.StatusSimplified
-  statusDescription: string
-  statusDetail: string
-  showCancel: boolean
-  toUsername: string
-  type: 'paymentInfo'
-  worth: string
-  worthAtSendTime: string
-}>
+export interface ChatPaymentInfo {
+  readonly accountID: WalletTypes.AccountID
+  readonly amountDescription: string
+  readonly delta: 'none' | 'increase' | 'decrease'
+  readonly fromUsername: string
+  readonly issuerDescription: string
+  readonly note: HiddenString
+  readonly paymentID: WalletTypes.PaymentID
+  readonly sourceAmount: string
+  readonly sourceAsset: WalletTypes.AssetDescription
+  readonly status: WalletTypes.StatusSimplified
+  readonly statusDescription: string
+  readonly statusDetail: string
+  readonly showCancel: boolean
+  readonly toUsername: string
+  readonly type: 'paymentInfo'
+  readonly worth: string
+  readonly worthAtSendTime: string
+}
 
-export type MessageSendPayment = T.Immutable<{
-  paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
-  type: 'sendPayment'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithReactions
+export interface MessageSendPayment extends _MessageCommon {
+  readonly paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
+  readonly type: 'sendPayment'
+}
 
 // Note that all these MessageSystem* messages are generated by the sender's client
 // at the time that the message is sent. Associated message data that relates to
 // conversation (e.g. teamname, isAdmin) rather than the message may have changed since
 // the message was created. Because of this it's probably more reliable to look at
 // other places in the store to get that information when possible.
-export type MessageSystemInviteAccepted = T.Immutable<{
-  adder: string
-  inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text'
-  invitee: string
-  inviter: string
-  team: string
-  role: TeamTypes.MaybeTeamRoleType
-  type: 'systemInviteAccepted'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemInviteAccepted extends _MessageCommon {
+  readonly adder: string
+  readonly inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text'
+  readonly invitee: string
+  readonly inviter: string
+  readonly team: string
+  readonly role: TeamTypes.MaybeTeamRoleType
+  readonly type: 'systemInviteAccepted'
+}
 
-export type MessageSystemSBSResolved = T.Immutable<{
-  assertionUsername: string
-  assertionService?: ServiceIdWithContact
-  prover: string
-  type: 'systemSBSResolved'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemSBSResolved extends _MessageCommon {
+  readonly assertionUsername: string
+  readonly assertionService?: ServiceIdWithContact
+  readonly prover: string
+  readonly type: 'systemSBSResolved'
+}
 
-export type MessageSystemSimpleToComplex = T.Immutable<{
-  team: string
-  type: 'systemSimpleToComplex'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemSimpleToComplex extends _MessageCommon {
+  readonly team: string
+  readonly type: 'systemSimpleToComplex'
+}
 
-export type MessageSystemCreateTeam = T.Immutable<{
-  creator: string
-  team: string
-  type: 'systemCreateTeam'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemCreateTeam extends _MessageCommon {
+  readonly creator: string
+  readonly team: string
+  readonly type: 'systemCreateTeam'
+}
 
-export type MessageSystemGitPush = T.Immutable<{
-  pusher: string
-  pushType: RPCTypes.GitPushType
-  refs: undefined | ReadonlyArray<RPCTypes.GitRefMetadata>
-  repo: string
-  repoID: string
-  team: string
-  type: 'systemGitPush'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemGitPush extends _MessageCommon {
+  readonly pusher: string
+  readonly pushType: RPCTypes.GitPushType
+  readonly refs: undefined | ReadonlyArray<RPCTypes.GitRefMetadata>
+  readonly repo: string
+  readonly repoID: string
+  readonly team: string
+  readonly type: 'systemGitPush'
+}
 
-export type MessageSystemAddedToTeam = T.Immutable<{
-  addee: string
-  adder: string
-  bulkAdds: undefined | ReadonlyArray<string>
-  role: TeamTypes.MaybeTeamRoleType
-  team: string
-  type: 'systemAddedToTeam'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemAddedToTeam extends _MessageCommon {
+  readonly addee: string
+  readonly adder: string
+  readonly bulkAdds: undefined | ReadonlyArray<string>
+  readonly role: TeamTypes.MaybeTeamRoleType
+  readonly team: string
+  readonly type: 'systemAddedToTeam'
+}
 
-export type MessageSystemJoined = T.Immutable<{
-  joiners?: ReadonlyArray<string>
-  leavers?: ReadonlyArray<string>
-  type: 'systemJoined'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable
+export interface MessageSystemJoined extends _MessageCommon {
+  readonly joiners?: ReadonlyArray<string>
+  readonly leavers?: ReadonlyArray<string>
+  readonly type: 'systemJoined'
+}
 
-export type MessageSystemLeft = T.Immutable<{
-  type: 'systemLeft'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable
+export interface MessageSystemLeft extends _MessageCommon {
+  readonly type: 'systemLeft'
+}
 
-export type MessageSystemChangeAvatar = T.Immutable<{
-  team: string
-  type: 'systemChangeAvatar'
-  user: string
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithReactions
+export interface MessageSystemChangeAvatar extends _MessageCommon {
+  readonly team: string
+  readonly type: 'systemChangeAvatar'
+  readonly user: string
+}
 
-export type MessageSystemNewChannel = T.Immutable<{
-  text: HiddenString
-  type: 'systemNewChannel'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemNewChannel extends _MessageCommon {
+  readonly text: HiddenString
+  readonly type: 'systemNewChannel'
+}
 
-export type MessageSystemText = T.Immutable<{
-  text: HiddenString
-  type: 'systemText'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemText extends _MessageCommon {
+  readonly text: HiddenString
+  readonly type: 'systemText'
+}
 
-export type MessageSetDescription = T.Immutable<{
-  newDescription: HiddenString
-  type: 'setDescription'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSetDescription extends _MessageCommon {
+  readonly newDescription: HiddenString
+  readonly type: 'setDescription'
+}
 
-export type MessagePin = T.Immutable<{
-  bodySummary: HiddenString
-  pinnedMessageID: MessageID
-  timestamp: number
-  type: 'pin'
-}> &
-  _MessageCommon &
-  _MessageWithReactions &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable
+export interface MessagePin extends _MessageCommon {
+  readonly bodySummary: HiddenString
+  readonly pinnedMessageID: MessageID
+  readonly timestamp: number
+  readonly type: 'pin'
+}
 
-export type MessageSetChannelname = T.Immutable<{
-  newChannelname: string
-  type: 'setChannelname'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSetChannelname extends _MessageCommon {
+  readonly newChannelname: string
+  readonly type: 'setChannelname'
+}
 
-export type MessageSystemChangeRetention = T.Immutable<{
-  isInherit: boolean
-  isTeam: boolean
-  membersType: RPCChatTypes.ConversationMembersType
-  policy?: RPCChatTypes.RetentionPolicy
-  type: 'systemChangeRetention'
-  user: string
-  you: string
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemChangeRetention extends _MessageCommon {
+  readonly isInherit: boolean
+  readonly isTeam: boolean
+  readonly membersType: RPCChatTypes.ConversationMembersType
+  readonly policy?: RPCChatTypes.RetentionPolicy
+  readonly type: 'systemChangeRetention'
+  readonly user: string
+  readonly you: string
+}
 
-export type MessageSystemUsersAddedToConversation = T.Immutable<{
-  usernames: ReadonlyArray<string>
-  type: 'systemUsersAddedToConversation'
-}> &
-  _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
+export interface MessageSystemUsersAddedToConversation extends _MessageCommon {
+  readonly usernames: ReadonlyArray<string>
+  readonly type: 'systemUsersAddedToConversation'
+}
 
 // If you add a message type here, you'll probably want to check
 // `deletableByDeleteHistory` stuff in constants/chat2/message
@@ -489,5 +395,3 @@ export type Message =
 
 type GetTypes<T> = T extends {type: string} ? T['type'] : never
 export type MessageType = GetTypes<Message>
-export type Filter<T, U> = T extends U ? T : never
-export type MessagesWithReactions = Filter<Message, _MessageWithReactions>
