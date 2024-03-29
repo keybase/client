@@ -1,13 +1,5 @@
 {
   "compilerOptions": {
-    // TEMP
-    // start
-    "emitDeclarationOnly": true,
-    // "noEmit": true,
-    // "incremental": false,
-    "incremental": true,
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
-    // end
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
@@ -17,7 +9,9 @@
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,
+    "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
+    "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],
@@ -41,7 +35,8 @@
     "resolveJsonModule": true,
     "sourceMap": false,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": [
