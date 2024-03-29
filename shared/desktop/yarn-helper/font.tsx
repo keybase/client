@@ -434,8 +434,8 @@ ${Object.keys(icons)
     let req = ''
     if (icon.require || icon.requireDark) {
       req = `...(isMobile ? {${[
-        icon.require ? `get require() {return require(${icon.require})}` : '',
-        icon.requireDark ? `get requireDark() {return require(${icon.requireDark})}` : '',
+        icon.require ? `get require(): number {return require(${icon.require})}` : '',
+        icon.requireDark ? `get requireDark(): number {return require(${icon.requireDark})}` : '',
       ]
         .filter(Boolean)
         .join(', ')}} : {})`
