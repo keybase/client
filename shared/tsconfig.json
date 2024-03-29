@@ -2,11 +2,11 @@
   "compilerOptions": {
     // TEMP
     // start
-    // "emitDeclarationOnly": true,
-    "noEmit": true,
-    "incremental": false,
-    // "incremental": true,
-    // "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
+    "emitDeclarationOnly": true,
+    // "noEmit": true,
+    // "incremental": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
     // end
     "allowJs": false,
     "allowSyntheticDefaultImports": true,

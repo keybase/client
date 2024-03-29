@@ -11,6 +11,7 @@ import * as Common from './common.native'
 import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
@@ -32,17 +33,24 @@ const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
   [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
 ] as const)
 
-type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+type Screen = (p: {
+  navigationKey?: string
+  name: keyof KBRootParamList
+  getComponent?: () => React.ComponentType<any>
+  options: unknown
+}) => React.ReactNode
+
 const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) => {
-  return Object.keys(rs).map((name: keyof typeof tabRoutes) => {
+  return Object.keys(rs).map(_name => {
+    const name = _name as keyof KBRootParamList
     const val = rs[name]
     if (!val?.getScreen) return null
     return (
       <Screen
-        key={name}
+        key={String(name)}
         name={name}
         getComponent={val.getScreen}
-        options={({route, navigation}) => {
+        options={({route, navigation}: {route: unknown; navigation: unknown}) => {
           const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route} as any) : no
           return {
@@ -138,7 +146,7 @@ const makeTabStack = (tab: (typeof tabs)[number]) => {
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(shim(tabRoutes, false, false), S.Screen, false)
+    tabScreens = makeNavScreens(shim(tabRoutes, false, false), S.Screen as Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -235,7 +243,11 @@ const AppTabs = () => <AppTabsImpl />
 
 const LoggedOutStack = createNativeStackNavigator()
 
-const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(
+  shim(loggedOutRoutes, false, true),
+  LoggedOutStack.Screen as Screen,
+  false
+)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     // TODO show header and use nav headers
@@ -300,7 +312,7 @@ enum GoodLinkingState {
 }
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 
 const useBarStyle = () => {
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
