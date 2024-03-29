@@ -1116,7 +1116,7 @@ const initialStore: Store = {
   },
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void

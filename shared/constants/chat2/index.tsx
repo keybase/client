@@ -319,7 +319,7 @@ const initialStore: Store = {
   userReacjis: defaultUserReacjis,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
     clearMetas: () => void

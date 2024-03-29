@@ -9,7 +9,7 @@ const initialStore: Store = {
   allowOpenTrigger: 0,
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     triggerAllowOpen: () => void
     resetState: 'default'

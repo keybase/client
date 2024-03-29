@@ -22,7 +22,7 @@ type Bootstrap = {
   username: string
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     // ONLY used by remote windows
     replaceUsername: (u: string) => void

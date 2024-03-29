@@ -257,7 +257,7 @@ export const inboxUIItemToConversationMeta = (
   const minWriterRoleEnum = i.convSettings?.minWriterRoleInfo
     ? i.convSettings.minWriterRoleInfo.role
     : undefined
-  let minWriterRole = (minWriterRoleEnum && C.Teams.teamRoleByEnum[minWriterRoleEnum]) || 'reader'
+  let minWriterRole = minWriterRoleEnum !== undefined ? C.Teams.teamRoleByEnum[minWriterRoleEnum] : 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'

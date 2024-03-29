@@ -96,7 +96,7 @@ const initialStore: Store = {
   verificationState: undefined,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     addPhoneNumber: (phoneNumber: string, searchable: boolean) => void
     clearAddedPhone: () => void

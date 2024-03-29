@@ -30,7 +30,7 @@ const initialStore: Store = {
   username: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     cancelReset: () => void
     resetState: 'default'

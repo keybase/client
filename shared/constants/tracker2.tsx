@@ -217,7 +217,7 @@ const initialStore: Store = {
   usernameToNonUserDetails: new Map(),
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void

@@ -44,7 +44,7 @@ const initialStore: Store = {
   kbfsJobsFreshness: new Map(),
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     start: (type: 'chatid' | 'chatname' | 'kbfs', path: string, outPath: string) => void
     cancel: (id: string) => void

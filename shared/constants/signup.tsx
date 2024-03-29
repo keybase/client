@@ -54,7 +54,7 @@ const initialStore: Store = {
   usernameTaken: '',
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     checkDeviceName: (devicename: string) => void
     checkInviteCode: () => void

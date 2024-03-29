@@ -27,7 +27,7 @@ const initialStore: Store = {
   widgetBadge: 'regular',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void

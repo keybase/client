@@ -1,7 +1,6 @@
 // Types related to a message
 import type * as Common from './common'
 import type * as RPCTypes from '../rpc-gen'
-import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as RPCStellarTypes from '../rpc-stellar-gen'
 import type * as WalletTypes from '../wallets'
 import type * as TeamTypes from '../teams'
@@ -27,7 +26,7 @@ export type ReactionDesc = T.Immutable<{
 }>
 export type Reactions = ReadonlyMap<string, ReactionDesc>
 
-export type UnfurlMap = ReadonlyMap<string, RPCChatTypes.UIMessageUnfurlInfo>
+export type UnfurlMap = ReadonlyMap<string, T.RPCChat.UIMessageUnfurlInfo>
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
@@ -59,7 +58,7 @@ export interface MessageExplodeDescription {
 
 export interface PathAndOutboxID {
   path: string
-  outboxID?: RPCChatTypes.OutboxID
+  outboxID?: T.RPCChat.OutboxID
   url?: string // if its a kbfs path
 }
 
@@ -74,7 +73,7 @@ interface _MessageCommon {
   readonly decoratedText?: HiddenString
   readonly text?: HiddenString
   readonly botUsername?: string
-  readonly cardType?: RPCChatTypes.JourneycardType
+  readonly cardType?: T.RPCChat.JourneycardType
   readonly conversationIDKey: Common.ConversationIDKey
   readonly deviceName?: string
   readonly deviceRevokedAt?: number
@@ -127,7 +126,7 @@ export interface MessagePlaceholder extends _MessageCommon {
 
 export interface MessageJourneycard extends _MessageCommon {
   readonly type: 'journeycard'
-  readonly cardType: RPCChatTypes.JourneycardType
+  readonly cardType: T.RPCChat.JourneycardType
   readonly highlightMsgID: MessageID
   readonly openTeam: boolean
 }
@@ -354,8 +353,8 @@ export interface MessageSetChannelname extends _MessageCommon {
 export interface MessageSystemChangeRetention extends _MessageCommon {
   readonly isInherit: boolean
   readonly isTeam: boolean
-  readonly membersType: RPCChatTypes.ConversationMembersType
-  readonly policy?: RPCChatTypes.RetentionPolicy
+  readonly membersType: T.RPCChat.ConversationMembersType
+  readonly policy?: T.RPCChat.RetentionPolicy
   readonly type: 'systemChangeRetention'
   readonly user: string
   readonly you: string

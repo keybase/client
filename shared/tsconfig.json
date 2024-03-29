@@ -1,5 +1,12 @@
 {
   "compilerOptions": {
+    // TEMP
+    // start
+    "emitDeclarationOnly": true,
+    // "noEmit": true,
+    // "incremental": false,
+    "incremental": true,
+    // end
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
@@ -9,17 +16,12 @@
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,
-    // "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": false,
-    // TEMP
-    "incremental": false,
-    // "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "noErrorTruncation": true,
-    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,

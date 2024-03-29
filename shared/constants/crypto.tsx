@@ -30,38 +30,38 @@ export const infoMessage = {
   encrypt: "Encrypt to anyone, even if they're not on Keybase yet.",
   sign: 'Add your cryptographic signature to a message or file.',
   verify: Platform.isMobile ? 'Verify a signed message.' : 'Verify any signed text or .signed.saltpack file.',
-} as const
+}
 
 export const Tabs = [
   {
     description: infoMessage.encrypt,
-    icon: 'iconfont-lock',
-    illustration: 'icon-encrypt-64',
+    icon: 'iconfont-lock' as const,
+    illustration: 'icon-encrypt-64' as const,
     tab: encryptTab,
     title: 'Encrypt',
   },
   {
     description: infoMessage.decrypt,
-    icon: 'iconfont-unlock',
-    illustration: 'icon-decrypt-64',
+    icon: 'iconfont-unlock' as const,
+    illustration: 'icon-decrypt-64' as const,
     tab: decryptTab,
     title: 'Decrypt',
   },
   {
     description: infoMessage.sign,
-    icon: 'iconfont-check',
-    illustration: 'icon-sign-64',
+    icon: 'iconfont-check' as const,
+    illustration: 'icon-sign-64' as const,
     tab: signTab,
     title: 'Sign',
   },
   {
     description: infoMessage.verify,
-    icon: 'iconfont-verify',
-    illustration: 'icon-verify-64',
+    icon: 'iconfont-verify' as const,
+    illustration: 'icon-verify-64' as const,
     tab: verifyTab,
     title: 'Verify',
   },
-] as const
+]
 
 type CommonStore = {
   bytesComplete: number

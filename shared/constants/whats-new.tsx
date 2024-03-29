@@ -95,7 +95,7 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   lastSeenVersion: '',
 }
-type State = Store & {
+interface State extends Store {
   dispatch: {
     resetState: 'default'
     updateLastSeen: (lastSeenItem?: {md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}) => void

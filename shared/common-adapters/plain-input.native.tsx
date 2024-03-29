@@ -23,17 +23,16 @@ class PlainInput extends React.PureComponent<InternalProps> {
     textType: 'Body',
   }
 
-  _mounted = true
-  _input = React.createRef<NativeTextInput>()
-  _lastNativeText: string | undefined
-  _lastNativeSelection: Selection | undefined
+  private _input = React.createRef<NativeTextInput>()
+  private _lastNativeText: string | undefined
+  private _lastNativeSelection: Selection | undefined
 
   get value() {
     return this._lastNativeText ?? ''
   }
 
   // This is controlled if a value prop is passed
-  _controlled = () => typeof this.props.value === 'string'
+  private _controlled = () => typeof this.props.value === 'string'
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
@@ -41,11 +40,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input.current?.setNativeProps(nativeProps)
   }
 
-  componentWillUnmount() {
-    this._mounted = false
-  }
-
-  _afterTransform: (() => void) | undefined
+  private _afterTransform: (() => void) | undefined
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
@@ -92,20 +87,20 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   // Validate that this selection makes sense with current value
-  _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
+  private _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
     let {start, end} = selection
     end = Math.max(0, Math.min(end || 0, nativeText.length))
     start = Math.min(start || 0, end)
     return {end, start}
   }
 
-  _setSelection = (selection: Selection) => {
+  private _setSelection = (selection: Selection) => {
     const newSelection = this._sanityCheckSelection(selection, this._lastNativeText || '')
     this.setNativeProps({selection: newSelection})
     this._lastNativeSelection = selection
   }
 
-  _onChangeText = (t: string) => {
+  private _onChangeText = (t: string) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
       if (stringToUint8Array(t).byteLength > maxBytes) {
@@ -119,20 +114,15 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._afterTransform?.()
   }
 
-  _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+  private _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start, end} = event.nativeEvent.selection
     this._lastNativeSelection = {end, start}
     this.props.onSelectionChange?.(this._lastNativeSelection)
   }
 
-  _lineHeight = () => {
+  private _lineHeight = () => {
     const textStyle = getTextStyle(this.props.textType)
     return textStyle.lineHeight
-  }
-
-  _fontSize = () => {
-    const textStyle = getTextStyle(this.props.textType)
-    return textStyle.fontSize
   }
 
   focus = () => {
@@ -153,15 +143,15 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   isFocused = () => !!this._input.current?.isFocused()
 
-  _onFocus = () => {
+  private _onFocus = () => {
     this.props.onFocus?.()
   }
 
-  _onBlur = () => {
+  private _onBlur = () => {
     this.props.onBlur?.()
   }
 
-  _getCommonStyle = () => {
+  private _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
     // RN TextInput plays better without this
     if (isIOS) {
@@ -170,7 +160,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return Styles.collapseStyles([styles.common, textStyle as any])
   }
 
-  _getMultilineStyle = () => {
+  private _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
     const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
@@ -184,12 +174,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
     ])
   }
 
-  _getSinglelineStyle = () => {
+  private _getSinglelineStyle = () => {
     const lineHeight = this._lineHeight()
     return Styles.collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
   }
 
-  _getStyle = () => {
+  private _getStyle = () => {
     return Styles.collapseStyles([
       this._getCommonStyle(),
       this.props.multiline ? this._getMultilineStyle() : this._getSinglelineStyle(),
@@ -204,11 +194,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _onSubmitEditing = () => {
+  private _onSubmitEditing = () => {
     this.props.onEnterKeyDown?.()
   }
 
-  _getProps = () => {
+  private _getProps = () => {
     const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       allowFontScaling: this.props.allowFontScaling,

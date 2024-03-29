@@ -166,7 +166,7 @@ const initialStore: Store = {
   },
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     dynamic: {
       copyToClipboard: (s: string) => void

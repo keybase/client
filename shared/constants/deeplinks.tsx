@@ -43,7 +43,7 @@ const initialStore: Store = {
   keybaseLinkError: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void

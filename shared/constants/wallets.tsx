@@ -44,7 +44,7 @@ const initialStore: Store = {
   accountMap: new Map(),
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     load: () => void
     removeAccount: (accountID: string) => void
