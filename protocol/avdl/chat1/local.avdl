@@ -1491,6 +1491,8 @@ protocol local {
   }
   record ArchiveChatJob {
     ArchiveChatJobRequest request;
+    // All conversations that matched the request.
+    array<InboxUIItem> matchingConvs;
     gregor1.Time startedAt;
     ArchiveChatJobStatus status;
     string err; // Set iff status == ERROR

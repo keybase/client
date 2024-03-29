@@ -480,7 +480,7 @@ func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJo
 	c.Lock()
 	defer c.Unlock()
 	c.messagesComplete += int64(pagination.Num)
-	if c.messagesComplete > c.messagesTotal || pagination.Last {
+	if c.messagesComplete > c.messagesTotal {
 		// total messages is capped to the convs expunge, don't over report.
 		c.messagesComplete = c.messagesTotal
 	}
@@ -686,6 +686,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	// Presume to resume
 	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
 	jobInfo.Err = ""
+	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
 
 	// Setup to run each conv in parallel
 	eg, ctx := errgroup.WithContext(ctx)
