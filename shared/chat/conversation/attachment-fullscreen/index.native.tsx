@@ -8,11 +8,14 @@ import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 import {useData} from './hooks'
 import {Animated} from 'react-native'
+import {Image} from 'expo-image'
+
+type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
 
 const Fullscreen = (p: Props) => {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
-  const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
+  const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
   const {ordinal} = message
@@ -20,6 +23,40 @@ const Fullscreen = (p: Props) => {
   const toggleHeader = React.useCallback(() => {
     setShowHeader(s => !s)
   }, [])
+
+  const [previewState, setPreviewState] = React.useState<PreviewState>(
+    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
+  )
+
+  const onLoadError = React.useCallback(() => {
+    setPreviewState('cantDoFallback')
+  }, [])
+  const onLoadedFull = React.useCallback(() => {
+    setPreviewState('fullLoaded')
+  }, [])
+  const onLoadedPreview = React.useCallback(() => {
+    setPreviewState('loadingFull')
+    const f = async () => {
+      try {
+        await Image.prefetch(path)
+        onLoadedFull()
+      } catch {
+        onLoadError()
+      }
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
+  }, [onLoadedFull, onLoadError, path])
+
+  const onLoaded =
+    previewState === 'loadingPreview'
+      ? onLoadedPreview
+      : previewState === 'loadingFull'
+        ? onLoadedFull
+        : undefined
+
+  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
 
   const {showPopup, popup} = useMessagePopup({ordinal})
 
@@ -65,7 +102,14 @@ const Fullscreen = (p: Props) => {
       )
     } else {
       content = (
-        <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} onTap={toggleHeader} />
+        <Kb.ZoomableImage
+          src={imgSrc}
+          style={styles.zoomableBox}
+          onSwipe={onSwipe}
+          onTap={toggleHeader}
+          onError={onLoadError}
+          onLoaded={onLoaded}
+        />
       )
     }
   }
