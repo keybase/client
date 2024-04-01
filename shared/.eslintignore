@@ -13,3 +13,6 @@ react-native/react-native-contacts
 react-native/wipe-cache.js
 rn-cli.config.js
 rn-transformer.js
+common-adapters/icon.constants-gen.desktop.tsx
+common-adapters/icon.constants-gen.native.tsx
+common-adapters/icon.constants-gen.shared.tsx

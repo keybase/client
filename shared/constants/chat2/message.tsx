@@ -617,7 +617,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam
       const invitee = inviteaddedtoteam.invitee || 'someone'
-      const role = C.Teams.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
+      const role = C.Teams.teamRoleByEnum[inviteaddedtoteam.role]
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'

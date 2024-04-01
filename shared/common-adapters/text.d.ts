@@ -13,35 +13,30 @@ type Background =
   | 'Success'
   | 'Terminal'
 
-type Values<T extends object> = T[keyof T]
+type Colors = typeof colors
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.
 export type AllowedColors =
-  | Values<
-      Pick<
-        typeof colors,
-        | 'blueDark'
-        | 'blueLighter' // for terminal background only
-        | 'greenDark'
-        | 'greenLight'
-        | 'redDark'
-        | 'purpleDark'
-        | 'black'
-        | 'black_on_white'
-        | 'black_50'
-        | 'black_50_on_white'
-        | 'black_35'
-        | 'black_20'
-        | 'black_20_on_white'
-        | 'white'
-        | 'white_75'
-        | 'white_40'
-        | 'white_40OrWhite_40'
-        | 'brown_75'
-        | 'orange'
-        | 'transparent'
-      >
-    >
+  | Colors['blueDark']
+  | Colors['blueLighter'] // for terminal background only
+  | Colors['greenDark']
+  | Colors['greenLight']
+  | Colors['redDark']
+  | Colors['purpleDark']
+  | Colors['black']
+  | Colors['black_on_white']
+  | Colors['black_50']
+  | Colors['black_50_on_white']
+  | Colors['black_35']
+  | Colors['black_20']
+  | Colors['black_20_on_white']
+  | Colors['white']
+  | Colors['white_75']
+  | Colors['white_40']
+  // | Colors['white_40OrWhite_40']
+  | Colors['brown_75']
+  | Colors['orange']
+  | Colors['transparent']
   | 'inherit'
 
 export type _StylesTextCrossPlatform = CSS._CustomStyles<'color', {color?: AllowedColors}>
