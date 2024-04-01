@@ -15,17 +15,16 @@ const initialStore: Store = {
   phase: 'dead',
 }
 
-export type State = Store &
-  T.Immutable<{
-    dispatch: {
-      onBackFromPaperKey: () => void
-      onEngineConnected: () => void
-      onEngineIncoming: (action: EngineGen.Actions) => void
-      toPaperKeyInput: () => void
-      replace: (devices: Store['devices']) => void
-      resetState: 'default'
-    }
-  }>
+export interface State extends Store {
+  dispatch: {
+    onBackFromPaperKey: () => void
+    onEngineConnected: () => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
+    toPaperKeyInput: () => void
+    replace: (devices: Store['devices']) => void
+    resetState: 'default'
+  }
+}
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
 export const _useState = Z.createZustand<State>((set, _get) => {

@@ -189,9 +189,9 @@ export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
 export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
 
-export const getDetails = (state: State, username: string) =>
+export const getDetails = (state: State, username: string): T.Tracker.Details =>
   state.usernameToDetails.get(username) || noDetails
-export const getNonUserDetails = (state: State, username: string) =>
+export const getNonUserDetails = (state: State, username: string): T.Tracker.NonUserDetails =>
   state.usernameToNonUserDetails.get(username) || noNonUserDetails
 
 export const guiIDToUsername = (state: State, guiID: string) => {
@@ -217,7 +217,7 @@ const initialStore: Store = {
   usernameToNonUserDetails: new Map(),
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void

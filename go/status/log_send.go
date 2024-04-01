@@ -239,9 +239,9 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	arg := libkb.APIArg{
 		Endpoint:        "logdump/send",
 		SessionType:     libkb.APISessionTypeOPTIONAL,
-		RetryCount:      6,
+		RetryCount:      2,
 		RetryMultiplier: 1.3,
-		InitialTimeout:  time.Minute,
+		InitialTimeout:  5 * time.Minute,
 	}
 
 	resp, err := mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)

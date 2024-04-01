@@ -5,7 +5,7 @@ import type * as EngineGen from '../actions/engine-gen-gen'
 type Store = {}
 const initialStore: Store = {}
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     onEngineConnected: () => void
     onEngineDisconnected: () => void

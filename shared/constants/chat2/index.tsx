@@ -52,7 +52,14 @@ export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   textStatus: 'initial',
 })
 
-export const getInboxSearchSelected = (inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>) => {
+const getInboxSearchSelected = (
+  inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>
+):
+  | undefined
+  | {
+      conversationIDKey: T.Chat.ConversationIDKey
+      query?: string
+    } => {
   const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
   const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
   const firstOpenTeamResultIdx = nameResults.length
@@ -67,7 +74,7 @@ export const getInboxSearchSelected = (inboxSearch: T.Immutable<T.Chat.InboxSear
       }
     }
   } else if (selectedIndex < firstTextResultIdx) {
-    return null
+    return
   } else if (selectedIndex >= firstTextResultIdx) {
     const result = textResults[selectedIndex - firstTextResultIdx]
     if (result) {
@@ -77,8 +84,7 @@ export const getInboxSearchSelected = (inboxSearch: T.Immutable<T.Chat.InboxSear
       }
     }
   }
-
-  return null
+  return
 }
 
 export const isTextOrAttachment = (
@@ -313,7 +319,7 @@ const initialStore: Store = {
   userReacjis: defaultUserReacjis,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
     clearMetas: () => void

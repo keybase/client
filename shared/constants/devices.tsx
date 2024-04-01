@@ -8,15 +8,14 @@ const initialStore: T.Devices.State = {
   isNew: new Set(),
 }
 
-type State = T.Devices.State &
-  T.Immutable<{
-    dispatch: {
-      load: () => void
-      clearBadges: () => void
-      resetState: 'default'
-      setBadges: (set: Set<string>) => void
-    }
-  }>
+interface State extends T.Devices.State {
+  dispatch: {
+    load: () => void
+    clearBadges: () => void
+    resetState: 'default'
+    setBadges: (set: Set<string>) => void
+  }
+}
 
 export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {

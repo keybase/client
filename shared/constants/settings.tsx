@@ -76,7 +76,7 @@ const initialStore: Store = {
   proxyData: undefined,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     checkPassword: (password: string) => void
     dbNuke: () => void

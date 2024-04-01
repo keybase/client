@@ -283,20 +283,9 @@ export type UIPaymentReviewed = {readonly bid: BuildPaymentID; readonly reviewID
 export type ValidateStellarURIResultLocal = {readonly operation: String; readonly originDomain: String; readonly message: String; readonly callbackURL: String; readonly xdr: String; readonly summary: TxDisplaySummary; readonly recipient: String; readonly amount: String; readonly assetCode: String; readonly assetIssuer: String; readonly memo: String; readonly memoType: String; readonly displayAmountFiat: String; readonly availableToSendNative: String; readonly availableToSendFiat: String; readonly signed: Boolean}
 export type WalletAccountLocal = {readonly accountID: AccountID; readonly isDefault: Boolean; readonly name: String; readonly balanceDescription: String; readonly seqno: String; readonly currencyLocal: CurrencyLocal; readonly accountMode: AccountMode; readonly accountModeEditable: Boolean; readonly deviceReadOnly: Boolean; readonly isFunded: Boolean; readonly canSubmitTx: Boolean; readonly canAddTrustline: Boolean}
 
-export type IncomingCallMapType = {
-  'stellar.1.notify.paymentNotification'?: (params: MessageTypes['stellar.1.notify.paymentNotification']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.paymentStatusNotification'?: (params: MessageTypes['stellar.1.notify.paymentStatusNotification']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.requestStatusNotification'?: (params: MessageTypes['stellar.1.notify.requestStatusNotification']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.accountDetailsUpdate'?: (params: MessageTypes['stellar.1.notify.accountDetailsUpdate']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.accountsUpdate'?: (params: MessageTypes['stellar.1.notify.accountsUpdate']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.pendingPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.pendingPaymentsUpdate']['inParam'] & {sessionID: number}) => void
-  'stellar.1.notify.recentPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.recentPaymentsUpdate']['inParam'] & {sessionID: number}) => void
-  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}) => void
-}
+export type IncomingCallMapType = {}
 
-export type CustomResponseIncomingCallMap = {
-  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['stellar.1.ui.paymentReviewed']['outParam']) => void}) => void
-}
+export type CustomResponseIncomingCallMap = {}
 export const localDeleteWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.deleteWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.deleteWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.deleteWalletAccountLocal', params, callback: (error: SimpleError, result: MessageTypes['stellar.1.local.deleteWalletAccountLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWalletAccountSecretKeyLocalRpcPromise = (params: MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountSecretKeyLocal', params, callback: (error: SimpleError, result: MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWalletAccountsLocalRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getWalletAccountsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountsLocal', params, callback: (error: SimpleError, result: MessageTypes['stellar.1.local.getWalletAccountsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -278,7 +278,7 @@ const initialStore: Store = {
   navState: undefined,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     clearModals: () => void
     dynamic: {

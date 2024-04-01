@@ -448,7 +448,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   get yellowOrYellowAlt() {
     return '#c3c390'
   },
-}
+} as const
 
 type Color = typeof colors
 type Names = keyof Color

@@ -1,8 +1,7 @@
 import * as React from 'react'
 import Box from './box'
 import LottieView from 'lottie-react-native'
-import type {Props} from './animation'
-import type {default as AnimationData} from './animation-data.json'
+import type {Props, AnimationType} from './animation'
 type AnimationObject = {
   v: string
   fr: number
@@ -18,7 +17,7 @@ type AnimationObject = {
 
 const Animation = React.memo(function Animation(props: Props) {
   const {animationType} = props
-  const dataRef = React.useRef(require('./animation-data.json') as typeof AnimationData)
+  const dataRef = React.useRef(require('./animation-data.json') as {[key in AnimationType]: AnimationObject})
   const source = React.useRef<AnimationObject>(dataRef.current[animationType])
   const lastAnimationType = React.useRef(animationType)
   if (animationType !== lastAnimationType.current) {

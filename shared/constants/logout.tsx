@@ -19,7 +19,7 @@ const initialStore: Store = {
   waiters: new Map(),
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     resetState: () => void
     wait: (name: string, version: number, increment: boolean) => void

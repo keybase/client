@@ -10,7 +10,7 @@ const initialStore: Store = {
   following: new Set(),
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     resetState: 'default'
     replace: (followers: ReadonlySet<string>, following: ReadonlySet<string>) => void

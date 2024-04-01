@@ -21,8 +21,7 @@ type contentTypeOverridingResponseWriter struct {
 var _ http.ResponseWriter = (*contentTypeOverridingResponseWriter)(nil)
 
 func newContentTypeOverridingResponseWriter(
-	original http.ResponseWriter, viewTypeInvariance string,
-) *contentTypeOverridingResponseWriter {
+	original http.ResponseWriter, viewTypeInvariance string) *contentTypeOverridingResponseWriter {
 	return &contentTypeOverridingResponseWriter{
 		original:           original,
 		viewTypeInvariance: viewTypeInvariance,
@@ -121,8 +120,7 @@ func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
 // doesn't change between when GUI learnt about it and when GUI requested it
 // over HTTP from the webview.
 func GetGUIFileContextFromContentType(contentTypeRaw string) (
-	viewType keybase1.GUIViewType, invariance string,
-) {
+	viewType keybase1.GUIViewType, invariance string) {
 	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
 	disposition := getDisposition(true, contentTypeProcessed)
 	viewType, invariance = getGUIFileContext(contentTypeRaw, disposition)
@@ -130,8 +128,7 @@ func GetGUIFileContextFromContentType(contentTypeRaw string) (
 }
 
 func (w *contentTypeOverridingResponseWriter) calculateOverride(
-	mimeType string,
-) (newMimeType, disposition string) {
+	mimeType string) (newMimeType, disposition string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
 	// by the frontend WebView.
 	ty := strings.ToLower(mimeType)

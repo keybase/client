@@ -43,7 +43,7 @@ const initialStore: Store = {
   pendingInvites: [],
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     loadInvites: () => void
     reclaimInvite: (inviteId: string) => void

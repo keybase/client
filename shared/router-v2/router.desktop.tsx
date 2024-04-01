@@ -7,6 +7,7 @@ import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
 import Header from './header/index.desktop'
 import type {RouteDef, RouteMap} from '@/constants/types/router2'
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
@@ -32,7 +33,12 @@ const routesMinusRoots = (tab: DesktopTabs) => {
   }, {})
 }
 
-type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+type Screen = (p: {
+  navigationKey: string
+  name: keyof KBRootParamList
+  getComponent?: () => React.ComponentType<any>
+  options: unknown
+}) => React.ReactNode
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
@@ -44,7 +50,8 @@ const makeOptions = (val: RouteDef) => {
 }
 
 const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
-  return Object.keys(rs).map((name: keyof typeof routes) => {
+  return Object.keys(rs).map(_name => {
+    const name = _name as keyof KBRootParamList
     const val = rs[name]
     if (!val?.getScreen) return null
     return (
@@ -74,7 +81,7 @@ const TabStack = createNativeStackNavigator()
 const TabStackNavigator = React.memo(function TabStackNavigator(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
   const tabScreens = React.useMemo(
-    () => makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen, false),
+    () => makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen as Screen, false),
     [tab]
   )
   return (
@@ -97,7 +104,11 @@ const AppTabsInner = React.memo(function AppTabsInner() {
 const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator()
-const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(
+  shim(loggedOutRoutes, false, true),
+  LoggedOutStack.Screen as Screen,
+  false
+)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     <LoggedOutStack.Navigator
@@ -140,7 +151,7 @@ const ElectronApp = React.memo(function ElectronApp() {
   Shared.useSharedAfter(appState)
 
   const ModalScreens = React.useMemo(
-    () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true),
+    () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),
     []
   )
 

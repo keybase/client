@@ -90,7 +90,7 @@ export const emojiSearch = (filter: string, maxResults: number) => {
   return res.map(r => r.emoji)
 }
 
-export const defaultHoverEmoji = emojiNameMap['potato'] || emojidata[0]
+export const defaultHoverEmoji = (emojiNameMap['potato'] || emojidata[0]) as EmojiData
 
 export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   if (emoji.userEmojiRenderUrl || emoji.userEmojiRenderStock) {
@@ -148,10 +148,12 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
   return {
     category: category ?? '',
     name: undefined,
+    non_qualified: '',
     sheet_x: -1,
     sheet_y: -1,
     short_name: emoji.alias,
     short_names: [emoji.alias],
+    sort_order: -1,
     teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
