@@ -3356,6 +3356,7 @@ export type IncomingCallMapType = {
   'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: MessageTypes['keybase.1.loginUi.displayPrimaryPaperKey']['inParam']) => void
   'keybase.1.loginUi.displayResetProgress'?: (params: MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam']) => void
   'keybase.1.loginUi.explainDeviceRecovery'?: (params: MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam']) => void
+  'keybase.1.pgpUi.finished'?: (params: MessageTypes['keybase.1.pgpUi.finished']['inParam']) => void
   'keybase.1.proveUi.outputPrechecks'?: (params: MessageTypes['keybase.1.proveUi.outputPrechecks']['inParam']) => void
   'keybase.1.proveUi.displayRecheckWarning'?: (params: MessageTypes['keybase.1.proveUi.displayRecheckWarning']['inParam']) => void
   'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: MessageTypes['keybase.1.provisionUi.DisplaySecretExchanged']['inParam']) => void
@@ -3367,11 +3368,15 @@ export type IncomingCallMapType = {
 }
 
 export type CustomResponseIncomingCallMap = {
+  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void}) => void
+  'keybase.1.gpgUi.selectKey'?: (params: MessageTypes['keybase.1.gpgUi.selectKey']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.gpgUi.selectKey']['outParam']) => void}) => void
   'keybase.1.loginUi.getEmailOrUsername'?: (params: MessageTypes['keybase.1.loginUi.getEmailOrUsername']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.getEmailOrUsername']['outParam']) => void}) => void
   'keybase.1.loginUi.promptRevokePaperKeys'?: (params: MessageTypes['keybase.1.loginUi.promptRevokePaperKeys']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.promptRevokePaperKeys']['outParam']) => void}) => void
   'keybase.1.loginUi.promptResetAccount'?: (params: MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void}) => void
   'keybase.1.loginUi.promptPassphraseRecovery'?: (params: MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['outParam']) => void}) => void
   'keybase.1.loginUi.chooseDeviceToRecoverWith'?: (params: MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']) => void}) => void
+  'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void}) => void
+  'keybase.1.pgpUi.shouldPushPrivate'?: (params: MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['outParam']) => void}) => void
   'keybase.1.proveUi.promptOverwrite'?: (params: MessageTypes['keybase.1.proveUi.promptOverwrite']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.proveUi.promptOverwrite']['outParam']) => void}) => void
   'keybase.1.proveUi.promptUsername'?: (params: MessageTypes['keybase.1.proveUi.promptUsername']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.proveUi.promptUsername']['outParam']) => void}) => void
   'keybase.1.proveUi.preProofWarning'?: (params: MessageTypes['keybase.1.proveUi.preProofWarning']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.proveUi.preProofWarning']['outParam']) => void}) => void
@@ -3710,11 +3715,9 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.git.gcPersonalRepo'
 // 'keybase.1.git.gcTeamRepo'
 // 'keybase.1.git.getTeamRepoSettings'
-// 'keybase.1.gpgUi.wantToAddGPGKey'
 // 'keybase.1.gpgUi.confirmDuplicateKeyChosen'
 // 'keybase.1.gpgUi.confirmImportSecretToExistingKey'
 // 'keybase.1.gpgUi.selectKeyAndPushOption'
-// 'keybase.1.gpgUi.selectKey'
 // 'keybase.1.gpgUi.sign'
 // 'keybase.1.gpgUi.getTTY'
 // 'keybase.1.gregor.injectItem'
@@ -3914,9 +3917,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.pgpUi.outputPGPWarning'
 // 'keybase.1.pgpUi.outputSignatureSuccess'
 // 'keybase.1.pgpUi.outputSignatureNonKeybase'
-// 'keybase.1.pgpUi.keyGenerated'
-// 'keybase.1.pgpUi.shouldPushPrivate'
-// 'keybase.1.pgpUi.finished'
 // 'keybase.1.phoneNumbers.editPhoneNumber'
 // 'keybase.1.phoneNumbers.getPhoneNumbers'
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
