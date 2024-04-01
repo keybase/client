@@ -27,7 +27,7 @@ const initialStore: Store = {
   rememberPassword: true,
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     loadHasRandomPw: () => void
     loadPgpSettings: () => void

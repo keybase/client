@@ -20,7 +20,7 @@ export const getUnfurlInfo = (state: C.Chat.ConvoState, ordinal: T.Chat.Ordinal,
   const author = message?.author
   const you = C.useCurrentUserState.getState().username
   const youAreAuthor = author === you
-  const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
+  const unfurlInfo: undefined | T.RPCChat.UIMessageUnfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 
   if (!unfurlInfo)
     return {author: '', isCollapsed: false, unfurl: null, unfurlMessageID: 0, youAreAuthor: false}

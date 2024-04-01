@@ -17,7 +17,7 @@ const initialStore: Store = {
   systemDarkMode: false,
 }
 
-type State = Store & {
+interface State extends Store {
   isDarkMode: () => boolean
   dispatch: {
     loadDarkPrefs: () => void

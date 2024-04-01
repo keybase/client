@@ -2,7 +2,6 @@
 import type * as T from '@/constants/types'
 import type * as Common from './common'
 import type * as Message from './message'
-import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as TeamTypes from '../teams'
 import type {RetentionPolicy} from '../retention-policy'
 
@@ -19,10 +18,10 @@ export type PinnedMessageInfo = {
 
 export type ConversationMeta = T.Immutable<{
   botAliases: {[key: string]: string}
-  botCommands: RPCChatTypes.ConversationCommandGroups
+  botCommands: T.RPCChat.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
-  commands: RPCChatTypes.ConversationCommandGroups
+  commands: T.RPCChat.ConversationCommandGroups
   conversationIDKey: Common.ConversationIDKey // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing,
   description: string
   descriptionDecorated: string
@@ -46,8 +45,8 @@ export type ConversationMeta = T.Immutable<{
   retentionPolicy: RetentionPolicy
   snippet?: string
   snippetDecorated?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
-  status: RPCChatTypes.ConversationStatus
+  snippetDecoration: T.RPCChat.SnippetDecoration
+  status: T.RPCChat.ConversationStatus
   supersededBy: Common.ConversationIDKey
   supersedes: Common.ConversationIDKey
   // We have a place in the team store that also stores `teamRetentionPolicy`.

@@ -12,8 +12,8 @@ const maybeParseInt = (input: string | number, radix: number): number =>
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
-  _input = React.createRef<HTMLTextAreaElement | HTMLInputElement | null>()
-  _isComposingIME: boolean = false
+  private _input = React.createRef<HTMLTextAreaElement | HTMLInputElement | null>()
+  private _isComposingIME: boolean = false
   private mounted: boolean = true
 
   static defaultProps = {
@@ -26,9 +26,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   // This is controlled if a value prop is passed
-  _controlled = () => typeof this.props.value === 'string'
+  private _controlled = () => typeof this.props.value === 'string'
 
-  _onChange = ({target: {value = ''}}) => {
+  private _onChange = ({target: {value = ''}}) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
       if (stringToUint8Array(value).byteLength > maxBytes) {
@@ -40,8 +40,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._autoResize()
   }
 
-  _autoResizeLast = ''
-  _autoResize = () => {
+  private _autoResizeLast = ''
+  private _autoResize = () => {
     if (!this.props.multiline) {
       // no resizing height on single-line inputs
       return
@@ -138,15 +138,15 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _onCompositionStart = () => {
+  private _onCompositionStart = () => {
     this._isComposingIME = true
   }
 
-  _onCompositionEnd = () => {
+  private _onCompositionEnd = () => {
     this._isComposingIME = false
   }
 
-  _onKeyDown = (e: React.KeyboardEvent) => {
+  private _onKeyDown = (e: React.KeyboardEvent) => {
     if (this._isComposingIME) {
       return
     }
@@ -158,7 +158,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _onKeyUp = (e: React.KeyboardEvent) => {
+  private _onKeyUp = (e: React.KeyboardEvent) => {
     if (this._isComposingIME) {
       return
     }
@@ -167,7 +167,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _onFocus = () => {
+  private _onFocus = () => {
     this.props.onFocus?.()
     this.props.selectTextOnFocus &&
       // doesn't work within the same tick
@@ -181,11 +181,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
       )
   }
 
-  _onBlur = () => {
+  private _onBlur = () => {
     this.props.onBlur?.()
   }
 
-  _getCommonProps = () => {
+  private _getCommonProps = () => {
     const commonProps = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
@@ -206,7 +206,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return commonProps
   }
 
-  _getMultilineProps = () => {
+  private _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
     const textStyle = getTextStyle(this.props.textType)
     const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
@@ -239,7 +239,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _getSinglelineProps = () => {
+  private _getSinglelineProps = () => {
     const textStyle = getTextStyle(this.props.textType)
     return {
       ...this._getCommonProps(),
@@ -253,7 +253,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _getInputProps = () => {
+  private _getInputProps = () => {
     return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
   }
 
@@ -272,7 +272,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this.mounted = false
   }
 
-  _registerBodyEvents = (add: boolean) => {
+  private _registerBodyEvents = (add: boolean) => {
     const body = document.body
     if (add) {
       body.addEventListener('keydown', this._globalKeyDownHandler)
@@ -283,7 +283,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  _globalKeyDownHandler = (ev: KeyboardEvent) => {
+  private _globalKeyDownHandler = (ev: KeyboardEvent) => {
     const target = ev.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return

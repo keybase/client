@@ -23,7 +23,7 @@ const initialStore: Store = {
   windowTitle: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     dynamic: {
       onCancel?: () => void

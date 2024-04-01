@@ -19,7 +19,7 @@ const initialStore: Store = {
   infoMap: new Map(),
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: ReadonlyArray<string>) => void

@@ -225,7 +225,7 @@ export const colors = {
   get yellowOrYellowAlt() {
     return '#ffffc0'
   },
-} as const
+}
 
 export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black: 'rgba(255, 255, 255, 0.85)',

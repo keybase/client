@@ -13,7 +13,7 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   pickerMap: new Map(),
 }
-type State = Store & {
+interface State extends Store {
   dispatch: {
     resetState: 'default'
     updatePickerMap: (key: PickKey, val?: PickerValue) => void

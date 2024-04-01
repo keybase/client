@@ -97,7 +97,7 @@ const initialStore: Store = {
   wotAuthorError: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     dynamic: {
       afterCheckProof?: () => void

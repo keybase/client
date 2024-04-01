@@ -117,7 +117,7 @@ const initialStore: Store = {
   username: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     dynamic: {
       cancel?: () => void
