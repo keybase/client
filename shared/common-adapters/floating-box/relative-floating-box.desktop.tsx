@@ -384,16 +384,16 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentDidMount() {
     const node = document.body
-    node.addEventListener('mousedown', this._handleDown, false)
-    node.addEventListener('mouseup', this._handleUp, false)
+    node.addEventListener('mousedown', this._handleDown, {capture: true})
+    node.addEventListener('mouseup', this._handleUp, {capture: true})
   }
 
   componentWillUnmount() {
     clearTimeout(this._timeout)
     this._timeout = undefined
     const node = document.body
-    node.removeEventListener('mousedown', this._handleDown, false)
-    node.removeEventListener('mouseup', this._handleUp, false)
+    node.removeEventListener('mousedown', this._handleDown, {capture: true})
+    node.removeEventListener('mouseup', this._handleUp, {capture: true})
   }
 
   _setRef = (r: HTMLElement | null) => {
