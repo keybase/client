@@ -30,9 +30,11 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
+type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
+
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
-  const {message, ordinal, path, title, progress} = data
+  const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
 
@@ -40,6 +42,31 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const onIsZoomed = React.useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed)
   }, [])
+
+  const [previewState, setPreviewState] = React.useState<PreviewState>(
+    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
+  )
+
+  const onLoadError = React.useCallback(() => {
+    setPreviewState('cantDoFallback')
+  }, [])
+  const onLoadedFull = React.useCallback(() => {
+    setPreviewState('fullLoaded')
+  }, [])
+  const onLoadedPreview = React.useCallback(() => {
+    setPreviewState('loadingFull')
+    const img = new Image()
+    img.src = path
+    img.onload = onLoadedFull
+    img.onerror = onLoadError
+  }, [onLoadedFull, onLoadError, path])
+
+  const onLoaded =
+    previewState === 'loadingPreview'
+      ? onLoadedPreview
+      : previewState === 'loadingFull'
+        ? onLoadedFull
+        : undefined
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']
@@ -59,6 +86,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     }),
     []
   )
+
+  const imgSrc = previewState === 'fullLoaded' ? path : previewPath
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
@@ -102,7 +131,12 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                     <source src={path} />
                   </video>
                 ) : (
-                  <Kb.ZoomableImage src={path} onIsZoomed={onIsZoomed} />
+                  <Kb.ZoomableImage
+                    src={imgSrc}
+                    onIsZoomed={onIsZoomed}
+                    onError={onLoadError}
+                    onLoaded={onLoaded}
+                  />
                 )}
               </Kb.Box2>
               {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}

@@ -40,8 +40,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const {downloadPath, fileURL} = message
-  const {previewHeight, previewURL, previewWidth, title, transferProgress} = message
+  const {downloadPath, fileURL: path} = message
+  const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = C.Chat.clampImageSize(
     previewWidth,
     previewHeight,
@@ -61,7 +61,6 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     ? () => openLocalPathInSystemFileManagerDesktop?.(downloadPath)
     : undefined
 
-  const path = fileURL || previewURL
   const progress = transferProgress
   const progressLabel = downloadPath
     ? undefined
@@ -81,6 +80,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     ordinal,
     path,
     previewHeight: clampedHeight,
+    previewPath,
     previewWidth: clampedWidth,
     progress,
     progressLabel,
