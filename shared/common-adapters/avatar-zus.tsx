@@ -9,7 +9,7 @@ const initialStore: Store = {
   counts: new Map(),
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     updated: (key: string) => void
     // used by remotes to update themselves

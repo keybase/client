@@ -14,7 +14,7 @@ export type Store = T.Immutable<{
   waitingToShowJoinedModal: boolean
 }>
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     importContactsLater: () => void
     editContactImportEnabled: (enable: boolean, fromSettings?: boolean) => void

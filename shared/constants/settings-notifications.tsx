@@ -52,7 +52,7 @@ const initialStore: Store = {
   groups: new Map(),
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     resetState: 'default'
     toggle: (group: string, name?: string) => void

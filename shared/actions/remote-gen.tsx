@@ -41,10 +41,7 @@ export const userFileEditsLoad = 'remote:userFileEditsLoad'
 /**
  * desktop only: the installer ran and we can start up
  */
-export const createInstallerRan = (payload?: undefined) => ({
-  payload,
-  type: installerRan as typeof installerRan,
-})
+export const createInstallerRan = (payload?: undefined) => ({payload, type: installerRan}) as const
 /**
  * main electron window wants to store its state
  */
@@ -58,92 +55,49 @@ export const createUpdateWindowState = (payload: {
     x: number
     y: number
   }
-}) => ({payload, type: updateWindowState as typeof updateWindowState})
+}) => ({payload, type: updateWindowState}) as const
 /**
  * remote electron window wants props sent
  */
-export const createRemoteWindowWantsProps = (payload: {
-  readonly component: string
-  readonly param: string
-}) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
-export const createCloseUnlockFolders = (payload?: undefined) => ({
-  payload,
-  type: closeUnlockFolders as typeof closeUnlockFolders,
-})
-export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
-  payload,
-  type: dumpLogs as typeof dumpLogs,
-})
-export const createEngineConnection = (payload: {readonly connected: boolean}) => ({
-  payload,
-  type: engineConnection as typeof engineConnection,
-})
-export const createInboxRefresh = (payload?: undefined) => ({
-  payload,
-  type: inboxRefresh as typeof inboxRefresh,
-})
-export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
-export const createOpenChatFromWidget = (payload: {readonly conversationIDKey: string}) => ({
-  payload,
-  type: openChatFromWidget as typeof openChatFromWidget,
-})
-export const createOpenFilesFromWidget = (payload: {readonly path: string}) => ({
-  payload,
-  type: openFilesFromWidget as typeof openFilesFromWidget,
-})
-export const createOpenPathInSystemFileManager = (payload: {readonly path: string}) => ({
-  payload,
-  type: openPathInSystemFileManager as typeof openPathInSystemFileManager,
-})
-export const createPinentryOnCancel = (payload?: undefined) => ({
-  payload,
-  type: pinentryOnCancel as typeof pinentryOnCancel,
-})
-export const createPinentryOnSubmit = (payload: {readonly password: string}) => ({
-  payload,
-  type: pinentryOnSubmit as typeof pinentryOnSubmit,
-})
-export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
-  payload,
-  type: powerMonitorEvent as typeof powerMonitorEvent,
-})
-export const createPreviewConversation = (payload: {readonly participant: string}) => ({
-  payload,
-  type: previewConversation as typeof previewConversation,
-})
-export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
-  payload,
-  type: saltpackFileOpen as typeof saltpackFileOpen,
-})
-export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
-  payload,
-  type: setCriticalUpdate as typeof setCriticalUpdate,
-})
-export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
-  payload,
-  type: setSystemDarkMode as typeof setSystemDarkMode,
-})
-export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
-export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) => ({
-  payload,
-  type: stop as typeof stop,
-})
-export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab}) => ({
-  payload,
-  type: switchTab as typeof switchTab,
-})
-export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) => ({
-  payload,
-  type: trackerChangeFollow as typeof trackerChangeFollow,
-})
-export const createTrackerCloseTracker = (payload: {readonly guiID: string}) => ({
-  payload,
-  type: trackerCloseTracker as typeof trackerCloseTracker,
-})
-export const createTrackerIgnore = (payload: {readonly guiID: string}) => ({
-  payload,
-  type: trackerIgnore as typeof trackerIgnore,
-})
+export const createRemoteWindowWantsProps = (payload: {readonly component: string; readonly param: string}) =>
+  ({payload, type: remoteWindowWantsProps}) as const
+export const createCloseUnlockFolders = (payload?: undefined) =>
+  ({payload, type: closeUnlockFolders}) as const
+export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) =>
+  ({payload, type: dumpLogs}) as const
+export const createEngineConnection = (payload: {readonly connected: boolean}) =>
+  ({payload, type: engineConnection}) as const
+export const createInboxRefresh = (payload?: undefined) => ({payload, type: inboxRefresh}) as const
+export const createLink = (payload: {readonly link: string}) => ({payload, type: link}) as const
+export const createOpenChatFromWidget = (payload: {readonly conversationIDKey: string}) =>
+  ({payload, type: openChatFromWidget}) as const
+export const createOpenFilesFromWidget = (payload: {readonly path: string}) =>
+  ({payload, type: openFilesFromWidget}) as const
+export const createOpenPathInSystemFileManager = (payload: {readonly path: string}) =>
+  ({payload, type: openPathInSystemFileManager}) as const
+export const createPinentryOnCancel = (payload?: undefined) => ({payload, type: pinentryOnCancel}) as const
+export const createPinentryOnSubmit = (payload: {readonly password: string}) =>
+  ({payload, type: pinentryOnSubmit}) as const
+export const createPowerMonitorEvent = (payload: {readonly event: string}) =>
+  ({payload, type: powerMonitorEvent}) as const
+export const createPreviewConversation = (payload: {readonly participant: string}) =>
+  ({payload, type: previewConversation}) as const
+export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) =>
+  ({payload, type: saltpackFileOpen}) as const
+export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) =>
+  ({payload, type: setCriticalUpdate}) as const
+export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) =>
+  ({payload, type: setSystemDarkMode}) as const
+export const createShowMain = (payload?: undefined) => ({payload, type: showMain}) as const
+export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) =>
+  ({payload, type: stop}) as const
+export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab}) => ({payload, type: switchTab}) as const
+export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) =>
+  ({payload, type: trackerChangeFollow}) as const
+export const createTrackerCloseTracker = (payload: {readonly guiID: string}) =>
+  ({payload, type: trackerCloseTracker}) as const
+export const createTrackerIgnore = (payload: {readonly guiID: string}) =>
+  ({payload, type: trackerIgnore}) as const
 export const createTrackerLoad = (payload: {
   readonly assertion: string
   readonly forceDisplay?: boolean
@@ -152,24 +106,15 @@ export const createTrackerLoad = (payload: {
   readonly ignoreCache?: boolean
   readonly reason: string
   readonly inTracker: boolean
-}) => ({payload, type: trackerLoad as typeof trackerLoad})
-export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: string}) => ({
-  payload,
-  type: unlockFoldersSubmitPaperKey as typeof unlockFoldersSubmitPaperKey,
-})
-export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
-export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => ({
-  payload,
-  type: updateWindowMaxState as typeof updateWindowMaxState,
-})
-export const createUpdateWindowShown = (payload: {readonly component: string}) => ({
-  payload,
-  type: updateWindowShown as typeof updateWindowShown,
-})
-export const createUserFileEditsLoad = (payload?: undefined) => ({
-  payload,
-  type: userFileEditsLoad as typeof userFileEditsLoad,
-})
+}) => ({payload, type: trackerLoad}) as const
+export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: string}) =>
+  ({payload, type: unlockFoldersSubmitPaperKey}) as const
+export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow}) as const
+export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) =>
+  ({payload, type: updateWindowMaxState}) as const
+export const createUpdateWindowShown = (payload: {readonly component: string}) =>
+  ({payload, type: updateWindowShown}) as const
+export const createUserFileEditsLoad = (payload?: undefined) => ({payload, type: userFileEditsLoad}) as const
 
 // Action Payloads
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>

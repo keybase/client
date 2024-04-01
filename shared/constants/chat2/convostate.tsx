@@ -159,7 +159,7 @@ const initialConvoStore: ConvoStore = {
   unread: 0,
   unsentText: undefined,
 }
-export type ConvoState = ConvoStore & {
+export interface ConvoState extends ConvoStore {
   dispatch: {
     addBotMember: (
       username: string,
@@ -2110,7 +2110,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               cannotWrite ? 1 : 0
             }`
           )
-          if (role && role !== 'none') {
+          if (role) {
             // only insert if the convo is already in the inbox
             if (get().isMetaGood()) {
               set(s => {
@@ -2337,7 +2337,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const trole = C.Teams.teamRoleByEnum[role]
-        const r = !trole || trole === 'none' ? undefined : trole
+        const r = trole === 'none' ? undefined : trole
         set(s => {
           const roles = s.botTeamRoleMap
           if (r !== undefined) {
@@ -3227,6 +3227,7 @@ export function _useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state
 }
 
 export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: string}}}
+
 type RouteParams = {
   route: {params: {conversationIDKey?: string}}
 }

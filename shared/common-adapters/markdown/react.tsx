@@ -17,7 +17,7 @@ export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
   ServiceDecoration = SDT
 }
 
-type State = SM.State & {
+interface State extends SM.State {
   context?: string
   allowFontScaling?: boolean
   disallowAnimation?: boolean

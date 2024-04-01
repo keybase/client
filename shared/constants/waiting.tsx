@@ -7,7 +7,7 @@ const initialStore: T.Waiting.State = {
   errors: new Map(),
 }
 
-type State = T.Waiting.State & {
+interface State extends T.Waiting.State {
   dispatch: {
     resetState: 'default'
     clear: (keys: string | ReadonlyArray<string>) => void

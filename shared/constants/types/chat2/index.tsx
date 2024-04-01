@@ -1,21 +1,20 @@
-import type * as T from '../../types'
+import type * as T from '@/constants/types'
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
 import type * as Meta from './meta'
-import type * as RPCChatTypes from '../rpc-chat-gen'
 import {uint8ArrayToHex, hexToUint8Array} from 'uint8array-extras'
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
-  summary?: RPCChatTypes.UIChatPaymentSummary
+  summary?: T.RPCChat.UIChatPaymentSummary
 }
 
 // Static config data we use for various things
 export type StaticConfig = {
   deletableByDeleteHistory: Set<_Message.MessageType>
   builtinCommands: {
-    [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>
+    [K in T.RPCChat.ConversationBuiltinCommandTyp]: Array<T.RPCChat.ConversationCommand>
   }
 }
 
@@ -94,8 +93,8 @@ export type AttachmentFullscreenSelection = {
 
 export type CommandStatusInfo = {
   displayText: string
-  displayType: RPCChatTypes.UICommandStatusDisplayTyp
-  actions: Array<RPCChatTypes.UICommandStatusActionTyp>
+  displayType: T.RPCChat.UICommandStatusDisplayTyp
+  actions: Array<T.RPCChat.UICommandStatusActionTyp>
 }
 
 export type UserReacjis = {
@@ -194,16 +193,16 @@ export type RenderMessageType =
   | 'attachment:file'
   | 'attachment:video'
 
-export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
+export const conversationIDToKey = (conversationID: T.RPCChat.ConversationID): Common.ConversationIDKey =>
   Common.stringToConversationIDKey(uint8ArrayToHex(conversationID))
 
-export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
+export const keyToConversationID = (key: Common.ConversationIDKey): T.RPCChat.ConversationID =>
   hexToUint8Array(Common.conversationIDKeyToString(key))
 
-export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): _Message.OutboxID =>
+export const rpcOutboxIDToOutboxID = (outboxID: T.RPCChat.OutboxID): _Message.OutboxID =>
   _Message.stringToOutboxID(uint8ArrayToHex(outboxID))
 
-export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): RPCChatTypes.OutboxID =>
+export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): T.RPCChat.OutboxID =>
   hexToUint8Array(_Message.outboxIDToString(outboxID))
 
 export * from './message'

@@ -41,7 +41,7 @@ const initialStore: Store = {
   featuredBotsPage: -1,
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void

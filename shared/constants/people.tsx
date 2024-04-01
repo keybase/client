@@ -356,7 +356,7 @@ const initialStore: Store = {
   resentEmail: '',
 }
 
-type State = Store & {
+interface State extends Store {
   dispatch: {
     dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void

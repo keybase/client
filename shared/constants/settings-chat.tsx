@@ -32,7 +32,7 @@ const initialStore: Store = {
   unfurl: {unfurlWhitelist: []},
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     contactSettingsSaved: (
       enabled: boolean,

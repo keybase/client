@@ -31,7 +31,7 @@ const initialStore: Store = {
   username: '',
 }
 
-export type State = Store & {
+export interface State extends Store {
   dispatch: {
     dynamic: {
       cancel?: () => void
