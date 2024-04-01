@@ -48,12 +48,12 @@ func (c *CmdChatArchiveList) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Found %d job(s)\n\n", len(res.Jobs))
 	for _, job := range res.Jobs {
-		var percent int
+		percent := 100
 		if job.MessagesTotal > 0 {
 			percent = int((100 * job.MessagesComplete) / job.MessagesTotal)
 		}
 		matchingConvs := ""
-		if job.Request.Query.Name == nil && job.Request.Query.TopicName == nil {
+		if job.Request.Query.Name == nil && job.Request.Query.TopicName == nil && len(job.Request.Query.ConvIDs) == 0 {
 			matchingConvs = "<all chat>"
 		} else {
 			names := make([]string, 0, len(job.MatchingConvs))
