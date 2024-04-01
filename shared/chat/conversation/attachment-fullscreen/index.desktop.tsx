@@ -68,6 +68,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
         ? onLoadedFull
         : undefined
 
+  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
+
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']
   const onHotKey = (cmd: string) => {
@@ -86,8 +88,6 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     }),
     []
   )
-
-  const imgSrc = previewState === 'fullLoaded' ? path : previewPath
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
