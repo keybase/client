@@ -115,7 +115,33 @@ export const _useState = Z.createZustand<State>((set, get) => {
     })
   }
 
-  const startChatArchive = (path: string, outPath: string) => {
+  const startChatArchiveAll = (outPath: string) => {
+    startChatArchive(null, outPath)
+  }
+  const startChatArchiveTeam = (team: string, outPath: string) => {
+    startChatArchive(
+      {
+        computeActiveList: false,
+        name: {membersType: T.RPCChat.ConversationMembersType.team, name: team},
+        readOnly: false,
+        unreadOnly: false,
+      },
+      outPath
+    )
+  }
+  const startChatArchiveCID = (conversationIDKey: T.Chat.ConversationIDKey, outPath: string) => {
+    startChatArchive(
+      {
+        computeActiveList: false,
+        convIDs: [T.Chat.keyToConversationID(conversationIDKey)],
+        readOnly: false,
+        unreadOnly: false,
+      },
+      outPath
+    )
+  }
+
+  const startChatArchive = (query: T.RPCChat.GetInboxLocalQuery | null, outPath: string) => {
     const f = async () => {
       const jobID = Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
       const id = uint8ArrayToHex(jobID)
@@ -126,12 +152,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
             jobID: id,
             outputPath: outPath,
-            query: {
-              computeActiveList: false,
-              convIDs: [T.Chat.keyToConversationID(path)],
-              readOnly: false,
-              unreadOnly: false,
-            },
+            query,
           },
         })
         get().dispatch.loadChat()
@@ -190,10 +211,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.chatJobs.clear()
           res.jobs?.forEach(job => {
             const id = job.request.jobID
-            const convID = job.request.query?.convIDs?.[0]
-            const conversationIDKey = convID ? T.Chat.conversationIDToKey(convID) : T.Chat.noConversationIDKey
-            // TODO trying to convert ids to path but maybe should just plumb this
-            const context = C.getConvoState(conversationIDKey).meta.tlfname
+            const context = job.matchingConvs?.find(mc => mc.name)?.name ?? ''
             s.chatJobs.set(id, {
               context,
               error: job.err,
@@ -262,17 +280,16 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     start: (type, path, outPath) => {
-      // let context = ''
       switch (type) {
         case 'chatid':
-          startChatArchive(path, outPath)
+          startChatArchiveCID(path, outPath)
           return
         case 'chatname':
-          // if (path === '.') {
-          //   context = 'all chat'
-          // } else {
-          //   context = `chat/${path}`
-          // }
+          if (path === '.') {
+            startChatArchiveAll(outPath)
+          } else {
+            startChatArchiveTeam(path, outPath)
+          }
           break
         case 'kbfs':
           C.ignorePromise(startFSArchive(path, outPath))
