@@ -75,13 +75,13 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
     let pauseOrResume: React.ReactNode
     if (isPaused) {
       pauseOrResume = Kb.Styles.isMobile ? (
-        <Kb.Icon type="iconfont-remove" onClick={onResume} />
+        <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
         <Kb.Button label="Resume" onClick={onResume} small={true} />
       )
     } else {
       pauseOrResume = Kb.Styles.isMobile ? (
-        <Kb.Icon type="iconfont-remove" onClick={onPause} />
+        <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
         <Kb.Button label="Pause" onClick={onPause} small={true} />
       )
@@ -105,7 +105,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
       type="Small"
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Box2 direction="vertical" style={{padding: 8, width: 32}}>
+          <Kb.Box2 direction="vertical" style={{padding: Kb.Styles.isMobile ? 4 : 8, width: 32}}>
             <Kb.Icon type="iconfont-chat" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.jobLeft} gap="xtiny">
@@ -156,7 +156,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   }, [job])
 
   const onCancelOrDismiss = React.useCallback(() => {
-    cancelOrDismiss(id)
+    C.ignorePromise(cancelOrDismiss(id))
   }, [cancelOrDismiss, id])
 
   if (!job) {
@@ -182,8 +182,8 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               <Kb.Text type="BodyBold" lineClamp={1}>
                 {job.kbfsPath}
               </Kb.Text>
-              <Kb.Box style={{flex: 1}} />
-              {job.bytesTotal ? (
+              {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
+              {C.isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
             </Kb.Box2>
@@ -202,7 +202,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
                 </Kb.WithTooltip>
               )}
-              {revisionBehindStr && (
+              {!C.isMobile && revisionBehindStr && (
                 <Kb.WithTooltip tooltip={revisionBehindStr}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.yellowDark} />
                 </Kb.WithTooltip>
@@ -255,15 +255,13 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
 
 const Archive = C.featureFlags.archive
   ? () => {
-      const loadChat = C.useArchiveState(s => s.dispatch.loadChat)
-      const loadKBFS = C.useArchiveState(s => s.dispatch.loadKBFS)
+      const load = C.useArchiveState(s => s.dispatch.load)
       const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
       C.Router2.useSafeFocusEffect(
         React.useCallback(() => {
-          loadChat()
-          loadKBFS()
-        }, [loadKBFS, loadChat])
+          load()
+        }, [load])
       )
 
       const archiveChat = React.useCallback(() => {
@@ -272,7 +270,7 @@ const Archive = C.featureFlags.archive
       const archiveFS = React.useCallback(() => {
         navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
       }, [navigateAppend])
-      const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompletedChat)
+      const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
       const chatJobMap = C.useArchiveState(s => s.chatJobs)
       const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
@@ -281,7 +279,12 @@ const Archive = C.featureFlags.archive
 
       const showClear = C.useArchiveState(s => {
         for (const job of s.chatJobs.values()) {
-          if (job.progress === 1) {
+          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+            return true
+          }
+        }
+        for (const job of s.kbfsJobs.values()) {
+          if (job.phase === 'Done') {
             return true
           }
         }
@@ -306,7 +309,7 @@ const Archive = C.featureFlags.archive
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Header">Active archive jobs</Kb.Text>
-              {chatJobs.length ? (
+              {chatJobs.length + kbfsJobs.length ? (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
                   {chatJobs.map((id, idx) => (
                     <ChatJob id={id} key={id} index={idx} />

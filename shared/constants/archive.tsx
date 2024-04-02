@@ -51,11 +51,10 @@ interface State extends Store {
     cancelChat: (id: string) => void
     pauseChat: (id: string) => void
     resumeChat: (id: string) => void
-    clearCompletedChat: () => void
-    loadChat: () => void
-    loadKBFS: () => void
+    clearCompleted: () => void
+    load: () => void
     loadKBFSJobFreshness: (jobID: string) => void
-    cancelOrDismissKBFS: (jobID: string) => void
+    cancelOrDismissKBFS: (jobID: string) => Promise<void>
     onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
   }
@@ -155,7 +154,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             query,
           },
         })
-        get().dispatch.loadChat()
+        loadChat()
       } catch (e) {
         set(s => {
           const old = s.chatJobs.get(id)
@@ -164,6 +163,69 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         })
       }
+    }
+    C.ignorePromise(f())
+  }
+
+  const clearCompletedChat = () => {
+    C.ignorePromise(
+      Promise.allSettled(
+        [...get().chatJobs.values()].map(async job => {
+          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+            await T.RPCChat.localArchiveChatDeleteRpcPromise({
+              deleteOutputPath: C.isMobile,
+              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+              jobID: job.id,
+            })
+          }
+        })
+      )
+    )
+    loadChat()
+  }
+
+  const clearCompletedKBFS = () => {
+    C.ignorePromise(
+      Promise.allSettled(
+        [...get().kbfsJobs.values()].map(async job => {
+          if (job.phase === 'Done') {
+            return get().dispatch.cancelOrDismissKBFS(job.id)
+          }
+        })
+      )
+    )
+    loadKBFS()
+  }
+
+  const loadChat = () => {
+    const f = async () => {
+      const res = await T.RPCChat.localArchiveChatListRpcPromise({
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+      })
+
+      set(s => {
+        s.chatJobs.clear()
+        res.jobs?.forEach(job => {
+          const id = job.request.jobID
+          const context = job.matchingConvs?.find(mc => mc.name)?.name ?? ''
+          s.chatJobs.set(id, {
+            context,
+            error: job.err,
+            id,
+            outPath: `${job.request.outputPath}.tar.gzip`,
+            progress: job.messagesTotal ? job.messagesComplete / job.messagesTotal : 0,
+            started: formatTimeForPopup(job.startedAt),
+            status: job.status,
+          })
+        })
+      })
+    }
+    C.ignorePromise(f())
+  }
+  const loadKBFS = () => {
+    const f = async () => {
+      const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
+      setKBFSJobStatus(status)
     }
     C.ignorePromise(f())
   }
@@ -179,59 +241,16 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    cancelOrDismissKBFS: (jobID: string) => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
-      }
-      C.ignorePromise(f())
+    cancelOrDismissKBFS: async (jobID: string) => {
+      await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
     },
-    clearCompletedChat: () => {
-      C.ignorePromise(
-        Promise.allSettled(
-          [...get().chatJobs.values()].map(async job => {
-            if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
-              await T.RPCChat.localArchiveChatDeleteRpcPromise({
-                deleteOutputPath: C.isMobile,
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-                jobID: job.id,
-              })
-            }
-          })
-        )
-      )
-      get().dispatch.loadChat()
+    clearCompleted: () => {
+      clearCompletedChat()
+      clearCompletedKBFS()
     },
-    loadChat: () => {
-      const f = async () => {
-        const res = await T.RPCChat.localArchiveChatListRpcPromise({
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-        })
-
-        set(s => {
-          s.chatJobs.clear()
-          res.jobs?.forEach(job => {
-            const id = job.request.jobID
-            const context = job.matchingConvs?.find(mc => mc.name)?.name ?? ''
-            s.chatJobs.set(id, {
-              context,
-              error: job.err,
-              id,
-              outPath: `${job.request.outputPath}.tar.gzip`,
-              progress: job.messagesTotal ? job.messagesComplete / job.messagesTotal : 0,
-              started: formatTimeForPopup(job.startedAt),
-              status: job.status,
-            })
-          })
-        })
-      }
-      C.ignorePromise(f())
-    },
-    loadKBFS: () => {
-      const f = async () => {
-        const status = await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise()
-        setKBFSJobStatus(status)
-      }
-      C.ignorePromise(f())
+    load: () => {
+      loadChat()
+      loadKBFS()
     },
     loadKBFSJobFreshness: (jobID: string) => {
       const f = async () => {
@@ -264,7 +283,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
           jobID,
         })
-        get().dispatch.loadChat()
+        loadChat()
       }
       C.ignorePromise(f())
     },
@@ -275,7 +294,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
           jobID,
         })
-        get().dispatch.loadChat()
+        loadChat()
       }
       C.ignorePromise(f())
     },
