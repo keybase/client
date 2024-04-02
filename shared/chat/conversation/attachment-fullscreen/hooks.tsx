@@ -87,3 +87,38 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     title: message.decoratedText ? message.decoratedText.stringValue() : title,
   }
 }
+
+type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
+
+export const usePreviewFallback = (
+  path: string,
+  previewPath: string,
+  isVideo: boolean,
+  preload: (path: string, onLoad: () => void, onError: () => void) => void
+) => {
+  const [previewState, setPreviewState] = React.useState<PreviewState>(
+    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
+  )
+
+  const onLoadError = React.useCallback(() => {
+    setPreviewState('cantDoFallback')
+  }, [])
+  const onLoadedFull = React.useCallback(() => {
+    setPreviewState('fullLoaded')
+  }, [])
+
+  const onLoadedPreview = React.useCallback(() => {
+    setPreviewState('loadingFull')
+    preload(path, onLoadedFull, onLoadError)
+  }, [onLoadedFull, onLoadError, path, preload])
+
+  const onLoaded =
+    previewState === 'loadingPreview'
+      ? onLoadedPreview
+      : previewState === 'loadingFull'
+        ? onLoadedFull
+        : undefined
+
+  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
+  return {imgSrc, onLoadError, onLoaded}
+}

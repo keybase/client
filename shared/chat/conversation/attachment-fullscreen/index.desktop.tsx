@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '@/styles'
 import type {Props} from '.'
-import {useData} from './hooks'
+import {useData, usePreviewFallback} from './hooks'
 
 type ArrowProps = {
   left: boolean
@@ -30,8 +30,6 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
-type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
-
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
   const {message, ordinal, path, title, progress, previewPath} = data
@@ -43,32 +41,14 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     setIsZoomed(zoomed)
   }, [])
 
-  const [previewState, setPreviewState] = React.useState<PreviewState>(
-    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
-  )
-
-  const onLoadError = React.useCallback(() => {
-    setPreviewState('cantDoFallback')
-  }, [])
-  const onLoadedFull = React.useCallback(() => {
-    setPreviewState('fullLoaded')
-  }, [])
-  const onLoadedPreview = React.useCallback(() => {
-    setPreviewState('loadingFull')
+  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
     const img = new Image()
     img.src = path
-    img.onload = onLoadedFull
-    img.onerror = onLoadError
-  }, [onLoadedFull, onLoadError, path])
+    img.onload = onLoad
+    img.onerror = onError
+  }, [])
 
-  const onLoaded =
-    previewState === 'loadingPreview'
-      ? onLoadedPreview
-      : previewState === 'loadingFull'
-        ? onLoadedFull
-        : undefined
-
-  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
+  const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']

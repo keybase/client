@@ -6,11 +6,9 @@ import {Video, ResizeMode} from 'expo-av'
 import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
-import {useData} from './hooks'
+import {useData, usePreviewFallback} from './hooks'
 import {Animated} from 'react-native'
 import {Image} from 'expo-image'
-
-type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
 
 const Fullscreen = (p: Props) => {
   const {showHeader: _showHeader = true} = p
@@ -24,40 +22,21 @@ const Fullscreen = (p: Props) => {
     setShowHeader(s => !s)
   }, [])
 
-  const [previewState, setPreviewState] = React.useState<PreviewState>(
-    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
-  )
-
-  const onLoadError = React.useCallback(() => {
-    setPreviewState('cantDoFallback')
-  }, [])
-  const onLoadedFull = React.useCallback(() => {
-    setPreviewState('fullLoaded')
-  }, [])
-  const onLoadedPreview = React.useCallback(() => {
-    setPreviewState('loadingFull')
+  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
     const f = async () => {
       try {
         await Image.prefetch(path)
-        onLoadedFull()
+        onLoad()
       } catch {
-        onLoadError()
+        onError()
       }
     }
     f()
       .then(() => {})
       .catch(() => {})
-  }, [onLoadedFull, onLoadError, path])
+  }, [])
 
-  const onLoaded =
-    previewState === 'loadingPreview'
-      ? onLoadedPreview
-      : previewState === 'loadingFull'
-        ? onLoadedFull
-        : undefined
-
-  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
-
+  const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
