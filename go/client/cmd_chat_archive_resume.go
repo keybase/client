@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -34,9 +35,62 @@ func newCmdChatArchiveResume(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	}
 }
 
+type ArchiveCompleteWaiter struct {
+	chat1.NotifyChatInterface
+	cli *ChatCLINotifications
+	ch  chan struct{}
+}
+
+var _ chat1.NotifyChatInterface = (*ArchiveCompleteWaiter)(nil)
+
+func NewArchiveCompleteWaiter(g *libkb.GlobalContext) *ArchiveCompleteWaiter {
+	return &ArchiveCompleteWaiter{
+		cli: NewChatCLINotifications(g),
+		ch:  make(chan struct{}),
+	}
+}
+
+func (n *ArchiveCompleteWaiter) Done() chan struct{} {
+	return n.ch
+}
+
+func (n *ArchiveCompleteWaiter) ChatArchiveComplete(ctx context.Context,
+	arg chat1.ArchiveJobID) error {
+	err := n.cli.ChatArchiveComplete(ctx, arg)
+	close(n.ch)
+	return err
+}
+
+func (n *ArchiveCompleteWaiter) ChatArchiveProgress(ctx context.Context,
+	arg chat1.ChatArchiveProgressArg) error {
+	return n.cli.ChatArchiveProgress(ctx, arg)
+}
+
 func (c *CmdChatArchiveResume) Run() error {
+	chatUI := NewChatCLIUI(c.G())
+	notifyUI := NewArchiveCompleteWaiter(c.G())
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return err
+	}
+
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(chatUI),
+		chat1.NotifyChatProtocol(notifyUI),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
+	cli, err := GetNotifyCtlClient(c.G())
+	if err != nil {
+		return err
+	}
+	channels := keybase1.NotificationChannels{
+		Chatarchive: true,
+	}
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
 
@@ -53,7 +107,10 @@ func (c *CmdChatArchiveResume) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Job resumed\n")
 
-	return nil
+	select {
+	case <-notifyUI.Done():
+		return nil
+	}
 }
 
 func (c *CmdChatArchiveResume) ParseArgv(ctx *cli.Context) (err error) {

@@ -15,7 +15,7 @@ const Kb = {
 }
 
 const ZoomableImage = (p: Props) => {
-  const {src, style, onChanged, onLoaded, onSwipe, onTap} = p
+  const {src, style, onChanged, onLoaded, onSwipe, onTap, onError} = p
   const onZoom = onChanged
   const [boxW, setBoxW] = React.useState(0)
   const [boxH, setBoxH] = React.useState(0)
@@ -69,6 +69,7 @@ const ZoomableImage = (p: Props) => {
           src={src}
           style={styles.image}
           onLoad={onLoad}
+          onError={onError}
           showLoadingStateUntilLoaded={false}
         />
       </Kb.Box2>

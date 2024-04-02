@@ -34,7 +34,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (12.6.0):
     - ExpoModulesCore
-  - ExpoImage (1.5.1):
+  - ExpoImage (1.8.0):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
@@ -785,7 +785,7 @@ SPEC CHECKSUMS:
   Expo: 61a8e1aa94311557c137c0a4dfd4fe78281cfbb4
   ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
   ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
-  ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
+  ExpoImage: f31672812650c72e26dc0393303921daf6988838
   ExpoImagePicker: 9e5c745cb3e56ee00e1cfe5d6af59caab66ecf1a
   ExpoKeepAwake: be4cbd52d9b177cde0fd66daa1913afa3161fc1d
   ExpoMailComposer: f88bdf18939c94eb965db28c13ba2d85cba70112

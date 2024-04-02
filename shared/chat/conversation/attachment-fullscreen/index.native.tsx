@@ -6,13 +6,14 @@ import {Video, ResizeMode} from 'expo-av'
 import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
-import {useData} from './hooks'
+import {useData, usePreviewFallback} from './hooks'
 import {Animated} from 'react-native'
+import {Image} from 'expo-image'
 
 const Fullscreen = (p: Props) => {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
-  const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
+  const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
   const {ordinal} = message
@@ -21,6 +22,21 @@ const Fullscreen = (p: Props) => {
     setShowHeader(s => !s)
   }, [])
 
+  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
+    const f = async () => {
+      try {
+        await Image.prefetch(path)
+        onLoad()
+      } catch {
+        onError()
+      }
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
+  }, [])
+
+  const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
@@ -65,7 +81,14 @@ const Fullscreen = (p: Props) => {
       )
     } else {
       content = (
-        <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} onTap={toggleHeader} />
+        <Kb.ZoomableImage
+          src={imgSrc}
+          style={styles.zoomableBox}
+          onSwipe={onSwipe}
+          onTap={toggleHeader}
+          onError={onLoadError}
+          onLoaded={onLoaded}
+        />
       )
     }
   }
