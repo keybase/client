@@ -283,6 +283,7 @@ const styles = Kb.Styles.styleSheetCreate(
           lineHeight: 17,
         },
         isElectron: {
+          display: 'flex',
           fontSize: 13,
           lineHeight: 17,
           wordBreak: 'break-all',
