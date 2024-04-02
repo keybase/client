@@ -27,22 +27,24 @@ const ArchiveModal = (p: Props) => {
   }, [p])
 
   let defaultPath = ''
-  switch (type) {
-    case 'chatID':
-      defaultPath = `${C.downloadFolder}/${displayname.replaceAll(',', '_')}`
-      break
-    case 'chatAll':
-      defaultPath = `${C.downloadFolder}/keybase-chat`
-      break
-    case 'fsAll':
-      defaultPath = `${C.downloadFolder}/keybase-fs`
-      break
-    case 'chatTeam':
-      defaultPath = `${C.downloadFolder}/keybase-${p.teamname}`
-      break
-    case 'fsPath':
-      defaultPath = `${C.downloadFolder}/keybase-${p.path.replaceAll('/', '_')}`
-      break
+  if (C.isElectron) {
+    switch (type) {
+      case 'chatID':
+        defaultPath = `${C.downloadFolder}/${displayname.replaceAll(',', '_')}`
+        break
+      case 'chatAll':
+        defaultPath = `${C.downloadFolder}/keybase-chat`
+        break
+      case 'fsAll':
+        defaultPath = `${C.downloadFolder}/keybase-fs`
+        break
+      case 'chatTeam':
+        defaultPath = `${C.downloadFolder}/keybase-${p.teamname}`
+        break
+      case 'fsPath':
+        defaultPath = `${C.downloadFolder}/keybase-${p.path.replaceAll('/', '_')}`
+        break
+    }
   }
 
   const [outpath, setOutpath] = React.useState(defaultPath)
@@ -50,8 +52,11 @@ const ArchiveModal = (p: Props) => {
   const start = C.useArchiveState(s => s.dispatch.start)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+
+  const canStart = !!((C.isMobile || outpath) && !started)
+
   const onStart = React.useCallback(() => {
-    if (!outpath || started) return
+    if (!canStart) return
     setStarted(true)
     switch (p.type) {
       case 'chatID':
@@ -70,7 +75,7 @@ const ArchiveModal = (p: Props) => {
         start('kbfs', p.path, outpath)
         break
     }
-  }, [outpath, started, p, start])
+  }, [outpath, canStart, p, start])
   const onClose = React.useCallback(() => {
     navigateUp()
   }, [navigateUp])
@@ -134,9 +139,7 @@ const ArchiveModal = (p: Props) => {
           <Kb.ButtonBar small={true}>
             {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
             {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
-            {!started && (
-              <Kb.Button type="Default" label="Start" onClick={onStart} disabled={outpath.length <= 0} />
-            )}
+            {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
         ),
       }}
