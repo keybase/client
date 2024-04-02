@@ -201,6 +201,27 @@ export const clampImageSize = (width: number, height: number, maxWidth: number, 
   }
 }
 
+export const scalePreviewToFullDimensions = (
+  previewWidth: number,
+  previewHeight: number,
+  fullWidth: number,
+  fullHeight: number
+) => {
+  const previewAspectRatio = previewWidth / previewHeight
+  const fullAspectRatio = fullWidth / fullHeight
+
+  let scaleFactor: number
+  if (previewAspectRatio > fullAspectRatio) {
+    scaleFactor = fullHeight / previewHeight
+  } else {
+    scaleFactor = fullWidth / previewWidth
+  }
+
+  return previewAspectRatio > 1
+    ? {width: Math.ceil(previewWidth * scaleFactor)}
+    : {height: Math.ceil(previewHeight * scaleFactor)}
+}
+
 export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
   const dims =
     height > width
