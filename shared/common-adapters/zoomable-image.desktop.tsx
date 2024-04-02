@@ -12,7 +12,7 @@ const Kb = {
 }
 
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
-  const {src, onIsZoomed, onLoaded, dragPan, onChanged} = p
+  const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
   const [showToast, setShowToast] = React.useState(false)
@@ -144,6 +144,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     <div ref={divRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
       <img
         onLoad={onLoaded}
+        onError={onError}
         className="fade-anim-enter fade-anim-enter-active"
         ref={imgRef}
         src={src}

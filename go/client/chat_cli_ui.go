@@ -100,7 +100,10 @@ func (n *ChatCLINotifications) ChatArchiveProgress(ctx context.Context,
 	if n.noOutput {
 		return nil
 	}
-	percent := int((100 * arg.MessagesComplete) / arg.MessagesTotal)
+	percent := 100
+	if arg.MessagesTotal > 0 {
+		percent = int((100 * arg.MessagesComplete) / arg.MessagesTotal)
+	}
 	if n.lastProgressPercent == 0 || percent == 100 || percent-n.lastProgressPercent >= 10 {
 		w := n.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Archival download progress %d%% (%d of %d messages archived)\n", percent,

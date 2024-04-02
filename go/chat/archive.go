@@ -47,7 +47,7 @@ type ChatArchiveRegistry struct {
 	// Changes to flush to disk?
 	dirty        bool
 	remoteClient func() chat1.RemoteInterface
-	runningJobs  map[chat1.ArchiveJobID]types.CancelArchiveFn
+	runningJobs  map[chat1.ArchiveJobID]types.PauseArchiveFn
 
 	edb        *encrypteddb.EncryptedDB
 	jobHistory chat1.ArchiveChatHistory
@@ -80,7 +80,7 @@ func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.Remote
 		remoteClient: remoteClient,
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
-		runningJobs:  make(map[chat1.ArchiveJobID]types.CancelArchiveFn),
+		runningJobs:  make(map[chat1.ArchiveJobID]types.PauseArchiveFn),
 		jobHistory:   chat1.ArchiveChatHistory{JobHistory: make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob)},
 		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
@@ -103,6 +103,11 @@ func (r *ChatArchiveRegistry) dbKey() libkb.DbKey {
 }
 
 func (r *ChatArchiveRegistry) initLocked(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
 	if !r.started {
 		return errors.New("not started")
 	}
@@ -141,9 +146,11 @@ func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
 			return nil
 		case <-r.clock.After(r.flushDelay):
 			func() {
+				var err error
+				defer r.Trace(ctx, &err, "flushLoop")()
 				r.Lock()
 				defer r.Unlock()
-				err := r.flushLocked(ctx)
+				err = r.flushLocked(ctx)
 				if err != nil {
 					r.Debug(ctx, "flushLoop: failed to flush: %s", err)
 				}
@@ -152,7 +159,8 @@ func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
 	}
 }
 
-func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) error {
+func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) (err error) {
+	defer r.Trace(ctx, &err, "resumeAllBgJobs")()
 	select {
 	case <-r.stopCh:
 		return nil
@@ -162,7 +170,7 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context) error {
 	}
 	r.Lock()
 	defer r.Unlock()
-	err := r.initLocked(ctx)
+	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -189,6 +197,7 @@ func (r *ChatArchiveRegistry) monitorAppState() error {
 			cancel()
 			return nil
 		case appState = <-r.G().MobileAppState.NextUpdate(&appState):
+			r.Debug(ctx, "monitorAppState: next state -> %v", appState)
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 				go func() {
@@ -200,7 +209,14 @@ func (r *ChatArchiveRegistry) monitorAppState() error {
 			default:
 				cancel()
 				ctx, cancel = context.WithCancel(context.Background())
-				r.bgPauseAllJobsLocked(ctx)
+
+				func() {
+					var err error
+					defer r.Trace(ctx, &err, "monitorAppState")()
+					r.Lock()
+					defer r.Unlock()
+					err = r.bgPauseAllJobsLocked(ctx)
+				}()
 			}
 		}
 	}
@@ -226,16 +242,30 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.eg.Go(r.monitorAppState)
 }
 
-func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) {
-	for jobID, cancel := range r.runningJobs {
-		job := cancel()
+func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) (err error) {
+	defer r.Trace(ctx, &err, "bgPauseAllJobsLocked")()
+	err = r.initLocked(ctx)
+	if err != nil {
+		return err
+	}
+
+	for jobID, pause := range r.runningJobs {
+		if pause == nil {
+			continue
+		}
+		pause()
+		job, ok := r.jobHistory.JobHistory[jobID]
+		if !ok {
+			continue
+		}
 		job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
 		r.jobHistory.JobHistory[jobID] = job
 	}
-	r.runningJobs = make(map[chat1.ArchiveJobID]func() chat1.ArchiveChatJob)
+	r.runningJobs = make(map[chat1.ArchiveJobID]types.PauseArchiveFn)
 
 	r.dirty = true
-	_ = r.flushLocked(ctx)
+	err = r.flushLocked(ctx)
+	return err
 }
 
 // Pause running jobs marking as BACKGROUND_PAUSED
@@ -246,7 +276,10 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if r.started {
 		r.started = false
-		r.bgPauseAllJobsLocked(ctx)
+		err := r.bgPauseAllJobsLocked(ctx)
+		if err != nil {
+			r.Debug(ctx, err.Error())
+		}
 		close(r.stopCh)
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")
@@ -302,7 +335,7 @@ func (r *ChatArchiveRegistry) List(ctx context.Context) (res chat1.ArchiveChatLi
 }
 
 func (r *ChatArchiveRegistry) Get(ctx context.Context, jobID chat1.ArchiveJobID) (res chat1.ArchiveChatJob, err error) {
-	defer r.Trace(ctx, &err, "Get(%s)", jobID)()
+	defer r.Trace(ctx, &err, "Get(%v)", jobID)()
 	r.Lock()
 	defer r.Unlock()
 	err = r.initLocked(ctx)
@@ -318,7 +351,7 @@ func (r *ChatArchiveRegistry) Get(ctx context.Context, jobID chat1.ArchiveJobID)
 }
 
 func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJobID, deleteOutputPath bool) (err error) {
-	defer r.Trace(ctx, &err, "Delete(%s)", jobID)()
+	defer r.Trace(ctx, &err, "Delete(%v)", jobID)()
 	r.Lock()
 	defer r.Unlock()
 	err = r.initLocked(ctx)
@@ -347,8 +380,8 @@ func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJob
 	return nil
 }
 
-func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.CancelArchiveFn, job chat1.ArchiveChatJob) (err error) {
-	defer r.Trace(ctx, &err, "Set(%+v)", job)()
+func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchiveFn, job chat1.ArchiveChatJob) (err error) {
+	defer r.Trace(ctx, &err, "Set(%v)", job.Request.JobID)()
 	r.Lock()
 	defer r.Unlock()
 	err = r.initLocked(ctx)
@@ -392,16 +425,16 @@ func (r *ChatArchiveRegistry) Pause(ctx context.Context, jobID chat1.ArchiveJobI
 		return fmt.Errorf("Cannot pause a non-running job. Found status %v", job.Status)
 	}
 
-	cancel, ok := r.runningJobs[jobID]
+	pause, ok := r.runningJobs[jobID]
 	if !ok {
 		return NewArchiveJobNotFoundError(jobID)
 	}
-	if cancel == nil {
-		return fmt.Errorf("cancel unexpectedly nil")
+	if pause == nil {
+		return fmt.Errorf("pause unexpectedly nil")
 	}
 	delete(r.runningJobs, jobID)
 
-	job = cancel()
+	pause()
 	job.Status = chat1.ArchiveChatJobStatus_PAUSED
 	r.jobHistory.JobHistory[jobID] = job
 	r.dirty = true
@@ -455,9 +488,7 @@ type ChatArchiver struct {
 	pageSize int
 
 	sync.Mutex
-	messagesComplete int64
-	messagesTotal    int64
-	remoteClient     func() chat1.RemoteInterface
+	remoteClient func() chat1.RemoteInterface
 }
 
 func NewChatArchiver(g *globals.Context, uid gregor1.UID, remoteClient func() chat1.RemoteInterface) *ChatArchiver {
@@ -476,15 +507,9 @@ func NewChatArchiver(g *globals.Context, uid gregor1.UID, remoteClient func() ch
 	return c
 }
 
-func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJobID, pagination chat1.Pagination) {
-	c.Lock()
-	defer c.Unlock()
-	c.messagesComplete += int64(pagination.Num)
-	if c.messagesComplete > c.messagesTotal {
-		// total messages is capped to the convs expunge, don't over report.
-		c.messagesComplete = c.messagesTotal
-	}
-	c.G().NotifyRouter.HandleChatArchiveProgress(ctx, jobID, c.messagesComplete, c.messagesTotal)
+func (c *ChatArchiver) notifyProgress(ctx context.Context, jobID chat1.ArchiveJobID, msgsComplete, msgsTotal int64) {
+	c.Debug(ctx, "notifyProgress(%s) %d/%d", jobID, msgsComplete, msgsTotal)
+	c.G().NotifyRouter.HandleChatArchiveProgress(ctx, jobID, msgsComplete, msgsTotal)
 }
 
 func (c *ChatArchiver) archiveName(conv chat1.ConversationLocal) string {
@@ -504,38 +529,39 @@ func (c *ChatArchiver) attachmentName(msg chat1.MessageUnboxedValid) string {
 	return ""
 }
 
-func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, cp chat1.ArchiveChatConvCheckpoint, convID chat1.ConversationID, job *chat1.ArchiveChatJob) (err error) {
+func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, cp chat1.ArchiveChatConvCheckpoint, convID chat1.ConversationID, job *chat1.ArchiveChatJob) (msgsComplete, msgsTotal int64, err error) {
 	// Flush and update the registry
 	err = f.Sync()
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	stat, err := f.Stat()
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	cp.Offset = stat.Size()
+	c.Debug(ctx, "checkpointConv %+v", cp)
 
 	c.Lock()
-	// Mark our overall progress.
-	job.MessagesTotal = c.messagesTotal
-	job.MessagesComplete = c.messagesComplete
+	defer c.Unlock()
+	job.MessagesComplete += int64(cp.Pagination.Num)
+	if job.MessagesComplete > job.MessagesTotal {
+		// total messages is capped to the convs expunge, don't over report.
+		job.MessagesComplete = job.MessagesTotal
+	}
 	// And this conv's individual progress.
 	job.Checkpoints[convID.DbShortFormString()] = cp
-	c.Unlock()
 
-	return c.G().ArchiveRegistry.Set(ctx, nil, *job)
+	err = c.G().ArchiveRegistry.Set(ctx, nil, *job)
+	return job.MessagesComplete, job.MessagesTotal, err
 }
 
-func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJob, conv chat1.ConversationLocal) error {
+func (c *ChatArchiver) archiveConv(ctx context.Context, jobReq chat1.ArchiveChatJobRequest, job *chat1.ArchiveChatJob, conv chat1.ConversationLocal) error {
 	c.Lock()
-	cp, ok := job.Checkpoints[conv.Info.Id.DbShortFormString()]
+	checkpoint, ok := job.Checkpoints[conv.Info.Id.DbShortFormString()]
 	c.Unlock()
 	if !ok {
-		cp = chat1.ArchiveChatConvCheckpoint{
-			Pagination: chat1.Pagination{Num: c.pageSize},
-			Offset:     0,
-		}
+		checkpoint = chat1.ArchiveChatConvCheckpoint{}
 	}
 
 	convArchivePath := path.Join(job.Request.OutputPath, c.archiveName(conv), "chat.txt")
@@ -543,32 +569,38 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 	if err != nil {
 		return err
 	}
-	err = f.Truncate(cp.Offset)
+	err = f.Truncate(checkpoint.Offset)
 	if err != nil {
 		return err
 	}
-	_, err = f.Seek(cp.Offset, 0)
+	_, err = f.Seek(checkpoint.Offset, 0)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	firstPage := cp.Offset == 0
-	for !cp.Pagination.Last {
+	firstPage := checkpoint.Offset == 0
+	for !checkpoint.Pagination.Last {
+		// Walk forward through the thread
+		checkpoint.Pagination.Num = c.pageSize
+		checkpoint.Pagination.Previous = nil
 		thread, err := c.G().ConvSource.Pull(ctx, conv.Info.Id, c.uid,
 			chat1.GetThreadReason_ARCHIVE, nil,
 			&chat1.GetThreadQuery{
 				MarkAsRead: false,
-			}, &cp.Pagination)
+			}, &checkpoint.Pagination)
 		if err != nil {
 			return err
 		}
 
 		msgs := thread.Messages
-
 		// reverse the thread in place so we render in descending order in the file.
 		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
 			msgs[i], msgs[j] = msgs[j], msgs[i]
+		}
+
+		if len(msgs) == 0 {
+			continue
 		}
 
 		view := chatrender.ConversationView{
@@ -603,7 +635,7 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 			}
 			if typ == chat1.MessageType_ATTACHMENT {
 				eg.Go(func() error {
-					attachmentPath := path.Join(job.Request.OutputPath, c.archiveName(conv), c.attachmentName(msg))
+					attachmentPath := path.Join(jobReq.OutputPath, c.archiveName(conv), c.attachmentName(msg))
 					f, err := os.Create(attachmentPath)
 					if err != nil {
 						return err
@@ -624,18 +656,17 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, job *chat1.ArchiveChatJo
 			return err
 		}
 
-		// update our progress percentage in the UI
-		c.notifyProgress(ctx, job.Request.JobID, *thread.Pagination)
-
-		// update our pagination so we can correctly fetch the next page and marking progress in our checkpoint.
+		// update our pagination so we can correctly fetch the next page
+		// and marking progress in our checkpoint.
 		firstPage = false
-		cp.Pagination = *thread.Pagination
-		cp.Pagination.Num = c.pageSize
-		cp.Pagination.Previous = nil
-		ierr := c.checkpointConv(ctx, f, cp, conv.Info.Id, job)
-		if ierr != nil {
-			c.Debug(ctx, ierr.Error())
+		checkpoint.Pagination = *thread.Pagination
+		msgsComplete, msgsTotal, err := c.checkpointConv(ctx, f, checkpoint, conv.Info.Id, job)
+		if err != nil {
+			return err
 		}
+
+		// update our progress percentage in the UI
+		c.notifyProgress(ctx, jobReq.JobID, msgsComplete, msgsTotal)
 	}
 	return nil
 }
@@ -662,8 +693,9 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	convs := iboxRes.Convs
 
 	// Fetch size of each conv to track progress.
+	var totalMsgs int64
 	for _, conv := range convs {
-		c.messagesTotal += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo())
+		totalMsgs += int64(conv.MaxVisibleMsgID() - conv.GetMaxDeletedUpTo())
 
 		convArchivePath := path.Join(arg.OutputPath, c.archiveName(conv))
 		err = os.MkdirAll(convArchivePath, os.ModePerm)
@@ -686,22 +718,18 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	// Presume to resume
 	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
 	jobInfo.Err = ""
+	jobInfo.MessagesTotal = totalMsgs
 	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
 
 	// Setup to run each conv in parallel
 	eg, ctx := errgroup.WithContext(ctx)
-	ctx, cancel := context.WithCancel(ctx)
-	// Closed if we are canceled
-	cancelCh := make(chan struct{})
-	doneCh := make(chan struct{})
-	pause := func() chat1.ArchiveChatJob {
-		cancel()
-		close(cancelCh)
-		// Block until we cleanup
-		<-doneCh
-		c.Lock()
-		defer c.Unlock()
-		return jobInfo
+	ctx, cancelCtx := context.WithCancel(ctx)
+	// Make an explicit pause distinct from other ctx cancellation
+	pauseCh := make(chan struct{})
+	pause := func() {
+		defer c.Trace(ctx, nil, "ArchiveChat.pause")()
+		close(pauseCh)
+		cancelCtx()
 	}
 
 	// Mark ourselves as running
@@ -711,24 +739,25 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	}
 	// And update our state when we exit
 	defer func() {
-		defer func() { close(doneCh) }()
+		defer c.Trace(ctx, &err, "ArchiveChat.cleanup")()
 		select {
-		case <-cancelCh:
+		case <-pauseCh:
 			c.Debug(ctx, "canceled by registry, short-circuiting.")
 			// If we were canceled by the registry, abort.
-			return
+			err = fmt.Errorf("Archive job paused")
 		default:
-		}
+			// Update the registry
+			jobInfo.Status = chat1.ArchiveChatJobStatus_COMPLETE
+			if err != nil {
+				jobInfo.Status = chat1.ArchiveChatJobStatus_ERROR
+				jobInfo.Err = err.Error()
+			}
 
-		// Update the registry
-		jobInfo.Status = chat1.ArchiveChatJobStatus_COMPLETE
-		if err != nil {
-			jobInfo.Status = chat1.ArchiveChatJobStatus_ERROR
-			jobInfo.Err = err.Error()
-		}
-		ierr := c.G().ArchiveRegistry.Set(ctx, nil, jobInfo)
-		if ierr != nil {
-			c.Debug(ctx, ierr.Error())
+			// Write even if our context is canceled
+			ierr := c.G().ArchiveRegistry.Set(context.TODO(), nil, jobInfo)
+			if ierr != nil {
+				c.Debug(ctx, "ArchiveChat.cleanup %v", ierr)
+			}
 		}
 
 		// Alert the UI
@@ -741,7 +770,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	for _, conv := range convs {
 		conv := conv
 		eg.Go(func() error {
-			return c.archiveConv(ctx, &jobInfo, conv)
+			return c.archiveConv(ctx, arg, &jobInfo, conv)
 		})
 	}
 	err = eg.Wait()
