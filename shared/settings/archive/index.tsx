@@ -113,7 +113,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
             <Kb.ProgressBar ratio={progress} />
           </Kb.Box2>
           {errorStr && (
-            <Kb.WithTooltip tooltip={errorStr}>
+            <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
@@ -198,7 +198,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
               <Kb.Box style={{flex: 1}} />
               {errorStr && (
-                <Kb.WithTooltip tooltip={errorStr}>
+                <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
                 </Kb.WithTooltip>
               )}
