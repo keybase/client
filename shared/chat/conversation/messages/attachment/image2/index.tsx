@@ -8,6 +8,7 @@ import {
   useCollapseIcon,
   Collapsed,
   Transferring,
+  TransferIcon,
 } from '../shared'
 
 type Props = {
@@ -34,19 +35,22 @@ const Image2 = React.memo(function Image2(p: Props) {
     return (
       <>
         {filename}
-        <Kb.Box2
-          direction="vertical"
-          style={styles.contentContainer}
-          alignSelf="flex-start"
-          alignItems="flex-start"
-          gap="xxtiny"
-        >
-          <ShowToastAfterSaving transferState={transferState} />
-          <Kb.ClickableBox onClick={openFullscreen} onLongPress={showPopup} style={styles.imageContainer}>
-            <ImageImpl />
-          </Kb.ClickableBox>
-          {showTitle ? <Title /> : null}
-          <Transferring transferState={transferState} ratio={transferProgress} />
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="small" alignItems="center">
+          <Kb.Box2
+            direction="vertical"
+            style={styles.contentContainer}
+            alignSelf="flex-start"
+            alignItems="flex-start"
+            gap="xxtiny"
+          >
+            <ShowToastAfterSaving transferState={transferState} />
+            <Kb.ClickableBox onClick={openFullscreen} onLongPress={showPopup} style={styles.imageContainer}>
+              <ImageImpl />
+            </Kb.ClickableBox>
+            {showTitle ? <Title /> : null}
+            <Transferring transferState={transferState} ratio={transferProgress} />
+          </Kb.Box2>
+          <TransferIcon />
         </Kb.Box2>
       </>
     )

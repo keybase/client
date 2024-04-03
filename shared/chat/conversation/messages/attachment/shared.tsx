@@ -15,24 +15,76 @@ export const maxHeight = 320
 
 export const missingMessage = C.Chat.makeMessageAttachment()
 
-export const ShowToastAfterSaving = C.isMobile
-  ? ({transferState}: Props) => {
-      const [showingToast, setShowingToast] = React.useState(transferState === 'mobileSaving')
-      React.useEffect(() => {
-        if (transferState === 'mobileSaving') {
-          setShowingToast(true)
-        }
-        const id = setTimeout(() => {
-          setShowingToast(false)
-        }, 2000)
-        return () => {
-          clearTimeout(id)
-        }
-      }, [transferState])
-
-      return showingToast ? <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} /> : null
+export const ShowToastAfterSaving = ({transferState}: Props) => {
+  console.log('aaaa ShowToastAfterSaving ', transferState)
+  const [showingToast, setShowingToast] = React.useState(
+    transferState === 'mobileSaving' || transferState === 'downloading'
+  )
+  React.useEffect(() => {
+    if (transferState === 'mobileSaving' || transferState === 'downloading') {
+      setShowingToast(true)
     }
-  : () => null
+    const id = setTimeout(() => {
+      setShowingToast(false)
+    }, 2000)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [transferState])
+
+  return showingToast ? <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} /> : null
+}
+
+export const TransferIcon = () => {
+  const ordinal = React.useContext(OrdinalContext)
+  const state = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    if (!m || m.type !== 'attachment') {
+      return 'none'
+    }
+    if (m.transferProgress === 1) {
+      return 'done'
+    }
+    switch (m.transferState) {
+      case 'downloading':
+      case 'mobileSaving':
+        return 'downloading'
+      default:
+        return 'none'
+    }
+  })
+
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+
+  const onClick = React.useCallback(() => {
+    attachmentDownload(ordinal)
+  }, [ordinal, attachmentDownload])
+
+  console.log('aaaa transfer icon state', state)
+
+  switch (state) {
+    case 'done':
+      return null
+    case 'downloading':
+      return (
+        <Kb.Icon
+          type="iconfont-download"
+          color={Kb.Styles.globalColors.green}
+          fontSize={20}
+          hint="Downloading"
+        />
+      )
+    case 'none':
+      return (
+        <Kb.Icon
+          type="iconfont-download"
+          color={Kb.Styles.globalColors.blue}
+          fontSize={20}
+          onClick={onClick}
+        />
+      )
+  }
+}
 
 export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAttachmentTransferState}) => {
   const {ratio, transferState} = p
