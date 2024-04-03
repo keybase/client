@@ -120,7 +120,9 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
           onClick={onDownload}
-          style={style}
+          // violates encapsulation but how this works with padding is annoying currently
+          style={Kb.Styles.collapseStyles([style, {left: -48}])}
+          padding="small"
         />
       )
   }
@@ -130,9 +132,6 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
   const {ratio, transferState} = p
   const isTransferring =
     transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
-  if (!isTransferring) {
-    return null
-  }
   return (
     <Kb.Box2
       direction="horizontal"
@@ -142,10 +141,12 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
       gapEnd={true}
       gapStart={true}
     >
-      <Kb.Text type="BodySmall" negative={true}>
-        {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
-      </Kb.Text>
-      <Kb.ProgressBar ratio={ratio} />
+      {isTransferring ? (
+        <Kb.Text type="BodySmall" negative={true}>
+          {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
+        </Kb.Text>
+      ) : null}
+      {isTransferring ? <Kb.ProgressBar ratio={ratio} /> : null}
     </Kb.Box2>
   )
 }
