@@ -847,6 +847,17 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			if err == nil {
 				err = closeErr
 			}
+			if closeErr != nil {
+				m.simpleFS.log.CWarningf(ctx, "zipFile.Close %s error %v", jobDesc.ZipFilePath, err)
+			}
+			// Call Quarantine even if close failed just in case.
+			qerr := Quarantine(ctx, jobDesc.ZipFilePath)
+			if err == nil {
+				err = qerr
+			}
+			if qerr != nil {
+				m.simpleFS.log.CWarningf(ctx, "Quarantine %s error %v", jobDesc.ZipFilePath, err)
+			}
 		}()
 
 		zipWriter := zip.NewWriter(zipFile)
@@ -854,6 +865,9 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 			closeErr := zipWriter.Close()
 			if err == nil {
 				err = closeErr
+			}
+			if closeErr != nil {
+				m.simpleFS.log.CWarningf(ctx, "zipWriter.Close %s error %v", jobDesc.ZipFilePath, err)
 			}
 		}()
 
