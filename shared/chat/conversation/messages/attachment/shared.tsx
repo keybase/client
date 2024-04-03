@@ -7,6 +7,7 @@ import {sharedStyles} from '../shared-styles'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
+  toastTargetRef?: React.RefObject<Kb.MeasureRef>
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -15,24 +16,115 @@ export const maxHeight = 320
 
 export const missingMessage = C.Chat.makeMessageAttachment()
 
-export const ShowToastAfterSaving = C.isMobile
-  ? ({transferState}: Props) => {
-      const [showingToast, setShowingToast] = React.useState(transferState === 'mobileSaving')
-      React.useEffect(() => {
-        if (transferState === 'mobileSaving') {
-          setShowingToast(true)
-        }
-        const id = setTimeout(() => {
-          setShowingToast(false)
-        }, 2000)
-        return () => {
-          clearTimeout(id)
-        }
-      }, [transferState])
+export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
+  const [showingToast, setShowingToast] = React.useState(false)
+  const lastTransferStateRef = React.useRef(transferState)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout>>()
 
-      return showingToast ? <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} /> : null
+  if (transferState !== lastTransferStateRef.current) {
+    // was downloading and now not
+    if (
+      (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+      !transferState
+    ) {
+      setShowingToast(true)
+      clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => {
+        setShowingToast(false)
+      }, 2000)
     }
-  : () => null
+    lastTransferStateRef.current = transferState
+  }
+
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  return showingToast ? (
+    <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
+  ) : null
+}
+
+export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
+  const {style} = p
+  const ordinal = React.useContext(OrdinalContext)
+  const state = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    if (!m || m.type !== 'attachment') {
+      return 'none'
+    }
+
+    if (m.downloadPath?.length) {
+      return 'doneWithPath'
+    }
+    if (m.transferProgress === 1) {
+      return 'done'
+    }
+    switch (m.transferState) {
+      case 'downloading':
+      case 'mobileSaving':
+        return 'downloading'
+      default:
+        return 'none'
+    }
+  })
+
+  const downloadPath = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    if (m?.type === 'attachment') {
+      return m.downloadPath
+    }
+    return ''
+  })
+
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const onDownload = React.useCallback(() => {
+    attachmentDownload(ordinal)
+  }, [ordinal, attachmentDownload])
+
+  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const onFinder = React.useCallback(() => {
+    downloadPath && openFinder?.(downloadPath)
+  }, [openFinder, downloadPath])
+
+  switch (state) {
+    case 'doneWithPath':
+      return Kb.Styles.isMobile ? null : (
+        <Kb.Icon
+          type="iconfont-finder"
+          color={Kb.Styles.globalColors.blue}
+          fontSize={20}
+          hint="Open folder"
+          onClick={onFinder}
+          style={style}
+        />
+      )
+    case 'done':
+      return null
+    case 'downloading':
+      return (
+        <Kb.Icon
+          type="iconfont-download"
+          color={Kb.Styles.globalColors.green}
+          fontSize={20}
+          hint="Downloading"
+          style={style}
+        />
+      )
+    case 'none':
+      return (
+        <Kb.Icon
+          type="iconfont-download"
+          color={Kb.Styles.globalColors.blue}
+          fontSize={20}
+          onClick={onDownload}
+          style={style}
+        />
+      )
+  }
+}
 
 export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAttachmentTransferState}) => {
   const {ratio, transferState} = p

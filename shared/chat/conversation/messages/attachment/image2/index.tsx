@@ -8,6 +8,7 @@ import {
   useCollapseIcon,
   Collapsed,
   Transferring,
+  TransferIcon,
 } from '../shared'
 
 type Props = {
@@ -30,23 +31,38 @@ const Image2 = React.memo(function Image2(p: Props) {
     )
   }, [collapseIcon, fileName])
 
+  const toastTargetRef = React.useRef<Kb.MeasureRef>(null)
+
   const content = React.useMemo(() => {
     return (
       <>
         {filename}
         <Kb.Box2
-          direction="vertical"
-          style={styles.contentContainer}
+          direction="horizontal"
           alignSelf="flex-start"
-          alignItems="flex-start"
-          gap="xxtiny"
+          gap={Kb.Styles.isMobile ? undefined : 'small'}
+          alignItems="center"
         >
-          <ShowToastAfterSaving transferState={transferState} />
-          <Kb.ClickableBox onClick={openFullscreen} onLongPress={showPopup} style={styles.imageContainer}>
-            <ImageImpl />
-          </Kb.ClickableBox>
-          {showTitle ? <Title /> : null}
-          <Transferring transferState={transferState} ratio={transferProgress} />
+          <Kb.Box2
+            direction="vertical"
+            style={styles.contentContainer}
+            alignSelf="flex-start"
+            alignItems="flex-start"
+            gap="xxtiny"
+          >
+            <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
+            <Kb.ClickableBox
+              onClick={openFullscreen}
+              onLongPress={showPopup}
+              style={styles.imageContainer}
+              ref={toastTargetRef}
+            >
+              <ImageImpl />
+            </Kb.ClickableBox>
+            {showTitle ? <Title /> : null}
+            <Transferring transferState={transferState} ratio={transferProgress} />
+          </Kb.Box2>
+          <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
         </Kb.Box2>
       </>
     )
@@ -70,6 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       position: 'relative',
     },
     imageContainer: {alignSelf: 'center'},
+    transferIcon: {left: -32, position: 'absolute'},
   } as const
 })
 
