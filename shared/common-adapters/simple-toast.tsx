@@ -16,7 +16,7 @@ type Props = {
   iconType: IconType
   visible: boolean
   text: string
-  toastTargetRef: React.RefObject<MeasureRef>
+  toastTargetRef?: React.RefObject<MeasureRef>
 }
 
 const SimpleToast = (props: Props) => (

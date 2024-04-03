@@ -7,7 +7,7 @@ import {sharedStyles} from '../shared-styles'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
-  toastTargetRef: React.RefObject<Kb.MeasureRef>
+  toastTargetRef?: React.RefObject<Kb.MeasureRef>
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -17,34 +17,49 @@ export const maxHeight = 320
 export const missingMessage = C.Chat.makeMessageAttachment()
 
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
-  const [showingToast, setShowingToast] = React.useState(
-    transferState === 'mobileSaving' || transferState === 'downloading'
-  )
-  React.useEffect(() => {
-    if (transferState === 'mobileSaving' || transferState === 'downloading') {
+  const [showingToast, setShowingToast] = React.useState(false)
+  const lastTransferStateRef = React.useRef(transferState)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout>>()
+
+  if (transferState !== lastTransferStateRef.current) {
+    // was downloading and now not
+    if (
+      (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+      !transferState
+    ) {
       setShowingToast(true)
+      clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => {
+        setShowingToast(false)
+      }, 2000)
     }
-    const id = setTimeout(() => {
-      setShowingToast(false)
-    }, 2000)
+    lastTransferStateRef.current = transferState
+  }
+
+  React.useEffect(() => {
     return () => {
-      clearTimeout(id)
+      clearTimeout(timerRef.current)
     }
-  }, [transferState])
+  }, [])
 
   return showingToast ? (
     <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
   ) : null
 }
 
-export const TransferIcon = () => {
+export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
+  const {style} = p
   const ordinal = React.useContext(OrdinalContext)
   const state = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (!m || m.type !== 'attachment') {
       return 'none'
     }
-    if (m.transferProgress === 1 || m.downloadPath?.length) {
+
+    if (m.downloadPath?.length) {
+      return 'doneWithPath'
+    }
+    if (m.transferProgress === 1) {
       return 'done'
     }
     switch (m.transferState) {
@@ -56,15 +71,36 @@ export const TransferIcon = () => {
     }
   })
 
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const downloadPath = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    if (m?.type === 'attachment') {
+      return m.downloadPath
+    }
+    return ''
+  })
 
-  const onClick = React.useCallback(() => {
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const onDownload = React.useCallback(() => {
     attachmentDownload(ordinal)
   }, [ordinal, attachmentDownload])
 
-  console.log('aaaa transfer icon state', state)
+  const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
+  const onFinder = React.useCallback(() => {
+    downloadPath && openFinder?.(downloadPath)
+  }, [openFinder, downloadPath])
 
   switch (state) {
+    case 'doneWithPath':
+      return Kb.Styles.isMobile ? null : (
+        <Kb.Icon
+          type="iconfont-finder"
+          color={Kb.Styles.globalColors.blue}
+          fontSize={20}
+          hint="Open folder"
+          onClick={onFinder}
+          style={style}
+        />
+      )
     case 'done':
       return null
     case 'downloading':
@@ -74,6 +110,7 @@ export const TransferIcon = () => {
           color={Kb.Styles.globalColors.green}
           fontSize={20}
           hint="Downloading"
+          style={style}
         />
       )
     case 'none':
@@ -82,7 +119,8 @@ export const TransferIcon = () => {
           type="iconfont-download"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
-          onClick={onClick}
+          onClick={onDownload}
+          style={style}
         />
       )
   }

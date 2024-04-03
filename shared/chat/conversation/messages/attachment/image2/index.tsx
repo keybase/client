@@ -37,7 +37,12 @@ const Image2 = React.memo(function Image2(p: Props) {
     return (
       <>
         {filename}
-        <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="small" alignItems="center">
+        <Kb.Box2
+          direction="horizontal"
+          alignSelf="flex-start"
+          gap={Kb.Styles.isMobile ? undefined : 'small'}
+          alignItems="center"
+        >
           <Kb.Box2
             direction="vertical"
             style={styles.contentContainer}
@@ -57,7 +62,7 @@ const Image2 = React.memo(function Image2(p: Props) {
             {showTitle ? <Title /> : null}
             <Transferring transferState={transferState} ratio={transferProgress} />
           </Kb.Box2>
-          <TransferIcon />
+          <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
         </Kb.Box2>
       </>
     )
@@ -81,6 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       position: 'relative',
     },
     imageContainer: {alignSelf: 'center'},
+    transferIcon: {left: -32, position: 'absolute'},
   } as const
 })
 
