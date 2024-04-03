@@ -431,7 +431,7 @@ input {
   border: none;
   background: none;
   box-shadow: none;
-  vertical-align: middle;
+  vertical-align: bottom;
   display: inline;
   .emoji-native {
     line-height: 0;
