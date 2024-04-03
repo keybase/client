@@ -102,7 +102,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     set(s => {
       const job = s.chatJobs.get(jobID)
       if (!job) return
-      job.progress = 1
+      loadChat()
     })
   }
   const setChatProgress = (p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
@@ -111,6 +111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const job = s.chatJobs.get(jobID)
       if (!job) return
       job.progress = messagesTotal ? messagesComplete / messagesTotal : 0
+      job.status = T.RPCChat.ArchiveChatJobStatus.running
     })
   }
 
@@ -294,7 +295,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
           jobID,
         })
-        loadChat()
+        // don't reload here, resume doesn't block for the job to actually restart
       }
       C.ignorePromise(f())
     },
