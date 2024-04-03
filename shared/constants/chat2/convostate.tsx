@@ -368,10 +368,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   const downloadAttachment = async (downloadToCache: boolean, ordinal: T.Chat.Ordinal) => {
     const messageID = get().messageMap.get(ordinal)?.id
-
-    _stores.get(get().id).subscribe(s => {
-      console.log('aaa store changing', s)
-    })
     if (!messageID) return false
     try {
       const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
@@ -389,15 +385,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           m.downloadPath = path
           m.fileURLCached = true // assume we have this on the service now
           m.transferErrMsg = undefined
-          m.transferProgress = 0
-          m.transferProgress = 1234
+          m.transferProgress = 1
           m.transferState = undefined
           updateAttachmentViewTransfered(messageID, path)
         }
       })
-      // this update isn't going?????? saving its blown away???
-      const TEMP = get().messageMap.get(ordinal)
-      console.log('aaaaa whut', TEMP.transferProgress, TEMP)
       return rpcRes.filePath
     } catch (error) {
       set(s => {
@@ -2030,10 +2022,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               )
               return
             }
+
             if (m.type === 'attachment') {
-              m.transferErrMsg = undefined
-              m.transferProgress = ratio
-              m.transferState = 'downloading'
+              // don't update if we're 'done'
+              if (!m.downloadPath && m.transferProgress !== 1) {
+                m.transferErrMsg = undefined
+                m.transferProgress = ratio
+                m.transferState = 'downloading'
+              }
             }
           })
           break

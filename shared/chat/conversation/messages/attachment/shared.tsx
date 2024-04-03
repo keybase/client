@@ -7,6 +7,7 @@ import {sharedStyles} from '../shared-styles'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
+  toastTargetRef: React.RefObject<Kb.MeasureRef>
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -15,8 +16,7 @@ export const maxHeight = 320
 
 export const missingMessage = C.Chat.makeMessageAttachment()
 
-export const ShowToastAfterSaving = ({transferState}: Props) => {
-  console.log('aaaa ShowToastAfterSaving ', transferState)
+export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(
     transferState === 'mobileSaving' || transferState === 'downloading'
   )
@@ -32,7 +32,9 @@ export const ShowToastAfterSaving = ({transferState}: Props) => {
     }
   }, [transferState])
 
-  return showingToast ? <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} /> : null
+  return showingToast ? (
+    <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
+  ) : null
 }
 
 export const TransferIcon = () => {
@@ -42,7 +44,7 @@ export const TransferIcon = () => {
     if (!m || m.type !== 'attachment') {
       return 'none'
     }
-    if (m.transferProgress === 1) {
+    if (m.transferProgress === 1 || m.downloadPath?.length) {
       return 'done'
     }
     switch (m.transferState) {

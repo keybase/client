@@ -31,6 +31,8 @@ const Image2 = React.memo(function Image2(p: Props) {
     )
   }, [collapseIcon, fileName])
 
+  const toastTargetRef = React.useRef<Kb.MeasureRef>(null)
+
   const content = React.useMemo(() => {
     return (
       <>
@@ -43,8 +45,13 @@ const Image2 = React.memo(function Image2(p: Props) {
             alignItems="flex-start"
             gap="xxtiny"
           >
-            <ShowToastAfterSaving transferState={transferState} />
-            <Kb.ClickableBox onClick={openFullscreen} onLongPress={showPopup} style={styles.imageContainer}>
+            <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
+            <Kb.ClickableBox
+              onClick={openFullscreen}
+              onLongPress={showPopup}
+              style={styles.imageContainer}
+              ref={toastTargetRef}
+            >
               <ImageImpl />
             </Kb.ClickableBox>
             {showTitle ? <Title /> : null}
