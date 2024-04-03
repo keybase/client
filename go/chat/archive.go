@@ -391,9 +391,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 
 	jobID := job.Request.JobID
 	switch job.Status {
-	case chat1.ArchiveChatJobStatus_COMPLETE:
-		fallthrough
-	case chat1.ArchiveChatJobStatus_ERROR:
+	case chat1.ArchiveChatJobStatus_COMPLETE, chat1.ArchiveChatJobStatus_ERROR:
 		delete(r.runningJobs, jobID)
 	case chat1.ArchiveChatJobStatus_RUNNING:
 		if cancel != nil {
@@ -401,7 +399,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 		}
 	}
 
-	r.jobHistory.JobHistory[jobID] = job
+	r.jobHistory.JobHistory[jobID] = job.DeepCopy()
 	r.dirty = true
 	return nil
 }
@@ -466,7 +464,8 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 
 	// Resume the job in the background, the job will register itself as running
 	go func() {
-		_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(context.Background(), job.Request)
+		ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewSimpleIdentifyNotifier(r.G()))
+		_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(ctx, job.Request)
 		if err != nil {
 			r.Debug(ctx, err.Error())
 		}
@@ -529,7 +528,7 @@ func (c *ChatArchiver) attachmentName(msg chat1.MessageUnboxedValid) string {
 	return ""
 }
 
-func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, cp chat1.ArchiveChatConvCheckpoint, convID chat1.ConversationID, job *chat1.ArchiveChatJob) (msgsComplete, msgsTotal int64, err error) {
+func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, checkpoint chat1.ArchiveChatConvCheckpoint, convID chat1.ConversationID, job *chat1.ArchiveChatJob) (msgsComplete, msgsTotal int64, err error) {
 	// Flush and update the registry
 	err = f.Sync()
 	if err != nil {
@@ -539,18 +538,18 @@ func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, cp chat1.
 	if err != nil {
 		return 0, 0, err
 	}
-	cp.Offset = stat.Size()
-	c.Debug(ctx, "checkpointConv %+v", cp)
+	checkpoint.Offset = stat.Size()
+	c.Debug(ctx, "checkpointConv %+v", checkpoint)
 
 	c.Lock()
 	defer c.Unlock()
-	job.MessagesComplete += int64(cp.Pagination.Num)
+	job.MessagesComplete += int64(checkpoint.Pagination.Num)
 	if job.MessagesComplete > job.MessagesTotal {
 		// total messages is capped to the convs expunge, don't over report.
 		job.MessagesComplete = job.MessagesTotal
 	}
-	// And this conv's individual progress.
-	job.Checkpoints[convID.DbShortFormString()] = cp
+	// Add this conv's individual progress.
+	job.Checkpoints[convID.DbShortFormString()] = checkpoint
 
 	err = c.G().ArchiveRegistry.Set(ctx, nil, *job)
 	return job.MessagesComplete, job.MessagesTotal, err
@@ -562,6 +561,8 @@ func (c *ChatArchiver) archiveConv(ctx context.Context, jobReq chat1.ArchiveChat
 	c.Unlock()
 	if !ok {
 		checkpoint = chat1.ArchiveChatConvCheckpoint{}
+	} else {
+		c.Debug(ctx, "Resuming from checkpoint %+v", checkpoint)
 	}
 
 	convArchivePath := path.Join(job.Request.OutputPath, c.archiveName(conv), "chat.txt")
@@ -678,6 +679,55 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 		arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetDownloadsDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
 	}
 
+	jobInfo, err := c.G().ArchiveRegistry.Get(ctx, arg.JobID)
+	if err != nil {
+		if _, ok := err.(ArchiveJobNotFoundError); !ok {
+			return "", err
+		}
+		jobInfo = chat1.ArchiveChatJob{
+			Request:     arg,
+			StartedAt:   gregor1.ToTime(time.Now()),
+			Checkpoints: make(map[string]chat1.ArchiveChatConvCheckpoint),
+		}
+	}
+
+	// Setup to run each conv in parallel
+	eg, ctx := errgroup.WithContext(ctx)
+	ctx, cancelCtx := context.WithCancel(ctx)
+	// Make an explicit pause distinct from other ctx cancellation
+	pauseCh := make(chan struct{})
+	pause := func() {
+		defer c.Trace(ctx, nil, "ArchiveChat.pause")()
+		close(pauseCh)
+		cancelCtx()
+	}
+	// And update our state when we exit
+	defer func() {
+		defer c.Trace(ctx, &err, "ArchiveChat.cleanup")()
+		select {
+		case <-pauseCh:
+			c.Debug(ctx, "canceled by registry, short-circuiting.")
+			// If we were canceled by the registry, abort.
+			err = fmt.Errorf("Archive job paused")
+		default:
+			// Update the registry
+			jobInfo.Status = chat1.ArchiveChatJobStatus_COMPLETE
+			if err != nil {
+				jobInfo.Status = chat1.ArchiveChatJobStatus_ERROR
+				jobInfo.Err = err.Error()
+			}
+
+			// Write even if our context was canceled
+			ierr := c.G().ArchiveRegistry.Set(context.TODO(), nil, jobInfo)
+			if ierr != nil {
+				c.Debug(ctx, "ArchiveChat.cleanup %v", ierr)
+			}
+		}
+
+		// Alert the UI
+		c.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
+	}()
+
 	// Make sure the root output path exists
 	err = os.MkdirAll(arg.OutputPath, os.ModePerm)
 	if err != nil {
@@ -704,65 +754,18 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 		}
 	}
 
-	jobInfo, err := c.G().ArchiveRegistry.Get(ctx, arg.JobID)
-	if err != nil {
-		if _, ok := err.(ArchiveJobNotFoundError); !ok {
-			return "", err
-		}
-		jobInfo = chat1.ArchiveChatJob{
-			Request:     arg,
-			StartedAt:   gregor1.ToTime(time.Now()),
-			Checkpoints: make(map[string]chat1.ArchiveChatConvCheckpoint),
-		}
-	}
 	// Presume to resume
 	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
 	jobInfo.Err = ""
 	jobInfo.MessagesTotal = totalMsgs
 	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
 
-	// Setup to run each conv in parallel
-	eg, ctx := errgroup.WithContext(ctx)
-	ctx, cancelCtx := context.WithCancel(ctx)
-	// Make an explicit pause distinct from other ctx cancellation
-	pauseCh := make(chan struct{})
-	pause := func() {
-		defer c.Trace(ctx, nil, "ArchiveChat.pause")()
-		close(pauseCh)
-		cancelCtx()
-	}
-
-	// Mark ourselves as running
 	err = c.G().ArchiveRegistry.Set(ctx, pause, jobInfo)
 	if err != nil {
 		return "", err
 	}
-	// And update our state when we exit
-	defer func() {
-		defer c.Trace(ctx, &err, "ArchiveChat.cleanup")()
-		select {
-		case <-pauseCh:
-			c.Debug(ctx, "canceled by registry, short-circuiting.")
-			// If we were canceled by the registry, abort.
-			err = fmt.Errorf("Archive job paused")
-		default:
-			// Update the registry
-			jobInfo.Status = chat1.ArchiveChatJobStatus_COMPLETE
-			if err != nil {
-				jobInfo.Status = chat1.ArchiveChatJobStatus_ERROR
-				jobInfo.Err = err.Error()
-			}
 
-			// Write even if our context is canceled
-			ierr := c.G().ArchiveRegistry.Set(context.TODO(), nil, jobInfo)
-			if ierr != nil {
-				c.Debug(ctx, "ArchiveChat.cleanup %v", ierr)
-			}
-		}
-
-		// Alert the UI
-		c.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
-	}()
+	c.notifyProgress(ctx, arg.JobID, jobInfo.MessagesComplete, jobInfo.MessagesTotal)
 
 	// For each conv, fetch batches of messages until all are fetched.
 	//    - Messages are rendered in a text format and attachments are downloaded to the archive path.
