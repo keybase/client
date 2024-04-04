@@ -1,7 +1,7 @@
 import type Logger from '@/logger'
 export const ENABLE_F5_REMOUNTS = __DEV__ && (false as boolean)
 
-const debuggerOnWrapError = true as boolean
+const debuggerOnWrapError = false as boolean
 
 const debugClearCBs = new Array<() => void>()
 const debugUnClearCBs = new Array<() => void>()

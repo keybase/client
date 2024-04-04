@@ -98,11 +98,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
     })
   }
 
-  const setChatComplete = (jobID: string) => {
-    set(s => {
-      loadChat()
-    })
-  }
   const setChatProgress = (p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
     const {jobID, messagesComplete, messagesTotal} = p
     set(s => {
@@ -217,10 +212,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           ) {
             context = '<all chat>'
           } else if (job.matchingConvs?.length) {
-            const conv = job.matchingConvs?.find(mc => mc.name)
+            const conv = job.matchingConvs.find(mc => mc.name)
             context = conv?.name ?? ''
             if (conv?.channel) {
-              context += `#${conv?.channel}`
+              context += `#${conv.channel}`
             }
           } else {
             context = '<pending>' // TODO replace with spinner?
@@ -286,7 +281,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           setKBFSJobStatus(action.payload.params.status)
           break
         case EngineGen.chat1NotifyChatChatArchiveComplete:
-          setChatComplete(action.payload.params.jobID)
+          loadChat()
           break
         case EngineGen.chat1NotifyChatChatArchiveProgress:
           setChatProgress(action.payload.params)
