@@ -488,6 +488,7 @@ func (r *runner) printStageStart(ctx context.Context,
 				ctx, "Couldn't create CPU profile: %s", cpuProfName)
 			cpuProfPath = ""
 		} else {
+			defer f.Close()
 			err := pprof.StartCPUProfile(f)
 			if err != nil {
 				r.log.CDebugf(ctx, "Couldn't start CPU profile: %+v", err)
