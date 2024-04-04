@@ -100,17 +100,19 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
   const setChatComplete = (jobID: string) => {
     set(s => {
-      const job = s.chatJobs.get(jobID)
-      if (!job) return
-      job.progress = 1
+      loadChat()
     })
   }
   const setChatProgress = (p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
     const {jobID, messagesComplete, messagesTotal} = p
     set(s => {
       const job = s.chatJobs.get(jobID)
-      if (!job) return
+      if (!job) {
+        loadChat()
+        return
+      }
       job.progress = messagesTotal ? messagesComplete / messagesTotal : 0
+      job.status = T.RPCChat.ArchiveChatJobStatus.running
     })
   }
 
@@ -207,7 +209,22 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.chatJobs.clear()
         res.jobs?.forEach(job => {
           const id = job.request.jobID
-          const context = job.matchingConvs?.find(mc => mc.name)?.name ?? ''
+          let context = ''
+          if (
+            !job.request.query?.name &&
+            !job.request.query?.topicName &&
+            !job.request.query?.convIDs?.length
+          ) {
+            context = '<all chat>'
+          } else if (job.matchingConvs?.length) {
+            const conv = job.matchingConvs?.find(mc => mc.name)
+            context = conv?.name ?? ''
+            if (conv?.channel) {
+              context += `#${conv?.channel}`
+            }
+          } else {
+            context = '<pending>' // TODO replace with spinner?
+          }
           s.chatJobs.set(id, {
             context,
             error: job.err,
@@ -238,6 +255,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
           jobID,
         })
+        loadChat()
       }
       C.ignorePromise(f())
     },
@@ -294,7 +312,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
           jobID,
         })
-        loadChat()
+        // don't reload here, resume doesn't block for the job to actually restart
       }
       C.ignorePromise(f())
     },
@@ -323,6 +341,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const cs = C.getConvoState(conversationIDKey)
       const m = cs.meta
       if (m.teamname) {
+        if (m.channelname) {
+          return `${m.teamname}#${m.channelname}`
+        }
         return m.teamname
       }
 

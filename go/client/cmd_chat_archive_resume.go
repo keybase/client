@@ -99,7 +99,8 @@ func (c *CmdChatArchiveResume) Run() error {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
-	err = client.ArchiveChatResume(context.TODO(), arg)
+	ctx := context.TODO()
+	err = client.ArchiveChatResume(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -110,6 +111,8 @@ func (c *CmdChatArchiveResume) Run() error {
 	select {
 	case <-notifyUI.Done():
 		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 

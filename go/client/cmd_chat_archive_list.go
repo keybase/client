@@ -53,7 +53,7 @@ func (c *CmdChatArchiveList) Run() error {
 			percent = int((100 * job.MessagesComplete) / job.MessagesTotal)
 		}
 		matchingConvs := ""
-		if job.Request.Query.Name == nil && job.Request.Query.TopicName == nil && len(job.Request.Query.ConvIDs) == 0 {
+		if job.Request.Query == nil || (job.Request.Query.Name == nil && job.Request.Query.TopicName == nil && len(job.Request.Query.ConvIDs) == 0) {
 			matchingConvs = "<all chat>"
 		} else {
 			names := make([]string, 0, len(job.MatchingConvs))
