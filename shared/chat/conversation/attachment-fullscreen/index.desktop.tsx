@@ -33,7 +33,6 @@ const Arrow = (props: ArrowProps) => {
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
-  console.log('aaaa full loading ', p.ordinal, data)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data

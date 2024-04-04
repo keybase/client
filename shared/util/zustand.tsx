@@ -42,6 +42,7 @@ export const createZustand = <T extends HasReset>(
       } catch (e) {
         if (__DEV__) {
           logger.error('Error in dispatch', d, e)
+          // eslint-disable-next-line no-debugger
           debugger
         } else {
           logger.error('Error in dispatch', d)

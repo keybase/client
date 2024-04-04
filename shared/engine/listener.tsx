@@ -104,6 +104,7 @@ async function listener(p: {
             .catch(e => {
               if (__DEV__) {
                 logger.error('Error in incomingcallmap', method, e)
+                // eslint-disable-next-line no-debugger
                 debugger
               } else {
                 logger.error('Error in incomingcallmap', method)

@@ -104,6 +104,7 @@ type ConvoStore = T.Immutable<{
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
+  messageMapAttachments: Map<T.Chat.Ordinal, T.Chat.Message> // messages that are loaded from the gallery, kept separate
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
@@ -141,6 +142,7 @@ const initialConvoStore: ConvoStore = {
   maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
+  messageMapAttachments: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
@@ -554,8 +556,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       syncMessageDerived(s)
     })
-
-    console.log('aaaa message add aftersync size', get().messageMap.size)
 
     if (markAsRead) {
       get().dispatch.markThreadAsRead()
@@ -1121,16 +1121,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
                     }
+
+                    s.messageMapAttachments.set(message.ordinal, T.castDraft(message))
                   })
-                  // inject them into the message map
-                  messagesAdd(
-                    [
-                      // copy as its frozen by being injected
-                      {...message},
-                    ],
-                    'gallery inject',
-                    false
-                  )
                 }
               },
             },
@@ -1829,7 +1822,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     messagesClear: () => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
-        console.log('aaaa messagemapclear')
         s.messageMap.clear()
         s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)
