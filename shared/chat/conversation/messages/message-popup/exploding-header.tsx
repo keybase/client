@@ -110,10 +110,10 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
       >
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
-            EXPLODING MESSAGE
+            {this.props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
           </Kb.Text>
         </Kb.Box2>
-        {hideTimer ? (
+        {this.props.explodesAt === 0 ? null : hideTimer ? (
           <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
         ) : (
           <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>

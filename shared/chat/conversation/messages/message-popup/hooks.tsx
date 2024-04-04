@@ -76,7 +76,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const onReply = React.useCallback(() => {
     setReplyTo(ordinal)
   }, [setReplyTo, ordinal])
-  const itemReply = [{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const
+  const itemReply = message.exploded
+    ? []
+    : ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
 
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = React.useCallback(() => {
@@ -86,7 +88,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const you = C.useCurrentUserState(s => s.username)
   const yourMessage = author === you
   const onEdit = yourMessage ? _onEdit : undefined
-  const isEditable = message.isEditable && yourMessage
+  const isEditable = message.isEditable && yourMessage && !message.exploded
   const itemEdit =
     onEdit && isEditable
       ? ([
@@ -112,7 +114,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 
   const isTeam = !!teamname
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
-  const canPinMessage = !isTeam || yourOperations.pinMessage
+  const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
   const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const _onPinMessage = React.useCallback(() => {
     pinMessage(id)
@@ -140,7 +142,8 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const canDeleteHistory = C.useTeamsState(
     s => meta.teamType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).deleteChatHistory
   )
-  const canExplodeNow = message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable
+  const canExplodeNow =
+    message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable && !message.exploded
   const _onExplodeNow = React.useCallback(() => {
     messageDelete(ordinal)
   }, [messageDelete, ordinal])
@@ -149,7 +152,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const isDeleteable = yourMessage || canAdminDelete
   const onDelete = isDeleteable && !onExplodeNow ? _onDelete : undefined
   const itemDelete =
-    onDelete && !onExplodeNow
+    onDelete && !onExplodeNow && !message.exploded
       ? ([
           {
             danger: true,
@@ -242,7 +245,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal) => {
       botUsername={botUsername}
       deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
-      explodesAt={explodingTime ?? 0}
+      explodesAt={message.exploded ? 0 : explodingTime ?? 0}
       timestamp={timestamp}
       yourMessage={yourMessage}
     />
