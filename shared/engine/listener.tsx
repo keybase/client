@@ -3,6 +3,7 @@ import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
+import logger from '@/logger'
 
 type WaitingKey = string | Array<string>
 
@@ -100,7 +101,14 @@ async function listener(p: {
 
           invokeAndDispatch()
             .then(() => {})
-            .catch(() => {})
+            .catch(e => {
+              if (__DEV__) {
+                logger.error('Error in incomingcallmap', method, e)
+                debugger
+              } else {
+                logger.error('Error in incomingcallmap', method)
+              }
+            })
         }, 5)
       }
       return map

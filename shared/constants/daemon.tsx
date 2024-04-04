@@ -222,8 +222,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-
-      return await f()
+      await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     refreshAccounts: async () => {

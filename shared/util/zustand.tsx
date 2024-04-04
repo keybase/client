@@ -5,6 +5,7 @@ import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {registerDebugUnClear, registerDebugClear} from '@/util/debug'
+import logger from '@/logger'
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
@@ -29,6 +30,26 @@ export const createZustand = <T extends HasReset>(
   const store = create<T, [['zustand/immer', never]]>(f)
   // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
+  // wrap so we log all exceptions
+
+  const dispatches = Object.keys(initialState.dispatch)
+  const unsafeID = (initialState as any).dispatch as any
+  for (const d of dispatches) {
+    const orig = unsafeID[d] as any
+    unsafeID[d] = (...p: Array<any>) => {
+      try {
+        return orig(...p)
+      } catch (e) {
+        if (__DEV__) {
+          logger.error('Error in dispatch', d, e)
+          debugger
+        } else {
+          logger.error('Error in dispatch', d)
+        }
+        throw e
+      }
+    }
+  }
 
   const reset = initialState.dispatch.resetState
   let resetFunc: () => void

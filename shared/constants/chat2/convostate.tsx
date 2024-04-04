@@ -538,7 +538,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
 
-          m.ordinal = mapOrdinal
+          if (m.ordinal !== mapOrdinal) {
+            m.ordinal = mapOrdinal
+          }
           s.messageMap.set(mapOrdinal, T.castDraft(m))
           if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
@@ -552,6 +554,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       syncMessageDerived(s)
     })
+
+    console.log('aaaa message add aftersync size', get().messageMap.size)
 
     if (markAsRead) {
       get().dispatch.markThreadAsRead()
@@ -1119,7 +1123,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                   })
                   // inject them into the message map
-                  messagesAdd([message], 'gallery inject', false)
+                  messagesAdd(
+                    [
+                      // copy as its frozen by being injected
+                      {...message},
+                    ],
+                    'gallery inject',
+                    false
+                  )
                 }
               },
             },
@@ -1818,6 +1829,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     messagesClear: () => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
+        console.log('aaaa messagemapclear')
         s.messageMap.clear()
         s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)

@@ -101,6 +101,11 @@ export const usePreviewFallback = (
   const [previewState, setPreviewState] = React.useState<PreviewState>(
     path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
   )
+  const lastPathsRef = React.useRef({path, previewPath})
+  if (lastPathsRef.current.path !== path || lastPathsRef.current.previewPath !== previewPath) {
+    lastPathsRef.current = {path, previewPath}
+    setPreviewState(path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback')
+  }
 
   const onLoadError = React.useCallback(() => {
     setPreviewState('cantDoFallback')

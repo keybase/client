@@ -33,6 +33,7 @@ const Arrow = (props: ArrowProps) => {
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
+  console.log('aaaa full loading ', p.ordinal, data)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
@@ -51,6 +52,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }, [])
 
   const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
+
   const forceDims = React.useMemo(() => {
     if (!previewWidth) return undefined
     return imgSrc === previewPath
