@@ -3,7 +3,7 @@ import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
-import logger from '@/logger'
+import {wrapFunctionLogError} from '@/util/debug'
 
 type WaitingKey = string | Array<string>
 
@@ -89,7 +89,7 @@ async function listener(p: {
 
         // defer to process network first
         setTimeout(() => {
-          const invokeAndDispatch = async () => {
+          const invokeAndDispatch = wrapFunctionLogError(async () => {
             if (response) {
               const cb = customResponseIncomingCallMap[method]
               await cb?.(params, response)
@@ -97,19 +97,11 @@ async function listener(p: {
               const cb = incomingCallMap[method]
               await cb?.(params)
             }
-          }
+          }, method)
 
           invokeAndDispatch()
             .then(() => {})
-            .catch(e => {
-              if (__DEV__) {
-                logger.error('Error in incomingcallmap', method, e)
-                // eslint-disable-next-line no-debugger
-                debugger
-              } else {
-                logger.error('Error in incomingcallmap', method)
-              }
-            })
+            .catch(() => {})
         }, 5)
       }
       return map

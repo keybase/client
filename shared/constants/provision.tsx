@@ -5,6 +5,7 @@ import {RPCError} from '@/util/errors'
 import {isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
 import isEqual from 'lodash/isEqual'
+import {wrapFunctionLogError} from '@/util/debug'
 
 export type Device = {
   deviceNumberOfType: number
@@ -217,13 +218,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
       let cancelled = false
       const setupCancel = (response: CommonResponseHandler) => {
         set(s => {
-          s.dispatch.dynamic.cancel = () => {
+          s.dispatch.dynamic.cancel = wrapFunctionLogError(() => {
             set(s => {
               s.dispatch.dynamic.cancel = _cancel
             })
             cancelled = true
             cancelOnCallback(undefined, response)
-          }
+          })
         })
       }
       const isCanceled = (response: CommonResponseHandler) => {
