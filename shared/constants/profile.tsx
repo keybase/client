@@ -546,12 +546,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
                 set(s => {
                   s.promptShouldStoreKeyOnServer = prompt
-                  s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
+                  s.dispatch.dynamic.finishedWithKeyGen = C.wrapErrors((shouldStoreKeyOnServer: boolean) => {
                     set(s => {
                       s.dispatch.dynamic.finishedWithKeyGen = undefined
                     })
                     response.result(shouldStoreKeyOnServer)
-                  }
+                  })
                 })
               },
             },

@@ -33,13 +33,13 @@ export const createZustand = <T extends HasReset>(
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
-  const unsafeISD = (initialState as any).dispatch as any
+  const unsafeISD = (initialState as {dispatch: {[key: string]: unknown}}).dispatch
   for (const d of dispatches) {
-    const orig = unsafeISD[d] as any
+    const orig = unsafeISD[d]
     if (typeof orig === 'function') {
-      unsafeISD[d] = wrapErrors(orig, d)
+      unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
-      Object.assign(unsafeISD[d], orig)
+      Object.assign(unsafeISD[d] as {}, orig)
     }
   }
 
