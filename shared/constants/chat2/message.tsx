@@ -238,6 +238,8 @@ export const makeMessageAttachment = (
   fileType: '',
   fileURL: '',
   fileURLCached: false,
+  fullHeight: 0,
+  fullWidth: 0,
   inlineVideoPlayable: false,
   isCollapsed: false,
   isDeleteable: true,
@@ -917,6 +919,14 @@ const validUIMessagetoMessage = (
       const {filename, title, size} = a.object
 
       const pre = previewSpecs(preview?.metadata, full.metadata)
+
+      let fullHeight = 0
+      let fullWidth = 0
+      if (full.metadata.assetType === T.RPCChat.AssetMetadataType.image) {
+        fullHeight = full.metadata.image.height
+        fullWidth = full.metadata.image.width
+      }
+
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
@@ -944,6 +954,8 @@ const validUIMessagetoMessage = (
         fileType,
         fileURL,
         fileURLCached,
+        fullHeight,
+        fullWidth,
         hasBeenEdited: m.superseded,
         inlineVideoPlayable,
         isCollapsed: m.isCollapsed,

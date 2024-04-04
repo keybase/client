@@ -39,6 +39,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.xtiny,
       pointerEvents: 'none',
+      position: 'relative',
     },
   }),
   float: Styles.platformStyles({

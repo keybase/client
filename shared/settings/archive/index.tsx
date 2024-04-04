@@ -1,35 +1,48 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
-const Job = React.memo(function Job(p: {index: number; id: string}) {
+const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const m = C.useArchiveState(s => s.jobs.get(id))
-  const cancel = C.useArchiveState(s => s.dispatch.cancel)
+  const job = C.useArchiveState(s => s.chatJobs.get(id))
+  const cancel = C.useArchiveState(s => s.dispatch.cancelChat)
+  const pause = C.useArchiveState(s => s.dispatch.pauseChat)
+  const resume = C.useArchiveState(s => s.dispatch.resumeChat)
+
+  const errorStr = job?.error
+
+  const onPause = React.useCallback(() => {
+    pause(id)
+  }, [pause, id])
+
+  const onResume = React.useCallback(() => {
+    resume(id)
+  }, [resume, id])
 
   const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = React.useCallback(() => {
-    if (!m) return
-    openFinder?.(m.outPath)
-  }, [m, openFinder])
+    if (!job) return
+    openFinder?.(job.outPath)
+  }, [job, openFinder])
 
   const onShare = React.useCallback(() => {
-    if (!m?.outPath) return
+    if (!job?.outPath) return
     C.PlatformSpecific.showShareActionSheet({
-      filePath: m.outPath,
+      filePath: job.outPath,
       mimeType: 'application/zip',
     })
       .then(() => {})
       .catch(() => {})
-  }, [m])
+  }, [job])
 
   const onCancel = React.useCallback(() => {
     cancel(id)
   }, [cancel, id])
 
-  if (!m) return null
-  const {started, progress, outPath, context} = m
-  const done = progress === 1
+  if (!job) return null
+  const {started, progress, outPath, context, status} = job
+  const done = status === T.RPCChat.ArchiveChatJobStatus.complete
   const sub = Kb.Styles.isMobile ? (
     <Kb.Text type="BodyBold" lineClamp={1}>
       {context}
@@ -37,47 +50,74 @@ const Job = React.memo(function Job(p: {index: number; id: string}) {
   ) : (
     <Kb.Text type="Body" lineClamp={1} title={`${context} => ${outPath}`}>
       <Kb.Text type="BodyBold">{context}</Kb.Text>
-      {` => ${outPath}`}
     </Kb.Text>
   )
+
+  let actions: React.ReactNode
+  if (done) {
+    actions = (
+      <Kb.Box2 direction="vertical" style={styles.action}>
+        <Kb.Text type="BodySmall">{started.toLocaleString()}</Kb.Text>
+        {Kb.Styles.isMobile ? (
+          <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
+            Share
+          </Kb.Text>
+        ) : (
+          <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
+            Show in {C.fileUIName}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+  } else {
+    const isPaused = job.status === T.RPCChat.ArchiveChatJobStatus.paused
+
+    let pauseOrResume: React.ReactNode
+    if (isPaused) {
+      pauseOrResume = Kb.Styles.isMobile ? (
+        <Kb.Icon type="iconfont-play" onClick={onResume} />
+      ) : (
+        <Kb.Button label="Resume" onClick={onResume} small={true} />
+      )
+    } else {
+      pauseOrResume = Kb.Styles.isMobile ? (
+        <Kb.Icon type="iconfont-pause" onClick={onPause} />
+      ) : (
+        <Kb.Button label="Pause" onClick={onPause} small={true} />
+      )
+    }
+
+    actions = (
+      <Kb.Box2 direction="horizontal" style={styles.action} gap="tiny">
+        {pauseOrResume}
+        {Kb.Styles.isMobile ? (
+          <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
+        ) : (
+          <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
+        )}
+      </Kb.Box2>
+    )
+  }
+
   return (
     <Kb.ListItem2
       firstItem={index === 0}
       type="Small"
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Box2 direction="vertical" style={styles.jobLeft}>
-            <Kb.Text type="Body">
-              {Kb.Styles.isMobile ? `Job: (${started})` : `Job ${id}: (started: ${started})`}
-            </Kb.Text>
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              alignItems="center"
-              gap="tiny"
-              style={styles.jobSub}
-            >
-              <Kb.ProgressBar ratio={progress} />
-              <Kb.BoxGrow2>{sub}</Kb.BoxGrow2>
-            </Kb.Box2>
+          <Kb.Box2 direction="vertical" style={{padding: Kb.Styles.isMobile ? 4 : 8, width: 32}}>
+            <Kb.Icon type="iconfont-chat" />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={styles.action}>
-            {done ? (
-              Kb.Styles.isMobile ? (
-                <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
-                  Share
-                </Kb.Text>
-              ) : (
-                <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
-                  Show in {C.fileUIName}
-                </Kb.Text>
-              )
-            ) : Kb.Styles.isMobile ? (
-              <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
-            ) : (
-              <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
-            )}
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.jobLeft} gap="xtiny">
+            {sub}
+            <Kb.ProgressBar ratio={progress} />
           </Kb.Box2>
+          {errorStr && (
+            <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
+              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+            </Kb.WithTooltip>
+          )}
+          {actions}
         </Kb.Box2>
       }
     ></Kb.ListItem2>
@@ -116,7 +156,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   }, [job])
 
   const onCancelOrDismiss = React.useCallback(() => {
-    cancelOrDismiss(id)
+    C.ignorePromise(cancelOrDismiss(id))
   }, [cancelOrDismiss, id])
 
   if (!job) {
@@ -135,15 +175,15 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       firstItem={index === -1}
       type="Small"
       body={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="medium">
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
           <Kb.Icon type="icon-folder-32" />
           <Kb.Box2 direction="vertical" style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
               <Kb.Text type="BodyBold" lineClamp={1}>
                 {job.kbfsPath}
               </Kb.Text>
-              <Kb.Box style={{flex: 1}} />
-              {job.bytesTotal ? (
+              {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
+              {C.isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
             </Kb.Box2>
@@ -158,11 +198,11 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
               <Kb.Box style={{flex: 1}} />
               {errorStr && (
-                <Kb.WithTooltip tooltip={errorStr}>
+                <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
                 </Kb.WithTooltip>
               )}
-              {revisionBehindStr && (
+              {!C.isMobile && revisionBehindStr && (
                 <Kb.WithTooltip tooltip={revisionBehindStr}>
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.yellowDark} />
                 </Kb.WithTooltip>
@@ -216,13 +256,13 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
 const Archive = C.featureFlags.archive
   ? () => {
       const load = C.useArchiveState(s => s.dispatch.load)
-      const loadKBFS = C.useArchiveState(s => s.dispatch.loadKBFS)
       const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-      C.useOnMountOnce(() => {
-        load()
-        loadKBFS()
-      })
+      C.Router2.useSafeFocusEffect(
+        React.useCallback(() => {
+          load()
+        }, [load])
+      )
 
       const archiveChat = React.useCallback(() => {
         navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
@@ -232,14 +272,19 @@ const Archive = C.featureFlags.archive
       }, [navigateAppend])
       const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
-      const jobMap = C.useArchiveState(s => s.jobs)
+      const chatJobMap = C.useArchiveState(s => s.chatJobs)
       const kbfsJobMap = C.useArchiveState(s => s.kbfsJobs)
-      const jobs = [...jobMap.keys()]
+      const chatJobs = [...chatJobMap.keys()]
       const kbfsJobs = [...kbfsJobMap.keys()]
 
       const showClear = C.useArchiveState(s => {
-        for (const job of s.jobs.values()) {
-          if (job.progress === 1) {
+        for (const job of s.chatJobs.values()) {
+          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+            return true
+          }
+        }
+        for (const job of s.kbfsJobs.values()) {
+          if (job.phase === 'Done') {
             return true
           }
         }
@@ -264,13 +309,13 @@ const Archive = C.featureFlags.archive
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Header">Active archive jobs</Kb.Text>
-              {jobs.length ? (
+              {chatJobs.length + kbfsJobs.length ? (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                  {jobs.map((id, idx) => (
-                    <Job id={id} key={id} index={idx} />
+                  {chatJobs.map((id, idx) => (
+                    <ChatJob id={id} key={id} index={idx} />
                   ))}
                   {kbfsJobs.map((id, idx) => (
-                    <KBFSJob id={id} key={id} index={idx + jobs.length} />
+                    <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
                   ))}
                   {showClear ? (
                     <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
@@ -306,6 +351,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     flexShrink: 1,
     justifyContent: 'flex-end',
+    paddingRight: 16,
   },
   kbfsJobRight: {flexShrink: 0},
   kbfsProgress: {

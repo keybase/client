@@ -12,7 +12,7 @@ const Kb = {
 }
 
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
-  const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError} = p
+  const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError, forceDims} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
   const [showToast, setShowToast] = React.useState(false)
@@ -126,7 +126,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       ? {
           ...imgStyle,
         }
-      : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
+      : {margin: 'auto', maxHeight: '100%', maxWidth: '100%', ...forceDims}
   }
 
   const divRef = React.useRef<HTMLDivElement>(null)

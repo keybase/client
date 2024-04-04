@@ -385,7 +385,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           m.downloadPath = path
           m.fileURLCached = true // assume we have this on the service now
           m.transferErrMsg = undefined
-          m.transferProgress = 0
+          m.transferProgress = 1
           m.transferState = undefined
           updateAttachmentViewTransfered(messageID, path)
         }
@@ -2022,10 +2022,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               )
               return
             }
+
             if (m.type === 'attachment') {
-              m.transferErrMsg = undefined
-              m.transferProgress = ratio
-              m.transferState = 'downloading'
+              // don't update if we're 'done'
+              if (!m.downloadPath && m.transferProgress !== 1) {
+                m.transferErrMsg = undefined
+                m.transferProgress = ratio
+                m.transferState = 'downloading'
+              }
             }
           })
           break

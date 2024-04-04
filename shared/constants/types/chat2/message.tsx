@@ -203,6 +203,8 @@ export interface MessageAttachment extends _MessageCommon {
   readonly isCollapsed: boolean
   readonly previewHeight: number
   readonly previewWidth: number
+  readonly fullHeight: number
+  readonly fullWidth: number
   readonly previewTransferState?: 'downloading' // only for preview,
   readonly title: string
   readonly transferProgress: number // 0-1 // only for the file,

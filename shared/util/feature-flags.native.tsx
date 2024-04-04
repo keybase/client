@@ -7,7 +7,7 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  archive: false,
+  archive: true,
 }
 
 // load overrides

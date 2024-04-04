@@ -161,7 +161,7 @@ export const RecsAndRecos = (
     <Kb.BoxGrow>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
         <SectionList
-          ref={sectionListRef}
+          ref={Kb.Styles.isMobile ? sectionListRef : undefined}
           contentContainerStyle={{minHeight: '133%'}}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"

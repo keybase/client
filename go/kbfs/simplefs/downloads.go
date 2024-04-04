@@ -259,7 +259,9 @@ func (m *downloadManager) startDownload(
 	err = m.k.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 		OpID: opid,
 		Src:  keybase1.NewPathWithKbfs(arg.Path),
-		Dest: keybase1.NewPathWithLocal(downloadPath),
+		// LocalPath should always use forward slash.
+		// Context: https://github.com/keybase/kbfs/pull/1708#issuecomment-408551015
+		Dest: keybase1.NewPathWithLocal(filepath.ToSlash(downloadPath)),
 	})
 	if err != nil {
 		return "", err

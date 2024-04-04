@@ -311,6 +311,26 @@ export type MessageTypes = {
     inParam: {readonly username: String; readonly convID: ConversationID}
     outParam: void
   }
+  'chat.1.local.archiveChat': {
+    inParam: {readonly req: ArchiveChatJobRequest}
+    outParam: ArchiveChatRes
+  }
+  'chat.1.local.archiveChatDelete': {
+    inParam: {readonly jobID: ArchiveJobID; readonly deleteOutputPath: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    outParam: void
+  }
+  'chat.1.local.archiveChatList': {
+    inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    outParam: ArchiveChatListRes
+  }
+  'chat.1.local.archiveChatPause': {
+    inParam: {readonly jobID: ArchiveJobID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    outParam: void
+  }
+  'chat.1.local.archiveChatResume': {
+    inParam: {readonly jobID: ArchiveJobID; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    outParam: void
+  }
   'chat.1.local.bulkAddToConv': {
     inParam: {readonly convID: ConversationID; readonly usernames?: ReadonlyArray<String> | null}
     outParam: void
@@ -1624,6 +1644,11 @@ export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.a
 export const localAddEmojiAliasRpcPromise = (params: MessageTypes['chat.1.local.addEmojiAlias']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojiAlias']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojiAlias', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addEmojiAlias']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddEmojisRpcPromise = (params: MessageTypes['chat.1.local.addEmojis']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addEmojis']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addEmojis', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addEmojis']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localArchiveChatDeleteRpcPromise = (params: MessageTypes['chat.1.local.archiveChatDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.archiveChatDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.archiveChatDelete', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.archiveChatDelete']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localArchiveChatListRpcPromise = (params: MessageTypes['chat.1.local.archiveChatList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.archiveChatList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.archiveChatList', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.archiveChatList']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localArchiveChatPauseRpcPromise = (params: MessageTypes['chat.1.local.archiveChatPause']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.archiveChatPause']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.archiveChatPause', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.archiveChatPause']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localArchiveChatResumeRpcPromise = (params: MessageTypes['chat.1.local.archiveChatResume']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.archiveChatResume']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.archiveChatResume', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.archiveChatResume']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localArchiveChatRpcPromise = (params: MessageTypes['chat.1.local.archiveChat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.archiveChat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.archiveChat', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.archiveChat']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.bulkAddToConv']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToManyConvsRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToManyConvs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToManyConvs', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveInboxSearchRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1762,11 +1787,6 @@ export const localUserEmojisRpcPromise = (params: MessageTypes['chat.1.local.use
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'
-// 'chat.1.local.archiveChat'
-// 'chat.1.local.archiveChatList'
-// 'chat.1.local.archiveChatDelete'
-// 'chat.1.local.archiveChatPause'
-// 'chat.1.local.archiveChatResume'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
