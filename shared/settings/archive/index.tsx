@@ -10,7 +10,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const pause = C.useArchiveState(s => s.dispatch.pauseChat)
   const resume = C.useArchiveState(s => s.dispatch.resumeChat)
 
-  const errorStr = job?.error
+  const errorStr = job?.error ?? ''
 
   const onPause = React.useCallback(() => {
     pause(id)
@@ -70,16 +70,19 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
       </Kb.Box2>
     )
   } else {
-    const isPaused = job.status === T.RPCChat.ArchiveChatJobStatus.paused
+    const isPaused =
+      job.status === T.RPCChat.ArchiveChatJobStatus.paused ||
+      job.status === T.RPCChat.ArchiveChatJobStatus.backgroundPaused
+    const isErr = job.status === T.RPCChat.ArchiveChatJobStatus.error
 
     let pauseOrResume: React.ReactNode
-    if (isPaused) {
+    if (isPaused || isErr) {
       pauseOrResume = Kb.Styles.isMobile ? (
         <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
-        <Kb.Button label="Resume" onClick={onResume} small={true} />
+        <Kb.Button label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
       )
-    } else {
+    } else if (job.status === T.RPCChat.ArchiveChatJobStatus.running) {
       pauseOrResume = Kb.Styles.isMobile ? (
         <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
@@ -110,10 +113,10 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.jobLeft} gap="xtiny">
             {sub}
-            <Kb.ProgressBar ratio={progress} />
+            {!done && <Kb.ProgressBar ratio={progress} />}
           </Kb.Box2>
           {errorStr && (
-            <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
+            <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true} containerStyle={styles.errorTip}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
@@ -291,6 +294,7 @@ const Archive = C.featureFlags.archive
         return false
       })
 
+      // TODO add loading state?
       return (
         <Kb.ScrollView style={styles.scroll}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
@@ -358,6 +362,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: Kb.Styles.globalMargins.small,
   },
   scroll: {height: '100%', width: '100%'},
+  errorTip: {justifyContent: 'center'},
 }))
 
 export default Archive

@@ -275,11 +275,11 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 	defer r.Unlock()
 	ch := make(chan struct{})
 	if r.started {
-		r.started = false
 		err := r.bgPauseAllJobsLocked(ctx)
 		if err != nil {
 			r.Debug(ctx, err.Error())
 		}
+		r.started = false
 		close(r.stopCh)
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")
@@ -372,16 +372,15 @@ func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJob
 	delete(r.jobHistory.JobHistory, jobID)
 	r.dirty = true
 	if deleteOutputPath {
-		err = os.RemoveAll(job.Request.OutputPath)
-		if err != nil {
-			return err
-		}
+		go func() {
+			_ = os.RemoveAll(job.Request.OutputPath)
+		}()
 	}
 	return nil
 }
 
 func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchiveFn, job chat1.ArchiveChatJob) (err error) {
-	defer r.Trace(ctx, &err, "Set(%v)", job.Request.JobID)()
+	defer r.Trace(ctx, &err, "Set(%v) -> %v", job.Request.JobID, job.Status)()
 	r.Lock()
 	defer r.Unlock()
 	err = r.initLocked(ctx)
@@ -728,6 +727,18 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 		c.G().NotifyRouter.HandleChatArchiveComplete(ctx, arg.JobID)
 	}()
 
+	// Presume to resume
+	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
+	jobInfo.Err = ""
+
+	// Update the store ASAP, we will update it again once we resolve the inbox query but that may take some time.
+	err = c.G().ArchiveRegistry.Set(ctx, pause, jobInfo)
+	if err != nil {
+		return "", err
+	}
+
+	c.notifyProgress(ctx, arg.JobID, jobInfo.MessagesComplete, jobInfo.MessagesTotal)
+
 	// Make sure the root output path exists
 	err = os.MkdirAll(arg.OutputPath, os.ModePerm)
 	if err != nil {
@@ -754,17 +765,12 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 		}
 	}
 
-	// Presume to resume
-	jobInfo.Status = chat1.ArchiveChatJobStatus_RUNNING
-	jobInfo.Err = ""
 	jobInfo.MessagesTotal = totalMsgs
 	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
-
-	err = c.G().ArchiveRegistry.Set(ctx, pause, jobInfo)
+	err = c.G().ArchiveRegistry.Set(ctx, nil, jobInfo)
 	if err != nil {
 		return "", err
 	}
-
 	c.notifyProgress(ctx, arg.JobID, jobInfo.MessagesComplete, jobInfo.MessagesTotal)
 
 	// For each conv, fetch batches of messages until all are fetched.

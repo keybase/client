@@ -123,15 +123,6 @@ const InfoPanelMenu = (p: Props) => {
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const onArchive = () => {
-    C.featureFlags.archive &&
-      teamname &&
-      navigateAppend({
-        props: {teamname, type: 'chatTeam'} as const,
-        selected: 'archiveModal',
-      })
-  }
-
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
   const addPeopleItems = [
@@ -247,6 +238,23 @@ const InfoPanelMenu = (p: Props) => {
   })()
 
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
+  const onArchive = () => {
+    if (!C.featureFlags.archive) {
+      return
+    }
+    if (isAdhoc && conversationIDKey) {
+      navigateAppend({
+        props: {conversationIDKey, type: 'chatID'} as const,
+        selected: 'archiveModal',
+      })
+    } else if (teamname) {
+      navigateAppend({
+        props: {teamname, type: 'chatTeam'} as const,
+        selected: 'archiveModal',
+      })
+    }
+  }
+
   const items: Kb.MenuItems = []
   if (isAdhoc) {
     if (markAsUnread) {
@@ -265,6 +273,14 @@ const InfoPanelMenu = (p: Props) => {
       onClick: onBlockConv,
       title: 'Block',
     } as const)
+    C.featureFlags.archive &&
+      conversationIDKey &&
+      items.push({
+        icon: 'iconfont-folder-downloads',
+        iconIsVisible: false,
+        onClick: onArchive,
+        title: 'Archive conversation',
+      } as const)
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)
