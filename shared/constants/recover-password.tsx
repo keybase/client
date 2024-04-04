@@ -89,14 +89,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
                       s.dispatch.dynamic.submitDeviceSelect = undefined
                     })
                   }
-                  const cancel = () => {
+                  const cancel = C.wrapErrors(() => {
                     clear()
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     C.useRouterState.getState().dispatch.navigateUp()
-                  }
+                  })
                   s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
-                  s.dispatch.dynamic.submitDeviceSelect = (name: string) => {
+                  s.dispatch.dynamic.submitDeviceSelect = C.wrapErrors((name: string) => {
                     clear()
                     const d = get().devices.find(d => d.name === name)
                     if (d) {
@@ -104,7 +104,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     } else {
                       cancel()
                     }
-                  }
+                  })
                 })
                 C.useRouterState
                   .getState()
@@ -122,19 +122,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     })
                   }
                   set(s => {
-                    s.dispatch.dynamic.submitResetPassword = action => {
-                      clear()
-                      response.result(action)
-                      set(s => {
-                        s.resetEmailSent = true
-                      })
-                      C.useRouterState.getState().dispatch.navigateUp()
-                    }
-                    s.dispatch.dynamic.cancel = () => {
+                    s.dispatch.dynamic.submitResetPassword = C.wrapErrors(
+                      (action: T.RPCGen.ResetPromptResponse) => {
+                        clear()
+                        response.result(action)
+                        set(s => {
+                          s.resetEmailSent = true
+                        })
+                        C.useRouterState.getState().dispatch.navigateUp()
+                      }
+                    )
+                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
                       clear()
                       response.result(T.RPCGen.ResetPromptResponse.nothing)
                       C.useRouterState.getState().dispatch.navigateUp()
-                    }
+                    })
                   })
                 } else {
                   const {startAccountReset} = C.useAutoResetState.getState().dispatch
@@ -152,18 +154,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   }
                   set(s => {
                     s.paperKeyError = params.pinentry.retryLabel
-                    s.dispatch.dynamic.cancel = () => {
+                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       get().dispatch.startRecoverPassword({
                         replaceRoute: true,
                         username: get().username,
                       })
-                    }
-                    s.dispatch.dynamic.submitPaperKey = passphrase => {
+                    })
+                    s.dispatch.dynamic.submitPaperKey = C.wrapErrors((passphrase: string) => {
                       clear()
                       response.result({passphrase, storeSecret: false})
-                    }
+                    })
                   })
                   C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPaperKey', true)
                 } else {
@@ -175,17 +177,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   }
                   set(s => {
                     s.passwordError = params.pinentry.retryLabel
-                    s.dispatch.dynamic.cancel = () => {
+                    s.dispatch.dynamic.cancel = C.wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                    }
+                    })
                   })
                   if (!params.pinentry.retryLabel) {
                     set(s => {
-                      s.dispatch.dynamic.submitPassword = (passphrase: string) => {
+                      s.dispatch.dynamic.submitPassword = C.wrapErrors((passphrase: string) => {
                         clear()
                         response.result({passphrase, storeSecret: true})
-                      }
+                      })
                     })
                     // TODO maybe wait for loggedIn, for now the service promises to send this after login.
                     C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordSetPassword')

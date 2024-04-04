@@ -111,7 +111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         wait(name, version, true)
         logger.info('Waiting on nav')
         C.useConfigState.setState(s => {
-          s.dispatch.dynamic.setNavigatorExistsNative = () => {
+          s.dispatch.dynamic.setNavigatorExistsNative = C.wrapErrors(() => {
             if (C.Router2._getNavigator()) {
               C.useConfigState.setState(s => {
                 s.dispatch.dynamic.setNavigatorExistsNative = undefined
@@ -120,7 +120,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             } else {
               logger.info('Waiting on nav, got setNavigator but nothing in constants?')
             }
-          }
+          })
         })
       }
       checkNav(version)

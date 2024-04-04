@@ -77,7 +77,7 @@ const maybeDebugger = () => {
   }
 }
 
-export function wrapFunctionLogError<T extends (...args: Array<any>) => any>(f: T, logExtra: string = ''): T {
+export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
     try {
       const result = f(...p)

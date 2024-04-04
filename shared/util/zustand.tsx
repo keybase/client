@@ -4,7 +4,7 @@ import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
-import {registerDebugUnClear, registerDebugClear, wrapFunctionLogError} from '@/util/debug'
+import {registerDebugUnClear, registerDebugClear, wrapErrors} from '@/util/debug'
 
 // needed for tsc
 export type {WritableDraft} from 'immer'
@@ -37,7 +37,7 @@ export const createZustand = <T extends HasReset>(
   for (const d of dispatches) {
     const orig = unsafeISD[d] as any
     if (typeof orig === 'function') {
-      unsafeISD[d] = wrapFunctionLogError(orig, d)
+      unsafeISD[d] = wrapErrors(orig, d)
       // copy over things like .cancel etc
       Object.assign(unsafeISD[d], orig)
     }

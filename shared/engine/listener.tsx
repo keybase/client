@@ -3,7 +3,7 @@ import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
-import {wrapFunctionLogError} from '@/util/debug'
+import {wrapErrors} from '@/util/debug'
 
 type WaitingKey = string | Array<string>
 
@@ -89,7 +89,7 @@ async function listener(p: {
 
         // defer to process network first
         setTimeout(() => {
-          const invokeAndDispatch = wrapFunctionLogError(async () => {
+          const invokeAndDispatch = wrapErrors(async () => {
             if (response) {
               const cb = customResponseIncomingCallMap[method]
               await cb?.(params, response)

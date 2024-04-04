@@ -1,5 +1,6 @@
 // Used to avoid circular dependencies, keep orders
 export * from './platform'
+export {wrapErrors} from '@/util/debug'
 export {_useState as useDarkModeState} from './darkmode'
 export {_useState as useRouterState} from './router2'
 export * as Router2 from './router2'

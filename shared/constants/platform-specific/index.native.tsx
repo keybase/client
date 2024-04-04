@@ -354,7 +354,7 @@ let afterStartupDetails = (_done: boolean) => {}
 export const initPlatformListener = () => {
   let _lastPersist = ''
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.persistRoute = (path?: ReadonlyArray<any>) => {
+    s.dispatch.dynamic.persistRoute = C.wrapErrors((path?: ReadonlyArray<any>) => {
       const f = async () => {
         let param = {}
         let routeName = Tabs.peopleTab
@@ -385,13 +385,13 @@ export const initPlatformListener = () => {
         })
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.onEngineIncomingNative = action => {
+    s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         default:
       }
-    }
+    })
   })
 
   C.useConfigState.subscribe((s, old) => {
@@ -421,11 +421,11 @@ export const initPlatformListener = () => {
   })
 
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.copyToClipboard = s => {
+    s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => {
       Clipboard.setStringAsync(s)
         .then(() => {})
         .catch(() => {})
-    }
+    })
   })
 
   C.useDaemonState.subscribe((s, old) => {
@@ -458,16 +458,16 @@ export const initPlatformListener = () => {
   })
 
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.onFilePickerError = error => {
+    s.dispatch.dynamic.onFilePickerError = C.wrapErrors((error: Error) => {
       Alert.alert('Error', String(error))
-    }
-    s.dispatch.dynamic.openAppStore = () => {
+    })
+    s.dispatch.dynamic.openAppStore = C.wrapErrors(() => {
       Linking.openURL(
         isAndroid
           ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
           : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
       ).catch(() => {})
-    }
+    })
   })
 
   C.useProfileState.setState(s => {
@@ -514,12 +514,14 @@ export const initPlatformListener = () => {
   })
 
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.showShareActionSheet = (filePath: string, message: string, mimeType: string) => {
-      const f = async () => {
-        await showShareActionSheet({filePath, message, mimeType})
+    s.dispatch.dynamic.showShareActionSheet = C.wrapErrors(
+      (filePath: string, message: string, mimeType: string) => {
+        const f = async () => {
+          await showShareActionSheet({filePath, message, mimeType})
+        }
+        C.ignorePromise(f())
       }
-      C.ignorePromise(f())
-    }
+    )
   })
 
   C.useConfigState.subscribe((s, old) => {
@@ -565,7 +567,7 @@ export const initPlatformListener = () => {
   initAudioModes()
 
   C.useConfigState.setState(s => {
-    s.dispatch.dynamic.openAppSettings = () => {
+    s.dispatch.dynamic.openAppSettings = C.wrapErrors(() => {
       const f = async () => {
         if (isAndroid) {
           androidOpenSettings()
@@ -580,9 +582,9 @@ export const initPlatformListener = () => {
         }
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.onEngineIncomingNative = action => {
+    s.dispatch.dynamic.onEngineIncomingNative = C.wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
           C.useSettingsContactsState.getState().dispatch.manageContactsCache()
@@ -604,11 +606,11 @@ export const initPlatformListener = () => {
           break
         default:
       }
-    }
+    })
   })
 
   C.useRouterState.setState(s => {
-    s.dispatch.dynamic.tabLongPress = tab => {
+    s.dispatch.dynamic.tabLongPress = C.wrapErrors((tab: string) => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = C.useConfigState.getState().configuredAccounts
       const current = C.useCurrentUserState.getState().username
@@ -617,6 +619,6 @@ export const initPlatformListener = () => {
         C.useConfigState.getState().dispatch.setUserSwitching(true)
         C.useConfigState.getState().dispatch.login(row.username, '')
       }
-    }
+    })
   })
 }
