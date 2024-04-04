@@ -51,6 +51,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }, [])
 
   const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
+
   const forceDims = React.useMemo(() => {
     if (!previewWidth) return undefined
     return imgSrc === previewPath

@@ -2106,12 +2106,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
                 }
                 set(s => {
-                  s.dispatch.dynamic.respondToInviteLink = accept => {
+                  s.dispatch.dynamic.respondToInviteLink = C.wrapErrors((accept: boolean) => {
                     set(s => {
                       s.dispatch.dynamic.respondToInviteLink = undefined
                     })
                     response.result(accept)
-                  }
+                  })
                 })
               },
             },

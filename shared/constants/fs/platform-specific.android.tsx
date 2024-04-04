@@ -11,7 +11,7 @@ export default function initPlatformSpecific() {
   nativeInit()
 
   C.useFSState.setState(s => {
-    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
+    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = C.wrapErrors(() => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
@@ -21,43 +21,48 @@ export default function initPlatformSpecific() {
         })
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.finishedRegularDownloadMobile = (downloadID, mimeType) => {
-      const f = async () => {
-        // This is fired from a hook and can happen more than once per downloadID.
-        // So just deduplicate them here. This is small enough and won't happen
-        // constantly, so don't worry about clearing them.
-        if (finishedRegularDownloadIDs.has(downloadID)) {
-          return
-        }
-        finishedRegularDownloadIDs.add(downloadID)
+    s.dispatch.dynamic.finishedRegularDownloadMobile = C.wrapErrors(
+      (downloadID: string, mimeType: string) => {
+        const f = async () => {
+          // This is fired from a hook and can happen more than once per downloadID.
+          // So just deduplicate them here. This is small enough and won't happen
+          // constantly, so don't worry about clearing them.
+          if (finishedRegularDownloadIDs.has(downloadID)) {
+            return
+          }
+          finishedRegularDownloadIDs.add(downloadID)
 
-        const {downloads} = C.useFSState.getState()
+          const {downloads} = C.useFSState.getState()
 
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
-          logger.warn('missing download', downloadID)
-          return
+          const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+          const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+          if (
+            downloadState === Constants.emptyDownloadState ||
+            downloadInfo === Constants.emptyDownloadInfo
+          ) {
+            logger.warn('missing download', downloadID)
+            return
+          }
+          if (downloadState.error) {
+            return
+          }
+          try {
+            await androidAddCompleteDownload({
+              description: `Keybase downloaded ${downloadInfo.filename}`,
+              mime: mimeType,
+              path: downloadState.localPath,
+              showNotification: true,
+              title: downloadInfo.filename,
+            })
+          } catch (_) {
+            logger.warn('Failed to addCompleteDownload')
+          }
+          // No need to dismiss here as the download wrapper does it for Android.
         }
-        if (downloadState.error) {
-          return
-        }
-        try {
-          await androidAddCompleteDownload({
-            description: `Keybase downloaded ${downloadInfo.filename}`,
-            mime: mimeType,
-            path: downloadState.localPath,
-            showNotification: true,
-            title: downloadInfo.filename,
-          })
-        } catch (_) {
-          logger.warn('Failed to addCompleteDownload')
-        }
-        // No need to dismiss here as the download wrapper does it for Android.
+        C.ignorePromise(f())
       }
-      C.ignorePromise(f())
-    }
+    )
   })
 }
