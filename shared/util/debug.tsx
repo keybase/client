@@ -1,7 +1,7 @@
 import type Logger from '@/logger'
 export const ENABLE_F5_REMOUNTS = __DEV__ && (false as boolean)
 
-const debuggerOnWrapError = false as boolean
+const debuggerOnWrapError = true as boolean
 
 const debugClearCBs = new Array<() => void>()
 const debugUnClearCBs = new Array<() => void>()
@@ -80,9 +80,9 @@ const maybeDebugger = () => {
 export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
     try {
-      const result = f(...p)
+      const result = f(...p) as unknown
       if (result instanceof Promise) {
-        return result.catch(e => {
+        return result.catch((e: unknown) => {
           const {default: logger} = require('@/logger') as {default: typeof Logger}
           if (__DEV__) {
             logger.error('Error in wrapped call', logExtra, e)
@@ -93,7 +93,7 @@ export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtr
           throw e
         }) as ReturnType<T>
       }
-      return result
+      return result as ReturnType<T>
     } catch (e) {
       const {default: logger} = require('@/logger') as {default: typeof Logger}
       if (__DEV__) {
