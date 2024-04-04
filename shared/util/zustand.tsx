@@ -33,22 +33,26 @@ export const createZustand = <T extends HasReset>(
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
-  const unsafeID = (initialState as any).dispatch as any
+  const unsafeISD = (initialState as any).dispatch as any
   for (const d of dispatches) {
-    const orig = unsafeID[d] as any
-    unsafeID[d] = (...p: Array<any>) => {
-      try {
-        return orig(...p)
-      } catch (e) {
-        if (__DEV__) {
-          logger.error('Error in dispatch', d, e)
-          // eslint-disable-next-line no-debugger
-          debugger
-        } else {
-          logger.error('Error in dispatch', d)
+    const orig = unsafeISD[d] as any
+    if (typeof orig === 'function') {
+      unsafeISD[d] = (...p: Array<any>) => {
+        try {
+          return orig(...p)
+        } catch (e) {
+          if (__DEV__) {
+            logger.error('Error in dispatch', d, e)
+            // eslint-disable-next-line no-debugger
+            debugger
+          } else {
+            logger.error('Error in dispatch', d)
+          }
+          throw e
         }
-        throw e
       }
+      // copy over things like .cancel etc
+      Object.assign(unsafeISD[d], orig)
     }
   }
 
