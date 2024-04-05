@@ -136,23 +136,25 @@ const initPlatformSpecific = () => {
   })
 
   C.useFSState.setState(s => {
-    s.dispatch.dynamic.uploadFromDragAndDropDesktop = (parentPath, localPaths) => {
-      const {upload} = C.useFSState.getState().dispatch
-      const f = async () => {
-        if (isDarwin && darwinCopyToKBFSTempUploadFile) {
-          const dir = await T.RPCGen.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-          const lp = await Promise.all(
-            localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
-          )
-          lp.forEach(localPath => upload(parentPath, localPath))
-        } else {
-          localPaths.forEach(localPath => upload(parentPath, localPath))
+    s.dispatch.dynamic.uploadFromDragAndDropDesktop = C.wrapErrors(
+      (parentPath: T.FS.Path, localPaths: string[]) => {
+        const {upload} = C.useFSState.getState().dispatch
+        const f = async () => {
+          if (isDarwin && darwinCopyToKBFSTempUploadFile) {
+            const dir = await T.RPCGen.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+            const lp = await Promise.all(
+              localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
+            )
+            lp.forEach(localPath => upload(parentPath, localPath))
+          } else {
+            localPaths.forEach(localPath => upload(parentPath, localPath))
+          }
         }
+        C.ignorePromise(f())
       }
-      C.ignorePromise(f())
-    }
+    )
 
-    s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop = localPath => {
+    s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop = C.wrapErrors((localPath: string) => {
       const f = async () => {
         try {
           if (getPathType) {
@@ -164,9 +166,9 @@ const initPlatformSpecific = () => {
         }
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.openPathInSystemFileManagerDesktop = path => {
+    s.dispatch.dynamic.openPathInSystemFileManagerDesktop = C.wrapErrors((path: T.FS.Path) => {
       const f = async () => {
         const {sfmi, pathItems} = C.useFSState.getState()
         return sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled && sfmi.directMountDir
@@ -188,9 +190,9 @@ const initPlatformSpecific = () => {
             })
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.refreshDriverStatusDesktop = () => {
+    s.dispatch.dynamic.refreshDriverStatusDesktop = C.wrapErrors(() => {
       const f = async () => {
         let status = await T.RPCGen.installFuseStatusRpcPromise({
           bundleVersion: '',
@@ -202,9 +204,9 @@ const initPlatformSpecific = () => {
         fuseStatusToActions(C.useFSState.getState().sfmi.driverStatus.type)(status)
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.refreshMountDirsDesktop = () => {
+    s.dispatch.dynamic.refreshMountDirsDesktop = C.wrapErrors(() => {
       const f = async () => {
         const {sfmi, dispatch} = C.useFSState.getState()
         const driverStatus = sfmi.driverStatus
@@ -217,16 +219,16 @@ const initPlatformSpecific = () => {
         dispatch.setPreferredMountDirs(preferredMountDirs || [])
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.setSfmiBannerDismissedDesktop = dismissed => {
+    s.dispatch.dynamic.setSfmiBannerDismissedDesktop = C.wrapErrors((dismissed: boolean) => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.afterDriverEnabled = isRetry => {
+    s.dispatch.dynamic.afterDriverEnabled = C.wrapErrors((isRetry: boolean) => {
       const f = async () => {
         C.useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
@@ -236,9 +238,9 @@ const initPlatformSpecific = () => {
         }
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.afterDriverDisable = () => {
+    s.dispatch.dynamic.afterDriverDisable = C.wrapErrors(() => {
       const f = async () => {
         C.useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
@@ -248,9 +250,9 @@ const initPlatformSpecific = () => {
         }
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.afterDriverDisabling = () => {
+    s.dispatch.dynamic.afterDriverDisabling = C.wrapErrors(() => {
       const f = async () => {
         if (isWindows) {
           await onUninstallDokan()
@@ -259,41 +261,43 @@ const initPlatformSpecific = () => {
         }
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.openSecurityPreferencesDesktop = () => {
+    s.dispatch.dynamic.openSecurityPreferencesDesktop = C.wrapErrors(() => {
       const f = async () => {
         await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
+    s.dispatch.dynamic.openFilesFromWidgetDesktop = C.wrapErrors((path: T.FS.Path) => {
       C.useConfigState.getState().dispatch.showMain()
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.fsTab)
       }
-    }
+    })
 
-    s.dispatch.dynamic.openAndUploadDesktop = (type, parentPath) => {
-      const f = async () => {
-        const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
-          Promise.resolve([]))
-        localPaths.forEach(localPath => C.useFSState.getState().dispatch.upload(parentPath, localPath))
+    s.dispatch.dynamic.openAndUploadDesktop = C.wrapErrors(
+      (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => {
+        const f = async () => {
+          const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
+            Promise.resolve([]))
+          localPaths.forEach(localPath => C.useFSState.getState().dispatch.upload(parentPath, localPath))
+        }
+        C.ignorePromise(f())
       }
-      C.ignorePromise(f())
-    }
+    )
 
     if (!isLinux) {
-      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
+      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = C.wrapErrors(() => {
         const {kbfsDaemonStatus, dispatch} = C.useFSState.getState()
         if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           dispatch.dynamic.refreshDriverStatusDesktop?.()
         }
         dispatch.dynamic.refreshMountDirsDesktop?.()
-      }
+      })
     }
   })
 }

@@ -65,17 +65,17 @@ export const dumpLogs = async (reason?: string) => {
 export const initPlatformListener = () => {
   C.useConfigState.setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
-    s.dispatch.dynamic.showMainNative = () => showMainWindow?.()
-    s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
-    s.dispatch.dynamic.onEngineConnectedDesktop = () => {
+    s.dispatch.dynamic.showMainNative = C.wrapErrors(() => showMainWindow?.())
+    s.dispatch.dynamic.copyToClipboard = C.wrapErrors((s: string) => copyToClipboard?.(s))
+    s.dispatch.dynamic.onEngineConnectedDesktop = C.wrapErrors(() => {
       // Introduce ourselves to the service
       const f = async () => {
         await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
       }
       C.ignorePromise(f())
-    }
+    })
 
-    s.dispatch.dynamic.onEngineIncomingDesktop = action => {
+    s.dispatch.dynamic.onEngineIncomingDesktop = C.wrapErrors((action: EngineGen.Actions) => {
       switch (action.type) {
         case EngineGen.keybase1LogsendPrepareLogsend: {
           const f = async () => {
@@ -139,7 +139,7 @@ export const initPlatformListener = () => {
         }
         default:
       }
-    }
+    })
   })
 
   C.useConfigState.subscribe((s, old) => {

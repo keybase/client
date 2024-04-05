@@ -296,20 +296,20 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   return
                 }
                 set(s => {
-                  s.dispatch.dynamic.afterCheckProof = () => {
+                  s.dispatch.dynamic.afterCheckProof = C.wrapErrors(() => {
                     set(s => {
                       s.dispatch.dynamic.afterCheckProof = undefined
                     })
                     response.result()
-                  }
-                  s.dispatch.dynamic.cancelAddProof = () => {
+                  })
+                  s.dispatch.dynamic.cancelAddProof = C.wrapErrors(() => {
                     set(s => {
                       s.dispatch.dynamic.cancelAddProof = _cancelAddProof
                     })
                     _cancelAddProof()
                     canceled = true
                     response.error(inputCancelError)
-                  }
+                  })
                 })
                 if (service) {
                   set(s => {
@@ -339,7 +339,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   })
                 }
                 set(s => {
-                  s.dispatch.dynamic.cancelAddProof = () => {
+                  s.dispatch.dynamic.cancelAddProof = C.wrapErrors(() => {
                     clear()
                     set(s => {
                       s.dispatch.dynamic.cancelAddProof = _cancelAddProof
@@ -347,15 +347,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     _cancelAddProof()
                     canceled = true
                     response.error(inputCancelError)
-                  }
-                  s.dispatch.dynamic.submitUsername = () => {
+                  })
+                  s.dispatch.dynamic.submitUsername = C.wrapErrors(() => {
                     clear()
                     set(s => {
                       updateUsername(s)
                       s.dispatch.dynamic.submitUsername = undefined
                     })
                     response.result(get().username)
-                  }
+                  })
                 })
                 if (prevError) {
                   set(s => {
@@ -524,9 +524,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         C.useRouterState.getState().dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
-          s.dispatch.dynamic.cancelPgpGen = () => {
+          s.dispatch.dynamic.cancelPgpGen = C.wrapErrors(() => {
             canceled = true
-          }
+          })
         })
 
         try {
@@ -546,12 +546,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
                 set(s => {
                   s.promptShouldStoreKeyOnServer = prompt
-                  s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
+                  s.dispatch.dynamic.finishedWithKeyGen = C.wrapErrors((shouldStoreKeyOnServer: boolean) => {
                     set(s => {
                       s.dispatch.dynamic.finishedWithKeyGen = undefined
                     })
                     response.result(shouldStoreKeyOnServer)
-                  }
+                  })
                 })
               },
             },

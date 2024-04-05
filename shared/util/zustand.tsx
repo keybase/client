@@ -4,7 +4,8 @@ import isEqual from 'lodash/isEqual'
 import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
-import {registerDebugUnClear, registerDebugClear} from '@/util/debug'
+import {registerDebugUnClear, registerDebugClear, wrapErrors} from '@/util/debug'
+
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
@@ -29,6 +30,18 @@ export const createZustand = <T extends HasReset>(
   const store = create<T, [['zustand/immer', never]]>(f)
   // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
+  // wrap so we log all exceptions
+
+  const dispatches = Object.keys(initialState.dispatch)
+  const unsafeISD = (initialState as {dispatch: {[key: string]: unknown}}).dispatch
+  for (const d of dispatches) {
+    const orig = unsafeISD[d]
+    if (typeof orig === 'function') {
+      unsafeISD[d] = wrapErrors(orig as () => void, d)
+      // copy over things like .cancel etc
+      Object.assign(unsafeISD[d] as {}, orig)
+    }
+  }
 
   const reset = initialState.dispatch.resetState
   let resetFunc: () => void

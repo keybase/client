@@ -98,12 +98,14 @@ export const ZoomableBox = (props: Props) => {
   const singleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(1)
+    .maxDistance(5)
     .onStart(() => {
       runOnJS(onTap)()
     })
   const doubleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(2)
+    .maxDistance(5)
     .onStart(() => {
       runOnJS(onDoubleTap)()
     })

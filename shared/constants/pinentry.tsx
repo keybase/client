@@ -89,20 +89,20 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.submitLabel = submitLabel
         s.type = type
         s.windowTitle = windowTitle
-        s.dispatch.dynamic.onSubmit = (password: string) => {
+        s.dispatch.dynamic.onSubmit = C.wrapErrors((password: string) => {
           set(s => {
             s.dispatch.dynamic.onSubmit = undefined
           })
           response.result({passphrase: password, storeSecret: false})
           get().dispatch.resetState()
-        }
-        s.dispatch.dynamic.onCancel = () => {
+        })
+        s.dispatch.dynamic.onCancel = C.wrapErrors(() => {
           set(s => {
             s.dispatch.dynamic.onCancel = undefined
           })
           response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
           get().dispatch.resetState()
-        }
+        })
       })
     },
   }

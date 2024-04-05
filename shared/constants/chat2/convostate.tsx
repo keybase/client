@@ -104,6 +104,7 @@ type ConvoStore = T.Immutable<{
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
+  messageMapAttachments: Map<T.Chat.Ordinal, T.Chat.Message> // messages that are loaded from the gallery, kept separate
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
@@ -141,6 +142,7 @@ const initialConvoStore: ConvoStore = {
   maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
+  messageMapAttachments: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
@@ -538,7 +540,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
 
-          m.ordinal = mapOrdinal
+          if (m.ordinal !== mapOrdinal) {
+            m.ordinal = mapOrdinal
+          }
           s.messageMap.set(mapOrdinal, T.castDraft(m))
           if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
@@ -1117,9 +1121,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
                     }
+
+                    s.messageMapAttachments.set(message.ordinal, T.castDraft(message))
                   })
-                  // inject them into the message map
-                  messagesAdd([message], 'gallery inject', false)
                 }
               },
             },

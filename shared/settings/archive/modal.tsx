@@ -26,23 +26,23 @@ const ArchiveModal = (p: Props) => {
     return p.type === 'chatID' ? C.useArchiveState.getState().chatIDToDisplayname(p.conversationIDKey) : ''
   }, [p])
 
-  let defaultPath = ''
+  let defaultPath = `${C.downloadFolder}/kb-archive-`
   if (C.isElectron) {
     switch (type) {
       case 'chatID':
-        defaultPath = `${C.downloadFolder}/${displayname.replaceAll(',', '_')}`
+        defaultPath += `${displayname.replaceAll(',', '_').replaceAll('#', '_')}`
         break
       case 'chatAll':
-        defaultPath = `${C.downloadFolder}/keybase-chat`
-        break
-      case 'fsAll':
-        defaultPath = `${C.downloadFolder}/keybase-fs`
+        defaultPath += `chat`
         break
       case 'chatTeam':
-        defaultPath = `${C.downloadFolder}/keybase-${p.teamname}`
+        defaultPath += p.teamname
+        break
+      case 'fsAll':
+        defaultPath += `fs`
         break
       case 'fsPath':
-        defaultPath = `${C.downloadFolder}/keybase-${p.path.replaceAll('/', '_')}`
+        defaultPath += `${p.path.replaceAll('/', '_')}`
         break
     }
   }
