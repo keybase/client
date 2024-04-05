@@ -3,6 +3,8 @@ update patches
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 setnative not working on fabric, input should likely be controlled now
 
+  deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
+
 run electron hash update
 -------------------------
 Some short term todos:
