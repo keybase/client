@@ -41,7 +41,6 @@ const Fullscreen = (p: Props) => {
 
   const onSwipe = React.useCallback(
     (left: boolean) => {
-      console.log('aaaa got swipe', left)
       if (left) {
         onNextAttachment()
       } else {
