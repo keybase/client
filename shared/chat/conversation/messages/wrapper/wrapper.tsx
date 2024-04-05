@@ -61,12 +61,12 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
   }, [shouldShowPopup, type])
-  const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
+  const {showPopup, showingPopup, popup, popupAnchor, hidePopup} = useMessagePopup({
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
   })
-  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
+  return {hidePopup, popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
 
 type WMProps = {
@@ -74,6 +74,7 @@ type WMProps = {
   bottomChildren?: React.ReactNode
   showCenteredHighlight: boolean
   showPopup: () => void
+  hidePopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.RefObject<Kb.MeasureRef>
@@ -220,6 +221,7 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   showPopup: () => void
+  hidePopup: () => void
   type: T.Chat.MessageType
   you: string
 }
@@ -239,7 +241,7 @@ const NormalWrapper = ({
 }
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
-  const {botname, bottomChildren, children, decorate, isHighlighted} = p
+  const {botname, bottomChildren, children, decorate, isHighlighted, hidePopup} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
@@ -301,6 +303,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         </Background>
       </Kb.Box2>
       <RightSide
+        showingPopup={showingPopup}
         shouldShowPopup={shouldShowPopup}
         botname={botname}
         showSendIndicator={showSendIndicator}
@@ -309,6 +312,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showCoinsIcon={showCoinsIcon}
         showPopup={showPopup}
         popupAnchor={popupAnchor}
+        hidePopup={hidePopup}
       />
     </LongPressable>
   )
@@ -445,17 +449,19 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 // Exploding, ... , sending, tombstone
 type RProps = {
   showPopup: () => void
+  hidePopup: () => void
   showSendIndicator: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
   showCoinsIcon: boolean
   botname: string
   shouldShowPopup: boolean
+  showingPopup: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef>
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
-  const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
+  const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor, hidePopup} = p
+  const {showExplodingCountdown, showRevoked, botname, shouldShowPopup, showingPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
   const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
@@ -493,7 +499,11 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         )}
       >
         <Kb.Box style={styles.ellipsis}>
-          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
+          <Kb.Icon
+            type="iconfont-ellipsis"
+            onClick={showingPopup ? hidePopup : showPopup}
+            className="ignore-popup-hide"
+          />
         </Kb.Box>
       </Kb.Box2>
     )
@@ -534,7 +544,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const ordinalRef = React.useRef(ordinal)
   ordinalRef.current = ordinal
 
-  const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
+  const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor, hidePopup} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
   const mdata = useState(ordinal)
@@ -556,6 +566,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     ecrType,
     exploding,
     hasReactions,
+    hidePopup,
     isHighlighted,
     isPendingPayment,
     popupAnchor,

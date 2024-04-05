@@ -368,6 +368,7 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   _handleClick = (e: MouseEvent) => {
     if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
+      if (e.target.classList.contains('ignore-popup-hide')) return
       !this.props.propagateOutsideClicks && e.stopPropagation()
       this.props.onClosePopup()
     }
