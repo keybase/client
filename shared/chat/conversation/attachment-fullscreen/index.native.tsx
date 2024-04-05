@@ -7,7 +7,7 @@ import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 import {useData, usePreviewFallback} from './hooks'
-import {Animated} from 'react-native'
+import {type GestureResponderEvent, Animated, View, useWindowDimensions} from 'react-native'
 import {Image} from 'expo-image'
 
 const Fullscreen = (p: Props) => {
@@ -41,6 +41,7 @@ const Fullscreen = (p: Props) => {
 
   const onSwipe = React.useCallback(
     (left: boolean) => {
+      console.log('aaaa got swipe', left)
       if (left) {
         onNextAttachment()
       } else {
@@ -53,16 +54,42 @@ const Fullscreen = (p: Props) => {
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
 
+  const {width: windowWidth} = useWindowDimensions()
+  const needDiff = windowWidth / 3
+  const initialTouch = React.useRef(-1)
+  const maxTouchesRef = React.useRef(0)
+  const onTouchStart = React.useCallback((e: GestureResponderEvent) => {
+    // we get calls when the touches increase
+    maxTouchesRef.current = Math.max(maxTouchesRef.current, e.nativeEvent.touches.length)
+    if (e.nativeEvent.touches.length === 1) {
+      initialTouch.current = e.nativeEvent.pageX
+    } else {
+      initialTouch.current = -1
+    }
+  }, [])
+  const onTouchEnd = React.useCallback(
+    (e: GestureResponderEvent) => {
+      const maxTouches = maxTouchesRef.current
+      maxTouchesRef.current = 0
+      const diff = e.nativeEvent.pageX - initialTouch.current
+      initialTouch.current = -1
+      // we only do swipes on single touch
+      if (maxTouches !== 1) {
+        return
+      }
+      if (diff > needDiff) {
+        onSwipe(false)
+      } else if (diff < -needDiff) {
+        onSwipe(true)
+      }
+    },
+    [onSwipe, needDiff]
+  )
+
   if (path) {
     if (isVideo) {
       content = (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          fullHeight={true}
-          centerChildren={true}
-          style={styles.videoWrapper}
-        >
+        <View style={styles.videoWrapper} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           <Video
             source={{uri: `${path}&contentforce=true`}}
             onError={e => {
@@ -77,7 +104,7 @@ const Fullscreen = (p: Props) => {
             }}
             resizeMode={ResizeMode.CONTAIN}
           />
-        </Kb.Box2>
+        </View>
       )
     } else {
       content = (
@@ -181,19 +208,19 @@ const styles = Styles.styleSheetCreate(
         zIndex: 3,
       },
       headerWrapper: {backgroundColor: Styles.globalColors.blackOrBlack},
-      progressIndicator: {
-        width: 48,
-      },
-      progressWrapper: {
-        position: 'absolute',
-      },
+      progressIndicator: {width: 48},
+      progressWrapper: {position: 'absolute'},
       safeAreaTop: {
         ...Styles.globalStyles.flexBoxColumn,
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.blackOrBlack,
       },
       videoWrapper: {
+        alignItems: 'center',
+        height: '100%',
+        justifyContent: 'center',
         position: 'relative',
+        width: '100%',
       },
       zoomableBox: {
         backgroundColor: Styles.globalColors.blackOrBlack,
