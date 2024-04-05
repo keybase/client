@@ -259,7 +259,7 @@ export const undynamicColor = (col: string) => col
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
 export const urlEscapeFilePath = (path: string) => {
-  if (path && path.startsWith('file://')) {
+  if (path.startsWith('file://')) {
     const parts = path.split('/')
     parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]!)
     return parts.join('/')
