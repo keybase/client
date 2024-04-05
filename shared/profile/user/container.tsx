@@ -148,11 +148,7 @@ const Connected = (ownProps: OwnProps) => {
   }
 
   let allowOnAddIdentity = false
-  if (
-    stateProps.userIsYou &&
-    stateProps._suggestionKeys &&
-    stateProps._suggestionKeys.some(s => s.belowFold)
-  ) {
+  if (stateProps.userIsYou && stateProps._suggestionKeys?.some(s => s.belowFold)) {
     allowOnAddIdentity = true
   }
 

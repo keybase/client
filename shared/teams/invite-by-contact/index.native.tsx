@@ -79,13 +79,11 @@ export const InviteByContact = (props: InviteByContactProps) => {
   const hasItems = listItems.length > 0
   if (filterValue) {
     listItems = listItems.filter(row =>
-      [row.name, row.value, row.valueFormatted].some(
-        s =>
-          s &&
-          s
-            .replace(/^[^a-z0-9@._+()]/i, '')
-            .toLowerCase()
-            .includes(filterValue.toLowerCase())
+      [row.name, row.value, row.valueFormatted].some(s =>
+        s
+          ?.replace(/^[^a-z0-9@._+()]/i, '')
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
       )
     )
   }

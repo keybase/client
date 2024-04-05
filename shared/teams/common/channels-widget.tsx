@@ -58,7 +58,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
           c =>
             !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
             (!disableGeneral || c.channelname !== 'general') &&
-            (!disabledChannels || !disabledChannels.some(dc => dc.conversationIDKey === c.conversationIDKey))
+            !disabledChannels?.some(dc => dc.conversationIDKey === c.conversationIDKey)
         )
         .map(c => ({
           label: `#${c.channelname}`,

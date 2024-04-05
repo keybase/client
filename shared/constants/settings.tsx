@@ -105,11 +105,7 @@ export const _useState = Z.createZustand<State>(set => {
       return
     }
 
-    if (
-      maybeLoadAppLinkOnce ||
-      !C.useConfigState.getState().startup.link ||
-      !C.useConfigState.getState().startup.link.endsWith('/phone-app')
-    ) {
+    if (maybeLoadAppLinkOnce || !C.useConfigState.getState().startup.link.endsWith('/phone-app')) {
       return
     }
     maybeLoadAppLinkOnce = true
