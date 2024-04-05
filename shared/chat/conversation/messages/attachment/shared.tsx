@@ -79,10 +79,12 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     return ''
   })
 
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const download = C.useChatContext(s =>
+    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  )
   const onDownload = React.useCallback(() => {
-    attachmentDownload(ordinal)
-  }, [ordinal, attachmentDownload])
+    download(ordinal)
+  }, [ordinal, download])
 
   const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
