@@ -228,17 +228,10 @@ const AddMoreMembers = () => {
     [appendNewTeamBuilder, nav, teamID]
   )
 
-  const {togglePopup, popup, popupAnchor, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
-        className={ignoreClassname}
-        mode="Secondary"
-        small={true}
-        label="Add people"
-        onClick={togglePopup}
-        ref={popupAnchor}
-      />
+      <Kb.Button mode="Secondary" small={true} label="Add people" onClick={togglePopup} ref={popupAnchor} />
       {popup}
     </>
   )

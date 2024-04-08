@@ -35,15 +35,10 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
     },
     [teamID]
   )
-  const {popup, popupAnchor, togglePopup, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2
-      fullWidth={true}
-      direction="horizontal"
-      style={styles.teamRowContainer}
-      className={ignoreClassname}
-    >
+    <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
       {popup}
       <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
       <Kb.BoxGrow2>

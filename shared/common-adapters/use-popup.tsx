@@ -7,8 +7,7 @@ export type Popup2Parms = {
   hidePopup: () => void
 }
 
-export const ignoreClassname = '' // 'ignore-popup-hide'
-const tooQuick = 300
+const tooQuick = 100
 
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
@@ -22,7 +21,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const hidePopup = React.useCallback(() => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
-      console.log('aaaa bail')
       return
     }
     lastToggle.current = now
@@ -31,7 +29,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const showPopup = React.useCallback(() => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
-      console.log('aaaa bail')
       return
     }
     lastToggle.current = now
@@ -45,5 +42,5 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
   }
 
-  return {hidePopup, ignoreClassname, popup, popupAnchor, showPopup, showingPopup, togglePopup}
+  return {hidePopup, popup, popupAnchor, showPopup, showingPopup, togglePopup}
 }

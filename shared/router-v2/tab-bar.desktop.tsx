@@ -113,11 +113,11 @@ const Header = () => {
     },
     [fullname, onAddAccount, onHelp, onQuit, onSettings, onSignOut, username, showUserProfile]
   )
-  const {togglePopup, popup, popupAnchor, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
-      <Kb.ClickableBox onClick={togglePopup} className={ignoreClassname}>
+      <Kb.ClickableBox onClick={togglePopup}>
         <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"

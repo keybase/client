@@ -183,16 +183,10 @@ const ChooseEmoji = Kb.Styles.isMobile
         },
         [onChoose]
       )
-      const {popup, popupAnchor, togglePopup, ignoreClassname} = Kb.usePopup2(makePopup)
+      const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
       return (
         <>
-          <Kb.Button
-            mode="Secondary"
-            label="Choose emoji"
-            ref={popupAnchor}
-            onClick={togglePopup}
-            className={ignoreClassname}
-          />
+          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={togglePopup} />
           {popup}
         </>
       )

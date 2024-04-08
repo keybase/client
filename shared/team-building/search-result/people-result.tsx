@@ -139,11 +139,10 @@ const DropdownButton = (p: DropdownProps) => {
     },
     [items]
   )
-  const {togglePopup, popup, popupAnchor, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox
-      className={ignoreClassname}
       onClick={e => {
         e.stopPropagation()
         togglePopup()

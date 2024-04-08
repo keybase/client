@@ -156,12 +156,11 @@ const StellarValue = (p: Props) => {
     },
     [menuItems]
   )
-  const {popup, popupAnchor, togglePopup, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
 
   const label = (
     <Kb.Text
       type="BodyPrimaryLink"
-      className={ignoreClassname}
       onClick={Kb.Styles.isMobile ? undefined : togglePopup}
       tooltip={popup ? undefined : 'Stellar Federation Address'}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
@@ -399,17 +398,12 @@ const Assertion = React.memo(function Assertion(p: Props) {
     },
     [items, header]
   )
-  const {popup, popupAnchor, ignoreClassname, togglePopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
   const tooltip = state === 'valid' || state === 'revoked' ? 'View proof' : undefined
 
   return (
     <Kb.Box2Measure
-      className={Kb.Styles.classNames(
-        {
-          'hover-container': !notAUser,
-        },
-        ignoreClassname
-      )}
+      className={Kb.Styles.classNames({'hover-container': !notAUser})}
       ref={popupAnchor}
       direction="vertical"
       style={styles.container}

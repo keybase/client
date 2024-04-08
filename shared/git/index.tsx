@@ -82,7 +82,7 @@ const Container = (ownProps: OwnProps) => {
     },
     [navigateAppend, setError]
   )
-  const {popup, popupAnchor, togglePopup, ignoreClassname} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Reloadable
@@ -94,12 +94,7 @@ const Container = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
-          <Kb.ClickableBox
-            ref={popupAnchor}
-            style={styles.header}
-            onClick={togglePopup}
-            className={ignoreClassname}
-          >
+          <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={togglePopup}>
             <Kb.Icon
               type="iconfont-new"
               style={{marginRight: Kb.Styles.globalMargins.tiny}}
