@@ -101,11 +101,11 @@ const SortHeader = () => {
     [onChangeSort]
   )
 
-  const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {popup, togglePopup, popupAnchor, ignoreClassname} = Kb.usePopup2(makePopup)
   const sortOrder = C.useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
-      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
+      <Kb.ClickableBox onClick={togglePopup} ref={popupAnchor} className={ignoreClassname}>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
           <Kb.Icon type="iconfont-arrow-full-down" />
           <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
