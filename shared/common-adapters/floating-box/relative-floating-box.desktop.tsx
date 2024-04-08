@@ -5,7 +5,6 @@ import throttle from 'lodash/throttle'
 import includes from 'lodash/includes'
 import without from 'lodash/without'
 import Box from '@/common-adapters/box'
-import {findDOMClass} from '@/util/dom.desktop'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import isEqual from 'lodash/isEqual'
@@ -369,7 +368,6 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   _handleClick = (e: MouseEvent) => {
     if (this.popupNode && e.target instanceof HTMLElement && !this.popupNode.contains(e.target)) {
-      if (findDOMClass(e.target, 'ignore-popup-hide')) return
       !this.props.propagateOutsideClicks && e.stopPropagation()
       this.props.onClosePopup()
     }
