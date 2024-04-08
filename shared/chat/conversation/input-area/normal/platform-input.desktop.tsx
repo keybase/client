@@ -35,12 +35,12 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
     },
     [focusInput]
   )
-  const {popup, popupAnchor, showingPopup, togglePopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
-      onClick={togglePopup}
+      onClick={showPopup}
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
@@ -62,7 +62,7 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
         ) : (
           <Kb.Icon
             className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
-            onClick={togglePopup}
+            onClick={showPopup}
             padding="xtiny"
             type="iconfont-timer"
           />
@@ -103,7 +103,7 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
     [insertEmoji]
   )
 
-  const {popup, popupAnchor, showingPopup, togglePopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -116,7 +116,7 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
       >
         <Kb.Icon
           color={showingPopup ? Kb.Styles.globalColors.black : undefined}
-          onClick={togglePopup}
+          onClick={showPopup}
           type="iconfont-emoji"
         />
       </Kb.Box2Measure>
