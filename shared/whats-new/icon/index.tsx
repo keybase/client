@@ -92,7 +92,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
 
   return (
     <>
-      <Kb.ClickableBox2 style={styles.iconContainerMargins} onClick={onClick}>
+      <Kb.ClickableBox2 style={styles.iconContainerMargins} onClick={onClick} className="ignore-popup-hide">
         <Kb.Box2Measure
           direction="vertical"
           style={styles.iconContainer}
@@ -108,8 +108,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
             badgeColor={badgeColor}
             color={popupVisible ? popupVisibleColor : iconColor}
             className={Kb.Styles.classNames(
-              color ? `hover_contained_color_${color}` : 'hover_contained_color_black',
-              'ignore-popup-hide'
+              color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
             )}
             newRelease={newRelease}
           />
