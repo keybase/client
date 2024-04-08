@@ -57,12 +57,12 @@ export const HeaderRightActions = () => {
     [navigateAppend, setError]
   )
 
-  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button
         label="New repository"
-        onClick={togglePopup}
+        onClick={showPopup}
         small={true}
         ref={popupAnchor}
         style={styles.newRepoButton}

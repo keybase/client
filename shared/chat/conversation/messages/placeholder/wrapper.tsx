@@ -32,7 +32,6 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   return (
     <WrapperMessage
       {...p}
-      togglePopup={noop}
       showCenteredHighlight={false}
       showPopup={noop}
       showingPopup={false}

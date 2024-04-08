@@ -210,10 +210,10 @@ const DropdownButton = (p: DropdownProps) => {
       onUnfollow,
     ]
   )
-  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox onClick={togglePopup} ref={popupAnchor}>
+    <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />

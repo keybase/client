@@ -125,7 +125,7 @@ const EmailPhoneRow = (props: Props) => {
     [menuItems, header]
   )
 
-  const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   // Short circuit superseded phone numbers - they get their own banner instead
   if (superseded) {
@@ -175,8 +175,8 @@ const EmailPhoneRow = (props: Props) => {
       {!!menuItems.length && (
         <>
           <Kb.ClickableBox
-            className={Kb.Styles.classNames('hover_container')}
-            onClick={togglePopup}
+            className="hover_container"
+            onClick={showPopup}
             ref={popupAnchor}
             style={styles.gearIconContainer}
           >

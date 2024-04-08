@@ -87,7 +87,7 @@ const MoreNetworksButton = (props: {
     [services, onChangeService]
   )
 
-  const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -100,7 +100,7 @@ const MoreNetworksButton = (props: {
           ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
-            <Kb.ClickableBox onClick={togglePopup} style={styles.moreNetworks3}>
+            <Kb.ClickableBox onClick={showPopup} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
               </Kb.Text>

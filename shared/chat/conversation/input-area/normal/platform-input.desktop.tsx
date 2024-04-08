@@ -112,7 +112,7 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
         style={styles.icon}
         ref={popupAnchor}
         tooltip="Emoji"
-        className={Kb.Styles.classNames('tooltip-top-left')}
+        className="tooltip-top-left"
       >
         <Kb.Icon
           color={showingPopup ? Kb.Styles.globalColors.black : undefined}

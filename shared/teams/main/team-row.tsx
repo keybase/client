@@ -34,7 +34,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
     },
     [teamID]
   )
-  const {popup, popupAnchor, togglePopup} = Kb.usePopup2(makePopup)
+  const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
   const badgeCount = C.useTeamsState(s =>
@@ -140,7 +140,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
             )}
             <Kb.Button
               type="Dim"
-              onClick={togglePopup}
+              onClick={showPopup}
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"

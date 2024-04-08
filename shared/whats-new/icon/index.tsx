@@ -92,7 +92,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
 
   return (
     <>
-      <Kb.ClickableBox2 style={styles.iconContainerMargins} onClick={onClick} className="ignore-popup-hide">
+      <Kb.Box style={styles.iconContainerMargins} onClick={onClick}>
         <Kb.Box2Measure
           direction="vertical"
           style={styles.iconContainer}
@@ -113,7 +113,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
             newRelease={newRelease}
           />
         </Kb.Box2Measure>
-      </Kb.ClickableBox2>
+      </Kb.Box>
       {!Kb.Styles.isMobile && popupVisible && (
         <Popup
           attachTo={attachToRef}
