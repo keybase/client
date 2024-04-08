@@ -111,7 +111,7 @@ const Header = () => {
 
   return (
     <>
-      <Kb.ClickableBox onClick={showMenu}>
+      <Kb.ClickableBox onClick={showingMenu ? hideMenu : showMenu} className="ignore-popup-hide">
         <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"
