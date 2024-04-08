@@ -6,6 +6,9 @@ export type Popup2Parms = {
   showPopup: () => void
   hidePopup: () => void
 }
+
+export const ignoreClassname = 'ignore-popup-hide'
+
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
   const wasShowingPopupRef = React.useRef(false)
@@ -20,6 +23,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const showPopup = React.useCallback(() => {
     setShowingPopup(true)
   }, [setShowingPopup])
+  const togglePopup = showingPopup ? hidePopup : showPopup
 
   if (showingPopup !== wasShowingPopupRef.current || makePopup !== wasMakePopupRef.current) {
     wasShowingPopupRef.current = showingPopup
@@ -27,5 +31,5 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
   }
 
-  return {hidePopup, popup, popupAnchor, showPopup, showingPopup}
+  return {hidePopup, ignoreClassname, popup, popupAnchor, showPopup, showingPopup, togglePopup}
 }
