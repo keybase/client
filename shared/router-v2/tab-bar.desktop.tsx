@@ -27,15 +27,9 @@ const FilesTabBadge = () => {
 }
 
 const Header = () => {
-  const [showingMenu, setShowingMenu] = React.useState(false)
-  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
   const username = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const onClickWrapper = React.useCallback(() => {
-    setShowingMenu(false)
-    showUserProfile(username)
-  }, [showUserProfile, username])
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const stop = C.useSettingsState(s => s.dispatch.stop)
@@ -64,54 +58,66 @@ const Header = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = React.useCallback(() => navigateAppend(C.Settings.settingsLogOutTab), [navigateAppend])
 
-  const menuHeader = React.useMemo(
-    () => (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-          <Kb.ConnectedNameWithIcon
-            username={username}
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      const menuItems: Kb.MenuItems = [
+        {onClick: onAddAccount, title: 'Log in as another user'},
+        {onClick: onSettings, title: 'Settings'},
+        {onClick: onHelp, title: 'Help'},
+        {danger: true, onClick: onSignOut, title: 'Sign out'},
+        {danger: true, onClick: onQuit, title: 'Quit Keybase'},
+      ]
+
+      const onClickWrapper = () => {
+        hidePopup()
+        showUserProfile(username)
+      }
+
+      const menuHeader = (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+            <Kb.ConnectedNameWithIcon
+              username={username}
+              onClick={onClickWrapper}
+              metaTwo={
+                <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                  {fullname}
+                </Kb.Text>
+              }
+            />
+          </Kb.ClickableBox>
+          <Kb.Button
+            label="View/Edit profile"
+            mode="Secondary"
             onClick={onClickWrapper}
-            metaTwo={
-              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-                {fullname}
-              </Kb.Text>
-            }
+            small={true}
+            style={styles.button}
           />
-        </Kb.ClickableBox>
-        <Kb.Button
-          label="View/Edit profile"
-          mode="Secondary"
-          onClick={onClickWrapper}
-          small={true}
-          style={styles.button}
+          <AccountSwitcher />
+        </Kb.Box2>
+      )
+
+      return (
+        <Kb.FloatingMenu
+          position="bottom left"
+          containerStyle={styles.menu}
+          header={menuHeader}
+          closeOnSelect={true}
+          visible={true}
+          attachTo={attachTo}
+          items={menuItems}
+          onHidden={hidePopup}
         />
-        <AccountSwitcher />
-      </Kb.Box2>
-    ),
-    [onClickWrapper, username, fullname]
+      )
+    },
+    [fullname, onAddAccount, onHelp, onQuit, onSettings, onSignOut, username, showUserProfile]
   )
-
-  const menuItems = React.useMemo(
-    (): Kb.MenuItems => [
-      {onClick: onAddAccount, title: 'Log in as another user'},
-      {onClick: onSettings, title: 'Settings'},
-      {onClick: onHelp, title: 'Help'},
-      {danger: true, onClick: onSignOut, title: 'Sign out'},
-      {danger: true, onClick: onQuit, title: 'Quit Keybase'},
-    ],
-    [onAddAccount, onSettings, onHelp, onSignOut, onQuit]
-  )
-
-  const showMenu = React.useCallback(() => {
-    setShowingMenu(true)
-  }, [])
-  const hideMenu = React.useCallback(() => {
-    setShowingMenu(false)
-  }, [])
+  const {togglePopup, popup, popupAnchor, ignoreClassname} = Kb.usePopup2(makePopup)
 
   return (
     <>
-      <Kb.ClickableBox onClick={showingMenu ? hideMenu : showMenu} className="ignore-popup-hide">
+      <Kb.ClickableBox onClick={togglePopup} className={ignoreClassname}>
         <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"
@@ -140,16 +146,7 @@ const Header = () => {
           </>
         </Kb.Box2Measure>
       </Kb.ClickableBox>
-      <Kb.FloatingMenu
-        position="bottom left"
-        containerStyle={styles.menu}
-        header={menuHeader}
-        closeOnSelect={true}
-        visible={showingMenu}
-        attachTo={popupAnchor}
-        items={menuItems}
-        onHidden={hideMenu}
-      />
+      {popup}
     </>
   )
 }
