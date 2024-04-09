@@ -20,9 +20,9 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - Expo (50.0.14):
+  - Expo (50.0.15):
     - ExpoModulesCore
-  - ExpoCamera (14.1.1):
+  - ExpoCamera (14.1.2):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -44,7 +44,7 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (12.7.1):
     - ExpoModulesCore
-  - ExpoModulesCore (1.11.12):
+  - ExpoModulesCore (1.11.13):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -88,9 +88,9 @@ PODS:
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
   - lottie-ios (4.4.1)
-  - lottie-react-native (6.7.0):
+  - lottie-react-native (6.7.2):
     - glog
-    - lottie-ios (~> 4.4.1)
+    - lottie-ios (= 4.4.1)
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - RCT-Folly (2022.05.16.00):
@@ -1430,8 +1430,8 @@ SPEC CHECKSUMS:
   EXImageLoader: 55080616b2fe9da19ef8c7f706afd9814e279b6b
   EXLocation: a631bd8dc4e7db986fb27edb7fc9ea8174ebe249
   EXMediaLibrary: 59077ec70ec8b0460447fadebaa1ba7361a18efe
-  Expo: e01a77c6fa4bc80a6d1bb949cda1d12d21044abd
-  ExpoCamera: 53f5ef81bab088b2edcf94d05e4da3bc84f46383
+  Expo: 0f04015e4254c8b7c74f3c4b2facdfd0b62152b0
+  ExpoCamera: ed3dd4ae8e32603c91336ea8e27c5d1e2822d8f6
   ExpoClipboard: b597982124f067ff9f5b89093eb3d97898d5d877
   ExpoFileSystem: eecaf6796aed0f4dd20042dc2ca2cac6c4bc1185
   ExpoHaptics: 28a771b630353cd6e8dcf1b1e3e693e38ad7c3c3
@@ -1439,7 +1439,7 @@ SPEC CHECKSUMS:
   ExpoImagePicker: 66970181d1c838f444e5e1f81b804ab2d5ff49bd
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoMailComposer: 078adb05f97c26d4a131a47dc9003eacb6879ef2
-  ExpoModulesCore: 61dc57c6e2a35f2f84baf488146db624e03af4cd
+  ExpoModulesCore: 4a8928a228569301ac4fc4a1e846713e05754d05
   ExpoSMS: 50236489ead8beaef1eb7a1be262e7f51169e34b
   EXTaskManager: 3e446dbf75cd662aa6e7d6828be5bc26265241c3
   FBLazyVector: f64d1e2ea739b4d8f7e4740cde18089cd97fe864
@@ -1451,7 +1451,7 @@ SPEC CHECKSUMS:
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
-  lottie-react-native: 13cd0c4782c3e6bb26bfa4cc2d08bfb84f6d1ab6
+  lottie-react-native: 2d9efc8a5ffabe688b55a1a1ac1fb94b9d971995
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: ca1d7414aba0b27efcfa2ccd37637edb1ab77d96
   RCTTypeSafety: 678e344fb976ff98343ca61dc62e151f3a042292
