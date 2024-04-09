@@ -36,7 +36,7 @@ const Fullscreen = (p: Props) => {
       .catch(() => {})
   }, [])
 
-  const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isVideo, preload)
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
@@ -107,14 +107,7 @@ const Fullscreen = (p: Props) => {
       )
     } else {
       content = (
-        <Kb.ZoomableImage
-          src={imgSrc}
-          style={styles.zoomableBox}
-          onSwipe={onSwipe}
-          onTap={toggleHeader}
-          onError={onLoadError}
-          onLoaded={onLoaded}
-        />
+        <Kb.ZoomableImage src={imgSrc} style={styles.zoomableBox} onSwipe={onSwipe} onTap={toggleHeader} />
       )
     }
   }

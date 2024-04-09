@@ -50,7 +50,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     img.onerror = onError
   }, [])
 
-  const {onLoaded, onLoadError, imgSrc} = usePreviewFallback(path, previewPath, isVideo, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isVideo, preload)
 
   const forceDims = React.useMemo(() => {
     if (!previewWidth) return undefined
@@ -120,13 +120,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                     <source src={path} />
                   </video>
                 ) : (
-                  <Kb.ZoomableImage
-                    src={imgSrc}
-                    onIsZoomed={onIsZoomed}
-                    onError={onLoadError}
-                    onLoaded={onLoaded}
-                    forceDims={forceDims}
-                  />
+                  <Kb.ZoomableImage src={imgSrc} onIsZoomed={onIsZoomed} forceDims={forceDims} />
                 )}
               </Kb.Box2>
               {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
