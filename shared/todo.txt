@@ -4,6 +4,7 @@ new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivit
 setnative not working on fabric, input should likely be controlled now
 
   deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
+  eslint 9 turned off stuff, check it actually finds things
 
 run electron hash update
 -------------------------
