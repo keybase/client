@@ -139,6 +139,7 @@ table {
   src: url('../../fonts/kb.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: block;
 }
 
 /* Source Code Pro */
@@ -146,12 +147,14 @@ table {
   font-family: 'Source Code Pro';
   font-weight: 500;
   src: url('../../fonts/SourceCodePro-Medium.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Source Code Pro';
   font-weight: 600;
   src: url('../../fonts/SourceCodePro-Semibold.ttf') format('truetype');
+  font-display: block;
 }
 /* End Source Code Pro */
 
@@ -160,6 +163,7 @@ table {
   font-family: 'Keybase';
   font-weight: 500;
   src: url('../../fonts/keybase-medium.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
@@ -167,12 +171,14 @@ table {
   font-weight: 500;
   font-style: italic;
   src: url('../../fonts/keybase-medium-italic.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 600;
   src: url('../../fonts/keybase-semibold.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
@@ -180,12 +186,14 @@ table {
   font-weight: 600;
   font-style: italic;
   src: url('../../fonts/keybase-semibold-italic.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 700;
   src: url('../../fonts/keybase-bold.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
@@ -193,12 +201,14 @@ table {
   font-weight: 700;
   font-style: italic;
   src: url('../../fonts/keybase-bold-italic.ttf') format('truetype');
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 800;
   src: url('../../fonts/keybase-extrabold.ttf') format('truetype');
+  font-display: block;
 }
 /* End Keybase */
 
