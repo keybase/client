@@ -120,7 +120,7 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     dynamic: {
-      cancel?: () => void
+      cancel?: (dueToReset?: boolean) => void
       setDeviceName?: (name: string) => void
       setPassphrase?: (passphrase: string) => void
       setUsername?: (username: string) => void
@@ -136,9 +136,11 @@ interface State extends Store {
 }
 
 export const _useState = Z.createZustand<State>((set, get) => {
-  const _cancel = C.wrapErrors(() => {
+  const _cancel = C.wrapErrors((dueToReset?: boolean) => {
     C.useWaitingState.getState().dispatch.clear(waitingKey)
-    console.log('Provision: cancel called while not overloaded')
+    if (!dueToReset) {
+      console.log('Provision: cancel called while not overloaded')
+    }
   })
 
   // add a new value to submit and clear things behind
@@ -340,7 +342,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     resetState: () => {
-      get().dispatch.dynamic.cancel?.()
+      get().dispatch.dynamic.cancel?.(true)
       set(s => ({
         ...s,
         ...initialStore,
