@@ -54,7 +54,7 @@ const PopAttach = (ownProps: OwnProps) => {
   }, [messageAttachmentNativeSave, ordinal])
 
   const onSaveAttachment =
-    (C.isMobile && attachmentType === 'image') || C.Chat.isImageViewable(message)
+    C.isMobile && (attachmentType === 'image' || C.Chat.isImageViewable(message))
       ? _onSaveAttachment
       : undefined
 
