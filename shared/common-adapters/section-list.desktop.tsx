@@ -23,7 +23,10 @@ const Kb = {
  * as a sibling of the list. If you have wildly different header heights you'll definitely see things jumping around
  */
 
-function SectionList<T extends Section<any>>(p: Props<T>) {
+const SectionList = React.forwardRef<any, any>(function SectionList<T extends Section<any>>(
+  p: Props<T>,
+  forwardedRef: React.Ref<any>
+) {
   const {sections, sectionKeyExtractor, keyExtractor} = p
   const [currentSectionFlatIndex, setCurrentSectionFlatIndex] = React.useState(0)
   const flatRef = React.useRef(new Array<FlatListElement<T>>())
@@ -81,8 +84,8 @@ function SectionList<T extends Section<any>>(p: Props<T>) {
     }, [])
   }, [sections, sectionKeyExtractor, keyExtractor])
 
-  return <SectionList2 {...props} />
-}
+  return <SectionList2 {...props} ref={forwardedRef} />
+})
 
 class SectionList2<T extends Section<any>> extends React.Component<
   Props<T> & {

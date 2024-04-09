@@ -79,10 +79,12 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     return ''
   })
 
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const download = C.useChatContext(s =>
+    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  )
   const onDownload = React.useCallback(() => {
-    attachmentDownload(ordinal)
-  }, [ordinal, attachmentDownload])
+    download(ordinal)
+  }, [ordinal, download])
 
   const openFinder = C.useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
@@ -93,6 +95,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     case 'doneWithPath':
       return Kb.Styles.isMobile ? null : (
         <Kb.Icon
+          className="hover-opacity-full"
           type="iconfont-finder"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
@@ -106,6 +109,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     case 'downloading':
       return (
         <Kb.Icon
+          className="hover-opacity-full"
           type="iconfont-download"
           color={Kb.Styles.globalColors.green}
           fontSize={20}
@@ -116,13 +120,16 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     case 'none':
       return (
         <Kb.Icon
+          className="hover-opacity-full"
           type="iconfont-download"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
           onClick={onDownload}
           // violates encapsulation but how this works with padding is annoying currently
-          style={Kb.Styles.collapseStyles([style, {left: -48}])}
-          padding="small"
+          style={
+            Kb.Styles.isMobile ? Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}]) : undefined
+          }
+          padding={Kb.Styles.isMobile ? 'small' : undefined}
         />
       )
   }

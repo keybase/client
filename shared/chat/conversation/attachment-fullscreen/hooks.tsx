@@ -93,42 +93,40 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   }
 }
 
-type PreviewState = 'loadingPreview' | 'loadingFull' | 'fullLoaded' | 'cantDoFallback'
-
+// preload full and return ''. If too much time passes show preview. Show full when loaded
 export const usePreviewFallback = (
   path: string,
   previewPath: string,
   isVideo: boolean,
   preload: (path: string, onLoad: () => void, onError: () => void) => void
 ) => {
-  const [previewState, setPreviewState] = React.useState<PreviewState>(
-    path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback'
-  )
-  const lastPathsRef = React.useRef({path, previewPath})
-  if (lastPathsRef.current.path !== path || lastPathsRef.current.previewPath !== previewPath) {
-    lastPathsRef.current = {path, previewPath}
-    setPreviewState(path && previewPath && !isVideo ? 'loadingPreview' : 'cantDoFallback')
+  const [imgSrc, setImgSrc] = React.useState('')
+  const canUseFallback = path && previewPath && !isVideo
+
+  React.useEffect(() => {
+    const onLoad = () => {
+      clearTimeout(id)
+      setImgSrc(path)
+    }
+    const onError = () => {
+      clearTimeout(id)
+      setImgSrc(previewPath)
+    }
+
+    preload(path, onLoad, onError)
+
+    const id = setTimeout(() => {
+      setImgSrc(previewPath)
+    }, 300)
+
+    return () => {
+      clearTimeout(id)
+    }
+  }, [path, previewPath, isVideo, preload])
+
+  if (!canUseFallback) {
+    return path || previewPath
   }
 
-  const onLoadError = React.useCallback(() => {
-    setPreviewState('cantDoFallback')
-  }, [])
-  const onLoadedFull = React.useCallback(() => {
-    setPreviewState('fullLoaded')
-  }, [])
-
-  const onLoadedPreview = React.useCallback(() => {
-    setPreviewState('loadingFull')
-    preload(path, onLoadedFull, onLoadError)
-  }, [onLoadedFull, onLoadError, path, preload])
-
-  const onLoaded =
-    previewState === 'loadingPreview'
-      ? onLoadedPreview
-      : previewState === 'loadingFull'
-        ? onLoadedFull
-        : undefined
-
-  const imgSrc = previewState === 'fullLoaded' ? path : previewPath || path // use path if no preview
-  return {imgSrc, onLoadError, onLoaded}
+  return imgSrc
 }

@@ -533,7 +533,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               det.blocked = blockState.blocked
             } else {
               det.hidFromFollowers = blockState.blocked
-              blockState.blocked && d.followers && d.followers.delete(username)
+              blockState.blocked && d.followers?.delete(username)
             }
           })
         })
