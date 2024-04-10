@@ -793,13 +793,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return
       }
 
-      if (m.type === 'attachment') {
-        // don't update if we're 'done'
-        if (!m.downloadPath && m.transferProgress !== 1) {
-          m.transferErrMsg = undefined
-          m.transferProgress = ratio
-          m.transferState = 'downloading'
-        }
+      if (m.type !== 'attachment') return
+
+      // don't update if we're 'done'
+      if (!m.downloadPath && m.transferProgress !== 1) {
+        m.transferErrMsg = undefined
+        m.transferProgress = ratio
+        m.transferState = 'downloading'
       }
     })
   }
@@ -866,18 +866,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     bytesComplete?: number
     bytesTotal?: number
   }) => {
+    const ordinal = get().pendingOutboxToOrdinal.get(T.Chat.rpcOutboxIDToOutboxID(params.outboxID))
+    if (!ordinal) return
     const {bytesComplete = 0, bytesTotal} = params
     const ratio = bytesTotal ? bytesComplete / bytesTotal : 0.01
-    const ordinal = get().pendingOutboxToOrdinal.get(T.Chat.rpcOutboxIDToOutboxID(params.outboxID))
-    if (ordinal) {
-      set(s => {
-        const m = s.messageMap.get(ordinal)
-        if (m?.type === 'attachment') {
-          m.transferProgress = ratio
-          m.transferState = 'uploading'
-        }
-      })
-    }
+    set(s => {
+      const m = s.messageMap.get(ordinal)
+      if (m?.type === 'attachment') {
+        m.transferProgress = ratio
+        m.transferState = 'uploading'
+      }
+    })
   }
 
   const onIncomingMutation = (
