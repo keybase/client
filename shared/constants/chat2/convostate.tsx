@@ -543,6 +543,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (m.ordinal !== mapOrdinal) {
             m.ordinal = mapOrdinal
           }
+
           s.messageMap.set(mapOrdinal, T.castDraft(m))
           if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
@@ -1236,6 +1237,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (!thread) {
             return
           }
+
           const username = C.useCurrentUserState.getState().username
           const devicename = C.useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
@@ -2210,7 +2212,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const {valid} = cMsg
         const body = valid.messageBody
         logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
-        // Types that are mutations
+        // Types that are mutations, not rendered directly
+        // see if we need to kill placeholders that resolved to these
+
+        const toDelOrdinal = T.Chat.numberToOrdinal(valid.messageID)
+        const existing = get().messageMap.get(toDelOrdinal)
+        if (existing) {
+          set(s => {
+            s.messageMap.delete(toDelOrdinal)
+            syncMessageDerived(s)
+          })
+        }
+
         switch (body.messageType) {
           case T.RPCChat.MessageType.edit:
             if (modifiedMessage) {
