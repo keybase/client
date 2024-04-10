@@ -2160,6 +2160,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
+      console.log('aaaa raw oninocmingmessage', cMsg)
       const username = C.useCurrentUserState.getState().username
       // check for a reaction outbox notification before doing anything
       if (
@@ -2191,6 +2192,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       // special case mutations
       if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
+        console.log('aaaa oninocmingmessage special mutation', cMsg)
         const {valid} = cMsg
         const body = valid.messageBody
         if (
@@ -2255,6 +2257,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const message = T.castDraft(
         Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
       )
+
+      console.log('aaaa oninocmingmessage regular', message)
       if (!message) return
 
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
