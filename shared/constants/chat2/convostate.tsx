@@ -2176,96 +2176,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
-      const conversationIDKey = get().id
-      const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-      const message = T.castDraft(
-        Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
-      )
-      if (message) {
-        // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
-        if (
-          cMsg.state === T.RPCChat.MessageUnboxedState.valid &&
-          cMsg.valid.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded &&
-          message.type === 'attachment'
-        ) {
-          const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
-          const ordinal = messageIDToOrdinal(
-            get().messageMap,
-            get().pendingOutboxToOrdinal,
-            T.Chat.numberToMessageID(placeholderID)
-          )
-          const existing = ordinal ? get().messageMap.get(ordinal) : undefined
-          if (ordinal && existing) {
-            // keep this
-            message.ordinal = ordinal
-            const next = Message.upgradeMessage(existing, message)
-            messagesAdd([next], 'incoming existing attachupload')
-          } else {
-            messagesAdd([message], 'incoming new attachupload')
-          }
-        } else {
-          // A normal message
-          messagesAdd([message], 'incoming general')
-        }
-      } else if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
-        const {valid} = cMsg
-        const body = valid.messageBody
-        logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
-        // Types that are mutations, not rendered directly
-        // see if we need to kill placeholders that resolved to these
-
-        const toDelOrdinal = T.Chat.numberToOrdinal(valid.messageID)
-        const existing = get().messageMap.get(toDelOrdinal)
-        if (existing) {
-          set(s => {
-            s.messageMap.delete(toDelOrdinal)
-            syncMessageDerived(s)
-          })
-        }
-
-        switch (body.messageType) {
-          case T.RPCChat.MessageType.edit:
-            if (modifiedMessage) {
-              const modMessage = Message.uiMessageToMessage(
-                conversationIDKey,
-                modifiedMessage,
-                username,
-                getLastOrdinal,
-                devicename
-              )
-              if (modMessage) {
-                messagesAdd([modMessage], 'onincoming edit')
-              }
-            }
-            break
-          case T.RPCChat.MessageType.delete: {
-            const {delete: d} = body
-            if (d.messageIDs) {
-              // check if the delete is acting on an exploding message
-              const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
-              const messages = get().messageMap
-              const isExplodeNow = messageIDs.some(id => {
-                const message =
-                  messages.get(T.Chat.numberToOrdinal(id)) ??
-                  [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
-                if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
-                  return true
-                }
-                return false
-              })
-
-              if (isExplodeNow) {
-                get().dispatch.messagesExploded(messageIDs, valid.senderUsername)
-              } else {
-                get().dispatch.messagesWereDeleted({messageIDs})
-              }
-            }
-            break
-          }
-          default:
-        }
-      }
       if (
         !C.isMobile &&
         displayDesktopNotification &&
@@ -2273,6 +2183,104 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         cMsg.state === T.RPCChat.MessageUnboxedState.valid
       ) {
         desktopNotification(cMsg.valid.senderUsername, desktopNotificationSnippet)
+      }
+
+      const conversationIDKey = get().id
+      const devicename = C.useCurrentUserState.getState().deviceName
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+
+      // special case mutations
+      if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
+        const {valid} = cMsg
+        const body = valid.messageBody
+        if (
+          body.messageType === T.RPCChat.MessageType.edit ||
+          body.messageType === T.RPCChat.MessageType.delete
+        ) {
+          logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
+          // Types that are mutations, not rendered directly
+          // see if we need to kill placeholders that resolved to these
+          const toDelOrdinal = T.Chat.numberToOrdinal(valid.messageID)
+          const existing = get().messageMap.get(toDelOrdinal)
+          if (existing) {
+            set(s => {
+              s.messageMap.delete(toDelOrdinal)
+              syncMessageDerived(s)
+            })
+          }
+
+          switch (body.messageType) {
+            case T.RPCChat.MessageType.edit:
+              if (modifiedMessage) {
+                const modMessage = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  modifiedMessage,
+                  username,
+                  getLastOrdinal,
+                  devicename
+                )
+                if (modMessage) {
+                  messagesAdd([modMessage], 'onincoming edit')
+                }
+              }
+              return
+            case T.RPCChat.MessageType.delete: {
+              const {delete: d} = body
+              if (d.messageIDs) {
+                // check if the delete is acting on an exploding message
+                const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
+                const messages = get().messageMap
+                const isExplodeNow = messageIDs.some(id => {
+                  const message =
+                    messages.get(T.Chat.numberToOrdinal(id)) ??
+                    [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
+                  if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
+                    return true
+                  }
+                  return false
+                })
+
+                if (isExplodeNow) {
+                  get().dispatch.messagesExploded(messageIDs, valid.senderUsername)
+                } else {
+                  get().dispatch.messagesWereDeleted({messageIDs})
+                }
+              }
+              return
+            }
+            default:
+          }
+        }
+      }
+      const message = T.castDraft(
+        Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
+      )
+      if (!message) return
+
+      // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
+      if (
+        cMsg.state === T.RPCChat.MessageUnboxedState.valid &&
+        cMsg.valid.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded &&
+        message.type === 'attachment'
+      ) {
+        const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
+        const ordinal = messageIDToOrdinal(
+          get().messageMap,
+          get().pendingOutboxToOrdinal,
+          T.Chat.numberToMessageID(placeholderID)
+        )
+        const existing = ordinal ? get().messageMap.get(ordinal) : undefined
+        if (ordinal && existing) {
+          // keep this
+          message.ordinal = ordinal
+          const next = Message.upgradeMessage(existing, message)
+          messagesAdd([next], 'incoming existing attachupload')
+        } else {
+          messagesAdd([message], 'incoming new attachupload')
+        }
+      } else {
+        // A normal message
+        messagesAdd([message], 'incoming general')
       }
     },
     onMessageErrored: (outboxID, reason, errorTyp) => {
