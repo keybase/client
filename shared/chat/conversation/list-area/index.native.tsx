@@ -17,6 +17,7 @@ import {ForceListRedrawContext} from '../force-list-redraw-context'
 import {usingFlashList} from './flashlist-config'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
+// import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch
 const List = /*usingFlashList ? FlashList :*/ FlatList
@@ -76,6 +77,10 @@ const useScrolling = (p: {
   }
 }
 
+// This keeps the list stable when data changes. If we don't do this it will jump around
+// when new messages come in and its very easy to get this to cause an unstoppable loop of
+// quick janking up and down
+const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
 const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
@@ -227,6 +232,7 @@ const ConversationList = React.memo(function ConversationList() {
   // )
 
   const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
+  // const onLayout = useDebugLayout()
 
   return (
     <Kb.ErrorBoundary>
@@ -254,6 +260,8 @@ const ConversationList = React.memo(function ConversationList() {
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
               ref={listRef}
+              maintainVisibleContentPosition={maintainVisibleContentPosition}
+              // onlayout={onLayout}
             />
             {jumpToRecent}
             {debugWhichList}
