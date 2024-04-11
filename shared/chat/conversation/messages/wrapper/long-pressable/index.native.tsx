@@ -15,12 +15,12 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   const onPress = React.useCallback(() => dismiss(), [])
 
   // uncomment to debug measuring issues w/ items
-  const onLayout = undefined /*useDebugLayout(
-    React.useCallback(() => {
-      const {conversationIDKey, ordinal} = getIds()
-      return global.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    }, [getIds])
-  )*/
+  // const onLayout =
+  //   useDebugLayout()
+  // React.useCallback(() => {
+  //   const {conversationIDKey, ordinal} = getIds()
+  //   return global.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  // }, [getIds])
 
   const inner = (
     <Pressable
@@ -28,7 +28,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
       onLongPress={onLongPress}
       onPress={onPress}
       // uncomment to debug measuring issues w/ items
-      onLayout={onLayout}
+      // onLayout={onLayout}
     >
       {children}
     </Pressable>

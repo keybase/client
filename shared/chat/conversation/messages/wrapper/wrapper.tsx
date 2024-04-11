@@ -13,7 +13,6 @@ import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
-import {Sent} from './sent'
 // import {useDebugLayout} from '@/util/debug-react'
 
 export type Props = {
@@ -271,7 +270,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   // uncomment to debug sizing issues
   // const dump = Container.useEvent(() => p)
-  // const debugLayout = useDebugLayout(dump)
+  // const debugLayout = useDebugLayout()
   // content = (
   //   <Kb.Box2
   //     key="TEMP"
@@ -541,17 +540,15 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {reactionsPopupPosition, showCoinsIcon, botname, you, youSent} = mdata
+  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
-
-  const maybeSentChildren = C.isMobile && youSent ? <Sent>{children}</Sent> : children
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
     botname,
     bottomChildren,
-    children: maybeSentChildren,
+    children,
     decorate,
     ecrType,
     exploding,
