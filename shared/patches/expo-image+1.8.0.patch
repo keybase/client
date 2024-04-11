@@ -1,0 +1,221 @@
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ExpoImageModuleKt.class b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ExpoImageModuleKt.class
+new file mode 100644
+index 0000000..5163715
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ExpoImageModuleKt.class differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ImageUtilsKt.class b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ImageUtilsKt.class
+new file mode 100644
+index 0000000..7128e0d
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ImageUtilsKt.class differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.class b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.class
+new file mode 100644
+index 0000000..46e8b3d
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.class differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/YogaUtilsKt.class b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/YogaUtilsKt.class
+new file mode 100644
+index 0000000..d5cbb1f
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/YogaUtilsKt.class differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/records/ContentPositionKt.class b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/records/ContentPositionKt.class
+new file mode 100644
+index 0000000..d208f7f
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/incrementalData/debug/expo/modules/image/records/ContentPositionKt.class differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.java b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.java
+new file mode 100644
+index 0000000..ad67657
+--- /dev/null
++++ b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.java
+@@ -0,0 +1,7 @@
++package expo.modules.image;
++
++import java.lang.System;
++
++@kotlin.Metadata(mv = {1, 8, 0}, k = 2, d1 = {"\u00000\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0011\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0006\u001a\u00af\u0001\u0010\u0000\u001a\u00020\u0001\"\n\b\u0000\u0010\u0002\u0018\u0001*\u00020\u0003\"\u0006\b\u0001\u0010\u0004\u0018\u0001\"\u0006\b\u0002\u0010\u0005\u0018\u0001*\b\u0012\u0004\u0012\u0002H\u00020\u00062*\u0010\u0007\u001a\u0016\u0012\u0012\b\u0001\u0012\u000e\u0012\u0004\u0012\u00020\n\u0012\u0004\u0012\u0002H\u00050\t0\b\"\u000e\u0012\u0004\u0012\u00020\n\u0012\u0004\u0012\u0002H\u00050\t2M\b\b\u0010\u000b\u001aG\u0012\u0013\u0012\u0011H\u0002\u00a2\u0006\f\b\r\u0012\b\b\u000e\u0012\u0004\b\b(\u000f\u0012\u0013\u0012\u0011H\u0005\u00a2\u0006\f\b\r\u0012\b\b\u000e\u0012\u0004\b\b(\u0010\u0012\u0013\u0012\u0011H\u0004\u00a2\u0006\f\b\r\u0012\b\b\u000e\u0012\u0004\b\b(\u0011\u0012\u0004\u0012\u00020\u00010\fH\u0082\b\u00a2\u0006\u0002\u0010\u0012\u00a8\u0006\u0013"}, d2 = {"PropGroup", "", "T", "Landroid/view/View;", "PropType", "CustomValueType", "Lexpo/modules/kotlin/views/ViewDefinitionBuilder;", "props", "", "Lkotlin/Pair;", "", "body", "Lkotlin/Function3;", "Lkotlin/ParameterName;", "name", "view", "value", "prop", "(Lexpo/modules/kotlin/views/ViewDefinitionBuilder;[Lkotlin/Pair;Lkotlin/jvm/functions/Function3;)V", "expo-image_debug"})
++public final class ExpoImageModuleKt {
++}
+\ No newline at end of file
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.kapt_metadata b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.kapt_metadata
+new file mode 100644
+index 0000000..347a978
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ExpoImageModuleKt.kapt_metadata differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.java b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.java
+new file mode 100644
+index 0000000..5e26172
+--- /dev/null
++++ b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.java
+@@ -0,0 +1,33 @@
++package expo.modules.image;
++
++import java.lang.System;
++
++@kotlin.Metadata(mv = {1, 8, 0}, k = 2, d1 = {"\u0000\"\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0004\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0002\u001a2\u0010\u0000\u001a\u00020\u00012\u0006\u0010\u0002\u001a\u00020\u00012\u0006\u0010\u0003\u001a\u00020\u00012\u0006\u0010\u0004\u001a\u00020\u00012\b\b\u0002\u0010\u0005\u001a\u00020\u00062\b\b\u0002\u0010\u0007\u001a\u00020\u0006\u001a2\u0010\b\u001a\u00020\u00012\u0006\u0010\u0002\u001a\u00020\u00012\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\n2\b\b\u0002\u0010\u0005\u001a\u00020\u00062\b\b\u0002\u0010\u0007\u001a\u00020\u0006\u001a2\u0010\f\u001a\u00020\u00012\u0006\u0010\u0002\u001a\u00020\u00012\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\n2\b\b\u0002\u0010\u0005\u001a\u00020\u00062\b\b\u0002\u0010\u0007\u001a\u00020\u0006\u001a!\u0010\r\u001a\u0002H\u000e\"\u0004\b\u0000\u0010\u000e*\b\u0012\u0004\u0012\u0002H\u000e0\u000fH\u0080@\u00f8\u0001\u0000\u00a2\u0006\u0002\u0010\u0010\u0082\u0002\u0004\n\u0002\b\u0019\u00a8\u0006\u0011"}, d2 = {"calcTranslation", "", "value", "imageRefValue", "viewRefValue", "isPercentage", "", "isReverse", "calcXTranslation", "imageRect", "Landroid/graphics/RectF;", "viewRect", "calcYTranslation", "awaitGet", "T", "Lcom/bumptech/glide/request/FutureTarget;", "(Lcom/bumptech/glide/request/FutureTarget;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;", "expo-image_debug"})
++public final class ImageUtilsKt {
++    
++    /**
++     * Converts blocking [java.util.concurrent.Future] result into non-blocking suspend function.
++     */
++    @org.jetbrains.annotations.Nullable
++    public static final <T extends java.lang.Object>java.lang.Object awaitGet(@org.jetbrains.annotations.NotNull
++    com.bumptech.glide.request.FutureTarget<T> $this$awaitGet, @org.jetbrains.annotations.NotNull
++    kotlin.coroutines.Continuation<? super T> p1) {
++        return null;
++    }
++    
++    public static final float calcXTranslation(float value, @org.jetbrains.annotations.NotNull
++    android.graphics.RectF imageRect, @org.jetbrains.annotations.NotNull
++    android.graphics.RectF viewRect, boolean isPercentage, boolean isReverse) {
++        return 0.0F;
++    }
++    
++    public static final float calcYTranslation(float value, @org.jetbrains.annotations.NotNull
++    android.graphics.RectF imageRect, @org.jetbrains.annotations.NotNull
++    android.graphics.RectF viewRect, boolean isPercentage, boolean isReverse) {
++        return 0.0F;
++    }
++    
++    public static final float calcTranslation(float value, float imageRefValue, float viewRefValue, boolean isPercentage, boolean isReverse) {
++        return 0.0F;
++    }
++}
+\ No newline at end of file
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.kapt_metadata b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.kapt_metadata
+new file mode 100644
+index 0000000..d7484c7
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ImageUtilsKt.kapt_metadata differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.java b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.java
+new file mode 100644
+index 0000000..2b4512c
+--- /dev/null
++++ b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.java
+@@ -0,0 +1,17 @@
++package expo.modules.image;
++
++import java.lang.System;
++
++@kotlin.Metadata(mv = {1, 8, 0}, k = 2, d1 = {"\u0000\u0018\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\u001a!\u0010\u0000\u001a\u0004\u0018\u0001H\u0001\"\u0004\b\u0000\u0010\u0001*\u00020\u00022\u0006\u0010\u0003\u001a\u00020\u0004H\u0002\u00a2\u0006\u0002\u0010\u0005\u001a\f\u0010\u0006\u001a\u0004\u0018\u00010\u0007*\u00020\u0002\u00a8\u0006\b"}, d2 = {"getPrivateField", "T", "Lcom/bumptech/glide/request/ThumbnailRequestCoordinator;", "name", "", "(Lcom/bumptech/glide/request/ThumbnailRequestCoordinator;Ljava/lang/String;)Ljava/lang/Object;", "getPrivateFullRequest", "Lcom/bumptech/glide/request/Request;", "expo-image_debug"})
++public final class ThumbnailRequestCoordinatorExtensionKt {
++    
++    @org.jetbrains.annotations.Nullable
++    public static final com.bumptech.glide.request.Request getPrivateFullRequest(@org.jetbrains.annotations.NotNull
++    com.bumptech.glide.request.ThumbnailRequestCoordinator $this$getPrivateFullRequest) {
++        return null;
++    }
++    
++    private static final <T extends java.lang.Object>T getPrivateField(com.bumptech.glide.request.ThumbnailRequestCoordinator $this$getPrivateField, java.lang.String name) {
++        return null;
++    }
++}
+\ No newline at end of file
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.kapt_metadata b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.kapt_metadata
+new file mode 100644
+index 0000000..7b8f7a3
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/ThumbnailRequestCoordinatorExtensionKt.kapt_metadata differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.java b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.java
+new file mode 100644
+index 0000000..a8d40c8
+--- /dev/null
++++ b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.java
+@@ -0,0 +1,20 @@
++package expo.modules.image;
++
++import java.lang.System;
++
++@kotlin.Metadata(mv = {1, 8, 0}, k = 2, d1 = {"\u0000\u0016\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\u001a\u000e\u0010\u0000\u001a\u00020\u00012\u0006\u0010\u0002\u001a\u00020\u0001\u001a3\u0010\u0003\u001a\u00020\u0001*\u00020\u00012!\u0010\u0004\u001a\u001d\u0012\u0013\u0012\u00110\u0001\u00a2\u0006\f\b\u0006\u0012\b\b\u0007\u0012\u0004\b\b(\b\u0012\u0004\u0012\u00020\u00010\u0005H\u0086\b\u00f8\u0001\u0000\u001a\u0012\u0010\t\u001a\u00020\u0001*\u00020\u00012\u0006\u0010\u0002\u001a\u00020\u0001\u0082\u0002\u0007\n\u0005\b\u009920\u0001\u00a8\u0006\n"}, d2 = {"makeYogaUndefinedIfNegative", "", "value", "ifYogaDefinedUse", "transformFun", "Lkotlin/Function1;", "Lkotlin/ParameterName;", "name", "current", "ifYogaUndefinedUse", "expo-image_debug"})
++public final class YogaUtilsKt {
++    
++    public static final float ifYogaUndefinedUse(float $this$ifYogaUndefinedUse, float value) {
++        return 0.0F;
++    }
++    
++    public static final float ifYogaDefinedUse(float $this$ifYogaDefinedUse, @org.jetbrains.annotations.NotNull
++    kotlin.jvm.functions.Function1<? super java.lang.Float, java.lang.Float> transformFun) {
++        return 0.0F;
++    }
++    
++    public static final float makeYogaUndefinedIfNegative(float value) {
++        return 0.0F;
++    }
++}
+\ No newline at end of file
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.kapt_metadata b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.kapt_metadata
+new file mode 100644
+index 0000000..2c9b3ec
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/YogaUtilsKt.kapt_metadata differ
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.java b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.java
+new file mode 100644
+index 0000000..83de161
+--- /dev/null
++++ b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.java
+@@ -0,0 +1,7 @@
++package expo.modules.image.records;
++
++import java.lang.System;
++
++@kotlin.Metadata(mv = {1, 8, 0}, k = 2, d1 = {"\u0000(\n\u0000\n\u0002\u0018\u0002\n\u0002\u0010\u0007\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0010\u0000\n\u0000*\u00ea\u0001\b\u0002\u0010\u0000\"q\u0012\u0013\u0012\u00110\u0002\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u0005\u0012\u0013\u0012\u00110\u0006\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u0007\u0012\u0013\u0012\u00110\u0006\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\b\u0012\u0013\u0012\u00110\t\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\n\u0012\u0013\u0012\u00110\t\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u000b\u0012\u0004\u0012\u00020\u00020\u00012q\u0012\u0013\u0012\u00110\u0002\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u0005\u0012\u0013\u0012\u00110\u0006\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u0007\u0012\u0013\u0012\u00110\u0006\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\b\u0012\u0013\u0012\u00110\t\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\n\u0012\u0013\u0012\u00110\t\u00a2\u0006\f\b\u0003\u0012\b\b\u0004\u0012\u0004\b\b(\u000b\u0012\u0004\u0012\u00020\u00020\u0001*\n\u0010\f\"\u00020\r2\u00020\r\u00a8\u0006\u000e"}, d2 = {"CalcAxisOffset", "Lkotlin/Function5;", "", "Lkotlin/ParameterName;", "name", "value", "Landroid/graphics/RectF;", "imageRect", "viewRect", "", "isPercentage", "isReverse", "ContentPositionValue", "", "expo-image_debug"})
++public final class ContentPositionKt {
++}
+\ No newline at end of file
+diff --git a/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.kapt_metadata b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.kapt_metadata
+new file mode 100644
+index 0000000..f038456
+Binary files /dev/null and b/node_modules/expo-image/android/build/tmp/kapt3/stubs/debug/expo/modules/image/records/ContentPositionKt.kapt_metadata differ
+diff --git a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
+index 75f5612..bf260ac 100644
+--- a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
++++ b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageViewWrapper.kt
+@@ -33,7 +33,7 @@ import expo.modules.image.records.ImageProgressEvent
+ import expo.modules.image.records.ImageTransition
+ import expo.modules.image.records.SourceMap
+ import expo.modules.kotlin.AppContext
+-import expo.modules.kotlin.tracing.beginAsyncTraceBlock
++//import expo.modules.kotlin.tracing.beginAsyncTraceBlock
+ import expo.modules.kotlin.tracing.trace
+ import expo.modules.kotlin.viewevent.EventDispatcher
+ import expo.modules.kotlin.views.ExpoView
+@@ -265,7 +265,7 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+     // However, in this case, it is safe to use as long as nothing else is added to the queue.
+     // The intention is simply to wait for the Glide code to finish before the content of the underlying views is changed during the same rendering tick.
+     mainHandler.postAtFrontOfQueue {
+-      trace(Trace.tag, "onResourceReady") {
++      trace(Trace.tag) {
+         val transitionDuration = (transition?.duration ?: 0).toLong()
+ 
+         // If provided resource is a placeholder, but the target doesn't have a source, we treat it as a normal image.
+@@ -439,7 +439,7 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+     requestManager.clear(secondTarget)
+   }
+ 
+-  internal fun rerenderIfNeeded(shouldRerenderBecauseOfResize: Boolean = false) = trace(Trace.tag, "rerenderIfNeeded(shouldRerenderBecauseOfResize=$shouldRerenderBecauseOfResize)") {
++  internal fun rerenderIfNeeded(shouldRerenderBecauseOfResize: Boolean = false) = trace(Trace.tag) {
+     val bestSource = bestSource
+     val bestPlaceholder = bestPlaceholder
+ 
+@@ -591,7 +591,7 @@ class ExpoImageViewWrapper(context: Context, appContext: AppContext) : ExpoView(
+         .apply(propOptions)
+ 
+       val cookie = Trace.getNextCookieValue()
+-      beginAsyncTraceBlock(Trace.tag, Trace.loadNewImageBlock, cookie)
++      //beginAsyncTraceBlock(Trace.tag, Trace.loadNewImageBlock, cookie)
+       newTarget.setCookie(cookie)
+       request.into(newTarget)
+     } else {
+diff --git a/node_modules/expo-image/android/src/main/java/expo/modules/image/ImageViewWrapperTarget.kt b/node_modules/expo-image/android/src/main/java/expo/modules/image/ImageViewWrapperTarget.kt
+index bdd3b3e..a6ca98c 100644
+--- a/node_modules/expo-image/android/src/main/java/expo/modules/image/ImageViewWrapperTarget.kt
++++ b/node_modules/expo-image/android/src/main/java/expo/modules/image/ImageViewWrapperTarget.kt
+@@ -18,7 +18,7 @@ import com.bumptech.glide.util.Preconditions
+ import com.bumptech.glide.util.Synthetic
+ import expo.modules.core.utilities.ifNull
+ import expo.modules.image.enums.ContentFit
+-import expo.modules.kotlin.tracing.endAsyncTraceBlock
++//import expo.modules.kotlin.tracing.endAsyncTraceBlock
+ import java.lang.ref.WeakReference
+ import kotlin.math.max
+ 
+@@ -74,7 +74,7 @@ class ImageViewWrapperTarget(
+       return@synchronized
+     }
+ 
+-    endAsyncTraceBlock(Trace.tag, Trace.loadNewImageBlock, cookie)
++    //endAsyncTraceBlock(Trace.tag, Trace.loadNewImageBlock, cookie)
+     cookie = -1
+   }
+ 
