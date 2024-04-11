@@ -543,6 +543,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (m.ordinal !== mapOrdinal) {
             m.ordinal = mapOrdinal
           }
+
           s.messageMap.set(mapOrdinal, T.castDraft(m))
           if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
@@ -748,6 +749,216 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       lastScrollTime = now
     }
     return ok
+  }
+
+  const onDownloadComplete = (msgID: number) => {
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(msgID)
+    )
+    if (!ordinal) {
+      logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
+      return
+    }
+    set(s => {
+      const m = s.messageMap.get(ordinal)
+      if (!m) {
+        logger.info(`downloadComplete: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`)
+      } else {
+        if (m.type === 'attachment') {
+          m.transferProgress = 0
+          m.transferState = undefined
+        }
+      }
+    })
+  }
+
+  const onDownloadProgress = (msgID: number, bytesComplete: number, bytesTotal: number) => {
+    const ratio = bytesComplete / bytesTotal
+    updateAttachmentViewTransfer(msgID, ratio)
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(msgID)
+    )
+    if (!ordinal) {
+      logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
+      return
+    }
+    set(s => {
+      const m = s.messageMap.get(ordinal)
+      if (!m) {
+        logger.info(`downloadProgress: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`)
+        return
+      }
+
+      if (m.type !== 'attachment') return
+
+      // don't update if we're 'done'
+      if (!m.downloadPath && m.transferProgress !== 1) {
+        m.transferErrMsg = undefined
+        m.transferProgress = ratio
+        m.transferState = 'downloading'
+      }
+    })
+  }
+
+  const onChatRequestInfo = (info: T.RPCChat.UIRequestInfo, msgID: number) => {
+    const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
+    if (!requestInfo) {
+      // This should never happen
+      const errMsg = `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${
+        get().id
+      } messageID: ${msgID}. The local version may be absent or out of date.`
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
+    set(s => {
+      s.accountsInfoMap.set(msgID, requestInfo)
+    })
+  }
+
+  const onInboxFailed = (convID: Uint8Array, error: T.RPCChat.InboxUIItemError) => {
+    const username = C.useCurrentUserState.getState().username
+    const conversationIDKey = T.Chat.conversationIDToKey(convID)
+    switch (error.typ) {
+      case T.RPCChat.ConversationErrorType.transient:
+        logger.info(
+          `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+        )
+        return
+      default:
+        logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
+        metaReceivedError(error, username)
+    }
+  }
+
+  const onSetConvSettings = (conv: T.RPCChat.InboxUIItem | null | undefined) => {
+    const newRole = conv?.convSettings?.minWriterRoleInfo?.role
+    const role = newRole && C.Teams.teamRoleByEnum[newRole]
+    const conversationIDKey = get().id
+    const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
+    logger.info(
+      `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${
+        cannotWrite ? 1 : 0
+      }`
+    )
+    if (role) {
+      // only insert if the convo is already in the inbox
+      if (get().isMetaGood()) {
+        set(s => {
+          s.meta.cannotWrite = cannotWrite
+          s.meta.minWriterRole = role
+        })
+      }
+    } else {
+      logger.warn(
+        `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
+      )
+    }
+  }
+
+  const onAttachmentUpload = (params: {
+    uid: string
+    convID: Uint8Array
+    outboxID: Uint8Array
+    bytesComplete?: number
+    bytesTotal?: number
+  }) => {
+    const ordinal = get().pendingOutboxToOrdinal.get(T.Chat.rpcOutboxIDToOutboxID(params.outboxID))
+    if (!ordinal) return
+    const {bytesComplete = 0, bytesTotal} = params
+    const ratio = bytesTotal ? bytesComplete / bytesTotal : 0.01
+    set(s => {
+      const m = s.messageMap.get(ordinal)
+      if (m?.type === 'attachment') {
+        m.transferProgress = ratio
+        m.transferState = 'uploading'
+      }
+    })
+  }
+
+  const onIncomingMutation = (
+    conversationIDKey: string,
+    valid: T.RPCChat.UIMessageValid,
+    username: string,
+    getLastOrdinal: () => T.Chat.Ordinal,
+    devicename: string,
+    modifiedMessage: T.RPCChat.UIMessage | null | undefined
+  ) => {
+    const body = valid.messageBody
+    logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
+    // Types that are mutations, not rendered directly
+    // see if we need to kill placeholders that resolved to these
+    const toDelOrdinal = T.Chat.numberToOrdinal(valid.messageID)
+    const existing = get().messageMap.get(toDelOrdinal)
+    if (existing) {
+      set(s => {
+        s.messageMap.delete(toDelOrdinal)
+        syncMessageDerived(s)
+      })
+    }
+
+    switch (body.messageType) {
+      case T.RPCChat.MessageType.edit:
+        if (modifiedMessage) {
+          const modMessage = Message.uiMessageToMessage(
+            conversationIDKey,
+            modifiedMessage,
+            username,
+            getLastOrdinal,
+            devicename
+          )
+          if (modMessage) {
+            messagesAdd([modMessage], 'onincoming edit')
+          }
+        }
+        return true
+      case T.RPCChat.MessageType.delete: {
+        const {delete: d} = body
+        if (d.messageIDs) {
+          // check if the delete is acting on an exploding message
+          const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
+          const messages = get().messageMap
+          const isExplodeNow = messageIDs.some(id => {
+            const message =
+              messages.get(T.Chat.numberToOrdinal(id)) ??
+              [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
+            if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
+              return true
+            }
+            return false
+          })
+
+          if (isExplodeNow) {
+            get().dispatch.messagesExploded(messageIDs, valid.senderUsername)
+          } else {
+            get().dispatch.messagesWereDeleted({messageIDs})
+          }
+        }
+        return true
+      }
+      default:
+    }
+    return false
+  }
+
+  const onAttachmentEdit = (placeholderID: number, message: Z.WritableDraft<T.Chat.MessageAttachment>) => {
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(placeholderID)
+    )
+    const existing = ordinal ? get().messageMap.get(ordinal) : undefined
+    if (ordinal && existing) {
+      // keep this
+      message.ordinal = ordinal
+      const next = Message.upgradeMessage(existing, message)
+      messagesAdd([next], 'incoming existing attachupload')
+    } else {
+      messagesAdd([message], 'incoming new attachupload')
+    }
   }
 
   const dispatch: ConvoState['dispatch'] = {
@@ -1236,6 +1447,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (!thread) {
             return
           }
+
           const username = C.useCurrentUserState.getState().username
           const devicename = C.useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
@@ -1981,61 +2193,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       switch (action.type) {
         case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: {
           const {msgID} = action.payload.params
-          const ordinal = messageIDToOrdinal(
-            get().messageMap,
-            get().pendingOutboxToOrdinal,
-            T.Chat.numberToMessageID(msgID)
-          )
-          if (!ordinal) {
-            logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
-            return
-          }
-          set(s => {
-            const m = s.messageMap.get(ordinal)
-            if (!m) {
-              logger.info(
-                `downloadComplete: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`
-              )
-            } else {
-              if (m.type === 'attachment') {
-                m.transferProgress = 0
-                m.transferState = undefined
-              }
-            }
-          })
+          onDownloadComplete(msgID)
           break
         }
         case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: {
           const {msgID, bytesComplete, bytesTotal} = action.payload.params
-          const ratio = bytesComplete / bytesTotal
-          updateAttachmentViewTransfer(msgID, ratio)
-          const ordinal = messageIDToOrdinal(
-            get().messageMap,
-            get().pendingOutboxToOrdinal,
-            T.Chat.numberToMessageID(msgID)
-          )
-          if (!ordinal) {
-            logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
-            return
-          }
-          set(s => {
-            const m = s.messageMap.get(ordinal)
-            if (!m) {
-              logger.info(
-                `downloadProgress: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`
-              )
-              return
-            }
-
-            if (m.type === 'attachment') {
-              // don't update if we're 'done'
-              if (!m.downloadPath && m.transferProgress !== 1) {
-                m.transferErrMsg = undefined
-                m.transferProgress = ratio
-                m.transferState = 'downloading'
-              }
-            }
-          })
+          onDownloadProgress(msgID, bytesComplete, bytesTotal)
           break
         }
         case EngineGen.chat1ChatUiChatCommandStatus: {
@@ -2067,18 +2230,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         case EngineGen.chat1NotifyChatChatRequestInfo:
           {
             const {info, msgID} = action.payload.params
-            const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
-            if (!requestInfo) {
-              // This should never happen
-              const errMsg = `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${
-                get().id
-              } messageID: ${msgID}. The local version may be absent or out of date.`
-              logger.error(errMsg)
-              throw new Error(errMsg)
-            }
-            set(s => {
-              s.accountsInfoMap.set(msgID, requestInfo)
-            })
+            onChatRequestInfo(info, msgID)
           }
           break
         case EngineGen.chat1NotifyChatChatPaymentInfo:
@@ -2090,67 +2242,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           break
         }
         case EngineGen.chat1ChatUiChatInboxFailed: {
-          const username = C.useCurrentUserState.getState().username
           const {convID, error} = action.payload.params
-          const conversationIDKey = T.Chat.conversationIDToKey(convID)
-          switch (error.typ) {
-            case T.RPCChat.ConversationErrorType.transient:
-              logger.info(
-                `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
-              )
-              return
-            default:
-              logger.info(
-                `onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`
-              )
-              metaReceivedError(error, username)
-          }
+          onInboxFailed(convID, error)
           break
         }
         case EngineGen.chat1NotifyChatChatSetConvSettings: {
           const {conv} = action.payload.params
-          const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-          const role = newRole && C.Teams.teamRoleByEnum[newRole]
-          const conversationIDKey = get().id
-          const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
-          logger.info(
-            `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${
-              cannotWrite ? 1 : 0
-            }`
-          )
-          if (role) {
-            // only insert if the convo is already in the inbox
-            if (get().isMetaGood()) {
-              set(s => {
-                s.meta.cannotWrite = cannotWrite
-                s.meta.minWriterRole = role
-              })
-            }
-          } else {
-            logger.warn(
-              `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
-            )
-          }
+          onSetConvSettings(conv)
           break
         }
-
         case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {params} = action.payload
-          const ratio =
-            action.type === EngineGen.chat1NotifyChatChatAttachmentUploadProgress
-              ? action.payload.params.bytesComplete / action.payload.params.bytesTotal
-              : 0.01
-          const ordinal = get().pendingOutboxToOrdinal.get(T.Chat.rpcOutboxIDToOutboxID(params.outboxID))
-          if (ordinal) {
-            set(s => {
-              const m = s.messageMap.get(ordinal)
-              if (m?.type === 'attachment') {
-                m.transferProgress = ratio
-                m.transferState = 'uploading'
-              }
-            })
-          }
+          onAttachmentUpload(params)
           break
         }
         default:
@@ -2174,85 +2278,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
-      const conversationIDKey = get().id
-      const devicename = C.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-      const message = T.castDraft(
-        Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
-      )
-      if (message) {
-        // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
-        if (
-          cMsg.state === T.RPCChat.MessageUnboxedState.valid &&
-          cMsg.valid.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded &&
-          message.type === 'attachment'
-        ) {
-          const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
-          const ordinal = messageIDToOrdinal(
-            get().messageMap,
-            get().pendingOutboxToOrdinal,
-            T.Chat.numberToMessageID(placeholderID)
-          )
-          const existing = ordinal ? get().messageMap.get(ordinal) : undefined
-          if (ordinal && existing) {
-            // keep this
-            message.ordinal = ordinal
-            const next = Message.upgradeMessage(existing, message)
-            messagesAdd([next], 'incoming existing attachupload')
-          } else {
-            messagesAdd([message], 'incoming new attachupload')
-          }
-        } else {
-          // A normal message
-          messagesAdd([message], 'incoming general')
-        }
-      } else if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
-        const {valid} = cMsg
-        const body = valid.messageBody
-        logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
-        // Types that are mutations
-        switch (body.messageType) {
-          case T.RPCChat.MessageType.edit:
-            if (modifiedMessage) {
-              const modMessage = Message.uiMessageToMessage(
-                conversationIDKey,
-                modifiedMessage,
-                username,
-                getLastOrdinal,
-                devicename
-              )
-              if (modMessage) {
-                messagesAdd([modMessage], 'onincoming edit')
-              }
-            }
-            break
-          case T.RPCChat.MessageType.delete: {
-            const {delete: d} = body
-            if (d.messageIDs) {
-              // check if the delete is acting on an exploding message
-              const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
-              const messages = get().messageMap
-              const isExplodeNow = messageIDs.some(id => {
-                const message =
-                  messages.get(T.Chat.numberToOrdinal(id)) ??
-                  [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
-                if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
-                  return true
-                }
-                return false
-              })
-
-              if (isExplodeNow) {
-                get().dispatch.messagesExploded(messageIDs, valid.senderUsername)
-              } else {
-                get().dispatch.messagesWereDeleted({messageIDs})
-              }
-            }
-            break
-          }
-          default:
-        }
-      }
       if (
         !C.isMobile &&
         displayDesktopNotification &&
@@ -2260,6 +2285,51 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         cMsg.state === T.RPCChat.MessageUnboxedState.valid
       ) {
         desktopNotification(cMsg.valid.senderUsername, desktopNotificationSnippet)
+      }
+
+      const conversationIDKey = get().id
+      const devicename = C.useCurrentUserState.getState().deviceName
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+
+      // special case mutations
+      if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
+        const {valid} = cMsg
+        const body = valid.messageBody
+        if (
+          body.messageType === T.RPCChat.MessageType.edit ||
+          body.messageType === T.RPCChat.MessageType.delete
+        ) {
+          if (
+            onIncomingMutation(
+              conversationIDKey,
+              valid,
+              username,
+              getLastOrdinal,
+              devicename,
+              modifiedMessage
+            )
+          ) {
+            return
+          }
+        }
+      }
+      const message = T.castDraft(
+        Message.uiMessageToMessage(conversationIDKey, cMsg, username, getLastOrdinal, devicename)
+      )
+
+      if (!message) return
+
+      // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
+      if (
+        cMsg.state === T.RPCChat.MessageUnboxedState.valid &&
+        cMsg.valid.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded &&
+        message.type === 'attachment'
+      ) {
+        const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
+        onAttachmentEdit(placeholderID, message)
+      } else {
+        // A normal message
+        messagesAdd([message], 'incoming general')
       }
     },
     onMessageErrored: (outboxID, reason, errorTyp) => {

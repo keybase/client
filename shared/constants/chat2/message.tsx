@@ -1014,6 +1014,8 @@ const validUIMessagetoMessage = (
     case T.RPCChat.MessageType.edit: // fallthrough
     case T.RPCChat.MessageType.delete: // fallthrough
     case T.RPCChat.MessageType.deletehistory: // fallthrough
+      // make deleted so we can cleanup placeholders
+      return makeMessageDeleted({...common})
     default:
       return
   }
