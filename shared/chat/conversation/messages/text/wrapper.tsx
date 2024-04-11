@@ -32,7 +32,6 @@ const getStyle = (
         ])
   }
 }
-
 const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = React.useContext(OrdinalContext)
