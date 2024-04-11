@@ -260,7 +260,10 @@ const ConversationList = React.memo(function ConversationList() {
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
               ref={listRef}
-              maintainVisibleContentPosition={maintainVisibleContentPosition}
+              maintainVisibleContentPosition={
+                // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
+                numOrdinals ? maintainVisibleContentPosition : undefined
+              }
               // onlayout={onLayout}
             />
             {jumpToRecent}
