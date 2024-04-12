@@ -126,12 +126,13 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
                 }}
                 style={styles.itemClickBox}
               >
-                <Kb.Box
+                <Kb.Box2
+                  direction="vertical"
                   style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
                   className="hover_background_color_blueLighter2"
                 >
                   {i}
-                </Kb.Box>
+                </Kb.Box2>
               </Kb.ClickableBox>
             ))}
           </Kb.ScrollView>
@@ -231,6 +232,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
+    justifyContent: 'center',
     minHeight: Styles.isMobile ? 40 : 32,
     width: '100%',
   },

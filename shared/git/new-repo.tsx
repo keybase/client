@@ -103,7 +103,7 @@ class NewRepo extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box key={item} style={styles.avatarBox}>
+      <Kb.Box2 direction="vertical" key={item} style={styles.avatarBox}>
         <Kb.Avatar
           isTeam={true}
           teamname={item}
@@ -126,7 +126,7 @@ class NewRepo extends React.Component<Props, State> {
         >
           {item}
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 
