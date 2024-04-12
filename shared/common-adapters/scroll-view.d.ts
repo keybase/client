@@ -27,6 +27,7 @@ export type Props = {
   showsHorizontalScrollIndicator?: boolean
   // mobile only
   bounces?: boolean
+  contentInset?: {top?: number; left?: number; bottom?: number; right?: number}
   centerContent?: boolean
   zoomScale?: number
   minimumZoomScale?: number
