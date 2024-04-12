@@ -21,6 +21,7 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Subcommands: []cli.Command{
 			NewCmdSimpleFSArchiveStart(cl, g),
 			NewCmdSimpleFSArchiveCancelOrDismiss(cl, g),
+			NewCmdSimpleFSArchiveCheckArchive(cl, g),
 			NewCmdSimpleFSArchiveStatus(cl, g),
 		},
 	}
@@ -61,23 +62,22 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		ArgumentHelp: "<KBFS path>",
 	}
 }
+func revisionExtendedDescription(currentTLFRevision keybase1.KBFSRevision, desc *keybase1.SimpleFSArchiveJobDesc) string {
+	if currentTLFRevision == 0 {
+		return ""
+	}
+	jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
+	if jobRevision == currentTLFRevision {
+		return " (up to date with TLF)"
+	}
+
+	return fmt.Sprintf(" (behind TLF @ %d)", currentTLFRevision)
+}
 
 func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision keybase1.KBFSRevision) {
-	revisionExtendedDescription := func() string {
-		if currentTLFRevision == 0 {
-			return ""
-		}
-		jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
-		if jobRevision == currentTLFRevision {
-			return " (up to date with TLF)"
-		}
-
-		return fmt.Sprintf(" (behind TLF @ %d)", currentTLFRevision)
-	}()
-
 	ui.Printf("Job ID: %s\n", desc.JobID)
 	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
-	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription)
+	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription(currentTLFRevision, desc))
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
 	ui.Printf("Staging Path: %s\n", desc.StagingPath)
 	ui.Printf("Zip File Path: %s\n", desc.ZipFilePath)
@@ -273,6 +273,75 @@ func (c *CmdSimpleFSArchiveStatus) ParseArgv(ctx *cli.Context) error {
 
 // GetUsage says what this command needs to operate.
 func (c *CmdSimpleFSArchiveStatus) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
+	}
+}
+
+// CmdSimpleFSArchiveCheckArchive is the 'fs archive dismiss' and `fs
+// archive cancel' commands.
+type CmdSimpleFSArchiveCheckArchive struct {
+	libkb.Contextified
+	zipFilePaths []string
+}
+
+// NewCmdSimpleFSArchiveCheckArchive creates a new cli.Command.
+func NewCmdSimpleFSArchiveCheckArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:    "check",
+		Aliases: []string{"check"},
+		Usage:   "check one or more previously created KBFS archive(s)",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdSimpleFSArchiveCheckArchive{
+				Contextified: libkb.NewContextified(g)}, "check", c)
+			cl.SetNoStandalone()
+		},
+		ArgumentHelp: "<KBFS archive zip file path>...",
+	}
+}
+
+// Run runs the command in client/server mode.
+func (c *CmdSimpleFSArchiveCheckArchive) Run() error {
+	cli, err := GetSimpleFSClient(c.G())
+	if err != nil {
+		return err
+	}
+	ui := c.G().UI.GetTerminalUI()
+
+	for _, zipFilePath := range c.zipFilePaths {
+		res, err := cli.SimpleFSArchiveCheckArchive(context.TODO(), zipFilePath)
+		if err != nil {
+			return err
+		}
+
+		ui.Printf("=== %s ===\n\n", zipFilePath)
+		ui.Printf("Archive TLF Revision: %v%s\n",
+			res.Desc.KbfsPathWithRevision.ArchivedParam.Revision(),
+			revisionExtendedDescription(res.CurrentTLFRevision, &res.Desc))
+		if len(res.PathsWithIssues) != 0 {
+			ui.Printf("Some entries in the archive have problems:\n")
+			for entryPath, entryIssue := range res.PathsWithIssues {
+				ui.Printf("%s\n  - %s\n", entryPath, entryIssue)
+			}
+		} else {
+			ui.Printf("Archive Integrity: OK\n")
+		}
+		ui.Printf("\n")
+	}
+
+	return nil
+}
+
+// ParseArgv parses the arguments.
+func (c *CmdSimpleFSArchiveCheckArchive) ParseArgv(ctx *cli.Context) error {
+	c.zipFilePaths = ctx.Args()
+	return nil
+}
+
+// GetUsage says what this command needs to operate.
+func (c *CmdSimpleFSArchiveCheckArchive) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

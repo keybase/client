@@ -942,6 +942,18 @@ func (s *SimpleFSHandler) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 	return cli.SimpleFSArchiveCancelOrDismissJob(ctx, jobID)
 }
 
+// SimpleFSArchiveCheckArchive implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSArchiveCheckArchive(ctx context.Context,
+	archiveZipFilePath string) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveCheckArchiveResult{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSArchiveCheckArchive(ctx, archiveZipFilePath)
+}
+
 // SimpleFSGetArchiveStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetArchiveStatus(ctx context.Context) (
 	status keybase1.SimpleFSArchiveStatus, err error) {

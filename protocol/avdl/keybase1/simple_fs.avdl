@@ -827,4 +827,11 @@ protocol SimpleFS {
     KBFSRevision currentTLFRevision;
   }
   SimpleFSArchiveJobFreshness simpleFSGetArchiveJobFreshness(string jobID);
+
+  record SimpleFSArchiveCheckArchiveResult {
+    SimpleFSArchiveJobDesc desc;
+    KBFSRevision currentTLFRevision;
+    map<string, string> pathsWithIssues;
+  }
+  SimpleFSArchiveCheckArchiveResult simpleFSArchiveCheckArchive(string archiveZipFilePath);
 }

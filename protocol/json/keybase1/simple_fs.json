@@ -1268,6 +1268,28 @@
           "name": "currentTLFRevision"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveCheckArchiveResult",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "currentTLFRevision"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "pathsWithIssues"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2125,6 +2147,15 @@
         }
       ],
       "response": "SimpleFSArchiveJobFreshness"
+    },
+    "simpleFSArchiveCheckArchive": {
+      "request": [
+        {
+          "name": "archiveZipFilePath",
+          "type": "string"
+        }
+      ],
+      "response": "SimpleFSArchiveCheckArchiveResult"
     }
   },
   "namespace": "keybase.1"

@@ -1913,6 +1913,31 @@ func (o SimpleFSArchiveJobFreshness) DeepCopy() SimpleFSArchiveJobFreshness {
 	}
 }
 
+type SimpleFSArchiveCheckArchiveResult struct {
+	Desc               SimpleFSArchiveJobDesc `codec:"desc" json:"desc"`
+	CurrentTLFRevision KBFSRevision           `codec:"currentTLFRevision" json:"currentTLFRevision"`
+	PathsWithIssues    map[string]string      `codec:"pathsWithIssues" json:"pathsWithIssues"`
+}
+
+func (o SimpleFSArchiveCheckArchiveResult) DeepCopy() SimpleFSArchiveCheckArchiveResult {
+	return SimpleFSArchiveCheckArchiveResult{
+		Desc:               o.Desc.DeepCopy(),
+		CurrentTLFRevision: o.CurrentTLFRevision.DeepCopy(),
+		PathsWithIssues: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PathsWithIssues),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -2246,6 +2271,10 @@ type SimpleFSGetArchiveJobFreshnessArg struct {
 	JobID string `codec:"jobID" json:"jobID"`
 }
 
+type SimpleFSArchiveCheckArchiveArg struct {
+	ArchiveZipFilePath string `codec:"archiveZipFilePath" json:"archiveZipFilePath"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2388,6 +2417,7 @@ type SimpleFSInterface interface {
 	SimpleFSArchiveCancelOrDismissJob(context.Context, string) error
 	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
 	SimpleFSGetArchiveJobFreshness(context.Context, string) (SimpleFSArchiveJobFreshness, error)
+	SimpleFSArchiveCheckArchive(context.Context, string) (SimpleFSArchiveCheckArchiveResult, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3424,6 +3454,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSArchiveCheckArchive": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveCheckArchiveArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveCheckArchiveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveCheckArchiveArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSArchiveCheckArchive(ctx, typedArgs[0].ArchiveZipFilePath)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3899,5 +3944,11 @@ func (c SimpleFSClient) SimpleFSGetArchiveStatus(ctx context.Context) (res Simpl
 func (c SimpleFSClient) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID string) (res SimpleFSArchiveJobFreshness, err error) {
 	__arg := SimpleFSGetArchiveJobFreshnessArg{JobID: jobID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveCheckArchive(ctx context.Context, archiveZipFilePath string) (res SimpleFSArchiveCheckArchiveResult, err error) {
+	__arg := SimpleFSArchiveCheckArchiveArg{ArchiveZipFilePath: archiveZipFilePath}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveCheckArchive", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

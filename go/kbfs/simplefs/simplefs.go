@@ -3670,6 +3670,40 @@ func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 	return k.archiveManager.cancelOrDismissJob(ctx, jobID)
 }
 
+func (k *SimpleFS) getCurrentTLFRevision(
+	ctx context.Context, kbfsPath keybase1.KBFSPath) (
+	keybase1.KBFSRevision, error) {
+	fb, _, err := k.getFolderBranchFromPath(ctx,
+		keybase1.NewPathWithKbfs(kbfsPath))
+	if err != nil {
+		return 0, err
+	}
+	if fb == (data.FolderBranch{}) {
+		return 0, nil
+	}
+	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	if err != nil {
+		return 0, err
+	}
+	return keybase1.KBFSRevision(status.Revision), nil
+}
+
+// SimpleFSArchiveCheckArchive implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveCheckArchive(ctx context.Context,
+	archiveZipFilePath string) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
+	ctx = k.makeContext(ctx)
+	result.Desc, result.PathsWithIssues, err = k.archiveManager.checkArchive(ctx, archiveZipFilePath)
+	if err != nil {
+		return keybase1.SimpleFSArchiveCheckArchiveResult{}, err
+	}
+	result.CurrentTLFRevision, err = k.getCurrentTLFRevision(ctx,
+		keybase1.KBFSPath{Path: result.Desc.KbfsPathWithRevision.Path})
+	if err != nil {
+		return keybase1.SimpleFSArchiveCheckArchiveResult{}, err
+	}
+	return result, nil
+}
+
 func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) (
 	status keybase1.SimpleFSArchiveStatus, err error) {
@@ -3728,21 +3762,13 @@ func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID str
 	if !ok {
 		return keybase1.SimpleFSArchiveJobFreshness{}, fmt.Errorf("job not found: %s", jobID)
 	}
-	fb, _, err := k.getFolderBranchFromPath(ctx,
-		keybase1.NewPathWithKbfs(keybase1.KBFSPath{
-			Path: stateJob.Desc.KbfsPathWithRevision.Path}))
-	if err != nil {
-		return keybase1.SimpleFSArchiveJobFreshness{}, err
-	}
-	if fb == (data.FolderBranch{}) {
-		return keybase1.SimpleFSArchiveJobFreshness{}, nil
-	}
-	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	rev, err := k.getCurrentTLFRevision(ctx,
+		keybase1.KBFSPath{Path: stateJob.Desc.KbfsPathWithRevision.Path})
 	if err != nil {
 		return keybase1.SimpleFSArchiveJobFreshness{}, err
 	}
 	return keybase1.SimpleFSArchiveJobFreshness{
-		CurrentTLFRevision: keybase1.KBFSRevision(status.Revision),
+		CurrentTLFRevision: rev,
 	}, nil
 }
 
