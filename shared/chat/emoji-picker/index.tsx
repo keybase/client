@@ -201,6 +201,7 @@ const getSectionsAndBookmarks = (
 
   if (customEmojiGroups?.length) {
     const coveredSectionKeys = new Set<string>()
+    const sectionIndex = sections.length
     getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
       coveredSectionKeys.add(section.key)
       sections.push(section)
@@ -208,7 +209,7 @@ const getSectionsAndBookmarks = (
     const bookmark = {
       coveredSectionKeys,
       iconType: 'iconfont-keybase',
-      sectionIndex: sections.length,
+      sectionIndex,
     } as Bookmark
     bookmarks.push(bookmark)
   }
