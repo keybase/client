@@ -11,6 +11,7 @@ import {usePopup2, type Popup2Parms} from './use-popup'
 import * as Styles from '@/styles'
 import './dropdown.css'
 import type {MeasureRef} from './measure-ref'
+import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
   Box,
@@ -23,6 +24,7 @@ const Kb = {
   ScrollView,
   Text,
   usePopup2,
+  useSafeAreaInsets,
 }
 
 type DropdownButtonProps = {
@@ -100,6 +102,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
   const {style, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
+  const {bottom} = Kb.useSafeAreaInsets()
 
   const makePopup = React.useCallback(
     (p: Popup2Parms) => {
@@ -112,7 +115,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
           onHidden={hidePopup}
           position={position || 'center center'}
         >
-          <Kb.ScrollView style={styles.scrollView}>
+          <Kb.ScrollView style={styles.scrollView} contentInset={{bottom}}>
             {items.map((i: N, idx) => (
               <Kb.ClickableBox
                 key={idx}
@@ -126,19 +129,20 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
                 }}
                 style={styles.itemClickBox}
               >
-                <Kb.Box
+                <Kb.Box2
+                  direction="vertical"
                   style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
                   className="hover_background_color_blueLighter2"
                 >
                   {i}
-                </Kb.Box>
+                </Kb.Box2>
               </Kb.ClickableBox>
             ))}
           </Kb.ScrollView>
         </Kb.Overlay>
       )
     },
-    [items, onChangedIdx, overlayStyle, position, itemBoxStyle]
+    [bottom, items, onChangedIdx, overlayStyle, position, itemBoxStyle]
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -231,6 +235,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
     borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
+    justifyContent: 'center',
     minHeight: Styles.isMobile ? 40 : 32,
     width: '100%',
   },
