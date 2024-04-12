@@ -443,7 +443,7 @@ export const useAttachmentSections = (
   const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
-  const loadMoreMessages = C.useChatContext(s => s.dispatch.loadMoreMessages)
+  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   const jumpToAttachment = React.useCallback(
@@ -451,12 +451,9 @@ export const useAttachmentSections = (
       if (C.isMobile) {
         clearModals()
       }
-      loadMoreMessages({
-        centeredMessageID: {conversationIDKey, highlightMode: 'always', messageID},
-        reason: 'jumpAttachment',
-      })
+      loadMessagesCentered(messageID, 'always')
     },
-    [conversationIDKey, loadMoreMessages, clearModals]
+    [loadMessagesCentered, clearModals]
   )
 
   C.useOnMountOnce(() => {

@@ -18,24 +18,20 @@ const emptyMessage = C.Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
   const {downloadPath, attachmentType} = message
   const pending = !!message.transferState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
 
-  const loadMoreMessages = C.useChatContext(s => s.dispatch.loadMoreMessages)
+  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
 
   const onJump = React.useCallback(() => {
-    m &&
-      loadMoreMessages({
-        centeredMessageID: {conversationIDKey: m.conversationIDKey, highlightMode: 'always', messageID: m.id},
-        reason: 'jumpAttachment',
-      })
+    m && loadMessagesCentered(m.id, 'always')
     showInfoPanel(false, 'attachments')
     clearModals()
-  }, [m, loadMoreMessages, showInfoPanel, clearModals])
+  }, [m, loadMessagesCentered, showInfoPanel, clearModals])
 
   const onAllMedia = () => {
     clearModals()
