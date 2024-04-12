@@ -17,7 +17,9 @@ type Props = {
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible} = p
-  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
+  const type = C.useChatContext(
+    s => s.messageMap.get(ordinal)?.type ?? s.messageMapAttachments.get(ordinal)?.type
+  )
   switch (type) {
     case 'text':
     case 'setChannelname':
