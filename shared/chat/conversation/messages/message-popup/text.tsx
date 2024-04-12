@@ -19,7 +19,7 @@ const emptyMessage = C.Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal))
   const you = C.useCurrentUserState(s => s.username)
   const message = m || emptyMessage
   const {conversationIDKey, author} = message
