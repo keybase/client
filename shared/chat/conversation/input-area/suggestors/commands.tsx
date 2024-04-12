@@ -88,7 +88,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
           <Kb.Text type="BodySmall">{command.description}</Kb.Text>
         ) : (
           <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
-            Command unavailable due to bot restriction configuration.
+            Bot disabled from listening
           </Kb.Text>
         )}
       </Kb.Box2>
