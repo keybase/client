@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Animation from './animation'
 import Box, {Box2, Box2Measure} from './box'
-import ClickableBox from './clickable-box'
+import ClickableBox, {ClickableBox2} from './clickable-box'
 import NewInput from './new-input'
 import {HotKey} from './hot-key'
 import PlainInput from './plain-input'
@@ -19,6 +19,7 @@ const Kb = {
   Box2,
   Box2Measure,
   ClickableBox,
+  ClickableBox2,
   HotKey,
   Icon,
   NewInput,
@@ -217,14 +218,14 @@ class SearchFilter extends React.PureComponent<Props, State> {
     }
     if (Styles.isMobile) {
       return (
-        <Kb.ClickableBox onClick={this.props.mobileCancelButton ? this.clear : this.cancel}>
+        <Kb.ClickableBox2 onClick={this.props.mobileCancelButton ? this.clear : this.cancel} hitSlop={10}>
           <Kb.Icon
             type="iconfont-remove"
             sizeType={this.iconSizeType()}
             color={this.iconColor()}
             style={styles.removeIconNonFullWidth}
           />
-        </Kb.ClickableBox>
+        </Kb.ClickableBox2>
       )
     } else {
       return (
