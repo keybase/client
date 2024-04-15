@@ -114,6 +114,8 @@ interface _MessageCommon {
   readonly transferErrMsg?: string
   readonly transferState?: MessageAttachmentTransferState
   readonly unfurls?: UnfurlMap
+  // can be false for out of band calls like gallery load
+  readonly conversationMessage?: boolean
 }
 
 // Message types have a lot of copy and paste. Originally I had this split out but this

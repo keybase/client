@@ -9,7 +9,7 @@ import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 const emptyText = C.Chat.makeMessageText({})
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const m = C.useChatContext(s => s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const isAttach = m?.type === 'attachment'
   const message = m || emptyText
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
@@ -229,7 +229,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useHeader = (ordinal: T.Chat.Ordinal) => {
-  const m = C.useChatContext(s => s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const you = C.useCurrentUserState(s => s.username)
   const message = m || emptyText
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message

@@ -9,7 +9,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
 
   const message: T.Chat.MessageAttachment = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal)
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : blankMessage
   })
 
