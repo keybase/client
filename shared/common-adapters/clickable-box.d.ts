@@ -31,6 +31,7 @@ export type Props = {
 export type Props2 = {
   // mobile only
   onLongPress?: () => void
+  hitSlop?: number
   // desktop only
   onMouseOver?: (event: React.MouseEvent) => void
 
