@@ -344,7 +344,7 @@ func TestGiphySearchScrape(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_GIPHY, typ)
 	require.NotNil(t, res.Giphy().ImageUrl)
-	require.Nil(t, res.Giphy().Video)
+	require.NotNil(t, res.Giphy().Video)
 }
 
 func TestMapScraper(t *testing.T) {
