@@ -68,10 +68,3 @@ func ClassifyDomain(domain string) chat1.UnfurlType {
 		return chat1.UnfurlType_GENERIC
 	}
 }
-
-func ClassifyDomainFromURI(uri string) (typ chat1.UnfurlType, domain string, err error) {
-	if domain, err = GetDomain(uri); err != nil {
-		return typ, domain, err
-	}
-	return ClassifyDomain(domain), domain, nil
-}

@@ -17,13 +17,14 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
         return null
       }
       const {giphy} = unfurl
-      const {favicon, video} = giphy
-      const {height, url, width} = video || {height: 0, url: '', width: 0}
+      const {favicon, image, video} = giphy
+      const {height, isVideo, url, width} = video || image || {height: 0, isVideo: false, url: '', width: 0}
 
       return {
         favicon: favicon?.url,
         height,
         isCollapsed,
+        isVideo,
         unfurlMessageID,
         url,
         width,
@@ -40,7 +41,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
 
   if (data === null) return null
 
-  const {favicon, isCollapsed, url, width, height} = data
+  const {favicon, isCollapsed, isVideo, url, width, height} = data
 
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
@@ -72,7 +73,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
           ) : null}
         </Kb.Box2>
         {isCollapsed ? null : (
-          <UnfurlImage url={url} height={height} width={width} isVideo={true} autoplayVideo={true} />
+          <UnfurlImage url={url} height={height} width={width} isVideo={isVideo} autoplayVideo={isVideo} />
         )}
       </Kb.Box2>
     </Kb.Box2>
