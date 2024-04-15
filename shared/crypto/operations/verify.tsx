@@ -34,8 +34,10 @@ export const VerifyInput = () => {
   )
 }
 export const VerifyOutput = () => {
+  const errorMessage = C.useCryptoState(s => s[operation].errorMessage.stringValue())
   const content = (
     <>
+      {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}
       <SignedSender operation={operation} />
       {C.isMobile ? <Kb.Divider /> : null}
       <OperationOutput operation={operation} />

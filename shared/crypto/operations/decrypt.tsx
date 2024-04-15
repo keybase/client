@@ -35,8 +35,10 @@ export const DecryptInput = () => {
 }
 
 export const DecryptOutput = () => {
+  const errorMessage = C.useCryptoState(s => s[operation].errorMessage.stringValue())
   const content = (
     <>
+      {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}
       <SignedSender key="sender" operation={operation} />
       {C.isMobile ? <Kb.Divider key="div" /> : null}
       <OperationOutput key="output" operation={operation} />
