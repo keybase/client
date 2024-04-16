@@ -95,10 +95,11 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
-		var simplefsIface keybase1.SimpleFSInterface
-		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+		var sfs *simplefs.SimpleFS
+		sfs, shutdownSimpleFS = simplefs.NewSimpleFS(
 			libkbfsCtx, config)
-		return keybase1.SimpleFSProtocol(simplefsIface), nil
+		config.AddResetForLoginTarget(sfs)
+		return keybase1.SimpleFSProtocol(sfs), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}

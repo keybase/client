@@ -23,6 +23,7 @@ import (
 
 	"golang.org/x/time/rate"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -83,6 +84,7 @@ type errorState struct {
 
 type archiveManager struct {
 	simpleFS *SimpleFS
+	username libkb.NormalizedUsername
 
 	// Just use a regular mutex rather than a rw one so all writes to
 	// persistent storage are synchronized.
@@ -109,10 +111,9 @@ type archiveManager struct {
 	ctxCancel func()
 }
 
-func getStateFilePath(simpleFS *SimpleFS) string {
-	username := simpleFS.config.KbEnv().GetUsername()
+func (m *archiveManager) getStateFilePath(simpleFS *SimpleFS) string {
 	cacheDir := simpleFS.getCacheDir()
-	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", username))
+	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s.json.gz", m.username))
 }
 
 func (m *archiveManager) flushStateFileLocked(ctx context.Context) error {
@@ -121,7 +122,7 @@ func (m *archiveManager) flushStateFileLocked(ctx context.Context) error {
 		return ctx.Err()
 	default:
 	}
-	err := writeArchiveStateIntoJsonGz(ctx, m.simpleFS, getStateFilePath(m.simpleFS), m.state)
+	err := writeArchiveStateIntoJsonGz(ctx, m.simpleFS, m.getStateFilePath(m.simpleFS), m.state)
 	if err != nil {
 		m.simpleFS.log.CErrorf(ctx,
 			"archiveManager.flushStateFileLocked: writing state file error: %v", err)
@@ -1174,12 +1175,14 @@ func (m *archiveManager) resetInterruptedPhasesLocked(ctx context.Context) {
 	}
 }
 
-func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
+func newArchiveManager(simpleFS *SimpleFS, username libkb.NormalizedUsername) (
+	m *archiveManager, err error) {
 	ctx := context.Background()
 	simpleFS.log.CDebugf(ctx, "+ newArchiveManager")
 	defer simpleFS.log.CDebugf(ctx, "- newArchiveManager")
 	m = &archiveManager{
 		simpleFS:                  simpleFS,
+		username:                  username,
 		jobCtxCancellers:          make(map[string]func()),
 		errors:                    make(map[string]errorState),
 		indexingWorkerSignal:      make(chan struct{}, 1),
@@ -1187,7 +1190,8 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 		zippingWorkerSignal:       make(chan struct{}, 1),
 		notifyUIStateChangeSignal: make(chan struct{}, 1),
 	}
-	stateFilePath := getStateFilePath(simpleFS)
+	stateFilePath := m.getStateFilePath(simpleFS)
+	simpleFS.log.CDebugf(ctx, "stateFilePath: %q", stateFilePath)
 	m.state, err = loadArchiveStateFromJsonGz(ctx, simpleFS, stateFilePath)
 	switch err {
 	case nil:
@@ -1208,4 +1212,9 @@ func newArchiveManager(simpleFS *SimpleFS) (m *archiveManager, err error) {
 	}
 	m.start()
 	return m, nil
+}
+
+func (m *archiveManager) getStagingPath(ctx context.Context, jobID string) (stagingPath string) {
+	cacheDir := m.simpleFS.getCacheDir()
+	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s-%s", m.username, jobID))
 }

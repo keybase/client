@@ -2204,6 +2204,11 @@ type kbContextGetter interface {
 	KbContext() Context
 }
 
+// ResetForLoginer defines ResetForLogin.
+type ResetForLoginer interface {
+	ResetForLogin(ctx context.Context, username libkb.NormalizedUsername) (err error)
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -2396,6 +2401,12 @@ type Config interface {
 	KbEnv() *libkb.Env
 
 	kbContextGetter
+
+	// AddResetForLoginTarget adds t as a target when config.ResetForLogin is called.
+	AddResetForLoginTarget(t ResetForLoginer)
+
+	// ResetForLogin calls ResetForLogin on additional protocols.
+	ResetForLogin(context.Context, libkb.NormalizedUsername)
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
