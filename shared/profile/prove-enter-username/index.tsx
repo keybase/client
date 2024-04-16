@@ -31,7 +31,7 @@ class EnterUsername extends React.Component<Props, State> {
     }
     const {headerText, hintText} = pt
     return (
-      <Modal onCancel={this.props.onCancel} skipButton={true}>
+      <Modal onCancel={this.props.onCancel} skipButton={true} title={C.isMobile ? headerText : undefined}>
         {!!this.props.errorText && (
           <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
             <Kb.Text center={true} negative={true} type="BodySemibold">
@@ -40,9 +40,11 @@ class EnterUsername extends React.Component<Props, State> {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-          <Kb.Text center={true} type="Header">
-            {headerText}
-          </Kb.Text>
+          {C.isMobile ? null : (
+            <Kb.Text center={true} type="Header">
+              {headerText}
+            </Kb.Text>
+          )}
           <Kb.PlatformIcon
             style={styles.centered}
             platform={this.props.platform}
@@ -87,7 +89,7 @@ const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   ) : null
 
 const standardText = (name: string) => ({
-  headerText: `Prove your ${name} identity`,
+  headerText: C.isMobile ? `Prove ${name}` : `Prove your ${name} identity`,
   hintText: `Your ${name} username`,
 })
 
