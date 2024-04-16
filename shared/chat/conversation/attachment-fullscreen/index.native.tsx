@@ -36,7 +36,7 @@ const Fullscreen = (p: Props) => {
       .catch(() => {})
   }, [])
 
-  const imgSrc = usePreviewFallback(path, previewPath, isVideo, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(

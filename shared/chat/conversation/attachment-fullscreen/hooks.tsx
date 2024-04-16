@@ -40,7 +40,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const {downloadPath, fileURL: path, fullHeight, fullWidth} = message
+  const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = C.Chat.clampImageSize(
     previewWidth,
@@ -49,6 +49,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     maxHeight
   )
   const isVideo = C.Chat.isVideoAttachment(message)
+  const showPreview = !fileType.includes('png')
   const onAllMedia = () => showInfoPanel(true, 'attachments')
   const onClose = () => navigateUp()
   const onDownloadAttachment = message.downloadPath
@@ -86,6 +87,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     previewWidth: clampedWidth,
     progress,
     progressLabel,
+    showPreview,
     title: message.decoratedText ? message.decoratedText.stringValue() : title,
   }
 }
@@ -95,10 +97,11 @@ export const usePreviewFallback = (
   path: string,
   previewPath: string,
   isVideo: boolean,
+  showPreview: boolean,
   preload: (path: string, onLoad: () => void, onError: () => void) => void
 ) => {
   const [imgSrc, setImgSrc] = React.useState('')
-  const canUseFallback = path && previewPath && !isVideo
+  const canUseFallback = path && previewPath && !isVideo && showPreview
 
   React.useEffect(() => {
     const onLoad = () => {
