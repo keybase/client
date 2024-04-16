@@ -4,6 +4,7 @@ import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {View} from 'react-native'
 import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import {isTablet} from '@/constants/platform'
 
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
   Shared._shim(routes, platformShim, isModal, isLoggedOut)
@@ -27,7 +28,7 @@ const platformShim = (
 
     if (isModal || isLoggedOut) {
       wrap = (
-        <Kb.KeyboardAvoidingView2 extraOffset={40}>
+        <Kb.KeyboardAvoidingView2 extraOffset={40} compensateNotBeingOnBottom={isModal && isTablet}>
           <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
             <Kb.SafeAreaView
               style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}

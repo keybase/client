@@ -19,7 +19,10 @@ import * as React from 'react'
 import {getKeyboardUp} from '@/styles/keyboard-state'
 import {isTablet} from '@/constants/platform'
 
-type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
+type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {
+  extraPadding?: number
+  compensateNotBeingOnBottom?: boolean
+}
 
 type ViewLayout = {
   x: number
@@ -174,7 +177,8 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     }
 
     // tablet modals are centered so we need to offset that, zero otherwise
-    this._setBottom(height - this._tabletLayoutHeight)
+    const bottomOffset = this.props.compensateNotBeingOnBottom ? this._tabletLayoutHeight : 0
+    this._setBottom(height - bottomOffset)
   }
 
   // componentDidUpdate(_: Props, prevState: State): void {
@@ -284,12 +288,13 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const KeyboardAvoidingView2 = (p: KAVProps) => {
-  const {children, extraOffset, extraPadding} = p
+  const {children, extraOffset, extraPadding, compensateNotBeingOnBottom} = p
   const headerHeight = useSafeHeaderHeight()
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
 
   return (
     <KeyboardAvoidingView
+      compensateNotBeingOnBottom={compensateNotBeingOnBottom}
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
       style={styles.keyboard}

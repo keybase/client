@@ -96,7 +96,9 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     setLastIsFocused(isFocused)
     if (C.isMobile) {
       if (isFocused && C.Chat.isSplit) {
-        C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
+        setTimeout(() => {
+          C.getConvoState(C.Chat.getSelectedConversation()).dispatch.tabSelected()
+        }, 0)
       }
     }
   }
