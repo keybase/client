@@ -17,6 +17,7 @@ import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
 import {getKeyboardUp} from '@/styles/keyboard-state'
+import {isTablet} from '@/constants/platform'
 
 type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 
@@ -54,6 +55,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
   _subscriptions: Array<EventSubscription> = []
   viewRef: {current: React.ElementRef<typeof View> | null}
   _initialFrameHeight: number = 0
+  _tabletLayoutHeight: number = 0
 
   constructor(props: Props) {
     super(props)
@@ -104,6 +106,9 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
   }
 
   _onLayout = (event: LayoutChangeEvent) => {
+    if (isTablet) {
+      this._tabletLayoutHeight = event.nativeEvent.layout.height
+    }
     const f = async () => {
       const wasFrameNull = !this._frame
       this._frame = event.nativeEvent.layout
@@ -167,7 +172,9 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         },
       })
     }
-    this._setBottom(height)
+
+    // tablet modals are centered so we need to offset that, zero otherwise
+    this._setBottom(height - this._tabletLayoutHeight)
   }
 
   // componentDidUpdate(_: Props, prevState: State): void {
