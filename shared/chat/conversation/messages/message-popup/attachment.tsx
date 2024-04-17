@@ -18,7 +18,7 @@ const emptyMessage = C.Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal) ?? s.messageMapAttachments.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
   const {downloadPath, attachmentType} = message
   const pending = !!message.transferState

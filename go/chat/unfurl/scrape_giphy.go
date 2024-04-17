@@ -3,15 +3,11 @@ package unfurl
 import (
 	"context"
 	"errors"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/keybase/client/go/libkb"
-
 	"github.com/gocolly/colly/v2"
-	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -85,7 +81,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
-		if attr == "og:video" {
+		if attr == "og:video" || attr == "og:video:url" || attr == "og:video:secure_url" {
 			video.Url = e.Attr("content")
 		} else if attr == "og:video:width" {
 			if width, err := strconv.Atoi(e.Attr("content")); err == nil {
@@ -100,22 +96,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
 		}
 	})
-	var uri string
-	if s.giphyProxy {
-		c.WithTransport(giphy.WebClient(libkb.NewMetaContext(ctx, s.G().ExternalG())).Transport)
-		if uri, err = giphy.ProxyURL(sourceURL); err != nil {
-			return res, err
-		}
-	} else {
-		uri = sourceURL
-	}
-	hdr := make(http.Header)
-	hdr.Add("Host", giphy.Host)
-	hdr.Add("Accept", "*/*")
-	hdr.Add("Connection", "keep-alive")
-	hdr.Add("upgrade-insecure-requests", "1")
-	hdr.Add("user-agent", userAgent)
-	if err := c.Request("GET", uri, nil, nil, hdr); err != nil {
+	if err := c.Visit(sourceURL); err != nil {
 		return res, err
 	}
 	if generic.ImageUrl == nil {

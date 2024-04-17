@@ -4,14 +4,17 @@ import * as Kb from '@/common-adapters'
 type Props = React.PropsWithChildren<{
   onCancel?: () => void
   skipButton?: boolean
+  title?: string
 }>
 
-const Modal = ({children, onCancel, skipButton}: Props) => (
-  <Kb.PopupWrapper onCancel={onCancel}>
+const Modal = ({children, onCancel, skipButton, title}: Props) => (
+  <Kb.PopupWrapper onCancel={onCancel} title={title}>
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
-        {children}
-      </Kb.Box2>
+      <Kb.ScrollView>
+        <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
+          {children}
+        </Kb.Box2>
+      </Kb.ScrollView>
       {onCancel && !skipButton && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
           <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />

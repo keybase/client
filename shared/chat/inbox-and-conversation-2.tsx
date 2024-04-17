@@ -67,7 +67,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
         top: 0,
-        width: 320,
+        width: C.isTablet ? 350 : 320,
       },
     }) as const
 )

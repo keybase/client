@@ -16,10 +16,7 @@ type OwnProps = {
 const JourneyCard = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, style, visible, position} = ownProps
   const cardType = C.useChatContext(
-    s =>
-      s.messageMap.get(ordinal)?.cardType ??
-      s.messageMapAttachments.get(ordinal)?.cardType ??
-      T.RPCChat.JourneycardType.unused
+    s => s.messageMap.get(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
   )
 
   const dismissJourneycard = C.useChatContext(s => s.dispatch.dismissJourneycard)

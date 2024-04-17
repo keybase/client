@@ -71,9 +71,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 export default ClickableBox
 
 export const ClickableBox2 = (p: Props2) => {
-  const {onLongPress, onClick, children, style} = p
+  const {onLongPress, onClick, children, hitSlop, style} = p
   return (
-    <Pressable onLongPress={onLongPress} onPress={onClick} style={style}>
+    <Pressable onLongPress={onLongPress} onPress={onClick} style={style} hitSlop={hitSlop}>
       {children}
     </Pressable>
   )

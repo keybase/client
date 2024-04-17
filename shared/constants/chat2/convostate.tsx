@@ -104,7 +104,6 @@ type ConvoStore = T.Immutable<{
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
-  messageMapAttachments: Map<T.Chat.Ordinal, T.Chat.Message> // messages that are loaded from the gallery, kept separate
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
@@ -142,7 +141,6 @@ const initialConvoStore: ConvoStore = {
   maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
-  messageMapAttachments: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
@@ -440,7 +438,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
   // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
   const syncMessageDerived = (s: Z.WritableDraft<ConvoState>) => {
-    const mo = [...s.messageMap.keys()].sort((a, b) => a - b)
+    const mo = [...s.messageMap]
+      .filter(([, m]) => {
+        const regularMessage = m.conversationMessage !== false
+        return regularMessage
+      })
+      .map(([ord]) => ord)
+      .sort((a, b) => a - b)
     if (C.shallowEqual(s.messageOrdinals, mo)) {
       return
     }
@@ -514,18 +518,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     set(s => {
       for (const _m of messages) {
         const m = T.castDraft(_m)
+        const regularMessage = m.conversationMessage !== false
+
         // we capture the highest one, cause sometimes we'll not track it in the map
         // aka for deleted or placeholders
-        if (m.id > s.maxMsgIDSeen) {
+        if (regularMessage && m.id > s.maxMsgIDSeen) {
           s.maxMsgIDSeen = m.id
         }
-        if (m.type === 'deleted') {
+        if (regularMessage && m.type === 'deleted') {
           s.messageMap.delete(m.ordinal)
           s.messageTypeMap.delete(m.ordinal)
         } else {
           let mapOrdinal = m.ordinal
           // if we've sent it we use the outbox id to manage the ordinal relationship
-          if (m.outboxID) {
+          if (regularMessage && m.outboxID) {
             const existingSent = s.pendingOutboxToOrdinal.get(m.outboxID)
             if (existingSent) {
               mapOrdinal = existingSent
@@ -545,7 +551,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
 
           s.messageMap.set(mapOrdinal, T.castDraft(m))
-          if (m.outboxID && T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)) {
+          if (
+            regularMessage &&
+            m.outboxID &&
+            T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)
+          ) {
             s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
           }
           if (m.type === 'text') {
@@ -1314,7 +1324,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
                 const username = C.useCurrentUserState.getState().username
                 const devicename = C.useCurrentUserState.getState().deviceName
-                const message = Message.uiMessageToMessage(
+                const m = Message.uiMessageToMessage(
                   conversationIDKey,
                   hit.message,
                   username,
@@ -1322,7 +1332,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   devicename
                 )
 
-                if (message) {
+                if (m) {
+                  const message = {...m, conversationMessage: false}
                   set(s => {
                     const info = mapGetEnsureValue(
                       s.attachmentViewMap,
@@ -1332,9 +1343,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
                     }
-
-                    s.messageMapAttachments.set(message.ordinal, T.castDraft(message))
                   })
+                  // inject them into the message map
+                  messagesAdd([message], 'gallery inject', false)
                 }
               },
             },

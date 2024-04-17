@@ -16,8 +16,7 @@ const userAgent = "Mozilla/5.0 (compatible; KeybaseBot; +https://keybase.io)"
 type Scraper struct {
 	globals.Contextified
 	utils.DebugLabeler
-	cache      *unfurlCache
-	giphyProxy bool
+	cache *unfurlCache
 }
 
 func NewScraper(g *globals.Context) *Scraper {
@@ -25,7 +24,6 @@ func NewScraper(g *globals.Context) *Scraper {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Scraper", false),
 		cache:        newUnfurlCache(),
-		giphyProxy:   true,
 	}
 }
 
