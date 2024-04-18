@@ -7,8 +7,9 @@ import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 import {useData, usePreviewFallback} from './hooks'
-import {type GestureResponderEvent, Animated, View, useWindowDimensions} from 'react-native'
-import {Image} from 'expo-image'
+import {type GestureResponderEvent, Animated, View, useWindowDimensions, Image} from 'react-native'
+// TODO bring this back when we update expo-image > 1.8.0
+// import {Image} from 'expo-image'
 
 const Fullscreen = (p: Props) => {
   const {showHeader: _showHeader = true} = p
