@@ -58,11 +58,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
     // this is a very hacky workaround for internal bugs in RN TextInput
     // write a stub with different content
-    this.setNativeProps({text: ''})
 
     this._afterTransform = () => {
       this._afterTransform = undefined
-      this.setNativeProps({selection: newCheckedSelection, text: newTextInfo.text})
+      this.setNativeProps({text: newTextInfo.text})
+      setTimeout(() => {
+        this.setNativeProps({selection: newCheckedSelection})
+      }, 20)
       if (reflectChange) {
         this._onChangeText(newTextInfo.text)
       }
