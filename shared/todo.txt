@@ -5,6 +5,7 @@ setnative not working on fabric, input should likely be controlled now
 
   deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
   eslint 9 turned off stuff, check it actually finds things
+  check animated gifs work after udpating expo-image or rollback again
 
 run electron hash update
 -------------------------
