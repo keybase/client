@@ -166,7 +166,9 @@ const useDataTeams = () => {
     () =>
       inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
         if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
-          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+          if (t.channel.channelname.length) {
+            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+          }
         }
         return arr
       }, []) ?? [],
