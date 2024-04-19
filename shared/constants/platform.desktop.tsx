@@ -11,7 +11,6 @@ export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = true
 export const isTablet = false
-export const windowHeight = 0 // not implemented on desktop
 export const isDebuggingInChrome = true
 
 export const dokanPath = KB2.constants.dokanPath
