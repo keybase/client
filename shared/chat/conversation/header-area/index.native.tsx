@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import {Dimensions} from 'react-native'
+import {useWindowDimensions} from 'react-native'
 
 export const useBackBadge = () => {
   const visiblePath = C.Router2.getVisiblePath()
@@ -44,7 +44,7 @@ const ShhIcon = React.memo(function ShhIcon() {
 })
 
 const useMaxWidthStyle = () => {
-  const {width} = Dimensions.get('window')
+  const {width} = useWindowDimensions()
   const hasBadge = useBackBadge() > 0
   return React.useMemo(() => ({maxWidth: width - 140 - (hasBadge ? 40 : 0)}), [width, hasBadge])
 }

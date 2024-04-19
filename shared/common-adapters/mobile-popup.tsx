@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-import {windowHeight} from '@/constants/platform'
+import {useWindowDimensions} from 'react-native'
 
 const Kb = {
   Box2,
@@ -16,28 +16,30 @@ type Props = {
   overlayStyle?: Styles.StylesCrossPlatform
 }
 
-const MobilePopup = (props: Props) => (
-  <Kb.FloatingBox>
-    <Kb.KeyboardAvoidingView2>
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([styles.overlay, props.overlayStyle])}
-        >
-          {props.children}
+const MobilePopup = (props: Props) => {
+  const {height} = useWindowDimensions()
+  return (
+    <Kb.FloatingBox>
+      <Kb.KeyboardAvoidingView2>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Styles.collapseStyles([styles.overlay, {maxHeight: 0.8 * height}, props.overlayStyle])}
+          >
+            {props.children}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.KeyboardAvoidingView2>
-  </Kb.FloatingBox>
-)
+      </Kb.KeyboardAvoidingView2>
+    </Kb.FloatingBox>
+  )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   overlay: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
       borderRadius: Styles.borderRadius,
-      maxHeight: 0.8 * windowHeight,
     },
     isTablet: {
       maxWidth: 460,

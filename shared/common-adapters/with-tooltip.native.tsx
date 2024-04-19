@@ -7,7 +7,7 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
 import type {Props} from './with-tooltip'
-import {View, Dimensions} from 'react-native'
+import {View, useWindowDimensions} from 'react-native'
 
 // This uses a similar mechanism to relative-popup-hoc.desktop.js. It's only
 // ever used for tooltips on mobile for now. If we end up needing relative
@@ -52,13 +52,12 @@ const WithTooltip = (props: Props) => {
     setVisible(false)
   }, 3000)
   const isMounted = C.useIsMounted()
+  const {width: screenWidth, height: screenHeight} = useWindowDimensions()
+
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
       return
     }
-
-    const screenWidth = Dimensions.get('window').width
-    const screenHeight = Dimensions.get('window').height
 
     Promise.all([
       new Promise<Dims>(resolve => {
