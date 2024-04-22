@@ -23,6 +23,7 @@ type KBFSJob = {
   started: Date
   phase: KBFSJobPhase
   kbfsPath: string
+  gitRepo?: string
   kbfsRevision: number
   zipFilePath: string
 
@@ -47,7 +48,7 @@ const initialStore: Store = {
 
 interface State extends Store {
   dispatch: {
-    start: (type: 'chatid' | 'chatname' | 'kbfs', path: string, outPath: string) => void
+    start: (type: 'chatid' | 'chatname' | 'kbfs' | 'git', path: string, outPath: string) => void
     cancelChat: (id: string) => void
     pauseChat: (id: string) => void
     resumeChat: (id: string) => void
@@ -76,6 +77,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             errorNextRetry: job.error?.nextRetry,
             id: job.desc.jobID,
             kbfsPath: job.desc.kbfsPathWithRevision.path,
+            gitRepo: job.desc.gitRepo,
             kbfsRevision:
               job.desc.kbfsPathWithRevision.archivedParam.KBFSArchivedType ===
               T.RPCGen.KBFSArchivedType.revision
@@ -311,20 +313,23 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    start: (type, path, outPath) => {
+    start: (type, target, outPath) => {
       switch (type) {
         case 'chatid':
-          startChatArchiveCID(path, outPath)
+          startChatArchiveCID(target, outPath)
           return
         case 'chatname':
-          if (path === '.') {
+          if (target === '.') {
             startChatArchiveAll(outPath)
           } else {
-            startChatArchiveTeam(path, outPath)
+            startChatArchiveTeam(target, outPath)
           }
           break
         case 'kbfs':
-          C.ignorePromise(startFSArchive(path, outPath))
+          C.ignorePromise(startFSArchive(target, outPath))
+          return
+        case 'git':
+          C.ignorePromise(startGitArchive(target, outPath))
           return
       }
     },
@@ -354,7 +359,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
 const startFSArchive = async (path: string, outPath: string) => {
   await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
-    kbfsPath: FS.pathToRPCPath(path).kbfs,
+    archiveJobStartPath: {
+      archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
+      kbfs: FS.pathToRPCPath(path).kbfs,
+    },
+    outputPath: outPath,
+    overwriteZip: true,
+  })
+}
+
+const startGitArchive = async (gitRepo: string, outPath: string) => {
+  await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
+    archiveJobStartPath: {
+      archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git,
+      git: gitRepo,
+    },
     outputPath: outPath,
     overwriteZip: true,
   })

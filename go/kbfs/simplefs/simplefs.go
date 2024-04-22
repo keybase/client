@@ -17,6 +17,7 @@ import (
 	"path"
 	stdpath "path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -26,9 +27,11 @@ import (
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsgit"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/search"
@@ -3652,6 +3655,26 @@ func generateArchiveJobID() (string, error) {
 		base64.RawURLEncoding.EncodeToString(buf)), nil
 }
 
+func parseGitRepoForKBFSPath(gitRepo string) (kbfsPath keybase1.KBFSPath, err error) {
+	tlfType, tlfName, repoName, err := kbfsgit.ParseRepo(gitRepo)
+	if err != nil {
+		return keybase1.KBFSPath{}, err
+	}
+	return keybase1.KBFSPath{
+		Path: fmt.Sprintf("/%s/%s/.kbfs_git/%s", tlfType.PathString(), tlfName, repoName),
+	}, nil
+}
+
+var gitKBFSPathRE = regexp.MustCompile(`^\/(private|public|team)\/(.+)\/\.kbfs_git\/(` + libgit.RepoNameRE + `)$`)
+
+func parseKbfsPathForGitRepo(kbfsPath keybase1.KBFSPath) (gitRepo string, repoNameWithDotGit string, ok bool) {
+	match := gitKBFSPathRE.FindStringSubmatch(kbfsPath.Path)
+	if len(match) != 4 {
+		return "", "", false
+	}
+	return fmt.Sprintf("keybase://%s/%s/%s.git", match[1], match[2], match[3]), match[3] + ".git", true
+}
+
 // SimpleFSArchiveStart implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	arg keybase1.SimpleFSArchiveStartArg) (jobDesc keybase1.SimpleFSArchiveJobDesc, err error) {
@@ -3668,15 +3691,46 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	}
 	desc.StagingPath = k.getArchiveManager().getStagingPath(ctx, desc.JobID)
 
-	p, err := splitPathFromKbfsPath(keybase1.NewPathWithKbfs(arg.KbfsPath))
-	if err != nil {
-		return keybase1.SimpleFSArchiveJobDesc{}, err
+	var kbfsPath keybase1.KBFSPath
+	{
+		typ, err := arg.ArchiveJobStartPath.ArchiveJobStartPathType()
+		if err != nil {
+			return keybase1.SimpleFSArchiveJobDesc{},
+				fmt.Errorf("getting ArchiveJobStartPathType error: %v", err)
+		}
+		switch typ {
+		case keybase1.ArchiveJobStartPathType_KBFS:
+			kbfsPath = arg.ArchiveJobStartPath.Kbfs()
+			p, err := splitPathFromKbfsPath(keybase1.NewPathWithKbfs(kbfsPath))
+			if err != nil {
+				return keybase1.SimpleFSArchiveJobDesc{}, err
+			}
+			if len(p) == 0 {
+				return keybase1.SimpleFSArchiveJobDesc{},
+					errors.New("unexpected number of elements from splitPathFromKbfsPath")
+			}
+			desc.TargetName = p[len(p)-1]
+
+		case keybase1.ArchiveJobStartPathType_GIT:
+			kbfsPath, err = parseGitRepoForKBFSPath(arg.ArchiveJobStartPath.Git())
+			if err != nil {
+				return keybase1.SimpleFSArchiveJobDesc{},
+					fmt.Errorf("parsing git repo error: %v", err)
+			}
+		default:
+			return keybase1.SimpleFSArchiveJobDesc{},
+				fmt.Errorf("unexpected ArchiveJobStartPathType: %v", typ)
+		}
 	}
-	if len(p) == 0 {
-		return keybase1.SimpleFSArchiveJobDesc{},
-			errors.New("unexpected number of elements from splitPathFromKbfsPath")
+
+	// Do this separately rather than in the ArchiveJobStartPathType_GIT branch
+	// so it also covers the case where user browses into the `.kbfs_git`
+	// directory and archive.
+	gitRepo, repoName, ok := parseKbfsPathForGitRepo(kbfsPath)
+	if ok {
+		desc.GitRepo = &gitRepo
+		desc.TargetName = repoName
 	}
-	desc.TargetName = p[len(p)-1]
 
 	desc.ZipFilePath = arg.OutputPath
 	if len(desc.ZipFilePath) == 0 {
@@ -3693,7 +3747,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	// Pin the job to a specific revision so if the TLF changes during the
 	// archive we don't end up mixing two different revisions.
 	{
-		fb, _, err := k.getFolderBranchFromPath(ctx, keybase1.NewPathWithKbfs(arg.KbfsPath))
+		fb, _, err := k.getFolderBranchFromPath(ctx, keybase1.NewPathWithKbfs(kbfsPath))
 		if err != nil {
 			return keybase1.SimpleFSArchiveJobDesc{}, err
 		}
@@ -3705,7 +3759,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 			return keybase1.SimpleFSArchiveJobDesc{}, err
 		}
 		desc.KbfsPathWithRevision = keybase1.KBFSArchivedPath{
-			Path: arg.KbfsPath.Path,
+			Path: kbfsPath.Path,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
 				keybase1.KBFSRevision(status.Revision)),
 		}

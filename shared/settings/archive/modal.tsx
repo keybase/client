@@ -19,6 +19,10 @@ type Props =
       type: 'fsPath'
       path: string
     }
+  | {
+      type: 'git'
+      gitURL: string
+    }
 
 const ArchiveModal = (p: Props) => {
   const {type} = p
@@ -43,6 +47,9 @@ const ArchiveModal = (p: Props) => {
         break
       case 'fsPath':
         defaultPath += `${p.path.replaceAll('/', '_')}`
+        break
+      case 'git':
+        defaultPath = `${C.downloadFolder}/keybase-${p.gitURL.replaceAll('/', '_')}`
         break
     }
   }
@@ -73,6 +80,9 @@ const ArchiveModal = (p: Props) => {
         break
       case 'fsPath':
         start('kbfs', p.path, outpath)
+        break
+      case 'git':
+        start('git', p.gitURL, outpath)
         break
     }
   }, [outpath, canStart, p, start])

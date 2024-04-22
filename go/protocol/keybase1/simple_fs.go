@@ -1670,9 +1670,112 @@ func (o SimpleFSIndexProgress) DeepCopy() SimpleFSIndexProgress {
 	}
 }
 
+type ArchiveJobStartPathType int
+
+const (
+	ArchiveJobStartPathType_KBFS ArchiveJobStartPathType = 0
+	ArchiveJobStartPathType_GIT  ArchiveJobStartPathType = 1
+)
+
+func (o ArchiveJobStartPathType) DeepCopy() ArchiveJobStartPathType { return o }
+
+var ArchiveJobStartPathTypeMap = map[string]ArchiveJobStartPathType{
+	"KBFS": 0,
+	"GIT":  1,
+}
+
+var ArchiveJobStartPathTypeRevMap = map[ArchiveJobStartPathType]string{
+	0: "KBFS",
+	1: "GIT",
+}
+
+func (e ArchiveJobStartPathType) String() string {
+	if v, ok := ArchiveJobStartPathTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type ArchiveJobStartPath struct {
+	ArchiveJobStartPathType__ ArchiveJobStartPathType `codec:"archiveJobStartPathType" json:"archiveJobStartPathType"`
+	Kbfs__                    *KBFSPath               `codec:"kbfs,omitempty" json:"kbfs,omitempty"`
+	Git__                     *string                 `codec:"git,omitempty" json:"git,omitempty"`
+}
+
+func (o *ArchiveJobStartPath) ArchiveJobStartPathType() (ret ArchiveJobStartPathType, err error) {
+	switch o.ArchiveJobStartPathType__ {
+	case ArchiveJobStartPathType_KBFS:
+		if o.Kbfs__ == nil {
+			err = errors.New("unexpected nil value for Kbfs__")
+			return ret, err
+		}
+	case ArchiveJobStartPathType_GIT:
+		if o.Git__ == nil {
+			err = errors.New("unexpected nil value for Git__")
+			return ret, err
+		}
+	}
+	return o.ArchiveJobStartPathType__, nil
+}
+
+func (o ArchiveJobStartPath) Kbfs() (res KBFSPath) {
+	if o.ArchiveJobStartPathType__ != ArchiveJobStartPathType_KBFS {
+		panic("wrong case accessed")
+	}
+	if o.Kbfs__ == nil {
+		return
+	}
+	return *o.Kbfs__
+}
+
+func (o ArchiveJobStartPath) Git() (res string) {
+	if o.ArchiveJobStartPathType__ != ArchiveJobStartPathType_GIT {
+		panic("wrong case accessed")
+	}
+	if o.Git__ == nil {
+		return
+	}
+	return *o.Git__
+}
+
+func NewArchiveJobStartPathWithKbfs(v KBFSPath) ArchiveJobStartPath {
+	return ArchiveJobStartPath{
+		ArchiveJobStartPathType__: ArchiveJobStartPathType_KBFS,
+		Kbfs__:                    &v,
+	}
+}
+
+func NewArchiveJobStartPathWithGit(v string) ArchiveJobStartPath {
+	return ArchiveJobStartPath{
+		ArchiveJobStartPathType__: ArchiveJobStartPathType_GIT,
+		Git__:                     &v,
+	}
+}
+
+func (o ArchiveJobStartPath) DeepCopy() ArchiveJobStartPath {
+	return ArchiveJobStartPath{
+		ArchiveJobStartPathType__: o.ArchiveJobStartPathType__.DeepCopy(),
+		Kbfs__: (func(x *KBFSPath) *KBFSPath {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Kbfs__),
+		Git__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Git__),
+	}
+}
+
 type SimpleFSArchiveJobDesc struct {
 	JobID                string           `codec:"jobID" json:"jobID"`
 	KbfsPathWithRevision KBFSArchivedPath `codec:"kbfsPathWithRevision" json:"kbfsPathWithRevision"`
+	GitRepo              *string          `codec:"gitRepo,omitempty" json:"gitRepo,omitempty"`
 	OverwriteZip         bool             `codec:"overwriteZip" json:"overwriteZip"`
 	StartTime            Time             `codec:"startTime" json:"startTime"`
 	StagingPath          string           `codec:"stagingPath" json:"stagingPath"`
@@ -1684,11 +1787,18 @@ func (o SimpleFSArchiveJobDesc) DeepCopy() SimpleFSArchiveJobDesc {
 	return SimpleFSArchiveJobDesc{
 		JobID:                o.JobID,
 		KbfsPathWithRevision: o.KbfsPathWithRevision.DeepCopy(),
-		OverwriteZip:         o.OverwriteZip,
-		StartTime:            o.StartTime.DeepCopy(),
-		StagingPath:          o.StagingPath,
-		TargetName:           o.TargetName,
-		ZipFilePath:          o.ZipFilePath,
+		GitRepo: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.GitRepo),
+		OverwriteZip: o.OverwriteZip,
+		StartTime:    o.StartTime.DeepCopy(),
+		StagingPath:  o.StagingPath,
+		TargetName:   o.TargetName,
+		ZipFilePath:  o.ZipFilePath,
 	}
 }
 
@@ -2255,9 +2365,9 @@ type SimpleFSCancelJournalUploadsArg struct {
 }
 
 type SimpleFSArchiveStartArg struct {
-	KbfsPath     KBFSPath `codec:"kbfsPath" json:"kbfsPath"`
-	OutputPath   string   `codec:"outputPath" json:"outputPath"`
-	OverwriteZip bool     `codec:"overwriteZip" json:"overwriteZip"`
+	ArchiveJobStartPath ArchiveJobStartPath `codec:"archiveJobStartPath" json:"archiveJobStartPath"`
+	OutputPath          string              `codec:"outputPath" json:"outputPath"`
+	OverwriteZip        bool                `codec:"overwriteZip" json:"overwriteZip"`
 }
 
 type SimpleFSArchiveCancelOrDismissJobArg struct {

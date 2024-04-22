@@ -167,7 +167,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   }
   const progress = job.bytesTotal ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal : 0
   const errorStr = job.error
-    ? `Error: ${job.error} | Retrying at ${job.errorNextRetry?.toLocaleString()}`
+    ? `Error: ${job.error} | Retrying at ${new Date(job.errorNextRetry || 0).toLocaleString()}`
     : null
   const revisionBehindStr =
     job.kbfsRevision < currentTLFRevision
@@ -179,11 +179,11 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       type="Small"
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Icon type="icon-folder-32" />
+          {job.gitRepo ? <Kb.Icon type="iconfont-nav-2-git" fontSize={32} /> : <Kb.Icon type="icon-folder-32" />}
           <Kb.Box2 direction="vertical" style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
               <Kb.Text type="BodyBold" lineClamp={1}>
-                {job.kbfsPath}
+                {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
               {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (

@@ -31,7 +31,7 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 type CmdSimpleFSArchiveStart struct {
 	libkb.Contextified
 	outputPath   string
-	kbfsPath     keybase1.KBFSPath
+	target       keybase1.ArchiveJobStartPath
 	overwriteZip bool
 }
 
@@ -39,7 +39,7 @@ type CmdSimpleFSArchiveStart struct {
 func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "start",
-		Usage: "start archiving a KBFS path",
+		Usage: "start archiving a KBFS path or git repo",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveStart{
 				Contextified: libkb.NewContextified(g)}, "start", c)
@@ -58,8 +58,12 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 				Name:  "f, overwrite-zip",
 				Usage: "[optional] overwrite zip file if it already exists",
 			},
+			cli.BoolFlag{
+				Name:  "g, git",
+				Usage: "[optional] treat <archiving target> as a git repo instead of KBFS directory",
+			},
 		},
-		ArgumentHelp: "<KBFS path>",
+		ArgumentHelp: "<archiving target>",
 	}
 }
 func revisionExtendedDescription(currentTLFRevision keybase1.KBFSRevision, desc *keybase1.SimpleFSArchiveJobDesc) string {
@@ -76,7 +80,12 @@ func revisionExtendedDescription(currentTLFRevision keybase1.KBFSRevision, desc 
 
 func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision keybase1.KBFSRevision) {
 	ui.Printf("Job ID: %s\n", desc.JobID)
-	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
+	if desc.GitRepo != nil {
+		ui.Printf("Git Repo: %s\n", *desc.GitRepo)
+		ui.Printf("  (Path: %s)\n", desc.KbfsPathWithRevision.Path)
+	} else {
+		ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
+	}
 	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription(currentTLFRevision, desc))
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
 	ui.Printf("Staging Path: %s\n", desc.StagingPath)
@@ -93,9 +102,9 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 	desc, err := cli.SimpleFSArchiveStart(context.TODO(),
 		keybase1.SimpleFSArchiveStartArg{
-			OutputPath:   c.outputPath,
-			KbfsPath:     c.kbfsPath,
-			OverwriteZip: c.overwriteZip,
+			OutputPath:          c.outputPath,
+			ArchiveJobStartPath: c.target,
+			OverwriteZip:        c.overwriteZip,
 		})
 	if err != nil {
 		return err
@@ -108,12 +117,16 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 // ParseArgv parses the arguments.
 func (c *CmdSimpleFSArchiveStart) ParseArgv(ctx *cli.Context) error {
-	c.outputPath = ctx.String("output-path")
-	p, err := makeSimpleFSPathWithArchiveParams(ctx.Args().First(), 0, "", "")
-	if err != nil {
-		return err
+	if ctx.Bool("git") {
+		c.target = keybase1.NewArchiveJobStartPathWithGit(ctx.Args().First())
+	} else {
+		p, err := makeSimpleFSPathWithArchiveParams(ctx.Args().First(), 0, "", "")
+		if err != nil {
+			return err
+		}
+		c.target = keybase1.NewArchiveJobStartPathWithKbfs(p.Kbfs())
 	}
-	c.kbfsPath = p.Kbfs()
+	c.outputPath = ctx.String("output-path")
 	c.overwriteZip = ctx.Bool("overwrite-zip")
 	return nil
 }

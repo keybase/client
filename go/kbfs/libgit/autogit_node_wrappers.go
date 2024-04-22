@@ -264,11 +264,11 @@ type wrappedRepoList struct {
 }
 
 func (wrl *wrappedRepoList) Stat(repoName string) (os.FileInfo, error) {
-	return wrl.FS.Stat(normalizeRepoName(repoName))
+	return wrl.FS.Stat(NormalizeRepoName(repoName))
 }
 
 func (wrl *wrappedRepoList) Lstat(repoName string) (os.FileInfo, error) {
-	return wrl.FS.Lstat(normalizeRepoName(repoName))
+	return wrl.FS.Lstat(NormalizeRepoName(repoName))
 }
 
 // autogitRootNode represents the .kbfs_autogit folder, and lists all
@@ -290,7 +290,7 @@ func (arn autogitRootNode) GetFS(ctx context.Context) libkbfs.NodeFSReadOnly {
 // WrapChild implements the Node interface for autogitRootNode.
 func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = arn.Node.WrapChild(child)
-	repo := normalizeRepoName(child.GetBasename().Plaintext())
+	repo := NormalizeRepoName(child.GetBasename().Plaintext())
 	return &repoDirNode{
 		Node:      child,
 		am:        arn.am,

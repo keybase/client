@@ -260,7 +260,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSArchiveStart': {
-    inParam: {readonly kbfsPath: KBFSPath; readonly outputPath: String; readonly overwriteZip: Boolean}
+    inParam: {readonly archiveJobStartPath: ArchiveJobStartPath; readonly outputPath: String; readonly overwriteZip: Boolean}
     outParam: SimpleFSArchiveJobDesc
   }
   'keybase.1.SimpleFS.simpleFSCancelDownload': {
@@ -1541,6 +1541,11 @@ export enum AppLinkType {
   teams = 8,
 }
 
+export enum ArchiveJobStartPathType {
+  kbfs = 0,
+  git = 1,
+}
+
 export enum AsyncOps {
   list = 0,
   listRecursive = 1,
@@ -2733,6 +2738,7 @@ export type AnnotatedTeamInvite = {readonly inviteMetadata: TeamInviteMetadata; 
 export type AnnotatedTeamInviteExt = {c: TeamInviteCategory.keybase; keybase: KeybaseInviteExt} | {c: TeamInviteCategory.invitelink; invitelink: InvitelinkInviteExt} | {c: TeamInviteCategory.none} | {c: TeamInviteCategory.unknown} | {c: TeamInviteCategory.email} | {c: TeamInviteCategory.sbs} | {c: TeamInviteCategory.seitan} | {c: TeamInviteCategory.phone}
 export type AnnotatedTeamList = {readonly teams?: ReadonlyArray<AnnotatedMemberInfo> | null}
 export type AnnotatedTeamUsedInviteLogPoint = {readonly username: String; readonly teamUsedInviteLogPoint: TeamUsedInviteLogPoint}
+export type ArchiveJobStartPath = {archiveJobStartPathType: ArchiveJobStartPathType.kbfs; kbfs: KBFSPath} | {archiveJobStartPathType: ArchiveJobStartPathType.git; git: String}
 export type AssertionTeamMemberToRemove = {readonly assertion: String; readonly removeFromSubtree: Boolean}
 export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mhs: /* maxHiddenSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
 export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: ReadonlyArray<Audit> | null; readonly preProbes?: {[key: string]: Probe} | null; readonly postProbes?: {[key: string]: Probe} | null; readonly tails?: {[key: string]: LinkID} | null; readonly hiddenTails?: {[key: string]: LinkID} | null; readonly preProbesToRetry?: ReadonlyArray<Seqno> | null; readonly postProbesToRetry?: ReadonlyArray<Seqno> | null; readonly skipUntil: Time}
@@ -3147,7 +3153,7 @@ export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
 export type SimpleFSArchiveCheckArchiveResult = {readonly desc: SimpleFSArchiveJobDesc; readonly currentTLFRevision: KBFSRevision; readonly pathsWithIssues?: {[key: string]: String} | null}
 export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
-export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
+export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly gitRepo?: String | null; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
 export type SimpleFSArchiveJobErrorState = {readonly error: String; readonly nextRetry: Time}
 export type SimpleFSArchiveJobFreshness = {readonly currentTLFRevision: KBFSRevision}
 export type SimpleFSArchiveJobState = {readonly desc: SimpleFSArchiveJobDesc; readonly manifest?: {[key: string]: SimpleFSArchiveFile} | null; readonly phase: SimpleFSArchiveJobPhase; readonly bytesTotal: Int64; readonly bytesCopied: Int64; readonly bytesZipped: Int64}

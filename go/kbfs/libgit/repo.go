@@ -39,7 +39,7 @@ const (
 	kbfsRepoDir              = ".kbfs_git"
 	kbfsConfigName           = "kbfs_config"
 	kbfsConfigNameTemp       = "._kbfs_config"
-	gitSuffixToIgnore        = ".git"
+	GitSuffixToIgnore        = ".git"
 	kbfsDeletedReposDir      = ".kbfs_deleted_repos"
 	minDeletedAgeForCleaning = 1 * time.Hour
 	cleaningTimeLimit        = 2 * time.Second
@@ -53,6 +53,9 @@ const (
 // Use the zero-value `nil`.
 var CommitSentinelValue *object.Commit
 
+// RepoNameRE is the uncompiled regex for repo names.
+var RepoNameRE = `(?:[a-zA-Z0-9][a-zA-Z0-9_\.-]*)`
+
 // This character set is what Github supports in repo names.  It's
 // probably to avoid any problems when cloning onto filesystems that
 // have different Unicode decompression schemes
@@ -60,7 +63,7 @@ var CommitSentinelValue *object.Commit
 // internal reason to be so restrictive, but it probably makes sense
 // to start off more restrictive and then relax things later as we
 // test.
-var repoNameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_\.-]*)$`)
+var repoNameRE = regexp.MustCompile(`^(` + RepoNameRE + `)$`)
 
 // RefData stores the data for a ref.
 type RefData struct {
@@ -247,8 +250,9 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	return nil
 }
 
-func normalizeRepoName(repoName string) string {
-	return strings.TrimSuffix(strings.ToLower(repoName), gitSuffixToIgnore)
+// NormalizeRepoName removes the .git suffix from repoName.
+func NormalizeRepoName(repoName string) string {
+	return strings.TrimSuffix(strings.ToLower(repoName), GitSuffixToIgnore)
 }
 
 func takeConfigLock(
@@ -258,7 +262,7 @@ func takeConfigLock(
 	// normalized repo name, so that we're locking only the config
 	// file within the actual repo we care about.  This is appended to
 	// the default locknamespace for a libfs.FS instance.
-	normalizedRepoName := normalizeRepoName(repoName)
+	normalizedRepoName := NormalizeRepoName(repoName)
 	nsPath := path.Join(
 		"/keybase", tlfHandle.Type().String(), kbfsRepoDir, normalizedRepoName)
 	expectedNamespace := make([]byte, len(nsPath))
@@ -423,7 +427,7 @@ func getOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
-	normalizedRepoName := normalizeRepoName(repoName)
+	normalizedRepoName := NormalizeRepoName(repoName)
 
 	// If the user doesn't have write access, but the repo doesn't
 	// exist, give them a nice error message.
@@ -607,7 +611,7 @@ func DeleteRepo(
 	if err != nil {
 		return err
 	}
-	normalizedRepoName := normalizeRepoName(repoName)
+	normalizedRepoName := NormalizeRepoName(repoName)
 
 	repoNode, _, err := kbfsOps.Lookup(
 		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
@@ -693,8 +697,8 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	normalizedOldRepoName := normalizeRepoName(oldRepoName)
-	normalizedNewRepoName := normalizeRepoName(newRepoName)
+	normalizedOldRepoName := NormalizeRepoName(oldRepoName)
+	normalizedNewRepoName := NormalizeRepoName(newRepoName)
 
 	repoNode, _, err := kbfsOps.Lookup(
 		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
