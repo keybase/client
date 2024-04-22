@@ -710,6 +710,11 @@ func (m *archiveManager) doCopying(ctx context.Context, jobID string) (err error
 	}
 	dstBase := filepath.Join(getWorkspaceDir(desc), desc.TargetName)
 
+	err = os.MkdirAll(dstBase, 0755)
+	if err != nil {
+		return fmt.Errorf("os.MkdirAll(%s) error: %v", dstBase, err)
+	}
+
 	entryPaths := make([]string, 0, len(manifest))
 	for entryPathWithinJob := range manifest {
 		entryPaths = append(entryPaths, entryPathWithinJob)

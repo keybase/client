@@ -243,9 +243,17 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		{
 			ui.Printf("Phase: %s ", job.Phase.String())
 			if job.Phase == keybase1.SimpleFSArchiveJobPhase_Copying {
-				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesCopied*100/job.BytesTotal, job.BytesCopied, job.BytesTotal)
+				percentage := int64(0)
+				if job.BytesTotal != 0 {
+					percentage = job.BytesCopied * 100 / job.BytesTotal
+				}
+				ui.Printf("(%d%%, %d / %d bytes)\n", percentage, job.BytesCopied, job.BytesTotal)
 			} else if job.Phase == keybase1.SimpleFSArchiveJobPhase_Zipping {
-				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesZipped*100/job.BytesTotal, job.BytesZipped, job.BytesTotal)
+				percentage := int64(0)
+				if job.BytesTotal != 0 {
+					percentage = job.BytesZipped * 100 / job.BytesTotal
+				}
+				ui.Printf("(%d%%, %d / %d bytes)\n", percentage, job.BytesZipped, job.BytesTotal)
 			} else {
 				ui.Printf("\n")
 			}
