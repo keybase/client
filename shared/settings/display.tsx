@@ -6,6 +6,12 @@ import logger from '@/logger'
 
 const Display = () => {
   const allowAnimatedEmojis = C.useConfigState(s => s.allowAnimatedEmojis)
+  const forceSmallNav = C.useConfigState(s => s.forceSmallNav)
+  const setForceSmallNav = C.useConfigState(s => s.dispatch.setForceSmallNav)
+  const toggleForceSmallNav = React.useCallback(() => {
+    setForceSmallNav(!forceSmallNav)
+  }, [forceSmallNav, setForceSmallNav])
+
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const toggleAnimatedEmoji = C.useRPC(T.RPCChat.localToggleEmojiAnimationsRpcPromise)
   const supported = C.useDarkModeState(s => s.supported)
@@ -51,6 +57,16 @@ const Display = () => {
               onCheck={doToggleAnimatedEmoji}
             />
           </Kb.Box2>
+          {C.isElectron && (
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+              <Kb.Text type="Header">Navigation</Kb.Text>
+              <Kb.Checkbox
+                label="Force small navigation"
+                checked={forceSmallNav}
+                onCheck={toggleForceSmallNav}
+              />
+            </Kb.Box2>
+          )}
         </Kb.Box2>
       </Kb.Box>
     </Kb.ScrollView>

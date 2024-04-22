@@ -242,6 +242,7 @@ export const initPlatformListener = () => {
     C.useConfigState.getState().dispatch.initUseNativeFrame()
   }
   C.useConfigState.getState().dispatch.initNotifySound()
+  C.useConfigState.getState().dispatch.initForceSmallNav()
   C.useConfigState.getState().dispatch.initOpenAtLogin()
   C.useConfigState.getState().dispatch.initAppUpdateLoop()
 
