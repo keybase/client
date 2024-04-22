@@ -308,20 +308,20 @@ const Archive = C.featureFlags.archive
       return (
         <Kb.ScrollView style={styles.scroll}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
               <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                <Kb.Text type="Body">
+                <Kb.Text type="BodySmall">
                   Easily archive your keybase data by choosing 'archive' from menus in chat and KBFS or click
                   to archive all.
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.ButtonBar>
+              <Kb.ButtonBar align="flex-start">
                 <Kb.Button label="Archive all chat" onClick={archiveChat} />
                 <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
               </Kb.ButtonBar>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="Header">Active archive jobs</Kb.Text>
               {chatJobs.length + kbfsJobs.length ? (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
@@ -332,7 +332,12 @@ const Archive = C.featureFlags.archive
                     <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
                   ))}
                   {showClear ? (
-                    <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
+                    <Kb.Button
+                      mode="Secondary"
+                      label="Clear completed"
+                      onClick={clearCompleted}
+                      style={styles.clear}
+                    />
                   ) : null}
                 </Kb.Box2>
               ) : (
@@ -357,8 +362,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   jobs: {
     flexGrow: 1,
     flexShrink: 1,
-    paddingLeft: Kb.Styles.isMobile ? 4 : 16,
-    paddingRight: Kb.Styles.isMobile ? 4 : 16,
+    // paddingLeft: Kb.Styles.isMobile ? 4 : 16,
+    // paddingRight: Kb.Styles.isMobile ? 4 : 16,
   },
   kbfsActions: {flexShrink: 0, justifyContent: 'flex-end'},
   kbfsCancel: {color: Kb.Styles.globalColors.red},
