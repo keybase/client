@@ -171,9 +171,14 @@ const TabBar = React.memo(function TabBar(props: Props) {
   )
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
+  const forceSmallNav = C.useConfigState(s => s.forceSmallNav)
 
   return username ? (
-    <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
+    <Kb.Box2
+      className={Kb.Styles.classNames('tab-container', {forceSmallNav})}
+      direction="vertical"
+      fullHeight={true}
+    >
       <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
