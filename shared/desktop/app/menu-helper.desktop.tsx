@@ -40,6 +40,7 @@ export default function makeMenu(window: Electron.BrowserWindow) {
       new Electron.MenuItem({label: 'Zoom Out', role: 'zoomOut'}),
       new Electron.MenuItem({label: 'Reset zoom ', role: 'resetZoom'}),
       new Electron.MenuItem({label: 'Minimize', role: 'minimize'}),
+      new Electron.MenuItem({label: 'Toggle fullscreen', role: 'togglefullscreen'}),
       new Electron.MenuItem({accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'}),
       new Electron.MenuItem({type: 'separator'}),
       new Electron.MenuItem({label: 'Bring All to Front', role: 'front'}),
