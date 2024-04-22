@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
+import * as FsCommon from '@/fs/common'
 
 type Props =
   | {
@@ -123,19 +124,38 @@ const ArchiveModal = (p: Props) => {
       content = <Kb.Text type="Body">Source: All KBFS</Kb.Text>
       break
     case 'fsPath':
-      content = <Kb.Text type="Body">Source: KBFS folder: {p.path}</Kb.Text>
+      content = (
+        <Kb.WithTooltip tooltip={p.path} position="bottom center" toastStyle={{maxWidth: 320}}>
+          <FsCommon.PathItemInfo path={p.path} />
+        </Kb.WithTooltip>
+      )
+      break
+    case 'git':
+      content = (
+        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
+          <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+          <Kb.Text type="TerminalInline" lineClamp={2}>
+            {p.gitURL}
+          </Kb.Text>
+        </Kb.Box2>
+      )
       break
   }
 
   const output = Kb.Styles.isMobile ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-      <Kb.Text type="Body">To:</Kb.Text>
-      <Kb.BoxGrow style={{height: 22}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Text type="Body">Save To</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
           {outpath}
         </Kb.Text>
-      </Kb.BoxGrow>
-      <Kb.Button small={true} label="Change" onClick={selectPath} style={styles.selectOutput} />
+        <Kb.BoxGrow />
+        <Kb.Text type="BodyPrimaryLink" onClick={selectPath}>
+          Change
+        </Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
   )
 
@@ -154,13 +174,15 @@ const ArchiveModal = (p: Props) => {
         ),
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
         {Kb.Styles.isMobile ? (
           <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
         ) : (
           <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
         )}
+        <Kb.BoxGrow />
         {content}
+        <Kb.BoxGrow />
         {output}
       </Kb.Box2>
     </Kb.Modal>
@@ -178,9 +200,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       wordBreak: 'break-all',
     },
   }),
-  selectOutput: {
-    alignSelf: 'flex-start',
-  },
 }))
 
 export default ArchiveModal

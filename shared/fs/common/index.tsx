@@ -11,5 +11,7 @@ export {default as PathStatusIcon} from './path-status-icon-container'
 export {default as Filename} from './filename'
 export {default as UploadIcon} from './upload-icon'
 export {default as SystemFileManagerIntegrationPopup} from './sfmi-popup'
+export {default as PathInfo} from './path-info'
+export {default as PathItemInfo} from './path-item-info'
 
 export * from './hooks'
