@@ -844,4 +844,21 @@ protocol SimpleFS {
     map<string, string> pathsWithIssues;
   }
   SimpleFSArchiveCheckArchiveResult simpleFSArchiveCheckArchive(string archiveZipFilePath);
+
+  record SimpleFSArchiveAllFilesResult {
+    map<string, SimpleFSArchiveJobDesc> tlfPathToJobDesc;
+    map<string, string> tlfPathToError;
+    array<string> skippedTLFPaths;
+  }
+  // simpleFSArchiveAllGitRepos creates an archive job for each TLF in the
+  // favorites list. By default it skips public TLFs that the currently logged
+  // user is not a writer of.
+  SimpleFSArchiveAllFilesResult simpleFSArchiveAllFiles(string outputDir, boolean overwriteZip, boolean includePublicReadonly);
+
+  record SimpleFSArchiveAllGitReposResult {
+    map<string, string> jobIDToGitRepo;
+  }
+  // simpleFSArchiveAllGitRepos creates an archive job for each git repo that
+  // shows up in the user's Git tab.
+  SimpleFSArchiveAllGitReposResult simpleFSArchiveAllGitRepos(string outputDir, boolean overwriteZip);
 }

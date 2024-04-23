@@ -1329,6 +1329,49 @@
           "name": "pathsWithIssues"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveAllFilesResult",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobDesc",
+            "keys": "string"
+          },
+          "name": "tlfPathToJobDesc"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "tlfPathToError"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "skippedTLFPaths"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveAllGitReposResult",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "jobIDToGitRepo"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2195,6 +2238,36 @@
         }
       ],
       "response": "SimpleFSArchiveCheckArchiveResult"
+    },
+    "simpleFSArchiveAllFiles": {
+      "request": [
+        {
+          "name": "outputDir",
+          "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
+        },
+        {
+          "name": "includePublicReadonly",
+          "type": "boolean"
+        }
+      ],
+      "response": "SimpleFSArchiveAllFilesResult"
+    },
+    "simpleFSArchiveAllGitRepos": {
+      "request": [
+        {
+          "name": "outputDir",
+          "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
+        }
+      ],
+      "response": "SimpleFSArchiveAllGitReposResult"
     }
   },
   "namespace": "keybase.1"

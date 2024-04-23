@@ -959,6 +959,12 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 
 	workspaceDir := getWorkspaceDir(jobDesc)
 
+	err = os.MkdirAll(filepath.Dir(jobDesc.ZipFilePath), 0755)
+	if err != nil {
+		m.simpleFS.log.CErrorf(ctx, "os.MkdirAll error: %v", err)
+		return err
+	}
+
 	err = func() (err error) {
 		flag := os.O_WRONLY | os.O_CREATE | os.O_EXCL
 		if jobDesc.OverwriteZip {

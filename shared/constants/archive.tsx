@@ -326,7 +326,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'kbfs':
-          C.ignorePromise(startFSArchive(target, outPath))
+          target === '/keybase'
+            ? C.ignorePromise(startFSArchiveAll(outPath))
+            : C.ignorePromise(startFSArchive(target, outPath))
           return
         case 'git':
           C.ignorePromise(startGitArchive(target, outPath))
@@ -365,6 +367,14 @@ const startFSArchive = async (path: string, outPath: string) => {
     },
     outputPath: outPath,
     overwriteZip: true,
+  })
+}
+
+const startFSArchiveAll = async (outputDir: string) => {
+  await T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise({
+    outputDir,
+    overwriteZip: true,
+    includePublicReadonly: false,
   })
 }
 

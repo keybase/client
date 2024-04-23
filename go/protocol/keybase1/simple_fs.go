@@ -2048,6 +2048,73 @@ func (o SimpleFSArchiveCheckArchiveResult) DeepCopy() SimpleFSArchiveCheckArchiv
 	}
 }
 
+type SimpleFSArchiveAllFilesResult struct {
+	TlfPathToJobDesc map[string]SimpleFSArchiveJobDesc `codec:"tlfPathToJobDesc" json:"tlfPathToJobDesc"`
+	TlfPathToError   map[string]string                 `codec:"tlfPathToError" json:"tlfPathToError"`
+	SkippedTLFPaths  []string                          `codec:"skippedTLFPaths" json:"skippedTLFPaths"`
+}
+
+func (o SimpleFSArchiveAllFilesResult) DeepCopy() SimpleFSArchiveAllFilesResult {
+	return SimpleFSArchiveAllFilesResult{
+		TlfPathToJobDesc: (func(x map[string]SimpleFSArchiveJobDesc) map[string]SimpleFSArchiveJobDesc {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobDesc, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TlfPathToJobDesc),
+		TlfPathToError: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TlfPathToError),
+		SkippedTLFPaths: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SkippedTLFPaths),
+	}
+}
+
+type SimpleFSArchiveAllGitReposResult struct {
+	JobIDToGitRepo map[string]string `codec:"jobIDToGitRepo" json:"jobIDToGitRepo"`
+}
+
+func (o SimpleFSArchiveAllGitReposResult) DeepCopy() SimpleFSArchiveAllGitReposResult {
+	return SimpleFSArchiveAllGitReposResult{
+		JobIDToGitRepo: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.JobIDToGitRepo),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -2385,6 +2452,17 @@ type SimpleFSArchiveCheckArchiveArg struct {
 	ArchiveZipFilePath string `codec:"archiveZipFilePath" json:"archiveZipFilePath"`
 }
 
+type SimpleFSArchiveAllFilesArg struct {
+	OutputDir             string `codec:"outputDir" json:"outputDir"`
+	OverwriteZip          bool   `codec:"overwriteZip" json:"overwriteZip"`
+	IncludePublicReadonly bool   `codec:"includePublicReadonly" json:"includePublicReadonly"`
+}
+
+type SimpleFSArchiveAllGitReposArg struct {
+	OutputDir    string `codec:"outputDir" json:"outputDir"`
+	OverwriteZip bool   `codec:"overwriteZip" json:"overwriteZip"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -2528,6 +2606,8 @@ type SimpleFSInterface interface {
 	SimpleFSGetArchiveStatus(context.Context) (SimpleFSArchiveStatus, error)
 	SimpleFSGetArchiveJobFreshness(context.Context, string) (SimpleFSArchiveJobFreshness, error)
 	SimpleFSArchiveCheckArchive(context.Context, string) (SimpleFSArchiveCheckArchiveResult, error)
+	SimpleFSArchiveAllFiles(context.Context, SimpleFSArchiveAllFilesArg) (SimpleFSArchiveAllFilesResult, error)
+	SimpleFSArchiveAllGitRepos(context.Context, SimpleFSArchiveAllGitReposArg) (SimpleFSArchiveAllGitReposResult, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -3579,6 +3659,36 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSArchiveAllFiles": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveAllFilesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveAllFilesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveAllFilesArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSArchiveAllFiles(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSArchiveAllGitRepos": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSArchiveAllGitReposArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSArchiveAllGitReposArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSArchiveAllGitReposArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSArchiveAllGitRepos(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -4060,5 +4170,15 @@ func (c SimpleFSClient) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobI
 func (c SimpleFSClient) SimpleFSArchiveCheckArchive(ctx context.Context, archiveZipFilePath string) (res SimpleFSArchiveCheckArchiveResult, err error) {
 	__arg := SimpleFSArchiveCheckArchiveArg{ArchiveZipFilePath: archiveZipFilePath}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveCheckArchive", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveAllFiles(ctx context.Context, __arg SimpleFSArchiveAllFilesArg) (res SimpleFSArchiveAllFilesResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveAllFiles", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSArchiveAllGitRepos(ctx context.Context, __arg SimpleFSArchiveAllGitReposArg) (res SimpleFSArchiveAllGitReposResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSArchiveAllGitRepos", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

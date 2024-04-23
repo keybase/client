@@ -255,6 +255,14 @@ export type MessageTypes = {
     inParam: {readonly username: String}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSArchiveAllFiles': {
+    inParam: {readonly outputDir: String; readonly overwriteZip: Boolean; readonly includePublicReadonly: Boolean}
+    outParam: SimpleFSArchiveAllFilesResult
+  }
+  'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos': {
+    inParam: {readonly outputDir: String; readonly overwriteZip: Boolean}
+    outParam: SimpleFSArchiveAllGitReposResult
+  }
   'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob': {
     inParam: {readonly jobID: String}
     outParam: void
@@ -3151,6 +3159,8 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
+export type SimpleFSArchiveAllFilesResult = {readonly tlfPathToJobDesc?: {[key: string]: SimpleFSArchiveJobDesc} | null; readonly tlfPathToError?: {[key: string]: String} | null; readonly skippedTLFPaths?: ReadonlyArray<String> | null}
+export type SimpleFSArchiveAllGitReposResult = {readonly jobIDToGitRepo?: {[key: string]: String} | null}
 export type SimpleFSArchiveCheckArchiveResult = {readonly desc: SimpleFSArchiveJobDesc; readonly currentTLFRevision: KBFSRevision; readonly pathsWithIssues?: {[key: string]: String} | null}
 export type SimpleFSArchiveFile = {readonly state: SimpleFSFileArchiveState; readonly direntType: DirentType; readonly sha256SumHex: String}
 export type SimpleFSArchiveJobDesc = {readonly jobID: String; readonly kbfsPathWithRevision: KBFSArchivedPath; readonly gitRepo?: String | null; readonly overwriteZip: Boolean; readonly startTime: Time; readonly stagingPath: String; readonly targetName: String; readonly zipFilePath: String}
@@ -3402,6 +3412,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void}) => void
   'keybase.1.teamsUi.confirmInviteLinkAccept'?: (params: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['inParam'], response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmInviteLinkAccept']['outParam']) => void}) => void
 }
+export const SimpleFSSimpleFSArchiveAllFilesRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllFiles']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllFiles']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveAllFiles', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllFiles']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSArchiveAllGitReposRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllGitRepos']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllGitRepos']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveAllGitRepos']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSArchiveStartRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSArchiveStart', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSArchiveStart']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancelDownload', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -614,7 +614,7 @@ func deTy2Ty(et data.EntryType) keybase1.DirentType {
 	panic("deTy2Ty unreachable")
 }
 
-func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) ([]keybase1.Dirent, error) {
+func (k *SimpleFS) favoriteList(ctx context.Context, t tlf.Type) ([]keybase1.Dirent, error) {
 	kbpki, err := k.getKBPKI(ctx)
 	if err != nil {
 		return nil, err
@@ -1023,11 +1023,11 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					{Name: "team", DirentType: deTy2Ty(data.Dir)},
 				}
 			case rawPath == `/public`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.Public)
+				res, err = k.favoriteList(ctx, tlf.Public)
 			case rawPath == `/private`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.Private)
+				res, err = k.favoriteList(ctx, tlf.Private)
 			case rawPath == `/team`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
+				res, err = k.favoriteList(ctx, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
 				switch errors.Cause(err).(type) {
@@ -3878,13 +3878,87 @@ func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID str
 	}, nil
 }
 
+// SimpleFSArchiveAllFiles implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveAllFiles(
+	ctx context.Context, arg keybase1.SimpleFSArchiveAllFilesArg) (
+	res keybase1.SimpleFSArchiveAllFilesResult, err error) {
+	var startArgs []keybase1.SimpleFSArchiveStartArg
+	{
+		fl, err := k.favoriteList(ctx, tlf.Private)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+					Path: fmt.Sprintf("/private/%s", item.Name),
+				}),
+				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-private-"+item.Name+".zip"),
+				OverwriteZip: arg.OverwriteZip,
+			})
+		}
+
+		fl, err = k.favoriteList(ctx, tlf.Public)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			p := fmt.Sprintf("/public/%s", item.Name)
+			if arg.IncludePublicReadonly || item.Writable {
+				startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+					ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+						Path: p,
+					}),
+					OutputPath:   filepath.Join(arg.OutputDir, "kbfs-public-"+item.Name+".zip"),
+					OverwriteZip: arg.OverwriteZip,
+				})
+			} else {
+				res.SkippedTLFPaths = append(res.SkippedTLFPaths, p)
+			}
+		}
+
+		fl, err = k.favoriteList(ctx, tlf.SingleTeam)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+					Path: fmt.Sprintf("/team/%s", item.Name),
+				}),
+				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-team-"+item.Name+".zip"),
+				OverwriteZip: arg.OverwriteZip,
+			})
+		}
+	}
+
+	res.TlfPathToError = make(map[string]string)
+	res.TlfPathToJobDesc = make(map[string]keybase1.SimpleFSArchiveJobDesc)
+	for _, a := range startArgs {
+		jobDesc, err := k.SimpleFSArchiveStart(ctx, a)
+		if err != nil {
+			res.TlfPathToError[a.ArchiveJobStartPath.Kbfs().Path] = err.Error()
+		} else {
+			res.TlfPathToJobDesc[a.ArchiveJobStartPath.Kbfs().Path] = jobDesc
+		}
+	}
+
+	return res, nil
+}
+
+// SimpleFSArchiveAllGitRepos implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveAllGitRepos(
+	ctx context.Context, arg keybase1.SimpleFSArchiveAllGitReposArg) (
+	keybase1.SimpleFSArchiveAllGitReposResult, error) {
+	return keybase1.SimpleFSArchiveAllGitReposResult{}, errors.New("not implemented")
+}
+
 func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
 	ks := k.config.KeybaseService()
 	if ks == nil {
 		k.log.CWarningf(ctx,
 			"k.notifyUIStateChange: skipping notification because KeybaseService() is nil")
-		return
 		return
 	}
 	rc := ks.GetKeybaseDaemonRawClient()

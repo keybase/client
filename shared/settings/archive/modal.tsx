@@ -74,7 +74,7 @@ const ArchiveModal = (p: Props) => {
         start('chatname', '.', outpath)
         break
       case 'fsAll':
-        start('kbfs', '.', outpath)
+        start('kbfs', '/keybase', outpath)
         break
       case 'chatTeam':
         start('chatname', p.teamname, outpath)
@@ -121,7 +121,16 @@ const ArchiveModal = (p: Props) => {
       content = <Kb.Text type="Body">Source: All chats</Kb.Text>
       break
     case 'fsAll':
-      content = <Kb.Text type="Body">Source: All KBFS</Kb.Text>
+      content = (
+        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
+          <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+          <Kb.Text type="Header">All Files</Kb.Text>
+          <Kb.Text type="Body">
+            Note: public folders that you are not a writer of will be skipped. Use{' '}
+            <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to archive them.
+          </Kb.Text>
+        </Kb.Box2>
+      )
       break
     case 'fsPath':
       content = (
