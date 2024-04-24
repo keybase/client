@@ -77,12 +77,12 @@ const EditAvatar = (p: Props) => {
   }
   const onDrop = (e: React.DragEvent) => {
     const f = async () => {
-      setDropping(false)
-      setSerror(false)
-      setLoading('loading')
       if (!validDrag(e)) {
         return
       }
+      setDropping(false)
+      setSerror(false)
+      setLoading('loading')
       const img = await getFile(e.dataTransfer.files)
       if (img) {
         setImageSource(img)
