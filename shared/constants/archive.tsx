@@ -41,10 +41,10 @@ type ArchiveAllFilesResponseWaiter =
       state: 'waiting'
     }
   | {
-      state: 'finished'
-      started: number
-      skipped: number
       errors: Map<string, string> // tlf -> error
+      skipped: number
+      started: number
+      state: 'finished'
     }
 
 type ArchiveAllGitResponseWaiter =
@@ -53,24 +53,24 @@ type ArchiveAllGitResponseWaiter =
       state: 'waiting'
     }
   | {
-      state: 'finished'
-      started: number
       errors: Map<string, string> // gitRepo -> error
+      started: number
+      state: 'finished'
     }
 
 type Store = T.Immutable<{
+  archiveAllFilesResponseWaiter: ArchiveAllFilesResponseWaiter
+  archiveAllGitResponseWaiter: ArchiveAllGitResponseWaiter
   chatJobs: Map<string, ChatJob>
   kbfsJobs: Map<string, KBFSJob> // id -> KBFSJob
   kbfsJobsFreshness: Map<string, number> // id -> KBFS TLF Revision
-  archiveAllFilesResponseWaiter: ArchiveAllFilesResponseWaiter
-  archiveAllGitResponseWaiter: ArchiveAllGitResponseWaiter
 }>
 const initialStore: Store = {
+  archiveAllFilesResponseWaiter: {state: 'idle'},
+  archiveAllGitResponseWaiter: {state: 'idle'},
   chatJobs: new Map(),
   kbfsJobs: new Map(),
   kbfsJobsFreshness: new Map(),
-  archiveAllFilesResponseWaiter: {state: 'idle'},
-  archiveAllGitResponseWaiter: {state: 'idle'},
 }
 
 interface State extends Store {
@@ -103,9 +103,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             bytesZipped: job.bytesZipped,
             error: job.error?.error,
             errorNextRetry: job.error?.nextRetry,
+            gitRepo: job.desc.gitRepo,
             id: job.desc.jobID,
             kbfsPath: job.desc.kbfsPathWithRevision.path,
-            gitRepo: job.desc.gitRepo,
             kbfsRevision:
               job.desc.kbfsPathWithRevision.archivedParam.KBFSArchivedType ===
               T.RPCGen.KBFSArchivedType.revision
@@ -272,7 +272,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     C.ignorePromise(f())
   }
 
-  const startFSArchive = async (path: string, outPath: string) => {
+  const startFSArchive = (path: string, outPath: string) => {
     const f = async () => {
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
@@ -286,15 +286,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
     C.ignorePromise(f())
   }
 
-  const startFSArchiveAll = async (outputDir: string) => {
+  const startFSArchiveAll = (outputDir: string) => {
     set(s => {
       s.archiveAllFilesResponseWaiter.state = 'waiting'
     })
     const f = async () => {
       const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise({
+        includePublicReadonly: false,
         outputDir,
         overwriteZip: false,
-        includePublicReadonly: false,
       })
       console.log({response})
       set(s => {
@@ -302,17 +302,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         s.archiveAllFilesResponseWaiter = {
-          state: 'finished',
-          started: Object.keys(response.tlfPathToJobDesc ?? {}).length,
-          skipped: (response.skippedTLFPaths ?? []).length,
           errors: new Map(Object.entries(response.tlfPathToError ?? {})),
+          skipped: (response.skippedTLFPaths ?? []).length,
+          started: Object.keys(response.tlfPathToJobDesc ?? {}).length,
+          state: 'finished',
         }
       })
     }
     C.ignorePromise(f())
   }
 
-  const startGitArchive = async (gitRepo: string, outPath: string) => {
+  const startGitArchive = (gitRepo: string, outPath: string) => {
     const f = async () => {
       await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
         archiveJobStartPath: {
@@ -326,7 +326,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     C.ignorePromise(f())
   }
 
-  const startGitArchiveAll = async (outputDir: string) => {
+  const startGitArchiveAll = (outputDir: string) => {
     set(s => {
       s.archiveAllGitResponseWaiter.state = 'waiting'
     })
@@ -341,9 +341,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         s.archiveAllGitResponseWaiter = {
-          state: 'finished',
-          started: Object.keys(response.gitRepoToJobDesc ?? {}).length,
           errors: new Map(Object.entries(response.gitRepoToError ?? {})),
+          started: Object.keys(response.gitRepoToJobDesc ?? {}).length,
+          state: 'finished',
         }
       })
     }
@@ -409,6 +409,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     resetState: 'default',
+    resetWaiters: () =>
+      set(s => {
+        s.archiveAllFilesResponseWaiter = {state: 'idle'}
+        s.archiveAllGitResponseWaiter = {state: 'idle'}
+      }),
     resumeChat: jobID => {
       const f = async () => {
         await T.RPCChat.localArchiveChatResumeRpcPromise({
@@ -439,11 +444,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
       }
     },
-    resetWaiters: () =>
-      set(s => {
-        s.archiveAllFilesResponseWaiter = {state: 'idle'}
-        s.archiveAllGitResponseWaiter = {state: 'idle'}
-      }),
   }
   return {
     ...initialStore,

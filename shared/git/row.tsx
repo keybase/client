@@ -64,13 +64,13 @@ const ConnectedRow = (ownProps: OwnProps) => {
     lastEditTime: git.lastEditTime,
     lastEditUser: git.lastEditUser,
     name: git.name,
+    onArchiveGitRepo: () => _onArchiveGitRepo(git.url),
     onBrowseGitRepo: () =>
       _onBrowseGitRepo(
         T.FS.stringToPath(
           git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
         )
       ),
-    onArchiveGitRepo: () => _onArchiveGitRepo(git.url),
     onChannelClick: (e: React.BaseSyntheticEvent) => {
       if (!chatDisabled) {
         e.preventDefault()

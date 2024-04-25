@@ -100,7 +100,7 @@ const ArchiveModal = (p: Props) => {
   const onClose = React.useCallback(() => {
     resetWaiters()
     navigateUp()
-  }, [navigateUp])
+  }, [navigateUp, resetWaiters])
   const onProgress = React.useCallback(() => {
     resetWaiters()
     navigateUp()
@@ -111,7 +111,7 @@ const ArchiveModal = (p: Props) => {
         C.Router2._getNavigator()?.navigate(C.Settings.settingsArchiveTab)
       }, 200)
     }, 200)
-  }, [navigateUp, switchTab])
+  }, [navigateUp, resetWaiters, switchTab])
 
   const selectPath = React.useCallback(() => {
     const f = async () => {
