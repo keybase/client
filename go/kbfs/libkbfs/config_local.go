@@ -1871,13 +1871,10 @@ func (c *ConfigLocal) AddResetForLoginTarget(t ResetForLoginer) {
 // ResetForLogin implements the Config interface.
 func (c *ConfigLocal) ResetForLogin(ctx context.Context, username libkb.NormalizedUsername) {
 	targets := func() []ResetForLoginer {
-		ret := make([]ResetForLoginer, 0, len(c.resetForLoginTargets))
-
+		ret := make([]ResetForLoginer, len(c.resetForLoginTargets))
 		c.lock.Lock()
 		defer c.lock.Unlock()
-		for _, t := range c.resetForLoginTargets {
-			ret = append(ret, t)
-		}
+		copy(ret, c.resetForLoginTargets)
 		return ret
 	}()
 	log := c.MakeLogger("")

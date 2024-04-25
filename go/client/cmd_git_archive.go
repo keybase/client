@@ -6,8 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// CmdGitArchive is the 'fs archive dismiss' and `fs
-// archive cancel' commands.
+// CmdGitArchive is the 'git archive' command.
 type CmdGitArchive struct {
 	libkb.Contextified
 	zipFilePaths []string

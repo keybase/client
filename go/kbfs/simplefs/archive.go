@@ -903,11 +903,7 @@ func zipWriterAddDir(ctx context.Context,
 				return err
 			}
 			defer f.Close()
-			err = ctxAwareCopy(ctx, fw, f, bytesZippedUpdater)
-			if err != nil {
-				return err
-			}
-			return nil
+			return ctxAwareCopy(ctx, fw, f, bytesZippedUpdater)
 		}
 	})
 }

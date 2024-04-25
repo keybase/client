@@ -301,8 +301,7 @@ func (c *CmdSimpleFSArchiveStatus) GetUsage() libkb.Usage {
 	}
 }
 
-// CmdSimpleFSArchiveCheckArchive is the 'fs archive dismiss' and `fs
-// archive cancel' commands.
+// CmdSimpleFSArchiveCheckArchive is the 'fs archive check'command.
 type CmdSimpleFSArchiveCheckArchive struct {
 	libkb.Contextified
 	zipFilePaths []string
