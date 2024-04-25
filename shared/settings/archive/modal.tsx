@@ -62,6 +62,9 @@ const ArchiveModal = (p: Props) => {
   const [outpath, setOutpath] = React.useState(defaultPath)
   const [started, setStarted] = React.useState(false)
   const start = C.useArchiveState(s => s.dispatch.start)
+  const resetWaiters = C.useArchiveState(s => s.dispatch.resetWaiters)
+  const archiveAllFilesResponseWaiter = C.useArchiveState(s => s.archiveAllFilesResponseWaiter)
+  const archiveAllGitResponseWaiter = C.useArchiveState(s => s.archiveAllGitResponseWaiter)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
 
@@ -95,9 +98,11 @@ const ArchiveModal = (p: Props) => {
     }
   }, [outpath, canStart, p, start])
   const onClose = React.useCallback(() => {
+    resetWaiters()
     navigateUp()
   }, [navigateUp])
   const onProgress = React.useCallback(() => {
+    resetWaiters()
     navigateUp()
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
@@ -128,35 +133,68 @@ const ArchiveModal = (p: Props) => {
       content = <Kb.Text type="Body">Source: All chats</Kb.Text>
       break
     case 'fsAll':
-      content = (
-        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
-          <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-          <Kb.Text type="Header">All Files</Kb.Text>
-          <Kb.Text type="Body">
-            Note: public folders that you are not a writer of will be skipped. Use{' '}
-            <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to archive them.
-          </Kb.Text>
-        </Kb.Box2>
-      )
+      content =
+        archiveAllFilesResponseWaiter.state === 'idle' ? (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+              <Kb.Text type="Header">All Files</Kb.Text>
+            </Kb.Box2>
+            <Kb.Text type="Body">
+              Note: public folders that you are not a writer of will be skipped. Use{' '}
+              <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to archive them.
+            </Kb.Text>
+          </Kb.Box2>
+        ) : archiveAllFilesResponseWaiter.state === 'waiting' ? (
+          <Kb.LoadingLine />
+        ) : (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+              <Kb.Text type="Header">All Files</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.Text type="Body">
+                Started {archiveAllFilesResponseWaiter.started} jobs successfully.
+              </Kb.Text>
+              <Kb.Text type="Body">Skipped {archiveAllFilesResponseWaiter.skipped} folders.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllFilesResponseWaiter.errors.size} errors.</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        )
       break
     case 'gitAll':
-      content = (
-        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
-          <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
-          <Kb.Text type="Header">All Git Repos</Kb.Text>
-        </Kb.Box2>
-      )
+      content =
+        archiveAllGitResponseWaiter.state === 'idle' ? (
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+            <Kb.Text type="Header">All Git Repos</Kb.Text>
+          </Kb.Box2>
+        ) : archiveAllGitResponseWaiter.state === 'waiting' ? (
+          <Kb.LoadingLine />
+        ) : (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+              <Kb.Text type="Header">All Git Repos</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.Text type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllGitResponseWaiter.errors.size} errors.</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        )
       break
     case 'fsPath':
       content = (
-        <Kb.WithTooltip tooltip={p.path} position="bottom center" toastStyle={{maxWidth: 320}}>
+        <Kb.WithTooltip tooltip={p.path} position="bottom center" toastStyle={styles.contentContainer}>
           <FsCommon.PathItemInfo path={p.path} />
         </Kb.WithTooltip>
       )
       break
     case 'git':
       content = (
-        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
           <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
           <Kb.Text type="TerminalInline" lineClamp={2}>
             {p.gitURL}
@@ -207,7 +245,9 @@ const ArchiveModal = (p: Props) => {
         <Kb.BoxGrow />
         {content}
         <Kb.BoxGrow />
-        {output}
+        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+          ? null
+          : output}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -215,6 +255,9 @@ const ArchiveModal = (p: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
+  contentContainer: {
+    maxWidth: 400,
+  },
   outPath: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blue_30,
