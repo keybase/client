@@ -296,7 +296,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
         outputDir,
         overwriteZip: false,
       })
-      console.log({response})
       set(s => {
         if (s.archiveAllFilesResponseWaiter.state !== 'waiting') {
           return
@@ -335,7 +334,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
         outputDir,
         overwriteZip: false,
       })
-      console.log({response})
       set(s => {
         if (s.archiveAllGitResponseWaiter.state !== 'waiting') {
           return
