@@ -293,7 +293,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     const f = async () => {
       const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise({
         outputDir,
-        overwriteZip: true,
+        overwriteZip: false,
         includePublicReadonly: false,
       })
       console.log({response})
@@ -333,7 +333,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     const f = async () => {
       const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise({
         outputDir,
-        overwriteZip: true,
+        overwriteZip: false,
       })
       console.log({response})
       set(s => {
