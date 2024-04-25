@@ -1366,10 +1366,18 @@
         {
           "type": {
             "type": "map",
+            "values": "SimpleFSArchiveJobDesc",
+            "keys": "string"
+          },
+          "name": "gitRepoToJobDesc"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "string",
             "keys": "string"
           },
-          "name": "jobIDToGitRepo"
+          "name": "gitRepoToError"
         }
       ]
     }

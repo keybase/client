@@ -2095,12 +2095,25 @@ func (o SimpleFSArchiveAllFilesResult) DeepCopy() SimpleFSArchiveAllFilesResult 
 }
 
 type SimpleFSArchiveAllGitReposResult struct {
-	JobIDToGitRepo map[string]string `codec:"jobIDToGitRepo" json:"jobIDToGitRepo"`
+	GitRepoToJobDesc map[string]SimpleFSArchiveJobDesc `codec:"gitRepoToJobDesc" json:"gitRepoToJobDesc"`
+	GitRepoToError   map[string]string                 `codec:"gitRepoToError" json:"gitRepoToError"`
 }
 
 func (o SimpleFSArchiveAllGitReposResult) DeepCopy() SimpleFSArchiveAllGitReposResult {
 	return SimpleFSArchiveAllGitReposResult{
-		JobIDToGitRepo: (func(x map[string]string) map[string]string {
+		GitRepoToJobDesc: (func(x map[string]SimpleFSArchiveJobDesc) map[string]SimpleFSArchiveJobDesc {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]SimpleFSArchiveJobDesc, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.GitRepoToJobDesc),
+		GitRepoToError: (func(x map[string]string) map[string]string {
 			if x == nil {
 				return nil
 			}
@@ -2111,7 +2124,7 @@ func (o SimpleFSArchiveAllGitReposResult) DeepCopy() SimpleFSArchiveAllGitReposR
 				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.JobIDToGitRepo),
+		})(o.GitRepoToError),
 	}
 }
 

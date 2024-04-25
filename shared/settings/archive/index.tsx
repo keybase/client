@@ -283,6 +283,9 @@ const Archive = C.featureFlags.archive
       const archiveFS = React.useCallback(() => {
         navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
       }, [navigateAppend])
+      const archiveGit = React.useCallback(() => {
+        navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
+      }, [navigateAppend])
       const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
       const chatJobMap = C.useArchiveState(s => s.chatJobs)
@@ -319,6 +322,7 @@ const Archive = C.featureFlags.archive
               <Kb.ButtonBar align="flex-start">
                 <Kb.Button label="Archive all chat" onClick={archiveChat} />
                 <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
+                <Kb.Button label="Archive all Git Repos" onClick={archiveGit} />
               </Kb.ButtonBar>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

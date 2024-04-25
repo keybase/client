@@ -856,7 +856,8 @@ protocol SimpleFS {
   SimpleFSArchiveAllFilesResult simpleFSArchiveAllFiles(string outputDir, boolean overwriteZip, boolean includePublicReadonly);
 
   record SimpleFSArchiveAllGitReposResult {
-    map<string, string> jobIDToGitRepo;
+    map<string, SimpleFSArchiveJobDesc> gitRepoToJobDesc;
+    map<string, string> gitRepoToError;
   }
   // simpleFSArchiveAllGitRepos creates an archive job for each git repo that
   // shows up in the user's Git tab.

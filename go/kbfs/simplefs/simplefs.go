@@ -3946,25 +3946,98 @@ func (k *SimpleFS) SimpleFSArchiveAllFiles(
 	return res, nil
 }
 
+func (k *SimpleFS) getAllGitMetadata(ctx context.Context) (res []keybase1.GitRepoResult, err error) {
+	ks := k.config.KeybaseService()
+	if ks == nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: ks is nil")
+		return nil, errors.New("ks is nil")
+	}
+	rc := ks.GetKeybaseDaemonRawClient()
+	if rc == nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: rawClient is nil")
+		return nil, errors.New("rawClient is nil")
+	}
+	client := keybase1.GitClient{Cli: rc}
+	res, err = client.GetAllGitMetadata(ctx)
+	if err != nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: client.GetAllGitMetadata error: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // SimpleFSArchiveAllGitRepos implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSArchiveAllGitRepos(
 	ctx context.Context, arg keybase1.SimpleFSArchiveAllGitReposArg) (
-	keybase1.SimpleFSArchiveAllGitReposResult, error) {
-	return keybase1.SimpleFSArchiveAllGitReposResult{}, errors.New("not implemented")
+	res keybase1.SimpleFSArchiveAllGitReposResult, err error) {
+	allGitMetadataResult, err := k.getAllGitMetadata(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveAllGitReposResult{}, err
+	}
+
+	var startArgs []keybase1.SimpleFSArchiveStartArg
+	for _, gitRepoResult := range allGitMetadataResult {
+		state, err := gitRepoResult.State()
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllGitReposResult{},
+				fmt.Errorf("gitRepoResult.State() error: %v", err)
+		}
+		switch state {
+		case keybase1.GitRepoResultState_OK:
+			gitRepoInfo := gitRepoResult.Ok()
+			folderTypeStr, err := func() (string, error) {
+				switch gitRepoInfo.Folder.FolderType {
+				case keybase1.FolderType_PRIVATE:
+					return "private", nil
+				case keybase1.FolderType_TEAM:
+					return "team", nil
+				default:
+					return "", fmt.Errorf("unexpected FolderType: %v", gitRepoInfo.Folder.FolderType)
+				}
+			}()
+			if err != nil {
+				return keybase1.SimpleFSArchiveAllGitReposResult{}, err
+			}
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithGit(gitRepoInfo.RepoUrl),
+				OutputPath:          filepath.Join(arg.OutputDir, "git-"+folderTypeStr+"-"+string(gitRepoInfo.LocalMetadata.RepoName)+".git.zip"),
+				OverwriteZip:        arg.OverwriteZip,
+			})
+		case keybase1.GitRepoResultState_ERR:
+			return keybase1.SimpleFSArchiveAllGitReposResult{},
+				fmt.Errorf("getRepoResult result error: %v", gitRepoResult.Err())
+		default:
+			return keybase1.SimpleFSArchiveAllGitReposResult{}, fmt.Errorf("unexpected gitRepoResult.State() %v", state)
+
+		}
+	}
+
+	res.GitRepoToError = make(map[string]string)
+	res.GitRepoToJobDesc = make(map[string]keybase1.SimpleFSArchiveJobDesc)
+	for _, a := range startArgs {
+		jobDesc, err := k.SimpleFSArchiveStart(ctx, a)
+		if err != nil {
+			res.GitRepoToError[a.ArchiveJobStartPath.Git()] = err.Error()
+		} else {
+			res.GitRepoToJobDesc[a.ArchiveJobStartPath.Git()] = jobDesc
+		}
+	}
+
+	return res, nil
 }
 
-func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
+func (k *SimpleFS) notifyUIArchiveStateChange(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
 	ks := k.config.KeybaseService()
 	if ks == nil {
 		k.log.CWarningf(ctx,
-			"k.notifyUIStateChange: skipping notification because KeybaseService() is nil")
+			"k.notifyUIArchiveStateChange: skipping notification because KeybaseService() is nil")
 		return
 	}
 	rc := ks.GetKeybaseDaemonRawClient()
 	if rc == nil {
 		k.log.CWarningf(ctx,
-			"k.notifyUIStateChange: skipping notification because rawClient is nil")
+			"k.notifyUIArchiveStateChange: skipping notification because rawClient is nil")
 		return
 	}
 	client := keybase1.NotifySimpleFSClient{Cli: rc}

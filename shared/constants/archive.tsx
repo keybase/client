@@ -331,7 +331,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             : C.ignorePromise(startFSArchive(target, outPath))
           return
         case 'git':
-          C.ignorePromise(startGitArchive(target, outPath))
+          target === '.'
+            ? C.ignorePromise(startGitArchiveAll(outPath))
+            : C.ignorePromise(startGitArchive(target, outPath))
           return
       }
     },
@@ -385,6 +387,13 @@ const startGitArchive = async (gitRepo: string, outPath: string) => {
       git: gitRepo,
     },
     outputPath: outPath,
+    overwriteZip: true,
+  })
+}
+
+const startGitArchiveAll = async (outputDir: string) => {
+  await T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise({
+    outputDir,
     overwriteZip: true,
   })
 }

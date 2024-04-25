@@ -166,7 +166,7 @@ func (m *archiveManager) notifyUIStateChange(ctx context.Context) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	state, errorStates := m.getCurrentStateLocked(ctx)
-	m.simpleFS.notifyUIStateChange(ctx, state, errorStates)
+	m.simpleFS.notifyUIArchiveStateChange(ctx, state, errorStates)
 }
 
 func (m *archiveManager) startJob(ctx context.Context, job keybase1.SimpleFSArchiveJobDesc) error {

@@ -16,6 +16,7 @@ type Props =
     }
   | {type: 'chatAll'}
   | {type: 'fsAll'}
+  | {type: 'gitAll'}
   | {
       type: 'fsPath'
       path: string
@@ -39,6 +40,9 @@ const ArchiveModal = (p: Props) => {
         break
       case 'chatAll':
         defaultPath += `chat`
+        break
+      case 'gitAll':
+        defaultPath = `${C.downloadFolder}/keybase-git`
         break
       case 'chatTeam':
         defaultPath += p.teamname
@@ -75,6 +79,9 @@ const ArchiveModal = (p: Props) => {
         break
       case 'fsAll':
         start('kbfs', '/keybase', outpath)
+        break
+      case 'gitAll':
+        start('git', '.', outpath)
         break
       case 'chatTeam':
         start('chatname', p.teamname, outpath)
@@ -129,6 +136,14 @@ const ArchiveModal = (p: Props) => {
             Note: public folders that you are not a writer of will be skipped. Use{' '}
             <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to archive them.
           </Kb.Text>
+        </Kb.Box2>
+      )
+      break
+    case 'gitAll':
+      content = (
+        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 320}} gap="medium">
+          <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+          <Kb.Text type="Header">All Git Repos</Kb.Text>
         </Kb.Box2>
       )
       break
