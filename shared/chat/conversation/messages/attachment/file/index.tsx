@@ -33,6 +33,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
       ? CryptoConstants.Operations.Verify
       : undefined
   const operationTitle = captialize(operation)
+
   return (
     <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
