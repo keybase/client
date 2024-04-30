@@ -11,6 +11,37 @@ index aeeb981..5d96b30 100644
    > extends AnimatedWithChildren {
      interpolate(
        config: InterpolationConfigType,
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.m b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.m
+index 5d5d308..a94e8dc 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.m
++++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.m
+@@ -258,7 +258,12 @@ static UIColor *defaultPlaceholderColor()
+     return NO;
+   }
+ 
+-  return [super canPerformAction:action withSender:sender];
++    BOOL del = [self.textInputDelegate canPerformAction:action withSender:sender];
++    if (del) {
++        return NO;
++    }
++    
++    return [super canPerformAction:action withSender:sender];
+ }
+ 
+ #pragma mark - Placeholder
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+index 7187177..980ab88 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+@@ -12,7 +12,7 @@
+ NS_ASSUME_NONNULL_BEGIN
+ 
+ @protocol RCTBackedTextInputDelegate <NSObject>
+-
++- (BOOL)canPerformAction:(SEL)action withSender:(id)sender; // added
+ - (BOOL)textInputShouldBeginEditing; // Return `NO` to disallow editing.
+ - (void)textInputDidBeginEditing;
+ 
 diff --git a/node_modules/react-native/React/Modules/RCTUIManager.m b/node_modules/react-native/React/Modules/RCTUIManager.m
 index 3b8a851..5853042 100644
 --- a/node_modules/react-native/React/Modules/RCTUIManager.m
