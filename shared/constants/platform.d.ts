@@ -7,7 +7,6 @@ export const isIOS: boolean
 export const isLargeScreen: boolean
 export const isTablet: boolean
 export const isPhone: boolean
-export const windowHeight: number
 export const pathSep: '/' | '\\'
 
 export const isElectron: boolean

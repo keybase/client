@@ -8,6 +8,7 @@ setnative not working on fabric, input should likely be controlled now
   check animated gifs work after udpating expo-image or rollback again
 
 run electron hash update
+RN patcvh to fix pasting images
 -------------------------
 Some short term todos:
 swipeable2 slow

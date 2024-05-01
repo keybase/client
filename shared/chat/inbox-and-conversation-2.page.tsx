@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as C from '@/constants'
 import Header from './inbox-and-conversation-header'
-import {Dimensions} from 'react-native'
+import {useWindowDimensions} from 'react-native'
 
 const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
 type OwnProps = C.ViewPropsToPagePropsMaybe<typeof Split>
@@ -25,15 +25,12 @@ const getOptions = Kb.Styles.isTablet
     }
 
 const TabletHeader = React.memo(function TabletHeader() {
+  const {width} = useWindowDimensions()
   return (
     <Kb.Box2
       direction="horizontal"
       // ios only allows centered so we do some margin to help spread it out
-      style={{
-        height: 48,
-        marginLeft: -20,
-        width: Dimensions.get('window').width,
-      }}
+      style={{height: 48, marginLeft: -20, width}}
     >
       <Header />
     </Kb.Box2>

@@ -12,7 +12,7 @@ import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
-import {Dimensions} from 'react-native'
+import {useWindowDimensions} from 'react-native'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -102,7 +102,8 @@ const Conversation = React.memo(function Conversation() {
 
   const insets = useSafeAreaInsets()
   const headerHeight = Kb.Styles.isTablet ? 115 : 44
-  const height = Dimensions.get('window').height - insets.top - headerHeight
+  const windowHeight = useWindowDimensions().height
+  const height = windowHeight - insets.top - headerHeight
 
   const safeStyle = React.useMemo(
     () =>

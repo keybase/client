@@ -41,7 +41,7 @@ export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
 export const realDeviceName = Constants.deviceName ?? ''
 
-export const windowHeight = Dimensions.get('window').height
+const windowHeight = Dimensions.get('window').height
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
 export const isLargeScreen = windowHeight >= 667
