@@ -23,6 +23,7 @@ const setupDefaultSession = () => {
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
   ds.on('will-download', event => event.preventDefault())
+
   // Disallow any permissions requests except for notifications and fullscreen
   ds.setPermissionRequestHandler((webContents, permission, callback) => {
     // allow fullscreen
