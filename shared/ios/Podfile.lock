@@ -1,7 +1,7 @@
 PODS:
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
-  - EXAV (13.10.5):
+  - EXAV (13.10.6):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXConstants (15.4.6):
@@ -1424,7 +1424,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  EXAV: 07e50f934907fa8274dd06fbcd20ee4b9478c619
+  EXAV: e4f6137431ddc4cb025895046bfefa9612025c35
   EXConstants: a5f6276e565d98f9eb4280f81241fc342d641590
   EXContacts: 5fcab84e1f1a562934e688d422117f9a33169c37
   EXFont: f20669cb266ef48b004f1eb1f2b20db96cd1df9f
