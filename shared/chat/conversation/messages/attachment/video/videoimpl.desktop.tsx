@@ -47,7 +47,7 @@ const VideoImpl = (p: Props) => {
       preload="none"
       controls={true}
       playsInline={true}
-      controlsList="nodownload nofullscreen noremoteplayback"
+      controlsList="nodownload noremoteplayback"
       style={Kb.Styles.castStyleDesktop(styles.video)}
     >
       <source src={url} />
