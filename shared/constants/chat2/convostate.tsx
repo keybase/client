@@ -1410,6 +1410,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = true
       }
 
+      setMessageCenterOrdinal()
+
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
         get().dispatch.messagesClear()
