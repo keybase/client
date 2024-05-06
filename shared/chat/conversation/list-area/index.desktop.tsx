@@ -270,7 +270,14 @@ const useScrolling = (p: {
     {leading: true, trailing: true}
   )
 
+  // we did it so we should ignore it
+  const programaticScrollRef = React.useRef(false)
+
   const onScroll = React.useCallback(() => {
+    if (programaticScrollRef.current) {
+      programaticScrollRef.current = false
+      return
+    }
     if (listRef.current) {
       scrollBottomOffsetRef.current = Math.max(0, listRef.current.scrollHeight - listRef.current.scrollTop)
     } else {
@@ -344,6 +351,7 @@ const useScrolling = (p: {
     if (ordinalsLength === prevOrdinalLength || firstOrdinal === prevFirstOrdinal) return
     const {current} = listRef
     if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
+      programaticScrollRef.current = true
       current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
