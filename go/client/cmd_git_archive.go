@@ -9,7 +9,6 @@ import (
 // CmdGitArchive is the 'git archive' command.
 type CmdGitArchive struct {
 	libkb.Contextified
-	zipFilePaths []string
 }
 
 // newCmdGitArchive creates a new cli.Command.
