@@ -81,19 +81,19 @@ const ArchiveModal = (p: Props) => {
         start('chatname', '.', outpath)
         break
       case 'fsAll':
-        start('kbfs', '/keybase', outpath)
+        start('kbfs', '/keybase', C.isMobile ? '' : outpath)
         break
       case 'gitAll':
-        start('git', '.', outpath)
+        start('git', '.', C.isMobile ? '' : outpath)
         break
       case 'chatTeam':
         start('chatname', p.teamname, outpath)
         break
       case 'fsPath':
-        start('kbfs', p.path, outpath)
+        start('kbfs', p.path, C.isMobile ? '' : outpath)
         break
       case 'git':
-        start('git', p.gitURL, outpath)
+        start('git', p.gitURL, C.isMobile ? '' : outpath)
         break
     }
   }, [outpath, canStart, p, start])
