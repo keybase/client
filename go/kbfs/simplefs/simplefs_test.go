@@ -1873,7 +1873,7 @@ loopWait:
 	defer func() { _ = reader.Close() }()
 	require.NoError(t, err)
 
-	files := map[string]bool{"manifest.json": true, "jdoe/test1.txt": true, "jdoe/link1": true}
+	files := map[string]bool{"receipt.json": true, "jdoe/test1.txt": true, "jdoe/link1": true, "jdoe": true, ".": true}
 	require.Equal(t, len(files), len(reader.File))
 	for _, f := range reader.File {
 		delete(files, f.Name)
