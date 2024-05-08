@@ -78,50 +78,51 @@ const (
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	lock               sync.RWMutex
-	kbfs               KBFSOps
-	keyman             KeyManager
-	rep                Reporter
-	kcache             KeyCache
-	kbcache            kbfsmd.KeyBundleCache
-	bcache             data.BlockCache
-	dirtyBcache        data.DirtyBlockCache
-	diskBlockCache     DiskBlockCache
-	diskMDCache        DiskMDCache
-	diskQuotaCache     DiskQuotaCache
-	blockMetadataStore BlockMetadataStore
-	xattrStore         XattrStore
-	codec              kbfscodec.Codec
-	mdops              MDOps
-	kops               libkey.KeyOps
-	crypto             Crypto
-	chat               Chat
-	mdcache            MDCache
-	bops               BlockOps
-	mdserv             MDServer
-	bserv              BlockServer
-	keyserv            libkey.KeyServer
-	service            KeybaseService
-	bsplit             data.BlockSplitter
-	notifier           Notifier
-	clock              Clock
-	kbpki              KBPKI
-	renamer            ConflictRenamer
-	userHistory        *kbfsedits.UserHistory
-	registry           metrics.Registry
-	loggerFn           func(prefix string) logger.Logger
-	noBGFlush          bool // logic opposite so the default value is the common setting
-	rwpWaitTime        time.Duration
-	diskLimiter        DiskLimiter
-	syncedTlfs         map[tlf.ID]FolderSyncConfig // if nil, couldn't load DB
-	syncedTlfPaths     map[string]bool
-	defaultBlockType   keybase1.BlockType
-	kbfsService        *KBFSService
-	kbCtx              Context
-	rootNodeWrappers   []func(Node) Node
-	tlfClearCancels    map[tlf.ID]context.CancelFunc
-	vdebugSetting      string
-	vlogs              []*libkb.VDebugLog
+	lock                 sync.RWMutex
+	kbfs                 KBFSOps
+	keyman               KeyManager
+	rep                  Reporter
+	kcache               KeyCache
+	kbcache              kbfsmd.KeyBundleCache
+	bcache               data.BlockCache
+	dirtyBcache          data.DirtyBlockCache
+	diskBlockCache       DiskBlockCache
+	diskMDCache          DiskMDCache
+	diskQuotaCache       DiskQuotaCache
+	blockMetadataStore   BlockMetadataStore
+	xattrStore           XattrStore
+	codec                kbfscodec.Codec
+	mdops                MDOps
+	kops                 libkey.KeyOps
+	crypto               Crypto
+	chat                 Chat
+	mdcache              MDCache
+	bops                 BlockOps
+	mdserv               MDServer
+	bserv                BlockServer
+	keyserv              libkey.KeyServer
+	service              KeybaseService
+	bsplit               data.BlockSplitter
+	notifier             Notifier
+	clock                Clock
+	kbpki                KBPKI
+	renamer              ConflictRenamer
+	userHistory          *kbfsedits.UserHistory
+	registry             metrics.Registry
+	loggerFn             func(prefix string) logger.Logger
+	noBGFlush            bool // logic opposite so the default value is the common setting
+	rwpWaitTime          time.Duration
+	diskLimiter          DiskLimiter
+	syncedTlfs           map[tlf.ID]FolderSyncConfig // if nil, couldn't load DB
+	syncedTlfPaths       map[string]bool
+	defaultBlockType     keybase1.BlockType
+	kbfsService          *KBFSService
+	kbCtx                Context
+	rootNodeWrappers     []func(Node) Node
+	tlfClearCancels      map[tlf.ID]context.CancelFunc
+	vdebugSetting        string
+	vlogs                []*libkb.VDebugLog
+	resetForLoginTargets []ResetForLoginer
 
 	maxNameBytes           uint32
 	rekeyQueue             RekeyQueue
@@ -1858,4 +1859,29 @@ func (c *ConfigLocal) KbContext() Context {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kbCtx
+}
+
+// AddResetForLoginTarget implements the Config interface.
+func (c *ConfigLocal) AddResetForLoginTarget(t ResetForLoginer) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.resetForLoginTargets = append(c.resetForLoginTargets, t)
+}
+
+// ResetForLogin implements the Config interface.
+func (c *ConfigLocal) ResetForLogin(ctx context.Context, username libkb.NormalizedUsername) {
+	targets := func() []ResetForLoginer {
+		ret := make([]ResetForLoginer, len(c.resetForLoginTargets))
+		c.lock.Lock()
+		defer c.lock.Unlock()
+		copy(ret, c.resetForLoginTargets)
+		return ret
+	}()
+	log := c.MakeLogger("")
+	for _, target := range targets {
+		err := target.ResetForLogin(ctx, username)
+		if err != nil {
+			log.Warning("target.ResetForLogin error: %v", err)
+		}
+	}
 }

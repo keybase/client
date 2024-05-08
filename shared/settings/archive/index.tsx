@@ -165,9 +165,15 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   if (!job) {
     return null
   }
-  const progress = job.bytesTotal ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal : 0
+  const progress = job.bytesTotal
+    ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal
+    : job.phase === 'Zipping'
+      ? 0.8
+      : job.phase === 'Done'
+        ? 1
+        : 0
   const errorStr = job.error
-    ? `Error: ${job.error} | Retrying at ${job.errorNextRetry?.toLocaleString()}`
+    ? `Error: ${job.error} | Retrying at ${new Date(job.errorNextRetry || 0).toLocaleString()}`
     : null
   const revisionBehindStr =
     job.kbfsRevision < currentTLFRevision
@@ -179,11 +185,15 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       type="Small"
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Icon type="icon-folder-32" />
+          {job.gitRepo ? (
+            <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
+          ) : (
+            <Kb.Icon type="icon-folder-32" />
+          )}
           <Kb.Box2 direction="vertical" style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
               <Kb.Text type="BodyBold" lineClamp={1}>
-                {job.kbfsPath}
+                {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
               {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
@@ -273,6 +283,9 @@ const Archive = C.featureFlags.archive
       const archiveFS = React.useCallback(() => {
         navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
       }, [navigateAppend])
+      const archiveGit = React.useCallback(() => {
+        navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
+      }, [navigateAppend])
       const clearCompleted = C.useArchiveState(s => s.dispatch.clearCompleted)
 
       const chatJobMap = C.useArchiveState(s => s.chatJobs)
@@ -298,20 +311,21 @@ const Archive = C.featureFlags.archive
       return (
         <Kb.ScrollView style={styles.scroll}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
               <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                <Kb.Text type="Body">
+                <Kb.Text type="BodySmall">
                   Easily archive your keybase data by choosing 'archive' from menus in chat and KBFS or click
                   to archive all.
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.ButtonBar>
+              <Kb.ButtonBar align="flex-start">
                 <Kb.Button label="Archive all chat" onClick={archiveChat} />
                 <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
+                <Kb.Button label="Archive all Git Repos" onClick={archiveGit} />
               </Kb.ButtonBar>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="Header">Active archive jobs</Kb.Text>
               {chatJobs.length + kbfsJobs.length ? (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
@@ -322,7 +336,12 @@ const Archive = C.featureFlags.archive
                     <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
                   ))}
                   {showClear ? (
-                    <Kb.Button label="Clear completed" onClick={clearCompleted} style={styles.clear} />
+                    <Kb.Button
+                      mode="Secondary"
+                      label="Clear completed"
+                      onClick={clearCompleted}
+                      style={styles.clear}
+                    />
                   ) : null}
                 </Kb.Box2>
               ) : (
@@ -347,8 +366,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   jobs: {
     flexGrow: 1,
     flexShrink: 1,
-    paddingLeft: Kb.Styles.isMobile ? 4 : 16,
-    paddingRight: Kb.Styles.isMobile ? 4 : 16,
+    // paddingLeft: Kb.Styles.isMobile ? 4 : 16,
+    // paddingRight: Kb.Styles.isMobile ? 4 : 16,
   },
   kbfsActions: {flexShrink: 0, justifyContent: 'flex-end'},
   kbfsCancel: {color: Kb.Styles.globalColors.red},

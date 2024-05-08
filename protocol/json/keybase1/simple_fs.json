@@ -1049,6 +1049,38 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ArchiveJobStartPathType",
+      "symbols": [
+        "KBFS_0",
+        "GIT_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ArchiveJobStartPath",
+      "switch": {
+        "type": "ArchiveJobStartPathType",
+        "name": "archiveJobStartPathType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "KBFS",
+            "def": false
+          },
+          "body": "KBFSPath"
+        },
+        {
+          "label": {
+            "name": "GIT",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "SimpleFSArchiveJobDesc",
       "fields": [
@@ -1059,6 +1091,13 @@
         {
           "type": "KBFSArchivedPath",
           "name": "kbfsPathWithRevision"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "gitRepo"
         },
         {
           "type": "boolean",
@@ -1266,6 +1305,79 @@
         {
           "type": "KBFSRevision",
           "name": "currentTLFRevision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveCheckArchiveResult",
+      "fields": [
+        {
+          "type": "SimpleFSArchiveJobDesc",
+          "name": "desc"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "currentTLFRevision"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "pathsWithIssues"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveAllFilesResult",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobDesc",
+            "keys": "string"
+          },
+          "name": "tlfPathToJobDesc"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "tlfPathToError"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "skippedTLFPaths"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSArchiveAllGitReposResult",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "SimpleFSArchiveJobDesc",
+            "keys": "string"
+          },
+          "name": "gitRepoToJobDesc"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "gitRepoToError"
         }
       ]
     }
@@ -2090,8 +2202,8 @@
     "simpleFSArchiveStart": {
       "request": [
         {
-          "name": "kbfsPath",
-          "type": "KBFSPath"
+          "name": "archiveJobStartPath",
+          "type": "ArchiveJobStartPath"
         },
         {
           "name": "outputPath",
@@ -2125,6 +2237,45 @@
         }
       ],
       "response": "SimpleFSArchiveJobFreshness"
+    },
+    "simpleFSArchiveCheckArchive": {
+      "request": [
+        {
+          "name": "archiveZipFilePath",
+          "type": "string"
+        }
+      ],
+      "response": "SimpleFSArchiveCheckArchiveResult"
+    },
+    "simpleFSArchiveAllFiles": {
+      "request": [
+        {
+          "name": "outputDir",
+          "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
+        },
+        {
+          "name": "includePublicReadonly",
+          "type": "boolean"
+        }
+      ],
+      "response": "SimpleFSArchiveAllFilesResult"
+    },
+    "simpleFSArchiveAllGitRepos": {
+      "request": [
+        {
+          "name": "outputDir",
+          "type": "string"
+        },
+        {
+          "name": "overwriteZip",
+          "type": "boolean"
+        }
+      ],
+      "response": "SimpleFSArchiveAllGitReposResult"
     }
   },
   "namespace": "keybase.1"

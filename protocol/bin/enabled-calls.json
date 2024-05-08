@@ -135,6 +135,8 @@
   "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetArchiveStatus": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSArchiveAllFiles": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSArchiveAllGitRepos": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetDownloadInfo": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetDownloadStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetFilesTabBadge": {"promise": true},

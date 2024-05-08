@@ -21,6 +21,7 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Subcommands: []cli.Command{
 			NewCmdSimpleFSArchiveStart(cl, g),
 			NewCmdSimpleFSArchiveCancelOrDismiss(cl, g),
+			NewCmdSimpleFSArchiveCheckArchive(cl, g),
 			NewCmdSimpleFSArchiveStatus(cl, g),
 		},
 	}
@@ -30,7 +31,7 @@ func NewCmdSimpleFSArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 type CmdSimpleFSArchiveStart struct {
 	libkb.Contextified
 	outputPath   string
-	kbfsPath     keybase1.KBFSPath
+	target       keybase1.ArchiveJobStartPath
 	overwriteZip bool
 }
 
@@ -38,7 +39,7 @@ type CmdSimpleFSArchiveStart struct {
 func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "start",
-		Usage: "start archiving a KBFS path",
+		Usage: "start archiving a KBFS path or git repo",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSArchiveStart{
 				Contextified: libkb.NewContextified(g)}, "start", c)
@@ -57,27 +58,35 @@ func NewCmdSimpleFSArchiveStart(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 				Name:  "f, overwrite-zip",
 				Usage: "[optional] overwrite zip file if it already exists",
 			},
+			cli.BoolFlag{
+				Name:  "g, git",
+				Usage: "[optional] treat <archiving target> as a git repo instead of KBFS directory",
+			},
 		},
-		ArgumentHelp: "<KBFS path>",
+		ArgumentHelp: "<archiving target>",
 	}
+}
+func revisionExtendedDescription(currentTLFRevision keybase1.KBFSRevision, desc *keybase1.SimpleFSArchiveJobDesc) string {
+	if currentTLFRevision == 0 {
+		return ""
+	}
+	jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
+	if jobRevision == currentTLFRevision {
+		return " (up to date with TLF)"
+	}
+
+	return fmt.Sprintf(" (behind TLF @ %d)", currentTLFRevision)
 }
 
 func printSimpleFSArchiveJobDesc(ui libkb.TerminalUI, desc *keybase1.SimpleFSArchiveJobDesc, currentTLFRevision keybase1.KBFSRevision) {
-	revisionExtendedDescription := func() string {
-		if currentTLFRevision == 0 {
-			return ""
-		}
-		jobRevision := desc.KbfsPathWithRevision.ArchivedParam.Revision()
-		if jobRevision == currentTLFRevision {
-			return " (up to date with TLF)"
-		}
-
-		return fmt.Sprintf(" (behind TLF @ %d)", currentTLFRevision)
-	}()
-
 	ui.Printf("Job ID: %s\n", desc.JobID)
-	ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
-	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription)
+	if desc.GitRepo != nil {
+		ui.Printf("Git Repo: %s\n", *desc.GitRepo)
+		ui.Printf("  (Path: %s)\n", desc.KbfsPathWithRevision.Path)
+	} else {
+		ui.Printf("Path: %s\n", desc.KbfsPathWithRevision.Path)
+	}
+	ui.Printf("TLF Revision: %v%s\n", desc.KbfsPathWithRevision.ArchivedParam.Revision(), revisionExtendedDescription(currentTLFRevision, desc))
 	ui.Printf("Started: %s\n", desc.StartTime.Time())
 	ui.Printf("Staging Path: %s\n", desc.StagingPath)
 	ui.Printf("Zip File Path: %s\n", desc.ZipFilePath)
@@ -93,9 +102,9 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 	desc, err := cli.SimpleFSArchiveStart(context.TODO(),
 		keybase1.SimpleFSArchiveStartArg{
-			OutputPath:   c.outputPath,
-			KbfsPath:     c.kbfsPath,
-			OverwriteZip: c.overwriteZip,
+			OutputPath:          c.outputPath,
+			ArchiveJobStartPath: c.target,
+			OverwriteZip:        c.overwriteZip,
 		})
 	if err != nil {
 		return err
@@ -108,12 +117,16 @@ func (c *CmdSimpleFSArchiveStart) Run() error {
 
 // ParseArgv parses the arguments.
 func (c *CmdSimpleFSArchiveStart) ParseArgv(ctx *cli.Context) error {
-	c.outputPath = ctx.String("output-path")
-	p, err := makeSimpleFSPathWithArchiveParams(ctx.Args().First(), 0, "", "")
-	if err != nil {
-		return err
+	if ctx.Bool("git") {
+		c.target = keybase1.NewArchiveJobStartPathWithGit(ctx.Args().First())
+	} else {
+		p, err := makeSimpleFSPathWithArchiveParams(ctx.Args().First(), 0, "", "")
+		if err != nil {
+			return err
+		}
+		c.target = keybase1.NewArchiveJobStartPathWithKbfs(p.Kbfs())
 	}
-	c.kbfsPath = p.Kbfs()
+	c.outputPath = ctx.String("output-path")
 	c.overwriteZip = ctx.Bool("overwrite-zip")
 	return nil
 }
@@ -230,9 +243,17 @@ func (c *CmdSimpleFSArchiveStatus) Run() error {
 		{
 			ui.Printf("Phase: %s ", job.Phase.String())
 			if job.Phase == keybase1.SimpleFSArchiveJobPhase_Copying {
-				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesCopied*100/job.BytesTotal, job.BytesCopied, job.BytesTotal)
+				percentage := int64(0)
+				if job.BytesTotal != 0 {
+					percentage = job.BytesCopied * 100 / job.BytesTotal
+				}
+				ui.Printf("(%d%%, %d / %d bytes)\n", percentage, job.BytesCopied, job.BytesTotal)
 			} else if job.Phase == keybase1.SimpleFSArchiveJobPhase_Zipping {
-				ui.Printf("(%d%%, %d / %d bytes)\n", job.BytesZipped*100/job.BytesTotal, job.BytesZipped, job.BytesTotal)
+				percentage := int64(0)
+				if job.BytesTotal != 0 {
+					percentage = job.BytesZipped * 100 / job.BytesTotal
+				}
+				ui.Printf("(%d%%, %d / %d bytes)\n", percentage, job.BytesZipped, job.BytesTotal)
 			} else {
 				ui.Printf("\n")
 			}
@@ -273,6 +294,74 @@ func (c *CmdSimpleFSArchiveStatus) ParseArgv(ctx *cli.Context) error {
 
 // GetUsage says what this command needs to operate.
 func (c *CmdSimpleFSArchiveStatus) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		KbKeyring: true,
+		API:       true,
+	}
+}
+
+// CmdSimpleFSArchiveCheckArchive is the 'fs archive check'command.
+type CmdSimpleFSArchiveCheckArchive struct {
+	libkb.Contextified
+	zipFilePaths []string
+}
+
+// NewCmdSimpleFSArchiveCheckArchive creates a new cli.Command.
+func NewCmdSimpleFSArchiveCheckArchive(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:    "check",
+		Aliases: []string{"check"},
+		Usage:   "check one or more previously created KBFS archive(s)",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdSimpleFSArchiveCheckArchive{
+				Contextified: libkb.NewContextified(g)}, "check", c)
+			cl.SetNoStandalone()
+		},
+		ArgumentHelp: "<KBFS archive zip file path>...",
+	}
+}
+
+// Run runs the command in client/server mode.
+func (c *CmdSimpleFSArchiveCheckArchive) Run() error {
+	cli, err := GetSimpleFSClient(c.G())
+	if err != nil {
+		return err
+	}
+	ui := c.G().UI.GetTerminalUI()
+
+	for _, zipFilePath := range c.zipFilePaths {
+		res, err := cli.SimpleFSArchiveCheckArchive(context.TODO(), zipFilePath)
+		if err != nil {
+			return err
+		}
+
+		ui.Printf("=== %s ===\n\n", zipFilePath)
+		ui.Printf("Archive TLF Revision: %v%s\n",
+			res.Desc.KbfsPathWithRevision.ArchivedParam.Revision(),
+			revisionExtendedDescription(res.CurrentTLFRevision, &res.Desc))
+		if len(res.PathsWithIssues) != 0 {
+			ui.Printf("Some entries in the archive have problems:\n")
+			for entryPath, entryIssue := range res.PathsWithIssues {
+				ui.Printf("%s\n  - %s\n", entryPath, entryIssue)
+			}
+		} else {
+			ui.Printf("Archive Integrity: OK\n")
+		}
+		ui.Printf("\n")
+	}
+
+	return nil
+}
+
+// ParseArgv parses the arguments.
+func (c *CmdSimpleFSArchiveCheckArchive) ParseArgv(ctx *cli.Context) error {
+	c.zipFilePaths = ctx.Args()
+	return nil
+}
+
+// GetUsage says what this command needs to operate.
+func (c *CmdSimpleFSArchiveCheckArchive) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
