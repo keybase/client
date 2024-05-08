@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"net/url"
@@ -16,6 +17,7 @@ import (
 	"path"
 	stdpath "path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -25,9 +27,11 @@ import (
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsgit"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/search"
@@ -140,8 +144,6 @@ type SimpleFS struct {
 	newFS newFSFunc
 	// For dumping debug info to the logs.
 	idd *libkbfs.ImpatientDebugDumper
-	// Indexes synced TLFs.
-	indexer *search.Indexer
 
 	// lock protects handles and inProgress
 	lock sync.RWMutex
@@ -162,12 +164,71 @@ type SimpleFS struct {
 
 	subscriptionNotifier libkbfs.SubscriptionNotifier
 
+	shutdownLock    sync.RWMutex
 	downloadManager *downloadManager
 	uploadManager   *uploadManager
-
-	archiveManager *archiveManager
+	archiveManager  *archiveManager
+	indexer         *search.Indexer // Indexes synced TLFs.
 
 	httpClient *http.Client
+}
+
+var _ libkbfs.ResetForLoginer = (*SimpleFS)(nil)
+
+func (k *SimpleFS) getDownloadManager() *downloadManager {
+	k.shutdownLock.RLock()
+	defer k.shutdownLock.RUnlock()
+	return k.downloadManager
+}
+
+func (k *SimpleFS) getUploadManager() *uploadManager {
+	k.shutdownLock.RLock()
+	defer k.shutdownLock.RUnlock()
+	return k.uploadManager
+}
+
+func (k *SimpleFS) getArchiveManager() *archiveManager {
+	k.shutdownLock.RLock()
+	defer k.shutdownLock.RUnlock()
+	return k.archiveManager
+}
+
+func (k *SimpleFS) getIndexer() *search.Indexer {
+	k.shutdownLock.RLock()
+	defer k.shutdownLock.RUnlock()
+	return k.indexer
+}
+
+// ResetForLogin (partially) resets simplefs state when user logs out.
+func (k *SimpleFS) ResetForLogin(ctx context.Context,
+	username libkb.NormalizedUsername) (err error) {
+	k.log.CDebugf(ctx, "+ SimpleFS.ResetForLogin username=%s", username)
+	defer func() { k.log.CDebugf(ctx, "- SimpleFS.ResetForLogin err=%v", err) }()
+
+	k.shutdownLock.Lock()
+	defer k.shutdownLock.Unlock()
+
+	k.archiveManager.shutdown(ctx)
+	k.archiveManager, err = newArchiveManager(k, username)
+	if err != nil {
+		log.Fatalf("initializing archive manager error: %v", err)
+	}
+
+	if k.indexer != nil {
+		err = k.indexer.Shutdown(ctx)
+		if err != nil {
+			return err
+		}
+		k.indexer, err = search.NewIndexer(k.config)
+		if err != nil {
+			k.log.Warning("Couldn't make indexer: %+v", err)
+		}
+	}
+
+	k.downloadManager = newDownloadManager(k)
+	k.uploadManager = newUploadManager(k)
+
+	return nil
 }
 
 type inprogress struct {
@@ -257,7 +318,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 	}
 	k.downloadManager = newDownloadManager(k)
 	k.uploadManager = newUploadManager(k)
-	k.archiveManager, err = newArchiveManager(k)
+	k.archiveManager, err = newArchiveManager(k, config.KbEnv().GetUsername())
 	if err != nil {
 		log.Fatalf("initializing archive manager error: %v", err)
 	}
@@ -267,7 +328,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 // NewSimpleFS creates a new SimpleFS instance.
 func NewSimpleFS(
 	appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
-	iface keybase1.SimpleFSInterface,
+	iface *SimpleFS,
 	shutdownFn func(context.Context) error) {
 	simpleFS := newSimpleFS(appStateUpdater, config)
 	return simpleFS, simpleFS.Shutdown
@@ -553,7 +614,7 @@ func deTy2Ty(et data.EntryType) keybase1.DirentType {
 	panic("deTy2Ty unreachable")
 }
 
-func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) ([]keybase1.Dirent, error) {
+func (k *SimpleFS) favoriteList(ctx context.Context, t tlf.Type) ([]keybase1.Dirent, error) {
 	kbpki, err := k.getKBPKI(ctx)
 	if err != nil {
 		return nil, err
@@ -962,11 +1023,11 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					{Name: "team", DirentType: deTy2Ty(data.Dir)},
 				}
 			case rawPath == `/public`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.Public)
+				res, err = k.favoriteList(ctx, tlf.Public)
 			case rawPath == `/private`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.Private)
+				res, err = k.favoriteList(ctx, tlf.Private)
 			case rawPath == `/team`:
-				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
+				res, err = k.favoriteList(ctx, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
 				switch errors.Cause(err).(type) {
@@ -3230,25 +3291,25 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 func (k *SimpleFS) SimpleFSStartDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
 	downloadID string, err error) {
-	return k.downloadManager.startDownload(ctx, arg)
+	return k.getDownloadManager().startDownload(ctx, arg)
 }
 
 // SimpleFSGetDownloadStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetDownloadStatus(ctx context.Context) (
 	status keybase1.DownloadStatus, err error) {
-	return k.downloadManager.getDownloadStatus(ctx), nil
+	return k.getDownloadManager().getDownloadStatus(ctx), nil
 }
 
 // SimpleFSCancelDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelDownload(
 	ctx context.Context, downloadID string) (err error) {
-	return k.downloadManager.cancelDownload(ctx, downloadID)
+	return k.getDownloadManager().cancelDownload(ctx, downloadID)
 }
 
 // SimpleFSDismissDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDismissDownload(
 	ctx context.Context, downloadID string) (err error) {
-	k.downloadManager.dismissDownload(ctx, downloadID)
+	k.getDownloadManager().dismissDownload(ctx, downloadID)
 	return nil
 }
 
@@ -3256,13 +3317,13 @@ func (k *SimpleFS) SimpleFSDismissDownload(
 func (k *SimpleFS) SimpleFSGetDownloadInfo(
 	ctx context.Context, downloadID string) (
 	downloadInfo keybase1.DownloadInfo, err error) {
-	return k.downloadManager.getDownloadInfo(downloadID)
+	return k.getDownloadManager().getDownloadInfo(downloadID)
 }
 
 // SimpleFSConfigureDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
-	k.downloadManager.configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
+	k.getDownloadManager().configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
 	return nil
 }
 
@@ -3408,12 +3469,12 @@ func (k *SimpleFS) SimpleFSSetSyncOnCellular(
 func (k *SimpleFS) SimpleFSSearch(
 	ctx context.Context, arg keybase1.SimpleFSSearchArg) (
 	res keybase1.SimpleFSSearchResults, err error) {
-	if k.indexer == nil {
+	if k.getIndexer() == nil {
 		return keybase1.SimpleFSSearchResults{},
 			errors.New("Indexing not enabled")
 	}
 
-	results, nextResult, err := k.indexer.Search(
+	results, nextResult, err := k.getIndexer().Search(
 		ctx, arg.Query, arg.NumResults, arg.StartingFrom)
 	if err != nil {
 		return keybase1.SimpleFSSearchResults{}, err
@@ -3429,22 +3490,22 @@ func (k *SimpleFS) SimpleFSSearch(
 
 // SimpleFSResetIndex implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSResetIndex(ctx context.Context) error {
-	if k.indexer == nil {
+	if k.getIndexer() == nil {
 		return errors.New("Indexing not enabled")
 	}
 
-	return k.indexer.ResetIndex(ctx)
+	return k.getIndexer().ResetIndex(ctx)
 }
 
 // SimpleFSGetIndexProgress implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetIndexProgress(
 	ctx context.Context) (res keybase1.SimpleFSIndexProgress, err error) {
-	if k.indexer == nil {
+	if k.getIndexer() == nil {
 		return keybase1.SimpleFSIndexProgress{}, errors.New(
 			"Indexing not enabled")
 	}
 
-	p := k.indexer.Progress()
+	p := k.getIndexer().Progress()
 	currProg, overallProg, currTlf, queuedTlfs := p.GetStatus()
 	res.CurrProgress = currProg
 	res.OverallProgress = overallProg
@@ -3497,31 +3558,31 @@ func (k *SimpleFS) SimpleFSGetIndexProgress(
 // SimpleFSMakeTempDirForUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSMakeTempDirForUpload(
 	ctx context.Context) (dirPath string, err error) {
-	return k.uploadManager.makeTempDir()
+	return k.getUploadManager().makeTempDir()
 }
 
 // SimpleFSStartUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSStartUpload(ctx context.Context,
 	arg keybase1.SimpleFSStartUploadArg) (uploadID string, err error) {
-	return k.uploadManager.start(ctx, arg.SourceLocalPath, arg.TargetParentPath)
+	return k.getUploadManager().start(ctx, arg.SourceLocalPath, arg.TargetParentPath)
 }
 
 // SimpleFSGetUploadStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetUploadStatus(
 	ctx context.Context) (status []keybase1.UploadState, err error) {
-	return k.uploadManager.getUploads(), nil
+	return k.getUploadManager().getUploads(), nil
 }
 
 // SimpleFSCancelUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelUpload(
 	ctx context.Context, uploadID string) (err error) {
-	return k.uploadManager.cancel(ctx, uploadID)
+	return k.getUploadManager().cancel(ctx, uploadID)
 }
 
 // SimpleFSDismissUpload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDismissUpload(
 	ctx context.Context, uploadID string) (err error) {
-	return k.uploadManager.dismiss(uploadID)
+	return k.getUploadManager().dismiss(uploadID)
 }
 
 // SimpleFSCancelJournalUploads implements the SimpleFSInterface.
@@ -3584,12 +3645,6 @@ func (k *SimpleFS) getCacheDir() string {
 	return k.config.KbEnv().GetCacheDir()
 }
 
-func (k *SimpleFS) getStagingPath(ctx context.Context, jobID string) (stagingPath string) {
-	username := k.config.KbEnv().GetUsername()
-	cacheDir := k.getCacheDir()
-	return filepath.Join(cacheDir, fmt.Sprintf("kbfs-archive-%s-%s", username, jobID))
-}
-
 func generateArchiveJobID() (string, error) {
 	buf := make([]byte, 8)
 	err := kbfscrypto.RandRead(buf)
@@ -3598,6 +3653,26 @@ func generateArchiveJobID() (string, error) {
 	}
 	return fmt.Sprintf("kbfs-archive-job-%s",
 		base64.RawURLEncoding.EncodeToString(buf)), nil
+}
+
+func parseGitRepoForKBFSPath(gitRepo string) (kbfsPath keybase1.KBFSPath, err error) {
+	tlfType, tlfName, repoName, err := kbfsgit.ParseRepo(gitRepo)
+	if err != nil {
+		return keybase1.KBFSPath{}, err
+	}
+	return keybase1.KBFSPath{
+		Path: fmt.Sprintf("/%s/%s/.kbfs_git/%s", tlfType.PathString(), tlfName, repoName),
+	}, nil
+}
+
+var gitKBFSPathRE = regexp.MustCompile(`^\/(private|public|team)\/(.+)\/\.kbfs_git\/(` + libgit.RepoNameRE + `)$`)
+
+func parseKbfsPathForGitRepo(kbfsPath keybase1.KBFSPath) (gitRepo string, repoNameWithDotGit string, ok bool) {
+	match := gitKBFSPathRE.FindStringSubmatch(kbfsPath.Path)
+	if len(match) != 4 {
+		return "", "", false
+	}
+	return fmt.Sprintf("keybase://%s/%s/%s.git", match[1], match[2], match[3]), match[3] + ".git", true
 }
 
 // SimpleFSArchiveStart implements the SimpleFSInterface.
@@ -3614,17 +3689,48 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	if err != nil {
 		return keybase1.SimpleFSArchiveJobDesc{}, err
 	}
-	desc.StagingPath = k.getStagingPath(ctx, desc.JobID)
+	desc.StagingPath = k.getArchiveManager().getStagingPath(ctx, desc.JobID)
 
-	p, err := splitPathFromKbfsPath(keybase1.NewPathWithKbfs(arg.KbfsPath))
-	if err != nil {
-		return keybase1.SimpleFSArchiveJobDesc{}, err
+	var kbfsPath keybase1.KBFSPath
+	{
+		typ, err := arg.ArchiveJobStartPath.ArchiveJobStartPathType()
+		if err != nil {
+			return keybase1.SimpleFSArchiveJobDesc{},
+				fmt.Errorf("getting ArchiveJobStartPathType error: %v", err)
+		}
+		switch typ {
+		case keybase1.ArchiveJobStartPathType_KBFS:
+			kbfsPath = arg.ArchiveJobStartPath.Kbfs()
+			p, err := splitPathFromKbfsPath(keybase1.NewPathWithKbfs(kbfsPath))
+			if err != nil {
+				return keybase1.SimpleFSArchiveJobDesc{}, err
+			}
+			if len(p) == 0 {
+				return keybase1.SimpleFSArchiveJobDesc{},
+					errors.New("unexpected number of elements from splitPathFromKbfsPath")
+			}
+			desc.TargetName = p[len(p)-1]
+
+		case keybase1.ArchiveJobStartPathType_GIT:
+			kbfsPath, err = parseGitRepoForKBFSPath(arg.ArchiveJobStartPath.Git())
+			if err != nil {
+				return keybase1.SimpleFSArchiveJobDesc{},
+					fmt.Errorf("parsing git repo error: %v", err)
+			}
+		default:
+			return keybase1.SimpleFSArchiveJobDesc{},
+				fmt.Errorf("unexpected ArchiveJobStartPathType: %v", typ)
+		}
 	}
-	if len(p) == 0 {
-		return keybase1.SimpleFSArchiveJobDesc{},
-			errors.New("unexpected number of elements from splitPathFromKbfsPath")
+
+	// Do this separately rather than in the ArchiveJobStartPathType_GIT branch
+	// so it also covers the case where user browses into the `.kbfs_git`
+	// directory and archive.
+	gitRepo, repoName, ok := parseKbfsPathForGitRepo(kbfsPath)
+	if ok {
+		desc.GitRepo = &gitRepo
+		desc.TargetName = repoName
 	}
-	desc.TargetName = p[len(p)-1]
 
 	desc.ZipFilePath = arg.OutputPath
 	if len(desc.ZipFilePath) == 0 {
@@ -3641,7 +3747,7 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 	// Pin the job to a specific revision so if the TLF changes during the
 	// archive we don't end up mixing two different revisions.
 	{
-		fb, _, err := k.getFolderBranchFromPath(ctx, keybase1.NewPathWithKbfs(arg.KbfsPath))
+		fb, _, err := k.getFolderBranchFromPath(ctx, keybase1.NewPathWithKbfs(kbfsPath))
 		if err != nil {
 			return keybase1.SimpleFSArchiveJobDesc{}, err
 		}
@@ -3653,13 +3759,13 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 			return keybase1.SimpleFSArchiveJobDesc{}, err
 		}
 		desc.KbfsPathWithRevision = keybase1.KBFSArchivedPath{
-			Path: arg.KbfsPath.Path,
+			Path: kbfsPath.Path,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
 				keybase1.KBFSRevision(status.Revision)),
 		}
 	}
 
-	err = k.archiveManager.startJob(ctx, desc)
+	err = k.getArchiveManager().startJob(ctx, desc)
 	return desc, err
 }
 
@@ -3667,7 +3773,41 @@ func (k *SimpleFS) SimpleFSArchiveStart(ctx context.Context,
 func (k *SimpleFS) SimpleFSArchiveCancelOrDismissJob(ctx context.Context,
 	jobID string) (err error) {
 	ctx = k.makeContext(ctx)
-	return k.archiveManager.cancelOrDismissJob(ctx, jobID)
+	return k.getArchiveManager().cancelOrDismissJob(ctx, jobID)
+}
+
+func (k *SimpleFS) getCurrentTLFRevision(
+	ctx context.Context, kbfsPath keybase1.KBFSPath) (
+	keybase1.KBFSRevision, error) {
+	fb, _, err := k.getFolderBranchFromPath(ctx,
+		keybase1.NewPathWithKbfs(kbfsPath))
+	if err != nil {
+		return 0, err
+	}
+	if fb == (data.FolderBranch{}) {
+		return 0, nil
+	}
+	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	if err != nil {
+		return 0, err
+	}
+	return keybase1.KBFSRevision(status.Revision), nil
+}
+
+// SimpleFSArchiveCheckArchive implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveCheckArchive(ctx context.Context,
+	archiveZipFilePath string) (result keybase1.SimpleFSArchiveCheckArchiveResult, err error) {
+	ctx = k.makeContext(ctx)
+	result.Desc, result.PathsWithIssues, err = k.getArchiveManager().checkArchive(ctx, archiveZipFilePath)
+	if err != nil {
+		return keybase1.SimpleFSArchiveCheckArchiveResult{}, err
+	}
+	result.CurrentTLFRevision, err = k.getCurrentTLFRevision(ctx,
+		keybase1.KBFSPath{Path: result.Desc.KbfsPathWithRevision.Path})
+	if err != nil {
+		return keybase1.SimpleFSArchiveCheckArchiveResult{}, err
+	}
+	return result, nil
 }
 
 func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
@@ -3716,49 +3856,188 @@ func (k *SimpleFS) archiveStateToStatus(ctx context.Context,
 func (k *SimpleFS) SimpleFSGetArchiveStatus(ctx context.Context) (
 	status keybase1.SimpleFSArchiveStatus, err error) {
 	ctx = k.makeContext(ctx)
-	state, errorStates := k.archiveManager.getCurrentState(ctx)
+	state, errorStates := k.getArchiveManager().getCurrentState(ctx)
 	return k.archiveStateToStatus(ctx, state, errorStates)
 }
 
 // SimpleFSGetArchiveJobFreshness implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetArchiveJobFreshness(ctx context.Context, jobID string) (keybase1.SimpleFSArchiveJobFreshness, error) {
 	ctx = k.makeContext(ctx)
-	state, _ := k.archiveManager.getCurrentState(ctx)
+	state, _ := k.getArchiveManager().getCurrentState(ctx)
 	stateJob, ok := state.Jobs[jobID]
 	if !ok {
 		return keybase1.SimpleFSArchiveJobFreshness{}, fmt.Errorf("job not found: %s", jobID)
 	}
-	fb, _, err := k.getFolderBranchFromPath(ctx,
-		keybase1.NewPathWithKbfs(keybase1.KBFSPath{
-			Path: stateJob.Desc.KbfsPathWithRevision.Path}))
-	if err != nil {
-		return keybase1.SimpleFSArchiveJobFreshness{}, err
-	}
-	if fb == (data.FolderBranch{}) {
-		return keybase1.SimpleFSArchiveJobFreshness{}, nil
-	}
-	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	rev, err := k.getCurrentTLFRevision(ctx,
+		keybase1.KBFSPath{Path: stateJob.Desc.KbfsPathWithRevision.Path})
 	if err != nil {
 		return keybase1.SimpleFSArchiveJobFreshness{}, err
 	}
 	return keybase1.SimpleFSArchiveJobFreshness{
-		CurrentTLFRevision: keybase1.KBFSRevision(status.Revision),
+		CurrentTLFRevision: rev,
 	}, nil
 }
 
-func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
+// SimpleFSArchiveAllFiles implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveAllFiles(
+	ctx context.Context, arg keybase1.SimpleFSArchiveAllFilesArg) (
+	res keybase1.SimpleFSArchiveAllFilesResult, err error) {
+	var startArgs []keybase1.SimpleFSArchiveStartArg
+	{
+		fl, err := k.favoriteList(ctx, tlf.Private)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+					Path: fmt.Sprintf("/private/%s", item.Name),
+				}),
+				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-private-"+item.Name+".zip"),
+				OverwriteZip: arg.OverwriteZip,
+			})
+		}
+
+		fl, err = k.favoriteList(ctx, tlf.Public)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			p := fmt.Sprintf("/public/%s", item.Name)
+			if arg.IncludePublicReadonly || item.Writable {
+				startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+					ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+						Path: p,
+					}),
+					OutputPath:   filepath.Join(arg.OutputDir, "kbfs-public-"+item.Name+".zip"),
+					OverwriteZip: arg.OverwriteZip,
+				})
+			} else {
+				res.SkippedTLFPaths = append(res.SkippedTLFPaths, p)
+			}
+		}
+
+		fl, err = k.favoriteList(ctx, tlf.SingleTeam)
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllFilesResult{}, err
+		}
+		for _, item := range fl {
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(keybase1.KBFSPath{
+					Path: fmt.Sprintf("/team/%s", item.Name),
+				}),
+				OutputPath:   filepath.Join(arg.OutputDir, "kbfs-team-"+item.Name+".zip"),
+				OverwriteZip: arg.OverwriteZip,
+			})
+		}
+	}
+
+	res.TlfPathToError = make(map[string]string)
+	res.TlfPathToJobDesc = make(map[string]keybase1.SimpleFSArchiveJobDesc)
+	for _, a := range startArgs {
+		jobDesc, err := k.SimpleFSArchiveStart(ctx, a)
+		if err != nil {
+			res.TlfPathToError[a.ArchiveJobStartPath.Kbfs().Path] = err.Error()
+		} else {
+			res.TlfPathToJobDesc[a.ArchiveJobStartPath.Kbfs().Path] = jobDesc
+		}
+	}
+
+	return res, nil
+}
+
+func (k *SimpleFS) getAllGitMetadata(ctx context.Context) (res []keybase1.GitRepoResult, err error) {
+	ks := k.config.KeybaseService()
+	if ks == nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: ks is nil")
+		return nil, errors.New("ks is nil")
+	}
+	rc := ks.GetKeybaseDaemonRawClient()
+	if rc == nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: rawClient is nil")
+		return nil, errors.New("rawClient is nil")
+	}
+	client := keybase1.GitClient{Cli: rc}
+	res, err = client.GetAllGitMetadata(ctx)
+	if err != nil {
+		k.log.CWarningf(ctx, "k.getAllGitMetadata: client.GetAllGitMetadata error: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// SimpleFSArchiveAllGitRepos implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSArchiveAllGitRepos(
+	ctx context.Context, arg keybase1.SimpleFSArchiveAllGitReposArg) (
+	res keybase1.SimpleFSArchiveAllGitReposResult, err error) {
+	allGitMetadataResult, err := k.getAllGitMetadata(ctx)
+	if err != nil {
+		return keybase1.SimpleFSArchiveAllGitReposResult{}, err
+	}
+
+	var startArgs []keybase1.SimpleFSArchiveStartArg
+	for _, gitRepoResult := range allGitMetadataResult {
+		state, err := gitRepoResult.State()
+		if err != nil {
+			return keybase1.SimpleFSArchiveAllGitReposResult{},
+				fmt.Errorf("gitRepoResult.State() error: %v", err)
+		}
+		switch state {
+		case keybase1.GitRepoResultState_OK:
+			gitRepoInfo := gitRepoResult.Ok()
+			folderTypeStr, err := func() (string, error) {
+				switch gitRepoInfo.Folder.FolderType {
+				case keybase1.FolderType_PRIVATE:
+					return "private", nil
+				case keybase1.FolderType_TEAM:
+					return "team", nil
+				default:
+					return "", fmt.Errorf("unexpected FolderType: %v", gitRepoInfo.Folder.FolderType)
+				}
+			}()
+			if err != nil {
+				return keybase1.SimpleFSArchiveAllGitReposResult{}, err
+			}
+			startArgs = append(startArgs, keybase1.SimpleFSArchiveStartArg{
+				ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithGit(gitRepoInfo.RepoUrl),
+				OutputPath:          filepath.Join(arg.OutputDir, "git-"+folderTypeStr+"-"+string(gitRepoInfo.LocalMetadata.RepoName)+".git.zip"),
+				OverwriteZip:        arg.OverwriteZip,
+			})
+		case keybase1.GitRepoResultState_ERR:
+			return keybase1.SimpleFSArchiveAllGitReposResult{},
+				fmt.Errorf("getRepoResult result error: %v", gitRepoResult.Err())
+		default:
+			return keybase1.SimpleFSArchiveAllGitReposResult{}, fmt.Errorf("unexpected gitRepoResult.State() %v", state)
+
+		}
+	}
+
+	res.GitRepoToError = make(map[string]string)
+	res.GitRepoToJobDesc = make(map[string]keybase1.SimpleFSArchiveJobDesc)
+	for _, a := range startArgs {
+		jobDesc, err := k.SimpleFSArchiveStart(ctx, a)
+		if err != nil {
+			res.GitRepoToError[a.ArchiveJobStartPath.Git()] = err.Error()
+		} else {
+			res.GitRepoToJobDesc[a.ArchiveJobStartPath.Git()] = jobDesc
+		}
+	}
+
+	return res, nil
+}
+
+func (k *SimpleFS) notifyUIArchiveStateChange(ctx context.Context,
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState) {
 	ks := k.config.KeybaseService()
 	if ks == nil {
 		k.log.CWarningf(ctx,
-			"k.notifyUIStateChange: skipping notification because KeybaseService() is nil")
-		return
+			"k.notifyUIArchiveStateChange: skipping notification because KeybaseService() is nil")
 		return
 	}
 	rc := ks.GetKeybaseDaemonRawClient()
 	if rc == nil {
 		k.log.CWarningf(ctx,
-			"k.notifyUIStateChange: skipping notification because rawClient is nil")
+			"k.notifyUIArchiveStateChange: skipping notification because rawClient is nil")
 		return
 	}
 	client := keybase1.NotifySimpleFSClient{Cli: rc}
@@ -3777,6 +4056,9 @@ func (k *SimpleFS) notifyUIStateChange(ctx context.Context,
 
 // Shutdown shuts down SimpleFS.
 func (k *SimpleFS) Shutdown(ctx context.Context) error {
+	k.shutdownLock.Lock()
+	defer k.shutdownLock.Unlock()
+
 	k.archiveManager.shutdown(ctx)
 	if k.indexer == nil {
 		return nil

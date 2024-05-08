@@ -149,32 +149,41 @@ type runner struct {
 	stageCPUProfPath string
 }
 
-func newRunnerWithType(ctx context.Context, config libkbfs.Config,
-	remote, repo, gitDir string, input io.Reader, output, errput io.Writer,
-	processType runnerProcessType) (
-	*runner, error) {
+// ParseRepo parses a git repo in the form of keybase://<tlf-type>/<tlf>/<repo-name>
+func ParseRepo(repo string) (tlfType tlf.Type, tlfName string, repoName string, err error) {
 	tlfAndRepo := strings.TrimPrefix(repo, kbfsgitPrefix)
 	parts := strings.Split(tlfAndRepo, repoSplitter)
 	if len(parts) != 3 {
-		return nil, errors.Errorf("Repo should be in the format "+
+		return tlf.Unknown, "", "", errors.Errorf("Repo should be in the format "+
 			"%s<tlfType>%s<tlf>%s<repo>, but got %s",
 			kbfsgitPrefix, repoSplitter, repoSplitter, tlfAndRepo)
 	}
 
-	var t tlf.Type
 	switch parts[0] {
 	case publicName:
-		t = tlf.Public
+		tlfType = tlf.Public
 	case privateName:
-		t = tlf.Private
+		tlfType = tlf.Private
 	case teamName:
-		t = tlf.SingleTeam
+		tlfType = tlf.SingleTeam
 	default:
-		return nil, errors.Errorf("Unrecognized TLF type: %s", parts[0])
+		return tlf.Unknown, "", "", errors.Errorf("Unrecognized TLF type: %s", parts[0])
+	}
+
+	return tlfType, parts[1], libgit.NormalizeRepoName(parts[2]), nil
+}
+
+func newRunnerWithType(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output, errput io.Writer,
+	processType runnerProcessType) (
+	*runner, error) {
+	tlfType, tlfName, repoName, err := ParseRepo(repo)
+	if err != nil {
+		return nil, err
 	}
 
 	h, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), config.MDOps(), config, parts[1], t)
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, tlfType)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +202,7 @@ func newRunnerWithType(ctx context.Context, config libkbfs.Config,
 		log:         config.MakeLogger(""),
 		h:           h,
 		remote:      remote,
-		repo:        parts[2],
+		repo:        repoName,
 		gitDir:      gitDir,
 		uniqID:      uniqID,
 		input:       input,

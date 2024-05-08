@@ -24,6 +24,14 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const _onBrowseGitRepo = (path: T.FS.Path) => {
     C.FS.makeActionForOpenPathInFilesTab(path)
   }
+  const _onArchiveGitRepo = (gitURL: string) => {
+    C.featureFlags.archive &&
+      gitURL &&
+      navigateAppend({
+        props: {gitURL, type: 'git'} as const,
+        selected: 'archiveModal',
+      })
+  }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onOpenChannelSelection = () => {
@@ -56,6 +64,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     lastEditTime: git.lastEditTime,
     lastEditUser: git.lastEditUser,
     name: git.name,
+    onArchiveGitRepo: () => _onArchiveGitRepo(git.url),
     onBrowseGitRepo: () =>
       _onBrowseGitRepo(
         T.FS.stringToPath(
@@ -100,6 +109,7 @@ type Props = {
   url: string
   isNew: boolean
   onBrowseGitRepo: () => void
+  onArchiveGitRepo: () => void
   onCopy: () => void
   onClickDevice: () => void
   onShowDelete: () => void
@@ -256,6 +266,20 @@ const Row = (props: Props) => (
               >
                 <Kb.Icon
                   type="iconfont-file"
+                  sizeType="Small"
+                  color={Kb.Styles.globalColors.black_50}
+                  style={{marginRight: Kb.Styles.globalMargins.xtiny}}
+                />
+              </Kb.Button>
+              <Kb.Button
+                type="Dim"
+                mode="Secondary"
+                small={true}
+                label="Archive"
+                onClick={props.onArchiveGitRepo}
+              >
+                <Kb.Icon
+                  type="iconfont-mailbox"
                   sizeType="Small"
                   color={Kb.Styles.globalColors.black_50}
                   style={{marginRight: Kb.Styles.globalMargins.xtiny}}

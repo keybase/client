@@ -129,6 +129,9 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 			ctx, FavoritesRefreshModeInMainFavoritesLoop)
 	}
 	config.KBFSOps().PushStatusChange()
+
+	config.ResetForLogin(ctx, session.Name)
+
 	return wg
 }
 

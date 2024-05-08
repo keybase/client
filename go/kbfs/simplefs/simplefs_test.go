@@ -1844,8 +1844,8 @@ func TestArchiveSymlink(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	desc, err := sfs.SimpleFSArchiveStart(ctx, keybase1.SimpleFSArchiveStartArg{
-		KbfsPath:   path1.Kbfs(),
-		OutputPath: filepath.Join(tempdir, "archive"),
+		ArchiveJobStartPath: keybase1.NewArchiveJobStartPathWithKbfs(path1.Kbfs()),
+		OutputPath:          filepath.Join(tempdir, "archive"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(tempdir, "archive.zip"), desc.ZipFilePath)
@@ -1873,7 +1873,7 @@ loopWait:
 	defer func() { _ = reader.Close() }()
 	require.NoError(t, err)
 
-	files := map[string]bool{"manifest.json": true, "jdoe/test1.txt": true, "jdoe/link1": true}
+	files := map[string]bool{"receipt.json": true, "jdoe/test1.txt": true, "jdoe/link1": true, "jdoe": true, ".": true}
 	require.Equal(t, len(files), len(reader.File))
 	for _, f := range reader.File {
 		delete(files, f.Name)

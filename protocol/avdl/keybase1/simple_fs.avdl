@@ -751,16 +751,26 @@ protocol SimpleFS {
   // partially-uploaded changes, and leaked blocks on the bserver.
   void simpleFSCancelJournalUploads(KBFSPath path);
 
+  enum ArchiveJobStartPathType {
+    KBFS_0,
+    GIT_1
+  }
+  variant ArchiveJobStartPath switch (ArchiveJobStartPathType archiveJobStartPathType) {
+    case KBFS: KBFSPath;
+    case GIT: string;
+  }
+
   record SimpleFSArchiveJobDesc {
     string jobID;
     KBFSArchivedPath kbfsPathWithRevision;
+    union {null, string} gitRepo; // only populated for git archives
     boolean overwriteZip;
     Time startTime;
     string stagingPath; // CancelOrDismiss gets rid of this
     string targetName; // target inside the stagingPath
     string zipFilePath; // This could be either user specified (desktop), or inside the staging path.
   }
-  SimpleFSArchiveJobDesc simpleFSArchiveStart(KBFSPath kbfsPath /* must be a directory */, string outputPath, boolean overwriteZip);
+  SimpleFSArchiveJobDesc simpleFSArchiveStart(ArchiveJobStartPath archiveJobStartPath /* must be a directory */, string outputPath, boolean overwriteZip);
 
   void simpleFSArchiveCancelOrDismissJob(string jobID);
 
@@ -827,4 +837,29 @@ protocol SimpleFS {
     KBFSRevision currentTLFRevision;
   }
   SimpleFSArchiveJobFreshness simpleFSGetArchiveJobFreshness(string jobID);
+
+  record SimpleFSArchiveCheckArchiveResult {
+    SimpleFSArchiveJobDesc desc;
+    KBFSRevision currentTLFRevision;
+    map<string, string> pathsWithIssues;
+  }
+  SimpleFSArchiveCheckArchiveResult simpleFSArchiveCheckArchive(string archiveZipFilePath);
+
+  record SimpleFSArchiveAllFilesResult {
+    map<string, SimpleFSArchiveJobDesc> tlfPathToJobDesc;
+    map<string, string> tlfPathToError;
+    array<string> skippedTLFPaths;
+  }
+  // simpleFSArchiveAllGitRepos creates an archive job for each TLF in the
+  // favorites list. By default it skips public TLFs that the currently logged
+  // user is not a writer of.
+  SimpleFSArchiveAllFilesResult simpleFSArchiveAllFiles(string outputDir, boolean overwriteZip, boolean includePublicReadonly);
+
+  record SimpleFSArchiveAllGitReposResult {
+    map<string, SimpleFSArchiveJobDesc> gitRepoToJobDesc;
+    map<string, string> gitRepoToError;
+  }
+  // simpleFSArchiveAllGitRepos creates an archive job for each git repo that
+  // shows up in the user's Git tab.
+  SimpleFSArchiveAllGitReposResult simpleFSArchiveAllGitRepos(string outputDir, boolean overwriteZip);
 }

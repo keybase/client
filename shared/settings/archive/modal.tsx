@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {pickSave} from '@/util/pick-files'
+import * as FsCommon from '@/fs/common'
 
 type Props =
   | {
@@ -15,9 +16,14 @@ type Props =
     }
   | {type: 'chatAll'}
   | {type: 'fsAll'}
+  | {type: 'gitAll'}
   | {
       type: 'fsPath'
       path: string
+    }
+  | {
+      type: 'git'
+      gitURL: string
     }
 
 const ArchiveModal = (p: Props) => {
@@ -35,6 +41,9 @@ const ArchiveModal = (p: Props) => {
       case 'chatAll':
         defaultPath += `chat`
         break
+      case 'gitAll':
+        defaultPath = `${C.downloadFolder}/keybase-git`
+        break
       case 'chatTeam':
         defaultPath += p.teamname
         break
@@ -44,12 +53,18 @@ const ArchiveModal = (p: Props) => {
       case 'fsPath':
         defaultPath += `${p.path.replaceAll('/', '_')}`
         break
+      case 'git':
+        defaultPath = `${C.downloadFolder}/keybase-${p.gitURL.replaceAll('/', '_')}`
+        break
     }
   }
 
   const [outpath, setOutpath] = React.useState(defaultPath)
   const [started, setStarted] = React.useState(false)
   const start = C.useArchiveState(s => s.dispatch.start)
+  const resetWaiters = C.useArchiveState(s => s.dispatch.resetWaiters)
+  const archiveAllFilesResponseWaiter = C.useArchiveState(s => s.archiveAllFilesResponseWaiter)
+  const archiveAllGitResponseWaiter = C.useArchiveState(s => s.archiveAllGitResponseWaiter)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
 
@@ -66,20 +81,28 @@ const ArchiveModal = (p: Props) => {
         start('chatname', '.', outpath)
         break
       case 'fsAll':
-        start('kbfs', '.', outpath)
+        start('kbfs', '/keybase', C.isMobile ? '' : outpath)
+        break
+      case 'gitAll':
+        start('git', '.', C.isMobile ? '' : outpath)
         break
       case 'chatTeam':
         start('chatname', p.teamname, outpath)
         break
       case 'fsPath':
-        start('kbfs', p.path, outpath)
+        start('kbfs', p.path, C.isMobile ? '' : outpath)
+        break
+      case 'git':
+        start('git', p.gitURL, C.isMobile ? '' : outpath)
         break
     }
   }, [outpath, canStart, p, start])
   const onClose = React.useCallback(() => {
+    resetWaiters()
     navigateUp()
-  }, [navigateUp])
+  }, [navigateUp, resetWaiters])
   const onProgress = React.useCallback(() => {
+    resetWaiters()
     navigateUp()
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
@@ -88,7 +111,7 @@ const ArchiveModal = (p: Props) => {
         C.Router2._getNavigator()?.navigate(C.Settings.settingsArchiveTab)
       }, 200)
     }, 200)
-  }, [navigateUp, switchTab])
+  }, [navigateUp, resetWaiters, switchTab])
 
   const selectPath = React.useCallback(() => {
     const f = async () => {
@@ -110,22 +133,91 @@ const ArchiveModal = (p: Props) => {
       content = <Kb.Text type="Body">Source: All chats</Kb.Text>
       break
     case 'fsAll':
-      content = <Kb.Text type="Body">Source: All KBFS</Kb.Text>
+      content =
+        archiveAllFilesResponseWaiter.state === 'idle' ? (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+              <Kb.Text type="Header">All Files</Kb.Text>
+            </Kb.Box2>
+            <Kb.Text type="Body">
+              Note: public folders that you are not a writer of will be skipped. Use{' '}
+              <Kb.Text type="TerminalInline">keybase fs archive</Kb.Text> if you want to archive them.
+            </Kb.Text>
+          </Kb.Box2>
+        ) : archiveAllFilesResponseWaiter.state === 'waiting' ? (
+          <Kb.LoadingLine />
+        ) : (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
+              <Kb.Text type="Header">All Files</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.Text type="Body">
+                Started {archiveAllFilesResponseWaiter.started} jobs successfully.
+              </Kb.Text>
+              <Kb.Text type="Body">Skipped {archiveAllFilesResponseWaiter.skipped} folders.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllFilesResponseWaiter.errors.size} errors.</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        )
+      break
+    case 'gitAll':
+      content =
+        archiveAllGitResponseWaiter.state === 'idle' ? (
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+            <Kb.Text type="Header">All Git Repos</Kb.Text>
+          </Kb.Box2>
+        ) : archiveAllGitResponseWaiter.state === 'waiting' ? (
+          <Kb.LoadingLine />
+        ) : (
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+              <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+              <Kb.Text type="Header">All Git Repos</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.Text type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text>
+              <Kb.Text type="Body">Encountered {archiveAllGitResponseWaiter.errors.size} errors.</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        )
       break
     case 'fsPath':
-      content = <Kb.Text type="Body">Source: KBFS folder: {p.path}</Kb.Text>
+      content = (
+        <Kb.WithTooltip tooltip={p.path} position="bottom center" toastStyle={styles.contentContainer}>
+          <FsCommon.PathItemInfo path={p.path} />
+        </Kb.WithTooltip>
+      )
+      break
+    case 'git':
+      content = (
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
+          <Kb.Text type="TerminalInline" lineClamp={2}>
+            {p.gitURL}
+          </Kb.Text>
+        </Kb.Box2>
+      )
       break
   }
 
   const output = Kb.Styles.isMobile ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-      <Kb.Text type="Body">To:</Kb.Text>
-      <Kb.BoxGrow style={{height: 22}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+        <Kb.Text type="Body">Save To</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text type="BodyItalic" lineClamp={1} title={outpath} style={styles.outPath}>
           {outpath}
         </Kb.Text>
-      </Kb.BoxGrow>
-      <Kb.Button small={true} label="Change" onClick={selectPath} style={styles.selectOutput} />
+        <Kb.BoxGrow />
+        <Kb.Text type="BodyPrimaryLink" onClick={selectPath}>
+          Change
+        </Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
   )
 
@@ -144,14 +236,18 @@ const ArchiveModal = (p: Props) => {
         ),
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
         {Kb.Styles.isMobile ? (
           <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
         ) : (
           <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
         )}
+        <Kb.BoxGrow />
         {content}
-        {output}
+        <Kb.BoxGrow />
+        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+          ? null
+          : output}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -159,6 +255,9 @@ const ArchiveModal = (p: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
+  contentContainer: {
+    maxWidth: 400,
+  },
   outPath: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blue_30,
@@ -168,9 +267,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       wordBreak: 'break-all',
     },
   }),
-  selectOutput: {
-    alignSelf: 'flex-start',
-  },
 }))
 
 export default ArchiveModal
