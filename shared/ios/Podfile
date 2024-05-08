@@ -7,8 +7,6 @@ install! 'cocoapods',
 
 prepare_react_native_project!
 
-flipper_config =  FlipperConfiguration.disabled
-
 target 'Keybase' do
   use_expo_modules!
   config = use_native_modules!
@@ -21,8 +19,6 @@ target 'Keybase' do
     :fabric_enabled => false,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    # Note that if you have use_frameworks! enabled, Flipper will not work if enabled
-    :flipper_configuration => flipper_config
   )
 
   post_install do |installer|
@@ -30,7 +26,8 @@ target 'Keybase' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
     )
     # fix pods xcode 14 losing signing team
       installer.pods_project.targets.each do |target|
