@@ -319,10 +319,10 @@ const Archive = C.featureFlags.archive
                   to archive all.
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.ButtonBar align="flex-start">
-                <Kb.Button label="Archive all chat" onClick={archiveChat} />
-                <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
-                <Kb.Button label="Archive all Git Repos" onClick={archiveGit} />
+              <Kb.ButtonBar align="flex-start" direction={C.isMobile ? 'column' : 'row'}>
+                <Kb.Button small={C.isMobile} label="Archive all chat" onClick={archiveChat} />
+                <Kb.Button small={C.isMobile} label="Archive all files" onClick={archiveFS} />
+                <Kb.Button small={C.isMobile} label="Archive all Git Repos" onClick={archiveGit} />
               </Kb.ButtonBar>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
