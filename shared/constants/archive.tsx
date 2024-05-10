@@ -156,6 +156,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     )
   }
   const startChatArchiveCID = (conversationIDKey: T.Chat.ConversationIDKey, outPath: string) => {
+    console.log('aaaa startChatArchiveCID ', outPath)
     startChatArchive(
       {
         computeActiveList: false,
