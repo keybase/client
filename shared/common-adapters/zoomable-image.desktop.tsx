@@ -126,7 +126,12 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       ? {
           ...imgStyle,
         }
-      : {margin: 'auto', maxHeight: '100%', maxWidth: '100%', ...forceDims}
+      : {
+          ...(forceDims ? {aspectRatio: `${forceDims.width} / ${forceDims.height}`} : {}),
+          margin: 'auto',
+          maxHeight: '100%',
+          maxWidth: '100%',
+        }
   }
 
   const divRef = React.useRef<HTMLDivElement>(null)
