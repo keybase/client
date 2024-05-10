@@ -73,6 +73,12 @@ function SettingsNav() {
   const sections: Array<Section> = [
     {
       data: [
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsArchiveTab)
+          },
+          text: 'TEMP',
+        },
         ...(statsShown ? [{onClick: noop, text: 'perf'}] : []),
         {
           icon: 'iconfont-nav-2-crypto',
