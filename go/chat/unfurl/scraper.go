@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"time"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/keybase/client/go/chat/globals"
@@ -31,6 +32,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 	c := colly.NewCollector(
 		colly.UserAgent(userAgent),
 	)
+	c.SetRequestTimeout(time.Second * 30)
 	var record *rpc.NetworkInstrumenter
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("connection", "keep-alive")

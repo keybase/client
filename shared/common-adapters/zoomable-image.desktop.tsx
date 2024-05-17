@@ -62,14 +62,15 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
 
     const x = Math.min(
-      0,
+      // if the image is smaller then center it
+      imgRect.width < containerRect.width ? (containerRect.width - imgRect.width) / 2 : 0,
       Math.max(
         -(imgRect.width - containerRect.width),
         containerRect.width * xPercent - imgRect.width * xPercent
       )
     )
     const y = Math.min(
-      0,
+      imgRect.height < containerRect.height ? (containerRect.height - imgRect.height) / 2 : 0,
       Math.max(
         -(imgRect.height - containerRect.height),
         containerRect.height * yPercent - imgRect.height * yPercent
@@ -86,8 +87,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return
 
-    const delta = e.deltaY > 0 ? 1.02 : 0.92
-    scaleRef.current = Math.min(2.5, Math.max(0.5, scaleRef.current * delta))
+    const delta = e.deltaY > 0 ? 1.02 : 0.98
+    scaleRef.current = Math.min(2.5, Math.max(0.3, scaleRef.current * delta))
     handleMouseMove(e)
   }
 
@@ -126,7 +127,13 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       ? {
           ...imgStyle,
         }
-      : {margin: 'auto', maxHeight: '100%', maxWidth: '100%', ...forceDims}
+      : {
+          ...forceDims,
+          margin: 'auto',
+          maxHeight: '100%',
+          maxWidth: '100%',
+          objectFit: 'contain',
+        }
   }
 
   const divRef = React.useRef<HTMLDivElement>(null)

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 
 const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
@@ -162,6 +163,24 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     C.ignorePromise(cancelOrDismiss(id))
   }, [cancelOrDismiss, id])
 
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={[{onClick: onShare, title: 'Share'}]}
+          onHidden={hidePopup}
+          visible={true}
+          position="bottom center"
+        />
+      )
+    },
+    [onShare]
+  )
+  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+
   if (!job) {
     return null
   }
@@ -179,26 +198,39 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     job.kbfsRevision < currentTLFRevision
       ? `Archive revision ${job.kbfsRevision} behind TLF revision ${currentTLFRevision}. Make a new archive if needed.`
       : null
+
   return (
     <Kb.ListItem2
       firstItem={index === -1}
       type="Small"
       body={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
+        <Kb.Box2Measure
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          gap="tiny"
+          fullHeight={true}
+          ref={popupAnchor}
+        >
           {job.gitRepo ? (
             <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
           ) : (
             <Kb.Icon type="icon-folder-32" />
           )}
-          <Kb.Box2 direction="vertical" style={styles.kbfsJobLeft}>
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
-              <Kb.Text type="BodyBold" lineClamp={1}>
+              <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
               {C.isMobile ? null : <Kb.Box style={{flex: 1}} />}
               {C.isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{C.FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
+              <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
+                {C.isMobile
+                  ? formatTimeForConversationList(job.started.getTime())
+                  : formatTimeForChat(job.started.getTime())}
+              </Kb.Text>
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
@@ -212,55 +244,55 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
               <Kb.Box style={{flex: 1}} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
-                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
                 </Kb.WithTooltip>
               )}
               {!C.isMobile && revisionBehindStr && (
                 <Kb.WithTooltip tooltip={revisionBehindStr}>
-                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.yellowDark} />
+                  <Kb.Icon
+                    type="iconfont-exclamation"
+                    color={Kb.Styles.globalColors.yellowDark}
+                    fontSize={14}
+                  />
                 </Kb.WithTooltip>
               )}
               <Kb.Text type={job.phase === 'Done' ? 'BodySmallSuccess' : 'BodySmall'}>{job.phase}</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.kbfsJobRight}>
-            <Kb.Text type="BodySmall">{job.started.toLocaleString()}</Kb.Text>
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              alignItems="center"
-              gap="tiny"
-              style={styles.kbfsActions}
-            >
-              {job.phase === 'Done' ? (
-                Kb.Styles.isMobile ? (
-                  <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
-                    Share
-                  </Kb.Text>
+            {C.isMobile ? (
+              <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
+                {job.phase === 'Done' ? (
+                  <Kb.Icon onClick={showPopup} type="iconfont-ellipsis" />
                 ) : (
-                  <Kb.Text type="BodyPrimaryLink" onClick={onShowFinder}>
+                  <Kb.Icon
+                    color={Kb.Styles.globalColors.red}
+                    type="iconfont-remove"
+                    onClick={onCancelOrDismiss}
+                  />
+                )}
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2 direction="vertical" alignItems="center" style={styles.kbfsActions}>
+                {job.phase === 'Done' ? (
+                  <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
                     Show in {C.fileUIName}
                   </Kb.Text>
-                )
-              ) : Kb.Styles.isMobile ? (
-                <Kb.Icon
-                  color={Kb.Styles.globalColors.red}
-                  type="iconfont-remove"
-                  onClick={onCancelOrDismiss}
-                />
-              ) : (
-                <Kb.Text style={styles.kbfsCancel} type="BodyPrimaryLink" onClick={onCancelOrDismiss}>
-                  Cancel
-                </Kb.Text>
-              )}
-              {job.phase === 'Done' ? (
-                <Kb.Text type="BodyPrimaryLink" onClick={onCancelOrDismiss}>
-                  Dismiss
-                </Kb.Text>
-              ) : null}
-            </Kb.Box2>
+                ) : (
+                  <Kb.Text style={styles.kbfsCancel} type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
+                    Cancel
+                  </Kb.Text>
+                )}
+                {job.phase === 'Done' ? (
+                  <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelOrDismiss}>
+                    Dismiss
+                  </Kb.Text>
+                ) : null}
+              </Kb.Box2>
+            )}
           </Kb.Box2>
-        </Kb.Box2>
+          {popup}
+        </Kb.Box2Measure>
       }
     ></Kb.ListItem2>
   )
@@ -307,23 +339,34 @@ const Archive = C.featureFlags.archive
         return false
       })
 
-      // TODO add loading state?
       return (
         <Kb.ScrollView style={styles.scroll}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
-              <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                <Kb.Text type="BodySmall">
-                  Easily archive your keybase data by choosing 'archive' from menus in chat and KBFS or click
-                  to archive all.
+              <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
+                <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+                  Easily archive your Keybase data by choosing 'archive' in chat and files or click to archive
+                  all.
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.ButtonBar align="flex-start">
-                <Kb.Button label="Archive all chat" onClick={archiveChat} />
-                <Kb.Button label="Archive all KBFS" onClick={archiveFS} />
-                <Kb.Button label="Archive all Git Repos" onClick={archiveGit} />
-              </Kb.ButtonBar>
+              {C.isMobile ? (
+                <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
+                  <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+                    <Kb.Button small={C.isMobile} label="Archive all chat" onClick={archiveChat} />
+                    <Kb.Button small={C.isMobile} label="Archive all files" onClick={archiveFS} />
+                  </Kb.Box2>
+                  <Kb.Box2 direction="horizontal" alignSelf="center">
+                    <Kb.Button small={C.isMobile} label="Archive all Git repos" onClick={archiveGit} />
+                  </Kb.Box2>
+                </Kb.Box2>
+              ) : (
+                <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
+                  <Kb.Button small={C.isMobile} label="Archive all chat" onClick={archiveChat} />
+                  <Kb.Button small={C.isMobile} label="Archive all files" onClick={archiveFS} />
+                  <Kb.Button small={C.isMobile} label="Archive all Git repos" onClick={archiveGit} />
+                </Kb.Box2>
+              )}
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="Header">Active archive jobs</Kb.Text>
@@ -366,16 +409,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   jobs: {
     flexGrow: 1,
     flexShrink: 1,
-    // paddingLeft: Kb.Styles.isMobile ? 4 : 16,
-    // paddingRight: Kb.Styles.isMobile ? 4 : 16,
   },
-  kbfsActions: {flexShrink: 0, justifyContent: 'flex-end'},
+  kbfsActions: {
+    alignSelf: 'center',
+    flexShrink: 0,
+    justifyContent: 'flex-end',
+    paddingLeft: 8,
+  },
   kbfsCancel: {color: Kb.Styles.globalColors.red},
   kbfsJobLeft: {
     flexGrow: 1,
     flexShrink: 1,
-    justifyContent: 'flex-end',
-    paddingRight: 16,
+    justifyContent: 'center',
   },
   kbfsJobRight: {flexShrink: 0},
   kbfsProgress: {

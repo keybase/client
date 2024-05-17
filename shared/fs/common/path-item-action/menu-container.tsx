@@ -237,15 +237,16 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const onArchive = () => {
-    C.featureFlags.archive &&
-      path &&
-      navigateAppend({
-        props: {path, type: 'fsPath'} as const,
-        selected: 'archiveModal',
-      })
-  }
-  const itemArchive = C.featureFlags.archive
+  const onArchive =
+    C.featureFlags.archive && path && layout.archive && pathItem.type === T.FS.PathType.Folder
+      ? () => {
+          navigateAppend({
+            props: {path, type: 'fsPath'} as const,
+            selected: 'archiveModal',
+          })
+        }
+      : undefined
+  const itemArchive = onArchive
     ? ([
         {
           icon: 'iconfont-folder-downloads',
