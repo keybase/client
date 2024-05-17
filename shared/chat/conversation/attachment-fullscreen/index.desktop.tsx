@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '@/styles'
@@ -36,7 +35,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
-  const {fullWidth, fullHeight, previewWidth, previewHeight} = data
+  const {fullWidth, fullHeight} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
   const onIsZoomed = React.useCallback((zoomed: boolean) => {
@@ -53,11 +52,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
 
   const forceDims = React.useMemo(() => {
-    if (!previewWidth) return undefined
-    return imgSrc === previewPath
-      ? C.Chat.scalePreviewToFullDimensions(previewWidth, previewHeight, fullWidth, fullHeight)
-      : C.Chat.scalePreviewToFullDimensions(fullWidth, fullHeight, fullWidth, fullHeight)
-  }, [fullHeight, fullWidth, previewPath, imgSrc, previewWidth, previewHeight])
+    return {height: fullHeight, width: fullWidth}
+  }, [fullHeight, fullWidth])
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']

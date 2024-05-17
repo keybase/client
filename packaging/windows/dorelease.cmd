@@ -16,7 +16,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
+if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat"
 
 :: don't bother with ci or checking out source, etc. for smoke2 build
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci

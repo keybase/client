@@ -137,7 +137,9 @@ func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Col
 
 	c.OnResponse(func(r *colly.Response) {
 		contentType := r.Headers.Get("content-type")
-		if contentType == "image/jpeg" || contentType == "image/png" || contentType == "image/gif" {
+		mediaType, _, _ := strings.Cut(contentType, ";")
+		mediaType = strings.TrimSpace(strings.ToLower(mediaType))
+		if mediaType == "image/jpeg" || mediaType == "image/png" || mediaType == "image/gif" {
 			generic.ImageUrl = &uri
 		}
 	})

@@ -3,6 +3,7 @@ import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 
 export type Layout = {
+  archive: boolean
   delete: boolean
   download: boolean
   ignoreTlf: boolean
@@ -19,6 +20,7 @@ export type Layout = {
 }
 
 const empty = {
+  archive: false,
   delete: false,
   download: false,
   ignoreTlf: false,
@@ -67,6 +69,7 @@ const getRawLayout = (
               openChatTeam: parsedPath.kind === T.FS.PathKind.TeamTlf,
             }
           : {}),
+        archive: true,
         ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
         showInSystemFileManager: !C.isMobile,
       }
@@ -82,6 +85,7 @@ const getRawLayout = (
               openChatTeam: parsedPath.kind === T.FS.PathKind.InTeamTlf,
             }
           : {}),
+        archive: true,
         delete: pathItem.writable,
         download: pathItem.type === T.FS.PathType.File && !C.isIOS,
         moveOrCopy: true,
