@@ -86,8 +86,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return
 
-    const delta = e.deltaY > 0 ? 1.02 : 0.92
-    scaleRef.current = Math.min(2.5, Math.max(0.5, scaleRef.current * delta))
+    const delta = e.deltaY > 0 ? 1.02 : 0.98
+    scaleRef.current = Math.min(2.5, Math.max(0.3, scaleRef.current * delta))
     handleMouseMove(e)
   }
 
@@ -127,10 +127,11 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
           ...imgStyle,
         }
       : {
-          ...(forceDims ? {aspectRatio: `${forceDims.width} / ${forceDims.height}`} : {}),
+          ...forceDims,
           margin: 'auto',
           maxHeight: '100%',
           maxWidth: '100%',
+          objectFit: 'contain',
         }
   }
 
