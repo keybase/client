@@ -15,18 +15,12 @@ export type Props = {
   submitLabel?: string
 }
 
-type DefaultProps = {
-  retryLabel: string
-  submitLabel: string
-}
-
 type State = {
   password: string
   showTyping: boolean
 }
 
 class Pinentry extends React.Component<Props, State> {
-  static defaultProps: DefaultProps
   state: State
 
   constructor(props: Props) {
@@ -91,11 +85,11 @@ class Pinentry extends React.Component<Props, State> {
               type={this.state.showTyping ? 'passwordVisible' : 'password'}
               value={this.state.password}
             />
-            {!!this.props.retryLabel && (
+            {this.props.retryLabel ? (
               <Kb.Text style={styles.alignment} type="BodySmallError">
                 {this.props.retryLabel}
               </Kb.Text>
-            )}
+            ) : null}
             {this.props.showTyping && this.props.showTyping.allow && (
               <Kb.Checkbox
                 checked={this.state.showTyping}
@@ -107,7 +101,7 @@ class Pinentry extends React.Component<Props, State> {
           </Kb.Box2>
           <Kb.Button
             style={{alignSelf: 'center'}}
-            label={this.props.submitLabel}
+            label={this.props.submitLabel ?? 'Continue'}
             onClick={this._onSubmit}
             disabled={!this.state.password}
           />
@@ -115,11 +109,6 @@ class Pinentry extends React.Component<Props, State> {
       </Kb.Box>
     )
   }
-}
-
-Pinentry.defaultProps = {
-  retryLabel: '',
-  submitLabel: 'Continue',
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

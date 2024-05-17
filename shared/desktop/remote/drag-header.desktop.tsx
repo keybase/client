@@ -9,14 +9,13 @@ export type Props = {
   style?: Object
   children?: React.ReactNode
   windowDragging?: boolean
-  type: HeaderType
+  type?: HeaderType
 }
 
 class DragHeader extends React.Component<Props> {
-  static defaultProps = {type: 'Default', windowDragging: true}
-
   renderDefault() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle =
+      this.props.windowDragging ?? true ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
         style={
@@ -41,7 +40,8 @@ class DragHeader extends React.Component<Props> {
   }
 
   renderStrong() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle =
+      this.props.windowDragging ?? true ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
         style={
@@ -74,7 +74,7 @@ class DragHeader extends React.Component<Props> {
   }
 
   render() {
-    if (this.props.type === 'Default') {
+    if ((this.props.type ?? 'Default') === 'Default') {
       return this.renderDefault()
     } else {
       return this.renderStrong()
