@@ -85,6 +85,7 @@ const getRawLayout = (
               openChatTeam: parsedPath.kind === T.FS.PathKind.InTeamTlf,
             }
           : {}),
+        archive: true,
         delete: pathItem.writable,
         download: pathItem.type === T.FS.PathType.File && !C.isIOS,
         moveOrCopy: true,

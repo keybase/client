@@ -237,25 +237,24 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const onArchive = () => {
-    C.featureFlags.archive &&
-      path &&
-      layout.archive &&
-      navigateAppend({
-        props: {path, type: 'fsPath'} as const,
-        selected: 'archiveModal',
-      })
-  }
-  const itemArchive =
-    C.featureFlags.archive && layout.archive
-      ? ([
-          {
-            icon: 'iconfont-folder-downloads',
-            onClick: hideAfter(() => onArchive()),
-            title: 'Archive folder',
-          },
-        ] as const)
-      : []
+  const onArchive =
+    C.featureFlags.archive && path && layout.archive && pathItem.type === T.FS.PathType.Folder
+      ? () => {
+          navigateAppend({
+            props: {path, type: 'fsPath'} as const,
+            selected: 'archiveModal',
+          })
+        }
+      : undefined
+  const itemArchive = onArchive
+    ? ([
+        {
+          icon: 'iconfont-folder-downloads',
+          onClick: hideAfter(() => onArchive()),
+          title: 'Archive folder',
+        },
+      ] as const)
+    : []
 
   const items: Kb.MenuItems = [
     ...itemNewFolder,
