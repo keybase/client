@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import Text from './text'
 import {Box2} from './box'
-import {CameraView, useCameraPermissions} from 'expo-camera/next'
+import {CameraView, useCameraPermissions} from 'expo-camera'
 
 const Kb = {
   Box2,
