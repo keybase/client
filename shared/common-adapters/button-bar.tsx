@@ -7,7 +7,7 @@ const Kb = {
 }
 
 type Props = {
-  direction: 'row' | 'column'
+  direction?: 'row' | 'column'
   align?: 'flex-start' | 'flex-end' | 'center' // ignored by column,,,
   children: React.ReactNode
   fullWidth?: boolean
@@ -16,15 +16,8 @@ type Props = {
 }
 
 class ButtonBar extends React.PureComponent<Props> {
-  static defaultProps = {
-    align: 'center',
-    direction: 'row',
-    fullWidth: false,
-    small: false,
-  }
-
   _spacing = () => {
-    if (this.props.direction === 'row' && this.props.small && !Styles.isMobile) {
+    if ((this.props.direction ?? 'row') === 'row' && this.props.small && !Styles.isMobile) {
       return SmallSpacer
     }
 
@@ -32,7 +25,7 @@ class ButtonBar extends React.PureComponent<Props> {
   }
 
   _surroundSpacing = () => {
-    return this.props.direction === 'column'
+    return (this.props.direction ?? 'row') === 'column'
   }
 
   render() {
@@ -56,14 +49,14 @@ class ButtonBar extends React.PureComponent<Props> {
 
     const style = Styles.collapseStyles([
       {
-        alignItems: this.props.fullWidth ? 'stretch' : 'center',
+        alignItems: this.props.fullWidth ?? false ? 'stretch' : 'center',
         width: '100%',
         // ...(isTablet ? {maxWidth: 460} : {}),
-        ...(this.props.direction === 'column'
+        ...((this.props.direction ?? 'row') === 'column'
           ? {...Styles.globalStyles.flexBoxColumn}
           : {
               ...Styles.globalStyles.flexBoxRow,
-              justifyContent: this.props.align,
+              justifyContent: this.props.align ?? 'center',
               ...minHeight,
             }),
       },
