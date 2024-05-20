@@ -100,14 +100,21 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
     </Box2>
   )
 }
-ReflessLabeledInput.defaultProps = {
-  flexable: true,
-  keyboardType: 'default',
-  textType: 'BodySemibold',
-}
 
 const LabeledInput = React.forwardRef<PlainInput, Props>(function LabeledInput(props, ref) {
-  return <ReflessLabeledInput {...props} forwardedRef={ref as any} />
+  const flexable = props.flexable ?? true
+  const keyboardType = props.keyboardType ?? 'default'
+  const textType = props.textType ?? 'BodySemibold'
+
+  return (
+    <ReflessLabeledInput
+      {...props}
+      forwardedRef={ref as any}
+      flexable={flexable}
+      keyboardType={keyboardType}
+      textType={textType}
+    />
+  )
 })
 
 const styles = Styles.styleSheetCreate(

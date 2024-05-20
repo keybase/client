@@ -33,9 +33,6 @@ const styles = Styles.styleSheetCreate(() =>
 // Init common styles for perf
 
 class Text extends React.Component<Props> {
-  static defaultProps = {
-    allowFontScaling: false,
-  }
   _nativeText: null | {focus: () => void} = null
 
   highlightText() {
@@ -126,7 +123,7 @@ class Text extends React.Component<Props> {
         {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
-        allowFontScaling={this.props.allowFontScaling}
+        allowFontScaling={this.props.allowFontScaling ?? false}
       >
         {this.props.children}
       </NativeText>

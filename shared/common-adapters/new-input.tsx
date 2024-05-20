@@ -71,7 +71,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
           </Box>
         )}
         {!!prefix && (
-          <Text type={plainInputProps.textType || PlainInput.defaultProps.textType} style={styles.prefix}>
+          <Text type={plainInputProps.textType ?? 'Body'} style={styles.prefix}>
             {prefix}
           </Text>
         )}
