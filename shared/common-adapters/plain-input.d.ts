@@ -123,30 +123,14 @@ export type Props = {
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
 export type PropsWithInput<P> = Props & P
 
-/**
- * Flow does the work of making the default props nullable when instantiating
- * this component, but doesn't go as far as letting the props be
- * actually nullable in the type def. This complicates things when trying
- * to make this compatible with PropsWithInput. So here we split up the
- * internal type of Props from the public API, and 'lie' in this file
- * by claiming that this component takes `Props` when the implementations
- * use `InternalProps`.
- * See more discussion here: https://github.com/facebook/flow/issues/1660
- */
-export type DefaultProps = {
-  keyboardType: KeyboardType
-  textType: TextType
-}
-
 export type TextInfo = {
   text: string
   selection: Selection
 }
 
-export type InternalProps = {} & DefaultProps & Props
+export type InternalProps = Props
 
 declare class PlainInput extends React.Component<Props> {
-  static defaultProps: DefaultProps
   blur: () => void
   clear: () => void
   focus: () => void

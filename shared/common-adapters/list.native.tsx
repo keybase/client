@@ -8,9 +8,6 @@ import noop from 'lodash/noop'
 const AnimatedFlatList = ReAnimated.FlatList
 
 class List<Item> extends React.PureComponent<Props<Item>> {
-  static defaultProps = {
-    keyboardShouldPersistTaps: 'handled',
-  }
   _itemRender = ({item, index}: {item: Item; index: number}) => {
     return this.props.renderItem(index, item)
   }
@@ -55,7 +52,7 @@ class List<Item> extends React.PureComponent<Props<Item>> {
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
-            keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
+            keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps ?? 'handled'}
             ListHeaderComponent={this.props.ListHeaderComponent}
             onEndReached={this.props.onEndReached}
             onEndReachedThreshold={this.props.onEndReachedThreshold}
