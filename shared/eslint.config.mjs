@@ -29,15 +29,14 @@ const ignores = [
   '**/common-adapters/icon.constants-gen.shared.tsx',
 ]
 
-export default tseslint.config(
+export default [
   // js.configs.all,
   // importPlugin.configs.recommended,
   // 'plugin:@typescript-eslint/recommended-type-checked',
   {ignores},
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
+  ...tseslint.config({
     files: ['*.ts', '*.tsx', '*.d.ts'],
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
     plugins: {
       promise,
       //react,
@@ -61,10 +60,6 @@ export default tseslint.config(
     linterOptions: {
       reportUnusedDisableDirectives: true,
     },
-    // extends: [
-    // 'eslint:all',
-    // 'plugin:import/recommended',
-    // ],
     rules: {
       '@typescript-eslint/adjacent-overload-signatures': 'off',
       '@typescript-eslint/array-type': 'off',
@@ -103,6 +98,7 @@ export default tseslint.config(
       '@typescript-eslint/no-dynamic-delete': 'error',
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-empty-interface': 'error',
+      '@typescript-eslint/no-empty-object-type': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-extra-non-null-assertion': 'error',
       '@typescript-eslint/no-extra-parens': 'off',
@@ -352,7 +348,7 @@ export default tseslint.config(
       },
       react: {version: 'detect'},
     },
-  }
+  }),
   // {
   //   files: ['*.ts', '*.tsx', '*.d.ts'],
   //   rules: {
@@ -360,4 +356,4 @@ export default tseslint.config(
   //     'no-unused-vars': 'off', // ts itself will catch this
   //   },
   // },
-)
+]

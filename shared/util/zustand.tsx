@@ -39,7 +39,7 @@ export const createZustand = <T extends HasReset>(
     if (typeof orig === 'function') {
       unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
-      Object.assign(unsafeISD[d] as {}, orig)
+      Object.assign(unsafeISD[d] as object, orig)
     }
   }
 
