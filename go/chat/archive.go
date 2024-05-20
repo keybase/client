@@ -675,7 +675,12 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	defer c.Trace(ctx, &err, "ArchiveChat")()
 
 	if len(arg.OutputPath) == 0 {
-		arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetDownloadsDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
+		switch c.G().GetAppType() {
+		case libkb.MobileAppType:
+			arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetCacheDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
+		default:
+			arg.OutputPath = path.Join(c.G().GlobalContext.Env.GetDownloadsDir(), fmt.Sprintf("kbchat-%s", arg.JobID))
+		}
 	}
 
 	jobInfo, err := c.G().ArchiveRegistry.Get(ctx, arg.JobID)
