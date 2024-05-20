@@ -180,9 +180,9 @@ export const SignupScreen = (props: SignupScreenProps) => (
     {Kb.Styles.isMobile && !props.skipMobileHeader && (
       <Kb.ModalHeader
         leftButton={
-          props.leftAction && props.onBack ? (
+          props.onBack ? (
             <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-              {props.leftActionText || props.leftAction}
+              {(props.leftActionText ?? 'Back') || (props.leftAction ?? 'cancel')}
             </Kb.Text>
           ) : null
         }
@@ -244,10 +244,6 @@ export const SignupScreen = (props: SignupScreenProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-SignupScreen.defaultProps = {
-  leftAction: 'cancel',
-  leftActionText: 'Back',
-}
 
 export const errorBanner = (error: string) =>
   error.trim() ? (

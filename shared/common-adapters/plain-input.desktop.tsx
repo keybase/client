@@ -16,11 +16,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
   private _isComposingIME: boolean = false
   private mounted: boolean = true
 
-  static defaultProps = {
-    allowKeyboardEvents: true,
-    textType: 'Body',
-  }
-
   get value() {
     return this._input.current?.value ?? ''
   }
@@ -189,7 +184,10 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const commonProps = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
-      className: Styles.classNames(this.props.allowKeyboardEvents && 'mousetrap', this.props.className),
+      className: Styles.classNames(
+        (this.props.allowKeyboardEvents ?? true) && 'mousetrap',
+        this.props.className
+      ),
       onBlur: this._onBlur,
       onChange: this._onChange,
       onClick: this.props.onClick,
@@ -208,7 +206,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   private _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType ?? 'Body')
     const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
       minHeight:
         rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
@@ -240,7 +238,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   private _getSinglelineProps = () => {
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType ?? 'Body')
     return {
       ...this._getCommonProps(),
       style: Styles.collapseStyles([

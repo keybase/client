@@ -41,7 +41,7 @@ type Props = {
   onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
-  mode: 'Default' | 'DefaultFullHeight' | 'Wide'
+  mode?: 'Default' | 'DefaultFullHeight' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
@@ -78,7 +78,7 @@ const ModalInner = (props: Props) => (
       </Kb.ScrollView>
     )}
     {!!props.footer && (
-      <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
+      <Footer {...props.footer} wide={(props.mode ?? 'Default') === 'Wide'} fullscreen={!!props.fullscreen} />
     )}
   </>
 )
@@ -95,7 +95,7 @@ const Modal = (props: Props) =>
     <PopupDialog
       onClose={props.onClose}
       styleClipContainer={Styles.collapseStyles([
-        clipContainerStyles[props.mode],
+        clipContainerStyles[props.mode ?? 'Default'],
         props.allowOverflow && styles.overflowVisible,
       ])}
       styleClose={props.popupStyleClose}
@@ -105,9 +105,6 @@ const Modal = (props: Props) =>
       <ModalInner {...props} />
     </PopupDialog>
   )
-Modal.defaultProps = {
-  mode: 'Default',
-}
 
 const Header = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
@@ -344,11 +341,11 @@ const styles = Styles.styleSheetCreate(() => {
   }
 })
 
-const clipContainerStyles: {[k in Props['mode']]: Styles.StylesCrossPlatform} = {
+const clipContainerStyles = {
   Default: styles.modeDefault,
   DefaultFullHeight: styles.modeDefaultFullHeight,
   Wide: styles.modeWide,
-}
+} as const
 
 export default Modal
 export {Header}

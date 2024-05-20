@@ -25,11 +25,6 @@ type State = {
 }
 
 class ReflessNewInput extends React.Component<Props & RefProps, State> {
-  static defaultProps = {
-    flexable: true,
-    keyboardType: 'default',
-    textType: 'BodySemibold',
-  }
   state: State = {
     focused: false,
   }
@@ -48,7 +43,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
   }
 
   render() {
-    const textStyle = getTextStyle(this.props.textType || 'BodySemibold')
+    const textStyle = getTextStyle(this.props.textType ?? 'BodySemibold')
     // prettier-ignore
     const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, prefix, ...plainInputProps} = this.props
     const plainInputStyle = prefix
@@ -76,7 +71,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
           </Box>
         )}
         {!!prefix && (
-          <Text type={plainInputProps.textType || PlainInput.defaultProps.textType} style={styles.prefix}>
+          <Text type={plainInputProps.textType ?? 'Body'} style={styles.prefix}>
             {prefix}
           </Text>
         )}
@@ -93,7 +88,18 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
   }
 }
 const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
-  return <ReflessNewInput {...props} forwardedRef={ref} />
+  const flexable = props.flexable ?? true
+  const keyboardType = props.keyboardType ?? 'default'
+  const textType = props.textType ?? 'BodySemibold'
+  return (
+    <ReflessNewInput
+      {...props}
+      forwardedRef={ref}
+      flexable={flexable}
+      keyboardType={keyboardType}
+      textType={textType}
+    />
+  )
 })
 
 const styles = Styles.styleSheetCreate(
@@ -129,7 +135,7 @@ const styles = Styles.styleSheetCreate(
       },
       prefix: Styles.platformStyles({isMobile: {alignSelf: 'flex-end'}}),
       prefixInput: {padding: 0},
-    } as const)
+    }) as const
 )
 
 export default NewInput

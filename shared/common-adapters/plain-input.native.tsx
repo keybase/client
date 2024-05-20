@@ -18,11 +18,6 @@ import {stringToUint8Array} from 'uint8array-extras'
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
-  static defaultProps = {
-    keyboardType: 'default',
-    textType: 'Body',
-  }
-
   private _input = React.createRef<NativeTextInput>()
   private _lastNativeText: string | undefined
   private _lastNativeSelection: Selection | undefined
@@ -123,7 +118,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   private _lineHeight = () => {
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType ?? 'Body')
     return textStyle.lineHeight
   }
 
@@ -154,7 +149,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   private _getCommonStyle = () => {
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType ?? 'Body')
     // RN TextInput plays better without this
     if (isIOS) {
       delete textStyle.lineHeight
@@ -211,7 +206,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       editable: !this.props.disabled,
       // needed to workaround changing this not doing the right thing
       key: this.props.type,
-      keyboardType: this.props.keyboardType,
+      keyboardType: this.props.keyboardType ?? 'default',
       multiline: false,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
