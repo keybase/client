@@ -91,7 +91,8 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 }
 
 const changeDock = (show: boolean) => {
-  const dock = Electron.app.dock
+  const _dock = Electron.app.dock
+  const dock = _dock as typeof _dock | undefined
   if (!dock) return
   if (show) {
     dock
@@ -206,7 +207,7 @@ const loadWindowState = () => {
       windowState.x = defaultWindowState.x
       windowState.y = defaultWindowState.y
     }
-  } catch (e) {
+  } catch {
     logger.info(`Couldn't load`, guiConfigFilename, ' continuing...')
   }
 

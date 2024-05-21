@@ -167,7 +167,7 @@ const darwinInstall = (callback: CB) => {
         } else {
           errors.push(`There was an error trying to run the install. No output.`)
         }
-      } catch (err) {
+      } catch {
         errors.push(
           `There was an error trying to run the install. We were unable to parse the output of keybase install-auto.`
         )

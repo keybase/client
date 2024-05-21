@@ -1218,7 +1218,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             category,
             dtime: dtime || {offset: 0, time: 0},
           })
-        } catch (_) {}
+        } catch {}
       }
       C.ignorePromise(f())
     },

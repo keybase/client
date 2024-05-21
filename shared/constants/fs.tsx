@@ -2678,7 +2678,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
             subscriptionID,
           })
-        } catch (_) {}
+        } catch {}
       }
       C.ignorePromise(f())
     },
@@ -2735,7 +2735,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             clientType: T.RPCGen.ClientType.kbfs,
             timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
           })
-        } catch (_) {}
+        } catch {}
 
         waitForKbfsDaemonInProgress = false
         get().dispatch.checkKbfsDaemonRpcStatus()

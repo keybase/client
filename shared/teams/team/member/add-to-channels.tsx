@@ -358,7 +358,9 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
     leaveRPC(
       [{convID}],
       () => {
-        reloadChannels().then(stopWaiting, stopWaiting)
+        reloadChannels()
+          .then(stopWaiting, stopWaiting)
+          .catch(() => {})
       },
       stopWaiting
     )
@@ -368,7 +370,9 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
     joinRPC(
       [{convID}],
       () => {
-        reloadChannels().then(stopWaiting, stopWaiting)
+        reloadChannels()
+          .then(stopWaiting, stopWaiting)
+          .catch(() => {})
       },
       stopWaiting
     )

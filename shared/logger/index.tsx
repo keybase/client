@@ -113,10 +113,10 @@ class AggregateLoggerImpl {
       try {
         const {hasEngine} = require('../engine/require') as {hasEngine: typeof HasEngineType}
         if (!hasEngine()) {
-          return Promise.resolve()
+          return await Promise.resolve()
         }
-      } catch (_) {
-        return Promise.resolve()
+      } catch {
+        return await Promise.resolve()
       }
     }
 

@@ -101,12 +101,12 @@ function fixModules() {
 
   try {
     fs.mkdirSync(root)
-  } catch (_) {}
+  } catch {}
 
   try {
     fs.writeFileSync(path.join(root, 'package.json'), `{"main": "index.js"}`)
     fs.writeFileSync(path.join(root, 'index.js'), `module.exports = function(){return {};};`)
-  } catch (_) {}
+  } catch {}
 }
 
 function exec(command: string, env?: {}, options?: Object) {

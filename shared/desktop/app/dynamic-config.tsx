@@ -18,7 +18,7 @@ const getConfigOverload = () => {
           }
         }
       }
-    } catch (e) {
+    } catch {
       console.warn('Invalid server config')
     }
   }
@@ -29,7 +29,7 @@ const getConfigOverload = () => {
       const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8')) as {[key: string]: unknown}
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
-    } catch (e) {
+    } catch {
       console.warn(
         'Invalid local-debug file, parsing error <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'
       )

@@ -1738,7 +1738,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             path: 'ui.inboxSmallRows',
             value: {i: inboxNumSmallRows, isNull: false},
           })
-        } catch (_) {}
+        } catch {}
       }
       C.ignorePromise(f())
     },

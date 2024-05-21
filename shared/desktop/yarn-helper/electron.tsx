@@ -46,7 +46,7 @@ const commands = {
 function startHot() {
   try {
     fs.mkdirSync(path.join(__dirname, '../dist'))
-  } catch (i) {}
+  } catch {}
 
   const name = path.join(__dirname, '..', 'dist', 'node.dev.bundle.js')
   const params = [name]

@@ -93,20 +93,22 @@ const useContacts = () => {
   React.useEffect(() => {
     if (permStatus === 'granted') {
       setNoAccessPermanent(false)
-      fetchContacts(savedRegion || '').then(
-        ([contacts, region]) => {
-          setContacts(contacts)
-          setRegion(region)
-          setErrorMessage(undefined)
-          setLoading(false)
-        },
-        (_err: unknown) => {
-          const err = _err as {message: string}
-          logger.warn('Error fetching contacts:', err)
-          setErrorMessage(err.message)
-          setLoading(false)
-        }
-      )
+      fetchContacts(savedRegion || '')
+        .then(
+          ([contacts, region]) => {
+            setContacts(contacts)
+            setRegion(region)
+            setErrorMessage(undefined)
+            setLoading(false)
+          },
+          (_err: unknown) => {
+            const err = _err as {message: string}
+            logger.warn('Error fetching contacts:', err)
+            setErrorMessage(err.message)
+            setLoading(false)
+          }
+        )
+        .catch(() => {})
     } else if (permStatus === 'denied') {
       setErrorMessage('Keybase does not have permission to access your contacts.')
       setNoAccessPermanent(true)
