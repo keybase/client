@@ -1428,7 +1428,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               [teamWaitingKey(teamID), addUserToTeamsWaitingKey(user)]
             )
             teamsAddedTo.push(team)
-          } catch (error) {
+          } catch {
             errorAddingTo.push(team)
           }
         }
@@ -1918,7 +1918,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               logger.error(error.message)
             }
           }
-        } catch (_) {}
+        } catch {}
         set(s => {
           s.teamIDToRetentionPolicy.set(teamID, retentionPolicy)
         })
@@ -1977,7 +1977,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, teamWaitingKey(teamID))
-        } catch (_) {}
+        } catch {}
       }
       C.ignorePromise(f())
     },
@@ -2559,7 +2559,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const newName = {parts: _newName.split('.')}
         try {
           await T.RPCGen.teamsTeamRenameRpcPromise({newName, prevName}, teamRenameWaitingKey)
-        } catch (_) {
+        } catch {
           // err displayed from waiting store in component
         }
       }

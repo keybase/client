@@ -57,7 +57,7 @@ const setupApp = () => {
     setTimeout(() => {
       try {
         C.useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)
-      } catch (_) {}
+      } catch {}
     }, 0)
   })
 
@@ -140,7 +140,7 @@ const setupHMR = () => {
     try {
       const {default: NewMain} = require('../../app/main.desktop') as {default: typeof NewMainType}
       render(NewMain)
-    } catch (_) {}
+    } catch {}
   }
 
   module.hot.accept(['../../app/main.desktop'], refreshMain)

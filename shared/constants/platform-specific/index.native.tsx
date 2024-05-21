@@ -93,7 +93,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } finally {
     try {
       await androidUnlink(filePath)
-    } catch (_) {
+    } catch {
       logger.warn('failed to unlink')
     }
   }
@@ -120,7 +120,7 @@ export const showShareActionSheet = async (options: {
       try {
         await androidShareText(options.message, options.mimeType)
         return {completed: true, method: ''}
-      } catch (_) {
+      } catch {
         return {completed: false, method: ''}
       }
     }
@@ -128,7 +128,7 @@ export const showShareActionSheet = async (options: {
     try {
       await androidShare(options.filePath ?? '', options.mimeType)
       return {completed: true, method: ''}
-    } catch (_) {
+    } catch {
       return {completed: false, method: ''}
     }
   }
@@ -156,7 +156,7 @@ const loadStartupDetails = async () => {
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
-  } catch (_) {}
+  } catch {}
 
   let conversation: T.Chat.ConversationIDKey | undefined
   let followUser = ''
@@ -195,7 +195,7 @@ const loadStartupDetails = async () => {
           tab = _rn as any as typeof tab
         }
       }
-    } catch (_) {
+    } catch {
       logger.info('initialState: routeState parseFail')
       conversation = undefined
       tab = ''

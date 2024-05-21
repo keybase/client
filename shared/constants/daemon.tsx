@@ -172,7 +172,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               wait(getAccountsWaitKey, handshakeVersion, false)
             }
           }
-        } catch (error) {
+        } catch {
           if (handshakeWait) {
             // someone dismissed this already?
             const {handshakeWaiters} = get()
