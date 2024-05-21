@@ -27,7 +27,7 @@ const getFile = async (fileList: FileList | undefined): Promise<string> => {
       if (isDir) {
         return ''
       }
-    } catch (e) {}
+    } catch {}
   }
   return paths.pop() ?? ''
 }

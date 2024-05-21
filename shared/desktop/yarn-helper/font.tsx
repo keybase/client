@@ -158,7 +158,7 @@ function updateIconFont(web: boolean) {
   if (web) {
     try {
       fs.mkdirSync(paths.webFonts)
-    } catch (_) {}
+    } catch {}
   }
 
   webfontsGenerator(

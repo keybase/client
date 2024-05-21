@@ -266,7 +266,7 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
 export const useSafeFocusEffect = (fn: () => void) => {
   try {
     useFocusEffect(fn)
-  } catch (e) {}
+  } catch {}
 }
 
 type Store = T.Immutable<{

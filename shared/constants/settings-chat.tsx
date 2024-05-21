@@ -62,7 +62,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.contactSettings = T.castDraft({error: '', settings})
           })
-        } catch (_) {
+        } catch {
           set(s => {
             s.contactSettings.error = 'Unable to load contact settings, please try again.'
           })
@@ -114,7 +114,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               unfurlWhitelist: T.castDraft(result.whitelist ?? []),
             }
           })
-        } catch (_) {
+        } catch {
           set(s => {
             s.unfurl.unfurlError = 'Unable to load link preview settings, please try again.'
           })
@@ -136,7 +136,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             chatUnfurlWaitingKey
           )
           get().dispatch.unfurlSettingsRefresh()
-        } catch (_) {
+        } catch {
           set(s => {
             s.unfurl.unfurlError = 'Unable to save link preview settings, please try again.'
           })

@@ -180,7 +180,7 @@ const StellarValue = (p: Props) => {
 }
 
 const Value = (p: Props) => {
-  let content: React.JSX.Element | null = null
+  let content: React.JSX.Element | null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
