@@ -212,9 +212,9 @@ const getStartupProcessArgs = () => {
 const handleActivate = () => {
   mainWindow?.show()
   const _dock = Electron.app.dock
-  const dock: typeof _dock | undefined = _dock
+  const dock = _dock as typeof _dock | undefined
   dock
-    .show()
+    ?.show()
     .then(() => {})
     .catch(() => {})
 }
