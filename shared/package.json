@@ -8,7 +8,7 @@
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
     "lint-warn": "eslint --ext ts,tsx,d.ts,mobile.tsx,desktop.tsx .",
-    "lint-specific": "eslint --cache",
+    "lint-specific": "eslint --cache --quiet ",
     "lintd": "eslint_d --cache .",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
