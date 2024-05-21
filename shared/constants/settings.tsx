@@ -160,7 +160,7 @@ export const _useState = Z.createZustand<State>(set => {
           set(s => {
             s.lockdownModeEnabled = result.status
           })
-        } catch (_) {
+        } catch {
           set(s => {
             s.lockdownModeEnabled = undefined
           })
@@ -267,7 +267,7 @@ export const _useState = Z.createZustand<State>(set => {
           set(s => {
             s.lockdownModeEnabled = enabled
           })
-        } catch (_) {
+        } catch {
           set(s => {
             s.lockdownModeEnabled = undefined
           })

@@ -2028,7 +2028,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             waitingKey: waitingKey || Common.waitingKeyPost,
           })
           logger.info('success')
-        } catch (_) {
+        } catch {
           logger.info('error')
         }
 

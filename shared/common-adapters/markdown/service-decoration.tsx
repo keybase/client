@@ -115,7 +115,7 @@ const ServiceDecoration = (p: Props) => {
   try {
     const jsonString = uint8ArrayToString(base64ToUint8Array(json))
     parsed = JSON.parse(jsonString) as T.RPCChat.UITextDecoration
-  } catch (e) {
+  } catch {
     return null
   }
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {

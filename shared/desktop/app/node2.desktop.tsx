@@ -211,9 +211,10 @@ const getStartupProcessArgs = () => {
 
 const handleActivate = () => {
   mainWindow?.show()
-  const dock = Electron.app.dock
+  const _dock = Electron.app.dock
+  const dock: typeof _dock | undefined = _dock
   dock
-    ?.show()
+    .show()
     .then(() => {})
     .catch(() => {})
 }
@@ -306,7 +307,7 @@ const showOpenDialog = async (opts: OpenDialogOptions) => {
     const result = await Electron.dialog.showOpenDialog(mw, allowedOptions)
     if (result.canceled) return []
     return result.filePaths
-  } catch (err) {
+  } catch {
     console.warn('Electron failed to launch showOpenDialog')
     return []
   }
@@ -328,7 +329,7 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
     const result = await Electron.dialog.showSaveDialog(mw, allowedOptions)
     if (result.canceled) return []
     return result.filePath
-  } catch (err) {
+  } catch {
     console.warn('Electron failed to launch showSaveDialog')
     return []
   }

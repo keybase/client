@@ -36,7 +36,7 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
       return null
     }
     return phoneUtil.format(parsed, PhoneNumberFormat.E164)
-  } catch (e) {
+  } catch {
     return null
   }
 }

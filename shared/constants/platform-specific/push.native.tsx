@@ -304,7 +304,7 @@ export const initPushListener = () => {
       if (isAndroid) {
         try {
           await listenForNativeAndroidIntentNotifications()
-        } catch (e) {}
+        } catch {}
       } else {
         iosListenForPushNotificationsFromJS()
       }

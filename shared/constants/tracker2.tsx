@@ -266,7 +266,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
-        } catch (_) {
+        } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
         }
       }
@@ -305,7 +305,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         try {
           await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
-        } catch (_) {
+        } catch {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
         }
       }

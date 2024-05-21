@@ -143,7 +143,7 @@ export const validateNumber = (rawNumber: string, region?: string) => {
       phoneNumber,
       valid,
     }
-  } catch (e) {
+  } catch {
     return {e164: '', valid: false}
   }
 }
@@ -173,7 +173,7 @@ export const e164ToDisplay = (e164: string): string => {
       return '+1 ' + phoneUtil.format(phoneNumber, PNF.NATIONAL)
     }
     return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
-  } catch (e) {
+  } catch {
     return e164
   }
 }

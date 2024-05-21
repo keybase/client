@@ -329,7 +329,7 @@ const MenubarRender = (p: Props) => {
 
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
 
-  let content: React.ReactNode = null
+  let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />
   } else {

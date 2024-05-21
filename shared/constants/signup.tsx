@@ -278,7 +278,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.inviteCode = inviteCode
           })
           get().dispatch.checkInviteCode()
-        } catch (_) {
+        } catch {
           set(s => {
             s.inviteCode = ''
           })
