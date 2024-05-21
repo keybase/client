@@ -167,6 +167,7 @@
     "electron": "30.0.0",
     "@electron/packager": "18.3.2",
     "eslint": "9.3.0",
+    "@eslint/compat": "1.0.1",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-react": "7.34.1",
     "eslint-plugin-react-hooks": "4.6.2",

@@ -54,6 +54,15 @@ const WithTooltip = (props: Props) => {
   const isMounted = C.useIsMounted()
   const {width: screenWidth, height: screenHeight} = useWindowDimensions()
 
+  const a = React.useCallback(() => {
+    console.log('aaa', position)
+  }, [])
+  console.log(a)
+
+  React.useEffect(() => {
+    console.log('aaa', position)
+  }, [])
+
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
       return
