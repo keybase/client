@@ -4,7 +4,7 @@ import type * as C from '@/constants'
 const getOptions = {
   header: undefined,
   headerBottomStyle: {height: undefined},
-  headerHideBorder: true,
+  headerShadowVisible: false,
   title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 

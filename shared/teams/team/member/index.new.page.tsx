@@ -2,7 +2,7 @@ import * as React from 'react'
 import type * as C from '@/constants'
 
 const getOptions = {
-  headerHideBorder: true,
+  headerShadowVisible: false,
   headerTitle: '',
 }
 
