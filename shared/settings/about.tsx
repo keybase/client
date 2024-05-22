@@ -1,15 +1,29 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import openUrl from '@/util/open-url'
+
+const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
+const terms = 'https://keybase.io/_/webview/terms'
 
 const About = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onShowPrivacyPolicy = () =>
-    navigateAppend({
-      props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},
-      selected: 'webLinks',
-    })
-  const onShowTerms = () =>
-    navigateAppend({props: {title: 'Terms', url: 'https://keybase.io/_/webview/terms'}, selected: 'webLinks'})
+  const onShowPrivacyPolicy = () => {
+    if (C.isMobile) {
+      navigateAppend({
+        props: {title: 'Privacy Policy', url: privacyPolicy},
+        selected: 'webLinks',
+      })
+    } else {
+      openUrl(privacyPolicy)
+    }
+  }
+  const onShowTerms = () => {
+    if (C.isMobile) {
+      navigateAppend({props: {title: 'Terms', url: terms}, selected: 'webLinks'})
+    } else {
+      openUrl(terms)
+    }
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

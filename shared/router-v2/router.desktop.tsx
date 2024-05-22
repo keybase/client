@@ -117,7 +117,7 @@ const LoggedOut = React.memo(function LoggedOut() {
         header: ({navigation}) => (
           <Header
             navigation={navigation}
-            options={{headerBottomStyle: {height: 0}, headerHideBorder: true}}
+            options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}}
           />
         ),
       }}

@@ -1,4 +1,5 @@
 All platforms:
+• Archive your chats/files/repos for easy backups
 • Wrap text in !>spoiler<! to hide spoilers. Click to reveal them
 • Copy stellar IDs from wallets
 
