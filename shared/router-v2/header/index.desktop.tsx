@@ -142,11 +142,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
     style = {position: 'absolute'}
   }
 
-  let showDivider = true
-  if (headerShadowVisible === false) {
-    showDivider = false
-  }
-
+  const showDivider = headerShadowVisible !== false
   const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
 
   // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
