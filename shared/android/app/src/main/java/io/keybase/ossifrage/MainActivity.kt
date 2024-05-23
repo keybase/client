@@ -292,21 +292,11 @@ class MainActivity : ReactActivity() {
                     // Otherwise wait for construction, then send the notification
                     reactInstanceManager.addReactInstanceEventListener(object : ReactInstanceManager.ReactInstanceEventListener {
                         override fun onReactContextInitialized(context: ReactContext) {
+                        val emitter = context
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                        Emit(emitter, context).run()
                         }
                     })
-                    // reactInstanceManager.addReactInstanceEventListener(
-                    // object : ReactInstanceEventListener {
-                    //     override fun onReactContextInitialized(rctContext: ReactContext?) {
-                    //     val emitter = rctContext
-                    //             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    //     Emit(emitter, rctContext).run()
-                    //     }
-                    // });
-                    // reactInstanceManager.addReactInstanceEventListener { rctContext: ReactContext ->
-                    //     val emitter = rctContext
-                    //             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    //     Emit(emitter, rctContext).run()
-                    // }
                     if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
                         // Construct it in the background
                         reactInstanceManager.createReactContextInBackground()
