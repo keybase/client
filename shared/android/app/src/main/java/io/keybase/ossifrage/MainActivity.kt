@@ -18,6 +18,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
+import com.facebook.react.ReactInstanceManager
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.Arguments
@@ -289,11 +290,23 @@ class MainActivity : ReactActivity() {
                     Emit(emitter, context).run()
                 } else {
                     // Otherwise wait for construction, then send the notification
-                    reactInstanceManager.addReactInstanceEventListener { rctContext: ReactContext ->
-                        val emitter = rctContext
-                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                        Emit(emitter, rctContext).run()
-                    }
+                    reactInstanceManager.addReactInstanceEventListener(object : ReactInstanceManager.ReactInstanceEventListener {
+                        override fun onReactContextInitialized(context: ReactContext) {
+                        }
+                    })
+                    // reactInstanceManager.addReactInstanceEventListener(
+                    // object : ReactInstanceEventListener {
+                    //     override fun onReactContextInitialized(rctContext: ReactContext?) {
+                    //     val emitter = rctContext
+                    //             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    //     Emit(emitter, rctContext).run()
+                    //     }
+                    // });
+                    // reactInstanceManager.addReactInstanceEventListener { rctContext: ReactContext ->
+                    //     val emitter = rctContext
+                    //             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                    //     Emit(emitter, rctContext).run()
+                    // }
                     if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
                         // Construct it in the background
                         reactInstanceManager.createReactContextInBackground()

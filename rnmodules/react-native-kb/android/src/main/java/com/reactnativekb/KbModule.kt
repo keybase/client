@@ -57,8 +57,9 @@ import me.leolin.shortcutbadger.ShortcutBadger
 import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
+import com.facebook.react.common.annotations.FrameworkAPI
 
-
+@OptIn(FrameworkAPI::class)
 internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private var started: Boolean? = false
     private val misTestDevice: Boolean
