@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+index 582b49c..98bddd2 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+@@ -258,6 +258,11 @@ static UIColor *defaultPlaceholderColor(void)
+     return NO;
+   }
+ 
++  BOOL del = [self.textInputDelegate canPerformAction:action withSender:sender];
++  if (del) {
++      return NO;
++  }
++
+   return [super canPerformAction:action withSender:sender];
+ }
+ 
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+index 7187177..980ab88 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+@@ -12,7 +12,7 @@
+ NS_ASSUME_NONNULL_BEGIN
+ 
+ @protocol RCTBackedTextInputDelegate <NSObject>
+-
++- (BOOL)canPerformAction:(SEL)action withSender:(id)sender; // added
+ - (BOOL)textInputShouldBeginEditing; // Return `NO` to disallow editing.
+ - (void)textInputDidBeginEditing;
+ 
+diff --git a/node_modules/react-native/types/index.d.ts b/node_modules/react-native/types/index.d.ts
+index 5aeec06..5ea7042 100644
+--- a/node_modules/react-native/types/index.d.ts
++++ b/node_modules/react-native/types/index.d.ts
+@@ -68,7 +68,6 @@
+ /// <reference path="modules/BatchedBridge.d.ts" />
+ /// <reference path="modules/Codegen.d.ts" />
+ /// <reference path="modules/Devtools.d.ts" />
+-/// <reference path="modules/globals.d.ts" />
+ /// <reference path="modules/LaunchScreen.d.ts" />
+ 
+ export * from '../Libraries/ActionSheetIOS/ActionSheetIOS';
