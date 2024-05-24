@@ -40,7 +40,7 @@ const VideoImpl = (p: Props) => {
     <video
       ref={ref}
       autoPlay={true}
-      onDoubleClickCapture={onDoubleClick}
+      onDoubleClick={onDoubleClick}
       height={height}
       width={width}
       poster={previewURL}
