@@ -62,7 +62,7 @@ module.exports = function (api /*: any */) {
           },
         ],
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
-        '@babel/plugin-proposal-numeric-separator',
+        // '@babel/plugin-proposal-numeric-separator',
         '@babel/plugin-transform-export-namespace-from',
         isDev
           ? [
@@ -72,7 +72,9 @@ module.exports = function (api /*: any */) {
                 ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
               },
             ]
-          : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],
+          : [
+              /*'@babel/plugin-transform-react-jsx', {runtime: 'automatic'}*/
+            ],
       ],
       presets: [
         // lets us set our own jsx above
