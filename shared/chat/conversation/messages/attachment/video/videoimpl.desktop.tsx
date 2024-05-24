@@ -40,14 +40,14 @@ const VideoImpl = (p: Props) => {
     <video
       ref={ref}
       autoPlay={true}
-      onDoubleClick={onDoubleClick}
+      onDoubleClickCapture={onDoubleClick}
       height={height}
       width={width}
       poster={previewURL}
       preload="none"
       controls={true}
       playsInline={true}
-      controlsList="nodownload noremoteplayback"
+      controlsList="nodownload noremoteplayback nofullscreen"
       style={Kb.Styles.castStyleDesktop(styles.video)}
     >
       <source src={url} />
