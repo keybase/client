@@ -185,7 +185,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               .getState()
               .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
             return
-          } catch (e) {
+          } catch {
             logger.warn("Coudn't decode KBFS URI")
             return
           }

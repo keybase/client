@@ -348,7 +348,7 @@ export const assertionToDisplay = (assertion: string): string => {
     try {
       const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return e164ToDisplay('+' + noSuffix)
-    } catch (e) {
+    } catch {
       return '+' + noSuffix
     }
   }

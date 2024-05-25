@@ -85,7 +85,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           payload: unboxPayload,
           shouldAck: false,
         })
-      } catch (e) {
+      } catch {
         logger.info('[Push] failed to unbox message from payload')
       }
     }

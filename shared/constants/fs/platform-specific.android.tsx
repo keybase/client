@@ -56,7 +56,7 @@ export default function initPlatformSpecific() {
               showNotification: true,
               title: downloadInfo.filename,
             })
-          } catch (_) {
+          } catch {
             logger.warn('Failed to addCompleteDownload')
           }
           // No need to dismiss here as the download wrapper does it for Android.

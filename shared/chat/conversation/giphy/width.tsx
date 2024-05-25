@@ -186,7 +186,7 @@ const pickRow = (totalWidth: number, longIndex: number, longRow: Array<Image>, s
   const expanded = expandRow(totalWidth, shortRow)
   try {
     compressed = compressRow(totalWidth, longRow)
-  } catch (e) {
+  } catch {
     return {
       index: longIndex - 1,
       row: expanded,

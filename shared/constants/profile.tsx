@@ -468,7 +468,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
             }
           }
-        } catch (_) {
+        } catch {
           logger.warn('Error getting proof update')
           set(s => {
             s.errorText = "We couldn't verify your proof. Please retry!"

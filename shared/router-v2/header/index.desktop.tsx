@@ -23,7 +23,7 @@ type Props = {
     headerRightActions?: React.JSXElementConstructor<{}>
     subHeader?: React.JSXElementConstructor<{}>
     headerTransparent?: boolean
-    headerHideBorder?: boolean
+    headerShadowVisible?: boolean
     headerBottomStyle?: Kb.Styles.StylesCrossPlatform
     headerStyle?: Kb.Styles.StylesCrossPlatform
   }
@@ -100,7 +100,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
 const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
   const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
-  const {headerTransparent, headerHideBorder, headerBottomStyle, headerStyle, headerLeft} = options
+  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
   const pop = React.useCallback(() => {
     back && navigation.pop()
@@ -142,11 +142,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
     style = {position: 'absolute'}
   }
 
-  let showDivider = true
-  if (headerHideBorder) {
-    showDivider = false
-  }
-
+  const showDivider = headerShadowVisible !== false
   const windowDecorationsAreNeeded = !Platform.isMac && !useNativeFrame
 
   // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
@@ -329,13 +325,13 @@ const DesktopHeaderWrapper = (p: HeaderProps) => {
   const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
 
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerTransparent, headerHideBorder, headerBottomStyle, headerStyle, headerLeft} = _options
+  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
   const next = {
     headerBottomStyle,
-    headerHideBorder,
     headerLeft,
     headerMode,
     headerRightActions,
+    headerShadowVisible,
     headerStyle,
     headerTitle,
     headerTransparent,

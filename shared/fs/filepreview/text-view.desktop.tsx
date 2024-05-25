@@ -12,14 +12,14 @@ const TextView = (props: Props) => {
         if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
           setContent(req.responseText)
         }
-      } catch (e) {
+      } catch {
         onUrlError && onUrlError('http request failed')
       }
     }
     try {
       req.open('GET', url)
       req.send()
-    } catch (e) {}
+    } catch {}
   }, [onUrlError, url])
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
