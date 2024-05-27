@@ -105,7 +105,7 @@
     "google-libphonenumber": "3.2.34",
     "iced-runtime": "1.0.4",
     "immer": "10.0.3",
-    "lodash": "./lodash.4.17.5.strict",
+    "lodash": "4.17.21",
     "lottie-ios": "4.3.4",
     "lottie-react-native": "6.4.1",
     "lottie-web": "5.12.2",
