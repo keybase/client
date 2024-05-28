@@ -117,7 +117,7 @@
 		BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
-		DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ../PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ../PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		DB07050422E21B8B002F273D /* KeepThisFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepThisFile.swift; sourceTree = "<group>"; };
 		DB190422275A8B4B00E85B2E /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
@@ -851,7 +851,10 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				OTHER_CFLAGS = "-mno-thumb";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-mno-thumb",
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -942,10 +945,7 @@
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_CFLAGS = "$(inherited)  ";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -1038,10 +1038,7 @@
 				LD = "";
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_CFLAGS = "$(inherited)  ";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
