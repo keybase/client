@@ -62,7 +62,8 @@
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned' --appId io.keybase.ossifrage.unsigned",
     "android-install-downgrade-unsigned": "adb install -r -d android/app/build/outputs/apk/releaseUnsigned/app-releaseUnsigned.apk",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
-    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"
+    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report",
+    "install-switch": "yarn pod-clean ; rm -rf node_modules ; yarn modules ; yarn pod-install"
   },
   "keywords": [],
   "author": "",
