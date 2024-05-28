@@ -94,7 +94,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     if (keyboardFrame.screenY + keyboardFrame.height === windowHeight) {
       return keyboardFrame.height
     }
-
     return 0
 
     // Calculate the displacement needed for the view such that it
