@@ -110,7 +110,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   _onLayout = (event: LayoutChangeEvent) => {
     if (isTablet) {
-      this._tabletLayoutHeight = event.nativeEvent.layout.height
+      this._tabletLayoutHeight = (Dimensions.get('window').height - event.nativeEvent.layout.height) / 2
     }
     const f = async () => {
       const wasFrameNull = !this._frame
