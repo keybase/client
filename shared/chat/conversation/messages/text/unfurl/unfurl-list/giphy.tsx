@@ -98,12 +98,9 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.fastBlank,
       },
       container: Kb.Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-        },
-        isElectron: {
-          maxWidth: 500,
-        },
+        common: {alignSelf: 'flex-start'},
+        isElectron: {maxWidth: 500},
+        isTablet: {maxWidth: 500},
       }),
       fastStyle: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       favicon: {

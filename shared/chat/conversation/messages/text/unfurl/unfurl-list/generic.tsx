@@ -163,6 +163,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {alignSelf: 'flex-start', backgroundColor: Kb.Styles.globalColors.fastBlank},
         isElectron: {maxWidth: 500},
+        isTablet: {maxWidth: 500},
       }),
       fastStyle: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       favicon: Kb.Styles.platformStyles({
