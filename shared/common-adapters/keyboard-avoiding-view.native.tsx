@@ -94,6 +94,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     if (keyboardFrame.screenY + keyboardFrame.height === windowHeight) {
       return keyboardFrame.height
     }
+
     return 0
 
     // Calculate the displacement needed for the view such that it
@@ -110,7 +111,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   _onLayout = (event: LayoutChangeEvent) => {
     if (isTablet) {
-      this._tabletLayoutHeight = event.nativeEvent.layout.height
+      this._tabletLayoutHeight = (Dimensions.get('window').height - event.nativeEvent.layout.height) / 2
     }
     const f = async () => {
       const wasFrameNull = !this._frame
