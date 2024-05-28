@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+index 3499f04..116b0d6 100644
+--- a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+@@ -49,7 +49,7 @@ export declare type NativeStackNavigationEventMap = {
+         };
+     };
+ };
+-export declare type NativeStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = NavigationProp<ParamList, RouteName, StackNavigationState<ParamList>, NativeStackNavigationOptions, NativeStackNavigationEventMap> & StackActionHelpers<ParamList>;
++export declare type NativeStackNavigationProp <ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = any // NavigationProp<ParamList, RouteName, StackNavigationState<ParamList>, NativeStackNavigationOptions, NativeStackNavigationEventMap> & StackActionHelpers<ParamList>;
+ export declare type NativeStackScreenProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = {
+     navigation: NativeStackNavigationProp<ParamList, RouteName>;
+     route: RouteProp<ParamList, RouteName>;
+@@ -436,8 +436,8 @@ export declare type NativeStackNavigationOptions = {
+     transitionAnimation?: AnimatedScreenTransition;
+     screenEdgeGesture?: boolean;
+ };
+-export declare type NativeStackNavigatorProps = DefaultNavigatorOptions<NativeStackNavigationOptions> & StackRouterOptions & NativeStackNavigationConfig;
+-export declare type NativeStackDescriptor = Descriptor<ParamListBase, string, StackNavigationState<ParamListBase>, NativeStackNavigationOptions>;
++export declare type NativeStackNavigatorProps = any // DefaultNavigatorOptions<NativeStackNavigationOptions> & StackRouterOptions & NativeStackNavigationConfig;
++export declare type NativeStackDescriptor = any // Descriptor<ParamListBase, string, StackNavigationState<ParamListBase>, NativeStackNavigationOptions>;
+ export declare type NativeStackDescriptorMap = {
+     [key: string]: NativeStackDescriptor;
+ };
