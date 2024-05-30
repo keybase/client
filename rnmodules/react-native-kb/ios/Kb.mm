@@ -12,6 +12,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import "./JSScheduler.h"
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -69,13 +70,19 @@ static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
-@interface RCTBridge ()
+@interface RCTBridge (JSIRuntime)
+- (void *)runtime;
+@end
 
+@interface RCTBridge (RCTTurboModule)
+- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+- (void)_tryAndHandleError:(dispatch_block_t)block;
+@end
+
+@interface RCTBridge ()
 - (JSGlobalContextRef)jsContextRef;
 - (void *)runtime;
 - (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
-- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
-
 @end
 
 @interface Kb ()
@@ -84,13 +91,17 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @implementation Kb
 
+//std::shared_ptr<facebook::react::CallInvoker> jsInvoker;
+jsi::Runtime *_jsRuntime;
+std::shared_ptr<JSScheduler> jsScheduler;
+
 // sanity check the runtime isn't out of sync due to reload etc
 void *currentRuntime = nil;
 
 RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
-  return NO;
+  return YES;
 }
 
 - (instancetype)init {
@@ -102,6 +113,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate {
   currentRuntime = nil;
+  _jsRuntime = nil;
   [super invalidate];
   Teardown();
   self.bridge = nil;
@@ -124,14 +136,8 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 
 - (void)sendToJS:(NSData *)data {
   __weak __typeof__(self) weakSelf = self;
-  auto invoker = self.bridge.jsCallInvoker;
 
-  if (!invoker) {
-    NSLog(@"Failed to find invoker in sendToJS!!!");
-    return;
-  }
-
-  invoker->invokeAsync([data, weakSelf]() {
+    jsScheduler->scheduleOnJS([data, weakSelf](jsi::Runtime &jsiRuntime) {
     __typeof__(self) strongSelf = weakSelf;
     if (!strongSelf) {
       NSLog(@"Failed to find self in sendToJS invokeAsync!!!");
@@ -144,7 +150,6 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
     }
 
     int size = (int)[data length];
-    auto &jsiRuntime = *jsRuntimePtr;
     auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
 
     RpcOnJS(jsiRuntime, values, [](const std::string &err) {
@@ -157,59 +162,7 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 
 - (jsi::Runtime *)javaScriptRuntimePointer {
-  if ([self.bridge respondsToSelector:@selector(runtime)]) {
-    auto runtime = reinterpret_cast<jsi::Runtime *>(self.bridge.runtime);
-    if (runtime == currentRuntime) {
-      return runtime;
-    }
-    return nil;
-  } else {
-    return nil;
-  }
-}
-
-- (void)installJsiBindings {
-  // stash the current runtime to keep in sync
-  currentRuntime = self.bridge.runtime;
-  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-                        const Value *arguments, size_t count) -> Value {
-    return RpcOnGo(runtime, thisValue, arguments, count,
-                   [](void *ptr, size_t size) {
-                     NSData *result = [NSData dataWithBytesNoCopy:ptr
-                                                           length:size
-                                                     freeWhenDone:NO];
-                     NSError *error = nil;
-                     KeybaseWriteArr(result, &error);
-                     if (error) {
-                       NSLog(@"Error writing data: %@", error);
-                     }
-                   });
-  };
-
-  auto jsRuntimePtr = [self javaScriptRuntimePointer];
-  if (!jsRuntimePtr) {
-    NSLog(@"Failed to install jsi!!!");
-    return;
-  }
-
-  KeybaseLogToService(
-      [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
-                                 [[NSDate date] timeIntervalSince1970] * 1000]);
-
-  auto &jsiRuntime = *jsRuntimePtr;
-  // register the global JS uses to call go
-  jsiRuntime.global().setProperty(
-      jsiRuntime, "rpcOnGo",
-      Function::createFromHostFunction(
-          jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-          std::move(rpcOnGoWrap)));
-
-  // register a global so we get notified when the runtime is killed so we can
-  // cleanup
-  jsiRuntime.global().setProperty(
-      jsiRuntime, "kbTeardown",
-      jsi::Object::createFromHostObject(jsiRuntime,
-                                        std::make_shared<KBTearDown>()));
+    return _jsRuntime;
 }
 
 // from react-native-localize
@@ -350,8 +303,80 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
-RCT_EXPORT_METHOD(install) {
-    [self installJsiBindings];
+BOOL isBridgeless = false;
+
+#if defined(RCT_NEW_ARCH_ENABLED)
+@synthesize runtimeExecutor = _runtimeExecutor;
+#endif
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(void, install) {
+    facebook::jsi::Runtime *jsRuntime = nullptr;
+    if (isBridgeless) {
+    #if defined(RCT_NEW_ARCH_ENABLED)
+        RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+        jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
+        auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
+        auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
+              // Convert to Objective-C block so it can be captured properly.
+              __block auto callbackBlock = callback;
+
+              [executor execute:^(jsi::Runtime &runtime) {
+                callbackBlock(runtime);
+              }];
+            });
+       jsScheduler = std::make_shared<JSScheduler>(rnRuntime, executorFunction);
+    #else // (RCT_NEW_ARCH_ENABLED)
+        [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
+    #endif
+      } else {
+        jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
+            ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
+            : nullptr;
+          jsScheduler = std::make_shared<JSScheduler>(*jsRuntime, self.bridge.jsCallInvoker);
+      }
+    
+    RCTBridge *bridge = [RCTBridge currentBridge];
+    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
+   
+    auto runtime = cxxBridge.runtime;
+    if (!runtime) {
+        NSLog(@"Error no bridge runtime");
+        return;
+    }
+    _jsRuntime = (facebook::jsi::Runtime *)cxxBridge.runtime;
+
+    // stash the current runtime to keep in sync
+  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
+                        const Value *arguments, size_t count) -> Value {
+    return RpcOnGo(runtime, thisValue, arguments, count,
+                   [](void *ptr, size_t size) {
+                     NSData *result = [NSData dataWithBytesNoCopy:ptr
+                                                           length:size
+                                                     freeWhenDone:NO];
+                     NSError *error = nil;
+                     KeybaseWriteArr(result, &error);
+                     if (error) {
+                       NSLog(@"Error writing data: %@", error);
+                     }
+                   });
+  };
+
+  KeybaseLogToService(
+      [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+                                 [[NSDate date] timeIntervalSince1970] * 1000]);
+
+    _jsRuntime->global().setProperty(
+      *_jsRuntime, "rpcOnGo",
+      Function::createFromHostFunction(
+          *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
+          std::move(rpcOnGoWrap)));
+
+  // register a global so we get notified when the runtime is killed so we can
+  // cleanup
+    _jsRuntime->global().setProperty(
+      *_jsRuntime, "kbTeardown",
+      jsi::Object::createFromHostObject(*_jsRuntime,
+                                        std::make_shared<KBTearDown>()));
 }
 
 RCT_EXPORT_METHOD(getDefaultCountryCode
