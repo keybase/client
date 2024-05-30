@@ -91,7 +91,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @implementation Kb
 
-//std::shared_ptr<facebook::react::CallInvoker> jsInvoker;
 jsi::Runtime *_jsRuntime;
 std::shared_ptr<JSScheduler> jsScheduler;
 
@@ -310,11 +309,10 @@ BOOL isBridgeless = false; // SYNC with AppDelegate.mm
 #endif
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(void, install) {
-    facebook::jsi::Runtime *jsRuntime = nullptr;
     if (isBridgeless) {
     #if defined(RCT_NEW_ARCH_ENABLED)
         RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
-        jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
+        _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
         auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
         auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
               // Convert to Objective-C block so it can be captured properly.
@@ -329,21 +327,11 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(void, install) {
         [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
     #endif
       } else {
-        jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
+          _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
             ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
             : nullptr;
-          jsScheduler = std::make_shared<JSScheduler>(*jsRuntime, self.bridge.jsCallInvoker);
+          jsScheduler = std::make_shared<JSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
       }
-    
-    RCTBridge *bridge = [RCTBridge currentBridge];
-    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
-   
-    auto runtime = cxxBridge.runtime;
-    if (!runtime) {
-        NSLog(@"Error no bridge runtime");
-        return;
-    }
-    _jsRuntime = (facebook::jsi::Runtime *)cxxBridge.runtime;
 
     // stash the current runtime to keep in sync
   auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
