@@ -303,7 +303,7 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
-BOOL isBridgeless = false;
+BOOL isBridgeless = false; // SYNC with AppDelegate.mm
 
 #if defined(RCT_NEW_ARCH_ENABLED)
 @synthesize runtimeExecutor = _runtimeExecutor;
