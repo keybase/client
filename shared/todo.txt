@@ -1,3 +1,4 @@
+sending doesn't clear <<<<<<<<<<<<<
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 setnative not working on fabric, input should likely be controlled now
 
