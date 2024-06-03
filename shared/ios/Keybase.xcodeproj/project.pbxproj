@@ -318,6 +318,7 @@
 				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
 				84EE85CB003D1A22493F22FE /* [CP] Copy Pods Resources */,
 				DB3A5F8F29A5686A002BF5A5 /* Strip hermes */,
+				3232344352F509933A94D6CD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -472,6 +473,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Keybase/expo-configure-project.sh\"\n";
+		};
+		3232344352F509933A94D6CD /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		56262AC05B7D338505B39A58 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -964,7 +983,7 @@
 				SDKROOT = iphoneos;
 				STRIP_BITCODE_FROM_COPIED_FILES = YES;
 				SWIFT_VERSION = 5.0;
-				USE_HERMES = false;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -1060,7 +1079,7 @@
 				STRIP_BITCODE_FROM_COPIED_FILES = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
-				USE_HERMES = false;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
