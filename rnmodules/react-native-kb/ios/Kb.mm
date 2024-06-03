@@ -12,7 +12,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
-#import "./JSScheduler.h"
+#import "./KBJSScheduler.h"
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -92,7 +92,7 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 @implementation Kb
 
 jsi::Runtime *_jsRuntime;
-std::shared_ptr<JSScheduler> jsScheduler;
+std::shared_ptr<KBJSScheduler> jsScheduler;
 
 // sanity check the runtime isn't out of sync due to reload etc
 void *currentRuntime = nil;
@@ -308,63 +308,64 @@ BOOL isBridgeless = false; // SYNC with AppDelegate.mm
 @synthesize runtimeExecutor = _runtimeExecutor;
 #endif
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(void, install) {
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
     if (isBridgeless) {
-    #if defined(RCT_NEW_ARCH_ENABLED)
+#if defined(RCT_NEW_ARCH_ENABLED)
         RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
         _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
         auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
         auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
-              // Convert to Objective-C block so it can be captured properly.
-              __block auto callbackBlock = callback;
-
-              [executor execute:^(jsi::Runtime &runtime) {
+            // Convert to Objective-C block so it can be captured properly.
+            __block auto callbackBlock = callback;
+            
+            [executor execute:^(jsi::Runtime &runtime) {
                 callbackBlock(runtime);
-              }];
-            });
-       jsScheduler = std::make_shared<JSScheduler>(rnRuntime, executorFunction);
-    #else // (RCT_NEW_ARCH_ENABLED)
+            }];
+        });
+        jsScheduler = std::make_shared<JSScheduler>(rnRuntime, executorFunction);
+#else // (RCT_NEW_ARCH_ENABLED)
         [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
-    #endif
-      } else {
-          _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
-            ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
-            : nullptr;
-          jsScheduler = std::make_shared<JSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
-      }
-
+#endif
+    } else {
+        _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
+        ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
+        : nullptr;
+        jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
+    }
+    
     // stash the current runtime to keep in sync
-  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-                        const Value *arguments, size_t count) -> Value {
-    return RpcOnGo(runtime, thisValue, arguments, count,
-                   [](void *ptr, size_t size) {
-                     NSData *result = [NSData dataWithBytesNoCopy:ptr
-                                                           length:size
-                                                     freeWhenDone:NO];
-                     NSError *error = nil;
-                     KeybaseWriteArr(result, &error);
-                     if (error) {
-                       NSLog(@"Error writing data: %@", error);
-                     }
-                   });
-  };
-
-  KeybaseLogToService(
-      [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
-                                 [[NSDate date] timeIntervalSince1970] * 1000]);
-
+    auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
+                          const Value *arguments, size_t count) -> Value {
+        return RpcOnGo(runtime, thisValue, arguments, count,
+                       [](void *ptr, size_t size) {
+            NSData *result = [NSData dataWithBytesNoCopy:ptr
+                                                  length:size
+                                            freeWhenDone:NO];
+            NSError *error = nil;
+            KeybaseWriteArr(result, &error);
+            if (error) {
+                NSLog(@"Error writing data: %@", error);
+            }
+        });
+    };
+    
+    KeybaseLogToService(
+                        [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+                         [[NSDate date] timeIntervalSince1970] * 1000]);
+    
     _jsRuntime->global().setProperty(
-      *_jsRuntime, "rpcOnGo",
-      Function::createFromHostFunction(
-          *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
-          std::move(rpcOnGoWrap)));
-
-  // register a global so we get notified when the runtime is killed so we can
-  // cleanup
+                                     *_jsRuntime, "rpcOnGo",
+                                     Function::createFromHostFunction(
+                                                                      *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
+                                                                      std::move(rpcOnGoWrap)));
+    
+    // register a global so we get notified when the runtime is killed so we can
+    // cleanup
     _jsRuntime->global().setProperty(
-      *_jsRuntime, "kbTeardown",
-      jsi::Object::createFromHostObject(*_jsRuntime,
-                                        std::make_shared<KBTearDown>()));
+                                     *_jsRuntime, "kbTeardown",
+                                     jsi::Object::createFromHostObject(*_jsRuntime,
+                                                                       std::make_shared<KBTearDown>()));
+    return @YES;
 }
 
 RCT_EXPORT_METHOD(getDefaultCountryCode
