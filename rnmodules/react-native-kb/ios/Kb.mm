@@ -322,7 +322,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
                 callbackBlock(runtime);
             }];
         });
-        jsScheduler = std::make_shared<JSScheduler>(rnRuntime, executorFunction);
+        jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, executorFunction);
 #else // (RCT_NEW_ARCH_ENABLED)
         [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
 #endif

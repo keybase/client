@@ -1,7 +1,7 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
 
 export interface Spec extends TurboModule {
-  install: () => void
+  install: () => boolean
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
   getConstants(): {
