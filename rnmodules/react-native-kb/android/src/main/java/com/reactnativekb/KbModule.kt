@@ -567,7 +567,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun install() {
+    override fun install(): Boolean {
         try {
             System.loadLibrary("cpp")
             jsiInstalled = true
@@ -580,6 +580,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         } catch (exception: Exception) {
             NativeLogger.error("Exception in installJSI", exception)
         }
+        return true;
     }
 
     @ReactMethod
