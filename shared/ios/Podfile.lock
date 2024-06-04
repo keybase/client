@@ -11,11 +11,11 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.8):
+  - Expo (51.0.9):
     - ExpoModulesCore
   - ExpoAsset (10.0.6):
     - ExpoModulesCore
-  - ExpoCamera (15.0.9):
+  - ExpoCamera (15.0.10):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -25,7 +25,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (17.0.1):
     - ExpoModulesCore
-  - ExpoFont (12.0.5):
+  - ExpoFont (12.0.6):
     - ExpoModulesCore
   - ExpoHaptics (13.0.1):
     - ExpoModulesCore
@@ -45,7 +45,7 @@ PODS:
   - ExpoMediaLibrary (16.0.3):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (1.12.11):
+  - ExpoModulesCore (1.12.12):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -70,7 +70,7 @@ PODS:
     - Yoga
   - ExpoSMS (12.0.1):
     - ExpoModulesCore
-  - EXTaskManager (11.8.1):
+  - EXTaskManager (11.8.2):
     - ExpoModulesCore
     - UMAppLoader
   - FBLazyVector (0.74.1)
@@ -1095,7 +1095,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.3.2):
     - React-Core
-  - react-native-safe-area-context (4.10.1):
+  - react-native-safe-area-context (4.10.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1109,8 +1109,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.10.1)
-    - react-native-safe-area-context/fabric (= 4.10.1)
+    - react-native-safe-area-context/common (= 4.10.3)
+    - react-native-safe-area-context/fabric (= 4.10.3)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1118,7 +1118,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.10.1):
+  - react-native-safe-area-context/common (4.10.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1139,7 +1139,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.10.1):
+  - react-native-safe-area-context/fabric (4.10.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1457,7 +1457,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.11.0):
+  - RNReanimated (3.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1837,22 +1837,22 @@ SPEC CHECKSUMS:
   EXConstants: 9a008dbf262550884e6280dea95b81b51f65ea6f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: c99f14ca53381d5399b88684c88e20ff7928d3c7
+  Expo: 6381470c669c3f31c8ac0ebd8e88686f925146ad
   ExpoAsset: 9b7433ecc5f1b608ccbb823492e062bde944abd2
-  ExpoCamera: 73221bf7176a6271c7367ac12b5c52b07c3e4175
+  ExpoCamera: 11129a52e17fea1701ce923db49b08de8494145a
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
   ExpoContacts: 605d517d1e7a8a3f12f736db67cc502c0dd22b53
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
-  ExpoFont: 690b76008be824e47907f200cb0764870108dfd1
+  ExpoFont: c84702079267ae51161c20bb8b925670907ffa2f
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
   ExpoImage: eab004b9363e388d3f6a118f18716de6dcfb8e8d
   ExpoImagePicker: dc3e6f221ce5717e6e0a771780e6e7d50a790189
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
   ExpoMediaLibrary: acbb23f74a6047b9b9b5a5ef00ffee28bfe466da
-  ExpoModulesCore: 521e2ded3d986c46907c7d8ecf28526eca3ef6d6
+  ExpoModulesCore: c55cba4cb3b81b867435c704961acb9653161ac9
   ExpoSMS: a5184fc4d4b33071b2dd9d43bb9ac8ef952b1dd7
-  EXTaskManager: 79eddd6874d41785e61b5d76652da36b991e4ad0
+  EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
   FBLazyVector: 898d14d17bf19e2435cafd9ea2a1033efe445709
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
@@ -1891,7 +1891,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: 2feec2957803fce5eede926eacd7c6a31b858f0d
   react-native-netinfo: 076df4f9b07f6670acf4ce9a75aac8d34c2e2ccc
-  react-native-safe-area-context: 7f54ad0a774de306ab790c70d9d950321e5c5449
+  react-native-safe-area-context: fad48266ac1ec47fd1374b624697216e16875f77
   react-native-webview: caaa2085cb3faff7700ed43d5362cd8a7d0f2934
   React-nativeconfig: b0073a590774e8b35192fead188a36d1dca23dec
   React-NativeModulesApple: df46ff3e3de5b842b30b4ca8a6caae6d7c8ab09f
@@ -1920,7 +1920,7 @@ SPEC CHECKSUMS:
   RNCPicker: dfddec94003745a413e25373ae956a836d42cd54
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: 156548e18203327173a764c6932a3f52e90cb9cd
-  RNReanimated: 2f33b2f8c79c456ce3858a7cd2e07460eb5f61e0
+  RNReanimated: 1971b54a47d4c7fdfe63fb0f01b473c452a176c9
   RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
