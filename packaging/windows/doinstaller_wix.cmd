@@ -55,6 +55,8 @@ call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+:: runquiet utility
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
 
 :: Double check that keybase is codesigned
 %SIGNTOOL% verify /pa %PathName%
@@ -94,6 +96,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that the prompter exe is codesigned
 %SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that the runquiet exe is codesigned
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
