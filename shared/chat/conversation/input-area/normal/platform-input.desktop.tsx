@@ -10,11 +10,12 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
+import type {RefType as Input2Ref} from '@/common-adapters/input2'
 // import logger from '@/logger'
 // import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
-type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
+type InputRefType = React.MutableRefObject<Input2Ref | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
@@ -79,8 +80,8 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
         const newText =
-          text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0) + ' '
-        const pos = (selection.start || 0) + emojiColons.length + 1
+          text.slice(0, selection?.start || 0) + emojiColons + text.slice(selection?.end || 0) + ' '
+        const pos = (selection?.start || 0) + emojiColons.length + 1
         return {
           selection: {end: pos, start: pos},
           text: newText,
@@ -333,7 +334,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
-  const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const inputRef = React.useRef<Input2Ref | null>(null)
 
   // keep focus
   C.Chat.useCIDChanged(conversationIDKey, () => {
@@ -388,7 +389,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   })
 
   const setRefs = React.useCallback(
-    (ref: null | Kb.PlainInput) => {
+    (ref: null | Input2Ref) => {
       // from normal/index
       inputSetRef.current = ref
       // from suggestors/index
@@ -422,7 +423,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
               />
             )}
             <Kb.Box2 direction="horizontal" style={styles.inputBox}>
-              <Kb.PlainInput
+              <Kb.Input2
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}

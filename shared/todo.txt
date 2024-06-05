@@ -1,4 +1,7 @@
 sending doesn't clear <<<<<<<<<<<<<
+bottom sheet crashes on show: try exploding modal:
+https://github.com/gorhom/react-native-bottom-sheet/issues/1726
+
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 setnative not working on fabric, input should likely be controlled now
 

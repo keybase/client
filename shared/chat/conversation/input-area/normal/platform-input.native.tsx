@@ -18,6 +18,7 @@ import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
 import {
+  default as Animated,
   createAnimatedComponent,
   skipAnimations,
   useSharedValue,
@@ -28,6 +29,7 @@ import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import type {Props as PlainInputProps} from '@/common-adapters/plain-input'
+import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -252,8 +254,7 @@ const PlatformInput = (p: Props) => {
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
-  const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const silentInput = React.useRef<Kb.PlainInput | null>(null)
+  const inputRef = React.useRef<Input2Ref | null>(null)
   const suggestionListStyle = React.useMemo(() => {
     return Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
   }, [height])
@@ -292,38 +293,24 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
-  // on ios we want to have the autocorrect fill in (especially if its the last word) so we must lose focus
-  // in order to not have the keyboard flicker we move focus to a hidden input and back, then submit
-  const submitQueued = React.useRef(false)
   const onQueueSubmit = React.useCallback(() => {
-    const text = lastText.current
-    if (text) {
-      submitQueued.current = true
-      if (C.isIOS) {
-        silentInput.current?.focus()
-        inputRef.current?.focus()
-      } else {
-        reallySend()
-      }
-    }
-  }, [reallySend])
-
-  const onFocusAndMaybeSubmit = React.useCallback(() => {
-    // need to submit?
-    if (C.isIOS && submitQueued.current) {
-      submitQueued.current = false
+    inputRef.current?.blur()
+    setTimeout(() => {
       reallySend()
-    }
-    onFocus()
-  }, [onFocus, reallySend])
+    }, 60)
+  }, [reallySend])
 
   const insertText = React.useCallback(
     (toInsert: string) => {
       const i = inputRef.current
       i?.focus()
       i?.transformText(
-        ({selection: {end, start}, text}) =>
-          standardTransformer(toInsert, {position: {end, start}, text}, true),
+        ({selection, text}) =>
+          standardTransformer(
+            toInsert,
+            {position: {end: selection?.end || null, start: selection?.start || null}, text},
+            true
+          ),
         true
       )
     },
@@ -401,7 +388,7 @@ const PlatformInput = (p: Props) => {
   }, [])
 
   const onAnimatedInputRef = React.useCallback(
-    (ref: Kb.PlainInput | null) => {
+    (ref: Input2Ref | null) => {
       inputSetRef.current = ref
       inputRef.current = ref
     },
@@ -428,8 +415,6 @@ const PlatformInput = (p: Props) => {
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
-            {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
-            <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
             <AnimatedInput
               onPasteImage={onPasteImage}
               autoCorrect={true}
@@ -438,7 +423,7 @@ const PlatformInput = (p: Props) => {
               placeholder={hintText}
               multiline={true}
               onBlur={onBlur}
-              onFocus={onFocusAndMaybeSubmit}
+              onFocus={onFocus}
               onChangeText={aiOnChangeText}
               onSelectionChange={onSelectionChange}
               ref={onAnimatedInputRef}
@@ -475,19 +460,21 @@ const PlatformInput = (p: Props) => {
   )
 }
 
-const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
-
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(
-      React.forwardRef<Kb.PlainInput, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const {expanded, ...rest} = p
-        return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
+        return (
+          <Animated.View style={[p.style, rest.style]}>
+            <Kb.Input2 multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+          </Animated.View>
+        )
       })
     )
   } else {
     return React.memo(
-      React.forwardRef<Kb.PlainInput, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
         const [lastExpanded, setLastExpanded] = React.useState(expanded)
@@ -501,7 +488,11 @@ const AnimatedInput = (() => {
           setLastExpanded(expanded)
           offset.value = expanded ? 1 : 0
         }
-        return <AnimatedPlainInput {...rest} ref={ref} style={[p.style, as]} />
+        return (
+          <Animated.View style={[p.style, as]}>
+            <Kb.Input2 multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+          </Animated.View>
+        )
       })
     )
   }
@@ -582,9 +573,9 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           flex: 1,
           flexShrink: 1,
-          marginRight: Kb.Styles.globalMargins.tiny,
+          // marginRight: Kb.Styles.globalMargins.tiny,
           minHeight: 0,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          // paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       inputContainer: {
@@ -594,6 +585,7 @@ const styles = Kb.Styles.styleSheetCreate(
         maxHeight: '100%',
         paddingBottom: Kb.Styles.globalMargins.tiny,
       },
+      inputInner: {flexGrow: 1},
       outerContainer: {position: 'relative'},
       sendBtn: {marginRight: Kb.Styles.globalMargins.tiny},
       sendWrapper: {backgroundColor: Kb.Styles.globalColors.white_90, position: 'absolute'},
