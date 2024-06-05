@@ -573,9 +573,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           flex: 1,
           flexShrink: 1,
-          // marginRight: Kb.Styles.globalMargins.tiny,
           minHeight: 0,
-          // paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       inputContainer: {
