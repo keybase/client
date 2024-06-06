@@ -1855,7 +1855,7 @@ SPEC CHECKSUMS:
   EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
   FBLazyVector: 4bc164e5b5e6cfc288d2b5ff28643ea15fa1a589
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
-  glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
+  glog: fdfdfe5479092de0c4bdbebedd9056951f092c4f
   hermes-engine: 01d3e052018c2a13937aca1860fbedbccd4a41b7
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
