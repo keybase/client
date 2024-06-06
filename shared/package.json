@@ -111,7 +111,7 @@
     "lottie-web": "5.12.2",
     "menubar": "9.4.0",
     "mousetrap": "1.6.5",
-    "process": "keybase/nullModule",
+    "process": "0.11.10",
     "qrcode-generator": "keybase/qrcode-generator#keybase-changes-off-140",
     "react": "18.2.0",
     "react-is": "18.2.0",
