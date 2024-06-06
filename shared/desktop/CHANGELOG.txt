@@ -1,18 +1,8 @@
 All platforms:
-• Archive your chats/files/repos for easy backups
-• Wrap text in !>spoiler<! to hide spoilers. Click to reveal them
-• Copy stellar IDs from wallets
 
 Desktop:
-• System tray badging now includes unread count
+• Screenshots of the app disabled by default
 
 iOS:
-• View attachments in landscape
-• Various sharing improvements
-• Various paste into chat improvements
-• New chat menu system
 
 Android:
-• Various sharing improvements
-• Various paste into chat improvements
-• New chat menu system
