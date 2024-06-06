@@ -90,6 +90,14 @@ const LeftNav = (props: Props) => {
           selected={props.selected === C.Settings.settingsAboutTab}
           onClick={() => props.onClick(C.Settings.settingsAboutTab)}
         />
+
+        {!Kb.Styles.isTablet && (
+          <SettingsItem
+            text="Screen protector"
+            selected={props.selected === C.Settings.settingsScreenprotectorTab}
+            onClick={() => props.onClick(C.Settings.settingsScreenprotectorTab)}
+          />
+        )}
         <SettingsItem
           text="Feedback"
           selected={props.selected === C.Settings.settingsFeedbackTab}
