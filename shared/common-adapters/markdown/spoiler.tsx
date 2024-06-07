@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
 
 type Props = {
+  children: React.ReactNode
   context?: string
   content: string
   isPreview?: boolean
@@ -11,7 +12,7 @@ type Props = {
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {content, context, isPreview} = p
+  const {children, content, context, isPreview} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
@@ -38,12 +39,13 @@ const Spoiler = (p: Props) => {
     <Text type="BodySmall">{masked}</Text>
   ) : (
     <Text
+      className={shown ? undefined : 'spoiler'}
       type="BodySmall"
       onClick={onClick}
       style={shown ? styles.shown : styles.hidden}
       title={shown ? '' : 'Click to reveal'}
     >
-      {content}
+      {children}
     </Text>
   )
 }
