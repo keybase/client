@@ -51,6 +51,10 @@
   }
 }
 
+.spoiler * {
+  pointer-events: none;
+}
+
 .darkMode {
   .text_HeaderBig,
   .text_HeaderBigExtrabold,

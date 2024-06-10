@@ -6,13 +6,15 @@ type Props = {
   children: React.ReactNode
   context?: string
   content: string
-  isPreview?: boolean
+  type?: 'service' | 'preview'
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {children, content, context, isPreview} = p
+  const {children, content, context, type} = p
+  const isPreview = type === 'preview'
+  // const isServiceOnly = type === 'service'
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
