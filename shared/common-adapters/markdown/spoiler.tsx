@@ -1,20 +1,17 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Text, {type TextType} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
 
 type Props = {
   children: React.ReactNode
   context?: string
   content: string
-  type?: 'service' | 'preview'
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {children, content, context, type} = p
-  const isPreview = type === 'preview'
-  // const isServiceOnly = type === 'service'
+  const {children, content, context} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 

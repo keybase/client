@@ -457,7 +457,7 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     spoiler: {
       react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']} type="preview">
+          <Spoiler key={state.key} context={state.context} content={node['raw']}>
             {output(node['content'], state)}
           </Spoiler>
         )
@@ -492,7 +492,7 @@ export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     spoiler: {
       react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']} type="service">
+          <Spoiler key={state.key} context={state.context} content={node['raw']}>
             {output(node['content'], state)}
           </Spoiler>
         )
