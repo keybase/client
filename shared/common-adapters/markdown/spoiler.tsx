@@ -1,22 +1,17 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Text, {type TextType} from '@/common-adapters/text'
-
-export const SpoilerContext = React.createContext<boolean>(false)
+import Text from '@/common-adapters/text'
 
 type Props = {
   children: React.ReactNode
   context?: string
   content: string
-  type?: 'service' | 'preview'
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {children, content, context, type} = p
-  const isPreview = type === 'preview'
-  // const isServiceOnly = type === 'service'
+  const {children, content, context} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
@@ -26,42 +21,33 @@ const Spoiler = (p: Props) => {
     setShown(false)
   }
 
-  const onClick = React.useCallback(() => {
-    setShown(s => {
-      spoilerState.set(key, !s)
-      return !s
-    })
-  }, [key])
-
-  const showMasked = isPreview && Styles.isMobile
-  const len = content.length
-  const masked = React.useMemo(() => {
-    return showMasked ? Array(len).fill('•').join('') : ''
-  }, [showMasked, len])
-
-  return (
-    <SpoilerContext.Provider value={!shown}>
-      {showMasked ? (
-        <Text type="BodySmall">{masked}</Text>
-      ) : (
-        <Text
-          className={shown ? undefined : 'spoiler'}
-          type="BodySmall"
-          onClick={onClick}
-          style={shown ? styles.shown : styles.hidden}
-          title={shown ? '' : 'Click to reveal'}
-        >
-          {children || content}
-        </Text>
-      )}
-    </SpoilerContext.Provider>
+  const onClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setShown(s => {
+        spoilerState.set(key, !s)
+        return !s
+      })
+    },
+    [key]
   )
-}
 
-export const InnerSpoiled = (p: {children: React.ReactNode; type: TextType; style?: any}) => {
+  const smallContent = content.substring(0, 10)
+  const len = smallContent.length
+  const masked = React.useMemo(() => {
+    return Array(len).fill('•').join('')
+  }, [len])
+
   return (
-    <Text className={'spoiler'} type="BodySmall" style={Styles.collapseStyles([p.style, styles.hidden])}>
-      {p.children}
+    <Text
+      className={shown ? undefined : 'spoiler'}
+      type="BodySmall"
+      onClick={onClick}
+      style={shown ? styles.shown : styles.hidden}
+      title={shown ? '' : 'Click to reveal'}
+    >
+      {shown ? children || content : masked}
     </Text>
   )
 }
