@@ -189,7 +189,7 @@
     "terser-webpack-plugin": "5.3.10",
     "tls": "keybase/nullModule",
     "typescript": "5.4.5",
-    "webpack": "5.91.0",
+    "webpack": "5.92.0",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "5.0.4",
     "webpack-merge": "5.10.0"
@@ -198,7 +198,7 @@
     "**/purepack": "keybase/nullModule",
     "**/@khanacademy/perseus-core": "keybase/nullModule",
     "**/@types/react": "18.3.3",
-    "**/@types/lodash": "4.17"
+    "**/@types/lodash": "4.17.5"
   },
   "typecoverage": {
     "detail": true,
