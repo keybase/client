@@ -36,16 +36,13 @@ const Spoiler = (p: Props) => {
     [key]
   )
 
-  const showMasked = isPreview && Styles.isMobile
   const smallContent = content.substring(0, 10)
   const len = smallContent.length
   const masked = React.useMemo(() => {
     return Array(len).fill('•').join('')
   }, [len])
 
-  return showMasked ? (
-    <Text type="BodySmall">{masked}</Text>
-  ) : (
+  return (
     <Text
       className={shown ? undefined : 'spoiler'}
       type="BodySmall"

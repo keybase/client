@@ -510,7 +510,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     logger.info('invoking NotifyPopup for chat notification')
     const sound = C.useConfigState.getState().notifySound
 
-    NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
+    const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
+
+    NotifyPopup(title, {body: cleanBody, sound}, -1, author, onClick, onClose)
   }
 
   const messagesAdd = (messages: Array<T.Chat.Message>, why: string, markAsRead = true) => {
