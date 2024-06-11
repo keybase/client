@@ -112,9 +112,11 @@ export const markdownStyles = Styles.styleSheetCreate(
       }),
       quoteStyle: Styles.platformStyles({
         common: {
+          backgroundColor: Styles.globalColors.redLighter,
           borderLeftColor: Styles.globalColors.grey,
           borderLeftWidth: 3,
           borderStyle: 'solid',
+          color: Styles.globalColors.black,
         },
         isElectron: {
           display: 'block',
@@ -143,6 +145,43 @@ export const markdownStyles = Styles.styleSheetCreate(
       wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
     }) as const
 )
+
+const InlineCode = (p: {children: React.ReactNode; state: State}) => {
+  const {children, state} = p
+  return (
+    <Text
+      type="Body"
+      key={state.key}
+      style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride?.inlineCode])}
+      allowFontScaling={state['allowFontScaling']}
+    >
+      {children}
+    </Text>
+  )
+}
+
+const Fence = (p: {children: React.ReactNode; state: State}) => {
+  const {children, state} = p
+  return Styles.isMobile ? (
+    <Box key={state.key} style={markdownStyles.codeSnippetBlockTextStyle}>
+      <Text
+        type="Body"
+        style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
+        allowFontScaling={state['allowFontScaling']}
+      >
+        {children}
+      </Text>
+    </Box>
+  ) : (
+    <Text
+      key={state.key}
+      type="Body"
+      style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
+    >
+      {children}
+    </Text>
+  )
+}
 
 const reactComponentsForMarkdownType = {
   Array: {
@@ -229,41 +268,14 @@ const reactComponentsForMarkdownType = {
     ),
   },
   fence: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) =>
-      Styles.isMobile ? (
-        <Box key={state.key} style={markdownStyles.codeSnippetBlockTextStyle}>
-          <Text
-            type="Body"
-            style={Styles.collapseStyles([
-              markdownStyles.codeSnippetBlockTextStyle,
-              state.styleOverride?.fence,
-            ])}
-            allowFontScaling={state['allowFontScaling']}
-          >
-            {node['content']}
-          </Text>
-        </Box>
-      ) : (
-        <Text
-          key={state.key}
-          type="Body"
-          style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
-        >
-          {node['content']}
-        </Text>
-      ),
+    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+      return <Fence state={state}>{node['content']}</Fence>
+    },
   },
   inlineCode: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
-      <Text
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride?.inlineCode])}
-        allowFontScaling={state['allowFontScaling']}
-      >
-        {node['content']}
-      </Text>
-    ),
+    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+      return <InlineCode state={state}>{node['content']}</InlineCode>
+    },
   },
   newline: {
     react: (_node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
@@ -445,7 +457,7 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     spoiler: {
       react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']} type="preview">
+          <Spoiler key={state.key} context={state.context} content={node['raw']}>
             {output(node['content'], state)}
           </Spoiler>
         )
@@ -480,7 +492,7 @@ export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
     spoiler: {
       react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']} type="service">
+          <Spoiler key={state.key} context={state.context} content={node['raw']}>
             {output(node['content'], state)}
           </Spoiler>
         )
