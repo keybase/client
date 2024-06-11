@@ -151,7 +151,6 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
   return (
     <Text
       type="Body"
-      key={state.key}
       style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride?.inlineCode])}
       allowFontScaling={state['allowFontScaling']}
     >
@@ -163,7 +162,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box key={state.key} style={markdownStyles.codeSnippetBlockTextStyle}>
+    <Box style={markdownStyles.codeSnippetBlockTextStyle}>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -174,7 +173,6 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
     </Box>
   ) : (
     <Text
-      key={state.key}
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
     >
@@ -269,12 +267,20 @@ const reactComponentsForMarkdownType = {
   },
   fence: {
     react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
-      return <Fence state={state}>{node['content']}</Fence>
+      return (
+        <Fence key={state.key} state={state}>
+          {node['content']}
+        </Fence>
+      )
     },
   },
   inlineCode: {
     react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
-      return <InlineCode state={state}>{node['content']}</InlineCode>
+      return (
+        <InlineCode key={state.key} state={state}>
+          {node['content']}
+        </InlineCode>
+      )
     },
   },
   newline: {
