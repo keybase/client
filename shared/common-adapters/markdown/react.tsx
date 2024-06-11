@@ -314,8 +314,12 @@ const reactComponentsForMarkdownType = {
     ),
   },
   spoiler: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
-      return <Spoiler key={state.key} context={state.context} content={node['content']} />
+    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      return (
+        <Spoiler key={state.key} context={state.context} content={node['raw']}>
+          {output(node['content'], state)}
+        </Spoiler>
+      )
     },
   },
   strong: {
@@ -439,8 +443,12 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
       ),
     },
     spoiler: {
-      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
-        return <Spoiler key={state.key} context={state.context} content={node['content']} isPreview={true} />
+      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+        return (
+          <Spoiler key={state.key} context={state.context} content={node['raw']} type="preview">
+            {output(node['content'], state)}
+          </Spoiler>
+        )
       },
     },
     text: SimpleMarkdown.defaultRules.text,
@@ -468,6 +476,15 @@ export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
           disableEmojiAnimation={state.disallowAnimation ?? true}
         />
       ),
+    },
+    spoiler: {
+      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+        return (
+          <Spoiler key={state.key} context={state.context} content={node['raw']} type="service">
+            {output(node['content'], state)}
+          </Spoiler>
+        )
+      },
     },
     text: SimpleMarkdown.defaultRules.text,
   },

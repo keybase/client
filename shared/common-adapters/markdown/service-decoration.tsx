@@ -9,6 +9,7 @@ import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status/container'
 import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import WithTooltip from '../with-tooltip'
+import {SpoilerContext, InnerSpoiled} from './spoiler'
 import type {StyleOverride} from '.'
 import type {
   emojiDataToRenderableEmoji as emojiDataToRenderableEmojiType,
@@ -23,6 +24,10 @@ const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 const linkStyle = Styles.platformStyles({
   isElectron: {fontWeight: 'inherit'},
   isMobile: {fontWeight: undefined},
+})
+
+const spoilerStyle = Styles.platformStyles({
+  isMobile: {color: Styles.globalColors.black_on_white},
 })
 
 type KeybaseLinkProps = {
@@ -108,6 +113,7 @@ export type Props = {
 }
 
 const ServiceDecoration = (p: Props) => {
+  const inSpoiler = React.useContext(SpoilerContext)
   const {json, allowFontScaling, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
   // Parse JSON to get the type of the decoration
@@ -143,7 +149,9 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {
-    return (
+    return inSpoiler ? (
+      <InnerSpoiled type="Body">{parsed.atmention}</InnerSpoiled>
+    ) : (
       <Mention
         allowFontScaling={allowFontScaling || false}
         style={styles['wrapStyle']}
@@ -151,7 +159,10 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
-    return (
+    const nameOrChannel = parsed.maybemention.name || parsed.maybemention.channel
+    return inSpoiler ? (
+      <InnerSpoiled type="Body">{nameOrChannel}</InnerSpoiled>
+    ) : (
       <MaybeMention
         allowFontScaling={allowFontScaling || false}
         style={styles['wrapStyle']}
@@ -175,6 +186,8 @@ const ServiceDecoration = (p: Props) => {
         linkStyle={styleOverride?.link}
         wrapStyle={styles['wrapStyle']}
       />
+    ) : inSpoiler ? (
+      <InnerSpoiled type="BodyPrimaryLink">{parsed.link.url}</InnerSpoiled>
     ) : (
       <Text
         className="hover-underline hover_contained_color_blueDark"
@@ -195,10 +208,15 @@ const ServiceDecoration = (p: Props) => {
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride?.mailto])}
+        style={Styles.collapseStyles([
+          styles['wrapStyle'],
+          linkStyle,
+          styleOverride?.mailto,
+          inSpoiler && spoilerStyle,
+        ])}
         title={parsed.mailto.url}
-        onClickURL={openUrl}
-        onLongPressURL={openUrl}
+        onClickURL={inSpoiler ? undefined : openUrl}
+        onLongPressURL={inSpoiler ? undefined : openUrl}
       >
         {parsed.mailto.url}
       </Text>

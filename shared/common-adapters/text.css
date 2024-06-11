@@ -46,6 +46,13 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
+  .spoiler & {
+    color: var(--color-black_on_white);
+  }
+}
+
+.spoiler * {
+  pointer-events: none;
 }
 
 .darkMode {
