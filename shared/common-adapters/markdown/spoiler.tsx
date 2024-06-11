@@ -24,19 +24,24 @@ const Spoiler = (p: Props) => {
     setShown(false)
   }
 
-  const onClick = React.useCallback(() => {
-    setShown(s => {
-      spoilerState.set(key, !s)
-      return !s
-    })
-  }, [key])
+  const onClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setShown(s => {
+        spoilerState.set(key, !s)
+        return !s
+      })
+    },
+    [key]
+  )
 
   const showMasked = isPreview && Styles.isMobile
   const smallContent = content.substring(0, 10)
   const len = smallContent.length
   const masked = React.useMemo(() => {
-    return showMasked ? Array(len).fill('•').join('') : ''
-  }, [showMasked, len])
+    return Array(len).fill('•').join('')
+  }, [len])
 
   return showMasked ? (
     <Text type="BodySmall">{masked}</Text>
@@ -48,7 +53,7 @@ const Spoiler = (p: Props) => {
       style={shown ? styles.shown : styles.hidden}
       title={shown ? '' : 'Click to reveal'}
     >
-      {shown ? children || content : smallContent}
+      {shown ? children || content : masked}
     </Text>
   )
 }
