@@ -11,7 +11,7 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.11):
+  - Expo (51.0.12):
     - ExpoModulesCore
   - ExpoAsset (10.0.8):
     - ExpoModulesCore
@@ -21,7 +21,7 @@ PODS:
     - ZXingObjC/PDF417
   - ExpoClipboard (6.0.3):
     - ExpoModulesCore
-  - ExpoContacts (13.0.3):
+  - ExpoContacts (13.0.4):
     - ExpoModulesCore
   - ExpoFileSystem (17.0.1):
     - ExpoModulesCore
@@ -1413,7 +1413,7 @@ PODS:
     - React-utils (= 0.74.2)
   - RNCMaskedView (0.3.1):
     - React-Core
-  - RNCPicker (2.7.6):
+  - RNCPicker (2.7.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1457,7 +1457,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.11.0):
+  - RNReanimated (3.13.0-rc.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1837,11 +1837,11 @@ SPEC CHECKSUMS:
   EXConstants: 9a008dbf262550884e6280dea95b81b51f65ea6f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 8af2fbdfe35b232c2361cc9b9f09a5719ceb4635
+  Expo: be0f48f4f1aa08d863d88480c2810b956e05e813
   ExpoAsset: 100b840e5dc1e1619df2d7c76441d33fb84a3202
   ExpoCamera: 11129a52e17fea1701ce923db49b08de8494145a
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
-  ExpoContacts: 605d517d1e7a8a3f12f736db67cc502c0dd22b53
+  ExpoContacts: a35aeccb01238821e2d7d84e44a618e51d87ad24
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: 43b69559cef3d773db57c7ae7edd3cb0aa0dc610
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
@@ -1917,10 +1917,10 @@ SPEC CHECKSUMS:
   React-utils: 4476b7fcbbd95cfd002f3e778616155241d86e31
   ReactCommon: ecad995f26e0d1e24061f60f4e5d74782f003f12
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
-  RNCPicker: dfddec94003745a413e25373ae956a836d42cd54
+  RNCPicker: 4ec9cd8eb8a50d75ff38b1987c1991a556029bc0
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: 156548e18203327173a764c6932a3f52e90cb9cd
-  RNReanimated: 2f33b2f8c79c456ce3858a7cd2e07460eb5f61e0
+  RNReanimated: ef8da862d18761a6d80604c0671ea564fafb219a
   RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
