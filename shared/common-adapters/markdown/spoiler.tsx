@@ -1,17 +1,22 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Text from '@/common-adapters/text'
+import Text, {type TextType} from '@/common-adapters/text'
+
+export const SpoilerContext = React.createContext<boolean>(false)
 
 type Props = {
+  children: React.ReactNode
   context?: string
   content: string
-  isPreview?: boolean
+  type?: 'service' | 'preview'
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {content, context, isPreview} = p
+  const {children, content, context, type} = p
+  const isPreview = type === 'preview'
+  // const isServiceOnly = type === 'service'
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
@@ -34,16 +39,29 @@ const Spoiler = (p: Props) => {
     return showMasked ? Array(len).fill('•').join('') : ''
   }, [showMasked, len])
 
-  return showMasked ? (
-    <Text type="BodySmall">{masked}</Text>
-  ) : (
-    <Text
-      type="BodySmall"
-      onClick={onClick}
-      style={shown ? styles.shown : styles.hidden}
-      title={shown ? '' : 'Click to reveal'}
-    >
-      {content}
+  return (
+    <SpoilerContext.Provider value={!shown}>
+      {showMasked ? (
+        <Text type="BodySmall">{masked}</Text>
+      ) : (
+        <Text
+          className={shown ? undefined : 'spoiler'}
+          type="BodySmall"
+          onClick={onClick}
+          style={shown ? styles.shown : styles.hidden}
+          title={shown ? '' : 'Click to reveal'}
+        >
+          {children || content}
+        </Text>
+      )}
+    </SpoilerContext.Provider>
+  )
+}
+
+export const InnerSpoiled = (p: {children: React.ReactNode; type: TextType; style?: any}) => {
+  return (
+    <Text className={'spoiler'} type="BodySmall" style={Styles.collapseStyles([p.style, styles.hidden])}>
+      {p.children}
     </Text>
   )
 }

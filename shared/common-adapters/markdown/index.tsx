@@ -308,10 +308,11 @@ const rules: {[type: string]: SM.ParserRule} = {
     }),
   },
   spoiler: {
-    match: SimpleMarkdown.inlineRegex(/^!>([^!>]*?)<!/),
+    match: SimpleMarkdown.inlineRegex(/^!>(.*?)<!/),
     order: 2,
-    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: SM.State) => ({
-      content: capture[1],
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => ({
+      content: nestedParse(capture[1] || '', state),
+      raw: capture[1],
       type: 'spoiler',
     }),
   },
