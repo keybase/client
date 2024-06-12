@@ -1,4 +1,4 @@
-dark mode on start lost?
+dark mode on start lost? >> log in index.ios
 crash on scroll up way fast. seems like expo video issue
 
 bottom sheet crashes on show: try exploding modal:
