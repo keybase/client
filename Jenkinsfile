@@ -229,8 +229,8 @@ helpers.rootLinuxNode(env, {
                       sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                       sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                       sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
-                      withCredentials([string(credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64')]) {
-                        def kbfsCert = sh(returnStdout: true, script: "echo \"$KBFS_DOCKER_CERT_B64\" | sed 's/ //g' | base64 -d")
+                      withCredentials([string(credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64')]) { // TODO update the var in CI
+                        def kbfsCert = sh(returnStdout: true, script: "echo LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURlVENDQW1HZ0F3SUJBZ0lVSk9iejZhVVNsVTV3QlJtUlc2MjNiYTF0bFAwd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0xERUxNQWtHQTFVRUJoTUNWVk14Q3pBSkJnTlZCQWdNQWs1Wk1SQXdEZ1lEVlFRS0RBZExaWGxpWVhObApNQjRYRFRJeE1USXdPVEF5TXprME4xb1hEVE14TVRJd056QXlNemswTjFvd0xERUxNQWtHQTFVRUJoTUNWVk14CkN6QUpCZ05WQkFnTUFrNVpNUkF3RGdZRFZRUUtEQWRMWlhsaVlYTmxNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUYKQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3ZUN1WWI2L0wwd0szYnZERkJzYk5CWlU0a2J3N3dLczhpcWxvdjdURHE5bAp5NjE3cjZETGVtWTkwckN0VnVLaU1SaDNvVjZDTXNxYmRMQVU2QlNvbENadlc3clFnT0ZXTGZIcTBocW53YkZECnptQVExRUVrR3BVVzZDQWIrWlpVUXBKKzhZVGxkQ1hYY0huNWN1OUYxY1lwa3dGc1dBODEwdDRTUzFkK0xDUXgKazFjRjRRakpycm5jdFRCU3BWdDNiRG0wOWJ6TmJ6OUh1Y1ErWWNEMmU1Wng2SmhZQkVBYTlpRWRma3BoM2tHTApaRStSTXN3aGk1Umc2ZXJrZkdHRU5iL3NUVlZKV1N4eEVHMFhsR1I5d0E5d1ZBK24rTU9kR2VZSHFSOC9YNk8rCnhPK2hLaHR1dmhNSnRqb0J0VGwrbWt3VGpaTFBRd01zdFlWVEtXZ3RyUUlEQVFBQm80R1NNSUdQTUIwR0ExVWQKRGdRV0JCUTB1RlVrbXE4Q3BlUFQ0allvY1FmZGZjTlN4VEFmQmdOVkhTTUVHREFXZ0JRMHVGVWttcThDcGVQVAo0allvY1FmZGZjTlN4VEFNQmdOVkhSTUVCVEFEQVFIL01EOEdBMVVkRVFRNE1EYUNFMjFrYzJWeWRtVnlMbXRpClpuTXViRzlqWVd5Q0VtSnpaWEoyWlhJdWEySm1jeTVzYjJOaGJJSUxhMkozWldJdWJHOWpZV3d3RFFZSktvWkkKaHZjTkFRRUxCUUFEZ2dFQkFEWHVPY0h3Mnl2Y3hISXhtYVNoQlA5ZWkyV1N5bUVYRlNJSDI0WGRjcEppMG5pOQp3TDA5OGhnMlFQNFZYK0dBcWJ3MGtOT2p3L0xuRm1Qa1NJVTEvMDBhR1dYbG85T05iQ21aR2lVVDRscC9jTkpsCmlzNk5mWFJxMDQrL1FQZm1NYVhYNCtSRVBVWFd3ckNRcU1Tb2Q3NzNnVzRrUVNZbC81NkxNTjQ2NExQajRiMjMKSkNNSFBZVWxEK3FmYTAwcWhzT21vZE81Um85R2QxOGphckFHNkhYRlF4b0pZY2NnVGhsWC9nNWgxVzFqaFBrRwo3RWo3UHhWbnVqZFY0Zm5Ba20zTHVPbDNQcDZiYy9OSHcxRVhWeUcxclFWZk1ZMm84eXd4TVduUVRucElJeGxICkV1Q0N1N2gzQVErTmZ4ZXpwckUzUzZMT0ZGa1NsTUM4aFZpSHJBTT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo= | sed 's/ //g' | base64 -d")
                         kbfsfuseImage = docker.build('897413463132.dkr.ecr.us-east-1.amazonaws.com/client', "--build-arg KEYBASE_TEST_ROOT_CERT_PEM=\"$kbfsCert\" .")
                       }
                       docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
@@ -296,13 +296,13 @@ helpers.rootLinuxNode(env, {
     }
 
     stage("Push") {
-      if (env.BRANCH_NAME == "master" && cause != "upstream") {
+      //if (env.BRANCH_NAME == "master" && cause != "upstream") {
         docker.withRegistry('https://897413463132.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-ecr-user') {
           kbfsfuseImage.push('master')
         }
-      } else {
-        println "Not pushing docker"
-      }
+      //} else {
+      //  println "Not pushing docker"
+      //}
     }
   }
 }
