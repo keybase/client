@@ -331,7 +331,7 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	ha.Add("fields", S{fields})
 	ares, res.err = m.G().API.Get(m, APIArg{
 		Endpoint:        "user/lookup",
-		SessionType:     APISessionTypeNONE,
+		SessionType:     APISessionTypeOPTIONAL,
 		Args:            ha,
 		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
 		RetryCount:      3,
