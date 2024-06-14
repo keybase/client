@@ -189,8 +189,12 @@ services:
       , case_insensitive: true
       , from: "subreddit_from_url"
       , error: ["BAD_API_URL", "URL contained wrong subreddit '%{subreddit_from_url}' !+ 'keybaseproofs'"] } },
+    # Create the old.reddit.com url to fetch from
+    { fill: {
+      , with: "https://old.reddit.com/r/%{subreddit_from_url}/%{path_remainder}"
+      , into: "our_url" } },
     { fetch: {
-      , from: "hint_url"
+      , from: "our_url"
       , kind: "json" } },
     # check that the first thing is a Listing
     { selector_json: {
