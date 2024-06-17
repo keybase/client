@@ -17,9 +17,11 @@ const HeaderAvatar = () => {
 
 const People = React.lazy(async () => import('./container'))
 const Screen = () => (
-  <React.Suspense>
-    <People />
-  </React.Suspense>
+  <React.StrictMode>
+    <React.Suspense>
+      <People />
+    </React.Suspense>
+  </React.StrictMode>
 )
 
 const Page = {getOptions, getScreen: () => Screen}
