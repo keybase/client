@@ -4054,6 +4054,13 @@ func (k *SimpleFS) notifyUIArchiveStateChange(ctx context.Context,
 	}
 }
 
+// isInitialized returns whether things that use SimpleFS directly can
+// start making calls yet.  We use MDOps as a stand-in for
+// initialization, since that's required to start resolving TLF IDs.
+func (k *SimpleFS) isInitialized() bool {
+	return k.config.MDOps() != nil
+}
+
 // Shutdown shuts down SimpleFS.
 func (k *SimpleFS) Shutdown(ctx context.Context) error {
 	k.shutdownLock.Lock()
