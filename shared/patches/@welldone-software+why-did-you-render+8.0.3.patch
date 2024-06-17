@@ -1,8 +1,8 @@
 diff --git a/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js b/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
-index 6b8284b..6f23b7c 100644
+index 8b57012..0dfad1b 100644
 --- a/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
 +++ b/node_modules/@welldone-software/why-did-you-render/dist/whyDidYouRender.js
-@@ -409,6 +409,12 @@
+@@ -355,6 +355,12 @@
        }
        return trackDiff(_toConsumableArray(a), _toConsumableArray(b), diffsAccumulator, pathString, diffTypes.different);
      }
