@@ -1420,6 +1420,7 @@ func (d *Service) startProfile() {
 			d.G().Log.Warning("error creating cpu profile: %s", err)
 		} else {
 			d.G().Log.Debug("+ starting service cpu profile in %s", cpu)
+			defer f.Close()
 			err := pprof.StartCPUProfile(f)
 			if err != nil {
 				d.G().Log.Warning("error starting CPU profile: %s", err)
