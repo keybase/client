@@ -14,12 +14,13 @@ const Screenprotector = () => {
       loadDisableScreenshot(
         [{path: 'ui.disableScreenshot'}],
         result => {
-          const res = result.b ?? false
+          const res = result.b ?? true
           initialDisableScreenshot.current = res
           setDisableScreenshot(res)
         },
         () => {
-          setDisableScreenshot(false)
+          initialDisableScreenshot.current = true
+          setDisableScreenshot(true)
         }
       )
     }, 1)
