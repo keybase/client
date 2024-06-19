@@ -147,6 +147,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     }
   }, [])
 
+  console.log('aaa zoomimage', containerRef)
+
   return (
     <div ref={divRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
       <img
@@ -158,7 +160,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
         src={src}
         style={imgStyle}
       />
-      <Kb.Toast visible={showToast} attachTo={containerRef}>
+      <Kb.Toast visible={true || showToast} attachTo={containerRef}>
         <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan
         </Kb.Text>

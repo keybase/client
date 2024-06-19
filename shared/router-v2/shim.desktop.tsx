@@ -234,7 +234,18 @@ const styles = Kb.Styles.styleSheetCreate(() => {
 
 const wrapInStrict = (route: string) => {
   let wrap = false
-  if (['peopleRoot', 'accountSwitcher', 'peopleTeamBuilder'].includes(route)) {
+  if (
+    [
+      'peopleRoot',
+      'accountSwitcher',
+      'peopleTeamBuilder',
+      'fsRoot',
+      'barePreview',
+      'confirmDelete',
+      'destinationPicker',
+      'kextPermission',
+    ].includes(route)
+  ) {
     wrap = true
   }
   if (route.startsWith('profile')) {
