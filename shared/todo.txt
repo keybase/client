@@ -1,3 +1,8 @@
+>>>
+>>> strict. floating broken
+>>>
+>>>
+>>>
 dark mode on start lost? >> log in index.ios
 crash on scroll up way fast. seems like expo video issue
 
