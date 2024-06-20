@@ -19,6 +19,7 @@ const Screenprotector = () => {
           setDisableScreenshot(res)
         },
         () => {
+          initialDisableScreenshot.current = false
           setDisableScreenshot(false)
         }
       )

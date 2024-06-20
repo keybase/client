@@ -4,7 +4,7 @@ PODS:
   - EXAV (14.0.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (16.0.1):
+  - EXConstants (16.0.2):
     - ExpoModulesCore
   - EXImageLoader (4.7.0):
     - ExpoModulesCore
@@ -1095,7 +1095,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.3.2):
     - React-Core
-  - react-native-safe-area-context (4.10.4):
+  - react-native-safe-area-context (4.10.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1109,8 +1109,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.10.4)
-    - react-native-safe-area-context/fabric (= 4.10.4)
+    - react-native-safe-area-context/common (= 4.10.5)
+    - react-native-safe-area-context/fabric (= 4.10.5)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1118,7 +1118,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.10.4):
+  - react-native-safe-area-context/common (4.10.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1139,7 +1139,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.10.4):
+  - react-native-safe-area-context/fabric (4.10.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1436,7 +1436,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.16.2):
+  - RNGestureHandler (2.17.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1457,7 +1457,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.13.0-rc.1):
+  - RNReanimated (3.12.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1478,7 +1478,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.31.1):
+  - RNScreens (3.32.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1499,9 +1499,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.31.1)
+    - RNScreens/common (= 3.32.0)
     - Yoga
-  - RNScreens/common (3.31.1):
+  - RNScreens/common (3.32.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1834,7 +1834,7 @@ SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: cb6e8dbcc40873d8a386af357e6c2eb55d6d739e
-  EXConstants: 9a008dbf262550884e6280dea95b81b51f65ea6f
+  EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
   Expo: 9c87c876b45a6934894ba5e9353ee94fdba48125
@@ -1891,7 +1891,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: 2feec2957803fce5eede926eacd7c6a31b858f0d
   react-native-netinfo: 076df4f9b07f6670acf4ce9a75aac8d34c2e2ccc
-  react-native-safe-area-context: 2908c69c3ef0a68d536b985a76738d541d6b022e
+  react-native-safe-area-context: afa5d614d6b1b73b743c9261985876606560d128
   react-native-webview: 6f26c6733ccbdd7ddd0e26dae62551d6955b5a6d
   React-nativeconfig: 9f223cd321823afdecf59ed00861ab2d69ee0fc1
   React-NativeModulesApple: ff7efaff7098639db5631236cfd91d60abff04c0
@@ -1919,9 +1919,9 @@ SPEC CHECKSUMS:
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
   RNCPicker: 4ec9cd8eb8a50d75ff38b1987c1991a556029bc0
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 156548e18203327173a764c6932a3f52e90cb9cd
-  RNReanimated: ef8da862d18761a6d80604c0671ea564fafb219a
-  RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
+  RNGestureHandler: 998ef5b98a2339d5b4f80d799ce9eb7b06e5fcbf
+  RNReanimated: 39269a5ed334904aafa5218ea9b543ca05d2c180
+  RNScreens: d3d50aa84db4541eee00fbb1f32151030f56c510
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
