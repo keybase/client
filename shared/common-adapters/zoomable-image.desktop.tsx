@@ -147,8 +147,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     }
   }, [])
 
-  console.log('aaa zoomimage', containerRef)
-
   return (
     <div ref={divRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
       <img

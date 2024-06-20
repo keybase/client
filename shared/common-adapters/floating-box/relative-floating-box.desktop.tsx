@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import includes from 'lodash/includes'
-import without from 'lodash/without'
 import Box from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
@@ -17,24 +16,13 @@ type ComputedStyle = {
   bottom?: number | 'auto'
 }
 
-const positions: Array<Styles.Position> = [
-  'top left',
-  'top right',
-  'bottom right',
-  'bottom left',
-  'right center',
-  'left center',
-  'top center',
-  'bottom center',
-  'center center',
-]
-
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
   coords: MeasureDesktop,
   popupCoords: MeasureDesktop,
-  matchDimension: boolean
+  matchDimension: boolean,
+  offset: number
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute'}
 
@@ -48,10 +36,10 @@ function _computePopupStyle(
   const {clientWidth, clientHeight} = document.documentElement
 
   if (includes(position, 'right')) {
-    style.right = Math.round(clientWidth - (coords.right + pageXOffset))
+    style.right = Math.round(clientWidth - (coords.right + pageXOffset) + offset)
     style.left = 'auto'
   } else if (includes(position, 'left')) {
-    style.left = Math.round(coords.left + pageXOffset)
+    style.left = Math.round(coords.left + pageXOffset + offset)
     style.right = 'auto'
   } else if (matchDimension) {
     style.left = Math.round(coords.left + pageXOffset)
@@ -64,10 +52,10 @@ function _computePopupStyle(
   }
 
   if (includes(position, 'top')) {
-    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset))
+    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset) - offset)
     style.top = 'auto'
   } else if (includes(position, 'bottom')) {
-    style.top = Math.round(coords.bottom + pageYOffset)
+    style.top = Math.round(coords.bottom + pageYOffset - offset)
     style.bottom = 'auto'
   } else if (matchDimension) {
     style.bottom = Math.round(clientHeight - (coords.top + pageYOffset))
@@ -130,7 +118,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): b
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop, offset: number) {
   const {
     pageYOffset,
     pageXOffset,
@@ -157,19 +145,19 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop
     // push down
     const off = pageYOffset - element.top
     if (typeof style.top === 'number') {
-      style.top += off
+      style.top += off + offset
     }
     if (typeof style.bottom === 'number') {
-      style.bottom -= off
+      style.bottom -= off + offset
     }
   } else if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight) {
     // push up
     const off = element.top + element.height - (pageYOffset + clientHeight)
     if (typeof style.top === 'number') {
-      style.top -= off
+      style.top -= off + offset
     }
     if (typeof style.bottom === 'number') {
-      style.bottom += off
+      style.bottom += off + offset
     }
   }
 
@@ -177,24 +165,36 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop
     // push right
     const off = pageXOffset - element.left
     if (typeof style.left === 'number') {
-      style.left += off
+      style.left += off + offset
     }
     if (typeof style.right === 'number') {
-      style.right -= off
+      style.right -= off + offset
     }
   } else if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth) {
     // push left
     const off = element.left + element.width - (pageXOffset + clientWidth)
     if (typeof style.left === 'number') {
-      style.left -= off
+      style.left -= off + offset
     }
     if (typeof style.right === 'number') {
-      style.right += off
+      style.right += off + offset
     }
   }
 
   return style
 }
+
+const allPositions: Array<Styles.Position> = [
+  'top left',
+  'top right',
+  'bottom right',
+  'bottom left',
+  'right center',
+  'left center',
+  'top center',
+  'bottom center',
+  'center center',
+]
 
 function computePopupStyle(
   position: Styles.Position,
@@ -202,16 +202,18 @@ function computePopupStyle(
   popupCoords: DOMRect,
   matchDimension: boolean,
   // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: ReadonlyArray<Styles.Position>
+  positionFallbacks?: ReadonlyArray<Styles.Position>,
+  _offset?: number
 ): ComputedStyle {
-  let style = _computePopupStyle(position, coords, popupCoords, matchDimension)
+  const offset = _offset ?? 0
+  let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
-  const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
+  const positionsShuffled = positionFallbacks ?? allPositions
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i]!, coords, popupCoords, matchDimension)
+    style = _computePopupStyle(positionsShuffled[i]!, coords, popupCoords, matchDimension, offset)
   }
   if (!isStyleInViewport(style, popupCoords)) {
-    style = pushStyleIntoViewport(style, popupCoords)
+    style = pushStyleIntoViewport(style, popupCoords, offset * 2) // *2 since we included the offset already so we need to move twice that
   }
   return style
 }
@@ -227,6 +229,7 @@ type ModalPositionRelativeProps = {
   style?: Styles.StylesCrossPlatform
   children: React.ReactNode
   disableEscapeKey?: boolean // if true, ignore keys
+  offset?: number // offset in pixels from edge
 }
 
 // type Snapshot = {width?: number; height?: number}
@@ -236,7 +239,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const downRef = React.useRef<undefined | {x: number; y: number}>()
   const [style, setStyle] = React.useState<Styles.StylesCrossPlatform>({opacity: 0, pointerEvents: 'none'})
   const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
-  const {position, matchDimension, positionFallbacks, disableEscapeKey} = props
+  const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props
 
   const handleDown = React.useCallback((e: MouseEvent) => {
     downRef.current = {x: e.clientX, y: e.clientY}
@@ -280,62 +283,22 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
 
   React.useEffect(() => {
     if (targetRect && popupNode) {
-      console.log('aaa diff apply')
       const s = Styles.collapseStyles([
         computePopupStyle(
           position,
           targetRect,
           popupNode.getBoundingClientRect(),
           !!matchDimension,
-          positionFallbacks
+          positionFallbacks,
+          offset
         ),
         _style,
       ] as any)
       setStyle(s)
     }
-  }, [_style, matchDimension, position, positionFallbacks, popupNode, targetRect])
-
-  // const lastTargetRect = React.useRef<typeof targetRect | undefined>()
-  // const lastMatchDimension = React.useRef<typeof matchDimension | undefined>()
-  // const lastPosition = React.useRef<typeof position | undefined>()
-  // const lastPositionFallbacks = React.useRef<typeof positionFallbacks | undefined>()
-  // const lastStyle = React.useRef<typeof _style | undefined>()
-  // const lastPopupNode = React.useRef<HTMLDivElement | null>(null)
-  // if (
-  //   lastTargetRect.current !== targetRect ||
-  //   lastMatchDimension.current !== matchDimension ||
-  //   lastPosition.current !== position ||
-  //   lastPositionFallbacks.current !== positionFallbacks ||
-  //   lastStyle.current !== _style ||
-  //   lastPopupNode.current !== popupNode
-  // ) {
-  //   console.log('aaa diff', {targetRect, popupNode})
-  //   lastTargetRect.current = targetRect
-  //   lastMatchDimension.current = matchDimension
-  //   lastPosition.current = position
-  //   lastPositionFallbacks.current = positionFallbacks
-  //   lastStyle.current = _style
-  //   lastPopupNode.current = popupNode
-  //   if (targetRect && popupNode) {
-  //     console.log('aaa diff apply')
-  //     const s = Styles.collapseStyles([
-  //       computePopupStyle(
-  //         position,
-  //         targetRect,
-  //         popupNode.getBoundingClientRect(),
-  //         !!matchDimension,
-  //         positionFallbacks
-  //       ),
-  //       _style,
-  //     ] as any)
-  //     setStyle(s)
-  //   }
-  // }
+  }, [_style, matchDimension, position, positionFallbacks, popupNode, targetRect, offset])
 
   const modalRoot = document.getElementById('modal-root')
-
-  console.log('aaaa render', style, {targetRect, popupNode, modalRoot})
-
   return modalRoot
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>

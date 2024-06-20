@@ -3,9 +3,11 @@ import type {Props} from '.'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 import noop from 'lodash/noop'
+import shallowEqual from 'shallowequal'
 
 const FloatingBox = (props: Props) => {
-  const {attachTo} = props
+  const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
+  const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
 
   const getTargetRect = React.useCallback(() => {
     return attachTo?.current?.measure?.()
@@ -21,28 +23,27 @@ const FloatingBox = (props: Props) => {
       if (!t || !tr) {
         return tr
       }
-      if (t.left !== tr.left || t.top !== tr.top || t.width !== tr.width || t.height !== tr.height) {
+      if (!shallowEqual(t, tr)) {
         return tr
       }
       return
     })
   }, [getTargetRect])
 
-  console.log('aaa floatinbox render', {targetRect})
-
   return (
     <RelativeFloatingBox
-      disableEscapeKey={props.disableEscapeKey}
-      position={props.position || 'bottom center'}
-      positionFallbacks={props.positionFallbacks}
+      disableEscapeKey={disableEscapeKey}
+      position={position || 'bottom center'}
+      positionFallbacks={positionFallbacks}
       targetRect={targetRect}
-      matchDimension={!!props.matchDimension}
-      onClosePopup={props.onHidden || noop}
-      remeasureHint={props.remeasureHint}
-      propagateOutsideClicks={props.propagateOutsideClicks}
-      style={props.containerStyle}
+      matchDimension={!!matchDimension}
+      onClosePopup={onHidden || noop}
+      remeasureHint={remeasureHint}
+      propagateOutsideClicks={propagateOutsideClicks}
+      style={containerStyle}
+      offset={offset}
     >
-      {props.children}
+      {children}
     </RelativeFloatingBox>
   )
 }
