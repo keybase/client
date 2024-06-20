@@ -52,7 +52,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
 
   const forceDims = React.useMemo(() => {
-    return {height: fullHeight, width: fullWidth}
+    return fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
   }, [fullHeight, fullWidth])
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
