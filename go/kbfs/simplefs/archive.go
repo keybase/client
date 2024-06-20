@@ -450,7 +450,27 @@ func (m *archiveManager) doIndexing(ctx context.Context, jobID string) (err erro
 	return nil
 }
 
+func (m *archiveManager) waitForSimpleFSInit(ctx context.Context) error {
+	for {
+		if m.simpleFS.isInitialized() {
+			return nil
+		}
+
+		t := time.NewTimer(1 * time.Second)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t.C:
+		}
+	}
+}
+
 func (m *archiveManager) indexingWorker(ctx context.Context) {
+	err := m.waitForSimpleFSInit(ctx)
+	if err != nil {
+		return
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -820,6 +840,11 @@ loopEntryPaths:
 }
 
 func (m *archiveManager) copyingWorker(ctx context.Context) {
+	err := m.waitForSimpleFSInit(ctx)
+	if err != nil {
+		return
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -1037,6 +1062,11 @@ func (m *archiveManager) doZipping(ctx context.Context, jobID string) (err error
 }
 
 func (m *archiveManager) zippingWorker(ctx context.Context) {
+	err := m.waitForSimpleFSInit(ctx)
+	if err != nil {
+		return
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -1104,6 +1134,11 @@ func (m *archiveManager) resetInterruptedPhaseLocked(ctx context.Context, jobID 
 }
 
 func (m *archiveManager) errorRetryWorker(ctx context.Context) {
+	err := m.waitForSimpleFSInit(ctx)
+	if err != nil {
+		return
+	}
+
 	ticker := time.NewTicker(time.Second * 5)
 	for {
 		select {
@@ -1147,6 +1182,11 @@ func (m *archiveManager) errorRetryWorker(ctx context.Context) {
 }
 
 func (m *archiveManager) notifyUIStateChangeWorker(ctx context.Context) {
+	err := m.waitForSimpleFSInit(ctx)
+	if err != nil {
+		return
+	}
+
 	limiter := rate.NewLimiter(rate.Every(time.Second/2), 1)
 	for {
 		select {

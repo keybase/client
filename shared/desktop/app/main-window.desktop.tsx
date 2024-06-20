@@ -114,7 +114,7 @@ let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
 let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight'
 let disableSpellCheck = false
-let disableScreenshot = true
+let disableScreenshot = false
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
