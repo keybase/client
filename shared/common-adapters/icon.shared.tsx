@@ -103,7 +103,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
 
   const sizeKey = targetSize + ']' + ssizes.join(':')
   if (_getMultsMapCache[sizeKey]) {
-    return _getMultsMapCache[sizeKey] || {}
+    return _getMultsMapCache[sizeKey]
   }
 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
