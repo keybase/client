@@ -6,6 +6,7 @@ import tseslint from 'typescript-eslint'
 import {fixupPluginRules} from '@eslint/compat'
 import deprecation from 'eslint-plugin-deprecation'
 import importPlugin from 'eslint-plugin-import'
+import reactCompiler from 'eslint-plugin-react-compiler'
 
 const ignores = [
   'babel.config.js',
@@ -115,6 +116,7 @@ const reactRules = {
   'react/static-property-placement': 'off',
   'react/style-prop-object': 'error',
   'react/void-dom-elements-no-children': 'error',
+  'react-compiler/react-compiler': 'error',
 }
 
 const commonRules = {
@@ -345,6 +347,7 @@ export default [
       'react-hooks': fixupPluginRules(reactHooks),
       deprecation: fixupPluginRules(deprecation),
       importPlugin: fixupPluginRules(importPlugin),
+      'react-compiler': fixupPluginRules(reactCompiler),
     },
     languageOptions: {
       ecmaVersion: 2022,

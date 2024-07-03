@@ -174,6 +174,7 @@
     "eslint-plugin-react-hooks": "4.6.2",
     "eslint-plugin-deprecation": "3.0.0",
     "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-react-compiler": "0.0.0-experimental-0998c1e-20240625",
     "fs-extra": "11.2.0",
     "html-webpack-plugin": "5.6.0",
     "json5": "2.2.3",
