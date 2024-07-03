@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+index 2b006f4..4f3ddfc 100644
+--- a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+@@ -49,7 +49,7 @@ export type NativeStackNavigationEventMap = {
+         };
+     };
+ };
+-export type NativeStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = NavigationProp<ParamList, RouteName, StackNavigationState<ParamList>, NativeStackNavigationOptions, NativeStackNavigationEventMap> & StackActionHelpers<ParamList>;
++export type NativeStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = any // NavigationProp<ParamList, RouteName, StackNavigationState<ParamList>, NativeStackNavigationOptions, NativeStackNavigationEventMap> & StackActionHelpers<ParamList>;
+ export type NativeStackScreenProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = string> = {
+     navigation: NativeStackNavigationProp<ParamList, RouteName>;
+     route: RouteProp<ParamList, RouteName>;
+@@ -451,8 +451,8 @@ export type NativeStackNavigationOptions = {
+     transitionAnimation?: AnimatedScreenTransition;
+     screenEdgeGesture?: boolean;
+ };
+-export type NativeStackNavigatorProps = DefaultNavigatorOptions<NativeStackNavigationOptions> & StackRouterOptions & NativeStackNavigationConfig;
+-export type NativeStackDescriptor = Descriptor<ParamListBase, string, StackNavigationState<ParamListBase>, NativeStackNavigationOptions>;
++export type NativeStackNavigatorProps = any // DefaultNavigatorOptions<NativeStackNavigationOptions> & StackRouterOptions & NativeStackNavigationConfig;
++export type NativeStackDescriptor = any // Descriptor<ParamListBase, string, StackNavigationState<ParamListBase>, NativeStackNavigationOptions>;
+ export type NativeStackDescriptorMap = {
+     [key: string]: NativeStackDescriptor;
+ };
