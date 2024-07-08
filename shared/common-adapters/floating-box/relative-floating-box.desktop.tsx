@@ -232,8 +232,6 @@ type ModalPositionRelativeProps = {
   offset?: number // offset in pixels from edge
 }
 
-// type Snapshot = {width?: number; height?: number}
-
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const [popupNode, setPopupNode] = React.useState<HTMLDivElement | null>(null)
   const downRef = React.useRef<undefined | {x: number; y: number}>()
