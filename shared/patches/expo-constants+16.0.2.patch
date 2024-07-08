@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-constants/build/Constants.types.d.ts b/node_modules/expo-constants/build/Constants.types.d.ts
-index a7eb52d..7dfb7d5 100644
+index a7eb52d..bf54c04 100644
 --- a/node_modules/expo-constants/build/Constants.types.d.ts
 +++ b/node_modules/expo-constants/build/Constants.types.d.ts
 @@ -1,5 +1,7 @@
