@@ -650,13 +650,6 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
     heightRef.current = undefined
   }
 
-  // const rounsubRef = React.useRef<(() => void) | undefined>()
-  // const iounsubRef = React.useRef<(() => void) | undefined>()
-
-  //const resizeObserve = React.useContext(ResizeObserverContext)
-  //TODO intersetion
-  // const intersectionObserve = React.useContext(IntersectObserverContext)
-
   const [wRef, waypointRef] = React.useState<HTMLDivElement | null>(null)
   useResizeObserver(wRef, e => onResize(e.contentRect))
   const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
