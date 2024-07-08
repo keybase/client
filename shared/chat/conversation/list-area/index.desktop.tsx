@@ -16,6 +16,8 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import {chatDebugEnabled} from '@/constants/chat2/debug'
 import logger from '@/logger'
 import shallowEqual from 'shallowequal'
+import useResizeObserver from './use-resize-observer'
+import useIntersectionObserver from './use-intersection-observer'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -25,106 +27,6 @@ const scrollOrdinalKey = 'scroll-ordinal-key'
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
-
-// use intersection observer for waypoints
-const useIntersectionObserver = () => {
-  const listenersRef = React.useRef(new Map<Element, (isIntersecting: boolean) => void>())
-  const onIntersectionObservedRef = React.useRef((entries: Array<IntersectionObserverEntry>) => {
-    for (const entry of entries) {
-      const cb = listenersRef.current.get(entry.target)
-      if (cb) {
-        const {isIntersecting} = entry
-        cb(isIntersecting)
-      }
-    }
-  })
-
-  const intersectionObserverRef = React.useRef<IntersectionObserver | undefined>()
-
-  // we want to observe a node
-  const observe = React.useCallback(
-    (e: HTMLDivElement, cb: (isIntersecting: boolean) => void) => {
-      // set up for first time
-      if (!intersectionObserverRef.current) {
-        const root = e.closest('.chat-scroller')
-        intersectionObserverRef.current = new IntersectionObserver(
-          entries => onIntersectionObservedRef.current(entries),
-          {root}
-        )
-      }
-      const ro = intersectionObserverRef.current
-      listenersRef.current.set(e, cb)
-      ro.observe(e)
-      return () => {
-        listenersRef.current.delete(e)
-        ro.unobserve(e)
-      }
-    },
-    [intersectionObserverRef]
-  )
-
-  React.useEffect(() => {
-    let ior = intersectionObserverRef.current
-    return () => {
-      ior?.disconnect()
-      intersectionObserverRef.current = undefined
-      ior = undefined
-    }
-  }, [])
-
-  return observe
-}
-
-// we use resize observer to watch for size changes. we use one observer and attach nodes
-const useResizeObserver = () => {
-  const listenersRef = React.useRef(new Map<Element, (p: {height: number; width: number}) => void>())
-  const onResizeObservedRef = React.useRef((entries: Array<ResizeObserverEntry>) => {
-    for (const entry of entries) {
-      const cb = listenersRef.current.get(entry.target)
-      if (cb) {
-        const rect = {
-          // ignore floating point issues
-          height: Math.floor(entry.contentRect.height),
-          width: Math.floor(entry.contentRect.width),
-        }
-        cb(rect)
-      }
-    }
-  })
-
-  const resizeObserverRef = React.useRef<ResizeObserver | undefined>(
-    new ResizeObserver(entries => onResizeObservedRef.current(entries))
-  )
-
-  // we want to observe a node
-  const observe = React.useCallback(
-    (e: HTMLDivElement, cb: (contentRect: {height: number; width: number}) => void) => {
-      const ro = resizeObserverRef.current
-      if (ro) {
-        listenersRef.current.set(e, cb)
-        ro.observe(e)
-        return () => {
-          listenersRef.current.delete(e)
-          ro.unobserve(e)
-        }
-      } else {
-        throw new Error('no ro?')
-      }
-    },
-    [resizeObserverRef]
-  )
-
-  React.useEffect(() => {
-    let ror = resizeObserverRef.current
-    return () => {
-      ror?.disconnect()
-      resizeObserverRef.current = undefined
-      ror = undefined
-    }
-  }, [])
-
-  return observe
-}
 
 // scrolling related things
 const useScrolling = (p: {
@@ -191,7 +93,9 @@ const useScrolling = (p: {
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
     const actuallyScroll = () => {
-      if (!isMounted()) return
+      if (!isMounted()) {
+        return
+      }
       const list = listRef.current
       if (list) {
         adjustScrollAndIgnoreOnScroll(() => {
@@ -295,7 +199,7 @@ const useScrolling = (p: {
 
   const setListRef = React.useCallback(
     (list: HTMLDivElement | null) => {
-      if (listRef.current && listRef.current !== list) {
+      if (listRef.current) {
         listRef.current.removeEventListener('scroll', onScroll)
       }
       if (list) {
@@ -317,22 +221,31 @@ const useScrolling = (p: {
   }, [cleanupDebounced])
 
   const initScrollRef = React.useRef(false)
-  React.useEffect(() => {
-    if (initScrollRef.current) return
-    initScrollRef.current = true
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
+  const [didFirstLoad, setDidFirstLoad] = React.useState(false)
+  React.useLayoutEffect(() => {
+    if (!initScrollRef.current) {
+      initScrollRef.current = true
+      if (!markedInitiallyLoaded) {
+        markedInitiallyLoaded = true
+        markInitiallyLoadedThreadAsRead()
+      }
+      if (centeredOrdinal) {
+        lockedToBottomRef.current = false
+        scrollToCentered()
+      } else if (isLockedToBottom()) {
+        scrollToBottom()
+      }
     }
-    if (centeredOrdinal) {
-      lockedToBottomRef.current = false
-      scrollToCentered()
-      return
-    }
-    if (isLockedToBottom()) {
-      scrollToBottom()
-    }
-  }, [centeredOrdinal, isLockedToBottom, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
+
+    setDidFirstLoad(true)
+  }, [
+    listRef,
+    centeredOrdinal,
+    isLockedToBottom,
+    markInitiallyLoadedThreadAsRead,
+    scrollToBottom,
+    scrollToCentered,
+  ])
 
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
@@ -352,6 +265,7 @@ const useScrolling = (p: {
     const {current} = listRef
     if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
       programaticScrollRef.current = true
+
       current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
@@ -408,7 +322,7 @@ const useScrolling = (p: {
     scrollToBottom()
   }
 
-  return {isLockedToBottom, pointerWrapperRef, scrollToBottom, setListRef}
+  return {didFirstLoad, isLockedToBottom, pointerWrapperRef, scrollToBottom, setListRef}
 }
 
 const useItems = (p: {
@@ -530,11 +444,6 @@ const useItems = (p: {
   return items
 }
 
-const ResizeObserverContext = React.createContext<ReturnType<typeof useResizeObserver>>(() => () => {})
-const IntersectObserverContext = React.createContext<ReturnType<typeof useIntersectionObserver>>(
-  () => () => {}
-)
-
 const ThreadWrapper = React.memo(function ThreadWrapper() {
   const conversationIDKey = C.useChatContext(s => s.id)
   const editingOrdinal = C.useChatContext(s => s.editing)
@@ -545,7 +454,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
+  const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef, didFirstLoad} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     listRef,
@@ -553,8 +462,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
-  const resizeObserve = useResizeObserver()
-  const intersectionObserve = useIntersectionObserver()
   const onCopyCapture = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       // Copy text only, not HTML/styling. We use virtualText on texts to make uncopyable text
@@ -605,33 +512,30 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const setListContents = useHandleListResize({
     isLockedToBottom,
     pointerWrapperRef,
-    resizeObserve,
     scrollToBottom,
   })
 
   return (
     <ErrorBoundary>
-      <ResizeObserverContext.Provider value={resizeObserve}>
-        <IntersectObserverContext.Provider value={intersectionObserve}>
-          <div
-            style={Kb.Styles.castStyleDesktop(styles.container)}
-            onClick={handleListClick}
-            onCopyCapture={onCopyCapture}
-          >
-            <div
-              className="chat-scroller"
-              key={conversationIDKey}
-              style={Kb.Styles.castStyleDesktop(styles.list)}
-              ref={setListRef}
-            >
-              <div style={styles.listContents} ref={setListContents}>
-                {items}
-              </div>
-            </div>
-            {jumpToRecent}
+      <div
+        style={Kb.Styles.castStyleDesktop(styles.container)}
+        onClick={handleListClick}
+        onCopyCapture={onCopyCapture}
+      >
+        <div
+          className="chat-scroller"
+          key={conversationIDKey}
+          style={Kb.Styles.castStyleDesktop(
+            Kb.Styles.collapseStyles([styles.list, {opacity: didFirstLoad ? 1 : 0}])
+          )}
+          ref={setListRef}
+        >
+          <div style={styles.listContents} ref={setListContents}>
+            {items}
           </div>
-        </IntersectObserverContext.Provider>
-      </ResizeObserverContext.Provider>
+        </div>
+        {jumpToRecent}
+      </div>
     </ErrorBoundary>
   )
 })
@@ -640,12 +544,11 @@ const useHandleListResize = (p: {
   isLockedToBottom: () => boolean
   scrollToBottom: () => void
   pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
-  resizeObserve: ReturnType<typeof useResizeObserver>
 }) => {
-  const {isLockedToBottom, scrollToBottom, pointerWrapperRef, resizeObserve} = p
+  const {isLockedToBottom, scrollToBottom, pointerWrapperRef} = p
   const lastResizeHeightRef = React.useRef(0)
   const onListSizeChanged = React.useCallback(
-    (contentRect: {height: number}) => {
+    function onListSizeChanged(contentRect: {height: number}) {
       const {height} = contentRect
       if (height !== lastResizeHeightRef.current) {
         lastResizeHeightRef.current = height
@@ -657,25 +560,15 @@ const useHandleListResize = (p: {
     [isLockedToBottom, scrollToBottom]
   )
 
-  const unsubRef = React.useRef<(() => void) | undefined>()
-  React.useEffect(() => {
-    return () => {
-      unsubRef.current?.()
-    }
-  }, [])
-
   const setListContents = React.useCallback(
     (listContents: HTMLDivElement | null) => {
       pointerWrapperRef.current = listContents
-      unsubRef.current?.()
-      if (listContents) {
-        unsubRef.current = resizeObserve(listContents, onListSizeChanged)
-      } else {
-        unsubRef.current = undefined
-      }
     },
-    [pointerWrapperRef, resizeObserve, onListSizeChanged]
+    [pointerWrapperRef]
   )
+
+  useResizeObserver(pointerWrapperRef.current, e => onListSizeChanged(e.contentRect))
+
   return setListContents
 }
 
@@ -705,7 +598,7 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
     setForce(f => f + 1)
   }, [])
   const onResize = React.useCallback(
-    (p: {width: number; height: number}) => {
+    function onResize(p: {width: number; height: number}) {
       const {width, height} = p
       if (height && width) {
         let changed = false
@@ -740,13 +633,13 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
   // we want to go invisible if we're outside after we've been measured, aka don't scroll up and measure and hide yourself
   // only hide after you've been scrolled past
   const ignoreFirstIntersectionRef = React.useRef(true)
-  const onIntersection = React.useCallback((isIntersecting: boolean) => {
-    if (ignoreFirstIntersectionRef.current) {
-      ignoreFirstIntersectionRef.current = false
-      return
-    }
-    setVisible(isIntersecting)
-  }, [])
+  // const onIntersection = React.useCallback((isIntersecting: boolean) => {
+  //   if (ignoreFirstIntersectionRef.current) {
+  //     ignoreFirstIntersectionRef.current = false
+  //     return
+  //   }
+  //   setVisible(isIntersecting)
+  // }, [])
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
   // const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<T.Chat.Ordinal>())
@@ -757,34 +650,23 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypo
     heightRef.current = undefined
   }
 
-  const rounsubRef = React.useRef<(() => void) | undefined>()
-  const iounsubRef = React.useRef<(() => void) | undefined>()
-  React.useEffect(() => {
-    return () => {
-      rounsubRef.current?.()
-      iounsubRef.current?.()
-      rounsubRef.current = undefined
-      iounsubRef.current = undefined
-    }
-  }, [])
+  // const rounsubRef = React.useRef<(() => void) | undefined>()
+  // const iounsubRef = React.useRef<(() => void) | undefined>()
 
-  const resizeObserve = React.useContext(ResizeObserverContext)
-  const intersectionObserve = React.useContext(IntersectObserverContext)
+  //const resizeObserve = React.useContext(ResizeObserverContext)
+  //TODO intersetion
+  // const intersectionObserve = React.useContext(IntersectObserverContext)
 
-  const waypointRef = React.useCallback(
-    (w: HTMLDivElement | null) => {
-      rounsubRef.current?.()
-      iounsubRef.current?.()
-      if (w) {
-        rounsubRef.current = resizeObserve(w, onResize)
-        iounsubRef.current = intersectionObserve(w, onIntersection)
-      } else {
-        rounsubRef.current = undefined
-        iounsubRef.current = undefined
-      }
-    },
-    [onResize, resizeObserve, onIntersection, intersectionObserve]
-  )
+  const [wRef, waypointRef] = React.useState<HTMLDivElement | null>(null)
+  useResizeObserver(wRef, e => onResize(e.contentRect))
+  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
+  const {isIntersecting} = useIntersectionObserver(wRef, {root})
+
+  if (ignoreFirstIntersectionRef.current) {
+    ignoreFirstIntersectionRef.current = false
+  } else if (isVisible !== isIntersecting) {
+    setVisible(isIntersecting)
+  }
 
   // Apply data-key to the dom node so we can search for editing messages
   const renderMessages = !heightRef.current || isVisible

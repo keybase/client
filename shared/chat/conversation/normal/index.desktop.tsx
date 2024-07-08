@@ -80,7 +80,9 @@ const Conversation = React.memo(function Conversation() {
       >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-          <ListArea key={conversationIDKey} />
+          <React.StrictMode>
+            <ListArea key={conversationIDKey} />
+          </React.StrictMode>
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
             {!showThreadSearch && <PinnedMessage />}
