@@ -11,11 +11,11 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.17):
+  - Expo (51.0.18):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
-  - ExpoCamera (15.0.12):
+  - ExpoCamera (15.0.13):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -36,7 +36,7 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImagePicker (15.0.6):
+  - ExpoImagePicker (15.0.7):
     - ExpoModulesCore
   - ExpoKeepAwake (13.0.2):
     - ExpoModulesCore
@@ -1095,7 +1095,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.3.2):
     - React-Core
-  - react-native-safe-area-context (4.10.5):
+  - react-native-safe-area-context (4.10.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1109,8 +1109,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.10.5)
-    - react-native-safe-area-context/fabric (= 4.10.5)
+    - react-native-safe-area-context/common (= 4.10.7)
+    - react-native-safe-area-context/fabric (= 4.10.7)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1118,7 +1118,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.10.5):
+  - react-native-safe-area-context/common (4.10.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1139,7 +1139,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.10.5):
+  - react-native-safe-area-context/fabric (4.10.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1161,7 +1161,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-webview (13.10.4):
+  - react-native-webview (13.10.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1837,16 +1837,16 @@ SPEC CHECKSUMS:
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 675a5642b5860771507237259da50b921c03a9f3
+  Expo: 56b642d0930789fc847dc7f424d2d599dfe59a5e
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
-  ExpoCamera: 7ab9e10ffef972d5bdb0f1a815ba19f86a6284ed
+  ExpoCamera: c5be8a28a769c4dee3a02e017e5b55415d9beb2c
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
   ExpoContacts: a35aeccb01238821e2d7d84e44a618e51d87ad24
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: 43b69559cef3d773db57c7ae7edd3cb0aa0dc610
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
   ExpoImage: 2ccccff1219ebc765e344f3338f2430af2df4824
-  ExpoImagePicker: 756527d2fa339a7c9792a0602dcb9de4e4629037
+  ExpoImagePicker: 12a420923383ae38dccb069847218f27a3b87816
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
   ExpoMediaLibrary: 250bf2659264163e428da5f867493b4cccd35ef9
@@ -1891,8 +1891,8 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: 2feec2957803fce5eede926eacd7c6a31b858f0d
   react-native-netinfo: 076df4f9b07f6670acf4ce9a75aac8d34c2e2ccc
-  react-native-safe-area-context: afa5d614d6b1b73b743c9261985876606560d128
-  react-native-webview: ee1c4ea01b5bf63f26271674d4f8c5b6e84041b4
+  react-native-safe-area-context: 670eb62e416224f72f92b7749e8787fb82693252
+  react-native-webview: 51dcab3bcca45a0d5b5fa2fdbcb894569ff0957f
   React-nativeconfig: fa5de9d8f4dbd5917358f8ad3ad1e08762f01dcb
   React-NativeModulesApple: 585d1b78e0597de364d259cb56007052d0bda5e5
   React-perflogger: 7bb9ba49435ff66b666e7966ee10082508a203e8
