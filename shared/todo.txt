@@ -1,9 +1,5 @@
 >>>
 >>> strict
->>> pull in parts of nojima/HOTPOT-51-strict
->>>
->>>
->>>
 dark mode on start lost? >> log in index.ios
 crash on scroll up way fast. seems like expo video issue
 
