@@ -248,7 +248,7 @@ const wrapInStrict = (route: string) => {
   ) {
     wrap = true
   }
-  if (route.startsWith('profile') || route.startsWith('chat')) {
+  if (route.startsWith('profile') || route.startsWith('chat') || route.startsWith('team')) {
     wrap = true
   }
   console.log('aaa wrapping strict', route, wrap)
