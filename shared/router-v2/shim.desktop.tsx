@@ -232,26 +232,9 @@ const styles = Kb.Styles.styleSheetCreate(() => {
   } as const
 })
 
-const wrapInStrict = (route: string) => {
-  let wrap = false
-  if (
-    [
-      'peopleRoot',
-      'accountSwitcher',
-      'peopleTeamBuilder',
-      'fsRoot',
-      'barePreview',
-      'confirmDelete',
-      'destinationPicker',
-      'kextPermission',
-    ].includes(route)
-  ) {
-    wrap = true
-  }
-  if (route.startsWith('profile') || route.startsWith('chat') || route.startsWith('team')) {
-    wrap = true
-  }
-  console.log('aaa wrapping strict', route, wrap)
+const wrapInStrict = (_route: string) => {
+  const wrap = true
+  // TODO use this to disable strict if something is broken
   return wrap
 }
 
