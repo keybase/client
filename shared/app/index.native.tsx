@@ -118,24 +118,23 @@ const useInit = () => {
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
   useInit()
-  // reanimated still isn't compatible yet with strict mode
-  // <React.StrictMode>
-  // </React.StrictMode>
 
   const {unmountAll, show} = useUnmountAll()
   return show ? (
-    <GestureHandlerRootView style={styles.gesture}>
-      <PortalProvider>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-          <StoreHelper>
-            <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
-              <Main />
-              {unmountAll}
-            </Kb.Styles.CanFixOverdrawContext.Provider>
-          </StoreHelper>
-        </SafeAreaProvider>
-      </PortalProvider>
-    </GestureHandlerRootView>
+    <React.StrictMode>
+      <GestureHandlerRootView style={styles.gesture}>
+        <PortalProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+            <StoreHelper>
+              <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
+                <Main />
+                {unmountAll}
+              </Kb.Styles.CanFixOverdrawContext.Provider>
+            </StoreHelper>
+          </SafeAreaProvider>
+        </PortalProvider>
+      </GestureHandlerRootView>
+    </React.StrictMode>
   ) : (
     unmountAll
   )
