@@ -10,7 +10,7 @@ import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute, useLinkTo} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -123,6 +123,7 @@ const styles = Kb.Styles.styleSheetCreate(
       labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
       labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
       labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      loading: Kb.Styles.globalStyles.fillAbsolute,
       tab: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
@@ -263,54 +264,6 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const useInitialStateChangeAfterLinking = (
-  goodLinking: unknown,
-  onStateChange: () => void,
-  loggedIn: boolean
-) => {
-  // When we load an initial state we use goodLinking. When an initial state is loaded we need to
-  //manually call onStateChange as the framework itself won't call in this case. This is only valid
-  // *after* we get a onReady callback so we need to keep track of 1. a valid goodLinking, 2. onReady called
-  const goodLinkingState = React.useRef<GoodLinkingState>(
-    goodLinking ? GoodLinkingState.GoodLinkingExists : GoodLinkingState.GoodLinkingHandled
-  )
-  React.useEffect(() => {
-    if (goodLinking) {
-      if (goodLinkingState.current === GoodLinkingState.GoodLinkingHandled) {
-        goodLinkingState.current = GoodLinkingState.GoodLinkingExists
-      }
-    }
-  }, [goodLinking])
-
-  const onReady = React.useCallback(() => {
-    if (goodLinkingState.current === GoodLinkingState.GoodLinkingExists) {
-      goodLinkingState.current = GoodLinkingState.GoodLinkingHandled
-      onStateChange()
-    }
-  }, [onStateChange])
-
-  // When we do a quick user switch let's go back to the last tab we were on
-  const lastLoggedInTab = React.useRef<Tabs.Tab | undefined>(undefined)
-  const lastLoggedIn = Container.usePrevious(loggedIn)
-  if (!loggedIn && lastLoggedIn) {
-    lastLoggedInTab.current = Constants.getTab()
-  }
-
-  React.useEffect(() => {
-    if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      const navRef = Constants.navigationRef_
-      navRef.navigate(lastLoggedInTab.current)
-    }
-  }, [loggedIn, lastLoggedIn])
-
-  return onReady
-}
-
-enum GoodLinkingState {
-  GoodLinkingExists,
-  GoodLinkingHandled,
-}
-
 const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 
@@ -328,21 +281,43 @@ const RNApp = React.memo(function RNApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, appState, onStateChange} = s
   const {navKey, initialState, onUnhandledAction} = s
-  const goodLinking = RouterLinking.useStateToLinking(appState.current)
+  const initialNav = RouterLinking.useStateToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
   // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
 
   Shared.useSharedAfter(appState)
+  const [ready, setReady] = React.useState(false)
+  const onReady = React.useCallback(() => {
+    setReady(true)
+  }, [])
 
-  const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
+  const didInitialNav = React.useRef(false)
+  const [showNav, setShowNav] = React.useState(false)
+
+  if (ready && !didInitialNav.current && initialNav) {
+    didInitialNav.current = true
+    const f = async () => {
+      const url = await initialNav()
+      if (url) {
+        setTimeout(() => {
+          C.useDeepLinksState.getState().dispatch.handleAppLink(url)
+          setTimeout(() => {
+            setShowNav(true)
+          }, 500)
+        }, 1)
+      } else {
+        setShowNav(true)
+      }
+    }
+    C.ignorePromise(f())
+  }
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,
-      goodLinking,
       initialState,
       loggedIn,
       loggedInLoaded,
@@ -358,7 +333,6 @@ const RNApp = React.memo(function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        linking={goodLinking as any}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}
@@ -394,6 +368,11 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
+      {showNav ? null : (
+        <Kb.Box2 style={styles.loading}>
+          <Shared.SimpleLoading />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 })

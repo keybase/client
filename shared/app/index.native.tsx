@@ -115,13 +115,19 @@ const useInit = () => {
   C.useConfigState.getState().dispatch.installerRan()
 }
 
+const UseStrict = true as boolean
+const WRAP = UseStrict
+  ? ({children}: {children: React.ReactNode}) => <>{children}</>
+  : ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
   useInit()
 
   const {unmountAll, show} = useUnmountAll()
+
   return show ? (
-    <React.StrictMode>
+    <WRAP>
       <GestureHandlerRootView style={styles.gesture}>
         <PortalProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
@@ -134,7 +140,7 @@ const Keybase = () => {
           </SafeAreaProvider>
         </PortalProvider>
       </GestureHandlerRootView>
-    </React.StrictMode>
+    </WRAP>
   ) : (
     unmountAll
   )

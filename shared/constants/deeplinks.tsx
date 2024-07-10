@@ -259,6 +259,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case 'settingsPushPrompt':
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
           return
+        case Tabs.teamsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
+          return
+        case Tabs.fsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
+          return
+        case Tabs.chatTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+          return
+        case Tabs.peopleTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          return
+        case Tabs.settingsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+          return
         default:
         // Fall through to the error return below.
       }
