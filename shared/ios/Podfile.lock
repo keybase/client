@@ -1095,7 +1095,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.3.2):
     - React-Core
-  - react-native-safe-area-context (4.10.7):
+  - react-native-safe-area-context (4.10.8):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1109,8 +1109,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.10.7)
-    - react-native-safe-area-context/fabric (= 4.10.7)
+    - react-native-safe-area-context/common (= 4.10.8)
+    - react-native-safe-area-context/fabric (= 4.10.8)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1118,7 +1118,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.10.7):
+  - react-native-safe-area-context/common (4.10.8):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1139,7 +1139,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.10.7):
+  - react-native-safe-area-context/fabric (4.10.8):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1457,7 +1457,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.13.0):
+  - RNReanimated (3.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1891,7 +1891,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: 2feec2957803fce5eede926eacd7c6a31b858f0d
   react-native-netinfo: 076df4f9b07f6670acf4ce9a75aac8d34c2e2ccc
-  react-native-safe-area-context: 670eb62e416224f72f92b7749e8787fb82693252
+  react-native-safe-area-context: 1c0114777144dc0724820de71fe99c2e1e293a37
   react-native-webview: 51dcab3bcca45a0d5b5fa2fdbcb894569ff0957f
   React-nativeconfig: fa5de9d8f4dbd5917358f8ad3ad1e08762f01dcb
   React-NativeModulesApple: 585d1b78e0597de364d259cb56007052d0bda5e5
@@ -1920,7 +1920,7 @@ SPEC CHECKSUMS:
   RNCPicker: 4ec9cd8eb8a50d75ff38b1987c1991a556029bc0
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: 42f1d03e80c71bdfd6de5dae295ddc3b8b73f8b2
-  RNReanimated: 065c74f1b5674571be918adf7f67b8689708a7cb
+  RNReanimated: 547f464b5464b66e9f841e4b95531c1bf5ed2344
   RNScreens: d3d50aa84db4541eee00fbb1f32151030f56c510
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
