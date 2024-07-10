@@ -4813,10 +4813,10 @@ electron-to-chromium@^1.4.796:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.807.tgz#4d6c5ea1516f0164ac5bfd487ccd4ee9507c8f01"
   integrity sha512-kSmJl2ZwhNf/bcIuCH/imtNOKlpkLDn2jqT5FJ+/0CXjhnFaOa9cOe9gHKKy71eM49izwuQjZhKk+lWQ1JxB7A==
 
-electron@31.1.0:
-  version "31.1.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-31.1.0.tgz#2836dbeb8f80c9b278aa4563c8fc3a6e6afbe723"
-  integrity sha512-TBOwqLxSxnx6+pH6GMri7R3JPH2AkuGJHfWZS0p1HsmN+Qr1T9b0IRJnnehSd/3NZAmAre4ft9Ljec7zjyKFJA==
+electron@31.2.0:
+  version "31.2.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-31.2.0.tgz#f6dc4c42f9118fd0f57b3c04676503df2bf16ece"
+  integrity sha512-5w+kjOsGiTXytPSErBPNp/3znnuEMKc42RD41MqRoQkiYaR8x/Le2+qWk1cL60UwE/67oeKnOHnnol8xEuldGg==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^20.9.0"
@@ -9106,10 +9106,10 @@ react-native-image-keyboard@2.2.1:
   resolved "https://registry.yarnpkg.com/react-native-image-keyboard/-/react-native-image-keyboard-2.2.1.tgz#301ecad7534256b0001e9cb7ca5775f430f76ce0"
   integrity sha512-l2+hJ450wMRyZB3k5v1sIPKM9ioJ50eNPDQUI7HvSz6mSrXP2Il1Cv418LvpQvbPxbUYr3W7dROZ+MnDS8xafw==
 
-react-native-reanimated@3.13.0:
-  version "3.13.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.13.0.tgz#723687cd6ff4ce674800299c6917e4a3b088d89e"
-  integrity sha512-7vl3NMEiuVIV0vYjr/TbL9bXVes+GcfnhK/A3X02LQ+QFbSZp1xfAxOmePabgyjyz3GIALeXcx5fldo3kOM3gA==
+react-native-reanimated@3.14.0:
+  version "3.14.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.14.0.tgz#2118265f3a5cad8c142633e36d76d0f0cc8cc9e8"
+  integrity sha512-TAxLtCfRyC/nOLeWoX/8MhdIF+Fi1e1NbLhIgEm5Kv9/gioAwSNaqLUYxjIClU1RaLwSTE8iaiHNVhTU4TS9DA==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.0.0-0"
     "@babel/plugin-transform-nullish-coalescing-operator" "^7.0.0-0"
@@ -9120,10 +9120,10 @@ react-native-reanimated@3.13.0:
     convert-source-map "^2.0.0"
     invariant "^2.2.4"
 
-react-native-safe-area-context@4.10.7:
-  version "4.10.7"
-  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.10.7.tgz#91d04e510bf96e3c38bec2beb7ae37347522a503"
-  integrity sha512-Lq+gtuIF28mMtBacFchGpO1KHMTvzeb3ji1HAVnMTPe3qWR46Tb4AlztZTvTwUnpZ8JVaC9sKXnJHKmuaIQwXA==
+react-native-safe-area-context@4.10.8:
+  version "4.10.8"
+  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.10.8.tgz#038bd6a4853a38189c186d119302943c8d13f56f"
+  integrity sha512-Jx1lovhvIdYygg0UsMCBUJN0Wvj9GlA5bbcBLzjZf93uJpNHzaiHC4hR280+sNVK1+/pMHEyEkXVHDZE5JWn0w==
 
 react-native-screens@3.32.0:
   version "3.32.0"
