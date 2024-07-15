@@ -11,7 +11,7 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.18):
+  - Expo (51.0.20):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
@@ -25,7 +25,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (17.0.1):
     - ExpoModulesCore
-  - ExpoFont (12.0.7):
+  - ExpoFont (12.0.8):
     - ExpoModulesCore
   - ExpoHaptics (13.0.1):
     - ExpoModulesCore
@@ -45,7 +45,7 @@ PODS:
   - ExpoMediaLibrary (16.0.4):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (1.12.18):
+  - ExpoModulesCore (1.12.19):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1837,20 +1837,20 @@ SPEC CHECKSUMS:
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 56b642d0930789fc847dc7f424d2d599dfe59a5e
+  Expo: 0cab4b4dc73f263c0d4297e993686973725adb7f
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
   ExpoCamera: c5be8a28a769c4dee3a02e017e5b55415d9beb2c
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
   ExpoContacts: a35aeccb01238821e2d7d84e44a618e51d87ad24
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
-  ExpoFont: 43b69559cef3d773db57c7ae7edd3cb0aa0dc610
+  ExpoFont: b3630aff6bfb29ae3c261412f0796813a522cca9
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
   ExpoImage: 2ccccff1219ebc765e344f3338f2430af2df4824
   ExpoImagePicker: 12a420923383ae38dccb069847218f27a3b87816
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
   ExpoMediaLibrary: 250bf2659264163e428da5f867493b4cccd35ef9
-  ExpoModulesCore: 54ea697e451882574b5a266261b0132b4b965aba
+  ExpoModulesCore: 92cda0816d658902cb236dd2c10529bde96459ed
   ExpoSMS: a5184fc4d4b33071b2dd9d43bb9ac8ef952b1dd7
   EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
   FBLazyVector: 7e977dd099937dc5458851233141583abba49ff2
