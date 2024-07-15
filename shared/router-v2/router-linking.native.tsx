@@ -115,7 +115,6 @@ export const useStateToLinking = (appState: Shared.AppState) => {
     C.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
 
   const androidShare = C.useConfigState(s => s.androidShare)
-
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({
         androidShare,

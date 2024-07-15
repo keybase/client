@@ -25,7 +25,7 @@ export const tabBarStyleHidden = {
 } as const
 
 const actionWidth = 64
-const DEBUGCOLORS = __DEV__ && (false as boolean)
+const DEBUGCOLORS = __DEV__ && (true as boolean)
 
 // Options used by default on all navigators
 export const defaultNavigationOptions = {

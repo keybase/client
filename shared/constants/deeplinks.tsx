@@ -155,6 +155,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     handleKeybaseLink: link => {
+      if (!link) return
       const error =
         "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
       const parts = link.split('/')
@@ -191,7 +192,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            C.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
+            const conversationIDKey = parts[1]
+            if (conversationIDKey) {
+              C.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
+            }
             return
           }
           break

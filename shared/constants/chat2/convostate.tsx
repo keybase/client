@@ -2162,9 +2162,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       loadMessages()
 
+      // load meta
+      C.useChatState.getState().dispatch.unboxRows([get().id], true)
+
       const updateNav = () => {
         const reason = _reason
-        // don't nav if its caused by a nav
         if (reason === 'navChanged') {
           return
         }

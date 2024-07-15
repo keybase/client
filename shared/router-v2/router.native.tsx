@@ -277,17 +277,8 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
-const RNApp = React.memo(function RNApp() {
-  const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
-  const {navKey, initialState, onUnhandledAction} = s
+const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>) => {
   const initialNav = RouterLinking.useStateToLinking(appState.current)
-  // we only send certain params to the container depending on the state so we can remount w/ the right data
-  // instead of using useEffect and flashing all the time
-  // we use linking and force a key change if we're in NEEDS_INIT
-  // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
-
-  Shared.useSharedAfter(appState)
   const [ready, setReady] = React.useState(false)
   const onReady = React.useCallback(() => {
     setReady(true)
@@ -295,24 +286,78 @@ const RNApp = React.memo(function RNApp() {
 
   const didInitialNav = React.useRef(false)
   const [showNav, setShowNav] = React.useState(false)
+  const [initialState, setInitialState] = React.useState<any>(undefined)
 
   if (ready && !didInitialNav.current && initialNav) {
     didInitialNav.current = true
+    appState.current = Shared.AppState.INITED
     const f = async () => {
       const url = await initialNav()
+      // TEMP
+      // TODO
+      // const url = 'keybase://convid/00001832b409dd9d04970499b5776c771d7f1bc86d16c64c0e88fd7ce416ef7d'
       if (url) {
-        setTimeout(() => {
-          C.useDeepLinksState.getState().dispatch.handleAppLink(url)
+        if (url.startsWith('keybase://convid/')) {
+          const conversationIDKey = url.split('/')[3]
+          const rs = C.Router2.getRootState()
+          try {
+            const next = C.produce(rs, draft => {
+              const tabsState = draft.routes[0].state
+              tabsState.index = 1
+              tabsState.routes[1] = {
+                name: Tabs.chatTab,
+                state: {
+                  index: 1,
+                  routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
+                },
+              }
+            })
+            setInitialState(next)
+          } catch (e) {
+            // console.log('aaa throwing', e)
+          }
+          setShowNav(true)
+        } else {
           setTimeout(() => {
-            setShowNav(true)
-          }, 500)
-        }, 1)
+            C.useDeepLinksState.getState().dispatch.handleAppLink(url)
+            setTimeout(() => {
+              setShowNav(true)
+            }, 500)
+          }, 1)
+        }
       } else {
         setShowNav(true)
       }
     }
     C.ignorePromise(f())
   }
+  return {onReady, setShowNav, showNav, initialState}
+}
+
+const RNApp = React.memo(function RNApp() {
+  const s = Shared.useShared()
+  const {loggedInLoaded, loggedIn, appState, onStateChange: _onStateChange} = s
+  const {navKey: _navKey, initialState: _initialState, onUnhandledAction} = s
+  // we only send certain params to the container depending on the state so we can remount w/ the right data
+  // instead of using useEffect and flashing all the time
+  // we use linking and force a key change if we're in NEEDS_INIT
+  // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
+
+  const {onReady, showNav, setShowNav, initialState} = useRestartLastSession(appState)
+  const onStateChange = React.useCallback(() => {
+    _onStateChange()
+    setShowNav(true)
+  }, [_onStateChange, setShowNav])
+
+  // force an update if we have a new initialState
+  const navKey = _navKey + (initialState ? 1 : 0)
+  const forcedChangeOnInitialStateRef = React.useRef(false)
+  if (initialState && !forcedChangeOnInitialStateRef.current) {
+    forcedChangeOnInitialStateRef.current = true
+    onStateChange()
+  }
+
+  // Shared.useSharedAfter(appState)
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
@@ -369,7 +414,7 @@ const RNApp = React.memo(function RNApp() {
         </RootStack.Navigator>
       </NavigationContainer>
       {showNav ? null : (
-        <Kb.Box2 style={styles.loading}>
+        <Kb.Box2 direction="vertical" style={styles.loading}>
           <Shared.SimpleLoading />
         </Kb.Box2>
       )}

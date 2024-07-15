@@ -140,13 +140,13 @@ export const useShared = () => {
   }
 }
 
-export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
-  // stuff that happens after the first hook is done
-  // if we handled NEEDS_INIT we're done
-  if (appState.current === AppState.NEEDS_INIT) {
-    appState.current = AppState.INITED
-  }
-}
+// export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
+//   // stuff that happens after the first hook is done
+//   // if we handled NEEDS_INIT we're done
+//   if (appState.current === AppState.NEEDS_INIT) {
+//     appState.current = AppState.INITED
+//   }
+// }
 
 export const SimpleLoading = React.memo(function SimpleLoading() {
   return (
