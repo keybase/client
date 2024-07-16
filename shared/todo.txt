@@ -1,9 +1,7 @@
 >>>
 >>> strict
->>> test tab saving
 >>> tab switching crashes , maybe known screens/react-native-reanimated
 >>> wrapper in native for strict
->>> chat header init broken
 >>>
 >>>
 >>>dark mode broken

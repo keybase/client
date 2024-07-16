@@ -454,7 +454,7 @@ type Color = typeof colors
 type Names = keyof Color
 
 //https://github.com/facebook/react-native/pull/42117
-const dynamicColorsWorking = isIOS && !isNewArch
+const dynamicColorsWorking = isIOS // && !isNewArch
 
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
@@ -479,6 +479,7 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
       enumerable: true,
       get() {
         const {darkModePreference} = useDarkModeState.getState()
+
         // if we're in auto mode, use ios native dynamic colors
         if (darkModePreference === 'system') {
           return iosDynamicColors[name]
