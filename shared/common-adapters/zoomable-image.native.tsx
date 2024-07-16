@@ -3,7 +3,6 @@ import * as Styles from '@/styles'
 import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
-import {type LayoutChangeEvent} from 'react-native'
 import ProgressIndicator from './progress-indicator.native'
 import {Box2} from './box'
 
@@ -14,17 +13,19 @@ const Kb = {
   ZoomableBox,
 }
 
+const dummySize = {height: 1, width: 1}
+
 const ZoomableImage = (p: Props) => {
   const {src, style, onChanged, onLoaded, onSwipe, onTap, onError} = p
   const onZoom = onChanged
-  const [boxW, setBoxW] = React.useState(0)
-  const [boxH, setBoxH] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
   const [lastSrc, setLastSrc] = React.useState(src)
+  const [size, setSize] = React.useState<undefined | {width: number; height: number}>(undefined)
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
       if (!e.source) return
       setLoading(false)
+      setSize(e.source)
       onLoaded?.()
     },
     [onLoaded]
@@ -35,44 +36,37 @@ const ZoomableImage = (p: Props) => {
     setLoading(true)
   }
 
-  const boxOnLayout = React.useCallback((e: Partial<LayoutChangeEvent>) => {
-    if (!e.nativeEvent) return
-    const {width, height} = e.nativeEvent.layout
-    setBoxW(width)
-    setBoxH(height)
-  }, [])
-
-  // in order for the images to not get downscaled we have to make it larger and then transform it
-  const manualScale = 5
+  const imageSize = React.useMemo(
+    () =>
+      size
+        ? {
+            height: size.height,
+            width: size.width,
+          }
+        : undefined,
+    [size]
+  )
+  const measuredStyle = size ? imageSize : dummySize
 
   return (
     <Kb.ZoomableBox
-      onLayout={boxOnLayout}
       onSwipe={onSwipe}
       style={style}
-      contentContainerStyle={styles.contentContainerStyle}
+      maxZoom={10}
+      minZoom={0.01}
+      contentContainerStyle={measuredStyle}
       onZoom={onZoom}
       onTap={onTap}
     >
-      <Kb.Box2
-        direction="vertical"
-        style={Styles.platformStyles({
-          isMobile: {
-            height: boxH * manualScale,
-            transform: [{scaleX: 1 / manualScale}, {scaleY: 1 / manualScale}],
-            width: boxW * manualScale,
-          },
-        })}
-      >
-        <Kb.Image2
-          contentFit="contain"
-          src={src}
-          style={styles.image}
-          onLoad={onLoad}
-          onError={onError}
-          showLoadingStateUntilLoaded={false}
-        />
-      </Kb.Box2>
+      <Kb.Image2
+        contentFit="none"
+        src={src}
+        style={measuredStyle}
+        onLoad={onLoad}
+        onError={onError}
+        showLoadingStateUntilLoaded={false}
+        allowDownscaling={false}
+      />
       {loading ? (
         <Kb.Box2 direction="vertical" style={styles.progress}>
           <Kb.ProgressIndicator white={true} />
@@ -91,10 +85,6 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         maxHeight: '100%',
         maxWidth: '100%',
-        width: '100%',
-      },
-      image: {
-        height: '100%',
         width: '100%',
       },
       imageAndroid: {flexGrow: 1},

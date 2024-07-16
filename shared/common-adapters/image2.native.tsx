@@ -4,7 +4,15 @@ import type {Props} from './image2'
 import {Image, type ImageLoadEventData} from 'expo-image'
 
 const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain'} = p
+  const {
+    showLoadingStateUntilLoaded,
+    src,
+    onLoad,
+    onError,
+    style,
+    contentFit = 'contain',
+    allowDownscaling,
+  } = p
   // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const [lastSrc, setLastSrc] = React.useState(src)
@@ -32,7 +40,14 @@ const Image2 = (p: Props) => {
 
   return (
     <>
-      <Image source={src} style={style} onLoad={_onLoad} contentFit={contentFit} onError={_onError} />
+      <Image
+        source={src}
+        style={style}
+        onLoad={_onLoad}
+        contentFit={contentFit}
+        onError={_onError}
+        allowDownscaling={allowDownscaling}
+      />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
   )
