@@ -460,7 +460,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     s.separatorMap = sm
 
     const lastOrd = mo.at(-1)
-    const lastID = lastOrd ? s.messageMap.get(lastOrd)?.id ?? 0 : 0
+    const lastID = lastOrd ? (s.messageMap.get(lastOrd)?.id ?? 0) : 0
     if (lastID && lastID > s.maxMsgIDSeen) {
       s.maxMsgIDSeen = lastID
     }

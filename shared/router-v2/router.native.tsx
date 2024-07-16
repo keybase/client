@@ -5,12 +5,11 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
-import * as Container from '@/util/container'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
-import {NavigationContainer, getFocusedRouteNameFromRoute, useLinkTo} from '@react-navigation/native'
+import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
@@ -286,23 +285,21 @@ const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>
 
   const didInitialNav = React.useRef(false)
   const [showNav, setShowNav] = React.useState(false)
-  const [initialState, setInitialState] = React.useState<any>(undefined)
+  const [initialState, setInitialState] = React.useState<unknown>(undefined)
 
   if (ready && !didInitialNav.current && initialNav) {
     didInitialNav.current = true
     appState.current = Shared.AppState.INITED
     const f = async () => {
       const url = await initialNav()
-      // TEMP
-      // TODO
-      // const url = 'keybase://convid/00001832b409dd9d04970499b5776c771d7f1bc86d16c64c0e88fd7ce416ef7d'
       if (url) {
         if (url.startsWith('keybase://convid/')) {
           const conversationIDKey = url.split('/')[3]
           const rs = C.Router2.getRootState()
           try {
             const next = C.produce(rs, draft => {
-              const tabsState = draft.routes[0].state
+              const tabsState = draft?.routes?.[0]?.state
+              if (!tabsState || tabsState.routes.length < 2) return
               tabsState.index = 1
               tabsState.routes[1] = {
                 name: Tabs.chatTab,
@@ -313,9 +310,7 @@ const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>
               }
             })
             setInitialState(next)
-          } catch (e) {
-            // console.log('aaa throwing', e)
-          }
+          } catch {}
           setShowNav(true)
         } else {
           setTimeout(() => {
@@ -331,7 +326,7 @@ const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>
     }
     C.ignorePromise(f())
   }
-  return {onReady, setShowNav, showNav, initialState}
+  return {initialState, onReady, setShowNav, showNav}
 }
 
 const RNApp = React.memo(function RNApp() {
@@ -381,7 +376,7 @@ const RNApp = React.memo(function RNApp() {
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}
-        initialState={initialState}
+        initialState={initialState as any}
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
         onReady={onReady}
