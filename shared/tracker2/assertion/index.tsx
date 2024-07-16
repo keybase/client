@@ -191,9 +191,9 @@ const Value = (p: Props) => {
       switch (p.type) {
         case 'pgp': {
           const last = p.value.substring(p.value.length - 16).toUpperCase()
-          str = `${last.substring(0, 4)} ${last.substring(4, 4)} ${last.substring(8, 4)} ${last.substring(
+          str = `${last.substring(0, 4)} ${last.substring(4, 8)} ${last.substring(8, 12)} ${last.substring(
             12,
-            4
+            16
           )}`
           break
         }
