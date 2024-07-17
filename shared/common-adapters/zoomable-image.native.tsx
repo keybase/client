@@ -86,7 +86,7 @@ const ZoomableImage = (p: Props) => {
       contentContainerStyle={measuredStyle}
       onZoom={onZoom}
       onTap={onTap}
-      zoomScale={scale + 0}
+      zoomScale={scale}
     >
       <Kb.Image2
         contentFit="none"
