@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
+import {type LayoutChangeEvent} from 'react-native'
 import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
@@ -18,22 +19,49 @@ const dummySize = {height: 1, width: 1}
 const ZoomableImage = (p: Props) => {
   const {src, style, onChanged, onLoaded, onSwipe, onTap, onError} = p
   const onZoom = onChanged
+  const [boxW, setBoxW] = React.useState(0)
+  const [boxH, setBoxH] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
   const [lastSrc, setLastSrc] = React.useState(src)
   const [size, setSize] = React.useState<undefined | {width: number; height: number}>(undefined)
+  const [scale, setScale] = React.useState(1)
+
+  const onLayout = React.useCallback((e: Partial<LayoutChangeEvent>) => {
+    if (!e.nativeEvent) return
+    const {width, height} = e.nativeEvent.layout
+    setBoxW(width)
+    setBoxH(height)
+  }, [])
+
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
       if (!e.source) return
-      setLoading(false)
       setSize(e.source)
       onLoaded?.()
     },
     [onLoaded]
   )
 
+  const initialZoomRef = React.useRef(false)
+  React.useEffect(() => {
+    if (initialZoomRef.current || !size || !boxW || !boxH) {
+      return
+    }
+    initialZoomRef.current = true
+    const sizeRatio = size.width / size.height
+    const boxRatio = boxW / boxH
+    const zoom = sizeRatio > boxRatio ? boxW / size.width : boxH / size.height
+
+    setTimeout(() => {
+      setScale(zoom)
+      setLoading(false)
+    }, 0)
+  }, [boxW, boxH, size])
+
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
+    initialZoomRef.current = false
   }
 
   const imageSize = React.useMemo(
@@ -51,12 +79,14 @@ const ZoomableImage = (p: Props) => {
   return (
     <Kb.ZoomableBox
       onSwipe={onSwipe}
+      onLayout={onLayout}
       style={style}
       maxZoom={10}
       minZoom={0.01}
       contentContainerStyle={measuredStyle}
       onZoom={onZoom}
       onTap={onTap}
+      zoomScale={scale + 0}
     >
       <Kb.Image2
         contentFit="none"
@@ -79,24 +109,10 @@ const ZoomableImage = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      contentContainerStyle: {
-        alignContent: 'center',
-        height: '100%',
-        justifyContent: 'center',
-        maxHeight: '100%',
-        maxWidth: '100%',
-        width: '100%',
-      },
-      imageAndroid: {flexGrow: 1},
       progress: {
         left: '50%',
         position: 'absolute',
         top: '50%',
-      },
-      zoomableBoxContainerAndroid: {
-        flex: 1,
-        overflow: 'hidden',
-        position: 'relative',
       },
     }) as const
 )

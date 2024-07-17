@@ -141,6 +141,7 @@ export const ZoomableBox = (props: Props) => {
         showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
         showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
         style={props.style}
+        zoomScale={props.zoomScale}
       />
     </GestureDetector>
   )
