@@ -132,7 +132,9 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   private getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
     borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
     height: this.avatar_size(),
+    // minHeight: this.avatar_size(),
     width: this.avatar_size(),
+    // minWidth: this.avatar_size(),
   })
 
   private renderImageZoomer() {
@@ -151,7 +153,8 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       <Kb.ZoomableImage
         src={uri}
         onChanged={this._onZoom}
-        style={Kb.Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()])}
+        // using collapse doesn't work somehow
+        style={{...styles.image, ...this.getImageStyle()}}
       />
     ) : null
   }
@@ -268,6 +271,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       flexReallyGrow: {
         flexGrow: 1000,
+      },
+      image: {
+        overflow: 'hidden',
+        position: 'relative',
       },
       placeholder: {
         alignItems: 'center',
