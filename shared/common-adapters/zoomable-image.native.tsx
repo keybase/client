@@ -59,7 +59,9 @@ const ZoomableImage = (p: Props) => {
     setScale(zoom + 0.1)
     setTimeout(() => {
       setScale(zoom)
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 10)
     }, 0)
   }, [boxW, boxH, size])
 
@@ -82,6 +84,7 @@ const ZoomableImage = (p: Props) => {
             }
           : {
               height: size.height,
+              opacity: loading ? 0 : 1,
               width: size.width,
             }
         : undefined,
