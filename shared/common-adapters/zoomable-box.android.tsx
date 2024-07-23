@@ -6,9 +6,9 @@ import Animated, {
   useAnimatedReaction,
   useDerivedValue,
   withTiming,
-  withSpring,
   cancelAnimation,
   runOnJS,
+  withDecay,
 } from 'react-native-reanimated'
 import {View, type LayoutChangeEvent} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
@@ -18,7 +18,7 @@ const needDiff = Styles.dimensionWidth / 3
 
 // mostly based on https://github.com/intergalacticspacehighway/react-native-reanimated-zoom
 export function ZoomableBox(props: Props) {
-  const {children, minZoom = 1, maxZoom = 10, style} = props
+  const {children, minZoom = 1, maxZoom = 10, style, zoomScale} = props
   const {onZoom, contentContainerStyle, onLayout: _onLayout, onSwipe, onTap: _onTap} = props
 
   const onTap = React.useCallback(() => {
@@ -27,9 +27,11 @@ export function ZoomableBox(props: Props) {
 
   const translationX = useSharedValue(0)
   const translationY = useSharedValue(0)
+  const velocityX = useSharedValue(0)
+  const velocityY = useSharedValue(0)
   const originX = useSharedValue(0)
   const originY = useSharedValue(0)
-  const scale = useSharedValue(1)
+  const scale = useSharedValue(zoomScale ?? 1)
   const isPinching = useSharedValue(false)
   const isZoomed = useSharedValue(false)
   const viewHeight = useSharedValue(0)
@@ -43,17 +45,24 @@ export function ZoomableBox(props: Props) {
   const panTranslateX = useSharedValue(0)
   const panTranslateY = useSharedValue(0)
   const panSwipedCounter = useSharedValue(0)
+  const panFingers = useSharedValue(0)
 
   const containerWidth = useSharedValue(0)
   const containerHeight = useSharedValue(0)
+
+  const lastZoomScaleRef = React.useRef<undefined | number>()
+  if (lastZoomScaleRef.current !== zoomScale && zoomScale !== undefined) {
+    lastZoomScaleRef.current = zoomScale
+    scale.value = lastZoomScaleRef.current
+  }
 
   const gesture = React.useMemo(() => {
     const resetZoomState = () => {
       'worklet'
       // reset all state
-      translationX.value = withTiming(0)
-      translationY.value = withTiming(0)
-      scale.value = withTiming(1)
+      translationX.value = 0
+      translationY.value = 0
+      scale.value = withTiming(zoomScale ?? 1)
       originX.value = 0
       originY.value = 0
       isPinching.value = false
@@ -66,53 +75,40 @@ export function ZoomableBox(props: Props) {
 
     // we only activate pan handler when the image is zoomed or user is not pinching
     const pan = Gesture.Pan()
-      .onStart(() => {
-        if (isPinching.value || !isZoomed.value) return
-
+      .averageTouches(true)
+      .onStart(e => {
+        if (!isZoomed.value) {
+          return
+        }
         cancelAnimation(translationX)
         cancelAnimation(translationY)
         cancelAnimation(scale)
 
         prevTranslationX.value = translationX.value
         prevTranslationY.value = translationY.value
+        panFingers.value = e.numberOfPointers
       })
       .onUpdate(e => {
-        if (isPinching.value || !isZoomed.value) {
+        // if we're done panning ignore us letting go
+        if (e.numberOfPointers < panFingers.value) {
+          return
+        }
+        panFingers.value = e.numberOfPointers
+        if (!isZoomed.value) {
           panTranslateX.value = e.translationX
           panTranslateY.value = e.translationY
         } else {
-          // imagine what happens to pixels when we zoom in. (they get multiplied by x times scale)
-          const maxTranslateX = (viewWidth.value / 2) * scale.value - viewWidth.value / 2
-          const minTranslateX = -maxTranslateX
-
-          const maxTranslateY = (viewHeight.value / 2) * scale.value - viewHeight.value / 2
-          const minTranslateY = -maxTranslateY
-
-          const nextTranslateX = prevTranslationX.value + e.translationX - panTranslateX.value
-          const nextTranslateY = prevTranslationY.value + e.translationY - panTranslateY.value
-
-          if (nextTranslateX > maxTranslateX) {
-            translationX.value = maxTranslateX
-          } else if (nextTranslateX < minTranslateX) {
-            translationX.value = minTranslateX
-          } else {
-            translationX.value = nextTranslateX
-          }
-
-          if (nextTranslateY > maxTranslateY) {
-            translationY.value = maxTranslateY
-          } else if (nextTranslateY < minTranslateY) {
-            translationY.value = minTranslateY
-          } else {
-            translationY.value = nextTranslateY
-          }
+          translationX.value = prevTranslationX.value + e.translationX
+          translationY.value = prevTranslationY.value + e.translationY
+          velocityX.value = e.velocityX
+          velocityY.value = e.velocityY
         }
       })
-      .onEnd(() => {
+      .onEnd(e => {
         panSwipedCounter.value++
-        if (isPinching.value || !isZoomed.value) return
-        panTranslateX.value = 0
-        panTranslateY.value = 0
+        panFingers.value = 0
+        translationX.value = withDecay({deceleration: 0.9, velocity: e.velocityX})
+        translationY.value = withDecay({deceleration: 0.9, velocity: e.velocityY})
       })
 
     const pinch = Gesture.Pinch()
@@ -124,48 +120,33 @@ export function ZoomableBox(props: Props) {
         offsetScale.value = scale.value
       })
       .onUpdate(e => {
-        // when pointer is 1 we don't want to translate origin
-        if (e.numberOfPointers === 1 && isPinching.value) {
-          prevTranslationX.value = translationX.value
-          prevTranslationY.value = translationY.value
-          isPinching.value = false
-        } else if (e.numberOfPointers === 2) {
-          const newScale = prevScale.value * e.scale
+        const newScale = prevScale.value * e.scale
+        if (newScale < minZoom || newScale > maxZoom) return
 
-          if (newScale < minZoom || newScale > maxZoom) return
+        scale.value = prevScale.value * e.scale
 
-          scale.value = prevScale.value * e.scale
-
-          // reset the origin
-          if (!isPinching.value) {
-            isPinching.value = true
-            originX.value = e.focalX
-            originY.value = e.focalY
-            prevTranslationX.value = translationX.value
-            prevTranslationY.value = translationY.value
-            offsetScale.value = scale.value
-          }
-
-          // maybe this is always true... but not changing this now
-          // eslint-disable-next-line
-          if (isPinching.value) {
-            // translate the image to the focal point as we're zooming
-            translationX.value =
-              prevTranslationX.value +
-              -1 * ((scale.value - offsetScale.value) * (originX.value - viewWidth.value / 2))
-            translationY.value =
-              prevTranslationY.value +
-              -1 * ((scale.value - offsetScale.value) * (originY.value - viewHeight.value / 2))
-          }
+        // maybe this is always true... but not changing this now
+        // eslint-disable-next-line
+        if (isPinching.value) {
+          // translate the image to the focal point as we're zooming
+          translationX.value =
+            prevTranslationX.value +
+            -1 * ((scale.value - offsetScale.value) * (originX.value - viewWidth.value / 2))
+          translationY.value =
+            prevTranslationY.value +
+            -1 * ((scale.value - offsetScale.value) * (originY.value - viewHeight.value / 2))
         }
       })
       .onEnd(() => {
         isPinching.value = false
         prevTranslationX.value = translationX.value
         prevTranslationY.value = translationY.value
-
-        if (scale.value < 1.1) {
-          resetZoomState()
+        // stop pan
+        panFingers.value = 3
+        if (zoomScale !== undefined) {
+          if (scale.value < zoomScale) {
+            resetZoomState()
+          }
         }
       })
 
@@ -180,7 +161,7 @@ export function ZoomableBox(props: Props) {
       .numberOfTaps(2)
       .onStart(e => {
         // if zoomed in or zoomed out, we want to reset
-        if (scale.value !== 1) {
+        if (isZoomed.value) {
           resetZoomState()
         } else {
           const zoom = 3
@@ -213,15 +194,15 @@ export function ZoomableBox(props: Props) {
     translationX,
     translationY,
     panSwipedCounter,
+    panFingers,
+    zoomScale,
+    velocityX,
+    velocityY,
   ])
 
   useDerivedValue(() => {
-    if (scale.value > 1 && !isZoomed.value) {
-      isZoomed.value = true
-    } else if (scale.value === 1 && isZoomed.value) {
-      isZoomed.value = false
-    }
-  }, [])
+    isZoomed.value = scale.value !== zoomScale
+  }, [zoomScale])
 
   const updateOnZoom = React.useCallback(
     (scale: number, px: number, py: number) => {
@@ -229,14 +210,20 @@ export function ZoomableBox(props: Props) {
       const width = scale * viewWidth.value
       const x = width / 2 - px - containerWidth.value / 2
       const y = height / 2 - py - containerHeight.value / 2
-      onZoom?.({height, scale, width, x, y})
+      onZoom?.({
+        height,
+        scale,
+        width,
+        x,
+        y,
+      })
     },
     [onZoom, viewHeight, viewWidth, containerHeight, containerWidth]
   )
 
   useDerivedValue(() => {
     runOnJS(updateOnZoom)(scale.value, translationX.value, translationY.value)
-  }, [])
+  }, [updateOnZoom])
 
   const lastPanSwipedCounter = useSharedValue(0)
   useAnimatedReaction(
@@ -259,10 +246,22 @@ export function ZoomableBox(props: Props) {
 
   const as = useAnimatedStyle(() => {
     return {
+      position: 'absolute',
       transform: [
-        {translateX: withSpring(translationX.value, {damping: 2000, stiffness: 1000})},
-        {translateY: withSpring(translationY.value, {damping: 2000, stiffness: 1000})},
+        // pan
+        {translateX: translationX.value},
+        {translateY: translationY.value},
+        // center again
+        {translateX: containerWidth.value / 2 - (viewWidth.value * scale.value) / 2},
+        {translateY: containerHeight.value / 2 - (viewHeight.value * scale.value) / 2},
+        // Move to center
+        {translateX: -viewWidth.value / 2},
+        {translateY: -viewHeight.value / 2},
+        // Apply scale
         {scale: scale.value},
+        // Move back to upper left
+        {translateX: viewWidth.value / 2},
+        {translateY: viewHeight.value / 2},
       ],
     }
   }, [])
@@ -284,7 +283,6 @@ export function ZoomableBox(props: Props) {
   )
 
   const memoizedStyle = React.useMemo(() => [as, contentContainerStyle], [as, contentContainerStyle])
-
   return (
     <GestureDetector gesture={gesture}>
       <View style={[style, styles.container]} onLayout={onContainerLayout}>

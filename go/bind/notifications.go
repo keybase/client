@@ -3,9 +3,9 @@ package keybase
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"runtime"
 	"time"
-	"regexp"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
@@ -80,8 +80,8 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 	return nil
 }
 
-
 var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
+
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
 	pusher PushNotifier, showIfStale bool) (err error) {
