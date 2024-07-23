@@ -132,9 +132,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   private getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
     borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
     height: this.avatar_size(),
-    // minHeight: this.avatar_size(),
     width: this.avatar_size(),
-    // minWidth: this.avatar_size(),
   })
 
   private renderImageZoomer() {
@@ -153,7 +151,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       <Kb.ZoomableImage
         src={uri}
         onChanged={this._onZoom}
-        // using collapse doesn't work somehow
+        // using collapse doesn't work somehow, using devtools it loses the height on android only
         style={{...styles.image, ...this.getImageStyle()}}
       />
     ) : null
