@@ -11,25 +11,25 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.20):
+  - Expo (51.0.22):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
-  - ExpoCamera (15.0.13):
+  - ExpoCamera (15.0.14):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
   - ExpoClipboard (6.0.3):
     - ExpoModulesCore
-  - ExpoContacts (13.0.4):
+  - ExpoContacts (13.0.5):
     - ExpoModulesCore
   - ExpoFileSystem (17.0.1):
     - ExpoModulesCore
-  - ExpoFont (12.0.8):
+  - ExpoFont (12.0.9):
     - ExpoModulesCore
   - ExpoHaptics (13.0.1):
     - ExpoModulesCore
-  - ExpoImage (1.12.12):
+  - ExpoImage (1.12.13):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
@@ -1837,15 +1837,15 @@ SPEC CHECKSUMS:
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 0cab4b4dc73f263c0d4297e993686973725adb7f
+  Expo: 8b7948e45627e848c2d7b6be7cf5851a505aef19
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
-  ExpoCamera: c5be8a28a769c4dee3a02e017e5b55415d9beb2c
+  ExpoCamera: a5d000b22cd7dfd2c5904ed960e549de42c96da0
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
-  ExpoContacts: a35aeccb01238821e2d7d84e44a618e51d87ad24
+  ExpoContacts: 67cc93caa3e5023dd245f9e0ef26856aaa005c3e
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
-  ExpoFont: b3630aff6bfb29ae3c261412f0796813a522cca9
+  ExpoFont: e7f2275c10ca8573c991e007329ad6bf98086485
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
-  ExpoImage: 2ccccff1219ebc765e344f3338f2430af2df4824
+  ExpoImage: cbe7617b4e0e7ba064cc4caa51bfc96262e51ef3
   ExpoImagePicker: 12a420923383ae38dccb069847218f27a3b87816
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
