@@ -63,7 +63,7 @@ export const ZoomableBox = (props: Props) => {
 
   const ref = React.useRef<ScrollView>(null)
 
-  const onResetZoom = React.useCallback(() => {
+  const getScroll = React.useCallback(() => {
     const scroll = ref.current as unknown as null | {
       getScrollResponder?:
         | undefined
@@ -79,8 +79,12 @@ export const ZoomableBox = (props: Props) => {
                 }) => void
               })
     }
+    return scroll
+  }, [])
+
+  const onResetZoom = React.useCallback(() => {
     if (!contentSize) return
-    console.log('aaaa resetzoon', {contentSize})
+    const scroll = getScroll()
     scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
       animated: true,
       height: contentSize.height,
@@ -88,36 +92,14 @@ export const ZoomableBox = (props: Props) => {
       x: 0,
       y: 0,
     })
-  }, [contentSize])
+  }, [contentSize, getScroll])
 
   const onDoubleTap = React.useCallback(() => {
-    const scroll = ref.current as unknown as null | {
-      getScrollResponder?:
-        | undefined
-        | (() =>
-            | undefined
-            | {
-                scrollResponderZoomTo: (p: {
-                  animated: boolean
-                  width: number
-                  height: number
-                  x?: number
-                  y?: number
-                }) => void
-              })
-    }
-
     const zoomOut = curScaleRef.current > (zoomScale ?? 1)
-    console.log('aaa double tap>>>', {
-      height: contentSize?.height,
-      width: contentSize?.width,
-      curScaleRef: curScaleRef.current,
-      zoomScale,
-      zoomOut,
-    })
     if (zoomOut) {
       onResetZoom()
     } else {
+      const scroll = getScroll()
       scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
         animated: true,
         height: (contentSize?.height ?? 100) / 4,
@@ -127,15 +109,7 @@ export const ZoomableBox = (props: Props) => {
         y: ((contentSize?.height ?? 100) - heightRef.current) / 2,
       })
     }
-  }, [contentSize, zoomScale, onResetZoom])
-
-  // React.useEffect(() => {
-  //   setTimeout(() => {
-  //     console.log('aaa <<< reset due to useeeffect')
-  //     onResetZoom()
-  //     setTEMP(t => t + 0.01)
-  //   }, 1000)
-  // }, [contentContainerStyle, onResetZoom])
+  }, [contentSize, zoomScale, onResetZoom, getScroll])
 
   const singleTap = Gesture.Tap()
     .maxDuration(250)
@@ -152,8 +126,6 @@ export const ZoomableBox = (props: Props) => {
       runOnJS(onDoubleTap)()
     })
   const taps = Gesture.Exclusive(doubleTap, singleTap)
-
-  // console.log('aaaa render>>>>', contentContainerStyle)
 
   return (
     <GestureDetector gesture={taps}>
