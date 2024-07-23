@@ -8,7 +8,7 @@ import {runOnJS} from 'react-native-reanimated'
 const Kb = {ScrollView}
 
 export const ZoomableBox = (props: Props) => {
-  const {onSwipe, onLayout, onTap: _onTap} = props
+  const {onSwipe, onLayout, onTap: _onTap, zoomScale, contentSize, children, contentContainerStyle} = props
   const {width: windowWidth} = useWindowDimensions()
   const needDiff = windowWidth / 3
   const onTap = React.useCallback(() => {
@@ -37,7 +37,7 @@ export const ZoomableBox = (props: Props) => {
       if (maxTouches !== 1) {
         return
       }
-      const scaleDiff = Math.abs(1 - curScaleRef.current)
+      const scaleDiff = Math.abs((zoomScale ?? 1) - curScaleRef.current)
       if (scaleDiff > 0.1) {
         return
       }
@@ -47,7 +47,7 @@ export const ZoomableBox = (props: Props) => {
         onSwipe?.(true)
       }
     },
-    [onSwipe, needDiff]
+    [onSwipe, needDiff, zoomScale]
   )
 
   const widthRef = React.useRef(0)
@@ -62,6 +62,34 @@ export const ZoomableBox = (props: Props) => {
   )
 
   const ref = React.useRef<ScrollView>(null)
+
+  const onResetZoom = React.useCallback(() => {
+    const scroll = ref.current as unknown as null | {
+      getScrollResponder?:
+        | undefined
+        | (() =>
+            | undefined
+            | {
+                scrollResponderZoomTo: (p: {
+                  animated: boolean
+                  width: number
+                  height: number
+                  x?: number
+                  y?: number
+                }) => void
+              })
+    }
+    if (!contentSize) return
+    console.log('aaaa resetzoon', {contentSize})
+    scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
+      animated: true,
+      height: contentSize.height,
+      width: contentSize.width,
+      x: 0,
+      y: 0,
+    })
+  }, [contentSize])
+
   const onDoubleTap = React.useCallback(() => {
     const scroll = ref.current as unknown as null | {
       getScrollResponder?:
@@ -78,22 +106,36 @@ export const ZoomableBox = (props: Props) => {
                 }) => void
               })
     }
-    scroll?.getScrollResponder?.()?.scrollResponderZoomTo(
-      curScaleRef.current > 1.01
-        ? {
-            animated: true,
-            height: 2000,
-            width: 2000,
-          }
-        : {
-            animated: true,
-            height: heightRef.current / 4,
-            width: widthRef.current / 4,
-            x: widthRef.current / 4,
-            y: heightRef.current / 4,
-          }
-    )
-  }, [])
+
+    const zoomOut = curScaleRef.current > (zoomScale ?? 1)
+    console.log('aaa double tap>>>', {
+      height: contentSize?.height,
+      width: contentSize?.width,
+      curScaleRef: curScaleRef.current,
+      zoomScale,
+      zoomOut,
+    })
+    if (zoomOut) {
+      onResetZoom()
+    } else {
+      scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
+        animated: true,
+        height: (contentSize?.height ?? 100) / 4,
+        width: (contentSize?.width ?? 100) / 4,
+        // not correct
+        x: ((contentSize?.width ?? 100) - widthRef.current) / 2,
+        y: ((contentSize?.height ?? 100) - heightRef.current) / 2,
+      })
+    }
+  }, [contentSize, zoomScale, onResetZoom])
+
+  // React.useEffect(() => {
+  //   setTimeout(() => {
+  //     console.log('aaa <<< reset due to useeeffect')
+  //     onResetZoom()
+  //     setTEMP(t => t + 0.01)
+  //   }, 1000)
+  // }, [contentContainerStyle, onResetZoom])
 
   const singleTap = Gesture.Tap()
     .maxDuration(250)
@@ -111,6 +153,8 @@ export const ZoomableBox = (props: Props) => {
     })
   const taps = Gesture.Exclusive(doubleTap, singleTap)
 
+  // console.log('aaaa render>>>>', contentContainerStyle)
+
   return (
     <GestureDetector gesture={taps}>
       <Kb.ScrollView
@@ -118,8 +162,8 @@ export const ZoomableBox = (props: Props) => {
         centerContent={true}
         alwaysBounceVertical={false}
         bounces={props.bounces}
-        children={props.children}
-        contentContainerStyle={props.contentContainerStyle}
+        children={children}
+        contentContainerStyle={contentContainerStyle}
         indicatorStyle="white"
         maximumZoomScale={props.maxZoom || 10}
         minimumZoomScale={props.minZoom || 1}
@@ -141,7 +185,7 @@ export const ZoomableBox = (props: Props) => {
         showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
         showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
         style={props.style}
-        zoomScale={props.zoomScale}
+        zoomScale={zoomScale}
       />
     </GestureDetector>
   )

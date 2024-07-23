@@ -19,12 +19,13 @@ const DUMMY = false as boolean
 
 const ZoomableImage = (p: Props) => {
   const {src, style: _style, onChanged, onLoaded, onSwipe, onTap, onError} = p
-  console.log('aaaa zoomimage natie', p)
+  // console.log('aaaa zoomimage natie', p)
   // const onZoom = onChanged
   const [boxW, setBoxW] = React.useState(0)
   const [boxH, setBoxH] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
   const [lastSrc, setLastSrc] = React.useState(src)
+  // const [key, setKey] = React.useState(0)
   const [size, setSize] = React.useState<undefined | {width: number; height: number}>(
     DUMMY ? {width: 200, height: 200} : undefined
   )
@@ -38,7 +39,7 @@ const ZoomableImage = (p: Props) => {
   }, [])
 
   const onZoom = (a: any) => {
-    console.log('aaa onzoom', a)
+    // console.log('aaa onzoom', a)
     onChanged?.(a)
   }
 
@@ -51,14 +52,14 @@ const ZoomableImage = (p: Props) => {
 
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
-      console.log('aaaa onload', e)
+      // console.log('aaaa onload <<<<<', e)
       if (!e.source) {
-        console.log('aaaa onload set size bail', e)
+        // console.log('aaaa onload set size bail', e)
         return
       }
-      console.log('aaaa onload set size', e.source)
+      // console.log('aaaa onload set size', e.source)
       setSize(e.source)
-      console.log('aaaa onload after set size', e.source)
+      // console.log('aaaa onload after set size', e.source)
       onLoaded?.()
     },
     [onLoaded]
@@ -75,8 +76,9 @@ const ZoomableImage = (p: Props) => {
     const zoom = sizeRatio > boxRatio ? boxW / size.width : boxH / size.height
 
     // should be 0.34
-    console.log('aaa >>>>>>>>>>>>>calczoom', {size, boxW, boxH, sizeRatio, boxRatio, zoom})
+    // console.log('aaa >>>>>>>>>>>>>calczoom', {size, boxW, boxH, sizeRatio, boxRatio, zoom})
 
+    setScale(zoom + 0.1)
     setTimeout(() => {
       setScale(zoom)
       setLoading(false)
@@ -121,7 +123,18 @@ const ZoomableImage = (p: Props) => {
       }
     : _style
 
-  console.log('aaa render zoomaimbe', {style, measuredStyle})
+  // console.log('aaa render zoomaimbe', {style, measuredStyle})
+  // const lastSrcRef = React.useRef('')
+  // if (lastSrcRef.current !== src) {
+  //   lastSrcRef.current = src
+  //   setTimeout(() => {
+  //     setKey(s => s + 1)
+  //   }, 1000)
+  // }
+  // React.useEffect(() => {
+  //   console.log('aaaa >>>>>>>>> useeffect setkey')
+  //   setKey(s => s + 1)
+  // }, [src])
 
   const content = DUMMY ? (
     <Kb.Box2
@@ -166,8 +179,10 @@ const ZoomableImage = (p: Props) => {
       ) : null}
     </>
   )
+  // console.log('aaa render with key', src)
   return (
     <Kb.ZoomableBox
+      key={src}
       onSwipe={onSwipe}
       onLayout={onLayout}
       style={style}
@@ -177,6 +192,7 @@ const ZoomableImage = (p: Props) => {
       onZoom={onZoom}
       onTap={onTap}
       zoomScale={scale}
+      contentSize={size}
     >
       {content}
     </Kb.ZoomableBox>
