@@ -57,6 +57,7 @@ export const defaultNavigationOptions = {
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
   },
   headerStyle: headerDefaultStyle,
+  headerTintColor: Kb.Styles.globalColors.black_50,
   headerTitle: (hp: {children: React.ReactNode}) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}

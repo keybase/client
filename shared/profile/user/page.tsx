@@ -5,11 +5,13 @@ import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 
 const Title = React.lazy(async () => import('../search/bar'))
 const getOptions = {
-  headerLeft: (p: {canGoBack: boolean; onPress: () => void; tintColor: string}) => (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <HeaderLeftArrow canGoBack={p.canGoBack} onPress={p.onPress} tintColor={p.tintColor} />
-    </Kb.Styles.CanFixOverdrawContext.Provider>
-  ),
+  headerLeft: (p: {canGoBack: boolean; onPress: () => void; tintColor: string}) => {
+    return (
+      <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
+        <HeaderLeftArrow canGoBack={p.canGoBack} onPress={p.onPress} tintColor={p.tintColor} />
+      </Kb.Styles.CanFixOverdrawContext.Provider>
+    )
+  },
   headerShown: true,
   headerStyle: {backgroundColor: 'transparent'},
   headerTitle: () => (
