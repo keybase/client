@@ -2,6 +2,7 @@
 >>> strict
 >>> tab switching crashes , maybe known screens/react-native-reanimated
 >>> wrapper in native for strict
+>>> floating menu todos, exploding modal not working. portal disabled
 >>>
 >>>
 >>>

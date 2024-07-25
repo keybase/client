@@ -71,7 +71,7 @@
   "private": true,
   "dependencies": {
     "@gorhom/portal": "1.0.14",
-    "@gorhom/bottom-sheet": "4.6.3",
+    "@gorhom/bottom-sheet": "5.0.0-alpha.10",
     "@msgpack/msgpack": "2.8.0",
     "@react-native-community/netinfo": "11.3.2",
     "@react-native-community/push-notification-ios": "1.11.0",
