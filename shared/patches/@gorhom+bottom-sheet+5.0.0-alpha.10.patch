@@ -1,0 +1,43 @@
+diff --git a/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollable.ts b/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollable.ts
+index 3963175..db7bb95 100644
+--- a/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollable.ts
++++ b/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollable.ts
+@@ -1,6 +1,6 @@
+ import { useCallback, RefObject, useRef } from 'react';
++import { findNodeHandle } from 'react-native';
+ import { useSharedValue } from 'react-native-reanimated';
+-import { getRefNativeTag } from '../utilities/getRefNativeTag';
+ import { SCROLLABLE_STATE, SCROLLABLE_TYPE } from '../constants';
+ import type { ScrollableRef, Scrollable } from '../types';
+ 
+@@ -38,7 +38,7 @@ export const useScrollable = () => {
+     // find node handle id
+     let id;
+     try {
+-      id = getRefNativeTag(ref);
++      id = findNodeHandle(ref.current);
+     } catch {
+       return;
+     }
+diff --git a/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollableSetter.ts b/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollableSetter.ts
+index ea7d3c2..6797e0f 100644
+--- a/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollableSetter.ts
++++ b/node_modules/@gorhom/bottom-sheet/src/hooks/useScrollableSetter.ts
+@@ -1,7 +1,7 @@
+ import React, { useCallback, useEffect } from 'react';
++import { findNodeHandle } from 'react-native';
+ import Animated from 'react-native-reanimated';
+ import { useBottomSheetInternal } from './useBottomSheetInternal';
+-import { getRefNativeTag } from '../utilities/getRefNativeTag';
+ import { SCROLLABLE_TYPE } from '../constants';
+ import type { Scrollable } from '../types';
+ 
+@@ -31,7 +31,7 @@ export const useScrollableSetter = (
+     isContentHeightFixed.value = false;
+ 
+     // set current scrollable ref
+-    const id = getRefNativeTag(ref);
++    const id = findNodeHandle(ref.current);
+     if (id) {
+       setScrollableRef({
+         id: id,
