@@ -139,9 +139,6 @@ const styles = Styles.styleSheetCreate(
           shadowOpacity: 1,
           shadowRadius: 10,
         },
-        isIOS: {
-          minHeight: 100,
-        },
       }),
     }) as const
 )
