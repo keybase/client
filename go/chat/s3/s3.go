@@ -274,7 +274,7 @@ func (b *Bucket) GetResponse(ctx context.Context, path string) (resp *http.Respo
 	return b.GetResponseWithHeaders(ctx, path, make(http.Header))
 }
 
-// GetReaderWithHeaders retrieves an object from an S3 bucket
+// GetResponseWithHeaders retrieves an object from an S3 bucket
 // Accepts custom headers to be sent as the second parameter
 // returning the body of the HTTP response.
 // It is the caller's responsibility to call Close on rc when
