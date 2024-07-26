@@ -19,9 +19,6 @@ import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
 
-import {enableLogging} from '@gorhom/bottom-sheet'
-enableLogging()
-
 const Kb = {
   Box2,
   Overlay,
@@ -56,29 +53,13 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
 })
 
 const FullWindow = ({children}: {children?: React.ReactNode}) => {
-  console.log('aaa3 FullWindow render', children)
-  // return children
-  return (
-    <Kb.Box2 direction="vertical" style={{top: 0, bottom: 0, left: 0, right: 0, position: 'absolute'}}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{position: 'relative'}}>
-        {children}
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-  // return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
+  return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
-  // const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
   const shownRef = React.useRef(false)
-  // const snapPoints = [1, 50, 100]
-  // const [snapPoints, setSnapPoints] = React.useState<typeof _snapPoints>(_snapPoints ? undefined : [])
-  // React.useEffect(() => {
-  //   // bottomSheetModalRef.current?.present()
-  //   setSnapPoints(_snapPoints)
-  // }, _snapPoints])
 
   if (!visible && isModal === false) {
     return null
@@ -106,21 +87,16 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   if (Styles.isMobile && isModal === 'bottomsheet') {
     return (
       <BottomSheetModal
-        name="modal-root"
         containerComponent={FullWindow}
-        snapPoints={snapPoints}
-        enableDynamicSizing={true}
+        snapPoints={snapPoints ?? ['75%']}
+        // TODO this is only off due to issues in new arch
+        enableDynamicSizing={false}
         ref={s => {
           if (s && !shownRef.current) {
             shownRef.current = true
-            console.log('aaa present')
             setTimeout(() => {
               s.present()
-            }, 1000)
-            // setTimeout(() => {
-            // console.log('aaa set snap points', _snapPoints)
-            // setSnapPoints(_snapPoints)
-            // }, 1000)
+            }, 100)
           }
         }}
         handleStyle={styles.handleStyle}
@@ -162,6 +138,9 @@ const styles = Styles.styleSheetCreate(
           shadowOffset: {height: 5, width: 0},
           shadowOpacity: 1,
           shadowRadius: 10,
+        },
+        isIOS: {
+          minHeight: 100,
         },
       }),
     }) as const
