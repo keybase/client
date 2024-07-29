@@ -109,6 +109,11 @@ const DarkCSSInjector = () => {
   return null
 }
 
+const UseStrict = false as boolean
+const WRAP = UseStrict
+  ? ({children}: {children: React.ReactNode}) => <>{children}</>
+  : ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+
 const render = (Component = Main) => {
   const root = document.getElementById('root')
   if (!root) {
@@ -119,7 +124,7 @@ const render = (Component = Main) => {
   // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
   // else all nav stuff is broken
   ReactDOM.createRoot(root).render(
-    <React.StrictMode>
+    <WRAP>
       <Root>
         <DarkCSSInjector />
         <FontLoader />
@@ -127,7 +132,7 @@ const render = (Component = Main) => {
           <Component />
         </div>
       </Root>
-    </React.StrictMode>
+    </WRAP>
   )
 }
 

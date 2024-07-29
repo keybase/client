@@ -5,6 +5,7 @@
 >>> floating menu dynamic sizing broken
 >>>
 >>>
+>>>webpack devtools
 >>>
 
 bottom sheet crashes on show: try exploding modal:

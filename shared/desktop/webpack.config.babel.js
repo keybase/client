@@ -165,7 +165,9 @@ const config = (_, {mode}) => {
     return {
       bail: true,
       context: path.resolve(__dirname, '..'),
-      devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
+      devtool: 'eval',
+      // TEMP
+      // devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
