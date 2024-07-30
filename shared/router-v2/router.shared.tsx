@@ -194,4 +194,10 @@ export const theme: Theme = {
     },
   },
   dark: false,
+  fonts: {
+    bold: Kb.Styles.globalStyles.fontBold,
+    heavy: Kb.Styles.globalStyles.fontExtrabold,
+    medium: Kb.Styles.globalStyles.fontSemibold,
+    regular: Kb.Styles.globalStyles.fontRegular,
+  },
 }
