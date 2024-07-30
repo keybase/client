@@ -109,10 +109,10 @@ const DarkCSSInjector = () => {
   return null
 }
 
-const UseStrict = false as boolean
+const UseStrict = true as boolean
 const WRAP = UseStrict
-  ? ({children}: {children: React.ReactNode}) => <>{children}</>
-  : ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+  ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+  : ({children}: {children: React.ReactNode}) => <>{children}</>
 
 const render = (Component = Main) => {
   const root = document.getElementById('root')

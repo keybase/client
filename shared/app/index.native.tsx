@@ -117,8 +117,8 @@ const useInit = () => {
 
 const UseStrict = true as boolean
 const WRAP = UseStrict
-  ? ({children}: {children: React.ReactNode}) => <>{children}</>
-  : ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+  ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+  : ({children}: {children: React.ReactNode}) => <>{children}</>
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {

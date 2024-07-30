@@ -6,6 +6,7 @@
 >>>
 >>>
 >>>webpack devtools
+>>>desktop subnav broken in strict mode: https://github.com/Expensify/App/pull/42592/files#diff-8e669add6c10c59477d19de093739cc27882aeaeafcf1dcd920891f3affad29a
 >>>
 
 bottom sheet crashes on show: try exploding modal:
