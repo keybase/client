@@ -1,0 +1,44 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index 051520b..3148ff8 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -174,10 +174,6 @@ export default function useNavigationBuilder(createRouter, options) {
+     getIsInitial
+   } = React.useContext(NavigationStateContext);
+   const stateCleanedUp = React.useRef(false);
+-  const cleanUpState = React.useCallback(() => {
+-    setCurrentState(undefined);
+-    stateCleanedUp.current = true;
+-  }, [setCurrentState]);
+   const setState = React.useCallback(state => {
+     if (stateCleanedUp.current) {
+       // State might have been already cleaned up due to unmount
+@@ -291,6 +287,9 @@ export default function useNavigationBuilder(createRouter, options) {
+   // So we override the state object we return to use the latest state as soon as possible
+   state = nextState;
+   React.useEffect(() => {
++    // In strict mode, React will double-invoke effects.
++    // So we need to reset the flag if component was not unmounted
++    stateCleanedUp.current = false;
+     setKey(navigatorKey);
+     if (!getIsInitial()) {
+       // If it's not initial render, we need to update the state
+@@ -300,14 +299,10 @@ export default function useNavigationBuilder(createRouter, options) {
+     }
+     return () => {
+       // We need to clean up state for this navigator on unmount
+-      // We do it in a timeout because we need to detect if another navigator mounted in the meantime
+-      // For example, if another navigator has started rendering, we should skip cleanup
+-      // Otherwise, our cleanup step will cleanup state for the other navigator and re-initialize it
+-      setTimeout(() => {
+-        if (getCurrentState() !== undefined && getKey() === navigatorKey) {
+-          cleanUpState();
+-        }
+-      }, 0);
++      if (getCurrentState() !== undefined && getKey() === navigatorKey) {
++        setCurrentState(undefined);
++        stateCleanedUp.current = true;
++      }
+     };
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
