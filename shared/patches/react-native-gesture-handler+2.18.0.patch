@@ -1,0 +1,33 @@
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp b/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+index 4d4c6c7..2ec700c 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
++++ b/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+@@ -19,10 +19,8 @@ void decorateRuntime(jsi::Runtime &runtime) {
+                     return jsi::Value::null();
+                 }
+ 
+-                auto shadowNodeWrapper = arguments[0]
+-                        .asObject(runtime).getNativeState<ShadowNodeWrapper>(runtime);
+-                bool isFormsStackingContext = shadowNodeWrapper->shadowNode->getTraits()
+-                        .check(ShadowNodeTraits::FormsStackingContext);
++		auto shadowNodeWrapper = shadowNodeFromValue(runtime, arguments[0]);
++                bool isFormsStackingContext = shadowNodeWrapper->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+ 
+                 return jsi::Value(isFormsStackingContext);
+             });
+diff --git a/node_modules/react-native-gesture-handler/apple/RNGestureHandlerModule.mm b/node_modules/react-native-gesture-handler/apple/RNGestureHandlerModule.mm
+index 1e6fb0a..7870f7a 100644
+--- a/node_modules/react-native-gesture-handler/apple/RNGestureHandlerModule.mm
++++ b/node_modules/react-native-gesture-handler/apple/RNGestureHandlerModule.mm
+@@ -100,9 +100,8 @@ void decorateRuntime(jsi::Runtime &runtime)
+           return jsi::Value::null();
+         }
+ 
+-        auto shadowNodeWrapper = arguments[0].asObject(runtime).getNativeState<ShadowNodeWrapper>(runtime);
+-        bool isFormsStackingContext =
+-            shadowNodeWrapper->shadowNode->getTraits().check(ShadowNodeTraits::FormsStackingContext);
++	auto shadowNodeWrapper = shadowNodeFromValue(runtime, arguments[0]);
++        bool isFormsStackingContext = shadowNodeWrapper->getTraits().check(ShadowNodeTraits::FormsStackingContext);
+         return jsi::Value(isFormsStackingContext);
+       });
+   runtime.global().setProperty(runtime, "isFormsStackingContext", std::move(isFormsStackingContext));
