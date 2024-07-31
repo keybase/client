@@ -173,6 +173,7 @@ const GestureIcon = React.memo(
     panOnUpdate: ReturnType<typeof makePanOnUpdate>
     panOnStart: ReturnType<typeof makePanOnStart>
   }) {
+    return null // TEMP
     const {panOnStart, panOnUpdate, panOnFinalize} = p
     return (
       <View>

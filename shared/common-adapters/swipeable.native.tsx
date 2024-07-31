@@ -246,6 +246,8 @@ export const Swipeable = React.memo(function Swipeable2(p: {
     tx.value = 0
   }
 
+  return children
+
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.container, style]}>

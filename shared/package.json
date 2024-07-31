@@ -156,7 +156,7 @@
     "@types/react-window": "1.8.8",
     "@types/shallowequal": "1.1.5",
     "@types/webpack-env": "1.18.5",
-    "typescript-eslint": "8.0.0-alpha.14",
+    "typescript-eslint": "8.0.0",
     "@welldone-software/why-did-you-render": "8.0.3",
     "babel-core": "7.0.0-bridge.0",
     "babel-loader": "9.1.3",
