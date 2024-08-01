@@ -5,7 +5,6 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
-import * as Container from '@/util/container'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import {StatusBar, View} from 'react-native'
@@ -123,6 +122,7 @@ const styles = Kb.Styles.styleSheetCreate(
       labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
       labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
       labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      loading: Kb.Styles.globalStyles.fillAbsolute,
       tab: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
@@ -263,54 +263,6 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const useInitialStateChangeAfterLinking = (
-  goodLinking: unknown,
-  onStateChange: () => void,
-  loggedIn: boolean
-) => {
-  // When we load an initial state we use goodLinking. When an initial state is loaded we need to
-  //manually call onStateChange as the framework itself won't call in this case. This is only valid
-  // *after* we get a onReady callback so we need to keep track of 1. a valid goodLinking, 2. onReady called
-  const goodLinkingState = React.useRef<GoodLinkingState>(
-    goodLinking ? GoodLinkingState.GoodLinkingExists : GoodLinkingState.GoodLinkingHandled
-  )
-  React.useEffect(() => {
-    if (goodLinking) {
-      if (goodLinkingState.current === GoodLinkingState.GoodLinkingHandled) {
-        goodLinkingState.current = GoodLinkingState.GoodLinkingExists
-      }
-    }
-  }, [goodLinking])
-
-  const onReady = React.useCallback(() => {
-    if (goodLinkingState.current === GoodLinkingState.GoodLinkingExists) {
-      goodLinkingState.current = GoodLinkingState.GoodLinkingHandled
-      onStateChange()
-    }
-  }, [onStateChange])
-
-  // When we do a quick user switch let's go back to the last tab we were on
-  const lastLoggedInTab = React.useRef<Tabs.Tab | undefined>(undefined)
-  const lastLoggedIn = Container.usePrevious(loggedIn)
-  if (!loggedIn && lastLoggedIn) {
-    lastLoggedInTab.current = Constants.getTab()
-  }
-
-  React.useEffect(() => {
-    if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      const navRef = Constants.navigationRef_
-      navRef.navigate(lastLoggedInTab.current)
-    }
-  }, [loggedIn, lastLoggedIn])
-
-  return onReady
-}
-
-enum GoodLinkingState {
-  GoodLinkingExists,
-  GoodLinkingHandled,
-}
-
 const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 
@@ -324,25 +276,88 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
+const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>) => {
+  const initialNav = RouterLinking.useStateToLinking(appState.current)
+  const [ready, setReady] = React.useState(false)
+  const onReady = React.useCallback(() => {
+    setReady(true)
+  }, [])
+
+  const didInitialNav = React.useRef(false)
+  const [showNav, setShowNav] = React.useState(false)
+  const [initialState, setInitialState] = React.useState<unknown>(undefined)
+
+  if (ready && !didInitialNav.current && initialNav) {
+    didInitialNav.current = true
+    appState.current = Shared.AppState.INITED
+    const f = async () => {
+      const url = await initialNav()
+      if (url) {
+        if (url.startsWith('keybase://convid/')) {
+          const conversationIDKey = url.split('/')[3]
+          const rs = C.Router2.getRootState()
+          try {
+            const next = C.produce(rs, draft => {
+              const tabsState = draft?.routes?.[0]?.state
+              if (!tabsState || tabsState.routes.length < 2) return
+              tabsState.index = 1
+              tabsState.routes[1] = {
+                name: Tabs.chatTab,
+                state: {
+                  index: 1,
+                  routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
+                },
+              }
+            })
+            setInitialState(next)
+          } catch {}
+          setShowNav(true)
+        } else {
+          setTimeout(() => {
+            C.useDeepLinksState.getState().dispatch.handleAppLink(url)
+            setTimeout(() => {
+              setShowNav(true)
+            }, 500)
+          }, 1)
+        }
+      } else {
+        setShowNav(true)
+      }
+    }
+    C.ignorePromise(f())
+  }
+  return {initialState, onReady, setShowNav, showNav}
+}
+
 const RNApp = React.memo(function RNApp() {
   const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
-  const {navKey, initialState, onUnhandledAction} = s
-  const goodLinking = RouterLinking.useStateToLinking(appState.current)
+  const {loggedInLoaded, loggedIn, appState, onStateChange: _onStateChange} = s
+  const {navKey: _navKey, initialState: _initialState, onUnhandledAction} = s
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
   // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
 
-  Shared.useSharedAfter(appState)
+  const {onReady, showNav, setShowNav, initialState} = useRestartLastSession(appState)
+  const onStateChange = React.useCallback(() => {
+    _onStateChange()
+    setShowNav(true)
+  }, [_onStateChange, setShowNav])
 
-  const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
+  // force an update if we have a new initialState
+  const navKey = _navKey + (initialState ? 1 : 0)
+  const forcedChangeOnInitialStateRef = React.useRef(false)
+  if (initialState && !forcedChangeOnInitialStateRef.current) {
+    forcedChangeOnInitialStateRef.current = true
+    onStateChange()
+  }
+
+  // Shared.useSharedAfter(appState)
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,
-      goodLinking,
       initialState,
       loggedIn,
       loggedInLoaded,
@@ -358,11 +373,10 @@ const RNApp = React.memo(function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        linking={goodLinking as any}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}
-        initialState={initialState}
+        initialState={initialState as any}
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
         onReady={onReady}
@@ -394,6 +408,11 @@ const RNApp = React.memo(function RNApp() {
           {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
+      {showNav ? null : (
+        <Kb.Box2 direction="vertical" style={styles.loading}>
+          <Shared.SimpleLoading />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 })

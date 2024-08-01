@@ -59,10 +59,7 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
-  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
-  React.useEffect(() => {
-    bottomSheetModalRef.current?.present()
-  }, [])
+  const shownRef = React.useRef(false)
 
   if (!visible && isModal === false) {
     return null
@@ -91,9 +88,17 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
     return (
       <BottomSheetModal
         containerComponent={FullWindow}
-        snapPoints={snapPoints}
-        enableDynamicSizing={true}
-        ref={bottomSheetModalRef}
+        snapPoints={snapPoints ?? ['75%']}
+        // TODO this is only off due to issues in new arch
+        enableDynamicSizing={false}
+        ref={s => {
+          if (s && !shownRef.current) {
+            shownRef.current = true
+            setTimeout(() => {
+              s.present()
+            }, 100)
+          }
+        }}
         handleStyle={styles.handleStyle}
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}

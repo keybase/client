@@ -13,6 +13,7 @@ export const useLogMount = () => {
 export const useIsMounted = () => {
   const mounted = React.useRef(true)
   React.useEffect(() => {
+    mounted.current = true
     return () => {
       mounted.current = false
     }

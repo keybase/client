@@ -23,6 +23,7 @@ export type Props = {
   position?: Position
   positionFallbacks?: ReadonlyArray<Position>
   hideKeyboard?: boolean // if true, hide the keyboard on mount
+  offset?: number
 }
 export declare const FloatingBox: (p: Props) => React.ReactNode
 export default FloatingBox

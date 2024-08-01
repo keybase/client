@@ -232,6 +232,12 @@ const styles = Kb.Styles.styleSheetCreate(() => {
   } as const
 })
 
+const wrapInStrict = (_route: string) => {
+  const wrap = true
+  // TODO use this to disable strict if something is broken
+  return wrap
+}
+
 const platformShim = (
   Original: React.JSXElementConstructor<GetOptionsParams>,
   isModal: boolean,
@@ -252,6 +258,10 @@ const platformShim = (
           {body}
         </ModalWrapper>
       )
+    }
+
+    if (wrapInStrict(props.route.name)) {
+      body = <React.StrictMode>{body}</React.StrictMode>
     }
 
     return body

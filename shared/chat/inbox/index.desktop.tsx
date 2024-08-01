@@ -57,12 +57,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const firstOffscreenIdx = React.useRef(-1)
   const lastVisibleIdx = React.useRef(-1)
 
-  const mountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      mountedRef.current = false
-    }
-  }, [])
+  const isMounted = C.useIsMounted()
 
   const lastSmallTeamsExpanded = React.useRef(smallTeamsExpanded)
   const lastRowsLength = React.useRef(rows.length)
@@ -118,7 +113,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const onItemsRenderedDebounced = C.useDebouncedCallback(
     React.useCallback(
       (p: {visibleStartIndex: number; visibleStopIndex: number}) => {
-        if (!mountedRef.current) {
+        if (!isMounted()) {
           return
         }
         const {visibleStartIndex, visibleStopIndex} = p
@@ -133,7 +128,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         calculateShowFloating()
         onUntrustedInboxVisible(toUnbox)
       },
-      [calculateShowFloating, onUntrustedInboxVisible, rows]
+      [calculateShowFloating, onUntrustedInboxVisible, rows, isMounted]
     ),
     200
   )
@@ -265,7 +260,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   }
 
   const calculateShowUnreadShortcut = React.useCallback(() => {
-    if (!mountedRef.current) {
+    if (!isMounted()) {
       return
     }
     if (!unreadIndices.size || lastVisibleIdx.current < 0) {
@@ -294,7 +289,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       setUnreadCount(0)
       firstOffscreenIdx.current = -1
     }
-  }, [showUnread, unreadIndices])
+  }, [showUnread, unreadIndices, isMounted])
 
   const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
 

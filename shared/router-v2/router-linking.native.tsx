@@ -69,96 +69,36 @@ type OptionsType = {
 
 const makeLinking = (options: OptionsType) => {
   const {androidShare, startupTab, showMonster, startupFollowUser, startupConversation} = options
-  const config = C.produce(
-    {
-      initialRouteName: 'loggedIn',
-      screens: {
-        initialRouteName: 'loggedIn',
-        loggedIn: {
-          screens: {
-            ...tabs.reduce<{[tab: string]: unknown}>((m, name) => {
-              m[name] = {
-                initialRouteName: tabRoots[name],
-                screens: {
-                  [tabRoots[name]]: name,
-                },
-              }
-              return m
-            }, {}),
-          },
-        },
-      },
-    } as const,
-    draft => {
-      const {screens: _screens} = draft.screens.loggedIn
-      const screens = _screens as {
-        [key: string]: {
-          screens: {
-            [key: string]: string
-          }
-        }
-      }
-      const chat = screens[Tabs.chatTab]
-      if (chat) {
-        chat.screens['chatConversation'] = 'chat/:_convoName/:_highlightMessageID?'
-      }
-      const people = screens[Tabs.peopleTab]
-      if (people) {
-        people.screens['profile'] = 'profile/show/:_username'
+  return async () => {
+    // First, you may want to do the default deep link handling
+    // Check if app was opened from a deep link
+    // NOTE: This can FAIL debugging in chrome
+    let url = await Linking.getInitialURL()
+    if (url && !isValidLink(url)) {
+      url = null
+    }
+    if (!url) {
+      if (showMonster) {
+        url = 'keybase://settingsPushPrompt'
+      } else if (startupConversation) {
+        url = `keybase://convid/${startupConversation}`
+        // TODO support actual existing chat links
+        //keybase://chat/${conv}/${messageID}`
+      } else if (androidShare) {
+        url = `keybase://incoming-share`
+      } else if (startupFollowUser) {
+        url = `keybase://profile/show/${startupFollowUser}`
+      } else {
+        url = `keybase://${startupTab ?? ''}`
       }
     }
-  )
 
-  return {
-    config,
-    // Custom function to get the URL which was used to open the app
-    async getInitialURL() {
-      // First, you may want to do the default deep link handling
-      // Check if app was opened from a deep link
-      // NOTE: This can FAIL debugging in chrome
-      let url = await Linking.getInitialURL()
-      if (url && !isValidLink(url)) {
-        url = null
-      }
-      if (!url) {
-        if (showMonster) {
-          url = 'keybase://settingsPushPrompt'
-        } else if (startupConversation) {
-          url = `keybase://convid/${startupConversation}`
-          // TODO support actual existing chat links
-          //keybase://chat/${conv}/${messageID}`
-        } else if (androidShare) {
-          url = `keybase://incoming-share`
-        } else if (startupFollowUser) {
-          url = `keybase://profile/show/${startupFollowUser}`
-        } else {
-          url = `keybase://${startupTab ?? ''}`
-        }
-      }
+    // allow deep links sagas access to the first link
+    if (isValidLink(url)) {
+      setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
+    }
 
-      // allow deep links sagas access to the first link
-      if (isValidLink(url)) {
-        setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
-      }
-
-      return url
-    },
-    getStateFromPath: (path: string, options: Parameters<typeof getStateFromPath>[1]) => {
-      // use the chat path to make the object but swap out the name with the convo id
-      if (path.startsWith('convid/')) {
-        const [, id] = path.split('/')
-        return C.produce(getStateFromPath('chat/REPLACE', options), draft => {
-          const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} =
-            draft?.routes[0]?.state?.routes[0]?.state?.routes[1]?.params
-          if (params) {
-            params.conversationIDKey = id
-          }
-        })
-      } else {
-        return getStateFromPath(path, options)
-      }
-    },
-    prefixes: ['keybase://', 'https://keybase.io'],
+    return url
   }
 }
 
@@ -175,7 +115,6 @@ export const useStateToLinking = (appState: Shared.AppState) => {
     C.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
 
   const androidShare = C.useConfigState(s => s.androidShare)
-
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({
         androidShare,

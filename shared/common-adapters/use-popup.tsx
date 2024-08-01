@@ -11,7 +11,6 @@ const tooQuick = 100
 
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
-  const wasShowingPopupRef = React.useRef(false)
   const wasMakePopupRef = React.useRef<(p: Popup2Parms) => React.ReactElement | null>(makePopup)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
   const popupAnchor = React.useRef<MeasureRef>(null)
@@ -36,8 +35,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   }, [setShowingPopup])
   const togglePopup = showingPopup ? hidePopup : showPopup
 
-  if (showingPopup !== wasShowingPopupRef.current || makePopup !== wasMakePopupRef.current) {
-    wasShowingPopupRef.current = showingPopup
+  if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
     wasMakePopupRef.current = makePopup
     setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
   }

@@ -146,9 +146,8 @@ const rootScreenOptions = {
 
 const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
+  const {loggedInLoaded, loggedIn, onStateChange} = s
   const {navKey, initialState, onUnhandledAction} = s
-  Shared.useSharedAfter(appState)
 
   const ModalScreens = React.useMemo(
     () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),

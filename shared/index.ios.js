@@ -8,28 +8,35 @@ import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig, install} from 'react-native-kb'
 import * as DarkMode from './constants/darkmode'
 import {enableMapSet} from 'immer'
-// needed by new arch
-Animated.addWhitelistedNativeProps({text: true})
 
-console.log('------------- ios starting up ------------')
-
-enableMapSet()
-install()
-
-const {setSystemSupported, setSystemDarkMode, setDarkModePreference} = DarkMode._useState.getState().dispatch
-setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-setSystemSupported(darkModeSupported === '1')
 try {
-  const obj = JSON.parse(guiConfig)
-  const dm = obj?.ui?.darkMode
-  switch (dm) {
-    case 'system': // fallthrough
-    case 'alwaysDark': // fallthrough
-    case 'alwaysLight':
-      setDarkModePreference(dm, false)
-      break
-  }
-} catch (_) {}
+  // needed by new arch
+  Animated.addWhitelistedNativeProps({text: true})
 
-const {load} = require('./app/index.native')
-load()
+  console.log('------------- ios starting up ------------')
+
+  enableMapSet()
+  install()
+
+  const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
+    DarkMode._useState.getState().dispatch
+  setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+  setSystemSupported(darkModeSupported === '1')
+  try {
+    const obj = JSON.parse(guiConfig)
+    const dm = obj?.ui?.darkMode
+    switch (dm) {
+      case 'system': // fallthrough
+      case 'alwaysDark': // fallthrough
+      case 'alwaysLight':
+        setDarkModePreference(dm, false)
+        break
+    }
+  } catch (_) {}
+
+  const {load} = require('./app/index.native')
+  load()
+  console.log('------------- ios starting up done ------------')
+} catch (e) {
+  console.log('------------- ios starting up fail ------------', e)
+}

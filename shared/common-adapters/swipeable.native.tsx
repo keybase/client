@@ -28,12 +28,16 @@ const useActionsEnabled = (tx: Reanimated.SharedValue<number>) => {
 }
 
 const useMakeCloseSelf = (swipeCloseRef?: React.MutableRefObject<(() => void) | null>) => {
-  return React.useCallback(() => {
+  const f = React.useCallback(() => {
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = null
     }
   }, [swipeCloseRef])
+  return React.useCallback(() => {
+    'worklet'
+    Reanimated.runOnJS(f)()
+  }, [f])
 }
 
 const makeSwipeClose = (
@@ -54,13 +58,17 @@ const useMakeCloseOthersAndRegisterClose = (
   setHasSwiped: (s: boolean) => void,
   tx: Reanimated.SharedValue<number>
 ) => {
-  return React.useCallback(() => {
+  const f = React.useCallback(() => {
     setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = makeSwipeClose(tx, swipeCloseRef)
     }
   }, [setHasSwiped, tx, swipeCloseRef])
+  return React.useCallback(() => {
+    'worklet'
+    Reanimated.runOnJS(f)()
+  }, [f])
 }
 
 const useSyncClosing = (
@@ -80,6 +88,7 @@ const makePanOnStart = (
   closeOthersAndRegisterClose: () => void
 ) => {
   return function onStart() {
+    'worklet'
     closeOthersAndRegisterClose()
     Reanimated.cancelAnimation(tx)
     startx.value = tx.value
@@ -95,6 +104,7 @@ const makePanOnFinalize = (
   actionWidth: number
 ) => {
   return function onFinalize(e: GestureUpdateEvent<PanGestureHandlerEventPayload>, success: boolean) {
+    'worklet'
     if (!started.value) {
       return
     }
@@ -122,13 +132,17 @@ const makePanOnUpdate = (
   actionWidth: number
 ) => {
   return function onUpdate(e: GestureUpdateEvent<PanGestureHandlerEventPayload>) {
+    'worklet'
     tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
   }
 }
 
-const makeTapOnStart = () => () => {}
+const makeTapOnStart = () => () => {
+  'worklet'
+}
 const makeTapOnEnd = (isOpen: boolean, onClick?: () => void) => {
   return function tapOnEnd() {
+    'worklet'
     if (isOpen) {
       return
     }
@@ -231,6 +245,8 @@ export const Swipeable = React.memo(function Swipeable2(p: {
     setLastED(extraData)
     tx.value = 0
   }
+
+  return children
 
   return (
     <GestureDetector gesture={gesture}>
