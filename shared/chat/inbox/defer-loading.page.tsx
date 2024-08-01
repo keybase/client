@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
-import {useHeaderHeight} from '@react-navigation/elements'
 
 const Header = () => {
-  const height = useHeaderHeight()
+  // TODO was using useHeaderHeight but that seems broken now
+  const height = 64
   const {top: paddingTop} = Kb.useSafeAreaInsets()
   return (
     <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.container, {height, paddingTop}])}>
