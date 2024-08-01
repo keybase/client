@@ -7,7 +7,7 @@ import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
-import {StatusBar, View} from 'react-native'
+import {StatusBar, View, useWindowDimensions} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -73,10 +73,10 @@ const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boo
     // notifications gets badged on native if there's no push, special case
     onSettings && !hasPermissions ? 1 : 0
   )
-
+  const {width: screenWidth} = useWindowDimensions()
   const data = tabToData.get(routeName)
   return data ? (
-    <View style={styles.container}>
+    <View style={[styles.tabContainer, {minHeight: 40, minWidth: screenWidth / tabs.length}]}>
       <Kb.Icon
         type={data.icon}
         fontSize={32}
@@ -103,16 +103,6 @@ const styles = Kb.Styles.styleSheetCreate(
           top: 3,
         },
       }),
-      container: Kb.Styles.platformStyles({
-        common: {
-          flex: 1,
-          justifyContent: 'center',
-        },
-        isTablet: {
-          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-          minWidth: Kb.Styles.globalMargins.xlarge,
-        },
-      }),
       keyboard: {
         flexGrow: 1,
         position: 'relative',
@@ -132,6 +122,16 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 6,
         },
         isTablet: {width: '100%'},
+      }),
+      tabContainer: Kb.Styles.platformStyles({
+        common: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        isTablet: {
+          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
+          minWidth: Kb.Styles.globalMargins.xlarge,
+        },
       }),
     }) as const
 )
