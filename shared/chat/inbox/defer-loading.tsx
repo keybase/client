@@ -18,7 +18,7 @@ const Deferred = React.memo(function Deferred() {
     }
     const id = setTimeout(() => {
       setVisible(true)
-    }, 16)
+    }, 100)
     return () => {
       clearTimeout(id)
     }

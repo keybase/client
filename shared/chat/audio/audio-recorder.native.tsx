@@ -173,9 +173,20 @@ const GestureIcon = React.memo(
     panOnUpdate: ReturnType<typeof makePanOnUpdate>
     panOnStart: ReturnType<typeof makePanOnStart>
   }) {
-    return null // TEMP
+    const [visible, setVisible] = React.useState(false)
+
+    // work around bug in gesture handler where it crashes on mount
+    React.useEffect(() => {
+      const id = setTimeout(() => {
+        setVisible(true)
+        return () => {
+          clearTimeout(id)
+        }
+      }, 1000)
+    }, [])
+
     const {panOnStart, panOnUpdate, panOnFinalize} = p
-    return (
+    return visible ? (
       <View>
         <GestureDetector
           gesture={Gesture.Pan()
@@ -190,6 +201,8 @@ const GestureIcon = React.memo(
           <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
         </GestureDetector>
       </View>
+    ) : (
+      <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
     )
   },
   // we never want to rerender the icon, all the helpers are fine at mount
