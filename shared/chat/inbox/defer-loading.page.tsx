@@ -4,8 +4,8 @@ import {HeaderNewChatButton} from './new-chat-button'
 
 const Header = () => {
   // TODO was using useHeaderHeight but that seems broken now
-  const height = 64
   const {top: paddingTop} = Kb.useSafeAreaInsets()
+  const height = 64 + paddingTop
   return (
     <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.container, {height, paddingTop}])}>
       <Kb.Text type="BodyBig" center={true} style={{}}>
