@@ -8,7 +8,7 @@
 --- webpack devtools
 --- desktop subnav broken in strict mode: https://github.com/Expensify/App/pull/42592/files#diff-8e669add6c10c59477d19de093739cc27882aeaeafcf1dcd920891f3affad29a
 --- audio recorder gesture disabled
-swipable turend off
+swipable turend off : pan geustures crashing
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
 ---
 
