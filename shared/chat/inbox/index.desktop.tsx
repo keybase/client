@@ -38,13 +38,146 @@ const FakeRow = ({idx}: {idx: number}) => (
 
 const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
-const dragKey = '__keybase_inbox'
+const dragKey = 'application/keybase_inbox'
+
+const DragLine = (p: {
+  scrollDiv: React.RefObject<HTMLDivElement>
+  inboxNumSmallRows: number
+  showButton: boolean
+  smallTeamsExpanded: boolean
+  toggleSmallTeamsExpanded: () => void
+  setInboxNumSmallRows: (n: number) => void
+  style: Object
+  rows: T.Chat.ChatInboxRowItem[]
+}) => {
+  const {inboxNumSmallRows, showButton, style, scrollDiv} = p
+  const {smallTeamsExpanded, toggleSmallTeamsExpanded, rows, setInboxNumSmallRows} = p
+  const [dragY, setDragY] = React.useState(-1)
+  const deltaNewSmallRows = React.useCallback(() => {
+    if (dragY === -1) {
+      return 0
+    }
+    return Math.max(0, Math.floor(dragY / smallRowHeight)) - inboxNumSmallRows
+  }, [dragY, inboxNumSmallRows])
+
+  const newSmallRows = deltaNewSmallRows()
+  let expandingRows: Array<string> = []
+  let removingRows: Array<string> = []
+  if (newSmallRows === 0) {
+  } else if (newSmallRows > 0) {
+    expandingRows = new Array<string>(newSmallRows).fill('')
+  } else {
+    removingRows = new Array<string>(-newSmallRows).fill('')
+  }
+
+  const throttledDragY = C.useThrottledCallback(setDragY, 100)
+
+  const onDragOver = React.useCallback(
+    (e: DragEvent) => {
+      e.preventDefault()
+      if (
+        scrollDiv.current &&
+        (e.dataTransfer?.types.length ?? 0) > 0 &&
+        e.dataTransfer?.types[0] === dragKey
+      ) {
+        const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop
+        throttledDragY(dy)
+      }
+    },
+    [scrollDiv, throttledDragY]
+  )
+
+  const goodDropRef = React.useRef(false)
+
+  const onDrop = React.useCallback((e: DragEvent) => {
+    e.preventDefault()
+    goodDropRef.current = true
+  }, [])
+
+  React.useEffect(() => {
+    const d = scrollDiv.current
+    if (!d) {
+      return
+    }
+    d.addEventListener('dragover', onDragOver)
+    d.addEventListener('drop', onDrop)
+    return () => {
+      d.removeEventListener('dragover', onDragOver)
+      d.removeEventListener('drop', onDrop)
+    }
+  }, [scrollDiv, onDragOver, onDrop])
+
+  const onDragStart = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(dragKey, dragKey)
+    goodDropRef.current = false
+  }, [])
+  const onDragEnd = React.useCallback(() => {
+    if (goodDropRef.current) {
+      const delta = deltaNewSmallRows()
+      if (delta !== 0) {
+        setInboxNumSmallRows(inboxNumSmallRows + delta)
+      }
+      goodDropRef.current = false
+    }
+    setDragY(-1)
+  }, [setInboxNumSmallRows, inboxNumSmallRows, deltaNewSmallRows])
+
+  return (
+    <div style={{...style, position: 'relative'}}>
+      {showButton && !smallTeamsExpanded && (
+        <>
+          <div
+            className="grabLinesContainer"
+            draggable={true}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            style={Kb.Styles.castStyleDesktop(styles.grabber)}
+          >
+            <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+            </Kb.Box2>
+          </div>
+          <Kb.Box style={styles.spacer} />
+        </>
+      )}
+      {dragY !== -1 && (
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([
+            styles.fakeRowContainer,
+            {
+              bottom: expandingRows.length ? undefined : dividerHeight(showButton),
+              height: (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
+              top: expandingRows.length ? 0 : undefined,
+            },
+          ])}
+        >
+          {expandingRows.map((_, idx) => (
+            <FakeRow idx={idx} key={idx} />
+          ))}
+          {removingRows.map((_, idx) => (
+            <FakeRemovingRow key={idx} />
+          ))}
+        </Kb.Box2>
+      )}
+      <TeamsDivider
+        hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
+        key="divider"
+        toggle={toggleSmallTeamsExpanded}
+        showButton={showButton}
+        rows={rows}
+        smallTeamsExpanded={smallTeamsExpanded}
+      />
+    </div>
+  )
+}
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props
   const {toggleSmallTeamsExpanded, navKey, selectedConversationIDKey, onUntrustedInboxVisible} = props
   const {setInboxNumSmallRows, allowShowFloatingButton} = props
-  const [dragY, setDragY] = React.useState(-1)
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
@@ -75,17 +208,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     },
     [rows]
   )
-
-  const deltaNewSmallRows = React.useCallback(() => {
-    if (dragY === -1) {
-      return 0
-    }
-    return Math.max(0, Math.floor(dragY / smallRowHeight)) - inboxNumSmallRows
-  }, [dragY, inboxNumSmallRows])
-
-  const onDragStart = React.useCallback((ev: React.DragEvent<HTMLDivElement>) => {
-    ev.dataTransfer.setData(dragKey, dragKey)
-  }, [])
 
   const scrollToUnread = React.useCallback(() => {
     if (firstOffscreenIdx.current <= 0 || !scrollDiv.current) {
@@ -133,22 +255,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     200
   )
 
-  const _onDragOver = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    if (scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
-      const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollDiv.current.scrollTop
-      setDragY(dy)
-    }
-  }, [])
-  const onDragOver = C.useThrottledCallback(_onDragOver, 100)
-
-  const onDrop = React.useCallback(() => {
-    const delta = deltaNewSmallRows()
-    if (delta !== 0) {
-      setInboxNumSmallRows(inboxNumSmallRows + delta)
-    }
-    setDragY(-1)
-  }, [inboxNumSmallRows, deltaNewSmallRows, setInboxNumSmallRows])
-
   const itemRenderer = React.useCallback(
     (index: number, style: Object) => {
       const row = rows[index]
@@ -160,64 +266,17 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       const divStyle = style
 
       if (row.type === 'divider') {
-        const newSmallRows = deltaNewSmallRows()
-        let expandingRows: Array<string> = []
-        let removingRows: Array<string> = []
-        if (newSmallRows === 0) {
-        } else if (newSmallRows > 0) {
-          expandingRows = new Array<string>(newSmallRows).fill('')
-        } else {
-          removingRows = new Array<string>(-newSmallRows).fill('')
-        }
         return (
-          <div style={{...divStyle, position: 'relative'}}>
-            {row.showButton && !smallTeamsExpanded && (
-              <>
-                <div
-                  className="grabLinesContainer"
-                  draggable={row.showButton}
-                  onDragStart={onDragStart}
-                  style={Kb.Styles.castStyleDesktop(styles.grabber)}
-                >
-                  <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
-                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                    <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                  </Kb.Box2>
-                </div>
-                <Kb.Box style={styles.spacer} />
-              </>
-            )}
-            {dragY !== -1 && (
-              <Kb.Box2
-                direction="vertical"
-                style={Kb.Styles.collapseStyles([
-                  styles.fakeRowContainer,
-                  {
-                    bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
-                    height:
-                      (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
-                    top: expandingRows.length ? 0 : undefined,
-                  },
-                ])}
-              >
-                {expandingRows.map((_, idx) => (
-                  <FakeRow idx={idx} key={idx} />
-                ))}
-                {removingRows.map((_, idx) => (
-                  <FakeRemovingRow key={idx} />
-                ))}
-              </Kb.Box2>
-            )}
-            <TeamsDivider
-              hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
-              key="divider"
-              toggle={toggleSmallTeamsExpanded}
-              showButton={row.showButton}
-              rows={rows}
-              smallTeamsExpanded={smallTeamsExpanded}
-            />
-          </div>
+          <DragLine
+            scrollDiv={scrollDiv}
+            inboxNumSmallRows={inboxNumSmallRows}
+            showButton={row.showButton}
+            smallTeamsExpanded={smallTeamsExpanded}
+            style={divStyle}
+            toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
+            rows={rows}
+            setInboxNumSmallRows={setInboxNumSmallRows}
+          />
         )
       }
       if (row.type === 'teamBuilder') {
@@ -236,14 +295,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       )
     },
     [
-      dragY,
+      inboxNumSmallRows,
+      setInboxNumSmallRows,
       smallTeamsExpanded,
       toggleSmallTeamsExpanded,
-      deltaNewSmallRows,
       navKey,
       rows,
       selectedConversationIDKey,
-      onDragStart,
     ]
   )
 
@@ -337,14 +395,14 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const itemData = React.useMemo(
-    () => (dragY === -1 ? {rows, sel: selectedConversationIDKey} : dragY),
-    [dragY, rows, selectedConversationIDKey]
+    () => ({rows, sel: selectedConversationIDKey}),
+    [rows, selectedConversationIDKey]
   )
 
   return (
     <Kb.ErrorBoundary>
       <Kb.Box className="inbox-hover-container" style={styles.container}>
-        <div style={styles.list} onDragEnd={onDrop} onDragOver={onDragOver} onDrop={onDrop} ref={dragListRef}>
+        <div style={styles.list} ref={dragListRef}>
           {rows.length ? (
             <AutoSizer doNotBailOutOnEmptyChildren={true}>
               {(p: {height?: number; width?: number}) => {
