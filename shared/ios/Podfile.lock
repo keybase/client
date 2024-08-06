@@ -1457,7 +1457,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.15.0-nightly-20240804-7df5fd57d):
+  - RNReanimated (3.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1477,10 +1477,10 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.15.0-nightly-20240804-7df5fd57d)
-    - RNReanimated/worklets (= 3.15.0-nightly-20240804-7df5fd57d)
+    - RNReanimated/reanimated (= 3.15.0)
+    - RNReanimated/worklets (= 3.15.0)
     - Yoga
-  - RNReanimated/reanimated (3.15.0-nightly-20240804-7df5fd57d):
+  - RNReanimated/reanimated (3.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1501,7 +1501,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.15.0-nightly-20240804-7df5fd57d):
+  - RNReanimated/worklets (3.15.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1964,7 +1964,7 @@ SPEC CHECKSUMS:
   RNCPicker: 4ec9cd8eb8a50d75ff38b1987c1991a556029bc0
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: 7eca02f7f0974365b00905507ed8be6277826eaf
-  RNReanimated: ed736acaae7301011efb80fa292508a8c3c3712c
+  RNReanimated: 599e687582e90f6b3da386031068c11e92dc0d37
   RNScreens: c55a1c0375e26d211940f09b0798bb44a5b3d968
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90

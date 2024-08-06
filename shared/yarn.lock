@@ -5105,10 +5105,10 @@ eslint-plugin-import@2.29.1:
     semver "^6.3.1"
     tsconfig-paths "^3.15.0"
 
-eslint-plugin-promise@7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-7.0.0.tgz#2d54cf6e92213cb2915be62abf338b64c089431d"
-  integrity sha512-wb1ECT+b90ndBdAujhIdAU8oQ3Vt5gKqP/t78KOmg0ifynrvc2jGR9f6ndbOVNFpKf6jLUBlBBDF3H3Wk0JICg==
+eslint-plugin-promise@7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-7.1.0.tgz#06b3ad6d36b3c3ef3ec201c8a8d97049cf5dbb20"
+  integrity sha512-8trNmPxdAy3W620WKDpaS65NlM5yAumod6XeC4LOb+jxlkG4IVcp68c6dXY2ev+uT4U1PtG57YDV6EGAXN0GbQ==
 
 eslint-plugin-react-compiler@0.0.0-experimental-9ed098e-20240725:
   version "0.0.0-experimental-9ed098e-20240725"
@@ -9120,10 +9120,10 @@ react-native-image-keyboard@2.2.1:
   resolved "https://registry.yarnpkg.com/react-native-image-keyboard/-/react-native-image-keyboard-2.2.1.tgz#301ecad7534256b0001e9cb7ca5775f430f76ce0"
   integrity sha512-l2+hJ450wMRyZB3k5v1sIPKM9ioJ50eNPDQUI7HvSz6mSrXP2Il1Cv418LvpQvbPxbUYr3W7dROZ+MnDS8xafw==
 
-react-native-reanimated@3.15.0-nightly-20240804-7df5fd57d:
-  version "3.15.0-nightly-20240804-7df5fd57d"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.15.0-nightly-20240804-7df5fd57d.tgz#956179dae3a8289b3e184004486320f24582df90"
-  integrity sha512-PVG/FPs/DDmzPaiS2PIZ6WSy8xWN5B7did+SViyHfq4XZle2IRhzu+2GZ6ckeqp8K3Fr72Vx3eT1379Edjjgww==
+react-native-reanimated@3.15.0:
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.15.0.tgz#8814af7c78bbdf4c92bbd583f2266febf962e66a"
+  integrity sha512-yGxOyYAAu/5CyjonM2SgsM5sviiiK8HiHL9jT1bKfRxMLnNX9cFP8/UXRkbMT7ZXIfOlCvNFR0AqnphpuXIPVA==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.0.0-0"
     "@babel/plugin-transform-class-properties" "^7.0.0-0"
