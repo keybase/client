@@ -10,6 +10,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import CircularDependencyPlugin from 'circular-dependency-plugin'
 
+const ignoredModules = require('../ignored-modules')
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
@@ -156,10 +157,17 @@ const config = (_, {mode}) => {
     }
     console.warn('Injecting defines: ', defines)
 
-    const alias = {
-      'react-native$': 'react-native-web',
-      'react-native-reanimated': false,
-    }
+    const alias = ignoredModules.reduce(
+      (acc, name) => {
+        acc[name] = path.resolve(__dirname, '../null-module.js')
+        return acc
+      },
+      {
+        'react-native$': 'react-native-web',
+        'react-native-reanimated': false,
+      }
+    )
+
     if (isDev) {
     } else {
       if (isProfile) {

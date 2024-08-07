@@ -10,6 +10,7 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config')
 const path = require('path')
 const fs = require('fs')
 const exclusionList = require('metro-config/src/defaults/exclusionList')
+const ignoredModules = require('./ignored-modules')
 
 const root = path.resolve(__dirname, '.')
 const packages = path.resolve(root, '../rnmodules')
@@ -35,6 +36,8 @@ const modules = []
 const defaultConfig = getDefaultConfig(__dirname)
 const defaultConfigExpo = getDefaultConfigExpo(__dirname)
 
+const nullModule = path.join(root, 'null-module.js')
+
 module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
@@ -52,10 +55,16 @@ module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
     ),
     // When we import a package from the monorepo, metro won't be able to find their deps
     // We need to specify them in `extraNodeModules` to tell metro where to find them
-    extraNodeModules: modules.reduce((acc, name) => {
-      acc[name] = path.join(root, 'node_modules', name)
-      return acc
-    }, {}),
+    extraNodeModules: modules.reduce(
+      (acc, name) => {
+        acc[name] = path.join(root, 'node_modules', name)
+        return acc
+      },
+      ignoredModules.reduce((acc, name) => {
+        acc[name] = nullModule
+        return acc
+      }, {})
+    ),
   },
   transformer: {
     ...defaultConfigExpo.transformer,
