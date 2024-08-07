@@ -5,6 +5,7 @@
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
 --- audio recorder broken?
 --- inbox header height workaround not working for island phones
+--- provision busted due to : componentWillUnmount , check other cases
 
 bottom sheet crashes on show: try exploding modal:
 https://github.com/gorhom/react-native-bottom-sheet/issues/1726

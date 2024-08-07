@@ -50,11 +50,6 @@ class CodePage2 extends React.Component<Props, State> {
     }
   }
 
-  componentWillUnmount() {
-    // Troubleshooting modal may send us back to the devices page; it already cancels in that case
-    !this.state.troubleshooting && this.props.onClose()
-  }
-
   _defaultTab = (props: Props): Tab => {
     const getTabOrOpposite = (tabToShowToNew: Tab) => {
       if (!props.currentDeviceAlreadyProvisioned) return tabToShowToNew
@@ -377,88 +372,90 @@ const getIcon = (type: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) =
 }
 
 const Instructions = (p: Props) => {
-  const icon = getIcon(
+  const iconType = getIcon(
     p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type,
     p.iconNumber
   )
 
-  return (
-    <Kb.Box2 direction="vertical">
-      {p.currentDeviceAlreadyProvisioned ? (
-        <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexWrap}>
-          <Kb.Text type={textType} style={styles.instructions}>
-            Ready to authorize using
-          </Kb.Text>
+  let content: React.ReactNode
+
+  const icon = (
+    <Kb.Icon
+      type={iconType}
+      sizeType="Default"
+      style={Kb.Styles.collapseStyles([
+        styles.deviceIcon,
+        p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,
+        p.currentDevice.type === 'mobile' && styles.deviceIconMobile,
+      ])}
+    />
+  )
+
+  if (p.currentDeviceAlreadyProvisioned) {
+    content = (
+      <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexWrap}>
+        <Kb.Text type={textType} style={styles.instructions}>
+          Ready to authorize using
+        </Kb.Text>
+        {icon}
+        <Kb.Text type={textType} style={styles.instructions}>
+          {p.currentDeviceName}.
+        </Kb.Text>
+      </Kb.Box2>
+    )
+  } else {
+    const hamburger =
+      p.otherDevice.type === 'mobile' ? (
+        <Kb.Box2
+          alignItems="center"
+          direction="horizontal"
+          centerChildren={true}
+          gap="xtiny"
+          style={Kb.Styles.globalStyles.flexWrap}
+        >
           <Kb.Icon
-            type={icon}
+            type="iconfont-nav-2-hamburger"
+            color={Kb.Styles.globalColors.white}
             sizeType="Default"
-            style={Kb.Styles.collapseStyles([
-              styles.deviceIcon,
-              p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,
-              p.currentDevice.type === 'mobile' && styles.deviceIconMobile,
-            ])}
+            style={styles.hamburger}
           />
+          <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text type={textType} style={styles.instructions}>
-            {p.currentDeviceName}.
+            Devices
           </Kb.Text>
         </Kb.Box2>
-      ) : (
-        <>
-          <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="xtiny">
-            <Kb.Text
-              type={textType}
-              style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-            >
-              On
-            </Kb.Text>
-            <Kb.Icon
-              type={icon}
-              sizeType="Default"
-              style={Kb.Styles.collapseStyles([
-                styles.deviceIcon,
-                p.otherDevice.type === 'desktop' && styles.deviceIconDesktop,
-                p.otherDevice.type === 'mobile' && styles.deviceIconMobile,
-              ])}
-            />
-            <Kb.Text
-              type={textType}
-              style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-            >
-              {p.otherDevice.name}, go to {p.otherDevice.type === 'desktop' && 'Devices'}
-            </Kb.Text>
-          </Kb.Box2>
-          {p.otherDevice.type === 'mobile' && (
-            <Kb.Box2
-              alignItems="center"
-              direction="horizontal"
-              centerChildren={true}
-              gap="xtiny"
-              style={Kb.Styles.globalStyles.flexWrap}
-            >
-              <Kb.Icon
-                type="iconfont-nav-2-hamburger"
-                color={Kb.Styles.globalColors.white}
-                sizeType="Default"
-                style={styles.hamburger}
-              />
-              <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
-              <Kb.Text type={textType} style={styles.instructions}>
-                Devices
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
-            <Kb.Text
-              type={textType}
-              style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-            >
-              {`and authorize a new ${p.currentDevice.type === 'desktop' ? 'computer' : 'phone'}.`}
-            </Kb.Text>
+      ) : null
+    content = (
+      <>
+        <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="xtiny">
+          <Kb.Text
+            type={textType}
+            style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            On
           </Kb.Text>
-        </>
-      )}
-    </Kb.Box2>
-  )
+          {icon}
+          <Kb.Text
+            type={textType}
+            style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            {p.otherDevice.name}, go to {p.otherDevice.type === 'desktop' && 'Devices'}
+          </Kb.Text>
+        </Kb.Box2>
+        {hamburger}
+        <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
+          <Kb.Text
+            type={textType}
+            style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            {`and authorize a new ${p.currentDevice.type === 'desktop' ? 'computer' : 'phone'}.`}
+          </Kb.Text>
+        </Kb.Text>
+      </>
+    )
+  }
+
+  return <Kb.Box2 direction="vertical">{content}</Kb.Box2>
 }
 
 const styles = Kb.Styles.styleSheetCreate(
