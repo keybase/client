@@ -186,7 +186,7 @@ export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor?: string; o
 
 export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor?: string}) => {
   const {pop} = C.useNav()
-  return hp.canGoBack ?? true ? (
+  return (hp.canGoBack ?? true) ? (
     <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
   ) : null
 }

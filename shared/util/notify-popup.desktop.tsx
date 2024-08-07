@@ -1,12 +1,14 @@
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
 
+type Opts = {body?: string; sound?: boolean}
+
 const rateLimit: {[K in string]: () => void} = {}
 const rateLimitPayloads: {
   [K in string]:
     | {
         title: string
-        opts?: Object
+        opts?: Opts
         onClick?: () => void
       }
     | undefined
@@ -14,7 +16,7 @@ const rateLimitPayloads: {
 
 function NotifyPopup(
   title: string,
-  opts?: {body?: string; sound?: boolean},
+  opts?: Opts,
   rateLimitSeconds: number = -1,
   rateLimitKey?: string,
   onClick?: () => void,

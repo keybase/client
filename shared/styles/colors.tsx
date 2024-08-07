@@ -1,6 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {_useState as useDarkModeState} from '@/constants/darkmode'
-import {isIOS, isNewArch} from '@/constants/platform'
+import {isIOS} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 
 export const colors = {

@@ -1,13 +1,7 @@
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
 import * as Shared from './router.shared'
-import * as Tabs from '@/constants/tabs'
 import type * as ConfigConstants from '@/constants/config'
-import {getStateFromPath} from '@react-navigation/native'
-import {tabRoots} from './routes'
 import {Linking} from 'react-native'
-
-const tabs: ReadonlyArray<Tabs.Tab> = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
 const argArrayGood = (arr: Array<string>, len: number) => {
   return arr.length === len && arr.every(p => !!p.length)
