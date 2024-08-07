@@ -63,6 +63,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
 
   _dropOverlay = () => (
     <Box2
+      alignSelf="stretch"
       centerChildren={true}
       direction="horizontal"
       onDragLeave={this._onDragLeave}

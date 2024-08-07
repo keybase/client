@@ -29,7 +29,7 @@ const commands: {[key: string]: Command} = {
       const keys = Object.keys(commands) as Array<keyof typeof commands>
       console.log(
         keys
-          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c]?.help || ''}`)
+          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c].help || ''}`)
           .filter(Boolean)
           .join('\n')
       )

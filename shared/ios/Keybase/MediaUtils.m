@@ -118,7 +118,6 @@
   NSString * basename = [[url URLByDeletingPathExtension] lastPathComponent];
   NSURL * parent = [url URLByDeletingLastPathComponent];
   NSURL * normalVideoURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.scaled.mp4", basename]];
-  NSURL * thumbnailURL = [parent URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.thumbnail.jpg", basename]];
   NSError * error;
   
   AVURLAsset * asset = [[AVURLAsset alloc] initWithURL:url options:nil];
@@ -127,8 +126,8 @@
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
   [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+  CFRelease(cgOriginal);
   if (error != nil) {
-    CFRelease(cgOriginal);
     completion(error, nil);
     return;
   }

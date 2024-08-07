@@ -71,7 +71,7 @@ const CryptoSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={cryptoSubRoutes[name].getScreen}
+        getComponent={shimmed[name].getScreen}
         options={({route, navigation}) => {
           const no = getOptions(cryptoSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no

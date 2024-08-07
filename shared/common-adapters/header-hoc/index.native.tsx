@@ -113,44 +113,36 @@ export class HeaderHocHeader extends React.Component<Props, State> {
   }
 }
 
-export const LeftAction = ({
-  badgeNumber,
-  disabled,
-  customCancelText,
-  hasTextTitle,
-  hideBackLabel,
-  leftAction,
-  leftActionText,
-  onLeftAction,
-  theme,
-  customIconColor,
-  style,
-}: LeftActionProps): React.ReactElement => (
-  <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
-    {onLeftAction && leftAction === 'cancel' ? (
-      <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
-        {leftActionText || customCancelText || 'Cancel'}
-      </Text>
-    ) : (
-      (onLeftAction || leftAction === 'back') && (
-        <Kb.BackButton
-          badgeNumber={badgeNumber}
-          hideBackLabel={hideBackLabel}
-          iconColor={
-            customIconColor ||
-            (disabled
-              ? Styles.globalColors.black_10
-              : theme === 'dark'
-                ? Styles.globalColors.white
-                : Styles.globalColors.black_50)
-          }
-          style={styles.action}
-          onClick={onLeftAction ?? undefined}
-        />
-      )
-    )}
-  </Kb.Box>
-)
+export const LeftAction = (p: LeftActionProps): React.ReactElement => {
+  const {badgeNumber, disabled, customCancelText, hasTextTitle, hideBackLabel, leftAction} = p
+  const {leftActionText, onLeftAction, theme, customIconColor, style} = p
+  return (
+    <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
+      {onLeftAction && leftAction === 'cancel' ? (
+        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+          {leftActionText || customCancelText || 'Cancel'}
+        </Text>
+      ) : (
+        (onLeftAction || leftAction === 'back') && (
+          <Kb.BackButton
+            badgeNumber={badgeNumber}
+            hideBackLabel={hideBackLabel}
+            iconColor={
+              customIconColor ||
+              (disabled
+                ? Styles.globalColors.black_10
+                : theme === 'dark'
+                  ? Styles.globalColors.white
+                  : Styles.globalColors.black_50)
+            }
+            style={styles.action}
+            onClick={onLeftAction ?? undefined}
+          />
+        )
+      )}
+    </Kb.Box>
+  )
+}
 
 const RightActions = (p: {
   floatingMenuVisible: boolean
@@ -340,7 +332,7 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   onPress: () => void
   tintColor: string
 }) {
-  return hp.canGoBack ?? true ? (
+  return (hp.canGoBack ?? true) ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
@@ -356,7 +348,7 @@ export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
   onPress: () => void
   tintColor: string
 }) {
-  return hp.canGoBack ?? true ? (
+  return (hp.canGoBack ?? true) ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
@@ -375,7 +367,7 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
   const onBack = React.useCallback(() => {
     pop?.()
   }, [pop])
-  return hp.canGoBack ?? true ? (
+  return (hp.canGoBack ?? true) ? (
     <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
   ) : null
 })

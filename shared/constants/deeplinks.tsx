@@ -155,6 +155,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     handleKeybaseLink: link => {
+      if (!link) return
       const error =
         "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
       const parts = link.split('/')
@@ -191,7 +192,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            C.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
+            const conversationIDKey = parts[1]
+            if (conversationIDKey) {
+              C.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
+            }
             return
           }
           break
@@ -258,6 +262,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         case 'settingsPushPrompt':
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          return
+        case Tabs.teamsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
+          return
+        case Tabs.fsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
+          return
+        case Tabs.chatTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+          return
+        case Tabs.peopleTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          return
+        case Tabs.settingsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
           return
         default:
         // Fall through to the error return below.

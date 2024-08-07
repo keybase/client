@@ -460,7 +460,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     s.separatorMap = sm
 
     const lastOrd = mo.at(-1)
-    const lastID = lastOrd ? s.messageMap.get(lastOrd)?.id ?? 0 : 0
+    const lastID = lastOrd ? (s.messageMap.get(lastOrd)?.id ?? 0) : 0
     if (lastID && lastID > s.maxMsgIDSeen) {
       s.maxMsgIDSeen = lastID
     }
@@ -2162,9 +2162,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       loadMessages()
 
+      // load meta
+      C.useChatState.getState().dispatch.unboxRows([get().id], true)
+
       const updateNav = () => {
         const reason = _reason
-        // don't nav if its caused by a nav
         if (reason === 'navChanged') {
           return
         }

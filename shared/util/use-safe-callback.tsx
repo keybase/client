@@ -30,6 +30,7 @@ function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options
   }, [onlyOnce, clearOnlyOnce])
 
   React.useEffect(() => {
+    isMounted.current = true
     return () => {
       isMounted.current = false
     }

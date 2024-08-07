@@ -11,6 +11,7 @@ import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
+import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -99,7 +100,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const sendTyping = C.useChatContext(s => s.dispatch.sendTyping)
   const updateDraft = C.useChatContext(s => s.dispatch.updateDraft)
   const setExplodingModeLocked = C.useChatContext(s => s.dispatch.setExplodingModeLocked)
-  const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const inputRef = React.useRef<Input2Ref | null>(null)
 
   // true while injecting since onChangeText is called
   const injectingTextRef = React.useRef(false)
@@ -203,7 +204,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   // text from the store, either a draft or changes like injecting a giphy or clearing that
   // dont inject if we don't have a ref yet
   const lastUnsentText = React.useRef<string | undefined>()
-  const lastInputRef = React.useRef<Kb.PlainInput | null>(inputRef.current)
+  const lastInputRef = React.useRef<Input2Ref | null>(inputRef.current)
   React.useEffect(() => {
     if (lastUnsentText.current !== unsentText && inputRef.current) {
       lastUnsentText.current = unsentText

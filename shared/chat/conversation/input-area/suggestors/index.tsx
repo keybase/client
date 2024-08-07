@@ -7,6 +7,7 @@ import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
 import type {Props} from '../normal/platform-input'
+import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -47,7 +48,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
@@ -58,7 +59,7 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.MutableRefObject<undefined | SelectedType>
@@ -362,7 +363,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   children: React.ReactNode
 }
 const Popup = (p: PopupProps) => {
@@ -372,9 +373,9 @@ const Popup = (p: PopupProps) => {
   const attachRef = React.useRef<Kb.MeasureRef | null>({
     divRef: {current: null},
     measure: () => {
-      const c = inputRef.current?._input.current
-      if (c) {
-        return c.getBoundingClientRect?.()
+      const r = inputRef.current?.getBoundingClientRect?.()
+      if (r) {
+        return r
       } else {
         return undefined
       }

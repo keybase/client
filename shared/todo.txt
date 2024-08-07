@@ -1,3 +1,22 @@
+---
+---  strict
+---  wrapper in native for strict
+---  floating menu dynamic sizing broken
+--- PATCHES remvoed double nav checking, can we do it another way (key?)
+--- audio recorder broken?
+
+bottom sheet crashes on show: try exploding modal:
+https://github.com/gorhom/react-native-bottom-sheet/issues/1726
+reanimated 3.12 crashes https://github.com/software-mansion/react-native-reanimated/issues/6082
+
+new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
+setnative not working on fabric, input should likely be controlled now
+
+  deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
+  check animated gifs work after udpating expo-image or rollback again
+
+run electron hash update
+-------------------------
 Some short term todos:
 swipeable2 slow
 mem leak
