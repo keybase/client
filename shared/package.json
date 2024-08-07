@@ -111,7 +111,7 @@
     "menubar": "9.5.0",
     "mousetrap": "1.6.5",
     "process": "keybase/nullModule",
-    "qrcode-generator": "keybase/qrcode-generator#keybase-changes-off-140",
+    "qrcode-generator": "1.4.4",
     "react": "18.2.0",
     "react-is": "18.2.0",
     "react-dom": "18.2.0",

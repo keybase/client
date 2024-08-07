@@ -29,7 +29,7 @@ declare module 'qrcode-generator' {
     addData: (s: string) => void
     make: () => void
     getModuleCount: () => number
-    createDataURL: (n: number, z: number, rgb: [number, number, number]) => string
+    createDataURL: (n: number) => string
   }
   export default gen
 }
