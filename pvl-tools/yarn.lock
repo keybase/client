@@ -2,52 +2,60 @@
 # yarn lockfile v1
 
 
-coffee-script@^1.10.0, coffee-script@^1.9.0:
-  version "1.12.3"
-  resolved "https://registry.yarnpkg.com/coffee-script/-/coffee-script-1.12.3.tgz#de5f4b1b934a4e9f915c57acd7ad323f68f715db"
+coffeescript@1.12.7:
+  version "1.12.7"
+  resolved "https://registry.yarnpkg.com/coffeescript/-/coffeescript-1.12.7.tgz#e57ee4c4867cf7f606bfc4a0f2d550c0981ddd27"
+  integrity sha512-pLXHFxQMPklVoEekowk8b3erNynC+DVJzChxS/LCBBgR6/8AJkHivkm//zbowcfc7BTCAjryuhx6gPqPRfsFoA==
 
-cson-parser@^1.0.6:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/cson-parser/-/cson-parser-1.3.5.tgz#7ec675e039145533bf2a6a856073f1599d9c2d24"
+cson-parser@^4.0.9:
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/cson-parser/-/cson-parser-4.0.9.tgz#eef0cf77edd057f97861ef800300c8239224eedb"
+  integrity sha512-I79SAcCYquWnEfXYj8hBqOOWKj6eH6zX1hhX3yqmS4K3bYp7jME3UFpHPzu3rUew0oyfc0s8T6IlWGXRAheHag==
   dependencies:
-    coffee-script "^1.10.0"
+    coffeescript "1.12.7"
 
-cson@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/cson/-/cson-3.0.2.tgz#83ee9089db3c254bec1e98e498d9aacf11adcc54"
+cson@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/cson/-/cson-8.4.0.tgz#b843eddb9e409758182fec424666b99cc2c1b4f4"
+  integrity sha512-QwXDbiJodA3DFEKA888zTED28EZo2JC7EK2K3qVsUVbE0oKQVRZ4K+Ch/I8QaTYPZ9Q0GXG1BFK5dtcxd6C3mg==
   dependencies:
-    coffee-script "^1.9.0"
-    cson-parser "^1.0.6"
-    extract-opts "^3.0.1"
-    requirefresh "^2.0.0"
-    safefs "^4.0.0"
+    cson-parser "^4.0.9"
+    extract-opts "^5.8.0"
+    requirefresh "^5.13.0"
+    safefs "^8.9.0"
 
 docopt@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/docopt/-/docopt-0.6.2.tgz#b28e9e2220da5ec49f7ea5bb24a47787405eeb11"
 
-eachr@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/eachr/-/eachr-3.2.0.tgz#2c35e43ea086516f7997cf80b7aa64d55a4a4484"
+eachr@^7.4.0:
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/eachr/-/eachr-7.4.0.tgz#379350664095cf441fdb59591f8d6345e71d3b7b"
+  integrity sha512-d6v/ERRrwxZ5oNHJz2Z5Oouge0Xc3rFxeaGNHjAhTDUCkLhy8t583ieH9/Qop1UNDTcZXOSEs8dqawmbHaEEkA==
   dependencies:
-    editions "^1.1.1"
-    typechecker "^4.3.0"
+    editions "^6.21.0"
+    typechecker "^9.3.0"
 
-editions@^1.1.1, editions@^1.3.3:
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/editions/-/editions-1.3.3.tgz#0907101bdda20fac3cbe334c27cbd0688dc99a5b"
-
-extract-opts@^3.0.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/extract-opts/-/extract-opts-3.3.1.tgz#5abbedc98c0d5202e3278727f9192d7e086c6be1"
+editions@^6.20.0, editions@^6.21.0:
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/editions/-/editions-6.21.0.tgz#8da2d85611106e0891a72619b7bee8e0c830089b"
+  integrity sha512-ofkXJtn7z0urokN62DI3SBo/5xAtF0rR7tn+S/bSYV79Ka8pTajIIl+fFQ1q88DQEImymmo97M4azY3WX/nUdg==
   dependencies:
-    eachr "^3.2.0"
-    editions "^1.1.1"
-    typechecker "^4.3.0"
+    version-range "^4.13.0"
 
-graceful-fs@^4.1.4:
-  version "4.1.11"
-  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
+extract-opts@^5.8.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/extract-opts/-/extract-opts-5.9.0.tgz#85f3c2a638c1ddad2ede80c064614f8cbb21cbc8"
+  integrity sha512-UN5d1xtD3cQQNmE2OVsP5ij1dCDgpK5bmOxyMEXc8KaZ/YLCV0ge/RxBGG3fy7KVnxsjekwutzmzRVInQtaB4Q==
+  dependencies:
+    eachr "^7.4.0"
+    editions "^6.21.0"
+    typechecker "^9.3.0"
+
+graceful-fs@^4.2.11:
+  version "4.2.11"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
+  integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
 json-stable-stringify@^1.0.1:
   version "1.0.1"
@@ -59,21 +67,34 @@ jsonify@~0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.0.tgz#2c74b6ee41d93ca51b7b5aaee8f503631d252a73"
 
-requirefresh@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/requirefresh/-/requirefresh-2.1.0.tgz#742dccc20f3a96918d66c6f1597dc8ffebc4f6f5"
-  dependencies:
-    editions "^1.1.1"
+requirefresh@^5.13.0:
+  version "5.13.0"
+  resolved "https://registry.yarnpkg.com/requirefresh/-/requirefresh-5.13.0.tgz#4a91b5e6a7934fcc2ac1c4f40f750a1e2ad7d8f2"
+  integrity sha512-v3BuU/AAKjDqgIig1xyekcBHtujCAghuFTOQ7YNAngEKtTksSS1vT9Abt1ilbmQFAD4ChHHGJ3JSNbqvEOIxkQ==
 
-safefs@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/safefs/-/safefs-4.1.0.tgz#f82aeb4bdd7ae51f653eb20f6728b3058c8d6445"
+safefs@^8.9.0:
+  version "8.10.0"
+  resolved "https://registry.yarnpkg.com/safefs/-/safefs-8.10.0.tgz#63400de6a630ebb6d1e42a517b15e3a17ab9180a"
+  integrity sha512-ZHnuws4iLc5vB6kxU/MpGEZO7Fz80zIEOJw6VgRAroa/PeJB/jcc2KEXxWA0Izpx+W728j398DxQRx1RU+KXIg==
   dependencies:
-    editions "^1.1.1"
-    graceful-fs "^4.1.4"
+    graceful-fs "^4.2.11"
+    version-compare "^3.10.0"
 
-typechecker@^4.3.0:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/typechecker/-/typechecker-4.4.1.tgz#f97b95f51b038417212d677d45a373ee7bced7e6"
+typechecker@^9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/typechecker/-/typechecker-9.3.0.tgz#3ec893922a5cc0c0e42007ebfb6f8444e0380a7d"
+  integrity sha512-7NKr0EkLaL5fkYE56DPwqgQx1FjepvDRZ64trUgb1NgeFqLkaZThI2L33vFJzN4plVyAN5zWcov57QcZIU3bjg==
   dependencies:
-    editions "^1.3.3"
+    editions "^6.20.0"
+
+version-compare@^3.10.0:
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/version-compare/-/version-compare-3.11.0.tgz#b63102bfb1d591342152937452752dace914394b"
+  integrity sha512-sufLk/bD3oq+iLzWk8FOHfYwVIaC3NLJcvMqnggmakwNskyKyM+u8x1F8NdwjlLVgC8oYSTgB0RK68VCT6wQOg==
+  dependencies:
+    editions "^6.21.0"
+
+version-range@^4.13.0:
+  version "4.14.0"
+  resolved "https://registry.yarnpkg.com/version-range/-/version-range-4.14.0.tgz#91c12e4665756a9101d1af43faeda399abe0edec"
+  integrity sha512-gjb0ARm9qlcBAonU4zPwkl9ecKkas+tC2CGwFfptTCWWIVTWY1YUbT2zZKsOAF1jR/tNxxyLwwG0cb42XlYcTg==
