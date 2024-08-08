@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM python:3.8.2-buster
+FROM python:3.10-buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
