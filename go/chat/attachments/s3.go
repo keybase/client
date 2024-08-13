@@ -396,8 +396,9 @@ func NewS3Signer(ri func() chat1.RemoteInterface) *S3Signer {
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (s *S3Signer) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return s.ri().S3Sign(context.Background(), arg)
 }

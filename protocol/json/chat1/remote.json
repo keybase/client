@@ -1353,6 +1353,10 @@
         {
           "name": "payload",
           "type": "bytes"
+        },
+        {
+          "name": "tempCreds",
+          "type": "boolean"
         }
       ],
       "response": "bytes"

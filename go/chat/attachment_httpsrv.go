@@ -613,8 +613,9 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (r *AttachmentHTTPSrv) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return r.ri().S3Sign(context.Background(), arg)
 }

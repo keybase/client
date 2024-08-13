@@ -1129,8 +1129,9 @@ func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.Conversa
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return s.getRi().S3Sign(context.Background(), arg)
 }

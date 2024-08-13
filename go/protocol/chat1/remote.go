@@ -1705,8 +1705,9 @@ type GetS3ParamsArg struct {
 }
 
 type S3SignArg struct {
-	Version int    `codec:"version" json:"version"`
-	Payload []byte `codec:"payload" json:"payload"`
+	Version   int    `codec:"version" json:"version"`
+	Payload   []byte `codec:"payload" json:"payload"`
+	TempCreds bool   `codec:"tempCreds" json:"tempCreds"`
 }
 
 type GetInboxVersionArg struct {
