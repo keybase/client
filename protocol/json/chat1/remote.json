@@ -1336,6 +1336,10 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
+        },
+        {
+          "name": "tempCreds",
+          "type": "boolean"
         }
       ],
       "response": "S3Params"

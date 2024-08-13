@@ -33,7 +33,7 @@ type mockRemote struct {
 	chat1.RemoteInterface
 }
 
-func (r mockRemote) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+func (r mockRemote) GetS3Params(context.Context, chat1.GetS3ParamsArg) (chat1.S3Params, error) {
 	return chat1.S3Params{}, nil
 }
 

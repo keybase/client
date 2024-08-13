@@ -546,7 +546,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	g.Go(func() (err error) {
 		u.Debug(bgctx, "upload: fetching s3 params")
 		u.G().ActivityNotifier.AttachmentUploadStart(bgctx, uid, convID, outboxID)
-		if s3params, err = u.ri().GetS3Params(bgctx, convID); err != nil {
+		if s3params, err = u.ri().GetS3Params(bgctx, chat1.GetS3ParamsArg{
+			ConversationID: convID,
+			TempCreds:      true,
+		}); err != nil {
 			return err
 		}
 		close(paramsCh)

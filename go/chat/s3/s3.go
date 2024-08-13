@@ -195,6 +195,13 @@ const (
 	BucketOwnerFull   = ACL("bucket-owner-full-control")
 )
 
+func (b *Bucket) addTokenHeader(headers map[string][]string) {
+	if b.SessionToken == "" {
+		return
+	}
+	headers["x-amz-security-token"] = []string{b.SessionToken}
+}
+
 // PutBucket creates a new bucket.
 //
 // See http://goo.gl/ndjnR for details.
@@ -202,6 +209,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 	headers := map[string][]string{
 		"x-amz-acl": {string(perm)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "PUT",
 		bucket:  b.Name,
@@ -288,6 +296,7 @@ func (b *Bucket) GetResponse(ctx context.Context, path string) (resp *http.Respo
 // It is the caller's responsibility to call Close on rc when
 // finished reading
 func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, headers map[string][]string) (resp *http.Response, err error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		bucket:  b.Name,
 		path:    path,
@@ -347,6 +356,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 // Head HEADs an object in the S3 bucket, returns the response with
 // no body see http://bit.ly/17K1ylI
 func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response, error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "HEAD",
 		bucket:  b.Name,
@@ -385,6 +395,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 		"x-amz-acl":         {string(perm)},
 		"x-amz-copy-source": {source},
 	}
+	b.addTokenHeader(headers)
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -422,6 +433,8 @@ func (b *Bucket) PutReader(ctx context.Context, path string, r io.Reader, length
 		"Content-Type":   {contType},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
+
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -444,6 +457,7 @@ func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, 
 		"Content-Type":   {"application/text"},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
 
 	// Override with custom headers
 	for key, value := range customHeaders {

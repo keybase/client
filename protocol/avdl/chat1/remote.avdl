@@ -185,7 +185,7 @@ protocol remote {
 
   // getS3Params returns S3 params that the client needs to make S3
   // requests.
-  S3Params getS3Params(ConversationID conversationID);
+  S3Params getS3Params(ConversationID conversationID, boolean tempCreds);
 
   // s3Sign signs a payload for S3 requests.
   bytes s3Sign(int version, bytes payload);
