@@ -357,6 +357,10 @@
         {
           "type": "string",
           "name": "regionBucketEndpoint"
+        },
+        {
+          "type": "string",
+          "name": "token"
         }
       ]
     },

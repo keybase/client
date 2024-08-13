@@ -412,6 +412,7 @@ type S3Params struct {
 	RegionName           string `codec:"regionName" json:"regionName"`
 	RegionEndpoint       string `codec:"regionEndpoint" json:"regionEndpoint"`
 	RegionBucketEndpoint string `codec:"regionBucketEndpoint" json:"regionBucketEndpoint"`
+	Token                string `codec:"token" json:"token"`
 }
 
 func (o S3Params) DeepCopy() S3Params {
@@ -423,6 +424,7 @@ func (o S3Params) DeepCopy() S3Params {
 		RegionName:           o.RegionName,
 		RegionEndpoint:       o.RegionEndpoint,
 		RegionBucketEndpoint: o.RegionBucketEndpoint,
+		Token:                o.Token,
 	}
 }
 

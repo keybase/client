@@ -180,6 +180,7 @@ protocol remote {
     string regionName;
     string regionEndpoint;
     string regionBucketEndpoint;
+    string token;
   }
 
   // getS3Params returns S3 params that the client needs to make S3
