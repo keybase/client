@@ -47,6 +47,10 @@ type S3 struct {
 	// ok for clients to know it.
 	AccessKey string
 
+	// This is needed for payload construction.  It's
+	// ok for clients to know it.
+	SessionToken string
+
 	// Signer signs payloads for s3 request authorization.
 	Signer Signer
 
@@ -150,6 +154,10 @@ func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.C
 
 func (s3 *S3) SetAccessKey(key string) {
 	s3.AccessKey = key
+}
+
+func (s3 *S3) SetSessionToken(token string) {
+	s3.SessionToken = token
 }
 
 // Bucket returns a Bucket with the given name.

@@ -86,7 +86,8 @@ type PutS3Result struct {
 func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (res *PutS3Result, err error) {
 	defer a.Trace(ctx, &err, "PutS3")()
 	region := a.regionFromParams(task.S3Params)
-	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
+	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey, task.S3Params.Token).Bucket(
+		task.S3Params.Bucket)
 
 	multiPartUpload := size > minMultiSize
 	if multiPartUpload && a.G().Env.GetAttachmentDisableMulti() {
