@@ -1104,7 +1104,10 @@ func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSi
 // Logs but does not return errors. Assets may be left undeleted.
 func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset) error {
 	// get s3 params from server
-	params, err := s.getRi().GetS3Params(ctx, convID)
+	params, err := s.getRi().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		s.G().Log.Warning("error getting s3 params: %s", err)
 		return nil
@@ -1126,8 +1129,9 @@ func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.Conversa
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return s.getRi().S3Sign(context.Background(), arg)
 }

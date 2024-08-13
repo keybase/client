@@ -994,7 +994,7 @@ func (m *ChatRemoteMock) BroadcastGregorMessageToConv(ctx context.Context,
 	return nil
 }
 
-func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.GetS3ParamsArg) (chat1.S3Params, error) {
 	return chat1.S3Params{}, errors.New("GetS3Params not mocked")
 }
 
