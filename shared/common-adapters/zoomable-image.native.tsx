@@ -91,17 +91,20 @@ const ZoomableImage = (p: Props) => {
     [size, loading]
   )
   const measuredStyle = size ? imageSize : dummySize
+
   const content = (
     <>
-      <Kb.Image2
-        contentFit="cover"
-        src={src}
-        style={measuredStyle}
-        onLoad={onLoad}
-        onError={onError}
-        showLoadingStateUntilLoaded={false}
-        allowDownscaling={false}
-      />
+      {src ? (
+        <Kb.Image2
+          contentFit="cover"
+          src={src}
+          style={measuredStyle}
+          onLoad={onLoad}
+          onError={onError}
+          showLoadingStateUntilLoaded={false}
+          allowDownscaling={false}
+        />
+      ) : null}
       {loading ? (
         <Kb.Box2 direction="vertical" style={styles.progress}>
           <Kb.ProgressIndicator white={true} />
@@ -112,7 +115,7 @@ const ZoomableImage = (p: Props) => {
 
   return (
     <Kb.ZoomableBox
-      key={src}
+      key={src + String(scale)}
       onSwipe={onSwipe}
       onLayout={onLayout}
       style={style}
