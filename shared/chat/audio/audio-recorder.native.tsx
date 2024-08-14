@@ -173,6 +173,7 @@ const GestureIcon = React.memo(
     panOnUpdate: ReturnType<typeof makePanOnUpdate>
     panOnStart: ReturnType<typeof makePanOnStart>
   }) {
+    return null // TEMP
     const [visible, setVisible] = React.useState(false)
 
     // work around bug in gesture handler where it crashes on mount

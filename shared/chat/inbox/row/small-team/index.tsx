@@ -53,7 +53,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
       const snippetDecoration =
         meta.conversationIDKey === C.Chat.noConversationIDKey
-          ? layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none
+          ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
           : meta.snippetDecoration
       return {snippet, snippetDecoration}
     })
@@ -87,10 +87,11 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   )
 
   const _onSelectConversation = React.useCallback(() => {
+    swipeCloseRef?.current?.()
     navigateToThread('inboxSmall')
-  }, [navigateToThread])
+  }, [navigateToThread, swipeCloseRef])
 
-  const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
+  const onSelectConversation = isSelected ? undefined : (p.onSelectConversation ?? _onSelectConversation)
 
   const backgroundColor = isInWidget
     ? Kb.Styles.globalColors.white
@@ -102,8 +103,9 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const children = React.useMemo(() => {
     return (
-      <SwipeConvActions swipeCloseRef={swipeCloseRef} onClick={onSelectConversation}>
+      <SwipeConvActions swipeCloseRef={swipeCloseRef}>
         <Kb.ClickableBox
+          onClick={onSelectConversation}
           className={Kb.Styles.classNames('small-row', {selected: isSelected})}
           style={
             isInWidget || Kb.Styles.isTablet

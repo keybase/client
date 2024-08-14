@@ -3,7 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {OrdinalContext} from '../../ids-context'
-import {SwipeTrigger} from '@/common-adapters/swipeable.native'
+// import {SwipeTrigger} from '@/common-adapters/swipeable.native'
+import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {dismiss} from '@/util/keyboard'
 import {Pressable} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
@@ -53,11 +54,12 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   }, [setReplyTo, toggleThreadSearch, ordinal, focusInput])
 
   // Only swipeable if there is an onSwipeLeft handler
-  return (
-    <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
-      {inner}
-    </SwipeTrigger>
-  )
+  // return (
+  //   <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
+  //     {inner}
+  //   </SwipeTrigger>
+  // )
+  return <Swipeable renderRightActions={makeAction}>{inner}</Swipeable>
 })
 
 const styles = Kb.Styles.styleSheetCreate(
