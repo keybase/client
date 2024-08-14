@@ -115,7 +115,7 @@ const ZoomableImage = (p: Props) => {
 
   return (
     <Kb.ZoomableBox
-      key={src + String(scale)}
+      key={Styles.isAndroid ? src : src + String(scale)}
       onSwipe={onSwipe}
       onLayout={onLayout}
       style={style}
