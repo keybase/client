@@ -6,12 +6,6 @@ export type Props = {
   maxZoom?: number
   minZoom?: number
   zoomScale?: number
-  contentSize?:
-    | {
-        width: number
-        height: number
-      }
-    | undefined
   onLayout?: (e: Partial<LayoutChangeEvent>) => void
   onZoom?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
   style?: Styles.StylesCrossPlatform
