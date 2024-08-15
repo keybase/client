@@ -412,6 +412,7 @@ type S3Params struct {
 	RegionName           string `codec:"regionName" json:"regionName"`
 	RegionEndpoint       string `codec:"regionEndpoint" json:"regionEndpoint"`
 	RegionBucketEndpoint string `codec:"regionBucketEndpoint" json:"regionBucketEndpoint"`
+	Token                string `codec:"token" json:"token"`
 }
 
 func (o S3Params) DeepCopy() S3Params {
@@ -423,6 +424,7 @@ func (o S3Params) DeepCopy() S3Params {
 		RegionName:           o.RegionName,
 		RegionEndpoint:       o.RegionEndpoint,
 		RegionBucketEndpoint: o.RegionBucketEndpoint,
+		Token:                o.Token,
 	}
 }
 
@@ -1699,11 +1701,13 @@ type GetUnreadUpdateFullArg struct {
 
 type GetS3ParamsArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	TempCreds      bool           `codec:"tempCreds" json:"tempCreds"`
 }
 
 type S3SignArg struct {
-	Version int    `codec:"version" json:"version"`
-	Payload []byte `codec:"payload" json:"payload"`
+	Version   int    `codec:"version" json:"version"`
+	Payload   []byte `codec:"payload" json:"payload"`
+	TempCreds bool   `codec:"tempCreds" json:"tempCreds"`
 }
 
 type GetInboxVersionArg struct {
@@ -1910,7 +1914,7 @@ type RemoteInterface interface {
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
 	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
-	GetS3Params(context.Context, ConversationID) (S3Params, error)
+	GetS3Params(context.Context, GetS3ParamsArg) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
@@ -2132,7 +2136,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetS3ParamsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetS3Params(ctx, typedArgs[0].ConversationID)
+					ret, err = i.GetS3Params(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2771,8 +2775,7 @@ func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVe
 	return
 }
 
-func (c RemoteClient) GetS3Params(ctx context.Context, conversationID ConversationID) (res S3Params, err error) {
-	__arg := GetS3ParamsArg{ConversationID: conversationID}
+func (c RemoteClient) GetS3Params(ctx context.Context, __arg GetS3ParamsArg) (res S3Params, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

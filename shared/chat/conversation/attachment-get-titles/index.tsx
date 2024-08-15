@@ -74,14 +74,16 @@ const GetTitles = (p: Props) => {
   let preview: React.ReactNode = null
   switch (info.type) {
     case 'image':
-      preview = path ? <Kb.ZoomableImage src={info.url ?? path} style={styles.image} /> : null
+      preview = path ? (
+        <Kb.ZoomableImage src={info.url ?? path} style={styles.image} boxCacheKey="getTitlesImg" />
+      ) : null
       break
     case 'video':
       preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
       break
     default: {
       if (C.isIOS && path && isPathHEIC(path)) {
-        preview = <Kb.ZoomableImage src={path} style={styles.image} />
+        preview = <Kb.ZoomableImage src={path} style={styles.image} boxCacheKey="getTitlesHeicImg" />
       } else {
         preview = (
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>

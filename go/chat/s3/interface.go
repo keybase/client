@@ -13,6 +13,7 @@ type Root interface {
 
 type Connection interface {
 	SetAccessKey(key string)
+	SetSessionToken(token string)
 	Bucket(name string) BucketInt
 }
 

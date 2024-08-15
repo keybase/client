@@ -14,6 +14,9 @@ export type Props = {
   // mobile only, called if swiping while not zoomed
   onSwipe?: (left: boolean) => void
   onTap?: () => void
+  // hints for sizes
+  srcDims?: {height: number; width: number}
+  boxCacheKey?: string
 }
 
 export declare const ZoomableImage: (p: Props) => React.ReactNode

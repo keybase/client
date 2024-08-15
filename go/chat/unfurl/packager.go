@@ -94,7 +94,10 @@ func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat
 		return res, fmt.Errorf("invalid asset for unfurl package: %v mime: %s", atyp, contentType)
 	}
 
-	s3params, err := p.ri().GetS3Params(ctx, convID)
+	s3params, err := p.ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		return res, err
 	}

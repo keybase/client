@@ -613,8 +613,9 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (r *AttachmentHTTPSrv) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return r.ri().S3Sign(context.Background(), arg)
 }
@@ -639,7 +640,10 @@ func (r *RemoteAttachmentFetcher) StreamAttachment(ctx context.Context, convID c
 	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
 	defer r.Trace(ctx, &err, "StreamAttachment")()
 	// Grab S3 params for the conversation
-	s3params, err := ri().GetS3Params(ctx, convID)
+	s3params, err := ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -651,7 +655,10 @@ func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writ
 	ri func() chat1.RemoteInterface, signer s3.Signer, progress types.ProgressReporter) (err error) {
 	defer r.Trace(ctx, &err, "FetchAttachment")()
 	// Grab S3 params for the conversation
-	s3params, err := ri().GetS3Params(ctx, convID)
+	s3params, err := ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		return err
 	}
@@ -667,7 +674,10 @@ func (r *RemoteAttachmentFetcher) DeleteAssets(ctx context.Context,
 	}
 
 	// get s3 params from server
-	s3params, err := ri().GetS3Params(ctx, convID)
+	s3params, err := ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		r.Debug(ctx, "error getting s3params: %s", err)
 		return err
@@ -815,7 +825,10 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	}
 
 	// Grab S3 params for the conversation
-	s3params, err := ri().GetS3Params(ctx, convID)
+	s3params, err := ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		return err
 	}
@@ -906,7 +919,10 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 	}
 
 	// get s3 params from server
-	s3params, err := ri().GetS3Params(ctx, convID)
+	s3params, err := ri().GetS3Params(ctx, chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	if err != nil {
 		c.Debug(ctx, "error getting s3params: %s", err)
 		return err

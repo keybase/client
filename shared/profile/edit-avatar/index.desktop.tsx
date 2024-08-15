@@ -189,7 +189,13 @@ const EditAvatar = (p: Props) => {
             style={styles.hidden}
             type="file"
           />
-          <Kb.ZoomableImage dragPan={true} src={imageSource} onChanged={onChanged} onLoaded={onImageLoad} />
+          <Kb.ZoomableImage
+            dragPan={true}
+            src={imageSource}
+            onChanged={onChanged}
+            onLoaded={onImageLoad}
+            boxCacheKey="avatar"
+          />
           {!loading && (
             <Kb.Icon
               className="icon"

@@ -57,11 +57,14 @@ func (b *Bucket) ListMulti(ctx context.Context, prefix, delim string) (multis []
 		"prefix":      {prefix},
 		"delimiter":   {delim},
 	}
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
 		req := &request{
-			method: "GET",
-			bucket: b.Name,
-			params: params,
+			method:  "GET",
+			bucket:  b.Name,
+			params:  params,
+			headers: headers,
 		}
 		var resp listMultiResp
 		err := b.S3.query(ctx, req, &resp)
@@ -121,6 +124,7 @@ func (b *Bucket) InitMulti(ctx context.Context, key string, contType string, per
 		"Content-Length": {"0"},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
 	params := map[string][]string{
 		"uploads": {""},
 	}
@@ -164,6 +168,7 @@ func (m *Multi) putPart(ctx context.Context, n int, r io.ReadSeeker, partSize in
 		"Content-Length": {strconv.FormatInt(partSize, 10)},
 		"Content-MD5":    {md5b64},
 	}
+	m.Bucket.addTokenHeader(headers)
 	params := map[string][]string{
 		"uploadId":   {m.UploadID},
 		"partNumber": {strconv.FormatInt(int64(n), 10)},
@@ -247,13 +252,17 @@ func (m *Multi) ListParts(ctx context.Context) ([]Part, error) {
 		"uploadId":  {m.UploadID},
 		"max-parts": {strconv.FormatInt(int64(listPartsMax), 10)},
 	}
+	headers := map[string][]string{}
+	m.Bucket.addTokenHeader(headers)
+
 	var parts partSlice
 	for attempt := m.Bucket.S3.AttemptStrategy.Start(); attempt.Next(); {
 		req := &request{
-			method: "GET",
-			bucket: m.Bucket.Name,
-			path:   m.Key,
-			params: params,
+			method:  "GET",
+			bucket:  m.Bucket.Name,
+			path:    m.Key,
+			params:  params,
+			headers: headers,
 		}
 		var resp listPartsResp
 		err := m.Bucket.S3.query(ctx, req, &resp)
@@ -383,15 +392,17 @@ func (m *Multi) Complete(ctx context.Context, parts []Part) error {
 
 	// Setting Content-Length prevents breakage on DreamObjects
 	for attempt := m.Bucket.S3.AttemptStrategy.Start(); attempt.Next(); {
+		headers := map[string][]string{
+			"Content-Length": {strconv.Itoa(len(data))},
+		}
+		m.Bucket.addTokenHeader(headers)
 		req := &request{
 			method:  "POST",
 			bucket:  m.Bucket.Name,
 			path:    m.Key,
 			params:  params,
 			payload: bytes.NewReader(data),
-			headers: map[string][]string{
-				"Content-Length": {strconv.Itoa(len(data))},
-			},
+			headers: headers,
 		}
 
 		resp := &completeResponse{}
@@ -432,12 +443,16 @@ func (m *Multi) Abort(ctx context.Context) error {
 	params := map[string][]string{
 		"uploadId": {m.UploadID},
 	}
+	headers := map[string][]string{}
+	m.Bucket.addTokenHeader(headers)
+
 	for attempt := m.Bucket.S3.AttemptStrategy.Start(); attempt.Next(); {
 		req := &request{
-			method: "DELETE",
-			bucket: m.Bucket.Name,
-			path:   m.Key,
-			params: params,
+			method:  "DELETE",
+			bucket:  m.Bucket.Name,
+			path:    m.Key,
+			params:  params,
+			headers: headers,
 		}
 		err := m.Bucket.S3.query(ctx, req, nil)
 		if shouldRetry(err) && attempt.HasNext() {

@@ -357,6 +357,10 @@
         {
           "type": "string",
           "name": "regionBucketEndpoint"
+        },
+        {
+          "type": "string",
+          "name": "token"
         }
       ]
     },
@@ -1332,6 +1336,10 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
+        },
+        {
+          "name": "tempCreds",
+          "type": "boolean"
         }
       ],
       "response": "S3Params"
@@ -1345,6 +1353,10 @@
         {
           "name": "payload",
           "type": "bytes"
+        },
+        {
+          "name": "tempCreds",
+          "type": "boolean"
         }
       ],
       "response": "bytes"

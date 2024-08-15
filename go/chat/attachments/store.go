@@ -246,7 +246,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 
 func (a *S3Store) getAssetBucket(asset chat1.Asset, params chat1.S3Params, signer s3.Signer) s3.BucketInt {
 	region := a.regionFromAsset(asset)
-	return a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+	return a.s3Conn(signer, region, params.AccessKey, params.Token).Bucket(asset.Bucket)
 }
 
 func (a *S3Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
@@ -446,9 +446,10 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 	}
 }
 
-func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
+func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string, sessionToken string) s3.Connection {
 	conn := a.s3c.New(a.G().ExternalG(), signer, region)
 	conn.SetAccessKey(accessKey)
+	conn.SetSessionToken(sessionToken)
 	return conn
 }
 
@@ -467,6 +468,6 @@ func (a *S3Store) DeleteAssets(ctx context.Context, params chat1.S3Params, signe
 
 func (a *S3Store) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {
 	region := a.regionFromAsset(asset)
-	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+	b := a.s3Conn(signer, region, params.AccessKey, params.Token).Bucket(asset.Bucket)
 	return b.Del(ctx, asset.Path)
 }
