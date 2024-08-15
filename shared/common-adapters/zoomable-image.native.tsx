@@ -17,23 +17,44 @@ const Kb = {
 
 const dummySize = {height: 1, width: 1}
 
-const ZoomableImage = (p: Props) => {
-  const {src, style, onChanged, onLoaded, onSwipe, onTap, onError} = p
-  const [boxW, setBoxW] = React.useState(0)
-  const [boxH, setBoxH] = React.useState(0)
+// per context cache the size
+const boxContextCache = new Map<string, {height: number; width: number}>()
+
+const getScale = (width: number, height: number, containerWidth: number, containerHeight: number) => {
+  const sizeRatio = width / height
+  const boxRatio = containerWidth / containerHeight
+  return sizeRatio > boxRatio ? containerWidth / width : containerHeight / height
+}
+
+const ZoomableImage = React.memo(function (p: Props) {
+  const {src, style, onChanged, onLoaded, onSwipe, onTap, onError, boxCacheKey = ''} = p
+  const [boxW, setBoxW] = React.useState(boxContextCache.get(boxCacheKey)?.width ?? 0)
+  const [boxH, setBoxH] = React.useState(boxContextCache.get(boxCacheKey)?.height ?? 0)
   const [loading, setLoading] = React.useState(true)
   const [lastSrc, setLastSrc] = React.useState(src)
-  const [size, setSize] = React.useState<undefined | {width: number; height: number}>(undefined)
-  const [scale, setScale] = React.useState(1)
+  const [size, setSize] = React.useState<undefined | {width: number; height: number}>(p.srcDims)
+  const [scale, setScale] = React.useState(
+    size && boxW && boxH ? getScale(size.width, size.height, boxW, boxH) : 1
+  )
 
   const onZoom = onChanged
 
-  const onLayout = React.useCallback((e: Partial<LayoutChangeEvent>) => {
-    if (!e.nativeEvent) return
-    const {width, height} = e.nativeEvent.layout
-    setBoxW(width)
-    setBoxH(height)
-  }, [])
+  const onLayout = React.useCallback(
+    (e: Partial<LayoutChangeEvent>) => {
+      if (!e.nativeEvent) return
+      const {width, height} = e.nativeEvent.layout
+      // rotate?
+      if (boxW && boxW !== width) {
+        initialZoomRef.current = false
+      }
+      setBoxW(width)
+      setBoxH(height)
+      if (boxCacheKey) {
+        boxContextCache.set(boxCacheKey, {height, width})
+      }
+    },
+    [boxCacheKey, boxW]
+  )
 
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
@@ -46,16 +67,14 @@ const ZoomableImage = (p: Props) => {
     [onLoaded]
   )
 
-  const initialZoomRef = React.useRef(false)
+  const initialZoomRef = React.useRef(!!size && !!boxW && !!boxH)
   React.useEffect(() => {
     if (initialZoomRef.current || !size || !boxW || !boxH) {
       return
     }
     initialZoomRef.current = true
-    const sizeRatio = size.width / size.height
-    const boxRatio = boxW / boxH
-    const zoom = sizeRatio > boxRatio ? boxW / size.width : boxH / size.height
-    setScale(zoom)
+    const s = getScale(size.width, size.height, boxW, boxH)
+    setScale(s)
     setLoading(false)
   }, [boxW, boxH, size])
 
@@ -89,7 +108,6 @@ const ZoomableImage = (p: Props) => {
     return style
   }, [src, size])
   const measuredStyle = size ? imageSize : dummySize
-
   const content = (
     <>
       {src ? (
@@ -128,7 +146,7 @@ const ZoomableImage = (p: Props) => {
       {content}
     </Kb.ZoomableBox>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
