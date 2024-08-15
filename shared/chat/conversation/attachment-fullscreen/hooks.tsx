@@ -92,6 +92,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   }
 }
 
+// if we've seen it its likely cached so lets just always just show it and never fallback
+const seenPaths = new Set<string>()
 // preload full and return ''. If too much time passes show preview. Show full when loaded
 export const usePreviewFallback = (
   path: string,
@@ -106,6 +108,7 @@ export const usePreviewFallback = (
   React.useEffect(() => {
     const onLoad = () => {
       clearTimeout(id)
+      seenPaths.add(path)
       setImgSrc(path)
     }
     const onError = () => {
@@ -123,6 +126,10 @@ export const usePreviewFallback = (
       clearTimeout(id)
     }
   }, [path, previewPath, isVideo, preload])
+
+  if (seenPaths.has(path)) {
+    return path
+  }
 
   if (!canUseFallback) {
     return path || previewPath

@@ -6,6 +6,7 @@ import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
 import ProgressIndicator from './progress-indicator.native'
 import {Box2} from './box'
+import isEqual from 'lodash/isEqual'
 
 const Kb = {
   Box2,
@@ -54,15 +55,8 @@ const ZoomableImage = (p: Props) => {
     const sizeRatio = size.width / size.height
     const boxRatio = boxW / boxH
     const zoom = sizeRatio > boxRatio ? boxW / size.width : boxH / size.height
-
-    // if zoom is the same we still calc this
-    setScale(zoom + 0.1)
-    setTimeout(() => {
-      setScale(zoom)
-      setTimeout(() => {
-        setLoading(false)
-      }, 10)
-    }, 0)
+    setScale(zoom)
+    setLoading(false)
   }, [boxW, boxH, size])
 
   if (lastSrc !== src) {
@@ -71,25 +65,29 @@ const ZoomableImage = (p: Props) => {
     initialZoomRef.current = false
   }
 
-  const imageSize = React.useMemo(
-    () =>
-      size
-        ? Styles.isAndroid
-          ? {
-              backgroundColor: Styles.globalColors.black,
-              height: size.height,
-              opacity: loading ? 0 : 1,
-              position: 'relative',
-              width: size.width,
-            }
-          : {
-              height: size.height,
-              opacity: loading ? 0 : 1,
-              width: size.width,
-            }
-        : undefined,
-    [size, loading]
-  )
+  const imageSizeCacheRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
+  const imageSize = React.useMemo(() => {
+    const style = size
+      ? Styles.isAndroid
+        ? ({
+            backgroundColor: Styles.globalColors.black,
+            height: size.height,
+            position: 'relative',
+            width: size.width,
+          } as const)
+        : ({
+            height: size.height,
+            width: size.width,
+          } as const)
+      : undefined
+
+    const old = imageSizeCacheRef.current.get(src)
+    if (isEqual(style, old)) {
+      return old
+    }
+    imageSizeCacheRef.current.set(src, style)
+    return style
+  }, [src, size])
   const measuredStyle = size ? imageSize : dummySize
 
   const content = (
@@ -120,7 +118,7 @@ const ZoomableImage = (p: Props) => {
       onLayout={onLayout}
       style={style}
       maxZoom={10}
-      minZoom={0.01}
+      minZoom={scale}
       contentContainerStyle={measuredStyle}
       onZoom={onZoom}
       onTap={onTap}
