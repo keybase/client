@@ -72,7 +72,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
         return (
           <>
             {reloadBanner}
-            <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
+            <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsdef" />
           </>
         )
       }
@@ -96,7 +96,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
+          <Kb.ZoomableImage src={url} style={styles.zoomableBox} boxCacheKey="fsimg" />
         </>
       )
     }

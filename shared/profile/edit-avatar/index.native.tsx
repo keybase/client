@@ -153,6 +153,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         onChanged={this._onZoom}
         // using collapse doesn't work somehow, using devtools it loses the height on android only
         style={{...styles.image, ...this.getImageStyle()}}
+        boxCacheKey="avatar"
       />
     ) : null
   }

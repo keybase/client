@@ -62,14 +62,14 @@ const TeamPicker = (props: Props) => {
           preview = url ? <Kb.Video autoPlay={false} allowFile={true} url={url} muted={true} /> : null
         } else {
           const src = message.fileURL || message.previewURL
-          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} boxCacheKey="fwdimg" /> : null
         }
         break
       default:
         // heics
         if (C.Chat.isImageViewable(message)) {
           const src = message.fileURL || message.previewURL
-          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} boxCacheKey="fwdheics" /> : null
         }
     }
   }
