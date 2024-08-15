@@ -8,7 +8,6 @@ export type Props = {
   showLoadingStateUntilLoaded?: boolean
   onLoad?: (e: {target?: unknown; source?: {width: number; height: number}}) => void
   onError?: () => void
-  allowDownscaling?: boolean
 }
 
 declare const Image2: (p: Props) => React.ReactNode

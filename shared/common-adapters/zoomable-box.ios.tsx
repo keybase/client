@@ -8,7 +8,7 @@ import {runOnJS} from 'react-native-reanimated'
 const Kb = {ScrollView}
 
 export const ZoomableBox = (props: Props) => {
-  const {onSwipe, onLayout, onTap: _onTap, zoomScale, contentSize, children, contentContainerStyle} = props
+  const {onSwipe, onLayout, onTap: _onTap} = props
   const {width: windowWidth} = useWindowDimensions()
   const needDiff = windowWidth / 3
   const onTap = React.useCallback(() => {
@@ -37,7 +37,7 @@ export const ZoomableBox = (props: Props) => {
       if (maxTouches !== 1) {
         return
       }
-      const scaleDiff = Math.abs((zoomScale ?? 1) - curScaleRef.current)
+      const scaleDiff = Math.abs(1 - curScaleRef.current)
       if (scaleDiff > 0.1) {
         return
       }
@@ -47,7 +47,7 @@ export const ZoomableBox = (props: Props) => {
         onSwipe?.(true)
       }
     },
-    [onSwipe, needDiff, zoomScale]
+    [onSwipe, needDiff]
   )
 
   const widthRef = React.useRef(0)
@@ -62,8 +62,7 @@ export const ZoomableBox = (props: Props) => {
   )
 
   const ref = React.useRef<ScrollView>(null)
-
-  const getScroll = React.useCallback(() => {
+  const onDoubleTap = React.useCallback(() => {
     const scroll = ref.current as unknown as null | {
       getScrollResponder?:
         | undefined
@@ -79,37 +78,22 @@ export const ZoomableBox = (props: Props) => {
                 }) => void
               })
     }
-    return scroll
+    scroll?.getScrollResponder?.()?.scrollResponderZoomTo(
+      curScaleRef.current > 1.01
+        ? {
+            animated: true,
+            height: 2000,
+            width: 2000,
+          }
+        : {
+            animated: true,
+            height: heightRef.current / 4,
+            width: widthRef.current / 4,
+            x: widthRef.current / 4,
+            y: heightRef.current / 4,
+          }
+    )
   }, [])
-
-  const onResetZoom = React.useCallback(() => {
-    if (!contentSize) return
-    const scroll = getScroll()
-    scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
-      animated: true,
-      height: contentSize.height,
-      width: contentSize.width,
-      x: 0,
-      y: 0,
-    })
-  }, [contentSize, getScroll])
-
-  const onDoubleTap = React.useCallback(() => {
-    const zoomOut = curScaleRef.current > (zoomScale ?? 1)
-    if (zoomOut) {
-      onResetZoom()
-    } else {
-      const scroll = getScroll()
-      scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
-        animated: true,
-        height: (contentSize?.height ?? 100) / 4,
-        width: (contentSize?.width ?? 100) / 4,
-        // not correct
-        x: ((contentSize?.width ?? 100) - widthRef.current) / 2,
-        y: ((contentSize?.height ?? 100) - heightRef.current) / 2,
-      })
-    }
-  }, [contentSize, zoomScale, onResetZoom, getScroll])
 
   const singleTap = Gesture.Tap()
     .maxDuration(250)
@@ -134,8 +118,8 @@ export const ZoomableBox = (props: Props) => {
         centerContent={true}
         alwaysBounceVertical={false}
         bounces={props.bounces}
-        children={children}
-        contentContainerStyle={contentContainerStyle}
+        children={props.children}
+        contentContainerStyle={props.contentContainerStyle}
         indicatorStyle="white"
         maximumZoomScale={props.maxZoom || 10}
         minimumZoomScale={props.minZoom || 1}
@@ -157,7 +141,6 @@ export const ZoomableBox = (props: Props) => {
         showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
         showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
         style={props.style}
-        zoomScale={zoomScale}
       />
     </GestureDetector>
   )
