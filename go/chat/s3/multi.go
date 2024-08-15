@@ -121,6 +121,7 @@ func (b *Bucket) InitMulti(ctx context.Context, key string, contType string, per
 		"Content-Length": {"0"},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
 	params := map[string][]string{
 		"uploads": {""},
 	}
@@ -164,6 +165,7 @@ func (m *Multi) putPart(ctx context.Context, n int, r io.ReadSeeker, partSize in
 		"Content-Length": {strconv.FormatInt(partSize, 10)},
 		"Content-MD5":    {md5b64},
 	}
+	b.addTokenHeader(headers)
 	params := map[string][]string{
 		"uploadId":   {m.UploadID},
 		"partNumber": {strconv.FormatInt(int64(n), 10)},
