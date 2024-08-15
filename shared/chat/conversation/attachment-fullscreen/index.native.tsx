@@ -38,10 +38,11 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   }, [])
 
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
-  const srcDims =
-    imgSrc === path
+  const srcDims = React.useMemo(() => {
+    return imgSrc === path
       ? {height: data.fullHeight, width: data.fullWidth}
       : {height: data.previewWidth, width: data.previewHeight}
+  }, [data.fullHeight, data.fullWidth, data.previewHeight, data.previewWidth, imgSrc, path])
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
