@@ -225,10 +225,14 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 //
 // See http://goo.gl/GoBrY for details.
 func (b *Bucket) DelBucket() (err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "DELETE",
-		bucket: b.Name,
-		path:   "/",
+		method:  "DELETE",
+		bucket:  b.Name,
+		path:    "/",
+		headers: headers,
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
 		err = b.S3.query(context.Background(), req, nil)
@@ -321,10 +325,14 @@ func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, header
 
 // Exists checks whether or not an object exists on an S3 bucket using a HEAD request.
 func (b *Bucket) Exists(path string) (exists bool, err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "HEAD",
-		bucket: b.Name,
-		path:   path,
+		method:  "HEAD",
+		bucket:  b.Name,
+		path:    path,
+		headers: headers,
 	}
 	err = b.S3.prepare(req)
 	if err != nil {
@@ -543,6 +551,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(length, 10)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		path:    "/",
 		method:  "PUT",
@@ -559,6 +568,9 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 //
 // See http://goo.gl/APeTt for details.
 func (b *Bucket) Del(ctx context.Context, path string) error {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
 		method: "DELETE",
 		bucket: b.Name,
@@ -598,6 +610,8 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		"Content-MD5":    {base64.StdEncoding.EncodeToString(digest.Sum(nil))},
 		"Content-Type":   {"text/xml"},
 	}
+	b.addTokenHeader(headers)
+
 	req := &request{
 		path:    "/",
 		method:  "POST",
@@ -705,9 +719,13 @@ func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, 
 	if max != 0 {
 		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
 	}
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		bucket: b.Name,
-		params: params,
+		bucket:  b.Name,
+		params:  params,
+		headers: headers,
 	}
 	result = &ListResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
