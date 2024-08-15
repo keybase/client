@@ -1,8 +1,3 @@
-All platforms:
+• Improvements for chat attachments
+• Bug fixes
 
-Desktop:
-• Screenshots of the app disabled by default
-
-iOS:
-
-Android:
