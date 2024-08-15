@@ -127,11 +127,6 @@ export const ZoomableBox = (props: Props) => {
     })
   const taps = Gesture.Exclusive(doubleTap, singleTap)
 
-  // this is nasty but i need a way to force this component to render correctly. Passing new zoomScale
-  // won't necessarily cause it to adopt it
-  const old = zoomScale ?? 1
-  const fixedZoomScale = old === 1 ? old : old + Math.random() * 0.0001
-
   return (
     <GestureDetector gesture={taps}>
       <Kb.ScrollView
@@ -149,21 +144,20 @@ export const ZoomableBox = (props: Props) => {
         onTouchEnd={onSwipe ? onTouchEnd : undefined}
         onScroll={e => {
           curScaleRef.current = e.nativeEvent?.zoomScale ?? 0
-          const val = {
+          props.onZoom?.({
             height: e.nativeEvent?.contentSize.height ?? 0,
             scale: e.nativeEvent?.zoomScale ?? 0,
             width: e.nativeEvent?.contentSize.width ?? 0,
             x: e.nativeEvent?.contentOffset.x ?? 0,
             y: e.nativeEvent?.contentOffset.y ?? 0,
-          }
-          props.onZoom?.(val)
+          })
         }}
         scrollEventThrottle={16}
         scrollsToTop={false}
         showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
         showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
         style={props.style}
-        zoomScale={fixedZoomScale}
+        zoomScale={zoomScale}
       />
     </GestureDetector>
   )
