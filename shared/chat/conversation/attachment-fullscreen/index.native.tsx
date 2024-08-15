@@ -11,7 +11,7 @@ import {type GestureResponderEvent, Animated, View, useWindowDimensions, Image} 
 // TODO bring this back when we update expo-image > 1.8.0
 // import {Image} from 'expo-image'
 
-const Fullscreen = (p: Props) => {
+const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
@@ -38,6 +38,11 @@ const Fullscreen = (p: Props) => {
   }, [])
 
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
+  const srcDims = React.useMemo(() => {
+    return imgSrc === path
+      ? {height: data.fullHeight, width: data.fullWidth}
+      : {height: data.previewWidth, width: data.previewHeight}
+  }, [data.fullHeight, data.fullWidth, data.previewHeight, data.previewWidth, imgSrc, path])
   const {showPopup, popup} = useMessagePopup({ordinal})
 
   const onSwipe = React.useCallback(
@@ -108,7 +113,14 @@ const Fullscreen = (p: Props) => {
       )
     } else {
       content = (
-        <Kb.ZoomableImage src={imgSrc} style={styles.zoomableBox} onSwipe={onSwipe} onTap={toggleHeader} />
+        <Kb.ZoomableImage
+          src={imgSrc}
+          style={styles.zoomableBox}
+          onSwipe={onSwipe}
+          onTap={toggleHeader}
+          srcDims={srcDims}
+          boxCacheKey="chat-attach"
+        />
       )
     }
   }
@@ -159,7 +171,7 @@ const Fullscreen = (p: Props) => {
       {popup}
     </Kb.Box2>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
