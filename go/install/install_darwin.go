@@ -697,8 +697,34 @@ func createCommandLine(binPath string, linkPath string, log Log) error {
 		}
 	}
 
-	log.Info("Linking %s to %s", linkPath, binPath)
-	return os.Symlink(binPath, linkPath)
+	dirPath := filepath.Dir(linkPath)
+
+	if !isWritable(dirPath) {
+		log.Info("Directory %s is not writable, using sudo to create symlink", dirPath)
+		cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo ln -s %s %s", binPath, linkPath))
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Error("Failed to create symlink with sudo: %s", string(output))
+			return err
+		}
+		log.Info("Symlink created with sudo")
+
+		return nil
+	} else {
+		log.Info("Linking %s to %s", linkPath, binPath)
+		return os.Symlink(binPath, linkPath)
+	}
+}
+
+func isWritable(dirPath string) bool {
+	testFile := filepath.Join(dirPath, ".writable-test")
+	file, err := os.OpenFile(testFile, os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		return false
+	}
+	file.Close()
+	os.Remove(testFile)
+	return true
 }
 
 func installCommandLineForBinPath(binPath string, linkPath string, force bool, log Log) error {
