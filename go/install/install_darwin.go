@@ -24,6 +24,8 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/mounter"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	"golang.org/x/sys/unix"
 )
 
 // defaultLaunchdWait is how long we should wait after install & start.
@@ -699,7 +701,7 @@ func createCommandLine(binPath string, linkPath string, log Log) error {
 
 	dirPath := filepath.Dir(linkPath)
 
-	if !isWritable(dirPath) {
+	if err := unix.Access(dirPath, unix.W_OK); err != nil {
 		log.Info("Directory %s is not writable, using sudo to create symlink", dirPath)
 		cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo ln -s %s %s", binPath, linkPath))
 		output, err := cmd.CombinedOutput()
@@ -714,17 +716,6 @@ func createCommandLine(binPath string, linkPath string, log Log) error {
 		log.Info("Linking %s to %s", linkPath, binPath)
 		return os.Symlink(binPath, linkPath)
 	}
-}
-
-func isWritable(dirPath string) bool {
-	testFile := filepath.Join(dirPath, ".writable-test")
-	file, err := os.OpenFile(testFile, os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		return false
-	}
-	file.Close()
-	os.Remove(testFile)
-	return true
 }
 
 func installCommandLineForBinPath(binPath string, linkPath string, force bool, log Log) error {
