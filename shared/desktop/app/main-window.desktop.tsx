@@ -114,6 +114,7 @@ let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
 let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight'
 let disableSpellCheck = false
+let disableScreenshot = false
 
 /**
  * loads data that we normally save from configGuiSetValue. At this point the service might not exist so we must read it directly
@@ -132,6 +133,7 @@ const loadWindowState = () => {
           useNativeFrame: unknown
           ui: Partial<{
             disableSpellCheck: unknown
+            disableScreenshot: unknown
             darkMode: unknown
           }>
           windowState: unknown
@@ -143,8 +145,13 @@ const loadWindowState = () => {
       typeof guiConfig?.useNativeFrame === 'boolean' ? guiConfig.useNativeFrame : useNativeFrame
 
     if (guiConfig?.ui) {
-      const {darkMode, disableSpellCheck: _disableSpellCheck} = guiConfig.ui
+      const {
+        darkMode,
+        disableSpellCheck: _disableSpellCheck,
+        disableScreenshot: _disableScreenshot,
+      } = guiConfig.ui
       disableSpellCheck = typeof _disableSpellCheck === 'boolean' ? _disableSpellCheck : disableSpellCheck
+      disableScreenshot = typeof _disableScreenshot === 'boolean' ? _disableScreenshot : disableScreenshot
 
       if (typeof darkMode === 'string') {
         switch (darkMode) {
@@ -327,6 +334,9 @@ const MainWindow = () => {
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
+
+  win.setContentProtection(disableScreenshot)
+
   if (__DEV__ || __PROFILE__) {
     setupDevToolsExtensions()
   }

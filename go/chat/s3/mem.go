@@ -41,7 +41,8 @@ func (m *Mem) NewMemConn() *MemConn {
 
 var _ Connection = &MemConn{}
 
-func (s *MemConn) SetAccessKey(key string) {}
+func (s *MemConn) SetAccessKey(key string)    {}
+func (s *MemConn) SetSessionToken(key string) {}
 
 func (s *MemConn) Bucket(name string) BucketInt {
 	s.Lock()

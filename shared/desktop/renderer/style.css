@@ -487,9 +487,15 @@ input {
 
 .lightMode {
   background-color: #ffffff;
+  &.isWidget {
+    background-color: transparent;
+  }
 }
 .darkMode {
   background-color: #191919;
+  &.isWidget {
+    background-color: transparent;
+  }
 }
 
 .addInviteAndLinkBox {

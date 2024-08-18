@@ -151,7 +151,9 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       <Kb.ZoomableImage
         src={uri}
         onChanged={this._onZoom}
-        style={Kb.Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()])}
+        // using collapse doesn't work somehow, using devtools it loses the height on android only
+        style={{...styles.image, ...this.getImageStyle()}}
+        boxCacheKey="avatar"
       />
     ) : null
   }
@@ -268,6 +270,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       flexReallyGrow: {
         flexGrow: 1000,
+      },
+      image: {
+        overflow: 'hidden',
+        position: 'relative',
       },
       placeholder: {
         alignItems: 'center',

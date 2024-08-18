@@ -3,15 +3,15 @@ import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
 
 type Props = {
+  children: React.ReactNode
   context?: string
   content: string
-  isPreview?: boolean
 }
 
 const spoilerState = new Map<string, boolean>()
 
 const Spoiler = (p: Props) => {
-  const {content, context, isPreview} = p
+  const {children, content, context} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
 
@@ -21,29 +21,33 @@ const Spoiler = (p: Props) => {
     setShown(false)
   }
 
-  const onClick = React.useCallback(() => {
-    setShown(s => {
-      spoilerState.set(key, !s)
-      return !s
-    })
-  }, [key])
+  const onClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setShown(s => {
+        spoilerState.set(key, !s)
+        return !s
+      })
+    },
+    [key]
+  )
 
-  const showMasked = isPreview && Styles.isMobile
-  const len = content.length
+  const smallContent = content.substring(0, 10)
+  const len = smallContent.length
   const masked = React.useMemo(() => {
-    return showMasked ? Array(len).fill('•').join('') : ''
-  }, [showMasked, len])
+    return Array(len).fill('•').join('')
+  }, [len])
 
-  return showMasked ? (
-    <Text type="BodySmall">{masked}</Text>
-  ) : (
+  return (
     <Text
+      className={shown ? undefined : 'spoiler'}
       type="BodySmall"
       onClick={onClick}
       style={shown ? styles.shown : styles.hidden}
       title={shown ? '' : 'Click to reveal'}
     >
-      {content}
+      {shown ? children || content : masked}
     </Text>
   )
 }

@@ -32,7 +32,7 @@ type paramsRemote struct {
 	chat1.RemoteInterface
 }
 
-func (p paramsRemote) GetS3Params(ctx context.Context, convID chat1.ConversationID) (chat1.S3Params, error) {
+func (p paramsRemote) GetS3Params(ctx context.Context, arg chat1.GetS3ParamsArg) (chat1.S3Params, error) {
 	return chat1.S3Params{
 		Bucket:    "packager-test",
 		ObjectKey: libkb.RandStringB64(3),
@@ -107,7 +107,10 @@ func TestPackager(t *testing.T) {
 		require.True(t, bytes.Equal(dat, resDat))
 	}
 	var buf bytes.Buffer
-	s3params, err := ri().GetS3Params(context.TODO(), convID)
+	s3params, err := ri().GetS3Params(context.TODO(), chat1.GetS3ParamsArg{
+		ConversationID: convID,
+		TempCreds:      true,
+	})
 	require.NoError(t, err)
 	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *image, &buf, s3Signer, nil))
 	compareSol("nytogimage_sol.jpg", buf.Bytes())

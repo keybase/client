@@ -86,7 +86,7 @@ func (m mockSigningRemote) Sign(payload []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (m mockSigningRemote) GetS3Params(ctx context.Context, convID chat1.ConversationID) (res chat1.S3Params, err error) {
+func (m mockSigningRemote) GetS3Params(ctx context.Context, arg chat1.GetS3ParamsArg) (res chat1.S3Params, err error) {
 	return res, nil
 }
 

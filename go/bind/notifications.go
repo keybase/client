@@ -3,6 +3,7 @@ package keybase
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"runtime"
 	"time"
 
@@ -79,6 +80,8 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 	return nil
 }
 
+var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
+
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
 	pusher PushNotifier, showIfStale bool) (err error) {
@@ -149,7 +152,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 			switch msgUnboxed.GetMessageType() {
 			case chat1.MessageType_TEXT:
 				chatNotification.Message.Kind = "Text"
-				chatNotification.Message.Plaintext = msgUnboxed.Valid().MessageBody.Text().Body
+				chatNotification.Message.Plaintext = spoileRegexp.ReplaceAllString(msgUnboxed.Valid().MessageBody.Text().Body, "•••")
 			case chat1.MessageType_REACTION:
 				chatNotification.Message.Kind = "Reaction"
 				reaction, err := utils.GetReaction(msgUnboxed)

@@ -47,6 +47,10 @@ type S3 struct {
 	// ok for clients to know it.
 	AccessKey string
 
+	// This is needed for payload construction.  It's
+	// ok for clients to know it.
+	SessionToken string
+
 	// Signer signs payloads for s3 request authorization.
 	Signer Signer
 
@@ -152,6 +156,10 @@ func (s3 *S3) SetAccessKey(key string) {
 	s3.AccessKey = key
 }
 
+func (s3 *S3) SetSessionToken(token string) {
+	s3.SessionToken = token
+}
+
 // Bucket returns a Bucket with the given name.
 func (s3 *S3) Bucket(name string) BucketInt {
 	if s3.Region.S3BucketEndpoint != "" || s3.Region.S3LowercaseBucket {
@@ -187,6 +195,13 @@ const (
 	BucketOwnerFull   = ACL("bucket-owner-full-control")
 )
 
+func (b *Bucket) addTokenHeader(headers map[string][]string) {
+	if b.SessionToken == "" {
+		return
+	}
+	headers["x-amz-security-token"] = []string{b.SessionToken}
+}
+
 // PutBucket creates a new bucket.
 //
 // See http://goo.gl/ndjnR for details.
@@ -194,6 +209,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 	headers := map[string][]string{
 		"x-amz-acl": {string(perm)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "PUT",
 		bucket:  b.Name,
@@ -209,10 +225,14 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 //
 // See http://goo.gl/GoBrY for details.
 func (b *Bucket) DelBucket() (err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "DELETE",
-		bucket: b.Name,
-		path:   "/",
+		method:  "DELETE",
+		bucket:  b.Name,
+		path:    "/",
+		headers: headers,
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
 		err = b.S3.query(context.Background(), req, nil)
@@ -280,6 +300,7 @@ func (b *Bucket) GetResponse(ctx context.Context, path string) (resp *http.Respo
 // It is the caller's responsibility to call Close on rc when
 // finished reading
 func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, headers map[string][]string) (resp *http.Response, err error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		bucket:  b.Name,
 		path:    path,
@@ -304,10 +325,14 @@ func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, header
 
 // Exists checks whether or not an object exists on an S3 bucket using a HEAD request.
 func (b *Bucket) Exists(path string) (exists bool, err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "HEAD",
-		bucket: b.Name,
-		path:   path,
+		method:  "HEAD",
+		bucket:  b.Name,
+		path:    path,
+		headers: headers,
 	}
 	err = b.S3.prepare(req)
 	if err != nil {
@@ -339,6 +364,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 // Head HEADs an object in the S3 bucket, returns the response with
 // no body see http://bit.ly/17K1ylI
 func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response, error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "HEAD",
 		bucket:  b.Name,
@@ -377,6 +403,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 		"x-amz-acl":         {string(perm)},
 		"x-amz-copy-source": {source},
 	}
+	b.addTokenHeader(headers)
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -414,6 +441,8 @@ func (b *Bucket) PutReader(ctx context.Context, path string, r io.Reader, length
 		"Content-Type":   {contType},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
+
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -436,6 +465,7 @@ func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, 
 		"Content-Type":   {"application/text"},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
 
 	// Override with custom headers
 	for key, value := range customHeaders {
@@ -521,6 +551,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(length, 10)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		path:    "/",
 		method:  "PUT",
@@ -537,6 +568,9 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 //
 // See http://goo.gl/APeTt for details.
 func (b *Bucket) Del(ctx context.Context, path string) error {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
 		method: "DELETE",
 		bucket: b.Name,
@@ -576,6 +610,8 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		"Content-MD5":    {base64.StdEncoding.EncodeToString(digest.Sum(nil))},
 		"Content-Type":   {"text/xml"},
 	}
+	b.addTokenHeader(headers)
+
 	req := &request{
 		path:    "/",
 		method:  "POST",
@@ -683,9 +719,13 @@ func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, 
 	if max != 0 {
 		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
 	}
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		bucket: b.Name,
-		params: params,
+		bucket:  b.Name,
+		params:  params,
+		headers: headers,
 	}
 	result = &ListResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
