@@ -3,7 +3,7 @@ import type {MetaType, TextType} from './text'
 
 // need to be `undefined` instead of `null` since `null` doesn't ellipsize at
 // all.
-export function lineClamp(lines: number | undefined, mode: string | undefined): Object {
+export function lineClamp(lines: number | undefined, mode: string | undefined): object {
   return {
     ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }

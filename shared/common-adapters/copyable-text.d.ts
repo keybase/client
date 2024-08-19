@@ -2,7 +2,7 @@ import type * as React from 'react'
 
 export type Props = {
   value: string
-  style?: Object
+  style?: object
 }
 
 declare const CopyableText: (p: Props) => React.ReactNode

@@ -4,7 +4,7 @@ export type Props = {
   label: string | React.ReactNode
   onSelect: (selected: boolean) => void
   selected: boolean
-  style?: Object
+  style?: object
   disabled?: boolean
 }
 

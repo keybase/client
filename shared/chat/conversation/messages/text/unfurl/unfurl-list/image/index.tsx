@@ -11,7 +11,7 @@ export type Props = {
   isVideo: boolean
   linkURL?: string
   onClick?: () => void
-  style?: Object
+  style?: object
   url: string
   width: number
   widthPadding?: number

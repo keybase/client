@@ -53,7 +53,7 @@ declare module 'framed-msgpack-rpc' {
     program: string
     ctype: number
     method: string
-    args: [Object]
+    args: [object]
     notify: boolean
   }
   export namespace transport {

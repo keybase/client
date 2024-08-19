@@ -24,7 +24,7 @@ const SnippetDecoration = (p: {type: Kb.IconType; color: string}) => {
   )
 }
 
-const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.Styles.StylesCrossPlatform}) {
+const Snippet = React.memo(function Snippet(p: {isSelected?: boolean; style: Kb.Styles.StylesCrossPlatform}) {
   const snippet = React.useContext(SnippetContext)
   const {isSelected, style} = p
 

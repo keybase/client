@@ -121,7 +121,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: Object, callback: (() => void) | undefined) {
+  start(method: MethodKey, param: object, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -157,7 +157,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: keyof IncomingCallMapType, param: Object, response?: ResponseType): boolean {
+  incomingCall(method: keyof IncomingCallMapType, param: object, response?: ResponseType): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -171,7 +171,7 @@ class Session {
 
     let handler = this._incomingCallMap[method] as
       | undefined
-      | ((param: Object | undefined, request: ResponseType) => void)
+      | ((param: object | undefined, request: ResponseType) => void)
 
     if (!handler) {
       const c = this._customResponseIncomingCallMap as {[key: string]: typeof handler}

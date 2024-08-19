@@ -8,7 +8,7 @@ import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'
 
 export type Props = {
-  textStyle: Object
+  textStyle: object
 } & PropsCommon
 
 const CopyableText = (props: Props) => {

@@ -6,7 +6,7 @@ const rateLimitPayloads: {
   [K in string]:
     | {
         title: string
-        opts?: Object
+        opts?: object
         onClick?: () => void
       }
     | undefined
