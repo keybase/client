@@ -10,7 +10,7 @@ const rquote = '\u201D'
 const SetDescriptionMessage = (props: Props) => {
   const desc = props.message.newDescription.stringValue()
   return desc ? (
-    <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
+    <Kb.Text type="BodySmall" style={styles.text}>
       changed the channel description to{' '}
       <Kb.Text type="BodySmallItalic">
         {lquote}
