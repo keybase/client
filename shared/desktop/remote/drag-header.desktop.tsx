@@ -6,7 +6,7 @@ export type Props = {
   icon?: boolean
   title?: string
   onClose?: () => void
-  style?: Object
+  style?: object
   children?: React.ReactNode
   windowDragging?: boolean
   type?: HeaderType

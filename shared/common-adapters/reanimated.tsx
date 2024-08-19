@@ -49,7 +49,7 @@ if (isMobile && !skipAnimations) {
     }
   } as typeof useSharedValue
   withRepeat = ((a: unknown) => a) as typeof withRepeat
-  useAnimatedStyle = ((f: () => Object): unknown => f()) as typeof useAnimatedStyle
+  useAnimatedStyle = ((f: () => object): unknown => f()) as typeof useAnimatedStyle
   withTiming = ((a: unknown) => a) as typeof withTiming
   withDelay = ((a: unknown) => a) as typeof withDelay
   useAnimatedScrollHandler = () => () => {}

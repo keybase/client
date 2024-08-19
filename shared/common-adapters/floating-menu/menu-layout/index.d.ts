@@ -35,8 +35,8 @@ export type MenuLayoutProps = {
   header?: React.ReactNode
   onHidden: () => void
   closeOnClick?: boolean
-  style?: Object
-  listStyle?: Object
+  style?: object
+  listStyle?: object
   closeText?: string // mobile only; default to "Close"
   textColor?: Styles.Color
   safeProviderStyle?: Styles.StylesCrossPlatform

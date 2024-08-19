@@ -14,7 +14,6 @@ type Store = T.Immutable<{
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
-const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
 const isTeamPageAction = (a?: string): a is TeamPageAction => {
   switch (a) {
     case 'add_or_invite':
@@ -26,7 +25,7 @@ const isTeamPageAction = (a?: string): a is TeamPageAction => {
   }
 }
 
-type TeamPageAction = (typeof teamPageActions)[number]
+type TeamPageAction = 'add_or_invite' | 'manage_settings' | 'join'
 
 // This logic is copied from go/protocol/keybase1/extras.go.
 const validTeamnamePart = (s: string): boolean => {

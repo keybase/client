@@ -7,7 +7,7 @@ type Props = {
   platform: T.More.PlatformsExpandedType
   overlay: IconType
   overlayColor?: string
-  style?: Object
+  style?: object
 }
 
 type IconSpec = {

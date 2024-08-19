@@ -4,7 +4,7 @@ import * as React from 'react'
 import type {Props} from '.'
 import {OrdinalContext} from '../../ids-context'
 // import {SwipeTrigger} from '@/common-adapters/swipeable.native'
-import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
+import Swipeable /*, {type SwipeableMethods}*/ from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {dismiss} from '@/util/keyboard'
 import {Pressable} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
@@ -59,6 +59,8 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   //     {inner}
   //   </SwipeTrigger>
   // )
+  // TODO
+  onSwipeLeft
   return <Swipeable renderRightActions={makeAction}>{inner}</Swipeable>
 })
 

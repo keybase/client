@@ -10,7 +10,7 @@ export const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-export function fontSizeToSizeStyle(fontSize: number): Object {
+export function fontSizeToSizeStyle(fontSize: number): object {
   const height = {
     '12': 16,
     '13': 17,

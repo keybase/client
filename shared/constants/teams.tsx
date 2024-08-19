@@ -612,7 +612,7 @@ export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
         showcasing: state.newTeamWizard.profileShowcase,
         teamname: state.newTeamWizard.name === '' ? 'New team' : state.newTeamWizard.name,
       })
-    : state.teamMeta.get(teamID) ?? emptyTeamMeta
+    : (state.teamMeta.get(teamID) ?? emptyTeamMeta)
 
 export const getTeamMemberLastActivity = (
   state: State,
@@ -879,7 +879,7 @@ export const maybeGetSparseMemberInfo = (state: State, teamID: string, username:
   return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
-export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): Number => {
+export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): number => {
   return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
       return t + 1

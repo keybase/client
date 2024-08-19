@@ -1,9 +1,9 @@
 import type * as Framed from 'framed-msgpack-rpc'
-export type EndHandlerType = (session: Object) => void
+export type EndHandlerType = (session: object) => void
 export type MethodKey = string
 export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
-export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => Object
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => object
 export type ResponseType = {
   result: (...args: Array<any>) => void
   error: (...args: Array<any>) => void

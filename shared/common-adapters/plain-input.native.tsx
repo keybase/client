@@ -31,7 +31,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-  setNativeProps = (nativeProps: Object) => {
+  setNativeProps = (nativeProps: object) => {
     this._input.current?.setNativeProps(nativeProps)
   }
 

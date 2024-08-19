@@ -189,7 +189,7 @@ class Engine {
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
     method: string
-    params: Object
+    params: object
     callback: (...args: Array<any>) => void
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType

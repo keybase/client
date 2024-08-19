@@ -42,7 +42,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 async function listener(p: {
   method: string
-  params?: Object
+  params?: object
   incomingCallMap?: {[K in string]: (params: unknown) => Promise<void>}
   customResponseIncomingCallMap?: {
     [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>

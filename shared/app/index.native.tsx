@@ -115,7 +115,8 @@ const useInit = () => {
   C.useConfigState.getState().dispatch.installerRan()
 }
 
-const UseStrict = true as boolean
+// react gesture handler has issues with this on currently. crashes out going into a thread
+const UseStrict = false as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
   : ({children}: {children: React.ReactNode}) => <>{children}</>

@@ -12,7 +12,7 @@ type Props = {
   onPress?: () => void
   onOther?: () => void
   value?: string
-  style?: Object
+  style?: object
 }
 
 /*
@@ -108,7 +108,7 @@ class Dropdown extends React.Component<Props, State> {
     )
   }
 
-  _renderPicker(style: Object, selectOnChange: boolean) {
+  _renderPicker(style: object, selectOnChange: boolean) {
     const pickItem = this.showingPick
       ? [{key: pickItemValue, label: this._label(pickItemValue), value: pickItemValue}]
       : []

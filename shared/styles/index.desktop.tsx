@@ -9,7 +9,7 @@ import * as Path from '@/util/path'
 import isArray from 'lodash/isArray'
 import shallowEqual from 'shallowequal'
 
-type _Elem = Object | null | false
+type _Elem = object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
@@ -218,7 +218,7 @@ export const useCollapseStyles = (
 }
 
 export const useCollapseStylesDesktop = useCollapseStyles
-export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -231,12 +231,12 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
-      return s as Object
+      return s as object
     }
   }
 
   // jenkins doesn't support flat yet
-  const s = Object.assign({}, ...styles.flat()) as Object
+  const s = Object.assign({}, ...styles.flat()) as object
   return Object.keys(s).length ? s : undefined
 }
 export const collapseStylesDesktop = collapseStyles

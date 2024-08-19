@@ -32,7 +32,7 @@ export type Props = {
   zoomScale?: number
   minimumZoomScale?: number
   maximumZoomScale?: number
-  onLayout?: Function
+  onLayout?: function
   scrollEventThrottle?: number
   scrollsToTop?: boolean
   indicatorStyle?: string
