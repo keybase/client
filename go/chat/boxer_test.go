@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-codec/codec"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
@@ -72,6 +73,37 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 	return chat1.MessagePlaintext{
 		ClientHeader: header,
 		MessageBody:  chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}),
+	}
+}
+
+func sendPaymentMsgWithSender(t *testing.T, txID stellar1.TransactionID, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
+	txIDs := []stellar1.TransactionID{txID}
+	header := chat1.MessageClientHeader{
+		Conv: chat1.ConversationIDTriple{
+			Tlfid: mockTLFID,
+		},
+		Sender:      uid,
+		MessageType: chat1.MessageType_SENDPAYMENT,
+		TxIDs:       &txIDs,
+	}
+	switch mbVersion {
+	case chat1.MessageBoxedVersion_V1:
+		// no-op
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3, chat1.MessageBoxedVersion_V4:
+		header.MerkleRoot = &chat1.MerkleRoot{
+			Seqno: 12,
+			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
+		}
+	default:
+		panic("unrecognized version: " + mbVersion.String())
+	}
+	return sendPaymentMsgWithHeader(t, txID, header)
+}
+
+func sendPaymentMsgWithHeader(t *testing.T, txID stellar1.TransactionID, header chat1.MessageClientHeader) chat1.MessagePlaintext {
+	return chat1.MessagePlaintext{
+		ClientHeader: header,
+		MessageBody:  chat1.NewMessageBodyWithSendpayment(chat1.MessageSendPayment{PaymentID: stellar1.NewPaymentID(txID)}),
 	}
 }
 
@@ -1837,4 +1869,126 @@ func TestMakeOnePairwiseMAC(t *testing.T) {
 	expected := "ec6d999902fa02a1e96b0a2d97526999db49843f3e2d961e7a398d53f9a910e0"
 
 	require.Equal(t, expected, hex.EncodeToString(mac))
+}
+
+func TestSendPayment(t *testing.T) {
+	mbVersion := chat1.MessageBoxedVersion_V2
+	txID := stellar1.TransactionID("1111")
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	world := NewChatMockWorld(t, "unbox", 4)
+	defer world.Cleanup()
+	u := world.GetUsers()[0]
+	tc = world.Tcs[u.Username]
+	uid := u.User.GetUID().ToBytes()
+	tlf := kbtest.NewTlfMock(world)
+	ctx := newTestContextWithTlfMock(tc, tlf)
+
+	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
+	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
+	msg.ClientHeader.Conv.Tlfid = ni.ID
+	msg.ClientHeader.TlfPublic = false
+	msg.ClientHeader.TlfName = u.Username
+	signKP := getSigningKeyPairForTest(t, tc, u)
+	boxer.boxVersionForTesting = &mbVersion
+
+	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: convID,
+		},
+	}
+
+	msg.ClientHeader.TxIDs = nil
+	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
+	require.NoError(t, err)
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
+	require.NoError(t, err)
+	requireValidMessage(t, decmsg, "got expected txIDs")
+}
+
+func TestSendPaymentWithTxID(t *testing.T) {
+	mbVersion := chat1.MessageBoxedVersion_V2
+	txID := stellar1.TransactionID("1111")
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	world := NewChatMockWorld(t, "unbox", 4)
+	defer world.Cleanup()
+	u := world.GetUsers()[0]
+	tc = world.Tcs[u.Username]
+	uid := u.User.GetUID().ToBytes()
+	tlf := kbtest.NewTlfMock(world)
+	ctx := newTestContextWithTlfMock(tc, tlf)
+
+	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
+	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
+	msg.ClientHeader.Conv.Tlfid = ni.ID
+	msg.ClientHeader.TlfPublic = false
+	msg.ClientHeader.TlfName = u.Username
+	signKP := getSigningKeyPairForTest(t, tc, u)
+	boxer.boxVersionForTesting = &mbVersion
+
+	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: convID,
+		},
+	}
+
+	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
+	require.NoError(t, err)
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
+	require.NoError(t, err)
+	requireValidMessage(t, decmsg, "got expected txIDs")
+}
+
+func TestSendPaymentWithWrongTxID(t *testing.T) {
+	mbVersion := chat1.MessageBoxedVersion_V2
+	txID := stellar1.TransactionID("1111")
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	world := NewChatMockWorld(t, "unbox", 4)
+	defer world.Cleanup()
+	u := world.GetUsers()[0]
+	tc = world.Tcs[u.Username]
+	uid := u.User.GetUID().ToBytes()
+	tlf := kbtest.NewTlfMock(world)
+	ctx := newTestContextWithTlfMock(tc, tlf)
+
+	ni, err := tlf.LookupID(ctx, u.Username, false)
+	require.NoError(t, err)
+	msg := sendPaymentMsgWithSender(t, txID, uid, mbVersion)
+	msg.ClientHeader.Conv.Tlfid = ni.ID
+	msg.ClientHeader.TlfPublic = false
+	msg.ClientHeader.TlfName = u.Username
+	signKP := getSigningKeyPairForTest(t, tc, u)
+	boxer.boxVersionForTesting = &mbVersion
+
+	convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: convID,
+		},
+	}
+
+	msg.ClientHeader.TxIDs = &[]stellar1.TransactionID{stellar1.TransactionID("2222")}
+	boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_TEAM, signKP, nil)
+	require.NoError(t, err)
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+	decmsg, err := boxer.UnboxMessage(ctx, boxed, conv, nil)
+	require.NoError(t, err)
+	requireErrorMessage(t, decmsg, "unexpected txIDs must be detected")
 }

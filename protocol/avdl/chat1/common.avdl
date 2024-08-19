@@ -467,7 +467,7 @@
     // message, if any, to do server-side validation of the transaction
     // notification.
     @mpackkey("t") @jsonkey("t")
-    union { null, stellar1.TransactionID} txID;
+    union { null, array<stellar1.TransactionID>} txIDs;
   }
 
   record MessageClientHeaderVerified {
@@ -505,6 +505,9 @@
 
     @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
+
+    @mpackkey("t") @jsonkey("t")
+    union { null, array<stellar1.TransactionID>} txIDs;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
