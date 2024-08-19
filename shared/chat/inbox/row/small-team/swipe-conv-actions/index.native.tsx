@@ -151,7 +151,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         display: 'flex',
         flexDirection: 'row',
-        // height: '100%',
         position: 'relative',
       },
       rightAction: {
