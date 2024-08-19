@@ -132,7 +132,7 @@
     "shallowequal": "1.1.0",
     "uint8array-extras": "1.4.0",
     "url-parse": "1.5.10",
-    "use-debounce": "10.0.2",
+    "use-debounce": "10.0.3",
     "util": "0.12.5",
     "zustand": "4.5.5"
   },

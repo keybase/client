@@ -10788,10 +10788,10 @@ url-parse@1.5.10:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
 
-use-debounce@10.0.2:
-  version "10.0.2"
-  resolved "https://registry.yarnpkg.com/use-debounce/-/use-debounce-10.0.2.tgz#a2e903d5d7f9f5111dd0cba5bfa67e103f6e96a6"
-  integrity sha512-MwBiJK2dk+2qhMDVDCPRPeLuIekKfH2t1UYMnrW9pwcJJGFDbTLliSMBz2UKGmE1PJs8l3XoMqbIU1MemMAJ8g==
+use-debounce@10.0.3:
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/use-debounce/-/use-debounce-10.0.3.tgz#636094a37f7aa2bcc77b26b961481a0b571bf7ea"
+  integrity sha512-DxQSI9ZKso689WM1mjgGU3ozcxU1TJElBJ3X6S4SMzMNcm2lVH0AHmyXB+K7ewjz2BSUKJTDqTcwtSMRfB89dg==
 
 use-latest-callback@^0.2.1:
   version "0.2.1"
