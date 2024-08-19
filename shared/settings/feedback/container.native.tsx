@@ -14,11 +14,11 @@ export type State = {
   sendError: string
 }
 export type Props = {
-  chat: Object
+  chat: object
   feedback?: string
   loggedOut: boolean
-  push: Object
-  status: Object
+  push: object
+  status: object
 }
 
 const mobileOsVersion = Platform.Version

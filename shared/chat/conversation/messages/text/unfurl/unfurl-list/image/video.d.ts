@@ -2,7 +2,7 @@ import type * as React from 'react'
 export type Props = {
   autoPlay: boolean
   height: number
-  style: Object
+  style: object
   onClick?: () => void
   url: string
   width: number

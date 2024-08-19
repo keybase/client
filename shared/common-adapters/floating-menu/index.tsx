@@ -35,7 +35,7 @@ export type Props = {
   containerStyle?: Styles.StylesCrossPlatform
   header?: React.ReactNode
   items: ReadonlyArray<_MenuItems[number]>
-  listStyle?: Object
+  listStyle?: object
   onHidden: () => void
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>

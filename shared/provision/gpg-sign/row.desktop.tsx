@@ -8,7 +8,7 @@
 //   icon: Kb.IconType
 //   title: string
 //   subTitle?: string
-//   style?: Object
+//   style?: object
 //   children?: any
 // }
 
