@@ -879,7 +879,7 @@ export const maybeGetSparseMemberInfo = (state: State, teamID: string, username:
   return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
-export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): Number => {
+export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): number => {
   return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
       return t + 1
