@@ -3,9 +3,7 @@
 ---  wrapper in native for strict
 ---  floating menu dynamic sizing broken
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
---- audio recorder broken?
 
-long pressable native
 strict off on native due to gesture
 
 bottom sheet crashes on show: try exploding modal:
