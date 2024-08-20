@@ -482,7 +482,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
       const path = pathRef.current
       const amps = ampTracker.getBucketedAmps(duration)
       if (duration > 500 && path && amps.length) {
-        sendAudioRecording(path, duration, amps)
+        await sendAudioRecording(path, duration, amps)
       } else {
         console.log('bail on too short or not path', duration, path)
       }
