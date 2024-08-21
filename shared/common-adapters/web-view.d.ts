@@ -14,7 +14,7 @@ export type WebViewProps = {
   url: string
   pinnedURLMode?: boolean // only tested on iOS
   injections?: WebViewInjections
-  style?: Object
+  style?: object
   showLoadingStateUntilLoaded?: boolean
   onError?: (err: string) => void
 }

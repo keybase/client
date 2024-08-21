@@ -81,7 +81,7 @@ type MetaType = {
     negative: string
   }
   isLink?: true
-  styleOverride?: Object
+  styleOverride?: object
   isTerminal?: true
 }
 

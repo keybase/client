@@ -31,14 +31,14 @@ declare class Session {
   hasSeqID: (seqID: number) => boolean
   _startMethod: string | undefined
   cancel: () => void
-  incomingCall: (method: string, param: Object, response?: Object) => boolean
-  start: (method: string, param?: Object, callback?: () => void) => void
+  incomingCall: (method: string, param: object, response?: object) => boolean
+  start: (method: string, param?: object, callback?: () => void) => void
   constructor(p: {
     sessionID: number
     incomingCallMap?: IncomingCallMap
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: string | ReadonlyArray<string>
-    invoke: (method: string, param: [Object] | undefined, cb: (err?: unknown, data?: unknown) => void) => void
+    invoke: (method: string, param: [object] | undefined, cb: (err?: unknown, data?: unknown) => void) => void
     endHandler: (session: Session) => void
     cancelHandler?: (session: Session) => void
     dangling?: boolean

@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 export type HeaderTextProps = {
   color: string
   backgroundColor: string
-  style?: Object
+  style?: object
   children?: React.ReactNode
 }
 

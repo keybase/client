@@ -47,7 +47,7 @@ const DragLine = (p: {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
-  style: Object
+  style: object
   rows: T.Chat.ChatInboxRowItem[]
 }) => {
   const {inboxNumSmallRows, showButton, style, scrollDiv} = p
@@ -261,7 +261,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const itemRenderer = React.useCallback(
-    (index: number, style: Object) => {
+    (index: number, style: object) => {
       const row = rows[index]
       if (!row) {
         // likely small teams were just collapsed
@@ -311,7 +311,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const listChild = React.useCallback(
-    ({index, style}: {index: number; style: Object}) => itemRenderer(index, style),
+    ({index, style}: {index: number; style: object}) => itemRenderer(index, style),
     [itemRenderer]
   )
 

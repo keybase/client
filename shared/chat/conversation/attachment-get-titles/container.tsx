@@ -10,7 +10,7 @@ type OwnProps = {
   // Chat2Gen.createAttachFromDragAndDrop is used.
   tlfName?: string
   // don't use the drag drop functionality, just upload the outbox IDs
-  noDragDrop?: Boolean
+  noDragDrop?: boolean
 }
 
 const Container = (ownProps: OwnProps) => {

@@ -71,7 +71,7 @@ const anyToConversationMembersType = (a: string | number): T.RPCChat.Conversatio
       return undefined
   }
 }
-const normalizePush = (_n?: Object): T.Push.PushNotification | undefined => {
+const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
   try {
     if (!_n) {
       return undefined
@@ -199,7 +199,7 @@ const iosListenForPushNotificationsFromJS = () => {
     C.usePushState.getState().dispatch.setPushToken(token)
   }
 
-  const onNotification = (n: Object) => {
+  const onNotification = (n: object) => {
     logger.debug('[onNotification]: ', n)
     const notification = normalizePush(n)
     if (!notification) {
