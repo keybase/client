@@ -120,6 +120,7 @@ const makePanOnFinalize = (p: {
   }
 
   const onPanFinalizeWorklet = (_e: unknown, success: boolean) => {
+    'worklet'
     startedSV.value = 0
     runOnJS(onPanFinalizeJS)(!success, canceledSV.value === 1, lockedSV.value === 1)
   }
@@ -135,6 +136,7 @@ const makePanOnStart = (p: {startRecording: () => void; fadeSV: SVN; startedSV: 
   }
 
   const onPanStartWorklet = () => {
+    'worklet'
     // we get this multiple times for some reason
     if (startedSV.value) {
       return
@@ -150,6 +152,7 @@ const makePanOnStart = (p: {startRecording: () => void; fadeSV: SVN; startedSV: 
 const makePanOnUpdate = (p: {lockedSV: SVN; canceledSV: SVN; dragYSV: SVN; dragXSV: SVN}) => {
   const {lockedSV, dragYSV, dragXSV, canceledSV} = p
   const onOnUpdateWorklet = (e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+    'worklet'
     if (lockedSV.value || canceledSV.value) {
       return
     }
