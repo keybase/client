@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 3fb6c8d..befae1a 100644
+index d5e2e22..d756961 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -264,6 +264,11 @@ static UIColor *defaultPlaceholderColor(void)

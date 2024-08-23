@@ -644,7 +644,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
                     if (!reactContext.hasActiveCatalystInstance()) {
                         NativeLogger.info(NAME.toString() + ": JS Bridge is dead, dropping engine message: " + data)
                     }
-                    val callInvoker: CallInvokerHolderImpl = reactContext.getCatalystInstance().getJSCallInvokerHolder() as CallInvokerHolderImpl
+                    val callInvoker: CallInvokerHolderImpl = reactContext.getCatalystInstance().jsCallInvokerHolder as CallInvokerHolderImpl
                     val jsi = reactContext.javaScriptContextHolder?.get()
                     if (jsi != null) {
                         nativeEmit(jsi, callInvoker, data)

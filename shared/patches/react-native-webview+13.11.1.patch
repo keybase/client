@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+index 5bae4aa..97772ac 100644
+--- a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
++++ b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+@@ -62,6 +62,20 @@ public class RNCWebViewManager extends ViewGroupManager<RNCWebViewWrapper>
+         return mRNCWebViewManagerImpl.createViewInstance(context);
+     }
+ 
++    @Override
++    @ReactProp(name = "refreshControlLightMode")
++    public void setRefreshControlLightMode(RNCWebViewWrapper view, boolean value) {
++        // TODO
++    }
++    @Override
++    @ReactProp(name = "allowsPictureInPictureMediaPlayback")
++    public void setAllowsPictureInPictureMediaPlayback(RNCWebViewWrapper view, boolean value) {
++        // TODO
++    }
++
++
++
++
+     @Override
+     @ReactProp(name = "allowFileAccess")
+     public void setAllowFileAccess(RNCWebViewWrapper view, boolean value) {
