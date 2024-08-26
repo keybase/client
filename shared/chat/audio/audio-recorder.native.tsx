@@ -201,7 +201,9 @@ const GestureIcon = React.memo(
             .onFinalize(panOnFinalize)
             .onUpdate(panOnUpdate)}
         >
-          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+          <Kb.Box2 direction="vertical" collapsable={false}>
+            <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+          </Kb.Box2>
         </GestureDetector>
       </View>
     ) : (

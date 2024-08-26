@@ -1,8 +1,12 @@
 ---
+android not working. temp switch to jsc
 ---  strict
 ---  wrapper in native for strict
 ---  floating menu dynamic sizing broken
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
+----
+
+
 
 strict off on native due to gesture
 

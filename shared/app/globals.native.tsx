@@ -34,6 +34,19 @@ if (!Array.prototype.at) {
   })
 }
 
+// Needs jsc 5.4+
+// @ts-ignore
+if (!String.prototype.replaceAll) {
+  Object.defineProperty(String.prototype, 'replaceAll', {
+    value: function (this: string, search: string, replace: string): string {
+      return this.replace(new RegExp(search, 'g'), replace)
+    },
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  })
+}
+
 global.btoa = btoa
 global.atob = atob
 __FILE_SUFFIX__ = ''
