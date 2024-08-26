@@ -14,13 +14,15 @@ export const useState = () => {
       const vertical = previewHeight > previewWidth
       // the native av controls on ios actually clip themselves if the width is too small so give
       // some extra room in this case
+      // also you need to be 200px tall now
       const extra = C.isIOS && vertical ? 75 : 0
-      const {height, width} = C.Chat.clampImageSize(
+      const {height: _height, width} = C.Chat.clampImageSize(
         previewWidth,
         previewHeight,
         maxWidth + extra,
         maxHeight + extra
       )
+      const height = C.isIOS ? Math.max(_height, 200) : _height
       return {downloadPath, height, previewURL, transferState, url: fileURL, videoDuration, width}
     })
   )
