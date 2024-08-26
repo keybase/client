@@ -15,7 +15,7 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
-  - ExpoCamera (15.0.14):
+  - ExpoCamera (15.0.15):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (13.0.1):
     - ExpoModulesCore
-  - ExpoImage (1.12.14):
+  - ExpoImage (1.12.15):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
@@ -1463,7 +1463,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-webview (13.11.1):
+  - react-native-webview (13.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2240,13 +2240,13 @@ SPEC CHECKSUMS:
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
   Expo: 4773e11951abd0f666f67023f0cb1d48c3e8a32b
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
-  ExpoCamera: a5d000b22cd7dfd2c5904ed960e549de42c96da0
+  ExpoCamera: 470eeb1c0170f5a5b96c7179b0285f0ef5e9e161
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
   ExpoContacts: 67cc93caa3e5023dd245f9e0ef26856aaa005c3e
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: e7f2275c10ca8573c991e007329ad6bf98086485
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
-  ExpoImage: 3c5df709b5cbefd000bad6fe5dcf2172faee838e
+  ExpoImage: f77df382153d716f332f974438a803c4527f60b0
   ExpoImagePicker: 12a420923383ae38dccb069847218f27a3b87816
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
@@ -2298,7 +2298,7 @@ SPEC CHECKSUMS:
   react-native-kb: d90c252c3cf3ea6901d65e54cbf606ed49c7ac8e
   react-native-netinfo: 076df4f9b07f6670acf4ce9a75aac8d34c2e2ccc
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
-  react-native-webview: 5ef74007a0f94c5d6cfafd603ab72c13c998374a
+  react-native-webview: adb8df7291ea2e9eafd8dbe55d648dcd8f6ce06b
   React-nativeconfig: 57781b79e11d5af7573e6f77cbf1143b71802a6d
   React-NativeModulesApple: 7ff2e2cfb2e5fa5bdedcecf28ce37e696c6ef1e1
   React-perflogger: 8a360ccf603de6ddbe9ff8f54383146d26e6c936
