@@ -1790,7 +1790,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.15.0):
+  - RNReanimated (3.15.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1810,10 +1810,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.15.0)
-    - RNReanimated/worklets (= 3.15.0)
+    - RNReanimated/reanimated (= 3.15.1)
+    - RNReanimated/worklets (= 3.15.1)
     - Yoga
-  - RNReanimated/reanimated (3.15.0):
+  - RNReanimated/reanimated (3.15.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1834,7 +1834,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.15.0):
+  - RNReanimated/worklets (3.15.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2329,7 +2329,7 @@ SPEC CHECKSUMS:
   RNCPicker: 77c3806b60fa1743abbae9f48c12fc3d97e828f8
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: f769e1b9057085db07546aa3e259daa85c898dc7
-  RNReanimated: 070deccceef093bec96ac3f87ef8c7f361caf754
+  RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   SDWebImage: dfe95b2466a9823cf9f0c6d01217c06550d7b29a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
