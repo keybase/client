@@ -1,3 +1,31 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
+index fb4260f..3486641 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
+@@ -17,6 +17,7 @@ import com.facebook.react.bridge.ReactContext
+ import com.facebook.react.uimanager.PixelUtil
+ import com.facebook.react.uimanager.UIManagerHelper
+ import com.facebook.react.uimanager.UIManagerModule
++import com.facebook.react.views.scroll.ReactScrollView
+ import com.swmansion.rnscreens.events.HeaderHeightChangeEvent
+ 
+ @SuppressLint("ViewConstructor") // Only we construct this view, it is never inflated.
+@@ -310,6 +311,15 @@ class Screen(
+                     startTransitionRecursive(child.toolbar)
+                 }
+                 if (child is ViewGroup) {
++                    // The children are miscounted when there's a FlatList with
++                    // removeCLippedSubviews set to true (default).
++                    // We add a simple view for each item in the list to make it work as expected.
++                    // See https://github.com/software-mansion/react-native-screens/issues/2282
++                    if (it is ReactScrollView && it.removeClippedSubviews) {
++                        for (j in 0 until child.childCount) {
++                            child.addView(View(context))
++                        }
++                    }
+                     startTransitionRecursive(child)
+                 }
+             }
 diff --git a/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSModalScreenShadowNode.h b/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSModalScreenShadowNode.h
 index af1a193..9bf7cec 100644
 --- a/node_modules/react-native-screens/common/cpp/react/renderer/components/rnscreens/RNSModalScreenShadowNode.h
