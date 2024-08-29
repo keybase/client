@@ -81,7 +81,7 @@ const styles = Kb.Styles.styleSheetCreate(
       contentContainer: {
         backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         borderRadius: Kb.Styles.borderRadius,
-        maxWidth: Kb.Styles.isMobile ? '100%' : 330,
+        maxWidth: Kb.Styles.isMobile ? '100%' : 356 + 3 * 2,
         padding: 3,
         position: 'relative',
       },
