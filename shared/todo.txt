@@ -1,5 +1,6 @@
 ---
 android not working. temp switch to jsc
+desktop crash in chat w/ @ <<<<
 ---  strict
 ---  wrapper in native for strict
 ---  floating menu dynamic sizing broken
