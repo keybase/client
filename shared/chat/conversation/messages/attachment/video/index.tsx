@@ -77,7 +77,11 @@ const Video = React.memo(function Video(p: Props) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {alignSelf: 'center', paddingRight: Kb.Styles.globalMargins.tiny, position: 'relative'},
+      container: {
+        alignSelf: 'center',
+        paddingRight: Kb.Styles.isMobile ? 0 : Kb.Styles.globalMargins.tiny,
+        position: 'relative',
+      },
       contentContainer: {
         backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         borderRadius: Kb.Styles.borderRadius,
