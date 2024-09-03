@@ -107,7 +107,9 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         width: '100%',
       },
-      video: {},
+      video: {
+        alignSelf: 'center',
+      },
     }) as const
 )
 
