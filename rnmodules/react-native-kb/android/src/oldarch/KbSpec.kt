@@ -9,7 +9,7 @@ import java.util.Map
 abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaModule(context) {
 
     abstract fun getTypedExportedConstants(): MutableMap<String, Any>
-    abstract fun install()
+    abstract fun install(): Boolean
     abstract fun getDefaultCountryCode(promise: Promise)
     abstract fun logSend(status: String, feedback: String, sendLogs: Boolean, sendMaxBytes: Boolean, traceDir: String, cpuProfileDir: String, promise: Promise)
     abstract fun androidOpenSettings()
