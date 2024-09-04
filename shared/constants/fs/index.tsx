@@ -1,12 +1,12 @@
-import * as C from '.'
+import * as C from '..'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as Tabs from './tabs'
-import * as T from './types'
+import * as Tabs from '../tabs'
+import * as T from '../types'
 import * as Z from '@/util/zustand'
 import NotifyPopup from '@/util/notify-popup'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-import {isLinux, isMobile} from './platform'
+import {isLinux, isMobile} from '../platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
@@ -2536,7 +2536,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setupSubscriptions: () => {
       const f = async () => {
-        const initPlatformSpecific = await import('./fs/platform-specific')
+        const initPlatformSpecific = await import('./platform-specific')
         initPlatformSpecific.default()
       }
       C.ignorePromise(f())
