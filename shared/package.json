@@ -86,7 +86,7 @@
     "date-fns": "3.3.1",
     "emoji-datasource-apple": "15.1.2",
     "emoji-regex": "10.3.0",
-    "expo": "49.0.21",
+    "expo": "50.0.0",
     "expo-av": "13.5.1",
     "expo-barcode-scanner": "12.7.0",
     "expo-clipboard": "4.5.0",
