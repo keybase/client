@@ -11,7 +11,7 @@ type Props = {
 }
 
 // this is a function of how much space is taken up by the rest of the elements
-export const maxWidth = Kb.Styles.isMobile ? Math.min(320, Kb.Styles.dimensionWidth - 60) : 320
+export const maxWidth = Kb.Styles.isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
 export const maxHeight = 320
 
 export const missingMessage = C.Chat.makeMessageAttachment()

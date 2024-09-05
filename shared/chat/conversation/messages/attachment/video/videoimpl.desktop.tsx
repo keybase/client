@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl'
 import {useState} from './use-state'
+import {maxWidth, maxHeight} from '../shared'
 
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
@@ -107,8 +108,8 @@ const styles = Kb.Styles.styleSheetCreate(
       video: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.rounded,
-          maxHeight: 320,
-          maxWidth: 320,
+          maxHeight,
+          maxWidth,
           objectFit: 'contain',
         },
       }),
