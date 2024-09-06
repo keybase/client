@@ -19,13 +19,13 @@
   "dependencies": {
     "avdl-compiler": "1.4.10",
     "avdl2json": "2.2.5",
-    "camelcase": "6.3.0",
+    "camelcase": "8.0.0",
     "iced-coffee-script": "108.0.14",
     "iced-error": "0.0.13",
     "iced-logger": "0.0.6",
     "iced-runtime": "1.0.4",
     "iced-utils": "0.1.27",
-    "json5": "2.2.1",
+    "json5": "2.2.3",
     "prettier": "2.6.2"
   }
 }
