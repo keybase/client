@@ -110,9 +110,7 @@ void install(facebook::jsi::Runtime &jsiRuntime) {
   jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", std::move(rpcOnGo));
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativekb_KbModule_nativeInstallJSI(JNIEnv *env, jobject thiz,
-                                                 jlong jsi) {
+extern "C" JNIEXPORT void JNICALL installJSI(JNIEnv *env, jobject thiz, jlong jsi) {
   auto runtime = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   if (runtime) {
     install(*runtime);
@@ -121,9 +119,7 @@ Java_com_reactnativekb_KbModule_nativeInstallJSI(JNIEnv *env, jobject thiz,
   java_object = env->NewGlobalRef(thiz);
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeEmit(
-    JNIEnv *env, jclass clazz, jlong jsi, jobject boxedCallInvokerHolder,
-    jbyteArray data) {
+extern "C" JNIEXPORT void JNICALL emit(JNIEnv *env, jclass clazz, jlong jsi, jobject boxedCallInvokerHolder, jbyteArray data) {
   auto rPtr = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
   auto &runtime = *rPtr;
   auto boxedCallInvokerRef = jni::make_local(boxedCallInvokerHolder);
@@ -148,4 +144,15 @@ extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_nativeEmit(
       jniEnv->CallVoidMethodA(java_object, log, params);
     });
   });
+}
+
+static JNINativeMethod methods[] = {
+    {"installJSI", "(J)V", (void *)&installJSI},
+    {"emit",       "(JLcom/facebook/react/turbomodule/core/CallInvokerHolderImpl;[B)V", (void *)&emit},
+};
+
+
+extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_registerNatives(JNIEnv *env, jobject thiz, jlong jsi) {
+ jclass clazz = env->FindClass("com/reactnativekb/KbModule");
+ env->RegisterNatives(clazz, methods, sizeof(methods)/sizeof(methods[0]));
 }

@@ -46,7 +46,6 @@ import java.io.InputStreamReader
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.HashMap
-import java.util.Map
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -65,8 +64,9 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
-    private external fun nativeInstallJSI(jsiPtr: Long)
-    private external fun nativeEmit(jsiPtr: Long, jsInvoker: CallInvokerHolderImpl?, data: ByteArray?)
+    private external fun registerNatives(jsiPtr: Long)
+    private external fun installJSI(jsiPtr: Long)
+    private external fun emit(jsiPtr: Long, jsInvoker: CallInvokerHolderImpl?, data: ByteArray?)
     private var executor: ExecutorService? = null
     private var jsiInstalled: Boolean? = false
 
@@ -573,7 +573,8 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             jsiInstalled = true
             val jsi = reactContext.javaScriptContextHolder?.get()
             if (jsi != null) {
-                nativeInstallJSI(jsi)
+                registerNatives(jsi)
+                installJSI(jsi)
             } else {
                 throw Exception("No context holder")
             }
@@ -647,7 +648,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
                     val callInvoker: CallInvokerHolderImpl = reactContext.getCatalystInstance().jsCallInvokerHolder as CallInvokerHolderImpl
                     val jsi = reactContext.javaScriptContextHolder?.get()
                     if (jsi != null) {
-                        nativeEmit(jsi, callInvoker, data)
+                        emit(jsi, callInvoker, data)
                     } else {
                         throw Exception("No context holder")
                     }
