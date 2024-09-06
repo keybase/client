@@ -33,7 +33,11 @@ import java.util.concurrent.TimeUnit
 
 internal class AppLifecycleListener(private val context: Context?) : DefaultLifecycleObserver {
     override fun onStop(owner: LifecycleOwner) { // app moved to background
-        Thread { Glide.get(context!!).clearDiskCache() }.start()
+        Thread {
+            try {
+            Glide.get(context!!).clearDiskCache()
+        } catch(e: Exception) {}
+        }.start()
     }
 }
 

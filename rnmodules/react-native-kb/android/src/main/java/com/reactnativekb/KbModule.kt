@@ -24,6 +24,7 @@ import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
@@ -89,11 +90,11 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
      * @param fieldName     The name of the field-to-access
      * @return              The value of the field, or `null` if the field is not found.
      */
-    private fun getBuildConfigValue(fieldName: String?): Object? {
+    private fun getBuildConfigValue(fieldName: String): Any?  {
         try {
             val clazz: Class<*> = Class.forName(reactContext.getPackageName() + ".BuildConfig")
-            val field: Field = clazz.getField(fieldName)
-            return field.get(null) as Object?
+            val field = clazz.getField(fieldName)
+            return field.get(null)
         } catch (e: ClassNotFoundException) {
             e.printStackTrace()
         } catch (e: NoSuchFieldException) {
@@ -107,6 +108,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     private fun readGuiConfig(): String? {
         return GuiConfig.getInstance(reactContext.getFilesDir())?.asString()
     }
+
 
     // only old arch, uncomment
 //    override fun getConstants(): MutableMap<String, Any>? {
@@ -315,7 +317,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     private fun ensureFirebase() {
-        val firebaseInitialized = FirebaseApp.getApps(reactContext).size === 1
+        val firebaseInitialized = FirebaseApp.getApps(reactContext).size == 1
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(reactContext,
                     FirebaseOptions.Builder()
@@ -353,7 +355,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     @Throws(IOException::class)
     private fun deleteRecursive(fileOrDirectory: File) {
         if (fileOrDirectory.isDirectory()) {
-            val files: Array<File> = fileOrDirectory.listFiles()
+            val files = fileOrDirectory.listFiles()
             if (files == null) {
                 throw NullPointerException("Received null trying to list files of directory '$fileOrDirectory'")
             } else {
@@ -388,12 +390,11 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         })
     }
 
-    private fun isAsset(path: String?): Boolean {
-        return path != null && path.startsWith(FILE_PREFIX_BUNDLE_ASSET)
+    private fun isAsset(path: String): Boolean {
+        return path.startsWith(FILE_PREFIX_BUNDLE_ASSET)
     }
 
-    private fun normalizePath(path: String?): String? {
-        if (path == null) return null
+    private fun normalizePath(path: String): String {
         if (!Regex("""\w+\:.*""").matches(path))
         if (path.startsWith("file://")) {
             return path.replace("file://", "")
@@ -401,7 +402,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         val uri: Uri = Uri.parse(path)
         return if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
             path
-        } else PathResolver.getRealPathFromURI(reactContext, uri)
+        } else PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
     }
 
     @ReactMethod
@@ -416,12 +417,12 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     // download
-    private fun statFile(path: String): WritableMap? {
-        var path: String? = path
+    private fun statFile(_path: String): WritableMap? {
+        var path  = _path
         return try {
             path = normalizePath(path)
             val stat: WritableMap = Arguments.createMap()
-            if (path != null && isAsset(path)) {
+            if (isAsset(path)) {
                 val name: String = path.replace(FILE_PREFIX_BUNDLE_ASSET, "")
                 val fd: AssetFileDescriptor = reactContext.getAssets().openFd(name)
                 stat.putString("filename", name)
@@ -450,12 +451,12 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     @ReactMethod
     override fun androidAddCompleteDownload(config: ReadableMap, promise: Promise) {
         val dm: DownloadManager = reactContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        if (config == null || !config.hasKey("path")) {
+        if (!config.hasKey("path")) {
             promise.reject("EINVAL", "addCompleteDownload config or path missing.")
             return
         }
-        val path = normalizePath(config.getString("path"))
-        if (path == null) {
+        val path = normalizePath(config.getString("path") ?: "")
+        if (path == "") {
             promise.reject("EINVAL", "addCompleteDownload can not resolve URI:" + config.getString("path"))
             return
         }
@@ -514,7 +515,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             val activity: Activity? = reactContext.getCurrentActivity()
             if (activity != null) {
                 val m: Method = activity.javaClass.getMethod("getInitialBundleFromNotification")
-                val initialBundleFromNotification: Bundle = m.invoke(activity) as Bundle
+                val initialBundleFromNotification = m.invoke(activity) as Bundle?
                 if (initialBundleFromNotification != null) {
                     val map: WritableMap = Arguments.fromBundle(initialBundleFromNotification)
                     promise.resolve(map)
@@ -532,9 +533,9 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             val activity: Activity? = reactContext.getCurrentActivity()
             if (activity != null) {
                 val m: Method = activity.javaClass.getMethod("getInitialShareFileUrls")
-                val o: Object? = m.invoke(activity) as Object?
-                if (o != null && o is Array<*> && o.isArrayOf<String>()) {
-                    val us = o as Array<String?>
+                val o = m.invoke(activity)
+                if (o != null && o is Array<*>) {
+                    val us = o.filterIsInstance<String>()
                     val writableArray: WritableArray = Arguments.createArray()
                     for (str in us) {
                         writableArray.pushString(str)
@@ -555,7 +556,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             val activity: Activity? = reactContext.getCurrentActivity()
             if (activity != null) {
                 val m: Method = activity.javaClass.getMethod("getInitialShareText")
-                val shareText: Object? = m.invoke(activity) as Object?
+                val shareText = m.invoke(activity)
                 if (shareText != null) {
                     promise.resolve(shareText.toString())
                     return
@@ -644,8 +645,10 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
                     val data: ByteArray = readArr()
                     if (!reactContext.hasActiveCatalystInstance()) {
                         NativeLogger.info(NAME.toString() + ": JS Bridge is dead, dropping engine message: " + data)
+
                     }
-                    val callInvoker: CallInvokerHolderImpl = reactContext.getCatalystInstance().jsCallInvokerHolder as CallInvokerHolderImpl
+
+                    val callInvoker: CallInvokerHolderImpl = reactContext.getJSCallInvokerHolder() as CallInvokerHolderImpl
                     val jsi = reactContext.javaScriptContextHolder?.get()
                     if (jsi != null) {
                         emit(jsi, callInvoker, data)
