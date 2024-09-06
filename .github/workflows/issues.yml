@@ -3,6 +3,9 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  issues: write
+
 jobs:
   close_issue:
     runs-on: ubuntu-latest
@@ -10,8 +13,10 @@ jobs:
     steps:
     - name: Check issue body for regex
       id: check_regex
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.body }}
       run: |
-        if [[ ! "${{ github.event.issue.body }}" =~ 345567 ]]; then
+        if [[ ! "$ISSUE_TITLE" =~ 345567 ]]; then
           echo "::set-output name=should_close::true"
         else
           echo "::set-output name=should_close::false"
