@@ -8,10 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
     - name: Check issue body for regex
       id: check_regex
       run: |
-        if [[ ! "${{ github.event.issue.body }}" =~ 345567 ]]; then
+        ISSUE_BODY=$(echo "${{ github.event.issue.body }}" | jq -Rr @sh)
+        if [[ ! $ISSUE_BODY =~ 345567 ]]; then
           echo "::set-output name=should_close::true"
         else
           echo "::set-output name=should_close::false"
