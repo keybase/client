@@ -8,13 +8,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install jq
-      run: sudo apt-get install -y jq
+    - name: Encode issue body to base64
+      id: encode_body
+      run: |
+        echo "::set-output name=body_base64::$(echo -n '${{ github.event.issue.body }}' | base64)"
 
     - name: Check issue body for regex
       id: check_regex
       run: |
-        ISSUE_BODY=$(echo "${{ github.event.issue.body }}" | jq -Rr @sh)
+        ISSUE_BODY=$(echo "${{ steps.encode_body.outputs.body_base64 }}" | base64 --decode)
         if [[ ! $ISSUE_BODY =~ 345567 ]]; then
           echo "::set-output name=should_close::true"
         else
