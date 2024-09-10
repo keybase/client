@@ -29,6 +29,11 @@ def prebuiltDir = "$buildDir/react-native-0*/jni"
  */
 
 react {
+   cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
+
+
+
+
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
@@ -122,12 +127,6 @@ android {
     buildTypes {
         debug {
         }
-
-        storyBook.initWith(buildTypes.debug)
-        storyBook {
-            applicationIdSuffix ".storybook"
-            matchingFallbacks = ['debug']
-        }
         release {
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
@@ -175,16 +174,16 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.8.1'
+    implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:22.0.0"
+    implementation "com.google.firebase:firebase-messaging:24.0.1"
     implementation "com.facebook.fresco:animated-gif:${reactAndroidLibs.versions.fresco.get()}"
     implementation 'org.msgpack:msgpack-core:0.9.0'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.6.1"
-    implementation "androidx.lifecycle:lifecycle-process:2.6.1"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.8.5"
+    implementation "androidx.lifecycle:lifecycle-process:2.8.5"
 }
 
 // This requires a google-services.json file locally.  Drop it in
