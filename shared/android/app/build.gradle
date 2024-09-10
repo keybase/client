@@ -18,11 +18,6 @@ Integer getVersionCode() {
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
 
-def nodeModules = "../../node_modules"
-def defaultDir = file("$nodeModules/react-native/android")
-def androidSourcesDir = defaultDir.parentFile.toString()
-def prebuiltDir = "$buildDir/react-native-0*/jni"
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -30,9 +25,6 @@ def prebuiltDir = "$buildDir/react-native-0*/jni"
 
 react {
    cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
-
-
-
 
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
