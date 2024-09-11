@@ -1,10 +1,10 @@
 ---
-android not working. temp switch to jsc
 desktop crash in chat w/ @ <<<<
 ---  strict
 ---  wrapper in native for strict
 ---  floating menu dynamic sizing broken
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
+
 ----
 
 
@@ -18,6 +18,7 @@ reanimated 3.12 crashes https://github.com/software-mansion/react-native-reanima
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 new unchecked kotline code for 'getInitialShareFileUrls'
 setnative not working on fabric, input should likely be controlled now
+CHECK push / files etc on android
 
   deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
   check animated gifs work after udpating expo-image or rollback again
@@ -25,5 +26,4 @@ setnative not working on fabric, input should likely be controlled now
 run electron hash update
 -------------------------
 Some short term todos:
-swipeable2 slow
 mem leak

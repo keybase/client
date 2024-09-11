@@ -5,8 +5,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,11 +16,11 @@ import android.util.Log
 import android.view.KeyEvent
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
-import com.facebook.react.ReactInstanceManager
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -40,8 +38,6 @@ import java.io.IOException
 import java.security.KeyStoreException
 import java.security.NoSuchAlgorithmException
 import java.security.cert.CertificateException
-import java.util.Arrays
-import java.util.Objects
 import java.util.UUID
 
 class MainActivity : ReactActivity() {
@@ -80,12 +76,12 @@ class MainActivity : ReactActivity() {
 
     private val reactContext: ReactContext?
          get() {
-            val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
-            if (instanceManager == null) {
+            val reactHost = (application as ReactApplication).reactHost
+            if (reactHost == null) {
                 NativeLogger.warn("react instance manager not ready")
                 return null
             }
-            return instanceManager.currentReactContext
+            return reactHost.currentReactContext
         }
 
     private fun colorSchemeForCurrentConfiguration(): String {
@@ -102,11 +98,6 @@ class MainActivity : ReactActivity() {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     override fun onCreate(savedInstanceState: Bundle?) {
         NativeLogger.info("Activity onCreate")
-        val instanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
-        if (!createdReact) {
-            createdReact = true
-            instanceManager.createReactContextInBackground()
-        }
         setupKBRuntime(this, true)
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
@@ -120,7 +111,9 @@ class MainActivity : ReactActivity() {
         }, 300)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
+        handleIntent(intent)
     }
+
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         return if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
@@ -197,112 +190,24 @@ class MainActivity : ReactActivity() {
         return filePath
     }
 
-    private inner class IntentEmitter(private val intent: Intent) {
-        fun emit() {
 
-            // Here we are just reading from the notification bundle.
-            // If other sources start the app, we can get their intent data the same way.
-            val bundleFromNotification = intent.getBundleExtra("notification")
-            intent.removeExtra("notification")
-            val action = intent.action
-            var uris_: Array<Uri?>? = null
-            if (Intent.ACTION_SEND_MULTIPLE == action) {
-                val alUri = intent.getParcelableArrayListExtra<Uri?>(Intent.EXTRA_STREAM)
-                uris_ = alUri!!.toTypedArray<Uri?>()
-            } else if (Intent.ACTION_SEND == action) {
-                val oneUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-                uris_ = arrayOf(oneUri)
-            }
-            intent.removeExtra(Intent.EXTRA_STREAM)
-            val uris = uris_
-            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-            intent.removeExtra(Intent.EXTRA_SUBJECT)
-            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-            intent.removeExtra(Intent.EXTRA_TEXT)
-            val sb = StringBuilder()
-            if (subject != null) {
-                sb.append(subject)
-            }
-            if (subject != null && text != null) {
-                sb.append(" ")
-            }
-            if (text != null) {
-                sb.append(text)
-            }
-            val textPayload = sb.toString()
-            /*val filePaths = if (uris != null) Arrays.stream<Uri?>(uris)
-                    .map<String?> { uri: Uri? -> readFileFromUri(reactContext, uri) }
-                    .filter { obj: String? -> Objects.nonNull(obj) }
-                    .toArray<String> { _Dummy_.__Array__() } else arrayOfNulls<String>(0)
+    fun onReactContextInitialized(context: ReactContext?) {
+        val emitter = reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        if (emitter == null) {
+            Log.w(TAG, "Error no emitter onReactContextInitialized")
+            return
+        }
+        if (onShareDataPayload != null) {
+            emitter.emit("onShareData", onShareDataPayload)
+            onShareDataPayload = null
+        }
 
-             */
-            // TODO check this works
-            val filePaths = uris?.mapNotNull { uri ->
-                readFileFromUri(reactContext, uri)
-            }?.toTypedArray() ?: emptyArray()
-            if (bundleFromNotification != null) {
-                initialBundleFromNotification = bundleFromNotification
-            } else if (filePaths.size != 0) {
-                initialShareFileUrls = filePaths
-            } else if (textPayload.length > 0) {
-                initialShareText = textPayload
-            }
-
-            // Closure like class so we can keep our emit logic together
-            class Emit(private val emitter: DeviceEventManagerModule.RCTDeviceEventEmitter, private val context: ReactContext) {
-                fun run() {
-                    if (reactContext == null) return
-                    // assert emitter != null;
-                    // If there are any other bundle sources we care about, emit them here
-                    if (bundleFromNotification != null) {
-                        emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification))
-                    }
-                    if (filePaths.size != 0) {
-                        val args = Arguments.createMap()
-                        val lPaths = Arguments.createArray()
-                        for (path in filePaths) {
-                            lPaths.pushString(path)
-                        }
-                        args.putArray("localPaths", lPaths)
-                        emitter.emit("onShareData", args)
-                    } else if (textPayload.length > 0) {
-                        val args = Arguments.createMap()
-                        args.putString("text", textPayload)
-                        emitter.emit("onShareData", args)
-                    }
-                }
-            }
-
-            // We need to run this on the main thread, as the React code assumes that is true.
-            // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
-            // "Can't create handler inside thread that has not called Looper.prepare()"
-            val handler = Handler(Looper.getMainLooper())
-            handler.post {
-
-                // Construct and load our normal React JS code bundle
-                val reactInstanceManager = (application as ReactApplication).reactNativeHost.reactInstanceManager
-                val context = reactInstanceManager.currentReactContext
-
-                // If it's constructed, send a notification
-                if (context != null) {
-                    val emitter = context
-                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    Emit(emitter, context).run()
-                } else {
-                    // Otherwise wait for construction, then send the notification
-                    reactInstanceManager.addReactInstanceEventListener(object : ReactInstanceManager.ReactInstanceEventListener {
-                        override fun onReactContextInitialized(context: ReactContext) {
-                        val emitter = context
-                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                        Emit(emitter, context).run()
-                        }
-                    })
-                    if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
-                        // Construct it in the background
-                        reactInstanceManager.createReactContextInBackground()
-                    }
-                }
-            }
+        if (initialIntentFromNotificationPayload != null) {
+            emitter.emit(
+                "initialIntentFromNotification",
+                initialIntentFromNotificationPayload
+            )
+            initialIntentFromNotificationPayload = null
         }
     }
 
@@ -310,11 +215,6 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         Keybase.setAppStateForeground()
-        // Emit the intent data to JS
-        val intent = intent
-        if (intent != null) {
-            IntentEmitter(intent).emit()
-        }
     }
 
     override fun onStart() {
@@ -332,18 +232,106 @@ class MainActivity : ReactActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleIntent(intent)
     }
 
-    /**
-     * Returns the name of the main component registered from JavaScript. This is
-     * used to schedule rendering of the component.
-     */
+    private fun handleIntent(intent: Intent?) {
+        if (intent == null) {
+            return
+        }
+        // Here we are just reading from the notification bundle.
+        // If other sources start the app, we can get their intent data the same way.
+        val bundleFromNotification = intent.getBundleExtra("notification")
+        intent.removeExtra("notification")
+        val action = intent.action
+        var uris_: Array<Uri?>? = null
+        if (Intent.ACTION_SEND_MULTIPLE == action) {
+            val alUri = intent.getParcelableArrayListExtra<Uri?>(Intent.EXTRA_STREAM)
+            uris_ = alUri!!.toTypedArray<Uri?>()
+        } else if (Intent.ACTION_SEND == action) {
+            val oneUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            uris_ = arrayOf(oneUri)
+        }
+        intent.removeExtra(Intent.EXTRA_STREAM)
+        val uris = uris_
+        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        intent.removeExtra(Intent.EXTRA_SUBJECT)
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+        intent.removeExtra(Intent.EXTRA_TEXT)
+        val sb = StringBuilder()
+        if (subject != null) {
+            sb.append(subject)
+        }
+        if (subject != null && text != null) {
+            sb.append(" ")
+        }
+        if (text != null) {
+            sb.append(text)
+        }
+        val textPayload = sb.toString()
+        /*val filePaths = if (uris != null) Arrays.stream<Uri?>(uris)
+                .map<String?> { uri: Uri? -> readFileFromUri(reactContext, uri) }
+                .filter { obj: String? -> Objects.nonNull(obj) }
+                .toArray<String> { _Dummy_.__Array__() } else arrayOfNulls<String>(0)
+
+         */
+        // TODO check this works
+        val filePaths = uris?.mapNotNull { uri ->
+            readFileFromUri(reactContext, uri)
+        }?.toTypedArray() ?: emptyArray()
+        if (bundleFromNotification != null) {
+            initialBundleFromNotification = bundleFromNotification
+        } else if (filePaths.size != 0) {
+            initialShareFileUrls = filePaths
+        } else if (textPayload.length > 0) {
+            initialShareText = textPayload
+        }
+
+        val emitter = reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        // assert emitter != null;
+        // If there are any other bundle sources we care about, emit them here
+        if (bundleFromNotification != null) {
+            var payload = Arguments.fromBundle(bundleFromNotification)
+            if (emitter != null) {
+                initialIntentFromNotificationPayload = null
+                emitter.emit(
+                    "initialIntentFromNotification",
+                    payload
+                )
+            } else {
+                initialIntentFromNotificationPayload = payload
+            }
+        }
+        if (filePaths.size != 0) {
+            val args = Arguments.createMap()
+            val lPaths = Arguments.createArray()
+            for (path in filePaths) {
+                lPaths.pushString(path)
+            }
+            args.putArray("localPaths", lPaths)
+            if (emitter != null) {
+                onShareDataPayload = null
+                emitter.emit("onShareData", args)
+            } else {
+                onShareDataPayload = args
+            }
+        } else if (textPayload.length > 0) {
+            val args = Arguments.createMap()
+            args.putString("text", textPayload)
+            if (emitter != null) {
+                onShareDataPayload = null
+                emitter.emit("onShareData", args)
+            } else {
+                onShareDataPayload = args
+            }
+        }
+    }
+
+    var onShareDataPayload: WritableMap? = null
+    var initialIntentFromNotificationPayload: WritableMap? = null
+
     override fun getMainComponentName(): String = "Keybase"
 
-    /**
-     * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
-     * (aka React 18) with two boolean flags.
-     */
     override fun createReactActivityDelegate(): ReactActivityDelegate {
         return DefaultReactActivityDelegate(
                 this,
