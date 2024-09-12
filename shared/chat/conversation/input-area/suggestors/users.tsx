@@ -139,24 +139,26 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
 const useDataUsers = () => {
   const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
-  return C.useChatContext(s => {
-    const {teamID, teamType} = s.meta
-    // TODO not reactive
-    const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
-    const usernames = teamMembers
-      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : participantInfo.all
-    const suggestions = usernames.map(username => ({
-      fullName: infoMap.get(username)?.fullname || '',
-      username,
-    }))
-    if (teamType !== 'adhoc') {
-      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-    }
-    // TODO this will thrash on every store change, TODO fix
-    return suggestions
-  })
+  return C.useChatContext(
+    C.useDeep(s => {
+      const {teamID, teamType} = s.meta
+      // TODO not reactive
+      const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
+      const usernames = teamMembers
+        ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
+        : participantInfo.all
+      const suggestions = usernames.map(username => ({
+        fullName: infoMap.get(username)?.fullname || '',
+        username,
+      }))
+      if (teamType !== 'adhoc') {
+        const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+        suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+      }
+      // TODO this will thrash on every store change, TODO fix
+      return suggestions
+    })
+  )
 }
 
 const useDataTeams = () => {
