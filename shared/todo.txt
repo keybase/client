@@ -6,7 +6,7 @@ desktop crash in chat w/ @ <<<<
 --- PATCHES remvoed double nav checking, can we do it another way (key?)
 ----
 
-teams/ more back showing on root
+teams/ more back showing on root : canGoBack is always true passed in
 
 
 

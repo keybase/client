@@ -1,7 +1,9 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import type {HeaderOptions} from '@react-navigation/elements'
+type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
+
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
-import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import type {HeaderOptions} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import type {NavState} from '@/constants/router2'
 
@@ -27,6 +27,8 @@ export const tabBarStyleHidden = {
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
 
+type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
+
 // Options used by default on all navigators
 export const defaultNavigationOptions = {
   headerBackTitle: '',
@@ -35,9 +37,10 @@ export const defaultNavigationOptions = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({canGoBack, onPress, tintColor}: HeaderBackButtonProps) => (
-    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-  ),
+  headerLeft: ({canGoBack, onPress, tintColor}: HeaderLeftProps) => {
+    console.log('aaaa headerleft', {canGoBack})
+    return <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  },
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,

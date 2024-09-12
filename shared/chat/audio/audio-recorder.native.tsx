@@ -660,8 +660,8 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
         : fadeSV.value *
           interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
           dragXOpacity,
-      transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}],
-    }
+      transform: [{translateX: 10}, {translateY: (deltaY - fadeSV.value * slideAmount) as number}],
+    } as const
   })
   const lockStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason

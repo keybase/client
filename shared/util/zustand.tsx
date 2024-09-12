@@ -47,7 +47,7 @@ export const createZustand = <T extends HasReset>(
   let resetFunc: () => void
   if (reset === 'default') {
     resetFunc = () => {
-      store.setState(initialState, true)
+      store.setState(initialState as any, true)
     }
   } else {
     resetFunc = reset
