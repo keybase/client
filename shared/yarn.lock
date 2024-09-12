@@ -1233,7 +1233,17 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@electron/asar@^3.2.1", "@electron/asar@^3.2.7":
+"@electron/asar@^3.2.13":
+  version "3.2.13"
+  resolved "https://registry.yarnpkg.com/@electron/asar/-/asar-3.2.13.tgz#56565ea423ead184465adfa72663b2c70d9835f2"
+  integrity sha512-pY5z2qQSwbFzJsBdgfJIzXf5ElHTVMutC2dxh0FD60njknMu3n1NnTABOcQwbb5/v5soqE79m9UjaJryBf3epg==
+  dependencies:
+    "@types/glob" "^7.1.0"
+    commander "^5.0.0"
+    glob "^7.1.6"
+    minimatch "^3.0.4"
+
+"@electron/asar@^3.2.7":
   version "3.2.10"
   resolved "https://registry.yarnpkg.com/@electron/asar/-/asar-3.2.10.tgz#615cf346b734b23cafa4e0603551010bd0e50aa8"
   integrity sha512-mvBSwIBUeiRscrCeJE1LwctAriBj65eUDm0Pc11iE5gRwzkmsdbS7FnZ1XUWjpSeQWL1L5g12Fc/SchPM9DUOw==
@@ -1293,12 +1303,12 @@
     minimist "^1.2.6"
     plist "^3.0.5"
 
-"@electron/packager@18.3.4":
-  version "18.3.4"
-  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-18.3.4.tgz#5f2769b18d5f03eaff270e8e47440758282080c6"
-  integrity sha512-u/IxB5nelg+areXbSEWJxg1r4z0TcS1D1Dax106PsgwgPtcFvB6jjGxZVLA0WHSrLpkj6qfigHSuVXzxMTH+Qw==
+"@electron/packager@18.3.5":
+  version "18.3.5"
+  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-18.3.5.tgz#571a8faa321bd9d9e5b97a9a71b8d40401980d8d"
+  integrity sha512-ClgTxXTt3MesWAcjIxIkgxELjTcllw1FRoVsihP7uT48kpDMqI71p4XvnMWbq8PvU57TcrKICAaLkxRhbc+/wQ==
   dependencies:
-    "@electron/asar" "^3.2.1"
+    "@electron/asar" "^3.2.13"
     "@electron/get" "^3.0.0"
     "@electron/notarize" "^2.1.0"
     "@electron/osx-sign" "^1.0.5"
@@ -2431,12 +2441,12 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@7.0.0-rc.31":
-  version "7.0.0-rc.31"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.0-rc.31.tgz#2dcb730acbc04de668663929d506f0de5f4058ca"
-  integrity sha512-u6giqNaFbAe5mLqcsIcRfuSsfGiA5/4t/F132jsHwyCngOUid6bNpW1TvnESYMjz4bXvz911mX7XC8nJ6n+TTQ==
+"@react-navigation/bottom-tabs@7.0.0-rc.32":
+  version "7.0.0-rc.32"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.0-rc.32.tgz#ef08f182a262fa567e01a151649836851d7809b6"
+  integrity sha512-8aAsdbhBPvRnjmcipx/b+P5Ygf3FvbD0E2s6sGuCKGAm/G+eMhi0DZjp2I23a4b2G5tmyQBItYBZdamPModCFg==
   dependencies:
-    "@react-navigation/elements" "^2.0.0-rc.23"
+    "@react-navigation/elements" "^2.0.0-rc.24"
     color "^4.2.3"
 
 "@react-navigation/core@7.0.0-rc.14", "@react-navigation/core@^7.0.0-rc.14":
@@ -2452,19 +2462,19 @@
     use-latest-callback "^0.2.1"
     use-sync-external-store "^1.2.2"
 
-"@react-navigation/elements@^2.0.0-rc.23":
-  version "2.0.0-rc.23"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.0.0-rc.23.tgz#f4f58f6b335827fab151d8b9a3c926d504f5031b"
-  integrity sha512-F1HIWky1MXk89FGnJyn8xMMyNWHKsUfLO6EwstTBpwtBTN9/M/tUDEQwZ937HtxWtMUjijhm1om8dsV03mSsIQ==
+"@react-navigation/elements@^2.0.0-rc.24":
+  version "2.0.0-rc.24"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.0.0-rc.24.tgz#27d88da41c7b965ad0f0305269de58b00b266649"
+  integrity sha512-R7uICCxcimnj9TCPqDEJ0y8+dgXqiUISvWXVMlBnOZQ+xso7tzocKe0bmhI82G9eJXhRnZOvNmtP7adQpjURaQ==
   dependencies:
     color "^4.2.3"
 
-"@react-navigation/native-stack@7.0.0-rc.26":
-  version "7.0.0-rc.26"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.0.0-rc.26.tgz#e897f7b1ee39b7bb3dc56fad1b152ae55b00f646"
-  integrity sha512-c/6TDBZKSYEHj31bzIvJr73ixknYMXfvDKrZgRyYcHxha1mZ36FTNXdGn54E9flDjUPpBP9Etv9BaqXz3VqoWw==
+"@react-navigation/native-stack@7.0.0-rc.27":
+  version "7.0.0-rc.27"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.0.0-rc.27.tgz#6a520feef29d3955d9e739570ad693eee54cad55"
+  integrity sha512-GWajrSDjFbOvVQ3VA7WF1FGaX39oqPPbJ89M7UFHMO55YyGllEEHAhptr7wC3pXfxKAMvg+AoOq/+iY/smiUfw==
   dependencies:
-    "@react-navigation/elements" "^2.0.0-rc.23"
+    "@react-navigation/elements" "^2.0.0-rc.24"
     warn-once "^0.1.1"
 
 "@react-navigation/native@7.0.0-rc.19":
@@ -2623,6 +2633,14 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
+"@types/glob@^7.1.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@types/glob/-/glob-7.2.0.tgz#bc1b5bf3aa92f25bd5dd39f35c57361bdce5b2eb"
+  integrity sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==
+  dependencies:
+    "@types/minimatch" "*"
+    "@types/node" "*"
+
 "@types/google-libphonenumber@7.4.30":
   version "7.4.30"
   resolved "https://registry.yarnpkg.com/@types/google-libphonenumber/-/google-libphonenumber-7.4.30.tgz#a47ed8f1f237bd43edbd1c8aff24400b0fd9b2fe"
@@ -2707,6 +2725,11 @@
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.5.tgz#1ef302e01cf7d2b5a0fa526790c9123bf1d06690"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
+
+"@types/minimatch@*":
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-5.1.2.tgz#07508b45797cb81ec3f273011b054cd0755eddca"
+  integrity sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==
 
 "@types/node-forge@^1.3.0":
   version "1.3.11"
@@ -9096,10 +9119,10 @@ react-native-reanimated@3.15.1:
     convert-source-map "^2.0.0"
     invariant "^2.2.4"
 
-react-native-safe-area-context@4.10.9:
-  version "4.10.9"
-  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.10.9.tgz#6ab82dc866ab499b101b033cb0f5b40125a4d410"
-  integrity sha512-wz/JXV1kARWyP5q93PFNKQP03StVBimOK7rRYEJjM+blZdXbM6H7EP3XhQUb6OK620+0M1AzpcGgyTHvgSJNAw==
+react-native-safe-area-context@4.11.0:
+  version "4.11.0"
+  resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.11.0.tgz#d45271363672dc1923ddb0ce5a6ad588e210c85d"
+  integrity sha512-Bg7bozxEB+ZS+H3tVYs5yY1cvxNXgR6nRQwpSMkYR9IN5CbxohLnSprrOPG/ostTCd4F6iCk0c51pExEhifSKQ==
 
 react-native-screens@3.35.0-rc.1:
   version "3.35.0-rc.1"
