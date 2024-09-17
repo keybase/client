@@ -38,7 +38,6 @@ export const defaultNavigationOptions = {
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
   headerLeft: ({canGoBack, onPress, tintColor}: HeaderLeftProps) => {
-    console.log('aaaa headerleft', {canGoBack})
     return <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
   },
   headerLeftContainerStyle: {
