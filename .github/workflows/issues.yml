@@ -8,23 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check issue body for regex
-      id: check_regex
-      run: |
-        if [[ ! "${{ github.event.issue.body }}" =~ 345567 ]]; then
-          echo "::set-output name=should_close::true"
-        else
-          echo "::set-output name=should_close::false"
-        fi
-
-    - name: Close issue
-      if: steps.check_regex.outputs.should_close == 'true'
+    - name: Check issue body and close if necessary
       uses: actions/github-script@v6
       with:
         script: |
-          github.rest.issues.update({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            state: 'closed'
-          })
+          const issueBody = context.payload.issue.body || '';
+          const regex = /345567/;
+          
+          if (!regex.test(issueBody)) {
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+            console.log(`Issue #${context.issue.number} closed because it did not match the regex.`);
+          } else {
+            console.log(`Issue #${context.issue.number} remains open because it matches the regex.`);
+          }
