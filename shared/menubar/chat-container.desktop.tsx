@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
@@ -36,6 +37,11 @@ const ChatPreview = (p: Pick<DeserializeProps, 'conversationsToSend'> & {convLim
     .slice(0, convLimit ? convLimit : conversationsToSend.length)
     .map(c => c.conversationIDKey)
 
+  const openInbox = React.useCallback(() => {
+    R.remoteDispatch(RemoteGen.createShowMain())
+    R.remoteDispatch(RemoteGen.createSwitchTab({tab: C.Tabs.chatTab}))
+  }, [])
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
       {convRows.map(id => (
@@ -44,12 +50,7 @@ const ChatPreview = (p: Pick<DeserializeProps, 'conversationsToSend'> & {convLim
         </C.ChatProvider>
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
-        <Kb.Button
-          label="Open inbox"
-          onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: ''}))}
-          small={true}
-          mode="Secondary"
-        />
+        <Kb.Button label="Open inbox" onClick={openInbox} small={true} mode="Secondary" />
       </Kb.Box2>
     </Kb.Box2>
   )
