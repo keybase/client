@@ -1,13 +1,10 @@
 ---
 ---  strict
----  wrapper in native for strict
----  floating menu dynamic sizing broken
---- PATCHES remvoed double nav checking, can we do it another way (key?)
+---  native: wrapper in native for strict
+---  native: floating menu dynamic sizing broken
 ----
 
 teams/ more back showing on root : canGoBack is always true passed in
-
-
 
 strict off on native due to gesture
 
