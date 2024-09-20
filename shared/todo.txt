@@ -1,5 +1,4 @@
 ---
-desktop crash in chat w/ @ <<<<
 ---  strict
 ---  wrapper in native for strict
 ---  floating menu dynamic sizing broken
@@ -7,7 +6,6 @@ desktop crash in chat w/ @ <<<<
 ----
 
 teams/ more back showing on root : canGoBack is always true passed in
-android reload while doing RPC will cause bad bytes to go across framed node dispatch
 
 
 
