@@ -11,7 +11,7 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.32):
+  - Expo (51.0.34):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (13.0.1):
     - ExpoModulesCore
-  - ExpoImage (1.12.15):
+  - ExpoImage (1.13.0):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
@@ -1395,7 +1395,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-netinfo (11.4.0):
+  - react-native-netinfo (11.4.1):
     - React-Core
   - react-native-safe-area-context (4.11.0):
     - DoubleConversion
@@ -2238,7 +2238,7 @@ SPEC CHECKSUMS:
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 33132a667698a3259a4e6c0af1b4936388e5fa33
+  Expo: 963ef4ae102e4f4ac114a8510d70127c44adffbf
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
   ExpoCamera: 929be541d1c1319fcf32f9f5d9df8b97804346b5
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
@@ -2246,7 +2246,7 @@ SPEC CHECKSUMS:
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: 00756e6c796d8f7ee8d211e29c8b619e75cbf238
   ExpoHaptics: 5a3a88971af384255baf2504f38b41189cec6984
-  ExpoImage: f77df382153d716f332f974438a803c4527f60b0
+  ExpoImage: 42162e3d264ce07a62766d6bd26bd299fe4c6faa
   ExpoImagePicker: 12a420923383ae38dccb069847218f27a3b87816
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
@@ -2296,7 +2296,7 @@ SPEC CHECKSUMS:
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: d90c252c3cf3ea6901d65e54cbf606ed49c7ac8e
-  react-native-netinfo: e8e9cf28ede012e47603c9b35b2fa5b19b7bd71d
+  react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-safe-area-context: f1fda705dfe14355f41933debb5932887e234cc5
   react-native-webview: 06f91954784dde28e1210f381c791f0c5f9bd9a2
   React-nativeconfig: 4a9543185905fe41014c06776bf126083795aed9
