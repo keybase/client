@@ -30,14 +30,32 @@ const BOOL isSimulator = NO;
 }
 
 - (void) openApp {
-  NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
+  NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
   UIResponder *responder = self;
-  while (responder){
-    if ([responder respondsToSelector: @selector(openURL:)]){
-      [responder performSelector: @selector(openURL:) withObject: url];
-      return;
-    }
-    responder =  [responder nextResponder];
+  while (responder) {
+        if ([responder respondsToSelector: @selector(openURL:)]){
+          @try {
+            // This is needed by ios18+ to function now on the new xcode. This FAILs in the simulator but seems
+            // to work on device
+            NSMethodSignature *signature = [responder methodSignatureForSelector:@selector(openURL:options:completionHandler:)];
+            NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+            [invocation setTarget:responder];
+            [invocation setSelector:@selector(openURL:options:completionHandler:)];
+            
+            NSDictionary *options = @{};
+            void (^completionHandler)(BOOL success) = nil;
+            
+            [invocation setArgument:&url atIndex:2];
+            [invocation setArgument:&options atIndex:3];
+            [invocation setArgument:&completionHandler atIndex:4];
+            [invocation invoke];
+            return;
+          }
+          @catch (NSException *exception) {
+            NSLog(@"Exception occurred while opening URL to share");
+          }
+        }
+      responder = [responder nextResponder];
   }
 }
 
