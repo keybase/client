@@ -11,8 +11,12 @@ import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import KB2 from '@/util/electron.desktop'
+
 // import logger from '@/logger'
 // import {DebugChatDumpContext, chatDebugEnabled} from '@/constants/chat2/debug'
+
+const {getPathForFile} = KB2.functions
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Input2Ref | null>
@@ -137,27 +141,34 @@ const GiphyButton = React.memo(function GiphyButton() {
   )
 })
 
-const fileListToPaths = (f: FileList): Array<string> => Array.from(f).map(f => f.path)
+const fileListToPaths = async (f: FileList): Promise<Array<string>> => {
+  return Promise.all(Array.from(f).map(async f => getPathForFile?.(f) ?? ''))
+}
 
 const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
   const {htmlInputRef} = p
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
-    const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
-    const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
-      path && arr.push({path})
-      return arr
-    }, [])
-    if (pathAndOutboxIDs?.length) {
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
-      }))
-    }
+    const f = async () => {
+      const paths = htmlInputRef.current?.files
+        ? await fileListToPaths(htmlInputRef.current.files)
+        : undefined
+      const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
+        path && arr.push({path})
+        return arr
+      }, [])
+      if (pathAndOutboxIDs?.length) {
+        navigateAppend(conversationIDKey => ({
+          props: {conversationIDKey, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        }))
+      }
 
-    if (htmlInputRef.current) {
-      htmlInputRef.current.value = ''
+      if (htmlInputRef.current) {
+        htmlInputRef.current.value = ''
+      }
     }
+    C.ignorePromise(f())
   }, [htmlInputRef, navigateAppend])
 
   const filePickerOpen = React.useCallback(() => {

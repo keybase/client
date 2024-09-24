@@ -94,6 +94,9 @@ if (isRenderer) {
             .then(() => {})
             .catch(() => {})
         },
+        getPathForFile: async (file: File) => {
+          return Promise.resolve(Electron.webUtils.getPathForFile(file))
+        },
         getPathType: async (path: string) => {
           return (await invoke({
             payload: {path},
