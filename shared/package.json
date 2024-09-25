@@ -121,7 +121,7 @@
     "react-list": "0.8.17",
     "react-measure": "2.5.2",
     "react-native": "0.75.3",
-    "react-native-gesture-handler": "2.19.0",
+    "react-native-gesture-handler": "2.20.0",
     "react-native-hw-keyboard-event": "0.0.4",
     "react-native-image-keyboard": "2.2.1",
     "react-native-reanimated": "3.15.3",
