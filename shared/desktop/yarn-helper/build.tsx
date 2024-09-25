@@ -38,7 +38,7 @@ const commands = {
   },
 } as const
 
-function hotServer(info: {env?: {}}, exec: (...a: Array<any>) => void) {
+function hotServer(info: {env?: object}, exec: (...a: Array<any>) => void) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})
   exec(`webpack-dev-server --mode development --config=./desktop/webpack.config.babel.js`, {
     ...info.env,

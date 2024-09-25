@@ -9,7 +9,9 @@ const Deferred = React.memo(function Deferred() {
   const [visible, setVisible] = React.useState(_everFocused)
   const isFocused = useIsFocused()
   const navKey = useNavigationState(state => state.key)
-  _everFocused = _everFocused || isFocused
+  React.useEffect(() => {
+    _everFocused = _everFocused || isFocused
+  }, [isFocused])
 
   // work around a bug in gesture handler if we show too quickly when going back from a convo on startup
   React.useEffect(() => {

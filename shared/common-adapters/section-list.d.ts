@@ -19,7 +19,7 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
  * items, and ExtraT is for any extra stuff that is in the section, e.g. a title
  * used by renderSectionHeader
  */
-export type Section<ItemT, ExtraT = {}> = {
+export type Section<ItemT, ExtraT = Record<any, never>> = {
   data: ReadonlyArray<ItemT>
   key?: string | undefined
   renderItem?: SectionListRenderItem<ItemT, ExtraT>

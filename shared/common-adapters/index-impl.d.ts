@@ -1,2 +1,2 @@
-declare let ignore: {}
+declare let ignore: object
 export default ignore

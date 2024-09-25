@@ -85,7 +85,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: NavigationContainerRef<{}>, state: NavState) =>
+export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) =>
   React.useCallback(
     (tab: string) => {
       const route = state?.routes?.find(r => r.name === tab)

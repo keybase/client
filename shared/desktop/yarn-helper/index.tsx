@@ -13,10 +13,10 @@ const [, , command, ...rest] = process.argv
 type Command = {
   code?: (info: Command, exec: (...a: Array<any>) => void) => void
   help?: string
-  env?: {}
+  env?: object
   shell?: string
   nodeEnv?: 'production' | 'development'
-  options?: {}
+  options?: object
 }
 
 const commands: {[key: string]: Command} = {

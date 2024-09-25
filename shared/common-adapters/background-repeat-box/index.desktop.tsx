@@ -5,10 +5,9 @@ import type {Props} from '.'
 import {getAssetPath} from '@/constants/platform.desktop'
 
 const BackgroundRepeatBox = (props: Props) => {
-  let pattern = ''
   let patternUrl = ''
   if (!props.skipBackground) {
-    pattern = getAssetPath(`../images/icons/${props.imageName}`)
+    const pattern = getAssetPath(`../images/icons/${props.imageName}`)
     patternUrl = urlsToImgSet({[props.imageHeight]: pattern}, props.imageHeight) ?? ''
   }
   return (

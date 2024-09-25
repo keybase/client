@@ -19,6 +19,6 @@ export const defaultNavigationOptions: {
 }
 
 export function useSubnavTabAction(
-  navigation: NavigationContainerRef<{}>,
+  navigation: NavigationContainerRef<object>,
   state: NavState
 ): (t: string) => void

@@ -20,8 +20,8 @@ type Props = {
     title?: React.ReactNode
     headerTitle?: React.ReactNode
     headerLeft?: React.ReactNode
-    headerRightActions?: React.JSXElementConstructor<{}>
-    subHeader?: React.JSXElementConstructor<{}>
+    headerRightActions?: React.JSXElementConstructor<object>
+    subHeader?: React.JSXElementConstructor<object>
     headerTransparent?: boolean
     headerShadowVisible?: boolean
     headerBottomStyle?: Kb.Styles.StylesCrossPlatform

@@ -15,7 +15,7 @@ if (debugSerializer) {
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
 
-export default function useSerializeProps<ProxyProps extends {}, SerializeProps extends {}>(
+export default function useSerializeProps<ProxyProps extends object, SerializeProps extends object>(
   p: ProxyProps,
   serializer: (p: ProxyProps) => Partial<SerializeProps>,
   windowComponent: string,

@@ -62,7 +62,7 @@ const convertGuiLine = (line: string): Info | undefined => {
     return
   }
   const [, type, time = '', _data = ''] = e
-  let name = ''
+  let name
   let args = {}
   switch (type) {
     case 'Error':

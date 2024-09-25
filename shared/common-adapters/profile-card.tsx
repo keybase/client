@@ -107,7 +107,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             {assertion.state !== 'valid' && (
               <Kb.Icon
                 fontSize={Styles.isMobile ? 12 : 10}
-                style={styles.brokenBadge}
+                style={styles.brokenBadge as any}
                 type="iconfont-proof-broken"
                 color={Styles.globalColors.red}
               />
@@ -313,71 +313,79 @@ _setWithProfileCardPopup(WithProfileCardPopup)
 
 export default ProfileCard
 
-const styles = Styles.styleSheetCreate(() => ({
-  brokenBadge: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.white,
-      borderStyle: 'solid',
-      borderWidth: Styles.globalMargins.xxtiny,
-      bottom: -Styles.globalMargins.xxtiny,
-      position: 'absolute',
-      right: -Styles.globalMargins.xxtiny,
-    },
-    isElectron: {
-      borderRadius: '50%',
-    },
-    isMobile: {
-      borderRadius: 8,
-    },
-  }),
-  button: {
-    marginTop: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
-  },
-  close: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  connectedNameWithIconMetaStyle: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      marginTop: (Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny) / 2,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny
-      ),
-      position: 'relative',
-    },
-    isElectron: {
-      width: 170,
-    },
-  }),
-  expand: {
-    marginTop: -Styles.globalMargins.xxtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  iconContainer: {
-    position: 'relative',
-  },
-  popupTextContainer: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  profileCardPopup: Styles.platformStyles({
-    isMobile: Styles.padding(Styles.globalMargins.large, undefined, Styles.globalMargins.small, undefined),
-  }),
-  serviceIcons: {
-    flexWrap: 'wrap',
-    padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      brokenBadge: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.white,
+          borderStyle: 'solid',
+          borderWidth: Styles.globalMargins.xxtiny,
+          bottom: -Styles.globalMargins.xxtiny,
+          position: 'absolute',
+          right: -Styles.globalMargins.xxtiny,
+        },
+        isElectron: {
+          borderRadius: '50%',
+        },
+        isMobile: {
+          borderRadius: 8,
+        },
+      }),
+      button: {
+        marginTop: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
+      },
+      close: {
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      connectedNameWithIconMetaStyle: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          marginTop: (Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny) / 2,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          ...Styles.padding(
+            Styles.globalMargins.small,
+            Styles.globalMargins.tiny,
+            Styles.globalMargins.small,
+            Styles.globalMargins.tiny
+          ),
+          position: 'relative',
+        },
+        isElectron: {
+          width: 170,
+        },
+      }),
+      expand: {
+        marginTop: -Styles.globalMargins.xxtiny,
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      iconContainer: {
+        position: 'relative',
+      },
+      popupTextContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      profileCardPopup: Styles.platformStyles({
+        isMobile: Styles.padding(
+          Styles.globalMargins.large,
+          undefined,
+          Styles.globalMargins.small,
+          undefined
+        ),
+      }),
+      serviceIcons: {
+        flexWrap: 'wrap',
+        padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
+      },
+    }) as const
+)

@@ -149,9 +149,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         let handshakeWait = false
-        let handshakeVersion = 0
+        const handshakeVersion = version
 
-        handshakeVersion = version
         // did we beat getBootstrapStatus?
         if (!C.useConfigState.getState().loggedIn) {
           handshakeWait = true

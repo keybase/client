@@ -67,7 +67,7 @@ export declare const desktopStyles: {
   windowDraggingClickable: {WebkitAppRegion: 'no-drag'}
 }
 
-export declare const mobileStyles: {}
+export declare const mobileStyles: object
 export declare const fileUIName: string
 export declare const borderRadius: number
 export declare const hairlineWidth: number
