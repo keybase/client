@@ -141,34 +141,29 @@ const GiphyButton = React.memo(function GiphyButton() {
   )
 })
 
-const fileListToPaths = async (f: FileList): Promise<Array<string>> => {
-  return Promise.all(Array.from(f).map(async f => getPathForFile?.(f) ?? ''))
+const fileListToPaths = (f: FileList): Array<string> => {
+  return Array.from(f).map(f => getPathForFile?.(f) ?? '')
 }
 
 const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
   const {htmlInputRef} = p
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
-    const f = async () => {
-      const paths = htmlInputRef.current?.files
-        ? await fileListToPaths(htmlInputRef.current.files)
-        : undefined
-      const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
-        path && arr.push({path})
-        return arr
-      }, [])
-      if (pathAndOutboxIDs?.length) {
-        navigateAppend(conversationIDKey => ({
-          props: {conversationIDKey, pathAndOutboxIDs},
-          selected: 'chatAttachmentGetTitles',
-        }))
-      }
-
-      if (htmlInputRef.current) {
-        htmlInputRef.current.value = ''
-      }
+    const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
+    const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
+      path && arr.push({path})
+      return arr
+    }, [])
+    if (pathAndOutboxIDs?.length) {
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
     }
-    C.ignorePromise(f())
+
+    if (htmlInputRef.current) {
+      htmlInputRef.current.value = ''
+    }
   }, [htmlInputRef, navigateAppend])
 
   const filePickerOpen = React.useCallback(() => {
