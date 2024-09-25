@@ -1,4 +1,3 @@
-desktop: dark mode switch not working
 ---
 ---  strict
 ---  native: wrapper in native for strict

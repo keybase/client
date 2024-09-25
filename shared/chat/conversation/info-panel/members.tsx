@@ -41,7 +41,7 @@ const MembersTab = (props: Props) => {
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = C.useChatContext(s => s.participants)
   const participants = C.useChatContext(
-    s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants
+    C.useShallow(s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants)
   )
   const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
