@@ -342,7 +342,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
+    badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     conversationErrored: (
       allowedUsers: ReadonlyArray<string>,
@@ -434,7 +434,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
   const dispatch: State['dispatch'] = {
-    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
+    badgesUpdated: b => {
+      if (!b) return
+      // clear all first
+      for (const [, cs] of C.chatStores) {
+        cs.getState().dispatch.badgesUpdated(0)
+      }
+      b.conversations?.forEach(c => {
+        const id = T.Chat.conversationIDToKey(c.convID)
+        C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+        C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+      })
+      const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount

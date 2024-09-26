@@ -1,3 +1,6 @@
+badge showing even though it should be gone
+
+
 ---
 ---  strict
 ---  native: wrapper in native for strict
