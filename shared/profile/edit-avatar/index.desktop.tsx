@@ -22,7 +22,7 @@ const getFile = async (fileList: FileList | undefined): Promise<string> => {
   if (!file) {
     return ''
   }
-  const path = (await getPathForFile?.(file)) ?? ''
+  const path = getPathForFile?.(file) ?? ''
   if (!path) {
     return ''
   }
