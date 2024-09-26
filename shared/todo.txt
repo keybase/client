@@ -1,4 +1,3 @@
-drop emoji fail
 ---
 ---  strict
 ---  native: wrapper in native for strict
