@@ -42,8 +42,8 @@ const useScrolling = (p: {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
-  const {scrollRef} = React.useContext(ScrollContext)
-  scrollRef.current = {scrollDown: noop, scrollToBottom, scrollUp: noop}
+  const {setScrollRef} = React.useContext(ScrollContext)
+  setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)

@@ -23,16 +23,21 @@ type ScrollType = {
 }
 type ScrollRefType = null | ScrollType
 export const ScrollContext = React.createContext<
-  ScrollType & {scrollRef: React.MutableRefObject<ScrollRefType>}
+  ScrollType & {
+    setScrollRef: (scrollRef: ScrollRefType) => void
+  }
 >({
   scrollDown: () => {},
-  scrollRef: {current: null},
   scrollToBottom: () => {},
   scrollUp: () => {},
+  setScrollRef: () => {},
 })
 
 export const ScrollProvider = React.memo(function ScrollProvider({children}: {children: React.ReactNode}) {
   const scrollRef = React.useRef<ScrollRefType>(null)
+  const setScrollRef = React.useCallback((r: ScrollRefType) => {
+    scrollRef.current = r
+  }, [])
   const scrollUp = React.useCallback(() => {
     scrollRef.current?.scrollUp()
   }, [])
@@ -43,8 +48,8 @@ export const ScrollProvider = React.memo(function ScrollProvider({children}: {ch
     scrollRef.current?.scrollToBottom()
   }, [])
   const value = React.useMemo(
-    () => ({scrollDown, scrollRef, scrollToBottom, scrollUp}),
-    [scrollDown, scrollToBottom, scrollUp]
+    () => ({scrollDown, scrollToBottom, scrollUp, setScrollRef}),
+    [scrollDown, scrollToBottom, scrollUp, setScrollRef]
   )
   return <ScrollContext.Provider value={value}>{children}</ScrollContext.Provider>
 })
