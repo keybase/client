@@ -56,6 +56,8 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
+const defaultSnapPoints = ['75%']
+
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
@@ -88,7 +90,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
     return (
       <BottomSheetModal
         containerComponent={FullWindow}
-        snapPoints={snapPoints ?? ['75%']}
+        snapPoints={snapPoints ?? defaultSnapPoints}
         enableDynamicSizing={true}
         ref={s => {
           if (s && !shownRef.current) {
