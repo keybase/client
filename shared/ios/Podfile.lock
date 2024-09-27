@@ -1398,71 +1398,7 @@ PODS:
   - react-native-netinfo (11.4.1):
     - React-Core
   - react-native-safe-area-context (4.11.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - react-native-safe-area-context/common (= 4.11.0)
-    - react-native-safe-area-context/fabric (= 4.11.0)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-safe-area-context/common (4.11.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - react-native-safe-area-context/fabric (4.11.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - react-native-safe-area-context/common
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-webview (13.12.2):
     - DoubleConversion
     - glog
@@ -1747,26 +1683,7 @@ PODS:
   - RNCMaskedView (0.3.1):
     - React-Core
   - RNCPicker (2.8.1):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
   - RNGestureHandler (2.20.0):
@@ -1856,29 +1773,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNScreens (3.35.0-rc.1):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-RCTImage
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.35.0-rc.1)
-    - Yoga
-  - RNScreens/common (3.35.0-rc.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2251,7 +2145,7 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
   ExpoMailComposer: e6da16de4682fba919051b2e680f804af00341f3
   ExpoMediaLibrary: 81573bcbd50cbd0a3ef57216c93593157d32b558
-  ExpoModulesCore: e7a3694d0580e4d6f46022fa899c100b2478d7dd
+  ExpoModulesCore: 0f12e4d48d4484886e2940ece708f4dc73d6319c
   ExpoSMS: a5184fc4d4b33071b2dd9d43bb9ac8ef952b1dd7
   EXTaskManager: 9c3520305c3aa1b4a12a7c6d1e3f85f2779c06e9
   FBLazyVector: 7b438dceb9f904bd85ca3c31d64cce32a035472b
@@ -2262,7 +2156,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
-  lottie-react-native: 1fdff72253c5699ea2fe3b998999285daff77500
+  lottie-react-native: 2a3335e7f3cfdc881f400b08c7e9e84d18920db1
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 4191f6e64b72d9743f6fe1a8a16e89e868f5e9e7
   RCTRequired: 9bb589570f2bb3abc6518761e3fd1ad9b7f7f06c
@@ -2273,16 +2167,16 @@ SPEC CHECKSUMS:
   React-CoreModules: 2d68c251bc4080028f2835fa47504e8f20669a21
   React-cxxreact: 5f233f8ac7ea4772e49462e0ab2b0a15a4f80ab7
   React-debug: fd0ed8ecd5f8a23c7daf5ceaca8aa722a4d083fd
-  React-defaultsnativemodule: 1f9a0cae1ef7e05a6ea2bbec2e5eff6eb70da16a
-  React-domnativemodule: 38d632c6963ab2d08f5ce67808e070439bd1461c
+  React-defaultsnativemodule: 10f0f8bc38d8dc7d2273572cd85ed0b71298ecdd
+  React-domnativemodule: bfef3dda59e7030b498d0d78628f4adf414ab8e4
   React-Fabric: 3d0f5e2735d2f77a897ee684edeff7bb0e061919
   React-FabricComponents: 68032a85a3c25c9c8d6ce676d8af9a85e2370f24
   React-FabricImage: f8ac2df576703097b5b2f8d972b162cdca855aa3
   React-featureflags: cf78861db9318ae29982fa8953c92d31b276c9ac
-  React-featureflagsnativemodule: 99ffda7fc2cc0f9578b05b84d8b4a2e9dcb39b8b
+  React-featureflagsnativemodule: d04eb5c3f0ac33fe70b060d97e8649bfd69c5f1e
   React-graphics: 7572851bca7242416b648c45d6af87d93d29281e
   React-hermes: 95c27801c60615345ee6256eafa6d597ce983b8b
-  React-idlecallbacksnativemodule: e4fd9ee09b8481dd22f1e173984e5ee2730712ce
+  React-idlecallbacksnativemodule: f5f0b760ec2739b30e315e1afee3dd3a5a93c3b6
   React-ImageManager: aedf54d34d4475c66f4c3da6b8359b95bee904e4
   React-jserrorhandler: 0c8949672a00f2a502c767350e591e3ec3d82fb3
   React-jsi: d77bb442a4b0849063f2bd22d3c1fa71918713b7
@@ -2291,23 +2185,23 @@ SPEC CHECKSUMS:
   React-jsitracing: 3935b092f85bb1e53b8cf8a00f572413648af46b
   React-logger: 4072f39df335ca443932e0ccece41fbeb5ca8404
   React-Mapbuffer: 714f2fae68edcabfc332b754e9fbaa8cfc68fdd4
-  React-microtasksnativemodule: 0b6b90da7f203e3015e1252ec3cba49c8ddd85ad
-  react-native-drop-view: 4e6734bc964c17bc59f9ffacf938aa4257f4073b
+  React-microtasksnativemodule: 4943ad8f99be8ccf5a63329fa7d269816609df9e
+  react-native-drop-view: bfb98a829c9557b5cf811a50b05d353f06ab0168
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
-  react-native-kb: d90c252c3cf3ea6901d65e54cbf606ed49c7ac8e
+  react-native-kb: f069d7df675b72404c226c59147ad31d52680e01
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
-  react-native-safe-area-context: f1fda705dfe14355f41933debb5932887e234cc5
-  react-native-webview: 06f91954784dde28e1210f381c791f0c5f9bd9a2
+  react-native-safe-area-context: 851c62c48dce80ccaa5637b6aa5991a1bc36eca9
+  react-native-webview: 7aaf4bb5b2ec08901c821aceb4b55908ad012b04
   React-nativeconfig: 4a9543185905fe41014c06776bf126083795aed9
   React-NativeModulesApple: 0506da59fc40d2e1e6e12a233db5e81c46face27
   React-perflogger: 3bbb82f18e9ac29a1a6931568e99d6305ef4403b
   React-performancetimeline: d15a723422ed500f47cb271f3175abbeb217f5ba
   React-RCTActionSheet: cb2b38a53d03ec22f1159c89667b86c2c490d92d
   React-RCTAnimation: 6836c87c7364f471e9077fda80b7349bc674be33
-  React-RCTAppDelegate: 603240f6a7d7eefeeffe4e29dd0be70dc35208cf
+  React-RCTAppDelegate: 2f11edfa7302451c792591f9a7838ca86cdcec34
   React-RCTBlob: 516dbbd38397f5013394fdd1cc65408cc82e37a1
-  React-RCTFabric: 7298604d497db4fe445cd704bd1097636643ee89
+  React-RCTFabric: b281a52c2b9726b0c64880e1535f2100013d5f7c
   React-RCTImage: 1b2c2c1716db859ffff2d7a06a30b0ec5c677fc5
   React-RCTLinking: 59c07577767e705b0ab95d11e5ad74c61bf2a022
   React-RCTNetwork: f9a827e7d6bc428e0d99cd1fbe0427854354b8c1
@@ -2326,11 +2220,11 @@ SPEC CHECKSUMS:
   ReactCodegen: ff95a93d5ab5d9b2551571886271478eaa168565
   ReactCommon: 289214026502e6a93484f4a46bcc0efa4f3f2864
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
-  RNCPicker: 6ad936eee086dbe2aeb658994021770b46897d62
+  RNCPicker: 0b6860a6b208d4046227d2f626ad0722f99a969c
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: c374c750a0a9bacd95f5c740d146ab9428549d6b
-  RNReanimated: f46df3b08d5d59cd83c47bb6697ce88e565e0dc7
-  RNScreens: 672e79111218a09700414b803be8c7647d2cd307
+  RNGestureHandler: 6dfe7692a191ee224748964127114edf057a1475
+  RNReanimated: c543567b3482ea54dec3216811d2360e581d35d0
+  RNScreens: ce8ccfbf3d14f4fc23e205d5e315622d7962af75
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c

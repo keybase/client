@@ -47,7 +47,7 @@
 
 - (BOOL)bridgelessEnabled
 {
-    return YES; // if you change this change Kb.mm also BOOL isBridgeless;
+    return NO; // if you change this change Kb.mm also BOOL isBridgeless;
 }
 
 @end
