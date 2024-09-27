@@ -7,6 +7,7 @@ import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
 import Text from '@/common-adapters/text'
+import {useNavigation} from '@react-navigation/native'
 import type {Action, Props, LeftActionProps} from '.'
 
 const Kb = {BackButton, Box, FloatingMenu, Icon, Text}
@@ -341,6 +342,16 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
     />
   ) : null
 })
+
+export const HeaderLeftArrowCanGoBack = (hp: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+  badgeNumber?: number
+}) => {
+  const canGoBack = useNavigation().canGoBack()
+  return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
+}
 
 export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
   canGoBack?: boolean

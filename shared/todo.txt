@@ -1,16 +1,4 @@
----
----  strict
----  native: wrapper in native for strict
----  native: floating menu dynamic sizing broken
-----
-
 teams/ more back showing on root : canGoBack is always true passed in
-
-strict off on native due to gesture
-
-bottom sheet crashes on show: try exploding modal:
-https://github.com/gorhom/react-native-bottom-sheet/issues/1726
-reanimated 3.12 crashes https://github.com/software-mansion/react-native-reanimated/issues/6082
 
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 new unchecked kotline code for 'getInitialShareFileUrls'
@@ -19,6 +7,14 @@ CHECK push / files etc on android
 
   deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
   check animated gifs work after udpating expo-image or rollback again
+
+
+new arch issues:
+-------------------------
+bottom sheet enableDynamicSizing fails
+quickly switch tabs while changing dark mode on ios sim crashes
+strict mode with gestures fails
+
 
 run electron hash update
 -------------------------

@@ -89,8 +89,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
       <BottomSheetModal
         containerComponent={FullWindow}
         snapPoints={snapPoints ?? ['75%']}
-        // TODO this is only off due to issues in new arch
-        enableDynamicSizing={false}
+        enableDynamicSizing={true}
         ref={s => {
           if (s && !shownRef.current) {
             shownRef.current = true

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {HeaderOptions} from '@react-navigation/elements'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
 import type {NavState} from '@/constants/router2'
 
 export const headerDefaultStyle = {
@@ -37,8 +37,8 @@ export const defaultNavigationOptions = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({canGoBack, onPress, tintColor}: HeaderLeftProps) => {
-    return <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  headerLeft: ({onPress, tintColor}: HeaderLeftProps) => {
+    return <HeaderLeftArrowCanGoBack onPress={onPress} tintColor={tintColor} />
   },
   headerLeftContainerStyle: {
     flexGrow: 0,

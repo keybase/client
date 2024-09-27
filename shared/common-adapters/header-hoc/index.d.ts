@@ -65,6 +65,9 @@ export declare const LeftAction: (p: LeftActionProps) => React.ReactNode
 
 // used in navigationOptions
 export declare const HeaderLeftArrow: (p: HeaderBackButtonProps & {badgeNumber?: number}) => React.ReactNode
+export declare const HeaderLeftArrowCanGoBack: (
+  p: Omit<HeaderBackButtonProps, 'canGoBack'> & {badgeNumber?: number}
+) => React.ReactNode
 export declare const HeaderLeftBlank: () => React.ReactNode
 export declare const HeaderLeftCancel: (p: HeaderBackButtonProps) => React.ReactNode
 export declare const HeaderLeftCancel2: (p: HeaderBackButtonProps) => React.ReactNode
