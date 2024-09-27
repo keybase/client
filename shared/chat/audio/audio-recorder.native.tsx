@@ -685,8 +685,12 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />
-      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle]} />
+      <AnimatedIcon
+        type="iconfont-arrow-up"
+        sizeType="Tiny"
+        style={[styles.lockHintStyle, arrowStyle as any]}
+      />
+      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle as any]} />
     </>
   )
 }
@@ -696,7 +700,7 @@ const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
   const {lockedSV, fadeSV, onCancel, dragXSV} = props
-  const arrowStyle = useAnimatedStyle(() => {
+  const arrowStyle: any = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
     const dragDistanceX = -50
     const deltaX = 180
@@ -709,7 +713,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const closeStyle = useAnimatedStyle(() => {
+  const closeStyle: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -721,7 +725,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const textStyle = useAnimatedStyle(() => {
+  const textStyle: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -737,7 +741,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       ],
     }
   })
-  const textStyleLocked = useAnimatedStyle(() => {
+  const textStyleLocked: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220

@@ -1,3 +1,13 @@
+diff --git a/node_modules/qrcode-generator/qrcode.d.ts b/node_modules/qrcode-generator/qrcode.d.ts
+index b34952e..e72e297 100644
+--- a/node_modules/qrcode-generator/qrcode.d.ts
++++ b/node_modules/qrcode-generator/qrcode.d.ts
+@@ -53,5 +53,4 @@ interface QRCode {
+ declare var qrcode : QRCodeFactory;
+ 
+ declare module 'qrcode-generator' {
+-  export = qrcode;
+ }
 diff --git a/node_modules/qrcode-generator/qrcode.js b/node_modules/qrcode-generator/qrcode.js
 index 76889b5..39c2a5d 100644
 --- a/node_modules/qrcode-generator/qrcode.js

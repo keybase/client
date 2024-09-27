@@ -197,6 +197,9 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const lastUnreadIndices = React.useRef(unreadIndices)
   const lastUnreadTotal = React.useRef(unreadTotal)
 
+  const closeOpenedRow = React.useCallback(() => {}, [])
+  const setCloseOpenedRow = React.useCallback(() => {}, [])
+
   const itemSizeGetter = React.useCallback(
     (index: number) => {
       const row = rows[index]
@@ -290,7 +293,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       // pointer events on so you can click even right after a scroll
       return (
         <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-          {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+          {makeRow(
+            row,
+            navKey,
+            selectedConversationIDKey === row.conversationIDKey,
+            setCloseOpenedRow,
+            closeOpenedRow
+          )}
         </div>
       )
     },
@@ -302,6 +311,8 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       navKey,
       rows,
       selectedConversationIDKey,
+      setCloseOpenedRow,
+      closeOpenedRow,
     ]
   )
 

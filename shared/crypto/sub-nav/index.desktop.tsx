@@ -72,11 +72,14 @@ const CryptoSubNavigator = () => (
         key={name}
         name={name}
         getComponent={shimmed[name].getScreen}
-        options={({route, navigation}) => {
-          const no = getOptions(cryptoSubRoutes[name])
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          return {...opt}
-        }}
+        options={
+          // @ts-ignore
+          ({route, navigation}) => {
+            const no = getOptions(cryptoSubRoutes[name])
+            const opt = typeof no === 'function' ? no({navigation, route}) : no
+            return {...opt}
+          }
+        }
       />
     ))}
   </TabNavigator.Navigator>

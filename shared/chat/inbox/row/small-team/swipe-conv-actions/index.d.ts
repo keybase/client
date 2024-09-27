@@ -1,7 +1,8 @@
 import type * as React from 'react'
 export type Props = {
   children: React.ReactNode
-  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+  setCloseOpenedRow: (fn: () => void) => void
+  closeOpenedRow: () => void
 }
 declare const SwipeConvActions: (p: Props) => React.ReactNode
 export default SwipeConvActions

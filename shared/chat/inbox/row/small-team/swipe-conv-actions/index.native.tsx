@@ -45,11 +45,10 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const {swipeCloseRef, children} = p
+  const {children, setCloseOpenedRow, closeOpenedRow} = p
   const conversationIDKey = C.useChatContext(s => s.id)
   C.Chat.useCIDChanged(conversationIDKey, () => {
-    // only if open
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
@@ -71,28 +70,26 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const onMarkAsUnread = C.useEvent(() => {
     onMarkConversationAsUnread()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const onMute = C.useEvent(() => {
     onMuteConversation()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const onHide = C.useEvent(() => {
     onHideConversation()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const onSwipeableWillOpen = React.useCallback(() => {
-    if (swipeCloseRef) {
-      swipeCloseRef.current?.()
-      swipeCloseRef.current = () => {
-        swipeableRef.current?.close()
-      }
-    }
-  }, [swipeCloseRef])
+    closeOpenedRow()
+    setCloseOpenedRow(() => {
+      swipeableRef.current?.close()
+    })
+  }, [closeOpenedRow, setCloseOpenedRow])
 
   return (
     <Swipeable

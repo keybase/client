@@ -236,90 +236,93 @@ export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skip
 // If layout is changed here, please make sure the Files header is updated as
 // well to match this. fs/nav-header/mobile-header.js
 
-const styles = Styles.styleSheetCreate(() => ({
-  action: Styles.platformStyles({
-    common: {
-      opacity: 1,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: 0,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isAndroid: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isIOS: {
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-  }),
-  actionPressable: {opacity: 0.3},
-  borderless: {borderBottomWidth: 0},
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    height: '100%',
-    position: 'relative',
-  },
-  grow: {flexGrow: 1},
-  header: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      justifyContent: 'flex-start',
-    },
-    isAndroid: {
-      backgroundColor: Styles.globalColors.white,
-      height: 56,
-    },
-    isIOS: {height: 44},
-    isTablet: {
-      height: 40 + Styles.headerExtraHeight,
-    },
-  }),
-  innerWrapper: {...Styles.globalStyles.fillAbsolute},
-  leftAction: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'flex-start',
-      flexShrink: 1,
-      justifyContent: 'flex-start',
-    },
-  }),
-  rightActions: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'flex-end',
-      flexShrink: 1,
-      justifyContent: 'flex-end',
-    },
-    isIOS: {paddingRight: Styles.globalMargins.tiny},
-  }),
-  rightActionsWrapper: {...Styles.globalStyles.flexBoxRow},
-  title: {color: Styles.globalColors.black},
-  titleContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      flexGrow: 1,
-      flexShrink: 2,
-      justifyContent: 'center',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  titleContainerLeftPadding: Styles.platformStyles({
-    isAndroid: {paddingLeft: Styles.globalMargins.small},
-  }),
-  titleContainerRightPadding: Styles.platformStyles({
-    isAndroid: {paddingRight: Styles.globalMargins.small},
-  }),
-  titleTextContainer: {...Styles.globalStyles.fillAbsolute},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      action: Styles.platformStyles({
+        common: {
+          opacity: 1,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: 0,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isAndroid: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isIOS: {
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      actionPressable: {opacity: 0.3},
+      borderless: {borderBottomWidth: 0},
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        height: '100%',
+        position: 'relative',
+      },
+      grow: {flexGrow: 1},
+      header: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          justifyContent: 'flex-start',
+        },
+        isAndroid: {
+          backgroundColor: Styles.globalColors.white,
+          height: 56,
+        },
+        isIOS: {height: 44},
+        isTablet: {
+          height: 40 + Styles.headerExtraHeight,
+        },
+      }),
+      innerWrapper: {...Styles.globalStyles.fillAbsolute},
+      leftAction: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'flex-start',
+          flexShrink: 1,
+          justifyContent: 'flex-start',
+        },
+      }),
+      rightActions: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'flex-end',
+          flexShrink: 1,
+          justifyContent: 'flex-end',
+        },
+        isIOS: {paddingRight: Styles.globalMargins.tiny},
+      }),
+      rightActionsWrapper: {...Styles.globalStyles.flexBoxRow},
+      title: {color: Styles.globalColors.black},
+      titleContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          flexGrow: 1,
+          flexShrink: 2,
+          justifyContent: 'center',
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+      titleContainerLeftPadding: Styles.platformStyles({
+        isAndroid: {paddingLeft: Styles.globalMargins.small},
+      }),
+      titleContainerRightPadding: Styles.platformStyles({
+        isAndroid: {paddingRight: Styles.globalMargins.small},
+      }),
+      titleTextContainer: {...Styles.globalStyles.fillAbsolute},
+    }) as const
+)
 
 const noop = () => {}
 const HeaderLeftBlankImpl = React.memo(function HeaderLeftBlankImpl() {
@@ -330,8 +333,8 @@ export const HeaderLeftBlank = () => <HeaderLeftBlankImpl />
 export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   canGoBack?: boolean
   badgeNumber?: number
-  onPress: () => void
-  tintColor: string
+  onPress?: () => void
+  tintColor?: string
 }) {
   return (hp.canGoBack ?? true) ? (
     <LeftAction
