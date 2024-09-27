@@ -2,8 +2,6 @@ new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivit
 new unchecked kotline code for 'getInitialShareFileUrls'
 CHECK push / files etc on android
 
-deprecated login stuff: `const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin`
-
 new arch issues:
 -------------------------
 bottom sheet enableDynamicSizing fails
