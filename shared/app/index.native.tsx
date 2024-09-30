@@ -23,7 +23,7 @@ module.hot?.accept(() => {
 
 const useDarkHookup = () => {
   const appStateRef = React.useRef('active')
-  const {setSystemDarkMode} = C.useDarkModeState.getState().dispatch
+  const setSystemDarkMode = C.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   const setMobileAppState = C.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
