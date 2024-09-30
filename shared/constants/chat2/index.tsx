@@ -289,6 +289,7 @@ type PreviewReason =
 
 type Store = T.Immutable<{
   // increments when the convo stores values change, badges and unread
+  // // TODO REmove
   badgeCountsChanged: number
   botPublicCommands: Map<string, T.Chat.BotPublicCommands>
   createConversationError?: T.Chat.CreateConversationError
@@ -420,8 +421,9 @@ export interface State extends Store {
     updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
     updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
-  getBadgeMap: (badgeCountsChanged: number) => Map<string, number>
-  getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
+  getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
+  getBadgeHiddenCount: (ids: Set<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
+  getUnreadIndicies: (ids: Array<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
 // Only get the untrusted conversations out
@@ -1957,23 +1959,44 @@ export const _useState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     dispatch,
-    getBadgeMap: badgeCountsChanged => {
-      badgeCountsChanged // this param is just to ensure the selector reruns on a change
-      const badgeMap = new Map()
+    getBackCount: conversationIDKey => {
+      let count = 0
       C.chatStores.forEach(s => {
         const {id, badge} = s.getState()
-        badgeMap.set(id, badge)
+        // only show sum of badges that aren't for the current conversation
+        if (id !== conversationIDKey) {
+          count += badge
+        }
       })
-      return badgeMap
+      return count
     },
-    getUnreadMap: badgeCountsChanged => {
-      badgeCountsChanged // this param is just to ensure the selector reruns on a change
-      const unreadMap = new Map()
+    getBadgeHiddenCount: ids => {
+      let badgeCount = 0
+      let hiddenCount = 0
+
       C.chatStores.forEach(s => {
-        const {id, unread} = s.getState()
-        unreadMap.set(id, unread)
+        const {id, badge} = s.getState()
+        if (ids.has(id)) {
+          badgeCount -= badge
+          hiddenCount -= 1
+        }
       })
-      return unreadMap
+
+      return {badgeCount, hiddenCount}
+    },
+    getUnreadIndicies: ids => {
+      const unreadIndices: Map<number, number> = new Map()
+      ids.forEach((cur, idx) => {
+        Array.from(C.chatStores.values()).some(s => {
+          const {id, badge} = s.getState()
+          if (id === cur && badge > 0) {
+            unreadIndices.set(idx, badge)
+            return true
+          }
+          return false
+        })
+      })
+      return unreadIndices
     },
   }
 })
