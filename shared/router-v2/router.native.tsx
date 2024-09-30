@@ -98,8 +98,9 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       badge: Kb.Styles.platformStyles({
         common: {
+          left: 36,
           position: 'absolute',
-          right: 8,
+          // new arch? right: 8,
           top: 3,
         },
       }),
