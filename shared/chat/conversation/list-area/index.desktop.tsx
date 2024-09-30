@@ -61,6 +61,9 @@ const useScrolling = (p: {
   const lockedToBottomRef = React.useRef(true)
   // so we can turn pointer events on / off
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
+  const setPointerWrapperRef = React.useCallback((r: HTMLDivElement | null) => {
+    pointerWrapperRef.current = r
+  }, [])
 
   const isLockedToBottom = React.useCallback(() => {
     return lockedToBottomRef.current
@@ -266,8 +269,15 @@ const useScrolling = (p: {
     if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
       programaticScrollRef.current = true
 
-      current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
+      const newTop = current.scrollHeight - scrollBottomOffsetRef.current
+      const id = setTimeout(() => {
+        current.scrollTop = newTop
+      }, 0)
+      return () => {
+        clearTimeout(id)
+      }
     }
+    return undefined
     // we want this to fire when the ordinals change
   }, [
     ordinalsLength,
@@ -322,7 +332,7 @@ const useScrolling = (p: {
     scrollToBottom()
   }
 
-  return {didFirstLoad, isLockedToBottom, pointerWrapperRef, scrollToBottom, setListRef}
+  return {didFirstLoad, isLockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
 }
 
 const useItems = (p: {
@@ -454,7 +464,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef, didFirstLoad} = useScrolling({
+  const {isLockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     listRef,
@@ -511,8 +521,8 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
   const setListContents = useHandleListResize({
     isLockedToBottom,
-    pointerWrapperRef,
     scrollToBottom,
+    setPointerWrapperRef,
   })
 
   return (
@@ -543,9 +553,9 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
 const useHandleListResize = (p: {
   isLockedToBottom: () => boolean
   scrollToBottom: () => void
-  pointerWrapperRef: React.MutableRefObject<HTMLDivElement | null>
+  setPointerWrapperRef: (r: HTMLDivElement | null) => void
 }) => {
-  const {isLockedToBottom, scrollToBottom, pointerWrapperRef} = p
+  const {isLockedToBottom, scrollToBottom, setPointerWrapperRef} = p
   const lastResizeHeightRef = React.useRef(0)
   const onListSizeChanged = React.useCallback(
     function onListSizeChanged(contentRect: {height: number}) {
@@ -560,14 +570,16 @@ const useHandleListResize = (p: {
     [isLockedToBottom, scrollToBottom]
   )
 
+  const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
   const setListContents = React.useCallback(
     (listContents: HTMLDivElement | null) => {
+      setPointerWrapperRef(listContents)
       pointerWrapperRef.current = listContents
     },
-    [pointerWrapperRef]
+    [setPointerWrapperRef, pointerWrapperRef]
   )
 
-  useResizeObserver(pointerWrapperRef.current, e => onListSizeChanged(e.contentRect))
+  useResizeObserver(pointerWrapperRef, e => onListSizeChanged(e.contentRect))
 
   return setListContents
 }
