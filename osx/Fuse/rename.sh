@@ -18,6 +18,7 @@ find . -name "$i" -type f -exec sed -i '' s/macfuse/kbfuse/g {} +
 find . -name "$i" -type f -exec sed -i '' s/MACFUSE/KBFUSE/g {} +
 find . -name "$i" -type f -exec sed -i '' "s/io\.kbfuse\.filesystems\.kbfuse/com.github.kbfuse.filesystems.kbfuse/g" {} +
 find . -name "$i" -type f -exec sed -i '' "s/io\.kbfuse\.filesystems\.fs\.kbfuse/com.github.kbfuse.filesystems.kbfuse/g" {} +
+find . -name "$i" -type f -exec sed -i '' s/io\.kbfuse/com.github.kbfuse/g {} +
 done
 
 find . -type d -name '*macfuse*' -exec sh -c 'mv {} $(echo {} | sed -e 's/macfuse/kbfuse/g')' \;
