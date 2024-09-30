@@ -329,7 +329,7 @@ const PlatformInput = (p: Props) => {
           insertText('\n')
       }
     }
-    HWKeyboardEvent.onHWKeyPressed(cb as any)
+    HWKeyboardEvent.onHWKeyPressed(cb)
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
