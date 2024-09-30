@@ -166,8 +166,8 @@ type ListProps = Pick<
 > & {
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  setOnMoveRef: (r: (up: boolean) => void) => void
+  setOnSubmitRef: (r: () => boolean) => void
 } & {
   inputRef: React.MutableRefObject<Input2Ref | null>
   lastTextRef: React.MutableRefObject<string>

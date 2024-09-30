@@ -272,8 +272,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>()
+  const setOnMoveRef = React.useCallback((r: (up: boolean) => void) => {
+    onMoveRef.current = r
+  }, [])
   // tell list we want to submit the selection, true if it selected anything
   const onSubmitRef = React.useRef<() => boolean>()
+  const setOnSubmitRef = React.useCallback((r: () => boolean) => {
+    onSubmitRef.current = r
+  }, [])
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
@@ -320,9 +326,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     expanded,
     filter,
     listStyle: suggestionListStyle,
-    onMoveRef,
     onSelected,
-    onSubmitRef,
+    setOnMoveRef,
+    setOnSubmitRef,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }
