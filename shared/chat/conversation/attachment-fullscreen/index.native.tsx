@@ -137,13 +137,20 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     )
   }
 
-  const fadeAnim = React.useRef(new Animated.Value(1)).current
+  const fadeAnimRef = React.useRef(new Animated.Value(1))
+  const [fadeAnim, setFadeAnim] = React.useState<null | Animated.Value>(null)
+
   React.useEffect(() => {
-    Animated.timing(fadeAnim, {
-      duration: 240,
-      toValue: showHeader ? 1 : 0,
-      useNativeDriver: true,
-    }).start()
+    setFadeAnim(fadeAnimRef.current)
+  }, [])
+
+  React.useEffect(() => {
+    fadeAnim &&
+      Animated.timing(fadeAnim, {
+        duration: 240,
+        toValue: showHeader ? 1 : 0,
+        useNativeDriver: true,
+      }).start()
   }, [showHeader, fadeAnim])
 
   return (
@@ -156,7 +163,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       {spinner}
       <ShowToastAfterSaving transferState={message.transferState} />
       <Kb.BoxGrow>{content}</Kb.BoxGrow>
-      <Animated.View style={[styles.animated, {opacity: fadeAnim}]}>
+      <Animated.View style={[styles.animated, {opacity: fadeAnim ?? 1}]}>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.headerWrapper}>
           <Kb.Text type="Body" onClick={onClose} style={styles.close}>
             Close
