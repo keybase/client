@@ -258,7 +258,7 @@ sign() {(
 
 
   echo "Verify codesigning..."
-  codesign --verify --verbose=4 "$appname.app"
+  codesign --verify --verbose=4 "$app_name.app"
   spctl --assess --verbose=4 "$app_name.app"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
