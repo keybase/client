@@ -270,9 +270,8 @@ const PlatformInput = (p: Props) => {
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle,
   })
-  const {cannotWrite, isEditing, isExploding} = p
+  const {cannotWrite, isEditing, isExploding, setInput2Ref, showTypingStatus} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
-  const {inputSetRef, showTypingStatus} = p
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>()
@@ -389,10 +388,10 @@ const PlatformInput = (p: Props) => {
 
   const onAnimatedInputRef = React.useCallback(
     (ref: Input2Ref | null) => {
-      inputSetRef.current = ref
+      setInput2Ref(ref)
       inputRef.current = ref
     },
-    [inputSetRef, inputRef]
+    [setInput2Ref, inputRef]
   )
   const aiOnChangeText = React.useCallback(
     (text: string) => {

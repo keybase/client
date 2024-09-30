@@ -7,7 +7,7 @@ export type Props = {
   cannotWrite: boolean
   explodingModeSeconds: number
   hintText: string
-  inputSetRef: React.MutableRefObject<Input2Ref | null>
+  setInput2Ref: (r: Input2Ref | null) => void
   isEditing: boolean
   isExploding: boolean
   minWriterRole: T.Teams.TeamRoleType

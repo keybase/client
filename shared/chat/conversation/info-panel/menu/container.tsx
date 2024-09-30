@@ -29,6 +29,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
+  const teamMeta = C.useTeamsState(s => (pteamID ? C.Teams.getTeamMeta(s, pteamID) : undefined))
   const data = (() => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -54,16 +55,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       const fullname =
         (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
-      // TODO getCanPerformByID not reactive here
-      const yourOperations = C.Teams.getCanPerformByID(C.useTeamsState.getState(), teamID)
-      const badgeSubscribe = !C.Teams.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
-      const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
       const ignored = status === T.RPCChat.ConversationStatus.ignored
       return {
         ...common,
-        badgeSubscribe,
-        canAddPeople,
         channelname,
         fullname,
         ignored,
@@ -76,20 +71,18 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       }
     } else if (pteamID) {
       const teamID = pteamID
-      //TODO not reactive
-      const teamMeta = C.Teams.getTeamMeta(C.useTeamsState.getState(), teamID)
-      //TODO not reactive
-      const yourOperations = C.Teams.getCanPerformByID(C.useTeamsState.getState(), teamID)
-      const canAddPeople = yourOperations.manageMembers
-      const {teamname} = teamMeta
-      const badgeSubscribe = !C.Teams.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
-      return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
+      const teamname = teamMeta?.teamname ?? ''
+      return {...common, teamID, teamname}
     }
     return {...common}
   })()
 
-  const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
+  const {teamname, teamID, channelname, isInChannel, ignored} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
+
+  const canAddPeople = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageMembers)
+  const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
+
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)

@@ -92,7 +92,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const replyTo = C.useChatContext(s => s.messageMap.get(s.replyTo)?.id)
   const editOrdinal = C.useChatContext(s => s.editing)
   const isEditExploded = C.useChatContext(s =>
-    editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
+    editOrdinal ? (s.messageMap.get(editOrdinal)?.exploded ?? false) : false
   )
   const isEditing = !!editOrdinal
   const unsentText = C.useChatContext(s => s.unsentText)
@@ -101,6 +101,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const updateDraft = C.useChatContext(s => s.dispatch.updateDraft)
   const setExplodingModeLocked = C.useChatContext(s => s.dispatch.setExplodingModeLocked)
   const inputRef = React.useRef<Input2Ref | null>(null)
+  const setInput2Ref = React.useCallback((r: Input2Ref | null) => {
+    inputRef.current = r
+  }, [])
 
   // true while injecting since onChangeText is called
   const injectingTextRef = React.useRef(false)
@@ -173,10 +176,10 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     [messageEdit, injectText, messageSend, conversationIDKey, scrollToBottom, jumpToRecent, replyTo]
   )
 
-  const {inputRef: inputRefContext} = React.useContext(FocusContext)
+  const {setInputRef} = React.useContext(FocusContext)
   React.useEffect(() => {
-    inputRefContext.current = inputRef.current
-  }, [inputRefContext])
+    setInputRef(inputRef.current)
+  }, [setInputRef])
 
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {
@@ -223,7 +226,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       }
       suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       onSubmit={onSubmit}
-      inputSetRef={inputRef}
+      setInput2Ref={setInput2Ref}
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
       cannotWrite={cannotWrite}

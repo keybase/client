@@ -145,8 +145,11 @@ const fileListToPaths = (f: FileList): Array<string> => {
   return Array.from(f).map(f => getPathForFile?.(f) ?? '')
 }
 
-const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRefType}) {
-  const {htmlInputRef} = p
+const FileButton = React.memo(function FileButton(p: {
+  setHtmlInputRef: (i: HTMLInputElement | null) => void
+}) {
+  const {setHtmlInputRef} = p
+  const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
@@ -170,10 +173,18 @@ const FileButton = React.memo(function FileButton(p: {htmlInputRef: HtmlInputRef
     htmlInputRef.current?.click()
   }, [htmlInputRef])
 
+  const setRef = React.useCallback(
+    (e: HTMLInputElement | null) => {
+      htmlInputRef.current = e
+      setHtmlInputRef(e)
+    },
+    [setHtmlInputRef]
+  )
+
   return (
     <Kb.Box style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
       <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
-      <input type="file" style={styles.hidden} ref={htmlInputRef} onChange={pickFile} multiple={true} />
+      <input type="file" style={styles.hidden} ref={setRef} onChange={pickFile} multiple={true} />
     </Kb.Box>
   )
 })
@@ -297,19 +308,19 @@ const useKeyboard = (p: UseKeyboardProps) => {
 }
 
 type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
-  htmlInputRef: HtmlInputRefType
+  setHtmlInputRef: (i: HTMLInputElement | null) => void
   inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, cannotWrite, inputRef} = p
+  const {setHtmlInputRef, cannotWrite, inputRef} = p
   return (
     <Kb.Box2 direction="horizontal" style={styles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
           <EmojiButton inputRef={inputRef} />
-          <FileButton htmlInputRef={htmlInputRef} />
+          <FileButton setHtmlInputRef={setHtmlInputRef} />
         </>
       )}
     </Kb.Box2>
@@ -338,8 +349,11 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   // }, [conversationIDKey, chatDebugDump])
 
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
-  const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
-  const htmlInputRef = React.useRef<HTMLInputElement>(null)
+  const {showReplyPreview, hintText, setInput2Ref, isEditing, onSubmit} = p
+  const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
+  const setHtmlInputRef = React.useCallback((i: HTMLInputElement | null) => {
+    htmlInputRef.current = i
+  }, [])
   const inputRef = React.useRef<Input2Ref | null>(null)
 
   // keep focus
@@ -397,11 +411,11 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const setRefs = React.useCallback(
     (ref: null | Input2Ref) => {
       // from normal/index
-      inputSetRef.current = ref
+      setInput2Ref(ref)
       // from suggestors/index
       inputRef.current = ref
     },
-    [inputRef, inputSetRef]
+    [inputRef, setInput2Ref]
   )
 
   return (
@@ -443,7 +457,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
+            <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} inputRef={inputRef} />
           </Kb.Box>
           <Footer />
         </Kb.Box>

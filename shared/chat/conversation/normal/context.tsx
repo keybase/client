@@ -4,15 +4,18 @@ type FocusRefType = null | {focus: () => void}
 
 export const FocusContext = React.createContext<{
   focusInput: () => void
-  inputRef: React.MutableRefObject<FocusRefType>
-}>({focusInput: () => {}, inputRef: {current: null}})
+  setInputRef: (inputRef: FocusRefType) => void
+}>({focusInput: () => {}, setInputRef: () => {}})
 
 export const FocusProvider = React.memo(function FocusProvider({children}: {children: React.ReactNode}) {
   const inputRef = React.useRef<FocusRefType>(null)
+  const setInputRef = React.useCallback((r: FocusRefType) => {
+    inputRef.current = r
+  }, [])
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [])
-  const value = React.useMemo(() => ({focusInput, inputRef}), [focusInput])
+  const value = React.useMemo(() => ({focusInput, setInputRef}), [setInputRef, focusInput])
   return <FocusContext.Provider value={value}>{children}</FocusContext.Provider>
 })
 
