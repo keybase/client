@@ -109,7 +109,7 @@ const getDarwinPaths = () => {
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: join(`${libraryDir}Group Containers/keybase/Library/Caches`, appName, socketName),
+    socketPath: join(`${libraryDir}Caches`, appName, socketName),
   }
 }
 
