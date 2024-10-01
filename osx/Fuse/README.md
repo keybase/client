@@ -15,7 +15,7 @@ oldest possible (compatible) kernel, to have a fewer kernel extensions built as
 possible.
 
 It's possible to build for many macOS versions but it requrues a patched Xcode.
-So are targeting 11+ now.  We'll build for macOS 11, and make a symlink of
+So are targeting 11+ now. We'll build for macOS 11, and make a symlink of
 macOS 12 All these are handled by the build script, but we'll need the
 appropriate SDKs to build against.
 
@@ -49,7 +49,13 @@ which you can submit for PR.
 This bundle is included in the KeybaseInstaller.app, so you'll need to build a new
 installer, see [Building the Installer](/osx/Scripts/README.md).
 
-Be sure to switch back to latest Xcode after you build.
+Versioning can be tricky here, here are some tips from last time:
+
+- Build against the newest macOS SDK
+- Specify an old build target (like 12.3)
+- Manually fixup Info.plist for the extension, since the Fuse build script puts the wrong values in for the minimum version and kext dependencies.
+- Make sure the name in the Info.plist doesn't have a version number after it.
+- `sudo kmutil log show` is a great way to see what is happening.
 
 ### Manual Install
 
@@ -78,4 +84,3 @@ After install if you are having problems loading the kext:
 View kext status:
 
     sudo kextstat -b com.github.kbfuse.filesystems.kbfuse
-
