@@ -89,7 +89,7 @@
     "expo": "49.0.21",
     "expo-av": "13.5.1",
     "expo-barcode-scanner": "12.7.0",
-    "expo-clipboard": "4.5.0",
+    "expo-clipboard": "5.0.0",
     "expo-contacts": "12.4.0",
     "expo-file-system": "15.6.0",
     "expo-haptics": "12.6.0",
