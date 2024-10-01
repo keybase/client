@@ -37,7 +37,7 @@ app_path="$build_dest/$app_name.app"
 rm -rf $archive_path
 
 echo "Archiving..."
-set -o pipefail && xcodebuild archive -scheme "$scheme" -workspace "$dir/../Keybase.xcworkspace" -configuration "$xcode_configuration" -archivePath "$archive_path" | xcpretty -c
+set -o pipefail && xcodebuild archive -scheme "$scheme" -workspace "$dir/../Keybase.xcworkspace" -configuration "$xcode_configuration" -archivePath "$archive_path" -destination 'platform=macOS' | xcpretty -c 
 
 # echo "Copying to archive"
 # archive_hold_path="/Users/gabe/Library/Developer/Xcode/Archives/$archive_dir_day/$app_name $archive_postfix.xcarchive"
