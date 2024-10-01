@@ -41,19 +41,19 @@
 	<key>DTXcodeBuild</key>
 	<string>16A242d</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>15.0</string>
+	<string>12.3</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.bsd</key>
-		<string>24.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.iokit</key>
-		<string>24.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.libkern</key>
-		<string>24.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.mach</key>
-		<string>24.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>24.0.0</string>
+		<string>21.0.0</string>
 	</dict>
 </dict>
 </plist>
