@@ -229,10 +229,11 @@ func (d Darwin) SandboxCacheDir() string {
 	if d.isIOS() {
 		return ""
 	}
+	return d.CacheDir()
 	// The container name "keybase" is the group name specified in the entitlement for sandboxed extensions
 	// Note: this was added for kbfs finder integration, which was never activated.
 	// keybased.sock and kbfsd.sock live in this directory.
-	return d.appDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
+	// return d.appDir(d.Home(false), "Library", "keybase", "Library", "Caches")
 }
 func (d Darwin) ConfigDir() string {
 	return d.appDir(d.sharedHome(), "Library", "Application Support")

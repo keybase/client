@@ -2,14 +2,15 @@ name: Close Issues
 on:
   issues:
     types: [opened]
-
+permissions:
+  issues: write
 jobs:
   close_issue:
     runs-on: ubuntu-latest
 
     steps:
     - name: Check issue body and close if necessary
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7.0.1
       with:
         script: |
           const issueBody = context.payload.issue.body || '';

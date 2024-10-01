@@ -331,7 +331,7 @@ func (c context) Apply(update updater.Update, options updater.UpdateOptions, tmp
 	case nil:
 	case *os.LinkError:
 		if err.Op == "rename" && err.Old == "/Applications/Keybase.app" {
-			c.log.Infof("The error was a problem renaming (moving) the app, let's trying installing the app via keybase install --components=app which has more privileges")
+			c.log.Infof("The error was a problem renaming (moving) the app, let's trying installing the app via keybase install --components=app which has more privileges: %s", err)
 
 			// Unzip and get source path
 			unzipPath, err := util.UnzipPath(localPath, c.log)
