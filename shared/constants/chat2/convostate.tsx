@@ -95,6 +95,7 @@ type ConvoStore = T.Immutable<{
   dismissedInviteBanners: boolean
   editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
+  // TODO remove
   explodingModeLock?: number // locks set on exploding mode while user is inputting text,
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
@@ -234,9 +235,11 @@ export interface ConvoState extends ConvoStore {
     messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal) => void
     messageDelete: (ordinal: T.Chat.Ordinal) => void
     messageDeleteHistory: () => void
+    // TODO make private
     messageEdit: (ordinal: T.Chat.Ordinal, text: string) => void
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
     messageRetry: (outboxID: T.Chat.OutboxID) => void
+    // TODO make private
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
     messagesClear: () => void
     messagesExploded: (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string) => void
@@ -267,11 +270,14 @@ export interface ConvoState extends ConvoStore {
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
+    // TODO remove
     sendTyping: DebouncedFunc<(typing: boolean) => void>
+    sendMessage: (text: string) => void
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
     setEditing: (ordinal: T.Chat.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
+    // TODO remove
     setExplodingModeLocked: (locked: boolean) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
@@ -2592,6 +2598,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
     },
+    sendMessage: text => {
+      const editOrdinal = get().editing
+      if (editOrdinal) {
+        get().dispatch.messageEdit(editOrdinal, text)
+      } else {
+        const replyTo = get().messageMap.get(get().replyTo)?.id
+        get().dispatch.messageSend(text, replyTo)
+      }
+    },
     sendTyping: throttle(
       typing => {
         const f = async () => {
@@ -3230,11 +3245,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.markThreadAsRead()
     },
   }
+  const convIDCache = new Map<string, Uint8Array>()
   return {
     ...initialConvoStore,
     dispatch,
     getConvID: () => {
-      return T.Chat.keyToConversationID(get().id)
+      const id = get().id
+      const cached = convIDCache.get(id)
+      if (cached) return cached
+      const cid = T.Chat.keyToConversationID(id)
+      convIDCache.set(id, cid)
+      return cid
     },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode

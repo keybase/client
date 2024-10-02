@@ -70,7 +70,7 @@ const Conversation = React.memo(function Conversation() {
   }, [toggleThreadSearch])
 
   return (
-    <div className="conversation" style={styles.container} onPaste={onPaste}>
+    <div className="conversation" style={styles.container} onPaste={onPaste} key={conversationIDKey}>
       <Kb.HotKey hotKeys={hotKeys} onHotKey={onToggleThreadSearch} />
       <Kb.DragAndDrop
         onAttach={cannotWrite ? undefined : onAttach}
@@ -80,7 +80,7 @@ const Conversation = React.memo(function Conversation() {
       >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-          <ListArea key={conversationIDKey} />
+          <ListArea />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
             {!showThreadSearch && <PinnedMessage />}

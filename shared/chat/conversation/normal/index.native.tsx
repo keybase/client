@@ -121,7 +121,13 @@ const Conversation = React.memo(function Conversation() {
   const threadLoadedOffline = C.useChatContext(s => s.meta.offline)
 
   const content = (
-    <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
+    <Kb.Box2
+      direction="vertical"
+      style={styles.innerContainer}
+      fullWidth={true}
+      fullHeight={true}
+      key={conversationIDKey}
+    >
       <DropView style={styles.dropView} onDropped={onDropped}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           {threadLoadedOffline && <Offline />}
