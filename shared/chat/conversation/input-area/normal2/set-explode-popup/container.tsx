@@ -26,7 +26,7 @@ type OwnProps = {
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
   const {setExplodingMode, onHidden, visible, attachTo, onAfterSelect} = p
   const _meta = C.useChatContext(s => s.meta)
-  const selected = C.useChatContext(s => s.getExplodingMode())
+  const selected = C.useChatContext(s => s.explodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
       setExplodingMode(seconds)

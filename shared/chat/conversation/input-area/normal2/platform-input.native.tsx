@@ -5,7 +5,7 @@ import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import MoreMenuPopup from './moremenu-popup'
-import SetExplodingMessagePicker from '@/chat/conversation/messages/set-explode-popup/container'
+import SetExplodingMessagePicker from './set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
@@ -270,7 +270,7 @@ const PlatformInput = (p: Props) => {
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle,
   })
-  const {cannotWrite, isEditing, isExploding, setInput2Ref} = p
+  const {cannotWrite, isEditing, isExploding, setInput2Ref, setExplodingMode} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
 
   const lastText = React.useRef('')
@@ -343,7 +343,14 @@ const PlatformInput = (p: Props) => {
       case 'moremenu':
         return <MoreMenuPopup onHidden={hidePopup} visible={true} />
       default:
-        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={hidePopup} visible={true} />
+        return (
+          <SetExplodingMessagePicker
+            attachTo={attachTo}
+            onHidden={hidePopup}
+            visible={true}
+            setExplodingMode={setExplodingMode}
+          />
+        )
     }
   }, [])
 

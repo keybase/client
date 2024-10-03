@@ -19,10 +19,10 @@ const LocationPopup = () => {
     clearModals()
   }
   const onSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
+  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()
-    messageSend(duration ? `/location live ${duration}` : '/location')
+    sendMessage(duration ? `/location live ${duration}` : '/location')
   }
 
   React.useEffect(() => {

@@ -23,6 +23,7 @@ type InputRefType = React.MutableRefObject<Input2Ref | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
+  setExplodingMode: (mode: number) => void
 }
 const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonProps) {
   const {explodingModeSeconds, focusInput, setExplodingMode} = p
@@ -395,7 +396,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   }, [inputRef])
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
-    setEditing(true)
+    setEditing('last')
   }, [setEditing])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
