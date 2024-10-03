@@ -283,7 +283,7 @@ const PlatformInput = (p: Props) => {
   }, [expanded, setExpanded])
 
   const reallySend = React.useCallback(() => {
-    const text = inputRef.current?.value
+    const text = lastText.current
     if (text) {
       onSubmit(text)
       if (expanded) {
@@ -303,15 +303,13 @@ const PlatformInput = (p: Props) => {
     (toInsert: string) => {
       const i = inputRef.current
       i?.focus()
-      i?.transformText(
-        ({selection, text}) =>
-          standardTransformer(
-            toInsert,
-            {position: {end: selection?.end || null, start: selection?.start || null}, text},
-            true
-          ),
-        true
-      )
+      i?.transformText(({selection, text}) => {
+        return standardTransformer(
+          toInsert,
+          {position: {end: selection?.end || null, start: selection?.start || null}, text},
+          true
+        )
+      }, true)
     },
     [inputRef]
   )
@@ -335,24 +333,27 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    switch (whichMenu.current) {
-      case 'filepickerpopup':
-        return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
-      case 'moremenu':
-        return <MoreMenuPopup onHidden={hidePopup} visible={true} />
-      default:
-        return (
-          <SetExplodingMessagePicker
-            attachTo={attachTo}
-            onHidden={hidePopup}
-            visible={true}
-            setExplodingMode={setExplodingMode}
-          />
-        )
-    }
-  }, [])
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      switch (whichMenu.current) {
+        case 'filepickerpopup':
+          return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
+        case 'moremenu':
+          return <MoreMenuPopup onHidden={hidePopup} visible={true} />
+        default:
+          return (
+            <SetExplodingMessagePicker
+              attachTo={attachTo}
+              onHidden={hidePopup}
+              visible={true}
+              setExplodingMode={setExplodingMode}
+            />
+          )
+      }
+    },
+    [setExplodingMode]
+  )
 
   const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
 
