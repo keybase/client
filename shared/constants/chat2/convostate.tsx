@@ -132,7 +132,6 @@ const initialConvoStore: ConvoStore = {
   dismissedInviteBanners: false,
   editing: T.Chat.numberToOrdinal(0),
   explodingMode: 0,
-  // explodingModeLock: undefined,
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
