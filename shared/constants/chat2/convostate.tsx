@@ -1369,7 +1369,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.unsentText = text
       })
-      //get().dispatch.updateDraft(text)
     },
     joinConversation: () => {
       const f = async () => {
