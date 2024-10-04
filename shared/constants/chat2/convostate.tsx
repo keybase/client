@@ -95,8 +95,6 @@ type ConvoStore = T.Immutable<{
   dismissedInviteBanners: boolean
   editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
-  // TODO remove
-  // explodingModeLock?: number // locks set on exploding mode while user is inputting text,
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
@@ -235,10 +233,8 @@ export interface ConvoState extends ConvoStore {
     messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal) => void
     messageDelete: (ordinal: T.Chat.Ordinal) => void
     messageDeleteHistory: () => void
-    // TODO make private
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
     messageRetry: (outboxID: T.Chat.OutboxID) => void
-    // TODO make private
     messagesClear: () => void
     messagesExploded: (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
@@ -268,16 +264,11 @@ export interface ConvoState extends ConvoStore {
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
-    // TODO remove
-    //sendTyping: DebouncedFunc<(typing: boolean) => void>
     sendMessage: (text: string) => void
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
     setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
-    // TODO remove
-    // setExplodingModeLocked: (locked: boolean) => void
-    // false to clear
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
