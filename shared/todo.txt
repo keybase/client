@@ -3,6 +3,7 @@ new unchecked kotline code for 'getInitialShareFileUrls'
 CHECK push / files etc on android
 new arch text clear fails on send >>>>
 after normal2 remove uneeeded code in store. setexplodepopup in messages gone
+>>> after send keep keyboard focus so it doens't go down
 
 new arch issues:
 -------------------------

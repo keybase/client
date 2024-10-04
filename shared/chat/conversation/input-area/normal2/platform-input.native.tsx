@@ -10,13 +10,13 @@ import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
-import {Keyboard} from 'react-native'
+import {Keyboard, TextInput as TextInputRaw} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
-import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
+import {MaxInputAreaContext} from './max-input-area-context'
 import {
   default as Animated,
   createAnimatedComponent,
@@ -292,8 +292,12 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
+  const dummyInputRef = React.useRef<TextInputRaw | null>(null)
+
   const onQueueSubmit = React.useCallback(() => {
-    inputRef.current?.blur()
+    // force ios to auto correct at the end
+    dummyInputRef.current?.focus()
+    inputRef.current?.focus()
     setTimeout(() => {
       reallySend()
     }, 60)
@@ -439,6 +443,7 @@ const PlatformInput = (p: Props) => {
               rowsMin={1}
               expanded={expanded}
             />
+            <TextInputRaw ref={dummyInputRef} style={styles.dummyInput} />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
@@ -521,6 +526,7 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
+      dummyInput: {width: 0, height: 0, position: 'absolute', opacity: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

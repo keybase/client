@@ -11,7 +11,7 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
-import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {MaxInputAreaContext} from '../input-area/normal2/max-input-area-context'
 import {useWindowDimensions} from 'react-native'
 import logger from '@/logger'
 

@@ -158,7 +158,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
-      injectText('')
+      injectText('', true)
       sendMessage(text)
       const cs = C.getConvoState(conversationIDKey)
       if (cs.messageCenterOrdinal) {
