@@ -158,6 +158,22 @@ const initialConvoStore: ConvoStore = {
   unread: 0,
   unsentText: undefined,
 }
+
+type LoadMoreMessagesParams = {
+  forceContainsLatestCalc?: boolean
+  forceClear?: boolean
+  messageIDControl?: T.RPCChat.MessageIDControl
+  centeredMessageID?: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    messageID: T.Chat.MessageID
+    highlightMode: T.Chat.CenterOrdinalHighlightMode
+  }
+  reason: LoadMoreReason
+  knownRemotes?: ReadonlyArray<string>
+  scrollDirection?: ScrollDirection
+  numberOfMessagesToLoad?: number
+}
+
 export interface ConvoState extends ConvoStore {
   dispatch: {
     addBotMember: (
@@ -210,22 +226,7 @@ export interface ConvoState extends ConvoStore {
     loadOrangeLine: (why: string) => void
     loadOlderMessagesDueToScroll: (numOrdinals: number) => void
     loadNewerMessagesDueToScroll: (numOrdinals: number) => void
-    loadMoreMessages: DebouncedFunc<
-      (p: {
-        forceContainsLatestCalc?: boolean
-        forceClear?: boolean
-        messageIDControl?: T.RPCChat.MessageIDControl
-        centeredMessageID?: {
-          conversationIDKey: T.Chat.ConversationIDKey
-          messageID: T.Chat.MessageID
-          highlightMode: T.Chat.CenterOrdinalHighlightMode
-        }
-        reason: LoadMoreReason
-        knownRemotes?: ReadonlyArray<string>
-        scrollDirection?: ScrollDirection
-        numberOfMessagesToLoad?: number
-      }) => void
-    >
+    loadMoreMessages: DebouncedFunc<(p: LoadMoreMessagesParams) => void>
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
@@ -1506,7 +1507,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'centered',
       })
     },
-    loadMoreMessages: throttle(p => {
+    loadMoreMessages: throttle((p: LoadMoreMessagesParams) => {
       if (!T.Chat.isValidConversationIDKey(get().id)) {
         return
       }
@@ -2883,7 +2884,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.threadSearchQuery = query
       })
     },
-    setTyping: throttle(t => {
+    setTyping: throttle((t: Set<string>) => {
       set(s => {
         if (!isEqual(s.typing, t)) {
           s.typing = t
@@ -3134,7 +3135,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     updateDraft: throttle(
-      text => {
+      (text: string) => {
         const f = async () => {
           await T.RPCChat.localUpdateUnsentTextRpcPromise({
             conversationID: get().getConvID(),
