@@ -303,7 +303,6 @@ export interface ConvoState extends ConvoStore {
       updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>
     ) => void
   }
-  // getExplodingMode: () => number
   isMetaGood: () => boolean
   isCaughtUp: () => boolean
   getConvID: () => Uint8Array
@@ -3235,12 +3234,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       convIDCache.set(id, cid)
       return cid
     },
-    // getExplodingMode: (): number => {
-    //   const mode = get().explodingModeLock ?? get().explodingMode
-    //   const meta = get().meta
-    //   const convRetention = Meta.getEffectiveRetentionPolicy(meta)
-    //   return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
-    // },
     isCaughtUp: () => {
       return get().maxMsgIDSeen === -1 || get().maxMsgIDSeen >= get().meta.maxVisibleMsgID
     },
