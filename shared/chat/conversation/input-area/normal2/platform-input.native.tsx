@@ -526,7 +526,7 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
-      dummyInput: {width: 0, height: 0, position: 'absolute', opacity: 0},
+      dummyInput: {height: 0, opacity: 0, position: 'absolute', width: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,
