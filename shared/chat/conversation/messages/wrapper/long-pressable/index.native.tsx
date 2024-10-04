@@ -72,8 +72,16 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     },
     [onSwipeLeft]
   )
+
   return (
-    <Swipeable ref={swipeRef} renderRightActions={makeAction} onSwipeableWillOpen={onSwipeableWillOpen}>
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={makeAction}
+      onSwipeableWillOpen={onSwipeableWillOpen}
+      overshootRight={false}
+      // we don't do left swipe else it'll eat swipe back in nav
+      dragOffsetFromLeftEdge={1000}
+    >
       {inner}
     </Swipeable>
   )
