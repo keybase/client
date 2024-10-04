@@ -1023,9 +1023,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const tlfName = meta.tlfname
       const clientPrev = getClientPrev()
 
-      // get().dispatch.sendTyping.cancel()
-      // get().dispatch.sendTyping(false)
-
       // disable sending exploding messages if flag is false
       const ephemeralLifetime = get().explodingMode
       const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -2677,10 +2674,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const conversationIDKey = get().id
       const f = async () => {
         logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-
-        // unset a conversation exploding lock for this convo so we accept the new one
-        // get().dispatch.setExplodingModeLocked(false)
-
         const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
         const convRetention = Meta.getEffectiveRetentionPolicy(get().meta)
         if (seconds === 0 || seconds === convRetention.seconds) {
@@ -2722,11 +2715,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    // setExplodingModeLocked: locked => {
-    //   set(s => {
-    //     s.explodingModeLock = locked ? get().explodingMode : undefined
-    //   })
-    // },
     setMarkAsUnread: readMsgID => {
       // false means clear, readMsgID === undefined means last item
       set(s => {
