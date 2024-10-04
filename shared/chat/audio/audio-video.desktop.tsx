@@ -21,9 +21,12 @@ const AudioVideo = (props: Props) => {
     onEnded()
   }, [onEnded])
 
-  const [lastPaused, setLastPaused] = React.useState(paused)
-  if (lastPaused !== paused) {
-    setLastPaused(paused)
+  const lastPausedRef = React.useRef(paused)
+  React.useEffect(() => {
+    if (lastPausedRef.current === paused) {
+      return
+    }
+    lastPausedRef.current = paused
     if (paused) {
       vidRef.current?.pause()
     } else {
@@ -32,7 +35,7 @@ const AudioVideo = (props: Props) => {
         .then(() => {})
         .catch(() => {})
     }
-  }
+  }, [paused])
 
   return (
     <video

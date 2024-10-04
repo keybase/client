@@ -64,9 +64,10 @@ type UseSyncInputProps = {
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.MutableRefObject<undefined | SelectedType>
   lastTextRef: React.MutableRefObject<string>
+  setLastText: (text: string) => void
 }
 const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, active, setActive, setFilter, selectedItemRef, lastTextRef} = p
+  const {inputRef, active, setActive, setFilter, selectedItemRef, setLastText, lastTextRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
@@ -175,10 +176,10 @@ const useSyncInput = (p: UseSyncInputProps) => {
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
       )
-      lastTextRef.current = transformedText.text
+      setLastText(transformedText.text)
       input.transformText(() => transformedText, final)
     },
-    [active, inputRef, getWordAtCursor, selectedItemRef, lastTextRef]
+    [active, inputRef, getWordAtCursor, selectedItemRef, setLastText, lastTextRef]
   )
 
   return {
@@ -256,6 +257,9 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>()
   const lastTextRef = React.useRef('')
+  const setLastText = React.useCallback((text: string) => {
+    lastTextRef.current = text
+  }, [])
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
@@ -268,6 +272,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     selectedItemRef,
     setActive,
     setFilter,
+    setLastText,
   })
 
   // tell list to move the selection

@@ -5719,10 +5719,10 @@ eslint-plugin-promise@7.1.0:
   resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-7.1.0.tgz#06b3ad6d36b3c3ef3ec201c8a8d97049cf5dbb20"
   integrity sha512-8trNmPxdAy3W620WKDpaS65NlM5yAumod6XeC4LOb+jxlkG4IVcp68c6dXY2ev+uT4U1PtG57YDV6EGAXN0GbQ==
 
-eslint-plugin-react-compiler@0.0.0-experimental-f444e11-20240926:
-  version "0.0.0-experimental-f444e11-20240926"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-react-compiler/-/eslint-plugin-react-compiler-0.0.0-experimental-f444e11-20240926.tgz#136d9066af67fea491af8c450e468f8f7b1ec8aa"
-  integrity sha512-0eky+cIXkelvC+uYG8P82UzWjA7kf62VrutYfiNl/xMYMRWHGeNmBnpk6oM35sc/1YbHKIRlWPBOaLXN6yf41g==
+eslint-plugin-react-compiler@0.0.0-experimental-9a75bad-20241003:
+  version "0.0.0-experimental-9a75bad-20241003"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-compiler/-/eslint-plugin-react-compiler-0.0.0-experimental-9a75bad-20241003.tgz#66313dd156225127e2179a867d318aa2ec4a3507"
+  integrity sha512-qZ/oEuECrXt3J4+13TvHEOBfrizBuUborCMFccZFn64UcWgbLzn+6Yb4xVx80YQiT1GT6UiKh62OkvnP6yYR2w==
   dependencies:
     "@babel/core" "^7.24.4"
     "@babel/parser" "^7.24.4"

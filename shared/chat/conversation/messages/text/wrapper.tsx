@@ -110,13 +110,13 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   //   DEBUGOldTypeRef.current = subType
   // }, [ordinal, subType])
 
-  const lastStyle = React.useRef<Kb.Styles.StylesCrossPlatform>({})
-  const style = React.useMemo(() => {
+  const [style, setStyle] = React.useState<Kb.Styles.StylesCrossPlatform>(
+    getStyle(textType, isEditing, showCenteredHighlight)
+  )
+
+  React.useEffect(() => {
     const s = getStyle(textType, isEditing, showCenteredHighlight)
-    if (!isEqual(s, lastStyle.current)) {
-      lastStyle.current = s
-    }
-    return lastStyle.current
+    setStyle(old => (isEqual(s, old) ? old : s))
   }, [textType, isEditing, showCenteredHighlight])
 
   const children = React.useMemo(() => {

@@ -7,7 +7,6 @@ import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import {useMessagePopup} from '../message-popup'
-import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
@@ -157,8 +156,6 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
       const youSent = m.author === you && !idMatchesOrdinal
       const exploding = !!m.exploding
-      const accountsInfoMap = s.accountsInfoMap
-      const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
       const decorate = !exploded && !m.errorReason
       const type = m.type
       const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
@@ -170,7 +167,7 @@ const useState = (ordinal: T.Chat.Ordinal) => {
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       // hide if the bot is writing to itself
-      const botname = botUsername === author ? '' : botUsername ?? ''
+      const botname = botUsername === author ? '' : (botUsername ?? '')
       const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
       const ecrType = getEcrType(m, you)
 
@@ -183,7 +180,6 @@ const useState = (ordinal: T.Chat.Ordinal) => {
         exploding,
         hasReactions,
         isEditing,
-        isPendingPayment,
         reactionsPopupPosition,
         shouldShowPopup,
         showCoinsIcon,
@@ -206,7 +202,6 @@ type TSProps = {
   ecrType: EditCancelRetryType
   exploding: boolean
   hasReactions: boolean
-  isPendingPayment: boolean
   isHighlighted: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
@@ -239,7 +234,7 @@ const NormalWrapper = ({
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate, isHighlighted} = p
-  const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
+  const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Kb.Styles.isMobile
@@ -250,15 +245,12 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
     : {
         className: Kb.Styles.classNames({
           TextAndSiblings: true,
-          noOverflow: isPendingPayment,
           systemMessage: type.startsWith('system'),
           // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
         onContextMenu: showPopup,
       }
-
-  const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -286,7 +278,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   return (
     <LongPressable {...pressableProps}>
       <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
-        <Background style={styles.background}>
+        <NormalWrapper style={styles.background}>
           {content}
           <BottomSide
             ecrType={ecrType}
@@ -297,7 +289,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
           />
-        </Background>
+        </NormalWrapper>
       </Kb.Box2>
       <RightSide
         shouldShowPopup={shouldShowPopup}
@@ -538,11 +530,11 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const mdata = useState(ordinal)
 
-  const {isPendingPayment, decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
+  const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
-  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
+  const canFixOverdraw = !showCenteredHighlight && !isEditing
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
@@ -554,7 +546,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     exploding,
     hasReactions,
     isHighlighted,
-    isPendingPayment,
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,
