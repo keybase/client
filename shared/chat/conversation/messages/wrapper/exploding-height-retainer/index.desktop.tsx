@@ -139,7 +139,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const FlameFront = (props: {height: number; stop: boolean}) => {
+const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
   if (props.stop) {
     return null
   }
@@ -161,7 +161,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
       {children}
     </Kb.Box>
   )
-}
+})
 
 const explodedIllustrationUrl = () =>
   Kb.Styles.isDarkMode()
