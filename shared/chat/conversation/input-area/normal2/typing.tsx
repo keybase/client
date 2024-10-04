@@ -41,8 +41,19 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
   }
 }
 
+const emptySet = new Set<string>()
+
 const Typing = React.memo(function Typing() {
-  const names = C.useChatContext(s => s.typing)
+  const names = C.useChatContext(
+    C.useShallow(s => {
+      const names = s.typing
+      if (!C.isMobile) return names
+      const showCommandMarkdown = !!s.commandMarkdown
+      const showGiphySearch = s.giphyWindow
+      const showTypingStatus = !showGiphySearch && !showCommandMarkdown
+      return showTypingStatus ? names : emptySet
+    })
+  )
   return (
     <Kb.Box style={styles.isTypingContainer}>
       {names.size > 0 && (

@@ -10,21 +10,20 @@ export const Input2 = React.memo(
     const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
     const {textType = 'Body', rowsMax, rowsMin, padding, disabled, autoFocus} = p
 
-    const [value, setValue] = React.useState('')
-    const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
-      undefined
-    )
+    const valueRef = React.useRef('')
+    const selectionRef = React.useRef<{start: number; end?: number | undefined} | undefined>(undefined)
     const inputRef = React.useRef<TextInput>(null)
+
     const onChangeText = React.useCallback(
       (s: string) => {
-        setValue(s)
+        valueRef.current = s
         _onChangeText?.(s)
       },
       [_onChangeText]
     )
     const onSelectionChange = React.useCallback(
       (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        setSelection(e.nativeEvent.selection)
+        selectionRef.current = e.nativeEvent.selection
       },
       []
     )
@@ -42,20 +41,33 @@ export const Input2 = React.memo(
           i?.focus()
         },
         getSelection: () => {
-          return selection
+          return selectionRef.current
         },
         isFocused: () => !!inputRef.current?.isFocused(),
-        // TEMP just placeholders
         transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-          const ti = fn({selection, text: value})
-          if (reflectChange) {
-            setValue(ti.text)
-            setSelection(ti.selection)
+          const ti = fn({selection: selectionRef.current, text: valueRef.current})
+          if (!reflectChange) {
+            return
           }
+          i?.setNativeProps({autocorrect: false})
+          i?.setNativeProps({text: ti.text})
+          setTimeout(() => {
+            i?.setNativeProps({autocorrect: true})
+            // ios handles selection itself fine somehow, but not android
+            if (!isIOS) {
+              i?.setNativeProps({selection: ti.selection})
+            }
+            onChangeText(ti.text)
+          }, 100)
+          // new arch? old needs to call set native
+          //setValue(ti.text)
+          //setSelection(ti.selection)
         },
-        value,
+        get value() {
+          return valueRef.current
+        },
       }
-    }, [selection, value])
+    }, [onChangeText])
 
     const style = React.useMemo(() => {
       const textStyle = getTextStyle(textType)
@@ -90,10 +102,8 @@ export const Input2 = React.memo(
         autoFocus={autoFocus}
         placeholder={placeholder}
         readOnly={disabled}
-        selection={selection}
         onSelectionChange={onSelectionChange}
         ref={inputRef}
-        value={value}
         onChangeText={onChangeText}
         style={style}
         blurOnSubmit={false}

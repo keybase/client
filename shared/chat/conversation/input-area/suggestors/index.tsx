@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
-import type {Props} from '../normal/platform-input'
+import type {Props} from '../normal2/platform-input'
 import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const positionFallbacks = ['bottom center'] as const
@@ -318,8 +318,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     (item: unknown, final: boolean) => {
       selectedItemRef.current = item as SelectedType
       triggerTransform(item as SelectedType, final)
+      setInactive()
     },
-    [selectedItemRef, triggerTransform]
+    [selectedItemRef, triggerTransform, setInactive]
   )
 
   const listProps = {

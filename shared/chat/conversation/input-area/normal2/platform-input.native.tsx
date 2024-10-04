@@ -5,18 +5,18 @@ import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import MoreMenuPopup from './moremenu-popup'
-import SetExplodingMessagePicker from '@/chat/conversation/messages/set-explode-popup/container'
+import SetExplodingMessagePicker from './set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
-import {Keyboard} from 'react-native'
+import {Keyboard, TextInput as TextInputRaw} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
-import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
+import {MaxInputAreaContext} from './max-input-area-context'
 import {
   default as Animated,
   createAnimatedComponent,
@@ -270,7 +270,7 @@ const PlatformInput = (p: Props) => {
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle,
   })
-  const {cannotWrite, isEditing, isExploding, setInput2Ref, showTypingStatus} = p
+  const {cannotWrite, isEditing, isExploding, setInput2Ref, setExplodingMode} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
 
   const lastText = React.useRef('')
@@ -283,7 +283,7 @@ const PlatformInput = (p: Props) => {
   }, [expanded, setExpanded])
 
   const reallySend = React.useCallback(() => {
-    const text = inputRef.current?.value
+    const text = lastText.current
     if (text) {
       onSubmit(text)
       if (expanded) {
@@ -292,8 +292,12 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
+  const dummyInputRef = React.useRef<TextInputRaw | null>(null)
+
   const onQueueSubmit = React.useCallback(() => {
-    inputRef.current?.blur()
+    // force ios to auto correct at the end
+    dummyInputRef.current?.focus()
+    inputRef.current?.focus()
     setTimeout(() => {
       reallySend()
     }, 60)
@@ -303,15 +307,13 @@ const PlatformInput = (p: Props) => {
     (toInsert: string) => {
       const i = inputRef.current
       i?.focus()
-      i?.transformText(
-        ({selection, text}) =>
-          standardTransformer(
-            toInsert,
-            {position: {end: selection?.end || null, start: selection?.start || null}, text},
-            true
-          ),
-        true
-      )
+      i?.transformText(({selection, text}) => {
+        return standardTransformer(
+          toInsert,
+          {position: {end: selection?.end || null, start: selection?.start || null}, text},
+          true
+        )
+      }, true)
     },
     [inputRef]
   )
@@ -335,17 +337,27 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    switch (whichMenu.current) {
-      case 'filepickerpopup':
-        return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
-      case 'moremenu':
-        return <MoreMenuPopup onHidden={hidePopup} visible={true} />
-      default:
-        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    }
-  }, [])
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      switch (whichMenu.current) {
+        case 'filepickerpopup':
+          return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
+        case 'moremenu':
+          return <MoreMenuPopup onHidden={hidePopup} visible={true} />
+        default:
+          return (
+            <SetExplodingMessagePicker
+              attachTo={attachTo}
+              onHidden={hidePopup}
+              visible={true}
+              setExplodingMode={setExplodingMode}
+            />
+          )
+      }
+    },
+    [setExplodingMode]
+  )
 
   const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
 
@@ -407,7 +419,7 @@ const PlatformInput = (p: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
         {popup}
         {menu}
-        {showTypingStatus && !popup && <Typing />}
+        {!popup && <Typing />}
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
@@ -431,6 +443,7 @@ const PlatformInput = (p: Props) => {
               rowsMin={1}
               expanded={expanded}
             />
+            <TextInputRaw ref={dummyInputRef} style={styles.dummyInput} />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
@@ -513,6 +526,7 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
+      dummyInput: {height: 0, opacity: 0, position: 'absolute', width: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

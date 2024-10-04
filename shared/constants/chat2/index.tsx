@@ -973,11 +973,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             },
             waitingKey
           )
-          C.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
-            text,
-            undefined,
-            waitingKey
-          )
+          C.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.sendMessage(text)
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn('Could not send in messageSendByUsernames', error.message)

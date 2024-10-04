@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import SetExplodingMessagePopup from '@/chat/conversation/messages/set-explode-popup/container'
+import SetExplodingMessagePopup from './set-explode-popup/container'
 import Typing from './typing'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -23,9 +23,10 @@ type InputRefType = React.MutableRefObject<Input2Ref | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
+  setExplodingMode: (mode: number) => void
 }
 const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonProps) {
-  const {explodingModeSeconds, focusInput} = p
+  const {explodingModeSeconds, focusInput, setExplodingMode} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -35,10 +36,11 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
           onAfterSelect={focusInput}
           onHidden={hidePopup}
           visible={true}
+          setExplodingMode={setExplodingMode}
         />
       )
     },
-    [focusInput]
+    [focusInput, setExplodingMode]
   )
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
@@ -348,7 +350,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   //   }
   // }, [conversationIDKey, chatDebugDump])
 
-  const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
+  const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
   const {showReplyPreview, hintText, setInput2Ref, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
   const setHtmlInputRef = React.useCallback((i: HTMLInputElement | null) => {
@@ -394,7 +396,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   }, [inputRef])
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
-    setEditing(true)
+    setEditing('last')
   }, [setEditing])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
@@ -431,7 +433,11 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             ])}
           >
             {!isEditing && !cannotWrite && (
-              <ExplodingButton explodingModeSeconds={explodingModeSeconds} focusInput={focusInput} />
+              <ExplodingButton
+                explodingModeSeconds={explodingModeSeconds}
+                focusInput={focusInput}
+                setExplodingMode={setExplodingMode}
+              />
             )}
             {isEditing && (
               <Kb.Button
