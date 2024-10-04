@@ -318,8 +318,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     (item: unknown, final: boolean) => {
       selectedItemRef.current = item as SelectedType
       triggerTransform(item as SelectedType, final)
+      setInactive()
     },
-    [selectedItemRef, triggerTransform]
+    [selectedItemRef, triggerTransform, setInactive]
   )
 
   const listProps = {

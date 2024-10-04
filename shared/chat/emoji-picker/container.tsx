@@ -349,7 +349,7 @@ const Routable = (props: RoutableProps) => {
     [updatePickerMap, pickKey]
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onDidPick = () => navigateUp()
+  const onDidPick = navigateUp
 
   C.useOnMountOnce(() => {
     Kb.keyboardDismiss()

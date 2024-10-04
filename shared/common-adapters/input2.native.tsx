@@ -46,23 +46,28 @@ export const Input2 = React.memo(
         isFocused: () => !!inputRef.current?.isFocused(),
         transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
           const ti = fn({selection: selectionRef.current, text: valueRef.current})
-          if (reflectChange) {
-            i?.setNativeProps({autocorrect: false})
-            i?.setNativeProps({text: ti.text})
-            setTimeout(() => {
-              i?.setNativeProps({autocorrect: true})
-              i?.setNativeProps({selection: ti.selection})
-            }, 1000)
-            // new arch? old needs to call set native
-            //setValue(ti.text)
-            //setSelection(ti.selection)
+          if (!reflectChange) {
+            return
           }
+          i?.setNativeProps({autocorrect: false})
+          i?.setNativeProps({text: ti.text})
+          setTimeout(() => {
+            i?.setNativeProps({autocorrect: true})
+            // ios handles selection itself fine somehow, but not android
+            if (!isIOS) {
+              i?.setNativeProps({selection: ti.selection})
+            }
+            onChangeText(ti.text)
+          }, 100)
+          // new arch? old needs to call set native
+          //setValue(ti.text)
+          //setSelection(ti.selection)
         },
         get value() {
           return valueRef.current
         },
       }
-    }, [])
+    }, [onChangeText])
 
     const style = React.useMemo(() => {
       const textStyle = getTextStyle(textType)
