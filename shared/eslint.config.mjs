@@ -75,7 +75,7 @@ const reactRules = {
   'react/jsx-space-before-closing': 'off',
   'react/jsx-tag-spacing': 'off',
   'react/jsx-uses-react': 'off',
-  'react/jsx-uses-vars': 'error',
+  'react/jsx-uses-vars': 'warn',
   'react/jsx-wrap-multilines': 'off',
   'react/no-access-state-in-setstate': 'error',
   'react/no-array-index-key': 'off',
@@ -176,7 +176,7 @@ const commonRules = {
   'no-use-before-define': 'off',
   'no-useless-return': 'off',
   // doesn't actually work now
-  'no-useless-assignment': 'warn',
+  'no-useless-assignment': 'off',
   'no-warning-comments': 'off',
   'object-shorthand': 'off',
   'one-var': 'off',

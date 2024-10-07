@@ -41,7 +41,7 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
       useMutationObserver,
     })
     setObserver(observer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [root, rootMargin, pollInterval, useMutationObserver, JSON.stringify(threshold)])
 
   React.useLayoutEffect(() => {

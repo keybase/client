@@ -7,6 +7,7 @@ function useResizeObserver<T extends Element>(
 ): ResizeObserver {
   const resizeObserver = getResizeObserver()
   const storedCallback = React.useRef(callback)
+  // eslint-disable-next-line
   storedCallback.current = callback
 
   React.useLayoutEffect(() => {

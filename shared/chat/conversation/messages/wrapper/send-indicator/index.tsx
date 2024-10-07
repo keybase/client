@@ -48,86 +48,83 @@ const shownEncryptingSet = new Set()
 
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   const ordinal = React.useContext(OrdinalContext)
-  const isExploding = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return !!message?.exploding
-  })
-  const sent = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return (
-      (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
-    )
-  })
-  const failed = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
-  })
-  const id = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return message?.timestamp
-  })
+
+  const {isExploding, sent, failed, id} = C.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal)
+      return {
+        failed:
+          (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed',
+        id: message?.timestamp,
+        isExploding: !!message?.exploding,
+        sent:
+          (message?.type !== 'text' && message?.type !== 'attachment') ||
+          !message.submitState ||
+          message.exploded,
+      }
+    })
+  )
 
   const [status, setStatus] = React.useState<AnimationStatus>(
     sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'
   )
-
-  // only show encrypting once per
-  if (status === 'encrypting') {
-    shownEncryptingSet.add(id)
-  }
-
   const [visible, setVisible] = React.useState(!sent)
-
   const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
+
+  React.useEffect(() => {
+    if (status === 'encrypting' && !timeoutRef.current) {
+      timeoutRef.current = setTimeout(() => {
+        setStatus('sending')
+        timeoutRef.current = undefined
+      }, 600)
+    }
+
+    if (status === 'encrypting') {
+      shownEncryptingSet.add(id)
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = undefined
+      }
+    }
+  }, [status, id])
+
+  React.useEffect(() => {
+    if (failed) {
+      setStatus('error')
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = undefined
+      }
+    } else if (sent) {
+      setStatus('sent')
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      timeoutRef.current = setTimeout(() => {
+        setVisible(false)
+        timeoutRef.current = undefined
+      }, 400)
+    } else {
+      setVisible(true)
+      setStatus('sending')
+    }
+  }, [failed, sent])
+
+  if (!visible || (isExploding && status === 'sent')) {
+    return null
+  }
 
   const animationType: Kb.AnimationType | undefined = isExploding
     ? Kb.Styles.isDarkMode()
       ? statusToIconDarkExploding[status]
       : statusToIconExploding[status]
     : Kb.Styles.isDarkMode()
-    ? statusToIconDark[status]
-    : statusToIcon[status]
+      ? statusToIconDark[status]
+      : statusToIcon[status]
 
-  const [lastFailed, setLastFailed] = React.useState(failed)
-  const [lastSent, setLastSent] = React.useState(sent)
-
-  if (failed !== lastFailed || sent !== lastSent) {
-    setLastFailed(failed)
-    setLastSent(sent)
-    if (failed && !lastFailed) {
-      setStatus('error')
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-      timeoutRef.current = undefined
-    } else if (sent && !lastSent) {
-      setStatus('sent')
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(() => {
-        setVisible(false)
-        timeoutRef.current = undefined
-      }, 400)
-    } else if (!failed && lastFailed) {
-      setVisible(true)
-      setStatus('sending')
-    }
-  }
-
-  if (status === 'encrypting' && !timeoutRef.current) {
-    timeoutRef.current = setTimeout(() => {
-      setStatus('sending')
-      timeoutRef.current = undefined
-    }, 600)
-  }
-
-  React.useEffect(() => {
-    return () => {
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-      timeoutRef.current = undefined
-    }
-  }, [])
-
-  if (!visible || (isExploding && status === 'sent')) {
-    return null
-  }
   return animationType ? (
     <Kb.Animation
       animationType={animationType}
