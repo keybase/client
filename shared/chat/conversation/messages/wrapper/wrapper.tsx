@@ -520,11 +520,6 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {ordinal, bottomChildren, children} = p
-
-  // passed in context so stable
-  const ordinalRef = React.useRef(ordinal)
-  ordinalRef.current = ordinal
-
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
