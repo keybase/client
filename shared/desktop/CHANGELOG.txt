@@ -1,8 +1,4 @@
-All platforms:
+macOS:
 
-Desktop:
-• Screenshots of the app disabled by default
-
-iOS:
-
-Android:
+• Fix the KBFS mount to work on Sequoia.
+• Prevent unnecessary permission dialogs on Sequoia.
