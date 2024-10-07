@@ -66,13 +66,9 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
               type="BodyTinyBold"
               style={Styles.collapseStyles([
                 styles.text,
-                {
-                  fontSize: fontSize,
-                  height: height,
-                  lineHeight: Styles.isMobile ? height : `${height}px`, // likely unneeded
-                },
+                {fontSize, height, lineHeight: height} as const,
                 badgeNumberStyle,
-              ] as any)}
+              ])}
             >
               {badgeNumber}
             </Kb.Text>
@@ -107,10 +103,10 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
               {
                 fontSize: fontSize,
                 height: height,
-                lineHeight: Styles.isMobile ? height : `${height}px`,
+                lineHeight: height,
               },
               badgeNumberStyle,
-            ] as any)}
+            ])}
           >
             {badgeNumber}
           </Kb.Text>
