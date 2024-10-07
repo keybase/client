@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
@@ -57,18 +58,19 @@ const Header2 = () => {
   const showActions = C.Chat.isValidConversationIDKey(conversationIDKey)
 
   const descStyleOverride = React.useMemo(
-    () => ({
-      del: styles.markdownOverride,
-      em: styles.markdownOverride,
-      fence: styles.markdownOverride,
-      inlineCode: styles.markdownOverride,
-      kbfsPath: styles.markdownOverride,
-      link: styles.markdownOverride,
-      mailto: styles.markdownOverride,
-      paragraph: styles.markdownOverride,
-      preview: styles.markdownOverride,
-      strong: styles.markdownOverride,
-    }),
+    () =>
+      ({
+        del: styles.markdownOverride,
+        em: styles.markdownOverride,
+        fence: styles.markdownOverride,
+        inlineCode: styles.markdownOverride,
+        kbfsPath: styles.markdownOverride,
+        link: styles.markdownOverride,
+        mailto: styles.markdownOverride,
+        paragraph: styles.markdownOverride,
+        preview: styles.markdownOverride,
+        strong: styles.markdownOverride,
+      }) as StyleOverride,
     []
   )
 
@@ -76,7 +78,7 @@ const Header2 = () => {
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
-      styleOverride={descStyleOverride as any}
+      styleOverride={descStyleOverride}
       lineClamp={1}
       selectable={true}
     >

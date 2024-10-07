@@ -2,6 +2,7 @@ import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import type {StyleOverride} from '@/common-adapters/markdown'
 import type * as T from '@/constants/types'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import * as CryptoConstants from '@/constants/crypto'
@@ -34,6 +35,10 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
       : undefined
   const operationTitle = captialize(operation)
 
+  const styleOverride = Kb.Styles.isMobile
+    ? ({paragraph: getEditStyle(isEditing)} as StyleOverride)
+    : undefined
+
   return (
     <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
@@ -60,7 +65,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
                 messageType="attachment"
                 selectable={true}
                 style={getEditStyle(isEditing)}
-                styleOverride={Kb.Styles.isMobile ? ({paragraph: getEditStyle(isEditing)} as any) : undefined}
+                styleOverride={styleOverride}
                 allowFontScaling={true}
               >
                 {props.title}

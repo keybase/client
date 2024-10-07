@@ -66,6 +66,7 @@ type UseSyncInputProps = {
   lastTextRef: React.MutableRefObject<string>
   setLastText: (text: string) => void
 }
+
 const useSyncInput = (p: UseSyncInputProps) => {
   const {inputRef, active, setActive, setFilter, selectedItemRef, setLastText, lastTextRef} = p
   const setInactive = React.useCallback(() => {
@@ -171,7 +172,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const cursorInfo = getWordAtCursor()
       const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
-        value as any,
+        value as any, // TODO hard to untangle now
         matchInfo.marker,
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
