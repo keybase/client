@@ -26,9 +26,7 @@ export type Section<ItemT, ExtraT = object> = {
   ItemSeparatorComponent?: React.ComponentType<any> | null | undefined
 } & ExtraT
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ItemTFromSectionT<SectionT> = SectionT extends Section<infer ItemT, infer _ExtraT> ? ItemT : SectionT
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExtraTFromSectionT<SectionT> = SectionT extends Section<infer _ItemT, infer ExtraT> ? ExtraT : SectionT
 
 // This type is missing a lot of features from the native sectionlist on purpose

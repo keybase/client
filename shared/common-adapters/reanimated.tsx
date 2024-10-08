@@ -8,7 +8,6 @@ let useAnimatedStyle: typeof R.useAnimatedStyle
 let withTiming: typeof R.withTiming
 let withDelay: typeof R.withDelay
 let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
-// eslint-disable-next-line deprecation/deprecation
 let createAnimatedComponent: typeof R.default.createAnimatedComponent
 let Animated: typeof R.default
 let interpolate: typeof R.interpolate
@@ -19,7 +18,6 @@ let useReducedMotion: typeof R.useReducedMotion
 if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated') as typeof R
   Animated = rnr.default
-  // eslint-disable-next-line deprecation/deprecation
   createAnimatedComponent = rnr.default.createAnimatedComponent
   useAnimatedStyle = rnr.useAnimatedStyle
   useSharedValue = rnr.useSharedValue

@@ -107,7 +107,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             {assertion.state !== 'valid' && (
               <Kb.Icon
                 fontSize={Styles.isMobile ? 12 : 10}
-                style={styles.brokenBadge as any}
+                style={styles.brokenBadge}
                 type="iconfont-proof-broken"
                 color={Styles.globalColors.red}
               />
