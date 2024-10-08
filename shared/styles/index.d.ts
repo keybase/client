@@ -80,7 +80,7 @@ export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O)
 // slightly extended to support "isFoo && myStyle".
 type RemovedStyle = false | '' | 0 | null | undefined
 
-type CollapsibleStyle =
+export type CollapsibleStyle =
   | CSS.StylesCrossPlatform
   | RemovedStyle
   | {lineHeight: CSS._StylesDesktop['lineHeight']}

@@ -138,13 +138,13 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
 function makePaddingStyles(): PaddingStyles {
   type Keys = keyof typeof Styles.globalMargins
   const keys = Object.keys(Styles.globalMargins) as unknown as Array<Keys>
-  return keys.reduce(
+  return keys.reduce<Partial<PaddingStyles>>(
     (styles, paddingName) => ({
       ...styles,
       [paddingName]: {padding: Styles.globalMargins[paddingName]},
     }),
-    {} as PaddingStyles
-  )
+    {}
+  ) as PaddingStyles
 }
 
 type PaddingStyles = {

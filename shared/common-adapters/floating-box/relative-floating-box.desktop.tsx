@@ -9,7 +9,7 @@ import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 const Kb = {Box}
 
 type ComputedStyle = {
-  position: string
+  position: Styles._StylesCrossPlatform['position']
   top?: number | 'auto'
   left?: number | 'auto'
   right?: number | 'auto'
@@ -291,7 +291,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
           offset
         ),
         _style,
-      ] as any)
+      ])
       setStyle(s)
     }
   }, [_style, matchDimension, position, positionFallbacks, popupNode, targetRect, offset])
