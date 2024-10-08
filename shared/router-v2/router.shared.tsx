@@ -97,6 +97,7 @@ export const useShared = () => {
   }
 
   const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedInUser = C.useCurrentUserState(s => s.username)
   const navKeyRef = React.useRef(1)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
@@ -134,6 +135,7 @@ export const useShared = () => {
     initialState,
     loggedIn,
     loggedInLoaded,
+    loggedInUser,
     navKey,
     onStateChange,
     onUnhandledAction,

@@ -103,8 +103,8 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
               {
                 fontSize: fontSize,
                 height: height,
-                lineHeight: height,
-              },
+                lineHeight: Styles.isMobile ? height : `${height}px`,
+              } as const,
               badgeNumberStyle,
             ])}
           >

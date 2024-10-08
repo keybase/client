@@ -288,9 +288,6 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
-  // increments when the convo stores values change, badges and unread
-  // // TODO REmove
-  badgeCountsChanged: number
   botPublicCommands: Map<string, T.Chat.BotPublicCommands>
   createConversationError?: T.Chat.CreateConversationError
   smallTeamBadgeCount: number
@@ -316,7 +313,6 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
-  badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
   botPublicCommands: new Map(),
@@ -451,7 +447,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
-        s.badgeCountsChanged++
       })
     },
     clearMetas: () => {

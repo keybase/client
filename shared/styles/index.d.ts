@@ -79,7 +79,11 @@ export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O)
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type RemovedStyle = false | '' | 0 | null | undefined
-type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
+
+type CollapsibleStyle =
+  | CSS.StylesCrossPlatform
+  | RemovedStyle
+  | {lineHeight: CSS._StylesDesktop['lineHeight']}
 
 // TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform

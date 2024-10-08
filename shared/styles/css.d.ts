@@ -6,6 +6,7 @@ export type DimensionValue = number | 'auto' | `${number}%`
 export type Color = undefined | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
+  lineHeight?: `${number}px` | number | 'inherit' | 'unset'
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
   overflowX?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
   overflowY?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
@@ -134,6 +135,7 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
+  lineHeight: _StylesMobile['lineHeight']
 }
 
 export type _StylesCrossPlatform = {

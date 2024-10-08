@@ -146,7 +146,7 @@ const rootScreenOptions = {
 
 const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, onStateChange} = s
+  const {loggedInLoaded, loggedIn, onStateChange, loggedInUser} = s
   const {navKey, initialState, onUnhandledAction, appState} = s
 
   React.useEffect(() => {
@@ -173,8 +173,8 @@ const ElectronApp = React.memo(function ElectronApp() {
           <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
         )}
         {loggedInLoaded && loggedIn && (
-          <React.Fragment key="loggedIn">
-            <RootStack.Screen key="loggedIn" name="loggedIn" component={AppTabs} />
+          <React.Fragment key={`${loggedInUser}loggedIn`}>
+            <RootStack.Screen key={`${loggedInUser}loggedIn`} name="loggedIn" component={AppTabs} />
             {ModalScreens}
           </React.Fragment>
         )}
