@@ -32,7 +32,7 @@ const getStyle = (
         ])
   }
 }
-const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
+const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
   const {style} = p
   const ordinal = React.useContext(OrdinalContext)
   const text = C.useChatContext(s => {
@@ -56,7 +56,7 @@ const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
       {text}
     </Kb.Markdown>
   )
-}
+})
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
   const {ordinal} = p

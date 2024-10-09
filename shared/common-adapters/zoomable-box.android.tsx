@@ -51,10 +51,12 @@ export function ZoomableBox(props: Props) {
   const containerHeight = useSharedValue(0)
 
   const lastZoomScaleRef = React.useRef<undefined | number>()
-  if (lastZoomScaleRef.current !== zoomScale && zoomScale !== undefined) {
-    lastZoomScaleRef.current = zoomScale
-    scale.value = lastZoomScaleRef.current
-  }
+  React.useEffect(() => {
+    if (lastZoomScaleRef.current !== zoomScale && zoomScale !== undefined) {
+      lastZoomScaleRef.current = zoomScale
+      scale.value = lastZoomScaleRef.current
+    }
+  }, [scale, zoomScale])
 
   const gesture = React.useMemo(() => {
     const resetZoomState = () => {
@@ -126,7 +128,6 @@ export function ZoomableBox(props: Props) {
         scale.value = prevScale.value * e.scale
 
         // maybe this is always true... but not changing this now
-        // eslint-disable-next-line
         if (isPinching.value) {
           // translate the image to the focal point as we're zooming
           translationX.value =

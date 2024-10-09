@@ -35,10 +35,12 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   }, [setShowingPopup])
   const togglePopup = showingPopup ? hidePopup : showPopup
 
-  if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
-    wasMakePopupRef.current = makePopup
-    setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
-  }
+  React.useEffect(() => {
+    if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
+      wasMakePopupRef.current = makePopup
+      setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
+    }
+  }, [attachTo, hidePopup, makePopup, popup, setPopup, showPopup, showingPopup])
 
   return {hidePopup, popup, popupAnchor, showPopup, showingPopup, togglePopup}
 }

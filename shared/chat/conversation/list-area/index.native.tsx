@@ -125,10 +125,12 @@ const ConversationList = React.memo(function ConversationList() {
   )
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  if (cidChanged || lastED !== extraData) {
-    recycleTypeRef.current = new Map()
-    setLastED(extraData)
-  }
+  React.useEffect(() => {
+    if (cidChanged || lastED !== extraData) {
+      recycleTypeRef.current = new Map()
+      setLastED(extraData)
+    }
+  }, [cidChanged, extraData, lastED])
   const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])

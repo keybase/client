@@ -47,9 +47,15 @@ const useScrolling = (p: {
   )
   const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
   const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
-  if (conversationIDKeyChanged) {
-    lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
-  }
+  // if we scroll up try and keep the position
+  const scrollBottomOffsetRef = React.useRef<number | undefined>()
+
+  React.useEffect(() => {
+    if (conversationIDKeyChanged) {
+      lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
+      scrollBottomOffsetRef.current = undefined
+    }
+  }, [conversationIDKeyChanged])
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
@@ -249,12 +255,6 @@ const useScrolling = (p: {
     scrollToBottom,
     scrollToCentered,
   ])
-
-  // if we scroll up try and keep the position
-  const scrollBottomOffsetRef = React.useRef<number | undefined>()
-  if (conversationIDKeyChanged) {
-    scrollBottomOffsetRef.current = undefined
-  }
 
   const firstOrdinal = messageOrdinals[0]
   const prevFirstOrdinal = Container.usePrevious(firstOrdinal)
@@ -599,7 +599,7 @@ if (colorWaypoints) {
   }
 }
 
-const OrdinalWaypoint = React.memo(function OrdinalWaypointInner(p: OrdinalWaypointProps) {
+const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()

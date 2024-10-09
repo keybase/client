@@ -81,13 +81,15 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
 
-  if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-    setLastOnlyInTeam(onlyInTeam)
-    setLastDisabled(disabled)
-    if (!disabled) {
-      fetchUserEmoji(conversationIDKey, onlyInTeam)
+  React.useEffect(() => {
+    if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
+      setLastOnlyInTeam(onlyInTeam)
+      setLastDisabled(disabled)
+      if (!disabled) {
+        fetchUserEmoji(conversationIDKey, onlyInTeam)
+      }
     }
-  }
+  }, [cidChanged, conversationIDKey, fetchUserEmoji, lastDisabled, lastOnlyInTeam, onlyInTeam, disabled])
 
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }

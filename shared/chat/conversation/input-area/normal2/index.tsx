@@ -283,21 +283,21 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   )
 })
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      container: Kb.Styles.platformStyles({
-        isMobile: {justifyContent: 'flex-end'},
-      }),
-      suggestionOverlay: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
-        isTablet: {marginLeft: '30%', marginRight: 0},
-      }),
-      suggestionOverlayInfoShowing: Kb.Styles.platformStyles({
-        isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
-        isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
-      }),
-    }) as const
-)
+const styles = Kb.Styles.styleSheetCreate(() => {
+  const suggestDesktop = {marginLeft: 15, marginRight: 15, marginTop: 'auto'}
+  return {
+    container: Kb.Styles.platformStyles({
+      isMobile: {justifyContent: 'flex-end'},
+    }),
+    suggestionOverlay: Kb.Styles.platformStyles({
+      isElectron: suggestDesktop,
+      isTablet: {marginLeft: '30%', marginRight: 0},
+    }),
+    suggestionOverlayInfoShowing: Kb.Styles.platformStyles({
+      isElectron: suggestDesktop,
+      isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
+    }),
+  } as const
+})
 
 export default Input

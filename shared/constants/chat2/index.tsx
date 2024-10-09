@@ -2012,17 +2012,28 @@ export const useCIDChanged = (
   forceCall?: boolean // call f on first time
 ) => {
   const didForceCall = React.useRef(false)
-  let changed = false
-  if (forceCall === true && !didForceCall.current) {
-    changed = true
-    didForceCall.current = true
-    f?.()
-  }
+  const [changed, setChanged] = React.useState(false)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
-    f?.()
-    changed = true
-  }
+  const fRef = React.useRef(f)
+
+  React.useEffect(() => {
+    if (forceCall === true && !didForceCall.current) {
+      didForceCall.current = true
+      fRef.current?.()
+    }
+  }, [forceCall])
+
+  React.useEffect(() => {
+    if (lastCID !== conversationIDKey) {
+      console.log('aaaa cidchanged normal', lastCID, conversationIDKey)
+      setLastCID(conversationIDKey)
+      fRef.current?.()
+      setChanged(true)
+    } else {
+      setChanged(false)
+    }
+  }, [conversationIDKey, lastCID])
+
+  console.log('aaaa usecidchanged', lastCID, conversationIDKey, changed)
   return changed
 }

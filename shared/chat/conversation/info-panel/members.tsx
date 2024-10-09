@@ -45,16 +45,18 @@ const MembersTab = (props: Props) => {
   )
   const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
-  if (lastTeamName !== teamname || cidChanged) {
-    setLastTeamName(teamname)
-    if (teamname) {
-      refreshParticipants(
-        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-        () => {},
-        () => {}
-      )
+  React.useEffect(() => {
+    if (lastTeamName !== teamname || cidChanged) {
+      setLastTeamName(teamname)
+      if (teamname) {
+        refreshParticipants(
+          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+          () => {},
+          () => {}
+        )
+      }
     }
-  }
+  }, [cidChanged, conversationIDKey, lastTeamName, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants
