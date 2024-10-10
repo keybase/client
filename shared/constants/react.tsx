@@ -47,11 +47,11 @@ export const useOnMountOnce = (fn: () => void, timeout = 1) => {
 
 // Run a function on unmount, doesn't rerun if the function changes
 export const useOnUnMountOnce = (f: () => void) => {
-  const ref = React.useRef(f)
-  ref.current = f
+  const ref = React.useRef<undefined | (() => void)>(f)
   React.useEffect(() => {
     return () => {
-      ref.current()
+      ref.current?.()
+      ref.current = undefined
     }
   }, [])
 }

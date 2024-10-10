@@ -11,7 +11,7 @@ PODS:
     - React-Core
   - EXLocation (17.0.1):
     - ExpoModulesCore
-  - Expo (51.0.36):
+  - Expo (51.0.37):
     - ExpoModulesCore
   - ExpoAsset (10.0.10):
     - ExpoModulesCore
@@ -2132,7 +2132,7 @@ SPEC CHECKSUMS:
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   EXLocation: 43e9b582ca63a23c6f0a18d8cbe2145b3a388b55
-  Expo: 51c2d7fee7a8c7195ac257c9f9503378800d334e
+  Expo: 67b60b3b80a3c8e9f3bcaaa84d06d140229a246d
   ExpoAsset: 323700f291684f110fb55f0d4022a3362ea9f875
   ExpoCamera: 929be541d1c1319fcf32f9f5d9df8b97804346b5
   ExpoClipboard: 23d203f5d4843699fbc45be1cc4fe1fbd811a6fa
