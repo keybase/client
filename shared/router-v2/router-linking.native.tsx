@@ -98,15 +98,20 @@ const makeLinking = (options: OptionsType) => {
 
 // gets state from store used to make the linking object
 export const useStateToLinking = (appState: Shared.AppState) => {
-  const {startup} = C.useConfigState.getState()
+  const startup = C.useConfigState(s => s.startup)
   const {tab: startupTab, followUser: startupFollowUser} = startup
   let {conversation: startupConversation} = startup
   if (!C.Chat.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
-  const {justSignedUp, showPushPrompt, hasPermissions} = C.usePushState.getState()
-  const showMonster =
-    C.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
+  const {justSignedUp, showPushPrompt, hasPermissions} = C.usePushState(
+    C.useShallow(s => {
+      const {hasPermissions, justSignedUp, showPushPrompt} = s
+      return {hasPermissions, justSignedUp, showPushPrompt}
+    })
+  )
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const showMonster = loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
 
   const androidShare = C.useConfigState(s => s.androidShare)
   return appState === Shared.AppState.NEEDS_INIT

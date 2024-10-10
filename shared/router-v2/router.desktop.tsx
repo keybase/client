@@ -60,7 +60,7 @@ const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) =>
         navigationKey={name}
         name={name}
         getComponent={val.getScreen}
-        options={makeOptions(val) as any}
+        options={makeOptions(val)}
       />
     )
   })

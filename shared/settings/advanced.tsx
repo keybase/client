@@ -69,6 +69,8 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
   )
 }
 
+let disableSpellCheckInitialValue: boolean | undefined
+
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
@@ -80,26 +82,30 @@ const Advanced = () => {
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
-
-  const initialDisableSpellCheck = React.useRef<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   // load it
-  if (disableSpellCheck === undefined) {
-    setTimeout(() => {
+  React.useEffect(() => {
+    if (disableSpellCheck === undefined) {
       loadDisableSpellcheck(
         [{path: 'ui.disableSpellCheck'}],
         result => {
           const res = result.b ?? false
-          initialDisableSpellCheck.current = res
           setDisableSpellcheck(res)
+          if (disableSpellCheckInitialValue === undefined) {
+            disableSpellCheckInitialValue = res
+          }
         },
         () => {
           setDisableSpellcheck(false)
+          if (disableSpellCheckInitialValue === undefined) {
+            disableSpellCheckInitialValue = false
+          }
         }
       )
-    }, 1)
-  }
+    }
+  }, [disableSpellCheck, loadDisableSpellcheck])
+
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   const onToggleDisableSpellcheck = () => {
@@ -163,7 +169,10 @@ const Advanced = () => {
             <Kb.Checkbox
               label={
                 'Disable spellchecking' +
-                (initialDisableSpellCheck.current === disableSpellCheck ? '' : ' (restart required)')
+                (disableSpellCheckInitialValue !== undefined &&
+                disableSpellCheckInitialValue !== disableSpellCheck
+                  ? ' (restart required)'
+                  : '')
               }
               disabled={disableSpellCheck === undefined}
               checked={!!disableSpellCheck}

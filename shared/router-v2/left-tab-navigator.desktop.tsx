@@ -36,18 +36,17 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
     screenOptions,
   })
 
-  const renderedRef = React.useRef<{[key: string]: boolean}>({})
-  // render if its been rendered before
-  const shouldRender = React.useCallback((key: string, selected: boolean) => {
-    if (renderedRef.current[key]) {
-      return true
-    }
-    if (selected) {
-      renderedRef.current[key] = true
-      return true
-    }
-    return false
-  }, [])
+  const {index: selectedIndex} = state
+  const selectedRoute = state.routes[selectedIndex]?.key
+
+  const [rendered, setRendered] = React.useState(new Set<string>(selectedRoute ? [selectedRoute] : []))
+  React.useEffect(() => {
+    if (!selectedRoute) return
+    if (rendered.has(selectedRoute)) return
+    const next = new Set(rendered)
+    next.add(selectedRoute)
+    setRendered(next)
+  }, [selectedRoute, rendered])
 
   const hasModals = C.useRouterState(s => C.Router2.getModalStack(s.navState).length > 0)
 
@@ -60,7 +59,7 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
             const routeKey = route.key
             const desc = descriptors[routeKey]
             const selected = i === state.index
-            const needDesc = desc ? shouldRender(routeKey, selected) : false
+            const needDesc = desc ? rendered.has(routeKey) : false
             return <RouteBox key={route.name} selected={selected} desc={needDesc ? desc : undefined} />
           })}
         </Kb.BoxGrow>
