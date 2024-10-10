@@ -252,7 +252,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     })
                     resetErrorAndCancel()
                     const good = code.replace(/\W+/g, ' ').trim()
-                    response.result({phrase: good, secret: null as any})
+                    response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
                 C.useRouterState.getState().dispatch.navigateAppend('codePage')
@@ -412,7 +412,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     })
                     resetErrorAndCancel()
                     const good = code.replace(/\W+/g, ' ').trim()
-                    response.result({phrase: good, secret: null as any})
+                    response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
 

@@ -420,7 +420,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 t: avdlType,
                 verifyAllEmail: 'user@example.com',
                 verifyAllPhoneNumber: '+1555000111',
-              } as any)
+              })
               let metadata: T.People.TodoMetaEmail | T.People.TodoMetaPhone | undefined
               if (
                 avdlType === T.RPCGen.HomeScreenTodoType.verifyAllEmail ||

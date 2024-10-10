@@ -250,7 +250,7 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = (await androidGetInitialBundleFromNotification()) as undefined | {}
+  const n = (await androidGetInitialBundleFromNotification()) as undefined | object
   return n ? normalizePush(n) : undefined
 }
 

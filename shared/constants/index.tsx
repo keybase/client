@@ -132,9 +132,9 @@ export const assertNever = (_: never) => undefined
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '@/router-v2/route-params'
 export const useNav = () => {
-  const n = useNavigation()
-  const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any
-  const {canGoBack} = n
+  // eslint-disable-next-line
+  const na = useNavigation() as {pop?: () => void; navigate: (n: RouteKeys) => void; canGoBack: () => boolean}
+  const {canGoBack} = na
   const pop: undefined | (() => void) = canGoBack() ? na.pop : undefined
   const navigate: (n: RouteKeys) => void = na.navigate
   return {
