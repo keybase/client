@@ -81,7 +81,7 @@ const convertGuiLine = (line: string): Info | undefined => {
           const [, actionType = '', payload = ''] = m
           name = actionType
           try {
-            args = JSON.parse(payload.replace(actionPayloadReg, '"'))
+            args = JSON.parse(payload.replace(actionPayloadReg, '"')) as object
           } catch (e) {
             console.log('🛑 throw e', e)
           }

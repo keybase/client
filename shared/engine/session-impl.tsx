@@ -187,7 +187,7 @@ class Session {
     }
 
     const waitingHandler = this._makeWaitingHandler(false, method, response?.seqid)
-    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler as any)
+    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
     incomingRequest.handle()
     return true

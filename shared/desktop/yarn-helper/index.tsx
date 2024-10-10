@@ -109,11 +109,11 @@ function fixModules() {
   } catch {}
 }
 
-function exec(command: string, env?: {}, options?: object) {
+function exec(command: string, env?: object, options?: object) {
   console.log(
     execSync(command, {
       encoding: 'utf8',
-      env: env || process.env,
+      env: (env as typeof process.env | undefined) || process.env,
       stdio: 'inherit',
       ...options,
     })

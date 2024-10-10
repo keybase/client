@@ -762,7 +762,7 @@ export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T
   }
 
   const ck = _canUserPerformCacheKey(roleAndDetails)
-  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]!
+  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]
 
   const {role, implicitAdmin} = roleAndDetails
   const isAdminOrAbove = role === 'admin' || role === 'owner'

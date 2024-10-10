@@ -61,7 +61,7 @@ export const Tabs = [
     tab: verifyTab,
     title: 'Verify',
   },
-]
+] as const
 
 type CommonStore = {
   bytesComplete: number

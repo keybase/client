@@ -2025,7 +2025,6 @@ export const useCIDChanged = (
 
   React.useEffect(() => {
     if (lastCID !== conversationIDKey) {
-      console.log('aaaa cidchanged normal', lastCID, conversationIDKey)
       setLastCID(conversationIDKey)
       fRef.current?.()
       setChanged(true)
@@ -2034,6 +2033,5 @@ export const useCIDChanged = (
     }
   }, [conversationIDKey, lastCID])
 
-  console.log('aaaa usecidchanged', lastCID, conversationIDKey, changed)
   return changed
 }

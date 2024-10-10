@@ -12,7 +12,9 @@ import type {Action} from '../app/ipctypes'
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'
 
-const invoke = async (action: Action) => Electron.ipcRenderer.invoke('KBkeybase', action)
+async function invoke<F>(action: Action) {
+  return Electron.ipcRenderer.invoke('KBkeybase', action) as Promise<F>
+}
 
 if (isRenderer) {
   Electron.ipcRenderer
@@ -62,10 +64,10 @@ if (isRenderer) {
           if (!isDarwin) {
             throw new Error('Unsupported platform')
           }
-          const res = (await invoke({
+          const res = await invoke({
             payload: {dst, originalFilePath},
             type: 'darwinCopyToChatTempUploadFile',
-          })) as boolean
+          })
           if (res) {
             return
           } else {
@@ -74,10 +76,10 @@ if (isRenderer) {
         },
         darwinCopyToKBFSTempUploadFile: async (dir: string, originalFilePath: string) => {
           if (!isDarwin) return ''
-          return (await invoke({
+          return await invoke({
             payload: {dir, originalFilePath},
             type: 'darwinCopyToKBFSTempUploadFile',
-          })) as string
+          })
         },
         dumpNodeLogger: async () => {
           await invoke({
@@ -98,10 +100,10 @@ if (isRenderer) {
           return Electron.webUtils.getPathForFile(file)
         },
         getPathType: async (path: string) => {
-          return (await invoke({
+          return await invoke({
             payload: {path},
             type: 'getPathType',
-          })) as 'file' | 'directory'
+          })
         },
         hideWindow: () => {
           invoke({type: 'hideWindow'})
@@ -164,19 +166,19 @@ if (isRenderer) {
             .catch(() => {})
         },
         openPathInFinder: async (path: string, isFolder: boolean) => {
-          const res = (await invoke({
+          const res = await invoke({
             payload: {isFolder, path},
             type: 'openPathInFinder',
-          })) as boolean
+          })
           if (!res) {
             throw new Error('openInDefaultDirectory')
           }
         },
         openURL: async (url: string) => {
-          const res = (await invoke({
+          const res = await invoke({
             payload: {url},
             type: 'openURL',
-          })) as boolean
+          })
           if (!res) {
             throw new Error('openURL failed')
           }
@@ -233,16 +235,16 @@ if (isRenderer) {
             .catch(() => {})
         },
         showOpenDialog: async (options: OpenDialogOptions) => {
-          return (await invoke({
+          return await invoke({
             payload: {options},
             type: 'showOpenDialog',
-          })) as Array<string>
+          })
         },
         showSaveDialog: async (options: SaveDialogOptions) => {
-          return (await invoke({
+          return await invoke({
             payload: {options},
             type: 'showSaveDialog',
-          })) as string
+          })
         },
         showTray: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => {
           Electron.ipcRenderer
@@ -268,9 +270,9 @@ if (isRenderer) {
           return invoke({type: 'uninstallKBFSDialog'})
         },
         winCheckRPCOwnership: async () => {
-          const res = (await invoke({
+          const res = await invoke({
             type: 'winCheckRPCOwnership',
-          })) as boolean
+          })
           if (!res) {
             throw new Error('RPCCheck failed!')
           }

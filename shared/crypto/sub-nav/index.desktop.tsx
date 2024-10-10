@@ -2,7 +2,12 @@ import * as Kb from '@/common-adapters'
 import * as Constants from '@/constants/crypto'
 import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
-import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import {
+  useNavigationBuilder,
+  TabRouter,
+  createNavigatorFactory,
+  type NavigationContainerRef,
+} from '@react-navigation/core'
 import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
@@ -32,7 +37,10 @@ function LeftTabNavigator({
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
-  const onSelectTab = Common.useSubnavTabAction(navigation as any, state)
+  const onSelectTab = Common.useSubnavTabAction(
+    navigation as unknown as NavigationContainerRef<object>,
+    state
+  )
 
   return (
     <NavigationContent>
