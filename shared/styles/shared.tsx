@@ -76,7 +76,7 @@ export const util = {
 type Unified<T> = {
   [P in keyof T]: P extends 'lineHeight' ? _StylesCrossPlatform[P] : T[P]
 }
-function unifyStyles<T extends {}>(s_: T): Unified<T> {
+function unifyStyles<T extends {[key: string]: unknown}>(s_: T): Unified<T> {
   const s: {[key: string]: unknown} = s_
   return {
     ...s,

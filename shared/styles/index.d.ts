@@ -67,7 +67,7 @@ export declare const desktopStyles: {
   windowDraggingClickable: {WebkitAppRegion: 'no-drag'}
 }
 
-export declare const mobileStyles: {}
+export declare const mobileStyles: object
 export declare const fileUIName: string
 export declare const borderRadius: number
 export declare const hairlineWidth: number
@@ -79,7 +79,11 @@ export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O)
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type RemovedStyle = false | '' | 0 | null | undefined
-type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
+
+export type CollapsibleStyle =
+  | CSS.StylesCrossPlatform
+  | RemovedStyle
+  | {lineHeight: CSS._StylesDesktop['lineHeight']}
 
 // TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform

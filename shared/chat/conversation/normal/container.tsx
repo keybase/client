@@ -12,6 +12,7 @@ import {OrangeLineContext} from '../orange-line-context'
 // On desktop when you become inactive we'll watch for a new message and in that case we'll load the orange line once.
 // If we call mark as unread we'll just manually set the value if the rpc succeeds, as calling the rpc does not update immediately.
 
+// TODO fix mutate during render
 const useOrangeLine = () => {
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
   const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)

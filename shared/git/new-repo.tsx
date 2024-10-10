@@ -220,49 +220,52 @@ class NewRepo extends React.Component<Props, State> {
   }
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  addIcon: {marginBottom: 27},
-  avatarBox: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.small,
-    width: '100%',
-  },
-  buttonBar: {alignItems: 'center'},
-  checkbox: {
-    alignSelf: 'flex-start',
-    marginTop: Kb.Styles.globalMargins.tiny,
-  },
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      flex: 1,
-      height: '100%',
-      padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
-    },
-    isElectron: {maxWidth: 400},
-    isTablet: {
-      alignSelf: 'center',
-      marginTop: Kb.Styles.globalMargins.xsmall,
-      width: 500,
-    },
-  }),
-  dropdown: {
-    marginBottom: Kb.Styles.globalMargins.small,
-    width: '100%',
-  },
-  dropdownItem: {
-    justifyContent: 'flex-start',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-  },
-  error: {
-    alignSelf: 'stretch',
-    backgroundColor: Kb.Styles.globalColors.red,
-    marginBottom: Kb.Styles.globalMargins.small,
-    padding: Kb.Styles.globalMargins.tiny,
-  },
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      addIcon: {marginBottom: 27},
+      avatarBox: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
+      buttonBar: {alignItems: 'center'},
+      checkbox: {
+        alignSelf: 'flex-start',
+        marginTop: Kb.Styles.globalMargins.tiny,
+      },
+      container: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          flex: 1,
+          height: '100%',
+          padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
+        },
+        isElectron: {maxWidth: 400},
+        isTablet: {
+          alignSelf: 'center',
+          marginTop: Kb.Styles.globalMargins.xsmall,
+          width: 500,
+        },
+      }),
+      dropdown: {
+        marginBottom: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
+      dropdownItem: {
+        justifyContent: 'flex-start',
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+      },
+      error: {
+        alignSelf: 'stretch',
+        backgroundColor: Kb.Styles.globalColors.red,
+        marginBottom: Kb.Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.tiny,
+      },
+    }) as const
+)
 
 export default Container

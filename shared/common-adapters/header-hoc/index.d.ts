@@ -1,7 +1,9 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import type {HeaderOptions} from '@react-navigation/elements'
+type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
+
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,
@@ -63,6 +65,9 @@ export declare const LeftAction: (p: LeftActionProps) => React.ReactNode
 
 // used in navigationOptions
 export declare const HeaderLeftArrow: (p: HeaderBackButtonProps & {badgeNumber?: number}) => React.ReactNode
+export declare const HeaderLeftArrowCanGoBack: (
+  p: Omit<HeaderBackButtonProps, 'canGoBack'> & {badgeNumber?: number}
+) => React.ReactNode
 export declare const HeaderLeftBlank: () => React.ReactNode
 export declare const HeaderLeftCancel: (p: HeaderBackButtonProps) => React.ReactNode
 export declare const HeaderLeftCancel2: (p: HeaderBackButtonProps) => React.ReactNode

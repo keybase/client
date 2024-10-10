@@ -81,13 +81,15 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
 
-  if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-    setLastOnlyInTeam(onlyInTeam)
-    setLastDisabled(disabled)
-    if (!disabled) {
-      fetchUserEmoji(conversationIDKey, onlyInTeam)
+  React.useEffect(() => {
+    if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
+      setLastOnlyInTeam(onlyInTeam)
+      setLastDisabled(disabled)
+      if (!disabled) {
+        fetchUserEmoji(conversationIDKey, onlyInTeam)
+      }
     }
-  }
+  }, [cidChanged, conversationIDKey, fetchUserEmoji, lastDisabled, lastOnlyInTeam, onlyInTeam, disabled])
 
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
@@ -179,7 +181,7 @@ const WrapperMobile = (props: Props) => {
 export const EmojiPickerDesktop = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji as any)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = C.Chat.useChatNavigateAppend()
@@ -349,7 +351,7 @@ const Routable = (props: RoutableProps) => {
     [updatePickerMap, pickKey]
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onDidPick = () => navigateUp()
+  const onDidPick = navigateUp
 
   C.useOnMountOnce(() => {
     Kb.keyboardDismiss()

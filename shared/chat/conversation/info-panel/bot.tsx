@@ -259,12 +259,14 @@ const BotTab = (props: Props) => {
   const featuredBotsLength = featuredBots.length
   const [lastFBL, setLastFBL] = React.useState(-1)
   const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
-  if (cidChanged || lastFBL !== featuredBotsLength) {
-    setLastFBL(featuredBotsLength)
-    if (featuredBotsLength === 0 && !loadedAllBots) {
-      loadNextBotPage()
+  React.useEffect(() => {
+    if (cidChanged || lastFBL !== featuredBotsLength) {
+      setLastFBL(featuredBotsLength)
+      if (featuredBotsLength === 0 && !loadedAllBots) {
+        loadNextBotPage()
+      }
     }
-  }
+  }, [cidChanged, featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
 
   const items: Array<string | T.RPCGen.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),

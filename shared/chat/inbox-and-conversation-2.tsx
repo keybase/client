@@ -25,13 +25,15 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
     return first?.convID
   })
 
-  if (selectNextConvo) {
-    seenValidCIDRef.current = selectNextConvo
-    // need to defer render navs outside of render
-    setTimeout(() => {
-      C.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
-    }, 1)
-  }
+  React.useEffect(() => {
+    if (selectNextConvo && seenValidCIDRef.current !== selectNextConvo) {
+      seenValidCIDRef.current = selectNextConvo
+      // need to defer , not sure why, shouldn't be
+      setTimeout(() => {
+        C.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+      }, 100)
+    }
+  }, [selectNextConvo])
 
   return (
     <C.ChatProvider id={conversationIDKey} canBeNull={true}>

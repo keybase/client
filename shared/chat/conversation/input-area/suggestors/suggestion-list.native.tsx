@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import noop from 'lodash/noop'
 import type {Props} from './suggestion-list'
-import {BotCommandUpdateStatus} from '../normal/shared'
+import {BotCommandUpdateStatus} from './shared'
 import {FlatList} from 'react-native'
 
 function SuggestionList<I>(props: Props<I>) {

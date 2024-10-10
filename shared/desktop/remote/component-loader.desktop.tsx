@@ -32,23 +32,29 @@ type Props<DeserializeProps, SerializeProps> = {
 
 function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
   const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>()
-  if (!storeRef.current) {
-    storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
-      deserialize: p.deserialize,
-      gotPropsCallback: () => {
-        if (p.showOnProps) {
-          showInactive?.()
-        }
-      },
-      onUpdated: v => {
-        setValue(v)
-      },
-      windowComponent: p.name,
-      windowParam: p.params,
-    })
-  }
+  const {deserialize, name, params, showOnProps} = p
+  React.useEffect(() => {
+    if (!storeRef.current) {
+      storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
+        deserialize,
+        gotPropsCallback: () => {
+          if (showOnProps) {
+            showInactive?.()
+          }
+        },
+        onUpdated: v => {
+          setValue(v)
+        },
+        windowComponent: name,
+        windowParam: params,
+      })
+    }
+    setValue(storeRef.current._value)
+  }, [deserialize, name, params, showOnProps])
 
-  const [value, setValue] = React.useState(storeRef.current._value)
+  const [value, setValue] = React.useState<DeserializeProps | undefined>()
+
+  if (!value) return null
 
   return (
     <div id="RemoteComponentRoot" style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}>

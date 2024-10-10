@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {StyleOverride} from '@/common-adapters/markdown'
 
 export type Props = {
   active: boolean
@@ -12,7 +13,7 @@ export type Props = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const markdownOverride = Kb.Styles.isMobile
+const markdownOverride: StyleOverride = Kb.Styles.isMobile
   ? {
       customEmoji: {height: 24, width: 24},
       emoji: {height: 21, lineHeight: 24},
@@ -41,7 +42,7 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
         <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
           <Kb.Markdown
             serviceOnlyNoWrap={true}
-            styleOverride={markdownOverride as any}
+            styleOverride={markdownOverride}
             lineClamp={1}
             smallStandaloneEmoji={true}
             disallowAnimation={false}

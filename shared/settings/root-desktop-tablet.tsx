@@ -69,11 +69,14 @@ const SettingsSubNavigator = () => (
         key={name}
         name={name}
         getComponent={settingsSubRoutes[name].getScreen as any}
-        options={({route, navigation}) => {
-          const no = getOptions(settingsSubRoutes[name])
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          return {...opt}
-        }}
+        options={
+          // @ts-ignore
+          ({route, navigation}) => {
+            const no = getOptions(settingsSubRoutes[name])
+            const opt = typeof no === 'function' ? no({navigation, route}) : no
+            return {...opt}
+          }
+        }
       />
     ))}
   </TabNavigator.Navigator>

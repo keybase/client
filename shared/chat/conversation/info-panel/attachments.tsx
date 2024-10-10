@@ -461,14 +461,17 @@ export const useAttachmentSections = (
       loadAttachmentView(selectedAttachmentView)
     }, 1)
   })
-  if (cidChanged || lastSAV !== selectedAttachmentView) {
-    setLastSAV(selectedAttachmentView)
-    if (loadImmediately) {
-      setTimeout(() => {
-        loadAttachmentView(selectedAttachmentView)
-      }, 1)
+
+  React.useEffect(() => {
+    if (cidChanged || lastSAV !== selectedAttachmentView) {
+      setLastSAV(selectedAttachmentView)
+      if (loadImmediately) {
+        setTimeout(() => {
+          loadAttachmentView(selectedAttachmentView)
+        }, 1)
+      }
     }
-  }
+  }, [cidChanged, lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
 
   const attachmentView = C.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)

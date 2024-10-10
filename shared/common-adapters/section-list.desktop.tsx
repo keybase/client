@@ -22,7 +22,7 @@ const Kb = {
  * If you have sticky headers on we extract whatever section you're currently in (by watching scroll). We render that item
  * as a sibling of the list. If you have wildly different header heights you'll definitely see things jumping around
  */
-
+// @ts-ignore
 const SectionList = React.forwardRef<any, any>(function SectionList<T extends Section<any>>(
   p: Props<T>,
   forwardedRef: React.Ref<any>

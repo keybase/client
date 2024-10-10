@@ -82,17 +82,6 @@ export const getPaymentMessageInfo = (
   )
 }
 
-export const isPendingPaymentMessage = (
-  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
-  message?: T.Chat.Message
-) => {
-  if (message?.type !== 'sendPayment') {
-    return false
-  }
-  const paymentInfo = getPaymentMessageInfo(accountsInfoMap, message)
-  return !!(paymentInfo && paymentInfo.status === 'pending')
-}
-
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: T.RPCChat.MessageType): Array<T.Chat.MessageType> => {
   switch (t) {
@@ -577,9 +566,9 @@ export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | 
             arr.push([
               emoji,
               {
-                decorated: r.reactions[emoji]!.decorated,
+                decorated: r.reactions[emoji].decorated,
                 users: new Set(
-                  Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
+                  Object.keys(r.reactions[emoji].users ?? {}).map(username =>
                     makeReaction({
                       timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
                       username,

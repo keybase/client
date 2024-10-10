@@ -612,7 +612,7 @@ export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
         showcasing: state.newTeamWizard.profileShowcase,
         teamname: state.newTeamWizard.name === '' ? 'New team' : state.newTeamWizard.name,
       })
-    : state.teamMeta.get(teamID) ?? emptyTeamMeta
+    : (state.teamMeta.get(teamID) ?? emptyTeamMeta)
 
 export const getTeamMemberLastActivity = (
   state: State,
@@ -762,7 +762,7 @@ export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T
   }
 
   const ck = _canUserPerformCacheKey(roleAndDetails)
-  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]!
+  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]
 
   const {role, implicitAdmin} = roleAndDetails
   const isAdminOrAbove = role === 'admin' || role === 'owner'

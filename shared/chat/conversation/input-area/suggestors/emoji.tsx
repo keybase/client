@@ -49,7 +49,9 @@ const useDataSource = (filter: string) => {
   C.Chat.useCIDChanged(
     conversationIDKey,
     () => {
-      fetchUserEmoji(conversationIDKey)
+      setTimeout(() => {
+        fetchUserEmoji(conversationIDKey)
+      }, 0)
     },
     true
   )
@@ -86,8 +88,8 @@ type ListProps = Pick<
 > & {
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  setOnMoveRef: (r: (up: boolean) => void) => void
+  setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p

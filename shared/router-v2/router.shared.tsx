@@ -97,6 +97,7 @@ export const useShared = () => {
   }
 
   const loggedIn = C.useConfigState(s => s.loggedIn)
+  const loggedInUser = C.useCurrentUserState(s => s.username)
   const navKeyRef = React.useRef(1)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
@@ -134,17 +135,10 @@ export const useShared = () => {
     initialState,
     loggedIn,
     loggedInLoaded,
+    loggedInUser,
     navKey,
     onStateChange,
     onUnhandledAction,
-  }
-}
-
-export const useSharedAfter = (appState: React.MutableRefObject<AppState>) => {
-  // stuff that happens after the first hook is done
-  // if we handled NEEDS_INIT we're done
-  if (appState.current === AppState.NEEDS_INIT) {
-    appState.current = AppState.INITED
   }
 }
 
@@ -202,4 +196,10 @@ export const theme: Theme = {
     },
   },
   dark: false,
+  fonts: {
+    bold: Kb.Styles.globalStyles.fontBold,
+    heavy: Kb.Styles.globalStyles.fontExtrabold,
+    medium: Kb.Styles.globalStyles.fontSemibold,
+    regular: Kb.Styles.globalStyles.fontRegular,
+  },
 }

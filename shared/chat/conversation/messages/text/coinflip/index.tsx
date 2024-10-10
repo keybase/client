@@ -15,10 +15,10 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
   const status = C.useChatState(s => s.flipStatusMap.get(flipGameID))
-  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
+  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
   const onFlipAgain = React.useCallback(() => {
-    text && messageSend(text.stringValue())
-  }, [messageSend, text])
+    text && sendMessage(text.stringValue())
+  }, [sendMessage, text])
   const phase = status?.phase
   const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined

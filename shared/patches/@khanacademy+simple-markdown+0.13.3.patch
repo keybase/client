@@ -1,0 +1,69 @@
+diff --git a/node_modules/@khanacademy/simple-markdown/dist/es/index.js b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
+index c5c642f..d150689 100644
+--- a/node_modules/@khanacademy/simple-markdown/dist/es/index.js
++++ b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
+@@ -3,7 +3,9 @@ import { addLibraryVersionToPerseusDebug } from '@khanacademy/perseus-core';
+ // This file is processed by a Rollup plugin (replace) to inject the production
+ const libName = "@khanacademy/simple-markdown";
+ const libVersion = "0.13.3";
++/*
+ addLibraryVersionToPerseusDebug(libName, libVersion);
++*/
+ 
+ /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
+ 
+diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
+index 6f3c7fc..da0c474 100644
+--- a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
++++ b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
+@@ -62,30 +62,36 @@ type HtmlOutputRule = {
+ type ArrayRule = {
+     readonly react?: ArrayNodeOutput<ReactElements>;
+     readonly html?: ArrayNodeOutput<string>; 
++    }&{
+     readonly [key: string]: ArrayNodeOutput<any>;
+ };
+ type ParserRules = {
+     readonly Array?: ArrayRule; 
++    }&{
+     readonly [type: string]: ParserRule;
+ };
+ type OutputRules<Rule> = {
+     readonly Array?: ArrayRule; 
++    }&{
+     readonly [type: string]: Rule;
+ };
+ type Rules<OutputRule> = {
+     readonly Array?: ArrayRule; 
++    }&{
+     readonly [type: string]: ParserRule & OutputRule;
+ };
+ type ReactRules = {
+     readonly Array?: {
+         readonly react: ArrayNodeOutput<ReactElements>;
+     }; 
++    }&{
+     readonly [type: string]: ParserRule & ReactOutputRule;
+ };
+ type HtmlRules = {
+     readonly Array?: {
+         readonly html: ArrayNodeOutput<string>;
+     }; 
++    }&{
+     readonly [type: string]: ParserRule & HtmlOutputRule;
+ };
+ type NonNullReactOutputRule = {
+diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.js b/node_modules/@khanacademy/simple-markdown/dist/index.js
+index 0f10c55..f3bf91a 100644
+--- a/node_modules/@khanacademy/simple-markdown/dist/index.js
++++ b/node_modules/@khanacademy/simple-markdown/dist/index.js
+@@ -7,7 +7,9 @@ var perseusCore = require('@khanacademy/perseus-core');
+ // This file is processed by a Rollup plugin (replace) to inject the production
+ const libName = "@khanacademy/simple-markdown";
+ const libVersion = "0.13.3";
++/*
+ perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
++*/
+ 
+ /* eslint-disable prefer-spread, no-regex-spaces, @typescript-eslint/no-unused-vars, guard-for-in, no-console, no-var */
+ 

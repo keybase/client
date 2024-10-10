@@ -11,12 +11,12 @@ import {rimrafSync} from 'rimraf'
 const [, , command, ...rest] = process.argv
 
 type Command = {
-  code?: (info: Command, exec: Function) => void
+  code?: (info: Command, exec: (...a: Array<any>) => void) => void
   help?: string
-  env?: {}
+  env?: object
   shell?: string
   nodeEnv?: 'production' | 'development'
-  options?: {}
+  options?: object
 }
 
 const commands: {[key: string]: Command} = {
@@ -29,7 +29,7 @@ const commands: {[key: string]: Command} = {
       const keys = Object.keys(commands) as Array<keyof typeof commands>
       console.log(
         keys
-          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c]?.help || ''}`)
+          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c].help || ''}`)
           .filter(Boolean)
           .join('\n')
       )
@@ -109,11 +109,11 @@ function fixModules() {
   } catch {}
 }
 
-function exec(command: string, env?: {}, options?: object) {
+function exec(command: string, env?: object, options?: object) {
   console.log(
     execSync(command, {
       encoding: 'utf8',
-      env: env || process.env,
+      env: (env as typeof process.env | undefined) || process.env,
       stdio: 'inherit',
       ...options,
     })

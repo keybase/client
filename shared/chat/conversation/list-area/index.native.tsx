@@ -10,7 +10,7 @@ import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
-import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {mobileTypingContainerHeight} from '../input-area/normal2/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
@@ -42,8 +42,8 @@ const useScrolling = (p: {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
-  const {scrollRef} = React.useContext(ScrollContext)
-  scrollRef.current = {scrollDown: noop, scrollToBottom, scrollUp: noop}
+  const {setScrollRef} = React.useContext(ScrollContext)
+  setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -125,10 +125,12 @@ const ConversationList = React.memo(function ConversationList() {
   )
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  if (cidChanged || lastED !== extraData) {
-    recycleTypeRef.current = new Map()
-    setLastED(extraData)
-  }
+  React.useEffect(() => {
+    if (cidChanged || lastED !== extraData) {
+      recycleTypeRef.current = new Map()
+      setLastED(extraData)
+    }
+  }, [cidChanged, extraData, lastED])
   const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])

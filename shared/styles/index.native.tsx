@@ -7,7 +7,7 @@ import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
 import type {StylesCrossPlatform} from './css'
 
-type _Elem = Object | null | false
+type _Elem = object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
@@ -129,7 +129,7 @@ export const useCollapseStyles = (
 export const useCollapseStylesDesktop = useCollapseStyles
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
-): undefined | CollapsibleStyle | ReadonlyArray<Object | null | false> => {
+): undefined | CollapsibleStyle | ReadonlyArray<object | null | false> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {

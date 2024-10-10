@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/keybase/client/react-native-kb.git", :tag => "#{s.version}" }
 
   s.source_files = [
-      "ios/**/*.{h,m,mm}",
+      "ios/**/*.{h,m,mm,cpp}",
       "cpp/**/*.{h,cpp}",
       "cpp/*.{h,cpp}"
   ]

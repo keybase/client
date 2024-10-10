@@ -57,8 +57,7 @@ export const PlatformsExpanded = [
   ...(__DEV__ ? ['rooter' as const] : []),
 ]
 
-const isPlatformsExpandedType = (str: string): str is PlatformsExpandedType =>
-  PlatformsExpanded.includes(str as any)
+const isPlatformsExpandedType = (str: string): str is PlatformsExpandedType => PlatformsExpanded.includes(str)
 export const asPlatformsExpandedType = (str: string): PlatformsExpandedType | undefined =>
   isPlatformsExpandedType(str) ? str : undefined
 

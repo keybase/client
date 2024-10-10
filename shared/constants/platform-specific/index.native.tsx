@@ -379,6 +379,7 @@ export const initPlatformListener = () => {
           return
         }
         _lastPersist = s
+
         await T.RPCGen.configGuiSetValueRpcPromise({
           path: 'ui.routeState2',
           value: {isNull: false, s},
