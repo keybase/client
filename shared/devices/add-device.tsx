@@ -11,7 +11,6 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
   const iconNumbers = Constants.useNextDeviceIconNumber()
-  const safeOptions = {onlyOnce: true}
   const addNewDevice = C.useProvisionState(s => s.dispatch.addNewDevice)
 
   const onAddComputer = React.useCallback(() => {
@@ -19,12 +18,17 @@ export default function AddDevice(ownProps: OwnProps) {
   }, [addNewDevice])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onAddPaperKey = C.useSafeCallback(
-    React.useCallback(() => {
-      navigateAppend('devicePaperKey')
-    }, [navigateAppend]),
-    safeOptions
-  )
+
+  // don't allow mutliple clicks to add paper key
+  const canAddPaperKeyRef = React.useRef(true)
+  const onAddPaperKey = React.useCallback(() => {
+    if (!canAddPaperKeyRef.current) return
+    canAddPaperKeyRef.current = false
+    navigateAppend('devicePaperKey')
+    setTimeout(() => {
+      canAddPaperKeyRef.current = true
+    }, 1000)
+  }, [navigateAppend])
 
   const onAddPhone = React.useCallback(() => {
     addNewDevice('mobile')

@@ -10,7 +10,7 @@ export function useSafeSubmit<F extends (...a: Array<any>) => void>(f: F, should
   }, [shouldReset])
 
   const safeWrapped = React.useCallback(
-    (...args: Array<any>) => {
+    (...args: Array<unknown>) => {
       if (safeToCallRef.current) {
         safeToCallRef.current = false
         f(...args)
@@ -20,5 +20,5 @@ export function useSafeSubmit<F extends (...a: Array<any>) => void>(f: F, should
     [f]
   )
 
-  return safeWrapped as any as F
+  return safeWrapped
 }

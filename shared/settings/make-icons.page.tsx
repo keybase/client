@@ -114,7 +114,7 @@ const Screen = __DEV__
               backgroundColor: 'pink',
               marginTop: 100,
               position: 'relative',
-              transform: 'scale(5)' as any,
+              transform: 'scale(5)' as const,
             }}
           >
             {icons}

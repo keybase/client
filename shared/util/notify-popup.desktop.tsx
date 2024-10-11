@@ -29,7 +29,7 @@ function NotifyPopup(
     // Exists? just call it to push the time back
     if (rateLimit[key]) {
       rateLimitPayloads[key] = {onClick: onClick, opts, title}
-      rateLimit[key]!()
+      rateLimit[key]()
       return
     } else {
       // else set it up and call it below

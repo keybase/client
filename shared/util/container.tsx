@@ -2,11 +2,15 @@ import * as React from 'react'
 
 // Deprecated: avoid useEffect
 export function usePrevious<T>(value: T) {
-  const ref = React.useRef<T>()
-  React.useEffect(() => {
-    ref.current = value
-  })
-  return ref.current
+  const [current, setCurrent] = React.useState(value)
+  const [previous, setPrevious] = React.useState<T | undefined>(undefined)
+
+  if (value !== current) {
+    setPrevious(current)
+    setCurrent(value)
+  }
+
+  return previous
 }
 
 export {useSafeSubmit} from './safe-submit'

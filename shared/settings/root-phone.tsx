@@ -41,7 +41,7 @@ const PerfRow = () => {
       <Kb.PlainInput
         ref={ref}
         onChangeText={text => setToSubmit(`GUI: ${text}`)}
-        style={styles.perfInput as any}
+        style={styles.perfInput}
         placeholder="Add to perf log"
       />
     </Kb.Box2>

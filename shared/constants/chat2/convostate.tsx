@@ -106,7 +106,6 @@ type ConvoStore = T.Immutable<{
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
-  orangeAboveOrdinal: T.Chat.Ordinal // ordinal of the orange line,
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -144,7 +143,6 @@ const initialConvoStore: ConvoStore = {
   meta: Meta.makeConversationMeta(),
   moreToLoad: false,
   mutualTeams: [],
-  orangeAboveOrdinal: T.Chat.numberToOrdinal(0),
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
@@ -201,7 +199,6 @@ export interface ConvoState extends ConvoStore {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
-    clearOrangeLine: (why: string) => void
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
@@ -222,7 +219,6 @@ export interface ConvoState extends ConvoStore {
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
-    loadOrangeLine: (why: string) => void
     loadOlderMessagesDueToScroll: (numOrdinals: number) => void
     loadNewerMessagesDueToScroll: (numOrdinals: number) => void
     loadMoreMessages: DebouncedFunc<(p: LoadMoreMessagesParams) => void>
@@ -1264,12 +1260,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.attachmentViewMap = new Map()
       })
     },
-    clearOrangeLine: why => {
-      logger.error('[CHATDEBUG] clearOrangeLine: ', why)
-      set(s => {
-        s.orangeAboveOrdinal = T.Chat.numberToOrdinal(0)
-      })
-    },
     dismissBlockButtons: teamID => {
       const f = async () => {
         try {
@@ -1736,41 +1726,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'scroll back',
         scrollDirection: 'back',
       })
-    },
-    loadOrangeLine: why => {
-      const f = async () => {
-        const convID = get().getConvID()
-        const readMsgID = get().meta.readMsgID
-        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-          convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID: readMsgID < 0 ? 0 : readMsgID,
-        })
-
-        const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-        if (!unreadlineID) {
-          logger.error('[CHATDEBUG] loadOrangeLine: no unreadlineID', {id: get().id, readMsgID, why})
-          set(s => {
-            s.orangeAboveOrdinal = T.Chat.numberToOrdinal(0)
-          })
-          return
-        } else {
-          const mid = T.Chat.numberToMessageID(unreadlineID)
-          const toSet = findOrdinalFromMessageIDOrMID(mid)
-
-          logger.error('[CHATDEBUG] loadOrangeLine: new unreadlineID', {
-            id: get().id,
-            mid,
-            ord: toSet,
-            readMsgID,
-            why,
-          })
-          set(s => {
-            s.orangeAboveOrdinal = toSet
-          })
-        }
-      }
-      C.ignorePromise(f())
     },
     markTeamAsRead: teamID => {
       const f = async () => {

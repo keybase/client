@@ -6,25 +6,13 @@ import {pickSave} from '@/util/pick-files'
 import * as FsCommon from '@/fs/common'
 
 type Props =
-  | {
-      type: 'chatID'
-      conversationIDKey: T.Chat.ConversationIDKey
-    }
-  | {
-      type: 'chatTeam'
-      teamname: string
-    }
+  | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
+  | {type: 'chatTeam'; teamname: string}
   | {type: 'chatAll'}
   | {type: 'fsAll'}
   | {type: 'gitAll'}
-  | {
-      type: 'fsPath'
-      path: string
-    }
-  | {
-      type: 'git'
-      gitURL: string
-    }
+  | {type: 'fsPath'; path: string}
+  | {type: 'git'; gitURL: string}
 
 const ArchiveModal = (p: Props) => {
   const {type} = p

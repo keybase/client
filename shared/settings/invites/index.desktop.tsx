@@ -14,11 +14,11 @@ function intersperseFn<A, B>(
     return arr
   }
 
-  const toReturn = new Array(arr.length * 2 - 1)
-  toReturn[0] = arr[0]
+  const toReturn = new Array<A | B>(arr.length * 2 - 1)
+  toReturn[0] = arr[0]!
   for (let i = 1; i < arr.length; i++) {
     toReturn[i * 2 - 1] = separatorFn(i, arr[i]!, arr)
-    toReturn[i * 2] = arr[i]
+    toReturn[i * 2] = arr[i]!
   }
   return toReturn
 }

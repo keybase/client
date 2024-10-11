@@ -47,6 +47,7 @@ export const createZustand = <T extends HasReset>(
   let resetFunc: () => void
   if (reset === 'default') {
     resetFunc = () => {
+      // eslint-disable-next-line
       store.setState(initialState as any, true)
     }
   } else {
