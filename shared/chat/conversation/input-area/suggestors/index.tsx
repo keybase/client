@@ -172,7 +172,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const cursorInfo = getWordAtCursor()
       const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
-        value as any, // TODO hard to untangle now
+        value as unknown as any, // TODO hard to untangle now
         matchInfo.marker,
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final

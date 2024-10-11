@@ -33,10 +33,11 @@ const useScrolling = (p: {
   containsLatestMessage: boolean
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   listRef: React.MutableRefObject<HTMLDivElement | null>
+  setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
+  const {listRef, setListRef: _setListRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
@@ -214,9 +215,9 @@ const useScrolling = (p: {
       if (list) {
         list.addEventListener('scroll', onScroll, {passive: true})
       }
-      listRef.current = list
+      _setListRef(list)
     },
-    [onScroll, listRef]
+    [onScroll, listRef, _setListRef]
   )
 
   const cleanupDebounced = React.useCallback(() => {
@@ -464,11 +465,15 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
+  const _setListRef = React.useCallback((r: HTMLDivElement | null) => {
+    listRef.current = r
+  }, [])
   const {isLockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     listRef,
     messageOrdinals,
+    setListRef: _setListRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
@@ -599,99 +604,44 @@ if (colorWaypoints) {
   }
 }
 
+// When rendering the first time, let it auto size
+// when you're out of view (!isIntersecting) then replace with a placeholder div with a fixed height
+// when you're back in view auto size
 const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
-  const heightRef = React.useRef<number | undefined>()
-  const widthRef = React.useRef<number | undefined>()
-  const heightForOrdinalsRef = React.useRef<Array<T.Chat.Ordinal> | undefined>()
+  const [height, setHeight] = React.useState(-1)
   const [isVisible, setVisible] = React.useState(true)
-  const [, setForce] = React.useState(0)
-  const customForceUpdate = React.useCallback(() => {
-    setForce(f => f + 1)
-  }, [])
-  const onResize = React.useCallback(
-    function onResize(p: {width: number; height: number}) {
-      const {width, height} = p
-      if (height && width) {
-        let changed = false
-        // don't have a width at all or its unchanged
-        if (!widthRef.current || widthRef.current === width) {
-          if (heightRef.current !== height) {
-            heightForOrdinalsRef.current = ordinals
-            heightRef.current = height
-            // don't redraw in this case
-          }
-        } else {
-          // toss height if width changes
-          heightRef.current = undefined
-          changed = true
-        }
-
-        if (widthRef.current !== width) {
-          if (widthRef.current !== undefined) {
-            changed = true
-          }
-          widthRef.current = width
-        }
-
-        if (changed) {
-          customForceUpdate()
-        }
-      }
-    },
-    [customForceUpdate, ordinals]
-  )
-
-  // we want to go invisible if we're outside after we've been measured, aka don't scroll up and measure and hide yourself
-  // only hide after you've been scrolled past
-  const ignoreFirstIntersectionRef = React.useRef(true)
-
-  // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
-  // const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<T.Chat.Ordinal>())
-  // const lastVisibleChildrenRef = React.useRef<React.ReactElement | null>(null)
-  // const lastRowRendererRef = React.useRef(rowRenderer)
-
-  if (ordinals !== heightForOrdinalsRef.current) {
-    heightRef.current = undefined
-  }
-
-  const [wRef, waypointRef] = React.useState<HTMLDivElement | null>(null)
-  useResizeObserver(wRef, e => onResize(e.contentRect))
+  const [wRef, setRef] = React.useState<HTMLDivElement | null>(null)
   const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
   const {isIntersecting} = useIntersectionObserver(wRef, {root})
+  const lastIsIntersecting = React.useRef(isIntersecting)
 
-  if (ignoreFirstIntersectionRef.current) {
-    ignoreFirstIntersectionRef.current = false
-  } else if (isVisible !== isIntersecting) {
+  React.useEffect(() => {
+    if (lastIsIntersecting.current === isIntersecting) return
+    lastIsIntersecting.current = isIntersecting
     setVisible(isIntersecting)
-  }
+  }, [isIntersecting])
 
-  // Apply data-key to the dom node so we can search for editing messages
-  const renderMessages = !heightRef.current || isVisible
+  const renderMessages = height < 0 || isVisible
   let content: React.ReactElement
 
+  const lastRenderMessages = React.useRef(false)
+  React.useEffect(() => {
+    if (!wRef) return
+    if (lastRenderMessages.current === renderMessages) return
+    if (renderMessages) {
+      const h = wRef.offsetHeight
+      if (h) {
+        setHeight(h)
+      }
+    }
+    lastRenderMessages.current = renderMessages
+  }, [renderMessages, wRef])
+
   if (renderMessages) {
-    // disabling this caching for now due to its complexity. its not clear its actually safe
-    // and having it off doesn't seem to affect performance much
-    // if (
-    //   ordinals === lastVisibleChildrenOrdinalsRef.current &&
-    //   lastVisibleChildrenRef.current &&
-    //   rowRenderer === lastRowRendererRef.current
-    // ) {
-    //   // cache children to skip re-rendering
-    //   content = lastVisibleChildrenRef.current
-    // } else {
-    content = (
-      <div key={id} data-key={id} ref={waypointRef}>
-        {ordinals.map(o => rowRenderer(o))}
-      </div>
-    )
-    // lastVisibleChildrenOrdinalsRef.current = ordinals
-    // lastVisibleChildrenRef.current = content
-    // lastRowRendererRef.current = rowRenderer
-    // }
+    content = <Content key={id} id={id} ref={setRef} ordinals={ordinals} rowRenderer={rowRenderer} />
   } else {
-    content = <div key={id} data-key={id} style={{height: heightRef.current}} ref={waypointRef} />
+    content = <Dummy key={id} id={id} height={height} ref={setRef} />
   }
 
   if (colorWaypoints) {
@@ -703,6 +653,35 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointPr
     return content
   }
 })
+
+type ContentType = {
+  id: string
+  ordinals: Array<T.Chat.Ordinal>
+  rowRenderer: (o: T.Chat.Ordinal) => React.ReactNode
+}
+const Content = React.memo(
+  React.forwardRef<HTMLDivElement, ContentType>(function Content(p, ref) {
+    const {id, ordinals, rowRenderer} = p
+    // Apply data-key to the dom node so we can search for editing messages
+    return (
+      <div data-key={id} ref={ref}>
+        {ordinals.map(o => rowRenderer(o))}
+      </div>
+    )
+  })
+)
+
+type DummyType = {
+  id: string
+  height: number
+}
+const Dummy = React.memo(
+  React.forwardRef<HTMLDivElement, DummyType>(function Dummy(p, ref) {
+    const {id, height} = p
+    // Apply data-key to the dom node so we can search for editing messages
+    return <div data-key={id} style={{height}} ref={ref} />
+  })
+)
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
