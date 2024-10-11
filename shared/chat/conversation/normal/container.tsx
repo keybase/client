@@ -1,60 +1,81 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import Normal from '.'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
+import logger from '@/logger'
 
-// Orange line logic:
-// When we load a conversation with a non scrolling scrollDirection we'll load the orange line through the rpc.
-// While the meta has readMsgID and maxMsgID those values do not update correctly in time to use.
-// On mobile when we background we'll clear the orange line and we'll get it when we foreground (as a side effect of being stale).
-// On desktop when you become inactive we'll watch for a new message and in that case we'll load the orange line once.
-// If we call mark as unread we'll just manually set the value if the rpc succeeds, as calling the rpc does not update immediately.
-
-// TODO fix mutate during render
 const useOrangeLine = () => {
+  const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
+  const id = C.useChatContext(s => s.id)
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
-  const loadOrangeLine = C.useChatContext(s => s.dispatch.loadOrangeLine)
-  const clearOrangeLine = C.useChatContext(s => s.dispatch.clearOrangeLine)
-  const maxVisibleMsgID = C.useChatContext(s => s.meta.maxVisibleMsgID)
-  const lastVisibleMsgIDRef = React.useRef(maxVisibleMsgID)
-  const newMessageVisible = maxVisibleMsgID !== lastVisibleMsgIDRef.current
-  lastVisibleMsgIDRef.current = maxVisibleMsgID
-  const active = C.useActiveState(s => s.active)
-  const gotMessageWhileInactive = React.useRef(false)
-  if (active) {
-    gotMessageWhileInactive.current = false
-  }
-  if (!gotMessageWhileInactive.current && !active && newMessageVisible) {
-    gotMessageWhileInactive.current = true
-    loadOrangeLine('new message while inactive')
-  }
+  const loadOrangeLine = React.useCallback(
+    (why: string) => {
+      const f = async () => {
+        const store = C.getConvoState(id)
+        const convID = store.getConvID()
+        const readMsgID = store.meta.readMsgID
+        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
+          convID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          readMsgID: readMsgID < 0 ? 0 : readMsgID,
+        })
 
+        setOrangeLine(T.Chat.numberToOrdinal(unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0))
+        logger.error('[CHATDEBUG] loadOrangeLine: new unreadlineID', {
+          id,
+          readMsgID,
+          why,
+        })
+      }
+      C.ignorePromise(f())
+    },
+    [id]
+  )
+
+  // initial load
+  React.useEffect(() => {
+    loadOrangeLine('mounted')
+  }, [loadOrangeLine])
+
+  const {markedAsUnread, maxMsgID, readMsgID} = C.useChatContext(
+    C.useShallow(s => {
+      const {maxMsgID, readMsgID} = s.meta
+      const {markedAsUnread} = s
+      return {markedAsUnread, maxMsgID, readMsgID}
+    })
+  )
+
+  // unread changed things
+  const lastMarkedAsUnreadRef = React.useRef(markedAsUnread)
+  React.useEffect(() => {
+    if (lastMarkedAsUnreadRef.current !== markedAsUnread) {
+      lastMarkedAsUnreadRef.current = markedAsUnread
+      setOrangeLine(T.Chat.numberToOrdinal(markedAsUnread))
+    }
+  }, [loadOrangeLine, markedAsUnread])
+
+  // we're not looking add a line
+  const active = C.useActiveState(s => s.active)
+  React.useEffect(() => {
+    if (!active && readMsgID < maxMsgID) {
+      setOrangeLine(T.Chat.numberToOrdinal(readMsgID + 0.0001))
+    }
+  }, [active, maxMsgID, readMsgID])
+
+  // mobile backgrounded us
   const mobileAppState = C.useConfigState(s => s.mobileAppState)
   const lastMobileAppStateRef = React.useRef(mobileAppState)
-  if (mobileAppState !== lastMobileAppStateRef.current) {
-    lastMobileAppStateRef.current = mobileAppState
-    if (mobileAppState !== 'active') {
-      clearOrangeLine('mobile backgrounded')
+  React.useEffect(() => {
+    if (mobileAppState !== lastMobileAppStateRef.current) {
+      lastMobileAppStateRef.current = mobileAppState
+      if (mobileAppState !== 'active') {
+        setOrangeLine(T.Chat.numberToOrdinal(0))
+      }
     }
-  }
-
-  const storeOrangeLine = C.useChatContext(s => s.orangeAboveOrdinal)
-  const orangeLineRef = React.useRef(storeOrangeLine)
-  // we can't load this again due to stale and other things so lets just keep its state while we're mounted
-  // and never move forward unless its totally gone
-  // move if we moved back due to mark as unread
-  if (storeOrangeLine) {
-    if (!orangeLineRef.current || orangeLineRef.current > storeOrangeLine) {
-      orangeLineRef.current = storeOrangeLine
-    }
-  } else {
-    // allow a clear
-    orangeLineRef.current = storeOrangeLine
-  }
-
-  return orangeLineRef.current
+  }, [mobileAppState])
+  return orangeLine
 }
 
 const WithOrange = React.memo(function WithOrange(p: {orangeLine: T.Chat.Ordinal}) {

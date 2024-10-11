@@ -97,7 +97,7 @@ type ConvoStore = T.Immutable<{
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
-  markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
+  markedAsUnread: T.Chat.Ordinal
   maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
@@ -134,7 +134,7 @@ const initialConvoStore: ConvoStore = {
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
-  markedAsUnread: false,
+  markedAsUnread: T.Chat.numberToOrdinal(0),
   maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
@@ -457,20 +457,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   // find ordinal or return the incoming message id (it'll resolve later)
-  const findOrdinalFromMessageIDOrMID = (messageID: T.Chat.MessageID) => {
-    // find ordinal
-    const mm = get().messageMap
-    const nid = T.Chat.messageIDToNumber(messageID)
-    const quick = mm.get(T.Chat.numberToOrdinal(nid))
-    if (quick) return quick.ordinal
-    // search
-    for (const m of mm.values()) {
-      if (m.id === messageID) {
-        return m.ordinal
-      }
-    }
-    return T.Chat.numberToOrdinal(nid)
-  }
+  // const findOrdinalFromMessageIDOrMID = (messageID: T.Chat.MessageID) => {
+  //   // find ordinal
+  //   const mm = get().messageMap
+  //   const nid = T.Chat.messageIDToNumber(messageID)
+  //   const quick = mm.get(T.Chat.numberToOrdinal(nid))
+  //   if (quick) return quick.ordinal
+  //   // search
+  //   for (const m of mm.values()) {
+  //     if (m.id === messageID) {
+  //       return m.ordinal
+  //     }
+  //   }
+  //   return T.Chat.numberToOrdinal(nid)
+  // }
 
   const desktopNotification = (author: string, body: string) => {
     if (C.isMobile) return
@@ -1642,9 +1642,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
-        if (sd === 'none') {
-          get().dispatch.loadOrangeLine(`load message no direction res:${reason}`)
-        }
       }
 
       C.ignorePromise(f())
@@ -2670,12 +2667,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     setMarkAsUnread: readMsgID => {
-      // false means clear, readMsgID === undefined means last item
-      set(s => {
-        s.markedAsUnread = readMsgID !== false
-      })
       if (readMsgID === false) {
         return
+      }
+      if (readMsgID) {
+        set(s => {
+          s.markedAsUnread = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(readMsgID))
+        })
       }
       const conversationIDKey = get().id
       const f = async () => {
@@ -2763,15 +2761,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           forceUnread: true,
           msgID,
         })
-        // ideally we'd load the orange line here but the rpc is racy and returns 0 often
-
-        if (readMsgID) {
-          const mid = T.Chat.numberToMessageID(readMsgID)
-          const toSet = findOrdinalFromMessageIDOrMID(mid)
-          set(s => {
-            s.orangeAboveOrdinal = toSet
-          })
-        }
       }
       C.ignorePromise(f())
     },

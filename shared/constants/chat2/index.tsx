@@ -1485,7 +1485,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const deselectAction = () => {
           if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
             get().dispatch.unboxRows([wasID], true)
-            C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
+            // needed?
+            // C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
           }
         }
 
