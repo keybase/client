@@ -42,7 +42,9 @@ const useScrolling = (p: {
   }, [listRef])
 
   const {setScrollRef} = React.useContext(ScrollContext)
-  setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
+  React.useEffect(() => {
+    setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
+  }, [setScrollRef, scrollToBottom])
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -152,20 +154,20 @@ const ConversationList = React.memo(function ConversationList() {
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const lastCenteredOrdinal = React.useRef(0)
-  if (lastCenteredOrdinal.current !== centeredOrdinal) {
+  React.useEffect(() => {
+    if (lastCenteredOrdinal.current !== centeredOrdinal) return
     lastCenteredOrdinal.current = centeredOrdinal
     if (centeredOrdinal) {
-      // let it render first
-      setTimeout(() => {
-        scrollToCentered()
-      }, 16)
+      scrollToCentered()
     }
-  }
+  }, [centeredOrdinal, scrollToCentered])
 
-  if (!markedInitiallyLoaded) {
-    markedInitiallyLoaded = true
-    markInitiallyLoadedThreadAsRead()
-  }
+  React.useEffect(() => {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+  }, [markInitiallyLoadedThreadAsRead])
 
   // We use context to inject a way for items to force the list to rerender when they notice something about their
   // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
@@ -277,9 +279,13 @@ const minDistanceFromEnd = 10
 const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
   const nextCallbackRef = React.useRef(new Date().getTime())
   const onEndReachedRef = React.useRef(onEndReached)
-  onEndReachedRef.current = onEndReached
+  React.useEffect(() => {
+    onEndReachedRef.current = onEndReached
+  }, [onEndReached])
   const numOrdinalsRef = React.useRef(numOrdinals)
-  numOrdinalsRef.current = numOrdinals
+  React.useEffect(() => {
+    numOrdinalsRef.current = numOrdinals
+  }, [numOrdinals])
 
   // this can't change ever, so we have to use refs to keep in sync
   const onViewableItemsChanged = React.useRef(

@@ -294,7 +294,9 @@ const useScrolling = (p: {
   }, [centeredOrdinal, scrollToCentered, setLastCenteredOrdinal, lastCenteredOrdinal])
 
   const {setScrollRef} = React.useContext(ScrollContext)
-  setScrollRef({scrollDown, scrollToBottom, scrollUp})
+  React.useEffect(() => {
+    setScrollRef({scrollDown, scrollToBottom, scrollUp})
+  }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
   const editingOrdinal = C.useChatContext(s => s.editing)
