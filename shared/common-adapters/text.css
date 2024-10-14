@@ -284,7 +284,6 @@
 :is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
-  overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
 }
