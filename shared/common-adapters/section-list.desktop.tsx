@@ -29,25 +29,21 @@ const SectionList = React.forwardRef<any, any>(function SectionList<T extends Se
 ) {
   const {sections, sectionKeyExtractor, keyExtractor} = p
   const [currentSectionFlatIndex, setCurrentSectionFlatIndex] = React.useState(0)
-  const flatRef = React.useRef(new Array<FlatListElement<T>>())
-  const sectionIndexToFlatIndexRef = React.useRef(new Array<number>())
   const listRef = React.useRef<RL>(null)
   const mountedRef = React.useRef(true)
   const props = {
     ...p,
     currentSectionFlatIndex,
-    flatRef,
     listRef,
     mountedRef,
-    sectionIndexToFlatIndexRef,
     setCurrentSectionFlatIndex,
   }
 
-  React.useMemo(() => {
-    sectionIndexToFlatIndexRef.current = []
-    flatRef.current = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
+  const {sectionIndexToFlatIndex, flat} = React.useMemo(() => {
+    const sectionIndexToFlatIndex = new Array<number>()
+    const flat = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
-      sectionIndexToFlatIndexRef.current.push(flatSectionIndex)
+      sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
         flatSectionIndex,
         key: sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
@@ -82,18 +78,26 @@ const SectionList = React.forwardRef<any, any>(function SectionList<T extends Se
       }
       return arr
     }, [])
+    return {flat, sectionIndexToFlatIndex}
   }, [sections, sectionKeyExtractor, keyExtractor])
 
-  return <SectionList2 {...props} ref={forwardedRef} />
+  return (
+    <SectionList2
+      {...props}
+      ref={forwardedRef}
+      sectionIndexToFlatIndex={sectionIndexToFlatIndex}
+      flat={flat}
+    />
+  )
 })
 
 class SectionList2<T extends Section<any>> extends React.Component<
   Props<T> & {
     currentSectionFlatIndex: number
-    flatRef: React.MutableRefObject<FlatListElement<T>[]>
+    flat: FlatListElement<T>[]
     listRef: React.RefObject<RL>
     mountedRef: React.MutableRefObject<boolean>
-    sectionIndexToFlatIndexRef: React.MutableRefObject<number[]>
+    sectionIndexToFlatIndex: number[]
     setCurrentSectionFlatIndex: React.Dispatch<React.SetStateAction<number>>
   }
 > {
@@ -122,7 +126,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
   scrollToLocation(params?: {sectionIndex: number}) {
     // TODO desktop SectionList is limited to sectionIndex
     const sectionIndex = params?.sectionIndex
-    const flatIndex = sectionIndex && this.props.sectionIndexToFlatIndexRef.current[sectionIndex]
+    const flatIndex = sectionIndex && this.props.sectionIndexToFlatIndex[sectionIndex]
     if (typeof flatIndex === 'number') {
       this.props.listRef.current?.scrollTo(flatIndex)
     }
@@ -136,12 +140,12 @@ class SectionList2<T extends Section<any>> extends React.Component<
   /* =============================== */
 
   _itemRenderer = (index: number, _: number | string, renderingSticky: boolean): React.ReactElement => {
-    const item = this.props.flatRef.current[index]
+    const item = this.props.flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
       return <></>
     }
-    const section = this.props.flatRef.current[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
+    const section = this.props.flat[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
     if (!section) {
       // data is switching out from under us. let things settle
       return <></>
@@ -214,7 +218,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
     if (this.props.listRef.current) {
       const [firstIndex] = this.props.listRef.current.getVisibleRange()
       if (firstIndex === undefined) return
-      const item = this.props.flatRef.current[firstIndex]
+      const item = this.props.flat[firstIndex]
       if (item) {
         this.props.setCurrentSectionFlatIndex(item.flatSectionIndex)
       }
@@ -234,7 +238,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
       return
     }
     const visibleRange = this.props.listRef.current?.getVisibleRange()
-    const sectionIndex = this.props.flatRef.current[visibleRange?.[0] ?? -1]?.sectionIndex ?? -1
+    const sectionIndex = this.props.flat[visibleRange?.[0] ?? -1]?.sectionIndex ?? -1
     const section = this.props.sections[sectionIndex]
     section && this.props.onSectionChange(section)
   }
@@ -259,8 +263,8 @@ class SectionList2<T extends Section<any>> extends React.Component<
     if (index < 0) {
       return 0
     }
-    for (let i = 0; i < this.props.flatRef.current.length; i++) {
-      const item = this.props.flatRef.current[i]!
+    for (let i = 0; i < this.props.flat.length; i++) {
+      const item = this.props.flat[i]!
       if (item.type === 'body') {
         // are we there yet?
         if (index === 0) {
@@ -269,13 +273,13 @@ class SectionList2<T extends Section<any>> extends React.Component<
         --index // no
       }
     }
-    return this.props.flatRef.current.length - 1
+    return this.props.flat.length - 1
   }
 
   private getItemSizeGetter = (index: number) => {
     const {getItemHeight, getSectionHeaderHeight} = this.props
     if (!getItemHeight || !getSectionHeaderHeight) return 0
-    const item = this.props.flatRef.current[index]
+    const item = this.props.flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
       return 0
@@ -311,8 +315,8 @@ class SectionList2<T extends Section<any>> extends React.Component<
                 ? this.getItemSizeGetter
                 : undefined
             }
-            length={this.props.flatRef.current.length}
-            extraData={this.props.flatRef.current}
+            length={this.props.flat.length}
+            extraData={this.props.flat}
             ref={this.props.listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />

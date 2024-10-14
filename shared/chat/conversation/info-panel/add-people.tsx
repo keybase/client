@@ -2,28 +2,35 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
-import type * as T from '@/constants/types'
 
 type Props = {
   isAdmin: boolean
   isGeneralChannel: boolean
-  onAddPeople: () => void
-  onAddToChannel: () => void
 }
 
-const _AddPeople = (props: Props) => {
+const AddPeople = (p: Props) => {
+  const {isGeneralChannel, isAdmin} = p
+  const teamID = C.useChatContext(s => s.meta.teamID)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const navigateAppend = C.Chat.useChatNavigateAppend()
+  const onAddPeople = React.useCallback(() => {
+    startAddMembersWizard(teamID)
+  }, [startAddMembersWizard, teamID])
+  const onAddToChannel = React.useCallback(() => {
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
+  }, [navigateAppend, teamID])
+
   let directAction: undefined | (() => void)
   let directLabel: string | undefined
-  if (!props.isGeneralChannel) {
+  if (!isGeneralChannel) {
   } else {
-    directAction = props.onAddPeople
+    directAction = onAddPeople
     directLabel = 'Add people to team'
   }
-  if (!props.isAdmin) {
-    directAction = props.onAddToChannel
+  if (!isAdmin) {
+    directAction = onAddToChannel
     directLabel = 'Add members to channel'
   }
-  const {isGeneralChannel, onAddToChannel, onAddPeople} = props
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -63,32 +70,6 @@ const _AddPeople = (props: Props) => {
       />
     </Kb.Box2>
   )
-}
-_AddPeople.displayName = 'AddPeople'
-
-type OwnProps = {
-  isAdmin: boolean
-  isGeneralChannel: boolean
-}
-
-const AddPeople = (ownProps: OwnProps) => {
-  const meta = C.useChatContext(s => s.meta)
-  const teamID = meta.teamID
-  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const _onAddPeople = (teamID: T.Teams.TeamID) => {
-    startAddMembersWizard(teamID)
-  }
-  const navigateAppend = C.Chat.useChatNavigateAppend()
-  const _onAddToChannel = (teamID: T.Teams.TeamID) => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
-  }
-  const props = {
-    isAdmin: ownProps.isAdmin,
-    isGeneralChannel: ownProps.isGeneralChannel,
-    onAddPeople: () => _onAddPeople(teamID),
-    onAddToChannel: () => _onAddToChannel(teamID),
-  }
-  return <_AddPeople {...props} />
 }
 
 const styles = Styles.styleSheetCreate(
