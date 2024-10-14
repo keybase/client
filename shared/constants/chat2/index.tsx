@@ -406,6 +406,7 @@ export interface State extends Store {
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
+    setInfoPanelTab: (tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
@@ -427,7 +428,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
@@ -1617,7 +1618,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            _useState.getState().dispatch.metasReceived([meta])
+            useState_.getState().dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
@@ -1747,6 +1748,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
+    setInfoPanelTab: tab => {
+      set(s => {
+        s.infoPanelSelectedTab = tab
+      })
+    },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
@@ -1869,7 +1875,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     updateInfoPanel: (show, tab) => {
       set(s => {
         s.infoPanelShowing = show
-        s.infoPanelSelectedTab = show ? tab : undefined
+        s.infoPanelSelectedTab = tab
       })
     },
     updateLastCoord: coord => {

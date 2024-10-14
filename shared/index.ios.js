@@ -19,7 +19,7 @@ try {
   install()
 
   const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
-    DarkMode._useState.getState().dispatch
+    DarkMode.useState_.getState().dispatch
   setSystemDarkMode(Appearance.getColorScheme() === 'dark')
   setSystemSupported(darkModeSupported === '1')
   try {

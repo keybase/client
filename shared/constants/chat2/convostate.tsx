@@ -1962,9 +1962,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const text = Common.formatTextForQuoting(message.text.stringValue())
-        _getConvoState(newThreadCID).dispatch.injectIntoInput(text)
+        getConvoState_(newThreadCID).dispatch.injectIntoInput(text)
         C.useChatState.getState().dispatch.metasReceived([meta])
-        _getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
+        getConvoState_(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
       }
       C.ignorePromise(f())
     },
@@ -2483,7 +2483,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const ensureSelectedTeamLoaded = () => {
         const selectedConversation = Common.getSelectedConversation()
-        const {meta, isMetaGood} = _getConvoState(selectedConversation)
+        const {meta, isMetaGood} = getConvoState_(selectedConversation)
         if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
@@ -3176,10 +3176,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-export const _stores = new Map<T.Chat.ConversationIDKey, MadeStore>()
+export const stores_ = new Map<T.Chat.ConversationIDKey, MadeStore>()
 
 export const clearChatStores = () => {
-  _stores.clear()
+  stores_.clear()
 }
 
 registerDebugClear(() => {
@@ -3187,22 +3187,22 @@ registerDebugClear(() => {
 })
 
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
-  const existing = _stores.get(id)
+  const existing = stores_.get(id)
   if (existing) return existing
   const next = Z.createZustand<ConvoState>(createSlice)
   next.setState({id})
-  _stores.set(id, next)
+  stores_.set(id, next)
   next.getState().dispatch.setupSubscriptions()
   return next
 }
 
 // debug only
 export function hasConvoState(id: T.Chat.ConversationIDKey) {
-  return _stores.has(id)
+  return stores_.has(id)
 }
 
 // non reactive call, used in actions/dispatches
-export function _getConvoState(id: T.Chat.ConversationIDKey) {
+export function getConvoState_(id: T.Chat.ConversationIDKey) {
   const store = createConvoStore(id)
   return store.getState()
 }
@@ -3210,7 +3210,7 @@ export function _getConvoState(id: T.Chat.ConversationIDKey) {
 const Context = React.createContext<MadeStore | null>(null)
 
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
-export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
+export function Provider_({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
     // let it not crash out but likely you'll get wrong answers in prod
     if (__DEV__) {
@@ -3227,7 +3227,7 @@ export function useHasContext() {
 }
 
 // use this if in doubt
-export function _useContext<T>(selector: (state: ConvoState) => T): T {
+export function useContext_<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
   if (!store) {
     throw new Error('Missing ConvoContext.Provider in the tree')
@@ -3236,7 +3236,7 @@ export function _useContext<T>(selector: (state: ConvoState) => T): T {
 }
 
 // unusual, usually you useContext, but maybe in teams
-export function _useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
+export function useConvoState_<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
   return useStore(store, selector)
 }
@@ -3249,9 +3249,9 @@ type RouteParams = {
 export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) => {
   return (
     <React.Suspense>
-      <_Provider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+      <Provider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
         {p.children}
-      </_Provider>
+      </Provider_>
     </React.Suspense>
   )
 }
@@ -3259,7 +3259,7 @@ export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; c
 import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const cid = _useContext(s => s.id)
+  const cid = useContext_(s => s.id)
   return React.useCallback(
     (
       makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType,

@@ -383,7 +383,7 @@ export const getDisabledReasonsForRolePicker = (
 ): T.Teams.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails = _useState.getState().teamDetails.get(teamID)
+  const teamDetails = useState_.getState().teamDetails.get(teamID)
   const members: ReadonlyMap<string, T.Teams.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
   const teamname = teamMeta.teamname
@@ -872,7 +872,7 @@ export const consumeTeamTreeMembershipValue = (
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
 export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
-  const details = _useState.getState().teamDetails.get(teamID)
+  const details = useState_.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
@@ -1191,7 +1191,7 @@ export interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {

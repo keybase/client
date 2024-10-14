@@ -303,7 +303,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')

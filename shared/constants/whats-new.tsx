@@ -104,7 +104,7 @@ interface State extends Store {
   }
   anyVersionsUnseen: () => boolean
 }
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     updateLastSeen: lastSeenItem => {

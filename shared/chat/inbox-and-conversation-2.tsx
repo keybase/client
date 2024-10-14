@@ -49,7 +49,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
           </Kb.Box2>
           {infoPanelShowing ? (
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-              <InfoPanel />
+              <InfoPanel key={conversationIDKey} />
             </Kb.Box2>
           ) : null}
         </Kb.Box2>

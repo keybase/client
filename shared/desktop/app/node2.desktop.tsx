@@ -151,8 +151,8 @@ const handleCrashes = () => {
   }
 
   Electron.app.on('browser-window-created', (_, win) => {
-    win.on('unresponsive', (e: Electron.Event) => {
-      console.log('Browser window unresponsive: ', e)
+    win.on('unresponsive', () => {
+      console.log('Browser window unresponsive')
       win.reload()
     })
 

@@ -46,17 +46,10 @@ const useScrolling = (p: {
     }, [loadNewerMessagesDueToScroll, numOrdinals]),
     200
   )
-  const conversationIDKeyChanged = C.Chat.useCIDChanged(conversationIDKey)
   const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
 
-  React.useEffect(() => {
-    if (conversationIDKeyChanged) {
-      lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
-      scrollBottomOffsetRef.current = undefined
-    }
-  }, [conversationIDKeyChanged])
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
@@ -292,13 +285,14 @@ const useScrolling = (p: {
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
   const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
-  if (lastCenteredOrdinal !== centeredOrdinal) {
+  React.useEffect(() => {
+    if (lastCenteredOrdinal === centeredOrdinal) return
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
     }
     setLastCenteredOrdinal(centeredOrdinal)
-  }
+  }, [centeredOrdinal, scrollToCentered, setLastCenteredOrdinal, lastCenteredOrdinal])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   setScrollRef({scrollDown, scrollToBottom, scrollUp})
@@ -306,32 +300,34 @@ const useScrolling = (p: {
   // go to editing message
   const editingOrdinal = C.useChatContext(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
-  if (lastEditingOrdinalRef.current !== editingOrdinal) {
+  React.useEffect(() => {
+    if (lastEditingOrdinalRef.current !== editingOrdinal) return
     lastEditingOrdinalRef.current = editingOrdinal
-    if (editingOrdinal) {
-      const idx = messageOrdinals.indexOf(editingOrdinal)
-      if (idx !== -1) {
-        const waypoints = listRef.current?.querySelectorAll('[data-key]')
-        if (waypoints) {
-          // find an id that should be our parent
-          const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
-          const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
-          const found = findLast(allWaypoints, w => {
-            const key = w.dataset['key']
-            return key !== undefined && parseInt(key, 10) === toFind
-          })
-          found?.scrollIntoView({block: 'center', inline: 'nearest'})
-        }
+    if (!editingOrdinal) return
+    const idx = messageOrdinals.indexOf(editingOrdinal)
+    if (idx !== -1) {
+      const waypoints = listRef.current?.querySelectorAll('[data-key]')
+      if (waypoints) {
+        // find an id that should be our parent
+        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
+        const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
+        const found = findLast(allWaypoints, w => {
+          const key = w.dataset['key']
+          return key !== undefined && parseInt(key, 10) === toFind
+        })
+        found?.scrollIntoView({block: 'center', inline: 'nearest'})
       }
     }
-  }
+  }, [editingOrdinal, messageOrdinals, listRef])
 
   // conversation changed
-  if (conversationIDKeyChanged) {
+  C.Chat.useCIDChanged(conversationIDKey, () => {
+    lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
+    scrollBottomOffsetRef.current = undefined
     cleanupDebounced()
     lockedToBottomRef.current = true
     scrollToBottom()
-  }
+  })
 
   return {didFirstLoad, isLockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
 }

@@ -135,7 +135,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const clearErrors = (s: Z.WritableDraft<Store>) => {
     s.errorCode = undefined
     s.errorText = ''
