@@ -330,8 +330,6 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
-  const conversationIDKey = C.useChatContext(s => s.id)
-
   // uncomment for f1 debugging
   // const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   // React.useEffect(() => {
@@ -358,10 +356,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   }, [])
   const inputRef = React.useRef<Input2Ref | null>(null)
 
-  // keep focus
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    inputRef.current?.focus()
-  })
   React.useEffect(() => {
     inputRef.current?.focus()
   }, [])

@@ -2011,34 +2011,3 @@ export {
   isValidConversationIDKey,
   dummyConversationIDKey,
 } from '../types/chat2/common'
-
-import * as React from 'react'
-export const useCIDChanged = (
-  conversationIDKey?: T.Chat.ConversationIDKey,
-  f?: () => void,
-  forceCall?: boolean // call f on first time
-) => {
-  const didForceCall = React.useRef(false)
-  const [changed, setChanged] = React.useState(false)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const fRef = React.useRef(f)
-
-  React.useEffect(() => {
-    if (forceCall === true && !didForceCall.current) {
-      didForceCall.current = true
-      fRef.current?.()
-    }
-  }, [forceCall])
-
-  React.useEffect(() => {
-    if (lastCID !== conversationIDKey) {
-      setLastCID(conversationIDKey)
-      fRef.current?.()
-      setChanged(true)
-    } else {
-      setChanged(false)
-    }
-  }, [conversationIDKey, lastCID])
-
-  return changed
-}

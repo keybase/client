@@ -55,12 +55,12 @@ export const Bot = (props: BotProps) => {
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
-  C.Chat.useCIDChanged(conversationIDKey, () => {
+  React.useEffect(() => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
       refreshBotSettings(botUsername)
     }
-  })
+  }, [conversationIDKey, botUsername, refreshBotSettings, showChannelAdd])
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
@@ -258,15 +258,14 @@ const BotTab = (props: Props) => {
 
   const featuredBotsLength = featuredBots.length
   const [lastFBL, setLastFBL] = React.useState(-1)
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   React.useEffect(() => {
-    if (cidChanged || lastFBL !== featuredBotsLength) {
+    if (lastFBL !== featuredBotsLength) {
       setLastFBL(featuredBotsLength)
       if (featuredBotsLength === 0 && !loadedAllBots) {
         loadNextBotPage()
       }
     }
-  }, [cidChanged, featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
+  }, [featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
 
   const items: Array<string | T.RPCGen.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),

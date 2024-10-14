@@ -79,11 +79,6 @@ const getChannelSuggestions = (
 
 const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    channelSuggestionsTriggered()
-  })
-
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 

@@ -46,7 +46,6 @@ const useScrolling = (p: {
     }, [loadNewerMessagesDueToScroll, numOrdinals]),
     200
   )
-  const lastLoadOrdinal = React.useRef(T.Chat.numberToOrdinal(-1))
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
 
@@ -319,15 +318,6 @@ const useScrolling = (p: {
       }
     }
   }, [editingOrdinal, messageOrdinals, listRef])
-
-  // conversation changed
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    lastLoadOrdinal.current = T.Chat.numberToOrdinal(-1)
-    scrollBottomOffsetRef.current = undefined
-    cleanupDebounced()
-    lockedToBottomRef.current = true
-    scrollToBottom()
-  })
 
   return {didFirstLoad, isLockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
 }

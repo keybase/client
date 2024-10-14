@@ -436,11 +436,9 @@ export const useAttachmentSections = (
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): {sections: Array<InfoPanelSection>} => {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
   )
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
   const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
@@ -463,7 +461,7 @@ export const useAttachmentSections = (
   })
 
   React.useEffect(() => {
-    if (cidChanged || lastSAV !== selectedAttachmentView) {
+    if (lastSAV !== selectedAttachmentView) {
       setLastSAV(selectedAttachmentView)
       if (loadImmediately) {
         setTimeout(() => {
@@ -471,7 +469,7 @@ export const useAttachmentSections = (
         }, 1)
       }
     }
-  }, [cidChanged, lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
+  }, [lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
 
   const attachmentView = C.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)

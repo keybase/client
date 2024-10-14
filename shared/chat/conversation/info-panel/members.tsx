@@ -43,10 +43,9 @@ const MembersTab = (props: Props) => {
   const participants = C.useChatContext(
     C.useShallow(s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants)
   )
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
   React.useEffect(() => {
-    if (lastTeamName !== teamname || cidChanged) {
+    if (lastTeamName !== teamname) {
       setLastTeamName(teamname)
       if (teamname) {
         refreshParticipants(
@@ -56,7 +55,7 @@ const MembersTab = (props: Props) => {
         )
       }
     }
-  }, [cidChanged, conversationIDKey, lastTeamName, refreshParticipants, teamname])
+  }, [conversationIDKey, lastTeamName, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants

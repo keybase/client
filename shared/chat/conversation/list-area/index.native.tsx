@@ -31,11 +31,10 @@ export const DEBUGDump = () => {}
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: Array<T.Chat.Ordinal>
-  cidChanged: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {cidChanged, listRef, centeredOrdinal, messageOrdinals} = p
+  const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
@@ -47,9 +46,6 @@ const useScrolling = (p: {
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
-  if (cidChanged) {
-    lastScrollToCentered.current = T.Chat.numberToOrdinal(-1)
-  }
 
   const scrollToCentered = C.useEvent(() => {
     setTimeout(() => {
@@ -89,7 +85,6 @@ const ConversationList = React.memo(function ConversationList() {
   ) : null
 
   const conversationIDKey = C.useChatContext(s => s.id)
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
 
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
@@ -126,11 +121,11 @@ const ConversationList = React.memo(function ConversationList() {
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
   React.useEffect(() => {
-    if (cidChanged || lastED !== extraData) {
+    if (lastED !== extraData) {
       recycleTypeRef.current = new Map()
       setLastED(extraData)
     }
-  }, [cidChanged, extraData, lastED])
+  }, [extraData, lastED])
   const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
@@ -149,7 +144,6 @@ const ConversationList = React.memo(function ConversationList() {
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
-    cidChanged,
     conversationIDKey,
     listRef,
     messageOrdinals,

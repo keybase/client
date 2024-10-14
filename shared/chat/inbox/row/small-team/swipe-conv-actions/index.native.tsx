@@ -47,9 +47,13 @@ const Action = (p: {
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {children, setCloseOpenedRow, closeOpenedRow} = p
   const conversationIDKey = C.useChatContext(s => s.id)
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    closeOpenedRow()
-  })
+  const lastCIDRef = React.useRef(conversationIDKey)
+  React.useEffect(() => {
+    if (lastCIDRef.current !== conversationIDKey) {
+      lastCIDRef.current = conversationIDKey
+      closeOpenedRow()
+    }
+  }, [conversationIDKey, closeOpenedRow])
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = C.useEvent(() => {
