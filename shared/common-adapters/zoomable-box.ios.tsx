@@ -8,12 +8,9 @@ import {runOnJS} from 'react-native-reanimated'
 const Kb = {ScrollView}
 
 export const ZoomableBox = (props: Props) => {
-  const {onSwipe, onLayout, onTap: _onTap, zoomScale, contentSize, children, contentContainerStyle} = props
+  const {onSwipe, onLayout, onTap, zoomScale, contentSize, children, contentContainerStyle} = props
   const {width: windowWidth} = useWindowDimensions()
   const needDiff = windowWidth / 3
-  const onTap = React.useCallback(() => {
-    _onTap?.()
-  }, [_onTap])
   const initialTouch = React.useRef(-1)
   const curScaleRef = React.useRef(1)
   // max touches during this gesture
@@ -94,38 +91,44 @@ export const ZoomableBox = (props: Props) => {
     })
   }, [contentSize, getScroll])
 
-  const onDoubleTap = React.useCallback(() => {
-    const zoomOut = curScaleRef.current > (zoomScale ?? 1)
-    if (zoomOut) {
-      onResetZoom()
-    } else {
-      const scroll = getScroll()
-      scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
-        animated: true,
-        height: (contentSize?.height ?? 100) / 4,
-        width: (contentSize?.width ?? 100) / 4,
-        // not correct
-        x: ((contentSize?.width ?? 100) - widthRef.current) / 2,
-        y: ((contentSize?.height ?? 100) - heightRef.current) / 2,
+  const taps = React.useMemo(() => {
+    const singleTap = Gesture.Tap()
+      .maxDuration(250)
+      .numberOfTaps(1)
+      .maxDistance(5)
+      .onStart(() => {
+        'worklet'
+        onTap && runOnJS(onTap)()
       })
-    }
-  }, [contentSize, zoomScale, onResetZoom, getScroll])
 
-  const singleTap = Gesture.Tap()
-    .maxDuration(250)
-    .numberOfTaps(1)
-    .maxDistance(5)
-    .onStart(() => {
-      runOnJS(onTap)()
-    })
-  const doubleTap = Gesture.Tap()
-    .maxDuration(250)
-    .numberOfTaps(2)
-    .maxDistance(5)
-    .onStart(() => {
-      runOnJS(onDoubleTap)()
-    })
-  const taps = Gesture.Exclusive(doubleTap, singleTap)
+    const onDoubleTap = () => {
+      const zoomOut = curScaleRef.current > (zoomScale ?? 1)
+      if (zoomOut) {
+        onResetZoom()
+      } else {
+        const scroll = getScroll()
+        scroll?.getScrollResponder?.()?.scrollResponderZoomTo({
+          animated: true,
+          height: (contentSize?.height ?? 100) / 4,
+          width: (contentSize?.width ?? 100) / 4,
+          // not correct
+          x: ((contentSize?.width ?? 100) - widthRef.current) / 2,
+          y: ((contentSize?.height ?? 100) - heightRef.current) / 2,
+        })
+      }
+    }
+
+    const doubleTap = Gesture.Tap()
+      .maxDuration(250)
+      .numberOfTaps(2)
+      .maxDistance(5)
+      .onStart(() => {
+        'worklet'
+        runOnJS(onDoubleTap)()
+      })
+
+    return Gesture.Exclusive(doubleTap, singleTap)
+  }, [contentSize, zoomScale, onResetZoom, getScroll, onTap])
 
   // this is nasty but i need a way to force this component to render correctly. Passing new zoomScale
   // won't necessarily cause it to adopt it

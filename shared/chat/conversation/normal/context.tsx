@@ -37,16 +37,19 @@ export const ScrollContext = React.createContext<
 })
 
 export const ScrollProvider = React.memo(function ScrollProvider({children}: {children: React.ReactNode}) {
-  const [scrollRef, setScrollRef] = React.useState<ScrollRefType>(null)
+  const scrollRef = React.useRef<ScrollRefType>(null)
+  const setScrollRef = React.useCallback((r: ScrollRefType) => {
+    scrollRef.current = r
+  }, [])
   const scrollUp = React.useCallback(() => {
-    scrollRef?.scrollUp()
-  }, [scrollRef])
+    scrollRef.current?.scrollUp()
+  }, [])
   const scrollDown = React.useCallback(() => {
-    scrollRef?.scrollDown()
-  }, [scrollRef])
+    scrollRef.current?.scrollDown()
+  }, [])
   const scrollToBottom = React.useCallback(() => {
-    scrollRef?.scrollToBottom()
-  }, [scrollRef])
+    scrollRef.current?.scrollToBottom()
+  }, [])
   const value = React.useMemo(
     () => ({scrollDown, scrollToBottom, scrollUp, setScrollRef}),
     [scrollDown, scrollToBottom, scrollUp, setScrollRef]
