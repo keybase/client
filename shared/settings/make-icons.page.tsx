@@ -110,12 +110,14 @@ const Screen = __DEV__
           </div>
           <Kb.Box2
             direction="horizontal"
-            style={{
-              backgroundColor: 'pink',
-              marginTop: 100,
-              position: 'relative',
-              transform: 'scale(5)' as any,
-            }}
+            style={Kb.Styles.platformStyles({
+              isElectron: {
+                backgroundColor: 'pink',
+                marginTop: 100,
+                position: 'relative',
+                transform: 'scale(5)',
+              },
+            } as const)}
           >
             {icons}
           </Kb.Box2>

@@ -27,7 +27,7 @@ function LeftTabNavigator({
 
   const selectedTab = state.routes[state.index]?.name ?? ''
   const onSelectTab = Common.useSubnavTabAction(
-    // ts-ignore
+    // eslint-disable-next-line
     navigation as any,
     state
   )

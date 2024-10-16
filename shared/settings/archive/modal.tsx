@@ -16,9 +16,10 @@ type Props =
 
 const ArchiveModal = (p: Props) => {
   const {type} = p
+  const chatIDToDisplayname = C.useArchiveState(s => s.chatIDToDisplayname)
   const displayname = React.useMemo(() => {
-    return p.type === 'chatID' ? C.useArchiveState.getState().chatIDToDisplayname(p.conversationIDKey) : ''
-  }, [p])
+    return p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
+  }, [p, chatIDToDisplayname])
 
   let defaultPath = ''
   if (C.isElectron) {

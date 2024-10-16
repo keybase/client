@@ -381,10 +381,16 @@ const RNApp = React.memo(function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        ref={Constants.navigationRef_ as any}
+        ref={
+          // eslint-disable-next-line
+          Constants.navigationRef_ as any
+        }
         key={String(navKey)}
         theme={Shared.theme}
-        initialState={initialState as any}
+        initialState={
+          // eslint-disable-next-line
+          initialState as any
+        }
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
         onReady={onReady}
