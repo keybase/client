@@ -4,6 +4,7 @@ import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, with
 
 const LoadingLine = React.memo(function LoadingLine() {
   const opacity = useSharedValue(0)
+  // eslint-disable-next-line react-compiler/react-compiler
   opacity.value = withDelay(1000, withRepeat(withTiming(1, {duration: 600}), -1, true))
   const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.value}))
   return <Animated.View style={[styles.line, animatedStyle]} />
@@ -18,7 +19,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default LoadingLine

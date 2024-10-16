@@ -3,7 +3,6 @@
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
 import * as C from '@/constants'
-import throttle from 'lodash/throttle'
 import KB2 from '@/util/electron.desktop'
 import isEqual from 'lodash/isEqual'
 
@@ -26,30 +25,29 @@ export default function useSerializeProps<ProxyProps extends object, SerializePr
   const currentForceUpdate = C.useConfigState(
     s => s.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0
   )
-  const throttledSend = React.useRef(
-    throttle(
-      (p: ProxyProps, forceUpdate: boolean) => {
-        const lastToSend: {[key: string]: unknown} = forceUpdate ? {} : lastSent.current
-        const serialized = serializer(p)
-        const toSend = {...serialized} as {[key: string]: unknown}
-        // clear undefineds / exact dupes
-        Object.keys(toSend).forEach(k => {
-          if (toSend[k] === undefined || isEqual(toSend[k], lastToSend[k])) {
-            delete toSend[k] // eslint-disable-line
-          }
-        })
 
-        if (Object.keys(toSend).length) {
-          const propsStr = JSON.stringify(toSend)
-          debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
-          rendererNewProps?.({propsStr, windowComponent, windowParam})
+  const throttledSend = C.useThrottledCallback(
+    (p: ProxyProps, forceUpdate: boolean) => {
+      const lastToSend: {[key: string]: unknown} = forceUpdate ? {} : lastSent.current
+      const serialized = serializer(p)
+      const toSend = {...serialized} as {[key: string]: unknown}
+      // clear undefineds / exact dupes
+      Object.keys(toSend).forEach(k => {
+        if (toSend[k] === undefined || isEqual(toSend[k], lastToSend[k])) {
+          delete toSend[k] // eslint-disable-line
         }
-        lastSent.current = serialized
-        lastForceUpdate.current = currentForceUpdate
-      },
-      1000,
-      {leading: true}
-    )
+      })
+
+      if (Object.keys(toSend).length) {
+        const propsStr = JSON.stringify(toSend)
+        debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
+        rendererNewProps?.({propsStr, windowComponent, windowParam})
+      }
+      lastSent.current = serialized
+      lastForceUpdate.current = currentForceUpdate
+    },
+    1000,
+    {leading: true}
   )
 
   React.useEffect(
@@ -58,7 +56,7 @@ export default function useSerializeProps<ProxyProps extends object, SerializePr
         return
       }
       const forceUpdate = currentForceUpdate !== lastForceUpdate.current
-      throttledSend.current(p, forceUpdate)
+      throttledSend(p, forceUpdate)
     },
     // eslint-disable-next-line
     [...Object.values(p), currentForceUpdate]

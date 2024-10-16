@@ -1397,7 +1397,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.4.1):
     - React-Core
-  - react-native-safe-area-context (4.11.0):
+  - react-native-safe-area-context (4.11.1):
     - React-Core
   - react-native-webview (13.12.3):
     - DoubleConversion
@@ -2191,7 +2191,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
   react-native-kb: f069d7df675b72404c226c59147ad31d52680e01
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
-  react-native-safe-area-context: 851c62c48dce80ccaa5637b6aa5991a1bc36eca9
+  react-native-safe-area-context: 5141f11858b033636f1788b14f32eaba92cee810
   react-native-webview: 926d2665cf3196e39c4449a72d136d0a53b9df8a
   React-nativeconfig: 8c83d992b9cc7d75b5abe262069eaeea4349f794
   React-NativeModulesApple: 9f7920224a3b0c7d04d77990067ded14cee3c614

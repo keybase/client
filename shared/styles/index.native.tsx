@@ -59,13 +59,8 @@ export const globalStyles = {
 }
 
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = (f: () => MapToStyles) =>
-  styleSheetCreateProxy(f, o =>
-    StyleSheet.create(
-      // eslint-disable-next-line
-      o as any
-    )
-  )
+export const styleSheetCreate = (f: () => MapToStyles): unknown =>
+  styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
 // used to find specific styles to help debug perf
 // export const styleSheetCreate = (obj: any) => {
 //   return styleSheetCreateProxy(obj, o => {

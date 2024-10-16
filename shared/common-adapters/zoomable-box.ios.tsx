@@ -122,8 +122,10 @@ export const ZoomableBox = (props: Props) => {
       .maxDuration(250)
       .numberOfTaps(2)
       .maxDistance(5)
+      // eslint-disable-next-line react-compiler/react-compiler
       .onStart(() => {
         'worklet'
+        // lint complains about the ref but this is a callback... so ignore?
         runOnJS(onDoubleTap)()
       })
 

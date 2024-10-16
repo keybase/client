@@ -33,6 +33,10 @@ const transformers = {
   users: Users.transformer,
 } as const
 
+type TransformerType = {
+  [key in keyof typeof transformers]: Parameters<(typeof transformers)[key]>[0]
+}
+
 const suggestorToMarker = {
   channels: '#',
   commands: /^(!|\/)/,
@@ -160,7 +164,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
   }, [])
 
   const triggerTransform = React.useCallback(
-    (maybeValue: SelectedType | undefined, final = true) => {
+    function (maybeValue: SelectedType | undefined, final = true) {
       if (!inputRef.current || !active) {
         return
       }
@@ -171,12 +175,36 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const input = inputRef.current
       const cursorInfo = getWordAtCursor()
       const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
-      const transformedText = transformers[active](
-        value as unknown as any, // TODO hard to untangle now
+
+      let transformedText: {
+        selection: {
+          end: number
+          start: number
+        }
+        text: string
+      }
+
+      const transformRest = [
         matchInfo.marker,
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
-        !final
-      )
+        !final,
+      ] as const
+
+      // nasty but the typing is hard since its ambiguous here
+      switch (active) {
+        case 'channels':
+          transformedText = transformers[active](value as TransformerType['channels'], ...transformRest)
+          break
+        case 'commands':
+          transformedText = transformers[active](value as TransformerType['commands'], ...transformRest)
+          break
+        case 'emoji':
+          transformedText = transformers[active](value as TransformerType['emoji'], ...transformRest)
+          break
+        case 'users':
+          transformedText = transformers[active](value as TransformerType['users'], ...transformRest)
+          break
+      }
       setLastText(transformedText.text)
       input.transformText(() => transformedText, final)
     },

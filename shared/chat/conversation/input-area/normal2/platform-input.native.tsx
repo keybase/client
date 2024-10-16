@@ -163,6 +163,7 @@ const AnimatedExpand = (() => {
       const [lastExpanded, setLastExpanded] = React.useState(expanded)
       if (lastExpanded !== expanded) {
         setLastExpanded(expanded)
+        // eslint-disable-next-line react-compiler/react-compiler
         offset.value = expanded ? 1 : 0
       }
 
@@ -498,6 +499,7 @@ const AnimatedInput = (() => {
         }))
         if (expanded !== lastExpanded) {
           setLastExpanded(expanded)
+          // eslint-disable-next-line react-compiler/react-compiler
           offset.value = expanded ? 1 : 0
         }
         return (

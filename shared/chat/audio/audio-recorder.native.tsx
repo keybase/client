@@ -47,6 +47,7 @@ const useTooltip = () => {
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
 
   if (showTooltip) {
+    // eslint-disable-next-line react-compiler/react-compiler
     opacitySV.value = withSequence(
       withTiming(1, {duration: 200}),
       withDelay(1000, withTiming(0, {duration: 200}))
@@ -239,6 +240,7 @@ const useIconAndOverlay = (p: {
     (f: number) => {
       if (f === 0) {
         if (fadeSyncedSV.value !== 0) {
+          // eslint-disable-next-line react-compiler/react-compiler
           fadeSyncedSV.value = 0
           runOnJS(setVisible)(Visible.HIDDEN)
         }
