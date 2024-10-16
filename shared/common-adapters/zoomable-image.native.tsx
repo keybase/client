@@ -6,7 +6,6 @@ import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
 import ProgressIndicator from './progress-indicator.native'
 import {Box2} from './box'
-import isEqual from 'lodash/isEqual'
 
 const Kb = {
   Box2,
@@ -61,7 +60,15 @@ const ZoomableImage = React.memo(function (p: Props) {
       if (!e.source) {
         return
       }
-      setSize(e.source)
+      const s = e.source
+      setSize((/*old*/) => {
+        return s
+        // this SHOULD work but breaks something in the zoomable-box. if you load an image it won't auto size correctly on initial load
+        // if (old?.width === s.width && old.height === s.height) {
+        //   return old
+        // }
+        // return {height: s.height, width: s.width}
+      })
       onLoaded?.()
     },
     [onLoaded]
@@ -78,15 +85,16 @@ const ZoomableImage = React.memo(function (p: Props) {
     setLoading(false)
   }, [boxW, boxH, size])
 
-  if (lastSrc !== src) {
-    setLastSrc(src)
-    setLoading(true)
-    initialZoomRef.current = false
-  }
+  React.useEffect(() => {
+    if (lastSrc !== src) {
+      setLastSrc(src)
+      setLoading(true)
+      initialZoomRef.current = false
+    }
+  }, [lastSrc, src])
 
-  const imageSizeCacheRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
   const imageSize = React.useMemo(() => {
-    const style = size
+    return size
       ? Styles.isAndroid
         ? ({
             backgroundColor: Styles.globalColors.black,
@@ -99,14 +107,7 @@ const ZoomableImage = React.memo(function (p: Props) {
             width: size.width,
           } as const)
       : undefined
-
-    const old = imageSizeCacheRef.current.get(src)
-    if (isEqual(style, old)) {
-      return old
-    }
-    imageSizeCacheRef.current.set(src, style)
-    return style
-  }, [src, size])
+  }, [size])
   const measuredStyle = size ? imageSize : dummySize
   const content = (
     <>
