@@ -41,32 +41,34 @@ const useConnectNavToState = () => {
 
 // if dark mode changes we should redraw
 // on ios if dark mode changes and we're on system, ignore as it will thrash and we don't want that
-const useDarkNeedsRedraw = () => {
+const useDarkNeedsRedraw = (setNavKey: React.Dispatch<React.SetStateAction<number>>) => {
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
-  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
+  const [lastDarkMode, setLastDarkMode] = React.useState(isDarkMode)
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
-  const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
+  const [lastDarkModePreference, setLastDarkModePreference] = React.useState(darkModePreference)
 
-  if (Kb.Styles.isIOS) {
-    if (darkModePreferenceChanged) {
-      return true
+  React.useEffect(() => {
+    if (lastDarkModePreference !== darkModePreference) {
+      setLastDarkModePreference(darkModePreference)
+      setNavKey(n => n + 1)
     }
-    if (darkModePreference === 'system') {
-      return false
+    if (lastDarkMode !== isDarkMode) {
+      setLastDarkMode(isDarkMode)
+      if (
+        Kb.Styles.isIOS &&
+        lastDarkModePreference === darkModePreference &&
+        darkModePreference === 'system'
+      ) {
+        return // dont force rerender if we're using system so we get animated colors
+      }
+      setNavKey(n => n + 1)
     }
-  }
-  return darkChanged
+  }, [isDarkMode, lastDarkMode, darkModePreference, lastDarkModePreference, setNavKey])
 }
 
-const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
-  const needsRedraw = useDarkNeedsRedraw()
-  if (appState === AppState.NEEDS_INIT) {
-    key.current = -1
-  } else {
-    if (needsRedraw) {
-      key.current++
-    }
-  }
+const useNavKey = (appState: AppState, setNavKey: React.Dispatch<React.SetStateAction<number>>) => {
+  const needsInit = appState === AppState.NEEDS_INIT
+  useDarkNeedsRedraw(needsInit ? () => {} : setNavKey)
 }
 
 const useIsDarkChanged = () => {
@@ -89,22 +91,25 @@ export const useShared = () => {
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   // if we ever were loaded just keep that state so we don't lose loggedin state when disconnecting
-  const everLoaded = React.useRef(false)
+  const [everLoaded, setEverLoaded] = React.useState(false)
   const _loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
-  const loggedInLoaded = everLoaded.current || _loggedInLoaded
-  if (_loggedInLoaded) {
-    everLoaded.current = true
-  }
+  const loggedInLoaded = everLoaded || _loggedInLoaded
+  React.useEffect(() => {
+    if (_loggedInLoaded) {
+      setEverLoaded(true)
+    }
+  }, [_loggedInLoaded])
 
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const loggedInUser = C.useCurrentUserState(s => s.username)
-  const navKeyRef = React.useRef(1)
+  const [navKey, setNavKey] = React.useState(1)
   // keep track if we went to an init route yet or not
-  const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
-
-  if (appState.current === AppState.UNINIT && loggedInLoaded) {
-    appState.current = AppState.NEEDS_INIT
-  }
+  const [appState, setAppState] = React.useState(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
+  React.useEffect(() => {
+    if (appState === AppState.UNINIT && loggedInLoaded) {
+      setAppState(AppState.NEEDS_INIT)
+    }
+  }, [loggedInLoaded, appState])
 
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
@@ -112,7 +117,7 @@ export const useShared = () => {
     setNavState(ns)
   }, [setNavState])
 
-  useNavKey(appState.current, navKeyRef)
+  useNavKey(appState, setNavKey)
   const initialState = useInitialState()
 
   const onUnhandledAction = React.useCallback(
@@ -128,8 +133,6 @@ export const useShared = () => {
     },
     []
   )
-
-  const navKey = navKeyRef.current
   return {
     appState,
     initialState,
@@ -139,6 +142,7 @@ export const useShared = () => {
     navKey,
     onStateChange,
     onUnhandledAction,
+    setAppState,
   }
 }
 

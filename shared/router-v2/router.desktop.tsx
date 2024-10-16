@@ -147,11 +147,11 @@ const rootScreenOptions = {
 const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, onStateChange, loggedInUser} = s
-  const {navKey, initialState, onUnhandledAction, appState} = s
+  const {navKey, initialState, onUnhandledAction, setAppState} = s
 
   React.useEffect(() => {
-    appState.current = Shared.AppState.INITED
-  }, [appState])
+    setAppState(Shared.AppState.INITED)
+  }, [setAppState])
 
   const ModalScreens = React.useMemo(
     () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),
@@ -160,7 +160,10 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
-      ref={C.Router2.navigationRef_ as any}
+      ref={
+        // eslint-disable-next-line
+        C.Router2.navigationRef_ as any
+      }
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}

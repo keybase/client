@@ -494,11 +494,7 @@ const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
 export function Provider_({children, ...props}: TBProviderProps) {
-  const storeRef = React.useRef<MadeStore>()
-  if (!storeRef.current) {
-    storeRef.current = createTBStore(props.namespace)
-  }
-  return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
+  return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
 }
 
 export function useContext_<T>(selector: (state: State) => T): T {

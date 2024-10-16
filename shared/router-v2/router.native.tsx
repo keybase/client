@@ -51,6 +51,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
         getComponent={val.getScreen}
         options={({route, navigation}: {route: unknown; navigation: unknown}) => {
           const no = getOptions(val)
+          // eslint-disable-next-line
           const opt = typeof no === 'function' ? no({navigation, route} as any) : no
           return {
             ...opt,
@@ -277,8 +278,11 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
-const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>) => {
-  const initialNav = RouterLinking.useStateToLinking(appState.current)
+const useRestartLastSession = (
+  appState: Shared.AppState,
+  setAppState: React.Dispatch<React.SetStateAction<Shared.AppState>>
+) => {
+  const initialNav = RouterLinking.useStateToLinking(appState)
   const [ready, setReady] = React.useState(false)
   const onReady = React.useCallback(() => {
     setReady(true)
@@ -288,9 +292,12 @@ const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>
   const [showNav, setShowNav] = React.useState(false)
   const [initialState, setInitialState] = React.useState<unknown>(undefined)
 
-  if (ready && !didInitialNav.current && initialNav) {
+  React.useEffect(() => {
+    if (!ready || didInitialNav.current || !initialNav) {
+      return
+    }
     didInitialNav.current = true
-    appState.current = Shared.AppState.INITED
+    setAppState(Shared.AppState.INITED)
     const f = async () => {
       const url = await initialNav()
       if (url) {
@@ -326,20 +333,20 @@ const useRestartLastSession = (appState: React.MutableRefObject<Shared.AppState>
       }
     }
     C.ignorePromise(f())
-  }
+  }, [initialNav, ready, setAppState])
   return {initialState, onReady, setShowNav, showNav}
 }
 
 const RNApp = React.memo(function RNApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, appState, onStateChange: _onStateChange} = s
-  const {navKey: _navKey, initialState: _initialState, onUnhandledAction} = s
+  const {navKey: _navKey, initialState: _initialState, onUnhandledAction, setAppState} = s
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
   // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
 
-  const {onReady, showNav, setShowNav, initialState} = useRestartLastSession(appState)
+  const {onReady, showNav, setShowNav, initialState} = useRestartLastSession(appState, setAppState)
   const onStateChange = React.useCallback(() => {
     _onStateChange()
     setShowNav(true)
@@ -348,12 +355,12 @@ const RNApp = React.memo(function RNApp() {
   // force an update if we have a new initialState
   const navKey = _navKey + (initialState ? 1 : 0)
   const forcedChangeOnInitialStateRef = React.useRef(false)
-  if (initialState && !forcedChangeOnInitialStateRef.current) {
-    forcedChangeOnInitialStateRef.current = true
-    onStateChange()
-  }
-
-  // Shared.useSharedAfter(appState)
+  React.useEffect(() => {
+    if (initialState && !forcedChangeOnInitialStateRef.current) {
+      forcedChangeOnInitialStateRef.current = true
+      onStateChange()
+    }
+  }, [initialState, onStateChange])
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
