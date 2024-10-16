@@ -321,12 +321,12 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     [itemRenderer]
   )
 
-  if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rows.length !== lastRowsLength.current) {
-    // this calls setstate so defer
-    setTimeout(() => {
+  const rowsLength = rows.length
+  React.useEffect(() => {
+    if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rowsLength !== lastRowsLength.current) {
       listRef.current?.resetAfterIndex(0, true)
-    }, 0)
-  }
+    }
+  }, [rowsLength, smallTeamsExpanded])
 
   const calculateShowUnreadShortcut = React.useCallback(() => {
     if (!isMounted()) {
@@ -388,18 +388,27 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     }
   }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
 
-  if (rows.length !== lastRowsLength.current) {
-    calculateShowFloating()
-  }
+  React.useEffect(() => {
+    if (rowsLength !== lastRowsLength.current) {
+      calculateShowFloating()
+    }
+  }, [calculateShowFloating, rowsLength])
 
-  if (!C.shallowEqual(lastUnreadIndices.current, unreadIndices) || lastUnreadTotal.current !== unreadTotal) {
-    calculateShowUnreadShortcut()
-  }
+  React.useEffect(() => {
+    if (
+      !C.shallowEqual(lastUnreadIndices.current, unreadIndices) ||
+      lastUnreadTotal.current !== unreadTotal
+    ) {
+      calculateShowUnreadShortcut()
+    }
+  }, [calculateShowUnreadShortcut, unreadIndices, unreadTotal])
 
-  lastSmallTeamsExpanded.current = smallTeamsExpanded
-  lastRowsLength.current = rows.length
-  lastUnreadIndices.current = unreadIndices
-  lastUnreadTotal.current = unreadTotal
+  React.useEffect(() => {
+    lastSmallTeamsExpanded.current = smallTeamsExpanded
+    lastRowsLength.current = rowsLength
+    lastUnreadIndices.current = unreadIndices
+    lastUnreadTotal.current = unreadTotal
+  }, [unreadTotal, unreadIndices, rowsLength, smallTeamsExpanded])
 
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
