@@ -15,14 +15,20 @@ type Props = {
 }
 
 const PinnedMessage = (props: Props) => {
+  const {onDismiss: _onDismiss, dismissUnpins} = props
   const closeref = React.useRef<Kb.MeasureRef>(null)
   const [showPopup, setShowPopup] = React.useState(false)
+  const onDismiss = React.useCallback(() => {
+    setShowPopup(false)
+    _onDismiss()
+  }, [_onDismiss])
+
+  const onIconClick = React.useCallback(() => {
+    dismissUnpins ? () => setShowPopup(true) : onDismiss
+  }, [dismissUnpins, onDismiss])
+
   if (!props.text) {
     return null
-  }
-  const onDismiss = () => {
-    setShowPopup(false)
-    props.onDismiss()
   }
   const sizing =
     props.imageWidth && props.imageHeight
@@ -58,7 +64,7 @@ const PinnedMessage = (props: Props) => {
           </Kb.Box2>
         ) : (
           <Kb.Icon
-            onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
+            onClick={onIconClick}
             type="iconfont-close"
             sizeType="Small"
             style={styles.close}

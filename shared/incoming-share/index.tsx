@@ -13,7 +13,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     0
   )
   const originalOnly = originalTotalSize <= scaledTotalSize
-  const setUseOriginalInStore = C.useConfigState.getState().dispatch.setIncomingShareUseOriginal
+  const setUseOriginalInStore = C.useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
 
   const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
     T.RPCGen.incomingShareSetPreferenceRpcPromise({

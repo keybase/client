@@ -61,7 +61,7 @@ const Actions = (p: Props) => {
     )
   }
 
-  let buttons: Array<React.ReactNode> = []
+  let buttons: Array<React.ReactNode>
 
   const dropdown = (
     <DropdownButton

@@ -171,7 +171,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
   C.usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('initialIntentFromNotification', (evt?: {}) => {
+  RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
     const notification = evt && normalizePush(evt)
     if (notification) {
       C.usePushState.getState().dispatch.handlePush(notification)
@@ -250,7 +250,7 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = (await androidGetInitialBundleFromNotification()) as undefined | {}
+  const n = (await androidGetInitialBundleFromNotification()) as undefined | object
   return n ? normalizePush(n) : undefined
 }
 

@@ -26,7 +26,11 @@ function LeftTabNavigator({
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
-  const onSelectTab = Common.useSubnavTabAction(navigation as any, state)
+  const onSelectTab = Common.useSubnavTabAction(
+    // ts-ignore
+    navigation as any,
+    state
+  )
 
   return (
     <NavigationContent>
@@ -69,11 +73,14 @@ const SettingsSubNavigator = () => (
         key={name}
         name={name}
         getComponent={settingsSubRoutes[name].getScreen as any}
-        options={({route, navigation}) => {
-          const no = getOptions(settingsSubRoutes[name])
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          return {...opt}
-        }}
+        options={
+          // @ts-ignore
+          ({route, navigation}) => {
+            const no = getOptions(settingsSubRoutes[name])
+            const opt = typeof no === 'function' ? no({navigation, route}) : no
+            return {...opt}
+          }
+        }
       />
     ))}
   </TabNavigator.Navigator>

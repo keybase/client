@@ -6,7 +6,7 @@ import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 import {getAssetPath} from '@/constants/platform.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
-  React.Children.map(children, child => (child ? React.cloneElement(child as any) : child))
+  React.Children.map(children, child => (React.isValidElement(child) ? React.cloneElement(child) : child))
 
 export const animationDuration = 2000
 
@@ -139,7 +139,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const FlameFront = (props: {height: number; stop: boolean}) => {
+const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
   if (props.stop) {
     return null
   }
@@ -161,7 +161,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
       {children}
     </Kb.Box>
   )
-}
+})
 
 const explodedIllustrationUrl = () =>
   Kb.Styles.isDarkMode()

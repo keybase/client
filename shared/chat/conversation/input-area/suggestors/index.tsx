@@ -6,7 +6,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
-import type {Props} from '../normal/platform-input'
+import type {Props} from '../normal2/platform-input'
+import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -47,7 +48,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
@@ -58,14 +59,16 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.MutableRefObject<undefined | SelectedType>
   lastTextRef: React.MutableRefObject<string>
+  setLastText: (text: string) => void
 }
+
 const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, active, setActive, setFilter, selectedItemRef, lastTextRef} = p
+  const {inputRef, active, setActive, setFilter, selectedItemRef, setLastText, lastTextRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
@@ -169,15 +172,15 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const cursorInfo = getWordAtCursor()
       const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
-        value as any,
+        value as unknown as any, // TODO hard to untangle now
         matchInfo.marker,
         {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
       )
-      lastTextRef.current = transformedText.text
+      setLastText(transformedText.text)
       input.transformText(() => transformedText, final)
     },
-    [active, inputRef, getWordAtCursor, selectedItemRef, lastTextRef]
+    [active, inputRef, getWordAtCursor, selectedItemRef, setLastText, lastTextRef]
   )
 
   return {
@@ -255,6 +258,9 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>()
   const lastTextRef = React.useRef('')
+  const setLastText = React.useCallback((text: string) => {
+    lastTextRef.current = text
+  }, [])
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
@@ -267,12 +273,19 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     selectedItemRef,
     setActive,
     setFilter,
+    setLastText,
   })
 
   // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>()
+  const setOnMoveRef = React.useCallback((r: (up: boolean) => void) => {
+    onMoveRef.current = r
+  }, [])
   // tell list we want to submit the selection, true if it selected anything
   const onSubmitRef = React.useRef<() => boolean>()
+  const setOnSubmitRef = React.useCallback((r: () => boolean) => {
+    onSubmitRef.current = r
+  }, [])
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
@@ -311,17 +324,18 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     (item: unknown, final: boolean) => {
       selectedItemRef.current = item as SelectedType
       triggerTransform(item as SelectedType, final)
+      setInactive()
     },
-    [selectedItemRef, triggerTransform]
+    [selectedItemRef, triggerTransform, setInactive]
   )
 
   const listProps = {
     expanded,
     filter,
     listStyle: suggestionListStyle,
-    onMoveRef,
     onSelected,
-    onSubmitRef,
+    setOnMoveRef,
+    setOnSubmitRef,
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus,
   }
@@ -362,7 +376,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.MutableRefObject<Kb.PlainInput | null>
+  inputRef: React.MutableRefObject<Input2Ref | null>
   children: React.ReactNode
 }
 const Popup = (p: PopupProps) => {
@@ -372,9 +386,9 @@ const Popup = (p: PopupProps) => {
   const attachRef = React.useRef<Kb.MeasureRef | null>({
     divRef: {current: null},
     measure: () => {
-      const c = inputRef.current?._input.current
-      if (c) {
-        return c.getBoundingClientRect?.()
+      const r = inputRef.current?.getBoundingClientRect?.()
+      if (r) {
+        return r
       } else {
         return undefined
       }

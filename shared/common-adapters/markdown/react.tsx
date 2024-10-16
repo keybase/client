@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import Text from '@/common-adapters/text'
+import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import Box from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import Emoji from '../emoji'
@@ -27,12 +27,17 @@ interface State extends SM.State {
   virtualText?: boolean
 }
 
+interface Node extends SM.SingleASTNode {
+  content: SM.SingleASTNode
+  raw?: string
+}
+
 const electronWrapStyle = {
   whiteSpace: 'pre-wrap',
   wordBreak: 'break-word',
 } as const
 
-export const markdownStyles = Styles.styleSheetCreate(
+const _markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
       bigTextBlockStyle: Styles.platformStyles({
@@ -146,6 +151,12 @@ export const markdownStyles = Styles.styleSheetCreate(
     }) as const
 )
 
+type MakeText<T> = {
+  [K in keyof T]: StylesTextCrossPlatform
+}
+
+export const markdownStyles = _markdownStyles as MakeText<typeof _markdownStyles>
+
 const InlineCode = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return (
@@ -209,7 +220,7 @@ const reactComponentsForMarkdownType = {
   },
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   blockQuote: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInBlockQuote = state['inBlockQuote'] as boolean
       state['inBlockQuote'] = true
       const ret = (
@@ -222,7 +233,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   del: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => (
+    react: (node: Node, output: SM.ReactOutput, state: State) => (
       <Text
         type="Body"
         key={state.key}
@@ -234,7 +245,7 @@ const reactComponentsForMarkdownType = {
     ),
   },
   em: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInsideEM = state['insideEM'] as boolean
       state['insideEM'] = true
       const ret = (
@@ -255,7 +266,7 @@ const reactComponentsForMarkdownType = {
     },
   },
   emoji: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+    react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <Emoji
         emojiName={String(node['content']).toLowerCase()}
         size={state.styleOverride?.emojiSize?.size ?? 16}
@@ -266,25 +277,25 @@ const reactComponentsForMarkdownType = {
     ),
   },
   fence: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+    react: (node: Node, _output: SM.ReactOutput, state: State) => {
       return (
         <Fence key={state.key} state={state}>
-          {node['content']}
+          {node['content'] as React.ReactElement}
         </Fence>
       )
     },
   },
   inlineCode: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => {
+    react: (node: Node, _output: SM.ReactOutput, state: State) => {
       return (
         <InlineCode key={state.key} state={state}>
-          {node['content']}
+          {node['content'] as React.ReactElement}
         </InlineCode>
       )
     },
   },
   newline: {
-    react: (_node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+    react: (_node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
       !Styles.isMobile || state['inParagraph'] ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
@@ -299,7 +310,7 @@ const reactComponentsForMarkdownType = {
       ),
   },
   paragraph: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInParagraph = state['inParagraph'] as boolean
       state['inParagraph'] = true
       const ret = (
@@ -318,30 +329,30 @@ const reactComponentsForMarkdownType = {
     },
   },
   serviceDecoration: {
-    react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+    react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <ServiceDecoration
-        json={node['content']}
+        json={node['content'] as any as string}
         key={state.key}
         allowFontScaling={state['allowFontScaling']}
         messageType={state.messageType}
         styleOverride={state.styleOverride}
-        styles={markdownStyles as any}
+        styles={markdownStyles}
         disableBigEmojis={false}
         disableEmojiAnimation={false}
       />
     ),
   },
   spoiler: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: SM.ReactOutput, state: State) => {
       return (
-        <Spoiler key={state.key} context={state.context} content={node['raw']}>
+        <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
           {output(node['content'], state)}
         </Spoiler>
       )
     },
   },
   strong: {
-    react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+    react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInsideStrong = state['insideStrong'] as boolean
       state['insideStrong'] = true
       const ret = (
@@ -366,18 +377,18 @@ const reactComponentsForMarkdownType = {
 }
 
 const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
-  [key: string]: SM.OutputRules<unknown>
+  [key: string]: SM.OutputRules<any>
 }>((obj, k) => {
   // keep special Array type
   if (k === 'Array') {
     obj[k] = reactComponentsForMarkdownType[k]
   } else {
     obj[k] = {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         typeof node['content'] !== 'object'
           ? SimpleMarkdown.defaultRules.text.react(
-              {content: node['content'] as Array<SM.SingleASTNode>, type: 'text'},
-              output as any,
+              {content: node['content'] as Array<Node>, type: 'text'},
+              output as SM.Output<string>,
               state
             )
           : output(node['content'], state),
@@ -386,11 +397,11 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
   return obj
 }, {})
 
-export const bigEmojiOutput: SM.Output<any> = SimpleMarkdown.outputFor(
+export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
   {
     ...reactComponentsForMarkdownType,
     emoji: {
-      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <Emoji
           style={state.styleOverride?.paragraph}
           emojiName={String(node['content'])}
@@ -401,7 +412,7 @@ export const bigEmojiOutput: SM.Output<any> = SimpleMarkdown.outputFor(
       ),
     },
     paragraph: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: SM.ReactOutput, state: State) => {
         const oldInParagraph = state['inParagraph'] as boolean
         state['inParagraph'] = true
         const ret = (
@@ -422,48 +433,48 @@ export const bigEmojiOutput: SM.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
+export const previewOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
     blockQuote: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         React.Children.toArray([
           output([{content: '> ', type: 'text'}], state),
           output(node['content'], state),
         ]),
     },
     codeBlock: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         React.Children.toArray([
           output([{content: ' ', type: 'text'}], state),
           output(node['content'], state),
         ]),
     },
     emoji: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     newline: {
-      react: (_node: SM.SingleASTNode, _output: SM.ReactOutput, _state: State) => ' ',
+      react: (_node: Node, _output: SM.ReactOutput, _state: State) => ' ',
     },
     serviceDecoration: {
-      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content']}
+          json={node['content'] as any as string}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
           styleOverride={state.styleOverride}
-          styles={markdownStyles as any}
+          styles={markdownStyles}
           disableBigEmojis={true}
           disableEmojiAnimation={true}
         />
       ),
     },
     spoiler: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']}>
+          <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
             {output(node['content'], state)}
           </Spoiler>
         )
@@ -474,31 +485,31 @@ export const previewOutput: SM.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
+export const serviceOnlyOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
     emoji: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     serviceDecoration: {
-      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content']}
+          json={node['content'] as any as string}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
           styleOverride={state.styleOverride}
-          styles={markdownStyles as any}
+          styles={markdownStyles}
           disableBigEmojis={true}
           disableEmojiAnimation={state.disallowAnimation ?? true}
         />
       ),
     },
     spoiler: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) => {
+      react: (node: Node, output: SM.ReactOutput, state: State) => {
         return (
-          <Spoiler key={state.key} context={state.context} content={node['raw']}>
+          <Spoiler key={state.key} context={state.context} content={node['raw'] ?? ''}>
             {output(node['content'], state)}
           </Spoiler>
         )
@@ -509,7 +520,7 @@ export const serviceOnlyOutput: SM.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-export const serviceOnlyNoWrapOutput: SM.Output<any> = SimpleMarkdown.outputFor(
+export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...Object.keys(reactComponentsForMarkdownType).reduce<{
@@ -526,20 +537,20 @@ export const serviceOnlyNoWrapOutput: SM.Output<any> = SimpleMarkdown.outputFor(
       return obj
     }, {}),
     emoji: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State) =>
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     paragraph: {
-      react: (node: SM.SingleASTNode, output: SM.ReactOutput) => output(node['content']),
+      react: (node: Node, output: SM.ReactOutput) => output(node['content']),
     },
     serviceDecoration: {
-      react: (node: SM.SingleASTNode, _output: SM.ReactOutput, state: State) => (
+      react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <ServiceDecoration
-          json={node['content']}
+          json={node['content'] as any as string}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
           styleOverride={state.styleOverride}
-          styles={markdownStyles as any}
+          styles={markdownStyles}
           disableBigEmojis={true}
           disableEmojiAnimation={state.disallowAnimation ?? true}
         />
@@ -549,4 +560,7 @@ export const serviceOnlyNoWrapOutput: SM.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-export const reactOutput: SM.Output<any> = SimpleMarkdown.outputFor(reactComponentsForMarkdownType, 'react')
+export const reactOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputFor(
+  reactComponentsForMarkdownType,
+  'react'
+)

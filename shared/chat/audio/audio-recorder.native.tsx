@@ -120,6 +120,7 @@ const makePanOnFinalize = (p: {
   }
 
   const onPanFinalizeWorklet = (_e: unknown, success: boolean) => {
+    'worklet'
     startedSV.value = 0
     runOnJS(onPanFinalizeJS)(!success, canceledSV.value === 1, lockedSV.value === 1)
   }
@@ -135,6 +136,7 @@ const makePanOnStart = (p: {startRecording: () => void; fadeSV: SVN; startedSV: 
   }
 
   const onPanStartWorklet = () => {
+    'worklet'
     // we get this multiple times for some reason
     if (startedSV.value) {
       return
@@ -150,6 +152,7 @@ const makePanOnStart = (p: {startRecording: () => void; fadeSV: SVN; startedSV: 
 const makePanOnUpdate = (p: {lockedSV: SVN; canceledSV: SVN; dragYSV: SVN; dragXSV: SVN}) => {
   const {lockedSV, dragYSV, dragXSV, canceledSV} = p
   const onOnUpdateWorklet = (e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+    'worklet'
     if (lockedSV.value || canceledSV.value) {
       return
     }
@@ -173,8 +176,20 @@ const GestureIcon = React.memo(
     panOnUpdate: ReturnType<typeof makePanOnUpdate>
     panOnStart: ReturnType<typeof makePanOnStart>
   }) {
+    const [visible, setVisible] = React.useState(false)
+
+    // work around bug in gesture handler where it crashes on mount
+    React.useEffect(() => {
+      const id = setTimeout(() => {
+        setVisible(true)
+        return () => {
+          clearTimeout(id)
+        }
+      }, 1000)
+    }, [])
+
     const {panOnStart, panOnUpdate, panOnFinalize} = p
-    return (
+    return visible ? (
       <View>
         <GestureDetector
           gesture={Gesture.Pan()
@@ -186,9 +201,13 @@ const GestureIcon = React.memo(
             .onFinalize(panOnFinalize)
             .onUpdate(panOnUpdate)}
         >
-          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+          <Kb.Box2 direction="vertical" collapsable={false}>
+            <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+          </Kb.Box2>
         </GestureDetector>
       </View>
+    ) : (
+      <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
     )
   },
   // we never want to rerender the icon, all the helpers are fine at mount
@@ -642,7 +661,7 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
           interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
           dragXOpacity,
       transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}],
-    }
+    } as const
   })
   const lockStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
@@ -666,8 +685,12 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />
-      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle]} />
+      <AnimatedIcon
+        type="iconfont-arrow-up"
+        sizeType="Tiny"
+        style={[styles.lockHintStyle, arrowStyle as any]}
+      />
+      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle as any]} />
     </>
   )
 }
@@ -677,7 +700,7 @@ const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
   const {lockedSV, fadeSV, onCancel, dragXSV} = props
-  const arrowStyle = useAnimatedStyle(() => {
+  const arrowStyle: any = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
     const dragDistanceX = -50
     const deltaX = 180
@@ -690,7 +713,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const closeStyle = useAnimatedStyle(() => {
+  const closeStyle: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -702,7 +725,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const textStyle = useAnimatedStyle(() => {
+  const textStyle: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -718,7 +741,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       ],
     }
   })
-  const textStyleLocked = useAnimatedStyle(() => {
+  const textStyleLocked: any = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -778,10 +801,10 @@ const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: 
 
 const AudioCounter = () => {
   const [seconds, setSeconds] = React.useState(0)
-  const startTime = React.useRef(Date.now()).current
+  const startTime = React.useRef(Date.now())
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setSeconds((Date.now() - startTime) / 1000)
+      setSeconds((Date.now() - startTime.current) / 1000)
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])

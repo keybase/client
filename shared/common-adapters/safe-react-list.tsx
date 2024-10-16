@@ -7,7 +7,7 @@ import ReactList from 'react-list'
 
 type ItemRenderer = (index: number, key: number | string) => React.JSX.Element
 type ItemsRenderer = (items: React.JSX.Element[], ref: string) => React.JSX.Element
-type ItemSizeEstimator = (index: number, cache: {}) => number
+type ItemSizeEstimator = (index: number, cache: object) => number
 type ItemSizeGetter = (index: number) => number
 type ScrollParentGetter = () => React.JSX.Element
 type ReactListProps = {

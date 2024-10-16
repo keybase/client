@@ -249,7 +249,11 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   })
 
   if (!isEqual(rs, nextState)) {
-    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState as any), target: rs.key})
+    rs.key &&
+      _getNavigator()?.dispatch({
+        ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
+        target: rs.key,
+      })
   }
 }
 
@@ -265,6 +269,7 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
 // maybe other places also
 export const useSafeFocusEffect = (fn: () => void) => {
   try {
+    // eslint-disable-next-line
     useFocusEffect(fn)
   } catch {}
 }
@@ -298,7 +303,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')
@@ -330,7 +335,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
       })
-      n.dispatch(CommonActions.reset(nextState as any))
+      n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
     },
     navigateAppend: (path, replace, fromKey) => {
       DEBUG_NAV && console.log('[Nav] navigateAppend', {path})

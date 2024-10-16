@@ -29,10 +29,10 @@
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [self getBundleURL];
+  return [self bundleURL];
 }
 
-- (NSURL *)getBundleURL {
+- (NSURL *)bundleURL {
 #if DEBUG
   [[RCTBundleURLProvider sharedSettings] setEnableDev:true];
   // uncomment to get a prod bundle.
@@ -45,4 +45,11 @@
 #endif
 }
 
+- (BOOL)bridgelessEnabled
+{
+    return NO; // if you change this change Kb.mm also BOOL isBridgeless;
+}
+
 @end
+
+

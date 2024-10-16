@@ -11,3 +11,13 @@ index a70aace..12b437c 100644
  
      defaultConfig {
          minSdkVersion 16
+diff --git a/node_modules/react-native-hw-keyboard-event/index.d.ts b/node_modules/react-native-hw-keyboard-event/index.d.ts
+index 91999f1..e736e34 100644
+--- a/node_modules/react-native-hw-keyboard-event/index.d.ts
++++ b/node_modules/react-native-hw-keyboard-event/index.d.ts
+@@ -1,4 +1,4 @@
+ declare module "react-native-hw-keyboard-event";
+ 
+-export function onHWKeyPressed(hwKeyEvent: { pressedKey: string }): void;
++export function onHWKeyPressed(hwKeyEvent: ({ pressedKey: string }) => void): void;
+ export function removeOnHWKeyPressed(): void;

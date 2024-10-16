@@ -71,7 +71,7 @@ const GetTitles = (p: Props) => {
   const titleHint = 'Add a caption...'
   if (!info) return null
 
-  let preview: React.ReactNode = null
+  let preview: React.ReactNode
   switch (info.type) {
     case 'image':
       preview = path ? (

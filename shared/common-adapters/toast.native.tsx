@@ -21,28 +21,32 @@ const Toast = (props: Props) => {
   const {visible} = props
   const [shouldRender, setShouldRender] = React.useState(false)
   const opacityRef = React.useRef(new NativeAnimated.Value(0))
+  const [opacity, setOpacity] = React.useState<NativeAnimated.Value | undefined>(undefined)
+  React.useEffect(() => {
+    setOpacity(opacityRef.current)
+  }, [])
   const setShouldRenderFalseLater = useTimeout(() => {
     setShouldRender(false)
   }, 100)
   React.useEffect(() => {
     if (visible) {
       setShouldRender(true)
-      const opacity = opacityRef.current
       return () => {
-        NativeAnimated.timing(opacity, {
-          duration: 100,
-          easing: NativeEasing.linear,
-          toValue: 0,
-          useNativeDriver: false,
-        }).start()
+        opacity &&
+          NativeAnimated.timing(opacity, {
+            duration: 100,
+            easing: NativeEasing.linear,
+            toValue: 0,
+            useNativeDriver: false,
+          }).start()
         setShouldRenderFalseLater()
       }
     }
     return noop
-  }, [visible, setShouldRenderFalseLater, opacityRef])
+  }, [visible, setShouldRenderFalseLater, opacity])
   React.useEffect(() => {
-    if (shouldRender) {
-      const animation = NativeAnimated.timing(opacityRef.current, {
+    if (shouldRender && opacity) {
+      const animation = NativeAnimated.timing(opacity, {
         duration: 100,
         easing: NativeEasing.linear,
         toValue: 1,
@@ -54,7 +58,7 @@ const Toast = (props: Props) => {
       }
     }
     return noop
-  }, [shouldRender])
+  }, [shouldRender, opacity])
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
   C.Router2.useSafeFocusEffect(
@@ -73,8 +77,8 @@ const Toast = (props: Props) => {
             style={Styles.collapseStyles([
               styles.container,
               props.containerStyle,
-              {opacity: opacityRef.current},
-            ] as any)}
+              {opacity: (opacity as number | undefined) ?? 0},
+            ])}
           >
             {props.children}
           </NativeAnimated.View>

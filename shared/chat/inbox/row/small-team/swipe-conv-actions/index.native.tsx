@@ -5,23 +5,30 @@ import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
-import {Swipeable} from '@/common-adapters/swipeable.native'
+import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {View} from 'react-native'
 
 const actionWidth = 64
 
 const Action = (p: {
   text: string
-  mult: number
+  offset: number
   color: Kb.Styles.Color
   iconType: Kb.IconType
   onClick: () => void
   progress: Reanimated.SharedValue<number>
 }) => {
-  const {text, color, iconType, onClick, progress, mult} = p
+  const {text, color, iconType, onClick, progress, offset} = p
   const as = Reanimated.useAnimatedStyle(() => {
+    const ratio = progress.value
+    const translateX = Reanimated.interpolate(
+      ratio,
+      [0, 1],
+      [actionWidth, (2 - offset) * -actionWidth],
+      Reanimated.Extrapolation.CLAMP
+    )
     return {
-      transform: [{translateX: mult * -progress.value}],
+      transform: [{translateX}],
     }
   })
 
@@ -38,15 +45,15 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const {swipeCloseRef, children, onClick} = p
+  const {children, setCloseOpenedRow, closeOpenedRow} = p
   const conversationIDKey = C.useChatContext(s => s.id)
-  const [extraData, setExtraData] = React.useState(0)
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    // only if open
-    if (swipeCloseRef?.current) {
-      setExtraData(d => d + 1)
+  const lastCIDRef = React.useRef(conversationIDKey)
+  React.useEffect(() => {
+    if (lastCIDRef.current !== conversationIDKey) {
+      lastCIDRef.current = conversationIDKey
+      closeOpenedRow()
     }
-  })
+  }, [conversationIDKey, closeOpenedRow])
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = C.useEvent(() => {
@@ -67,80 +74,61 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const onMarkAsUnread = C.useEvent(() => {
     onMarkConversationAsUnread()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const onMute = C.useEvent(() => {
     onMuteConversation()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
   const onHide = C.useEvent(() => {
     onHideConversation()
-    swipeCloseRef?.current?.()
+    closeOpenedRow()
   })
 
-  const makeActionsRef = React.useRef<(p: Reanimated.SharedValue<number>) => React.ReactNode>(
-    (_p: Reanimated.SharedValue<number>) => null
-  )
-  makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
-    <View style={styles.container}>
-      <Action
-        text="Unread"
-        color={Kb.Styles.globalColors.blue}
-        iconType="iconfont-envelope-solid"
-        onClick={onMarkAsUnread}
-        mult={0}
-        progress={progress}
-      />
-      <Action
-        text={isMuted ? 'Unmute' : 'Mute'}
-        color={Kb.Styles.globalColors.orange}
-        iconType="iconfont-shh"
-        onClick={onMute}
-        mult={1 / 3}
-        progress={progress}
-      />
-      <Action
-        text="Hide"
-        color={Kb.Styles.globalColors.greyDarker}
-        iconType="iconfont-hide"
-        onClick={onHide}
-        mult={2 / 3}
-        progress={progress}
-      />
-    </View>
-  )
+  const swipeableRef = React.useRef<SwipeableMethods | null>(null)
+  const onSwipeableWillOpen = React.useCallback(() => {
+    closeOpenedRow()
+    setCloseOpenedRow(() => {
+      swipeableRef.current?.close()
+    })
+  }, [closeOpenedRow, setCloseOpenedRow])
 
-  const props = {
-    children,
-    extraData,
-    makeActionsRef,
-    onClick,
-    swipeCloseRef,
-  }
-
-  return <SwipeConvActionsImpl {...props} />
-})
-
-type IProps = {
-  children: React.ReactNode
-  extraData: unknown
-  onClick?: () => void
-  swipeCloseRef: Props['swipeCloseRef']
-  makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
-}
-
-const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IProps) {
-  const {children, swipeCloseRef, makeActionsRef, extraData, onClick} = props
   return (
     <Swipeable
-      actionWidth={actionWidth * 3}
-      swipeCloseRef={swipeCloseRef}
-      makeActionsRef={makeActionsRef}
-      style={styles.row}
-      extraData={extraData}
-      onClick={onClick}
+      ref={swipeableRef}
+      onSwipeableWillOpen={onSwipeableWillOpen}
+      renderRightActions={progress => {
+        return (
+          <View style={[styles.container, {width: 3 * actionWidth}]}>
+            <Action
+              text="Unread"
+              color={Kb.Styles.globalColors.blue}
+              iconType="iconfont-envelope-solid"
+              onClick={onMarkAsUnread}
+              offset={0}
+              progress={progress}
+            />
+            <Action
+              text={isMuted ? 'Unmute' : 'Mute'}
+              color={Kb.Styles.globalColors.orange}
+              iconType="iconfont-shh"
+              onClick={onMute}
+              offset={1}
+              progress={progress}
+            />
+            <Action
+              text="Hide"
+              color={Kb.Styles.globalColors.greyDarker}
+              iconType="iconfont-hide"
+              onClick={onHide}
+              offset={2}
+              progress={progress}
+            />
+          </View>
+        )
+      }}
     >
       {children}
     </Swipeable>
@@ -152,8 +140,8 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       action: {
         height: '100%',
-        left: 0,
         position: 'absolute',
+        right: 0,
         top: 0,
         width: actionWidth,
       },
@@ -164,15 +152,12 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         display: 'flex',
         flexDirection: 'row',
-        height: '100%',
         position: 'relative',
-        width: '100%',
       },
       rightAction: {
         alignItems: 'center',
         height: '100%',
         justifyContent: 'center',
-        width: '100%',
       },
       row: {
         flexShrink: 0,

@@ -18,7 +18,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const snippetDecoration = C.useChatContext(s => {
     const d =
       s.meta.conversationIDKey === C.Chat.noConversationIDKey
-        ? layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none
+        ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
         : s.meta.snippetDecoration
 
     switch (d) {
@@ -69,12 +69,12 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
       ? styles.textError
       : selected
         ? hasUnread
-          ? (styles.textSelectedBold as any)
+          ? styles.textSelectedBold
           : styles.textSelected
         : hasUnread
           ? styles.textPlainBold
-          : (styles.textPlain as any),
-  ] as any)
+          : styles.textPlain,
+  ])
 
   const name = (
     <Kb.Text2
@@ -142,87 +142,90 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   )
 })
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  channelBackground: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginLeft: Kb.Styles.globalMargins.large,
-      paddingRight: Kb.Styles.globalMargins.xsmall,
-    },
-    isElectron: {
-      borderBottomLeftRadius: 3,
-      borderTopLeftRadius: 3,
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-    },
-    isPhone: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      flex: 1,
-      paddingLeft: Kb.Styles.globalMargins.small,
-    },
-    isTablet: {
-      borderBottomLeftRadius: 3,
-      borderTopLeftRadius: 3,
-      flex: 1,
-      height: '80%',
-      marginLeft: 48,
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-    },
-  }),
-  channelHash: {color: Kb.Styles.globalColors.black_20},
-  channelHashSelected: {color: Kb.Styles.globalColors.white_60},
-  channelText: Kb.Styles.platformStyles({
-    isElectron: {wordBreak: 'break-all'},
-  }),
-  container: {flexShrink: 0, height: RowSizes.bigRowHeight},
-  icon: {
-    display: 'flex',
-    margin: 3,
-  },
-  iconContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  muted: {marginLeft: Kb.Styles.globalMargins.xtiny},
-  rowContainer: Kb.Styles.platformStyles({
-    common: {
-      alignItems: 'stretch',
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: 0,
-    },
-    isElectron: Kb.Styles.desktopStyles.clickable,
-    isTablet: {alignItems: 'center'},
-  }),
-  selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},
-  textError: {color: Kb.Styles.globalColors.redDark},
-  textPlain: Kb.Styles.platformStyles({
-    common: {color: Kb.Styles.globalColors.black_63},
-    isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-  }),
-  textPlainBold: Kb.Styles.platformStyles({
-    common: {
-      color: Kb.Styles.globalColors.blackOrWhite,
-      ...Kb.Styles.globalStyles.fontBold,
-    },
-    isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-  }),
-  textSelected: {color: Kb.Styles.globalColors.white},
-  textSelectedBold: {
-    color: Kb.Styles.globalColors.white,
-    ...Kb.Styles.globalStyles.fontBold,
-  },
-  unread: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.orange,
-      borderRadius: Kb.Styles.borderRadius,
-      flexShrink: 0,
-      height: 8,
-      width: 8,
-    },
-    isMobile: {
-      marginRight: Kb.Styles.globalMargins.tiny,
-    },
-  }),
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      channelBackground: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          marginLeft: Kb.Styles.globalMargins.large,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+        },
+        isElectron: {
+          borderBottomLeftRadius: 3,
+          borderTopLeftRadius: 3,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+        },
+        isPhone: {
+          ...Kb.Styles.globalStyles.fillAbsolute,
+          flex: 1,
+          paddingLeft: Kb.Styles.globalMargins.small,
+        },
+        isTablet: {
+          borderBottomLeftRadius: 3,
+          borderTopLeftRadius: 3,
+          flex: 1,
+          height: '80%',
+          marginLeft: 48,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+        },
+      }),
+      channelHash: {color: Kb.Styles.globalColors.black_20},
+      channelHashSelected: {color: Kb.Styles.globalColors.white_60},
+      channelText: Kb.Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'},
+      }),
+      container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+      icon: {
+        display: 'flex',
+        margin: 3,
+      },
+      iconContainer: {
+        flex: 1,
+        justifyContent: 'flex-end',
+      },
+      muted: {marginLeft: Kb.Styles.globalMargins.xtiny},
+      rowContainer: Kb.Styles.platformStyles({
+        common: {
+          alignItems: 'stretch',
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: 0,
+        },
+        isElectron: Kb.Styles.desktopStyles.clickable,
+        isTablet: {alignItems: 'center'},
+      }),
+      selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},
+      textError: {color: Kb.Styles.globalColors.redDark},
+      textPlain: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black_63},
+        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+      }),
+      textPlainBold: Kb.Styles.platformStyles({
+        common: {
+          color: Kb.Styles.globalColors.blackOrWhite,
+          ...Kb.Styles.globalStyles.fontBold,
+        },
+        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+      }),
+      textSelected: {color: Kb.Styles.globalColors.white},
+      textSelectedBold: {
+        color: Kb.Styles.globalColors.white,
+        ...Kb.Styles.globalStyles.fontBold,
+      },
+      unread: Kb.Styles.platformStyles({
+        common: {
+          backgroundColor: Kb.Styles.globalColors.orange,
+          borderRadius: Kb.Styles.borderRadius,
+          flexShrink: 0,
+          height: 8,
+          width: 8,
+        },
+        isMobile: {
+          marginRight: Kb.Styles.globalMargins.tiny,
+        },
+      }),
+    }) as const
+)
 
 export default BigTeamChannel

@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: 'com.github.triplet.play'
 
@@ -17,26 +18,23 @@ Integer getVersionCode() {
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
 
-def nodeModules = "../../node_modules"
-def defaultDir = file("$nodeModules/react-native/android")
-def androidSourcesDir = defaultDir.parentFile.toString()
-def prebuiltDir = "$buildDir/react-native-0*/jni"
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 
 react {
+   cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
+
     /* Folders */
-    //   The root of your project, i.e. where "package.json" lives. Default is '..'
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
-    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
-    // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
-    // codegenDir = file("../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
-    // cliFile = file("../node_modules/react-native/cli.js")
+    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+    // cliFile = file("../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -71,6 +69,8 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
 
+    /* Autolinking */
+    autolinkLibrariesWithApp()
 }
 
 /**
@@ -93,8 +93,8 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
     ndkVersion rootProject.ext.ndkVersion
-
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     namespace "io.keybase.ossifrage"
     defaultConfig {
@@ -118,12 +118,6 @@ android {
 
     buildTypes {
         debug {
-        }
-
-        storyBook.initWith(buildTypes.debug)
-        storyBook {
-            applicationIdSuffix ".storybook"
-            matchingFallbacks = ['debug']
         }
         release {
             signingConfig signingConfigs.release
@@ -166,32 +160,24 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.squareup.okhttp3', module:'okhttp'
-    }
-
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.8.1'
+    implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:22.0.0"
-    implementation "com.facebook.fresco:animated-gif:2.6.0"
-    implementation "com.facebook.fresco:fresco:2.6.0"
+    implementation "com.google.firebase:firebase-messaging:24.0.1"
+    implementation "com.facebook.fresco:animated-gif:${reactAndroidLibs.versions.fresco.get()}"
     implementation 'org.msgpack:msgpack-core:0.9.0'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.6.1"
-    implementation "androidx.lifecycle:lifecycle-process:2.6.1"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.8.5"
+    implementation "androidx.lifecycle:lifecycle-process:2.8.5"
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 // This requires a google-services.json file locally.  Drop it in
 // android/app/src/debug/google-services.json
 // android/app/src/releaseUnsigned/google-services.json

@@ -57,7 +57,7 @@ export type Selection = {
   end: number | null
 }
 
-export type InputStyle = CustomStyles<'padding', {}>
+export type InputStyle = CustomStyles<'padding'>
 
 export type Props = {
   onPasteImage?: (uri: string) => void // mobile only, if allowImagePaste is on

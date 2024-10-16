@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
@@ -16,18 +17,18 @@ const Header = () => {
 }
 
 const Header2 = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const participantInfo = C.useChatContext(s => s.participants)
-  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = C.useChatContext(
+  const data = C.useChatContext(
     C.useShallow(s => {
-      const {channelname, descriptionDecorated, isMuted, teamType, teamname} = s.meta
-      return {channelname, descriptionDecorated, isMuted, teamType, teamname}
+      const {participants, meta, id} = s
+      const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
+      return {channelname, descriptionDecorated, id, isMuted, participants, teamType, teamname}
     })
   )
-  // TODO not reactive
-  const canEditDesc = C.Teams.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
+  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = data
+  const {participants: participantInfo, id: conversationIDKey} = data
+  const canEditDesc = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).editChannelDescription)
   const otherParticipants = C.Chat.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = C.useUsersState(s => s.infoMap.get(first))
@@ -57,18 +58,19 @@ const Header2 = () => {
   const showActions = C.Chat.isValidConversationIDKey(conversationIDKey)
 
   const descStyleOverride = React.useMemo(
-    () => ({
-      del: styles.markdownOverride,
-      em: styles.markdownOverride,
-      fence: styles.markdownOverride,
-      inlineCode: styles.markdownOverride,
-      kbfsPath: styles.markdownOverride,
-      link: styles.markdownOverride,
-      mailto: styles.markdownOverride,
-      paragraph: styles.markdownOverride,
-      preview: styles.markdownOverride,
-      strong: styles.markdownOverride,
-    }),
+    () =>
+      ({
+        del: styles.markdownOverride,
+        em: styles.markdownOverride,
+        fence: styles.markdownOverride,
+        inlineCode: styles.markdownOverride,
+        kbfsPath: styles.markdownOverride,
+        link: styles.markdownOverride,
+        mailto: styles.markdownOverride,
+        paragraph: styles.markdownOverride,
+        preview: styles.markdownOverride,
+        strong: styles.markdownOverride,
+      }) as StyleOverride,
     []
   )
 
@@ -76,7 +78,7 @@ const Header2 = () => {
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
-      styleOverride={descStyleOverride as any}
+      styleOverride={descStyleOverride}
       lineClamp={1}
       selectable={true}
     >
@@ -114,7 +116,7 @@ const Header2 = () => {
       <Kb.Markdown
         smallStandaloneEmoji={true}
         style={{...styles.desc, flex: 1}}
-        styleOverride={descStyleOverride as any}
+        styleOverride={descStyleOverride}
         lineClamp={1}
         selectable={true}
       >

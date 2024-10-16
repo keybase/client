@@ -41,10 +41,12 @@ const ExplodingMeta = (p: Props) => {
   const lastMessageKeyRef = React.useRef(messageKey)
   const [mode, setMode] = React.useState<Mode>('none')
 
-  if (messageKey !== lastMessageKeyRef.current) {
-    lastMessageKeyRef.current = messageKey
-    setMode('none')
-  }
+  React.useEffect(() => {
+    if (messageKey !== lastMessageKeyRef.current) {
+      lastMessageKeyRef.current = messageKey
+      setMode('none')
+    }
+  }, [messageKey])
 
   const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)

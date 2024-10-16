@@ -27,7 +27,7 @@ class RingLogger {
     })
   }
 
-  log = (...s: Array<any>) => {
+  log = (...s: Array<unknown>) => {
     const singleString = s.map(toStringForLog).join(' ')
 
     if (__DEV__) {

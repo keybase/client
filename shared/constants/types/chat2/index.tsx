@@ -207,5 +207,5 @@ export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): T.RPCChat.Ou
 
 export * from './message'
 export * from './common'
-export * from './meta'
-export * from './rowitem'
+export type * from './meta'
+export type * from './rowitem'

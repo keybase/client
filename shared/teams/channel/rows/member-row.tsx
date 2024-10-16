@@ -12,13 +12,15 @@ type Props = {
   username: string
 }
 
-const showCrown: T.Teams.BoolTypeMap = {
-  admin: true,
-  bot: false,
-  owner: true,
-  reader: false,
-  restrictedbot: false,
-  writer: false,
+const crownIcon = (roleType: T.Teams.TeamRoleType) => {
+  switch (roleType) {
+    case 'admin':
+      return 'iconfont-crown-admin'
+    case 'owner':
+      return 'iconfont-crown-owner'
+    default:
+      return false
+  }
 }
 
 // NOTE the controls for reset and deleted users (and the chat button) are
@@ -38,14 +40,9 @@ const ChannelMemberRow = (props: Props) => {
   const roleType = teamMemberInfo.type
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
-    return active && showCrown[roleType] ? (
-      <Kb.Icon
-        type={('iconfont-crown-' + teamMemberInfo.type) as any}
-        style={styles.crownIcon}
-        fontSize={10}
-      />
-    ) : null
-  }, [active, roleType, teamMemberInfo.type])
+    const type = crownIcon(roleType)
+    return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
+  }, [active, roleType])
   const fullNameLabel =
     fullname && active ? (
       <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
@@ -270,22 +267,25 @@ const ChannelMemberRow = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkCircle: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-    alignSelf: 'center',
-  },
-  crownIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
-  fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
-  listItemMargin: {marginLeft: 0},
-  marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
-  mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-  nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
-  nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
-  selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
-  widenClickableArea: {margin: -5, padding: 5},
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      checkCircle: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        alignSelf: 'center',
+      },
+      crownIcon: {
+        marginRight: Kb.Styles.globalMargins.xtiny,
+      },
+      fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
+      listItemMargin: {marginLeft: 0},
+      marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
+      nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+      selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
+      widenClickableArea: {margin: -5, padding: 5},
+    }) as const
+)
 
 export default ChannelMemberRow

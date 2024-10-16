@@ -10,7 +10,7 @@ import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
-import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {mobileTypingContainerHeight} from '../input-area/normal2/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat2/debug'
@@ -31,25 +31,23 @@ export const DEBUGDump = () => {}
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: Array<T.Chat.Ordinal>
-  cidChanged: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
-  const {cidChanged, listRef, centeredOrdinal, messageOrdinals} = p
+  const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
-  const {scrollRef} = React.useContext(ScrollContext)
-  scrollRef.current = {scrollDown: noop, scrollToBottom, scrollUp: noop}
+  const {setScrollRef} = React.useContext(ScrollContext)
+  React.useEffect(() => {
+    setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
+  }, [setScrollRef, scrollToBottom])
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
-  if (cidChanged) {
-    lastScrollToCentered.current = T.Chat.numberToOrdinal(-1)
-  }
 
   const scrollToCentered = C.useEvent(() => {
     setTimeout(() => {
@@ -89,7 +87,6 @@ const ConversationList = React.memo(function ConversationList() {
   ) : null
 
   const conversationIDKey = C.useChatContext(s => s.id)
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
 
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
@@ -125,10 +122,12 @@ const ConversationList = React.memo(function ConversationList() {
   )
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  if (cidChanged || lastED !== extraData) {
-    recycleTypeRef.current = new Map()
-    setLastED(extraData)
-  }
+  React.useEffect(() => {
+    if (lastED !== extraData) {
+      recycleTypeRef.current = new Map()
+      setLastED(extraData)
+    }
+  }, [extraData, lastED])
   const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
@@ -147,7 +146,6 @@ const ConversationList = React.memo(function ConversationList() {
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
-    cidChanged,
     conversationIDKey,
     listRef,
     messageOrdinals,
@@ -156,20 +154,20 @@ const ConversationList = React.memo(function ConversationList() {
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const lastCenteredOrdinal = React.useRef(0)
-  if (lastCenteredOrdinal.current !== centeredOrdinal) {
+  React.useEffect(() => {
+    if (lastCenteredOrdinal.current !== centeredOrdinal) return
     lastCenteredOrdinal.current = centeredOrdinal
     if (centeredOrdinal) {
-      // let it render first
-      setTimeout(() => {
-        scrollToCentered()
-      }, 16)
+      scrollToCentered()
     }
-  }
+  }, [centeredOrdinal, scrollToCentered])
 
-  if (!markedInitiallyLoaded) {
-    markedInitiallyLoaded = true
-    markInitiallyLoadedThreadAsRead()
-  }
+  React.useEffect(() => {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      markInitiallyLoadedThreadAsRead()
+    }
+  }, [markInitiallyLoadedThreadAsRead])
 
   // We use context to inject a way for items to force the list to rerender when they notice something about their
   // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
@@ -281,9 +279,13 @@ const minDistanceFromEnd = 10
 const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
   const nextCallbackRef = React.useRef(new Date().getTime())
   const onEndReachedRef = React.useRef(onEndReached)
-  onEndReachedRef.current = onEndReached
+  React.useEffect(() => {
+    onEndReachedRef.current = onEndReached
+  }, [onEndReached])
   const numOrdinalsRef = React.useRef(numOrdinals)
-  numOrdinalsRef.current = numOrdinals
+  React.useEffect(() => {
+    numOrdinalsRef.current = numOrdinals
+  }, [numOrdinals])
 
   // this can't change ever, so we have to use refs to keep in sync
   const onViewableItemsChanged = React.useRef(

@@ -3,11 +3,24 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {OrdinalContext} from '../../ids-context'
-import {SwipeTrigger} from '@/common-adapters/swipeable.native'
+import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {dismiss} from '@/util/keyboard'
 import {Pressable} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
+import * as Reanimated from 'react-native-reanimated'
 // import {useDebugLayout} from '@/util/debug-react'
+
+const ReplyIcon = React.memo(function ({progress}: {progress: Reanimated.SharedValue<number>}) {
+  const as = Reanimated.useAnimatedStyle(() => {
+    const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
+    return {opacity}
+  })
+  return (
+    <Reanimated.default.View style={[styles.reply, as]}>
+      <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
+    </Reanimated.default.View>
+  )
+})
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
@@ -34,13 +47,10 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     </Pressable>
   )
 
-  const makeAction = React.useCallback(() => {
-    return (
-      <Kb.Box2 direction="vertical" style={styles.reply}>
-        <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
-      </Kb.Box2>
-    )
-  }, [])
+  const makeAction = React.useCallback(
+    (_: unknown, progress: Reanimated.SharedValue<number>) => <ReplyIcon progress={progress} />,
+    []
+  )
 
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
@@ -52,11 +62,28 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     focusInput()
   }, [setReplyTo, toggleThreadSearch, ordinal, focusInput])
 
-  // Only swipeable if there is an onSwipeLeft handler
+  const swipeRef = React.useRef<SwipeableMethods | null>(null)
+  const onSwipeableWillOpen = React.useCallback(
+    (dir: 'left' | 'right') => {
+      if (dir === 'right') {
+        swipeRef.current?.close()
+        onSwipeLeft()
+      }
+    },
+    [onSwipeLeft]
+  )
+
   return (
-    <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={makeAction}
+      onSwipeableWillOpen={onSwipeableWillOpen}
+      overshootRight={false}
+      // we don't do left swipe else it'll eat swipe back in nav
+      dragOffsetFromLeftEdge={1000}
+    >
       {inner}
-    </SwipeTrigger>
+    </Swipeable>
   )
 })
 

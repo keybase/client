@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-const upstreamTransformer = require('metro-react-native-babel-transformer')
+const upstreamTransformer = require('@react-native/metro-babel-transformer')
 const enableWDYR = require('./util/why-did-you-render-enabled')
 
 module.exports.transform = function (p) {

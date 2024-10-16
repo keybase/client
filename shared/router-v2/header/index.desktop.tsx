@@ -6,7 +6,6 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon/container'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
-import shallowEqual from 'shallowequal'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -20,8 +19,8 @@ type Props = {
     title?: React.ReactNode
     headerTitle?: React.ReactNode
     headerLeft?: React.ReactNode
-    headerRightActions?: React.JSXElementConstructor<{}>
-    subHeader?: React.JSXElementConstructor<{}>
+    headerRightActions?: React.JSXElementConstructor<object>
+    subHeader?: React.JSXElementConstructor<object>
     headerTransparent?: boolean
     headerShadowVisible?: boolean
     headerBottomStyle?: Kb.Styles.StylesCrossPlatform
@@ -120,7 +119,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
       titleNode = headerTitle
     } else if (ReactIs.isValidElementType(headerTitle)) {
       const CustomTitle = headerTitle
-      const props = {params} as any
+      const props = {params}
       titleNode = <CustomTitle {...props}>{title}</CustomTitle>
     }
   }
@@ -324,25 +323,22 @@ const DesktopHeaderWrapper = (p: HeaderProps) => {
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
 
-  const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
-  const next = {
-    headerBottomStyle,
-    headerLeft,
-    headerMode,
-    headerRightActions,
-    headerShadowVisible,
-    headerStyle,
-    headerTitle,
-    headerTransparent,
-    subHeader,
-    title,
-  }
-  const optionsRef = React.useRef(next)
-  if (!shallowEqual(next, optionsRef.current)) {
-    optionsRef.current = next
-  }
-  const options = optionsRef.current
+  const options = React.useMemo(() => {
+    const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
+    const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+    return {
+      headerBottomStyle,
+      headerLeft,
+      headerMode,
+      headerRightActions,
+      headerShadowVisible,
+      headerStyle,
+      headerTitle,
+      headerTransparent,
+      subHeader,
+      title,
+    }
+  }, [_options])
 
   return (
     <DesktopHeader

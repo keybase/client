@@ -7,6 +7,8 @@ const Kb = {
   FloatingBox,
 }
 
+const positionFallbacks = [] as const
+
 const Toast = (props: Props) => (
   <Kb.FloatingBox
     attachTo={props.attachTo}
@@ -14,6 +16,8 @@ const Toast = (props: Props) => (
     position={props.position}
     containerStyle={styles.float}
     disableEscapeKey={true}
+    offset={4}
+    positionFallbacks={positionFallbacks}
   >
     <div
       className={Styles.classNames({visible: props.visible}, props.className, 'fadeBox')}

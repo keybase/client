@@ -73,17 +73,19 @@ const EnterDevicename = (props: Props) => {
     })
   })
 
-  if (cleanDeviceName !== deviceName) {
-    inputRef.current?.transformText(() => {
-      return {
-        selection: {
-          end: cleanDeviceName.length,
-          start: cleanDeviceName.length,
-        },
-        text: cleanDeviceName,
-      }
-    })
-  }
+  React.useEffect(() => {
+    if (cleanDeviceName !== deviceName) {
+      inputRef.current?.transformText(() => {
+        return {
+          selection: {
+            end: cleanDeviceName.length,
+            start: cleanDeviceName.length,
+          },
+          text: cleanDeviceName,
+        }
+      })
+    }
+  }, [deviceName, cleanDeviceName])
 
   return (
     <SignupScreen

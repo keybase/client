@@ -56,28 +56,31 @@ export default class Video extends React.PureComponent<Props, State> {
     return (
       <CheckURL url={url} allowFile={this.props.allowFile}>
         <Measure bounds={true} onResize={this._onContainerResize}>
-          {({measureRef}) => (
-            <div
-              ref={measureRef}
-              style={Styles.collapseStyles([styles.container, this.props.style]) as React.CSSProperties}
-            >
-              <video
-                controlsList="nodownload nofullscreen"
-                onClick={this._onVideoClick}
-                ref={this._videoRef}
-                controls={!this.props.hideControls}
-                src={url}
-                style={
-                  Styles.collapseStyles([styles.container, getVideoSize(this.state)]) as React.CSSProperties
-                }
-                muted={this.props.muted ?? true}
-                autoPlay={this.props.autoPlay ?? true}
-                preload="metadata"
-                onLoadedMetadata={this._onVideoLoadedmetadata}
-                onError={onUrlError && (() => onUrlError('video loading error'))}
-              />
-            </div>
-          )}
+          {
+            // eslint-disable-next-line
+            ({measureRef}) => (
+              <div
+                ref={measureRef}
+                style={Styles.collapseStyles([styles.container, this.props.style]) as React.CSSProperties}
+              >
+                <video
+                  controlsList="nodownload nofullscreen"
+                  onClick={this._onVideoClick}
+                  ref={this._videoRef}
+                  controls={!this.props.hideControls}
+                  src={url}
+                  style={
+                    Styles.collapseStyles([styles.container, getVideoSize(this.state)]) as React.CSSProperties
+                  }
+                  muted={this.props.muted ?? true}
+                  autoPlay={this.props.autoPlay ?? true}
+                  preload="metadata"
+                  onLoadedMetadata={this._onVideoLoadedmetadata}
+                  onError={onUrlError && (() => onUrlError('video loading error'))}
+                />
+              </div>
+            )
+          }
         </Measure>
       </CheckURL>
     )

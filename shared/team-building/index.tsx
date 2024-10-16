@@ -17,7 +17,7 @@ import {useSharedValue} from '@/common-adapters/reanimated'
 
 const deriveTeamSoFar = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {
-    let username = ''
+    let username
     let serviceId: T.TB.ServiceIdWithContact
     if (userInfo.contact && userInfo.serviceMap.keybase) {
       // resolved contact - pass username @ 'keybase' to teambox
@@ -161,7 +161,7 @@ const TeamBuilding = (p: OwnProps) => {
   )
 
   const title = C.useTeamsState(s =>
-    namespace === 'teams' ? `Add to ${C.Teams.getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
+    namespace === 'teams' ? `Add to ${C.Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
   )
 
   const waitingForCreate = C.Waiting.useAnyWaiting(C.Chat.waitingKeyCreating)

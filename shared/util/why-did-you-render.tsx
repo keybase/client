@@ -23,6 +23,7 @@ if (enabled && __DEV__) {
         /^PressabilityDebugView$/,
         /^PreventRemoveProvider$/,
         /^NativeStackViewInner$/,
+        /^OrdinalWaypoint/, // ignore useIntersection hook for now
         /^LeftTabNavigator/,
         /^RouteBox/,
       ],

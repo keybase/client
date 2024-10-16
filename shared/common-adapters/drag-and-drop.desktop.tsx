@@ -8,7 +8,7 @@ import logger from '@/logger'
 import type {Props} from './drag-and-drop'
 import KB2 from '@/util/electron.desktop'
 
-const {isDirectory} = KB2.functions
+const {isDirectory, getPathForFile} = KB2.functions
 
 type State = {
   showDropOverlay: boolean
@@ -21,7 +21,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     const f = async () => {
       if (!this._validDrag(e)) return
       const fileList = e.dataTransfer.files
-      const paths: Array<string> = fileList.length ? Array.from(fileList).map(f => f.path) : []
+      const paths: Array<string> = fileList.length
+        ? Array.from(fileList).map(f => getPathForFile?.(f) ?? '')
+        : []
       if (paths.length) {
         if (!this.props.allowFolders) {
           for (const path of paths) {
@@ -63,6 +65,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
 
   _dropOverlay = () => (
     <Box2
+      alignSelf="stretch"
       centerChildren={true}
       direction="horizontal"
       onDragLeave={this._onDragLeave}

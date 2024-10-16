@@ -10,4 +10,4 @@ export type BlockState = {
   followBlocked: boolean
 }
 
-export type State = {}
+export type State = object

@@ -232,7 +232,7 @@ const EmojiRow = React.memo(function EmojiRow(p: {
   return (
     <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
       {row.emojis.map(mapper)}
-      {[...Array(emojisPerLine - row.emojis.length)].map((_: unknown, index) => makeEmojiPlaceholder(index))}
+      {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
   )
 })
@@ -389,7 +389,7 @@ class EmojiPicker2 extends React.PureComponent<
           >
             {this.getSectionHeader('Search results')}
             {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_: unknown, index) =>
+            {[...Array<unknown>(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
               makeEmojiPlaceholder(index)
             )}
             {this.makeNotFound()}
