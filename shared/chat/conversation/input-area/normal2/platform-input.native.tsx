@@ -19,7 +19,6 @@ import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from './max-input-area-context'
 import {
   default as Animated,
-  createAnimatedComponent,
   skipAnimations,
   useSharedValue,
   useAnimatedStyle,
@@ -140,7 +139,6 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   )
 })
 
-const AnimatedIcon = createAnimatedComponent(Kb.Icon)
 const AnimatedExpand = (() => {
   if (skipAnimations) {
     return React.memo(function AnimatedExpand() {
@@ -169,24 +167,22 @@ const AnimatedExpand = (() => {
 
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
-          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop} pointerEvents="none">
-            <AnimatedIcon
+          <Animated.View style={[styles.iconTop, topStyle]} pointerEvents="none">
+            <Kb.Icon
               fixOverdraw={false}
               type="iconfont-arrow-full-up"
               fontSize={18}
-              style={topStyle}
               color={Kb.Styles.globalColors.black_35}
             />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
-            <AnimatedIcon
+          </Animated.View>
+          <Animated.View style={[styles.iconBottom, bottomStyle]} pointerEvents="none">
+            <Kb.Icon
               fixOverdraw={false}
               type="iconfont-arrow-full-up"
               fontSize={18}
-              style={bottomStyle}
               color={Kb.Styles.globalColors.black_35}
             />
-          </Kb.Box2>
+          </Animated.View>
         </Kb.ClickableBox>
       )
     })
