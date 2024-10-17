@@ -67,10 +67,12 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
   }, [loadDevices])
 
   const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
-  if (lastHasNewlyRevoked.current !== hasNewlyRevoked) {
-    lastHasNewlyRevoked.current = hasNewlyRevoked
-    setRevokeExpanded(true)
-  }
+  React.useEffect(() => {
+    if (lastHasNewlyRevoked.current !== hasNewlyRevoked) {
+      lastHasNewlyRevoked.current = hasNewlyRevoked
+      setRevokeExpanded(true)
+    }
+  }, [hasNewlyRevoked])
   const renderItem = React.useCallback(
     (index: number, item: Item) => {
       if (item.type === 'revokedHeader') {

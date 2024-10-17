@@ -126,8 +126,8 @@
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
   [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+  CFRelease(cgOriginal);
   if (error != nil) {
-    CFRelease(cgOriginal);
     completion(error, nil);
     return;
   }

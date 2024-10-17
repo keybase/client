@@ -1,4 +1,3 @@
 import type * as React from 'react'
-type Props = {}
-declare const Import: (p: Props) => React.ReactNode
+declare const Import: () => React.ReactNode
 export default Import

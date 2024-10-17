@@ -44,7 +44,7 @@ const LeftNav = (props: Props) => {
 
             <SettingsItem
               text={keybaseFM}
-              iconComponent={WhatsNewIcon as any}
+              iconComponent={WhatsNewIcon}
               selected={props.selected === C.Settings.settingsWhatsNewTab}
               onClick={() => props.onClick(C.Settings.settingsWhatsNewTab)}
             />

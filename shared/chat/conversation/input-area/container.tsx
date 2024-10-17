@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import Normal from './normal'
+import Normal from './normal2'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
 

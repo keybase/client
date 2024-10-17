@@ -288,8 +288,6 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
-  // increments when the convo stores values change, badges and unread
-  badgeCountsChanged: number
   botPublicCommands: Map<string, T.Chat.BotPublicCommands>
   createConversationError?: T.Chat.CreateConversationError
   smallTeamBadgeCount: number
@@ -315,7 +313,6 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
-  badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
   botPublicCommands: new Map(),
@@ -342,7 +339,7 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
+    badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     conversationErrored: (
       allowedUsers: ReadonlyArray<string>,
@@ -409,6 +406,7 @@ export interface State extends Store {
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
+    setInfoPanelTab: (tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
@@ -420,8 +418,9 @@ export interface State extends Store {
     updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
     updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
-  getBadgeMap: (badgeCountsChanged: number) => Map<string, number>
-  getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
+  getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
+  getBadgeHiddenCount: (ids: Set<T.Chat.ConversationIDKey>) => {badgeCount: number; hiddenCount: number}
+  getUnreadIndicies: (ids: Array<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
 // Only get the untrusted conversations out
@@ -429,16 +428,26 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
   const dispatch: State['dispatch'] = {
-    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
+    badgesUpdated: b => {
+      if (!b) return
+      // clear all first
+      for (const [, cs] of C.chatStores) {
+        cs.getState().dispatch.badgesUpdated(0)
+      }
+      b.conversations?.forEach(c => {
+        const id = T.Chat.conversationIDToKey(c.convID)
+        C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+        C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+      })
+      const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
-        s.badgeCountsChanged++
       })
     },
     clearMetas: () => {
@@ -960,11 +969,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             },
             waitingKey
           )
-          C.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
-            text,
-            undefined,
-            waitingKey
-          )
+          C.getConvoState(T.Chat.conversationIDToKey(result.conv.info.id)).dispatch.sendMessage(text)
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn('Could not send in messageSendByUsernames', error.message)
@@ -1481,7 +1486,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const deselectAction = () => {
           if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
             get().dispatch.unboxRows([wasID], true)
-            C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
+            // needed?
+            // C.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
           }
         }
 
@@ -1612,7 +1618,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            _useState.getState().dispatch.metasReceived([meta])
+            useState_.getState().dispatch.metasReceived([meta])
           }
 
           C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
@@ -1742,6 +1748,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
+    setInfoPanelTab: tab => {
+      set(s => {
+        s.infoPanelSelectedTab = tab
+      })
+    },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
@@ -1864,7 +1875,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     updateInfoPanel: (show, tab) => {
       set(s => {
         s.infoPanelShowing = show
-        s.infoPanelSelectedTab = show ? tab : undefined
+        s.infoPanelSelectedTab = tab
       })
     },
     updateLastCoord: coord => {
@@ -1946,23 +1957,44 @@ export const _useState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     dispatch,
-    getBadgeMap: badgeCountsChanged => {
-      badgeCountsChanged // this param is just to ensure the selector reruns on a change
-      const badgeMap = new Map()
+    getBackCount: conversationIDKey => {
+      let count = 0
       C.chatStores.forEach(s => {
         const {id, badge} = s.getState()
-        badgeMap.set(id, badge)
+        // only show sum of badges that aren't for the current conversation
+        if (id !== conversationIDKey) {
+          count += badge
+        }
       })
-      return badgeMap
+      return count
     },
-    getUnreadMap: badgeCountsChanged => {
-      badgeCountsChanged // this param is just to ensure the selector reruns on a change
-      const unreadMap = new Map()
+    getBadgeHiddenCount: ids => {
+      let badgeCount = 0
+      let hiddenCount = 0
+
       C.chatStores.forEach(s => {
-        const {id, unread} = s.getState()
-        unreadMap.set(id, unread)
+        const {id, badge} = s.getState()
+        if (ids.has(id)) {
+          badgeCount -= badge
+          hiddenCount -= 1
+        }
       })
-      return unreadMap
+
+      return {badgeCount, hiddenCount}
+    },
+    getUnreadIndicies: ids => {
+      const unreadIndices: Map<number, number> = new Map()
+      ids.forEach((cur, idx) => {
+        Array.from(C.chatStores.values()).some(s => {
+          const {id, badge} = s.getState()
+          if (id === cur && badge > 0) {
+            unreadIndices.set(idx, badge)
+            return true
+          }
+          return false
+        })
+      })
+      return unreadIndices
     },
   }
 })
@@ -1979,25 +2011,3 @@ export {
   isValidConversationIDKey,
   dummyConversationIDKey,
 } from '../types/chat2/common'
-
-import * as React from 'react'
-export const useCIDChanged = (
-  conversationIDKey?: T.Chat.ConversationIDKey,
-  f?: () => void,
-  forceCall?: boolean // call f on first time
-) => {
-  const didForceCall = React.useRef(false)
-  let changed = false
-  if (forceCall === true && !didForceCall.current) {
-    changed = true
-    didForceCall.current = true
-    f?.()
-  }
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
-    f?.()
-    changed = true
-  }
-  return changed
-}

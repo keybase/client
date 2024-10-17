@@ -15,6 +15,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import './router.css'
 
+// eslint-disable-next-line
 const Tab = createLeftTabNavigator()
 
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
@@ -44,6 +45,7 @@ type Screen = (p: {
 const makeOptions = (val: RouteDef) => {
   return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
     const no = getOptions(val)
+    // eslint-disable-next-line
     const opt = typeof no === 'function' ? no({navigation, route} as any) : no
     return {...opt}
   }
@@ -60,7 +62,7 @@ const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) =>
         navigationKey={name}
         name={name}
         getComponent={val.getScreen}
-        options={makeOptions(val) as any}
+        options={makeOptions(val)}
       />
     )
   })
@@ -146,9 +148,12 @@ const rootScreenOptions = {
 
 const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
-  const {navKey, initialState, onUnhandledAction} = s
-  Shared.useSharedAfter(appState)
+  const {loggedInLoaded, loggedIn, onStateChange, loggedInUser} = s
+  const {navKey, initialState, onUnhandledAction, setAppState} = s
+
+  React.useEffect(() => {
+    setAppState(Shared.AppState.INITED)
+  }, [setAppState])
 
   const ModalScreens = React.useMemo(
     () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),
@@ -157,7 +162,10 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
-      ref={C.Router2.navigationRef_ as any}
+      ref={
+        // eslint-disable-next-line
+        C.Router2.navigationRef_ as any
+      }
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}
@@ -170,8 +178,8 @@ const ElectronApp = React.memo(function ElectronApp() {
           <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
         )}
         {loggedInLoaded && loggedIn && (
-          <React.Fragment key="loggedIn">
-            <RootStack.Screen key="loggedIn" name="loggedIn" component={AppTabs} />
+          <React.Fragment key={`${loggedInUser}loggedIn`}>
+            <RootStack.Screen key={`${loggedInUser}loggedIn`} name="loggedIn" component={AppTabs} />
             {ModalScreens}
           </React.Fragment>
         )}

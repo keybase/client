@@ -82,6 +82,7 @@ export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtr
     try {
       const result = f(...p) as unknown
       if (result instanceof Promise) {
+        // eslint-disable-next-line
         return result.catch((e: unknown) => {
           const {default: logger} = require('@/logger') as {default: typeof Logger}
           if (__DEV__) {
@@ -93,6 +94,7 @@ export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtr
           throw e
         }) as ReturnType<T>
       }
+      // eslint-disable-next-line
       return result as ReturnType<T>
     } catch (e) {
       const {default: logger} = require('@/logger') as {default: typeof Logger}

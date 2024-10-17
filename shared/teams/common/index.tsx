@@ -9,43 +9,17 @@ export {default as useTeamLinkPopup} from './use-team-link-popup'
 
 export const usePhoneNumberList = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])
-  /**
-   * @param index of the element in `phoneNumbers` to set
-   * @param phoneNumber from `Kb.PhoneInput#onChangeNumber`
-   * @param valid from `Kb.PhoneInput#onChangeNumber`
-   */
   const setPhoneNumber = (index: number, phoneNumber: string, valid: boolean) => {
-    const pn = phoneNumbers[index]
-    if (pn) {
-      pn.phoneNumber = phoneNumber
-      pn.valid = valid
-      setPhoneNumbers([...phoneNumbers])
-    }
+    setPhoneNumbers(prev => prev.map((pn, i) => (i === index ? {...pn, phoneNumber, valid} : pn)))
   }
-  /**
-   * Push a phone number to the list.
-   */
   const addPhoneNumber = () => {
-    phoneNumbers.push({
-      key: (phoneNumbers.at(-1)?.key ?? 0) + 1,
-      phoneNumber: '',
-      valid: false,
-    })
-    setPhoneNumbers([...phoneNumbers])
+    setPhoneNumbers(prev => [...prev, {key: (prev.at(-1)?.key ?? 0) + 1, phoneNumber: '', valid: false}])
   }
-  /**
-   * Remove a phone number from the list. Should not be used to clear the last phone number, use `reset` in that case.
-   * @param index of the element in `phoneNumbers` to remove.
-   */
   const removePhoneNumber = (index: number) => {
-    phoneNumbers.splice(index, 1)
-    setPhoneNumbers([...phoneNumbers])
+    setPhoneNumbers(prev => prev.filter((_, i) => i !== index))
   }
-  /**
-   * Reset the list to contain one empty phone number.
-   */
   const resetPhoneNumbers = () => {
-    setPhoneNumbers([{key: (phoneNumbers.at(-1)?.key ?? -1) + 1, phoneNumber: '', valid: false}])
+    setPhoneNumbers([{key: 0, phoneNumber: '', valid: false}])
   }
 
   return {addPhoneNumber, phoneNumbers, removePhoneNumber, resetPhoneNumbers, setPhoneNumber}

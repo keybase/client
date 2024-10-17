@@ -14,15 +14,20 @@ const RemoteContainer = (d: DeserializeProps) => {
 
   const [paperKeyError, setPaperKeyError] = React.useState(_error)
   const lastError = React.useRef(_error)
-  if (_error !== lastError.current) {
-    lastError.current = _error
-    setPaperKeyError(_error)
-  }
+  React.useEffect(() => {
+    if (_error !== lastError.current) {
+      lastError.current = _error
+      setPaperKeyError(_error)
+    }
+  }, [_error])
+
   const lastPhase = React.useRef(phase)
-  if (phase !== lastPhase.current) {
-    lastPhase.current = phase
-    setPaperKeyError('')
-  }
+  React.useEffect(() => {
+    if (phase !== lastPhase.current) {
+      lastPhase.current = phase
+      setPaperKeyError('')
+    }
+  }, [phase])
 
   const onClose = () => {
     R.remoteDispatch(RemoteGen.createCloseUnlockFolders())

@@ -20,6 +20,4 @@ export type MeasureRef = {
   // desktop
   measure?: () => MeasureDesktop | undefined
   divRef: React.RefObject<HTMLDivElement>
-  // mobile
-  measureAsync?: () => Promise<MeasureNative | undefined>
 }

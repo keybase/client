@@ -51,3 +51,4 @@ main.jsbundle
 .metro-health-check*
 
 coverage-ts
+temp.log

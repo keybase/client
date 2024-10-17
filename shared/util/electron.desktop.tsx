@@ -66,6 +66,7 @@ export type KB2 = {
     engineSend?: (buff: Uint8Array) => void
     appStartedUp?: () => void
     isDirectory?: (path: string) => Promise<boolean>
+    getPathForFile?: (file: File) => string
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
     closeWindow?: () => void
     showContextMenu?: (url: string) => void

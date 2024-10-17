@@ -16,7 +16,10 @@ class Measure extends React.Component<Props, {width: number}> {
   render() {
     return (
       <Rm bounds={true} onResize={this._onResize}>
-        {({measureRef}) => <div ref={measureRef} style={styles.container} />}
+        {(
+          // eslint-disable-next-line
+          {measureRef}
+        ) => <div ref={measureRef} style={styles.container} />}
       </Rm>
     )
   }

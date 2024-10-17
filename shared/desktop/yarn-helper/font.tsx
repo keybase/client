@@ -124,7 +124,7 @@ function updateIconFont(web: boolean) {
 
   let webfontsGenerator: (...a: Array<any>) => void
   try {
-    webfontsGenerator = require('webfonts-generator')
+    webfontsGenerator = require('webfonts-generator') as typeof webfontsGenerator
   } catch (e) {
     console.error('\n\n\n\n>> Web fonts generation is optional, install manually to install it << \n\n\n')
     throw e
