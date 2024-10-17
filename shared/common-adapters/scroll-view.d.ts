@@ -6,21 +6,20 @@ export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: (
-    e: Partial<
-      React.BaseSyntheticEvent<{
-        contentSize: {
-          height: number
-          width: number
-        }
-        zoomScale: number
-        contentOffset: {
-          x: number
-          y: number
-        }
-      }>
-    >
-  ) => void
+  onScroll?: (event: {
+    nativeEvent?: {
+      contentSize: {
+        height: number
+        width: number
+      }
+      zoomScale: number
+      contentOffset: {
+        x: number
+        y: number
+      }
+    }
+    currentTarget?: HTMLDivElement
+  }) => void
   className?: string
   ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean
