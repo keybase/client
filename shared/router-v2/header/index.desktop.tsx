@@ -6,6 +6,7 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon/container'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
+import shallowEqual from 'shallowequal'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -317,16 +318,28 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
-const DesktopHeaderWrapper = (p: HeaderProps) => {
-  const {options: _options, back, style, params, navigation} = p
-  const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
-  const loggedIn = C.useConfigState(s => s.loggedIn)
-  const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
-
-  const options = React.useMemo(() => {
+const DesktopHeaderWrapper = React.memo(
+  function DesktopHeaderWrapper(p: HeaderProps) {
+    const {options: _options, back, style, params, navigation} = p
+    const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
+    const loggedIn = C.useConfigState(s => s.loggedIn)
+    const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
     const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
     const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
-    return {
+    const options = React.useMemo(() => {
+      return {
+        headerBottomStyle,
+        headerLeft,
+        headerMode,
+        headerRightActions,
+        headerShadowVisible,
+        headerStyle,
+        headerTitle,
+        headerTransparent,
+        subHeader,
+        title,
+      }
+    }, [
       headerBottomStyle,
       headerLeft,
       headerMode,
@@ -337,22 +350,32 @@ const DesktopHeaderWrapper = (p: HeaderProps) => {
       headerTransparent,
       subHeader,
       title,
-    }
-  }, [_options])
+    ])
 
-  return (
-    <DesktopHeader
-      useNativeFrame={useNativeFrame}
-      loggedIn={loggedIn}
-      key={String(isMaximized)}
-      isMaximized={isMaximized}
-      options={options}
-      back={back}
-      style={style}
-      params={params}
-      navigation={navigation}
-    />
-  )
-}
+    return (
+      <DesktopHeader
+        useNativeFrame={useNativeFrame}
+        loggedIn={loggedIn}
+        key={String(isMaximized)}
+        isMaximized={isMaximized}
+        options={options}
+        back={!!back /* not a bool upstream */}
+        style={style}
+        params={params}
+        navigation={navigation}
+      />
+    )
+  },
+  (a, b) => {
+    return shallowEqual(a, b, (obj: unknown, oth: unknown, key) => {
+      if (key === 'options') {
+        return shallowEqual(obj, oth)
+      } else if (key === 'back') {
+        return !!a.back === !!b.back
+      }
+      return undefined
+    })
+  }
+)
 
 export default DesktopHeaderWrapper
