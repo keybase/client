@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
-import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '@/styles/colors'
 import type {Props} from '.'
-import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
@@ -16,90 +15,33 @@ const explodedIllustrationDarkURL =
 
 export const animationDuration = 1500
 
-const copyChildren = (children: React.ReactElement | Array<React.ReactElement>) =>
-  React.Children.map(children, child => {
-    return React.cloneElement(child)
-  })
+const ExplodingHeightRetainer = (p: Props) => {
+  const {retainHeight, explodedBy, messageKey, style, children} = p
+  const [height, setHeight] = React.useState(20)
+  const onLayout = React.useCallback((evt: Kb.LayoutEvent) => {
+    setHeight(evt.nativeEvent.layout.height)
+  }, [])
+  const numImages = Math.ceil(height / 80)
 
-type State = {
-  children: React.ReactElement | Array<React.ReactElement>
-  height: number | undefined
-  numImages: number
-}
-
-class ExplodingHeightRetainer extends React.Component<Props, State> {
-  state = {
-    children: this.props.retainHeight ? (
-      <></>
-    ) : this.props.children ? (
-      copyChildren(this.props.children)
-    ) : (
-      <></>
-    ),
-    height: 20,
-    numImages: 1,
-  }
-  timeoutID?: ReturnType<typeof setTimeout>
-
-  static getDerivedStateFromProps(nextProps: Props, _: State) {
-    return nextProps.retainHeight
-      ? null
-      : {children: nextProps.children ? copyChildren(nextProps.children) : <></>}
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.retainHeight && !prevProps.retainHeight && this.props.children) {
-      // we just exploded! get rid of children when we're supposed to.
-      this._clearTimeout()
-      this.timeoutID = setTimeout(() => {
-        this.setState({children: <></>})
-        this.timeoutID = undefined
-      }, animationDuration)
-    }
-  }
-
-  componentWillUnmount() {
-    this._clearTimeout()
-  }
-
-  _onLayout = (evt: Kb.LayoutEvent) => {
-    if (evt.nativeEvent.layout.height !== this.state.height) {
-      this.setState({
-        height: evt.nativeEvent.layout.height,
-        numImages: Math.ceil(evt.nativeEvent.layout.height / 80),
-      })
-    }
-  }
-
-  _clearTimeout = () => {
-    // `if` is for clarity but isn't really necessary, `clearTimeout` fails silently
-    if (this.timeoutID) {
-      clearTimeout(this.timeoutID)
-      this.timeoutID = undefined
-    }
-  }
-
-  render() {
-    return (
-      <Kb.Box
-        onLayout={this._onLayout}
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          this.props.style,
-          this.props.retainHeight && styles.retaining,
-          !!this.state.height && this.props.retainHeight && {height: this.state.height},
-        ])}
-      >
-        {this.state.children}
-        <AnimatedAshTower
-          exploded={this.props.retainHeight}
-          explodedBy={this.props.explodedBy}
-          messageKey={this.props.messageKey}
-          numImages={this.state.numImages}
-        />
-      </Kb.Box>
-    )
-  }
+  return (
+    <Kb.Box
+      onLayout={onLayout}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        style,
+        retainHeight && styles.retaining,
+        !!height && retainHeight && {height},
+      ])}
+    >
+      {retainHeight ? null : children}
+      <AnimatedAshTower
+        exploded={retainHeight}
+        explodedBy={explodedBy}
+        messageKey={messageKey}
+        numImages={numImages}
+      />
+    </Kb.Box>
+  )
 }
 
 type AshTowerProps = {
@@ -109,116 +51,106 @@ type AshTowerProps = {
   numImages: number
 }
 
-type AshTowerState = {
-  showExploded: boolean
-  width: NativeAnimated.Value
-}
+const AnimatedAshTower = (p: AshTowerProps) => {
+  const {exploded, numImages, explodedBy} = p
+  const [showExploded, setShowExploded] = React.useState(exploded)
+  const [widthAV] = React.useState(new NativeAnimated.Value(exploded ? 100 : 0))
 
-class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
-  state = {
-    showExploded: this.props.exploded,
-    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
-  }
-  timerID?: SharedTimerID
-
-  componentDidUpdate(prevProps: AshTowerProps) {
-    if (!prevProps.exploded && this.props.exploded) {
+  const lastExplodedRef = React.useRef(exploded)
+  React.useEffect(() => {
+    if (lastExplodedRef.current === exploded) return
+    lastExplodedRef.current = exploded
+    if (exploded) {
       // just exploded! animate
-      NativeAnimated.timing(this.state.width, {
+      NativeAnimated.timing(widthAV, {
         duration: animationDuration,
         easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
         useNativeDriver: false,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
-      this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
-      this.timerID = SharedTimer.addObserver(() => this.setState({showExploded: true}), {
-        key: this.props.messageKey,
-        ms: animationDuration,
-      })
+      const id = setTimeout(() => {
+        setShowExploded(true)
+      }, animationDuration)
+      return () => {
+        clearTimeout(id)
+      }
     }
-  }
+    return undefined
+  }, [exploded, widthAV])
 
-  componentWillUnmount() {
-    this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+  if (!exploded) {
+    return null
   }
+  const width = widthAV.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
+  return (
+    <NativeAnimated.View style={[{width}, styles.slider]}>
+      <AshTower showExploded={showExploded} explodedBy={explodedBy} numImages={numImages} />
+      <EmojiTower animatedValue={widthAV} numImages={numImages} />
+    </NativeAnimated.View>
+  )
+}
 
-  render() {
-    if (!this.props.exploded) {
-      return null
-    }
-    const width = this.state.width.interpolate({
-      inputRange: [0, 100],
-      outputRange: ['0%', '100%'],
+const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value}) => {
+  const {numImages, animatedValue} = p
+  const [running, setRunning] = React.useState(false)
+  const [force, setForce] = React.useState(0)
+
+  const forceRender = C.useThrottledCallback(() => setForce(f => f + 1), 100)
+
+  React.useEffect(() => {
+    animatedValue.addListener((evt: {value: number}) => {
+      if ([0, 100].includes(evt.value)) {
+        setRunning(false)
+        return
+      }
+      if (!running) {
+        setRunning(true)
+        return
+      }
+      forceRender()
     })
-    return (
-      <NativeAnimated.View style={[{width}, styles.slider]}>
-        <AshTower {...this.props} showExploded={this.state.showExploded} />
-        <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
-      </NativeAnimated.View>
+    return () => {
+      animatedValue.removeAllListeners()
+    }
+  }, [animatedValue, running, forceRender])
+
+  force // just to trigger
+
+  if (!running) {
+    return null
+  }
+  const children: Array<React.ReactNode> = []
+  for (let i = 0; i < numImages * 4; i++) {
+    const r = Math.random()
+    let emoji: string
+    if (Kb.Styles.isAndroid) {
+      emoji = r < 0.5 ? '💥' : '💣'
+    } else {
+      if (r < 0.33) {
+        emoji = '💥'
+      } else if (r < 0.66) {
+        emoji = '💣'
+      } else {
+        emoji = '🤯'
+      }
+    }
+    children.push(
+      <Kb.Text key={i} type="Body" fixOverdraw={false}>
+        {emoji}
+      </Kb.Text>
     )
   }
+  return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
 }
 
-class EmojiTower extends React.Component<
-  {numImages: number; animatedValue: NativeAnimated.Value},
-  {running: boolean}
-> {
-  state = {running: false}
-  componentDidMount() {
-    this.props.animatedValue.addListener(this._listener)
-  }
-
-  componentWillUnmount() {
-    this._update.cancel()
-    this.props.animatedValue.removeAllListeners()
-  }
-
-  _listener = (evt: {value: number}) => {
-    if ([0, 100].includes(evt.value)) {
-      this.setState({running: false})
-      return
-    }
-    if (!this.state.running) {
-      this.setState({running: true}, this._update)
-      return
-    }
-    this._update()
-  }
-
-  _update = throttle(() => this.forceUpdate(), 100)
-
-  render() {
-    if (!this.state.running) {
-      return null
-    }
-    const children: Array<React.ReactNode> = []
-    for (let i = 0; i < this.props.numImages * 4; i++) {
-      const r = Math.random()
-      let emoji: string
-      if (Kb.Styles.isAndroid) {
-        emoji = r < 0.5 ? '💥' : '💣'
-      } else {
-        if (r < 0.33) {
-          emoji = '💥'
-        } else if (r < 0.66) {
-          emoji = '💣'
-        } else {
-          emoji = '🤯'
-        }
-      }
-      children.push(
-        <Kb.Text key={i} type="Body" fixOverdraw={false}>
-          {emoji}
-        </Kb.Text>
-      )
-    }
-    return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
-  }
-}
-const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+  const {numImages, showExploded, explodedBy} = p
   const children: Array<React.ReactNode> = []
-  for (let i = 0; i < props.numImages; i++) {
+  for (let i = 0; i < numImages; i++) {
     children.push(
       <Kb.Image2
         key={i}
@@ -229,8 +161,8 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   }
   let exploded: React.ReactNode = null
 
-  if (props.showExploded) {
-    exploded = !props.explodedBy ? (
+  if (showExploded) {
+    exploded = !explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={false}>
         EXPLODED
       </Kb.Text>
@@ -241,7 +173,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
           type="BodySmallBold"
           fixOverdraw="auto"
           onUsernameClicked="profile"
-          usernames={props.explodedBy}
+          usernames={explodedBy}
           inline={true}
           colorFollowing={true}
           colorYou={true}
