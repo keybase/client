@@ -15,78 +15,100 @@ type OwnProps = {
 
 const noGit = C.Git.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
-  const {id, expanded} = ownProps
+  const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = C.useTeamsState(s => (git.teamname ? C.Teams.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
   const you = C.useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
-  const _onBrowseGitRepo = (path: T.FS.Path) => {
-    C.FS.makeActionForOpenPathInFilesTab(path)
-  }
-  const _onArchiveGitRepo = (gitURL: string) => {
+  const _onBrowseGitRepo = C.FS.makeActionForOpenPathInFilesTab
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+
+  const {url: gitURL, repoID, channelName, teamname, chatDisabled} = git
+  const {canDelete, devicename, lastEditTime, lastEditUser, name} = git
+
+  const onArchiveGitRepo = React.useCallback(() => {
     C.featureFlags.archive &&
       gitURL &&
       navigateAppend({
         props: {gitURL, type: 'git'} as const,
         selected: 'archiveModal',
       })
-  }
+  }, [navigateAppend, gitURL])
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onOpenChannelSelection = () => {
+  const _onOpenChannelSelection = React.useCallback(() => {
     teamID &&
       navigateAppend({
-        props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
+        props: {repoID, selected: channelName || 'general', teamID},
         selected: 'gitSelectChannel',
       })
-  }
-  const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
-    setTeamRepoSettings('', teamname, repoID, disabled)
-  }
+  }, [navigateAppend, repoID, channelName, teamID])
+
+  const onToggleChatEnabled = React.useCallback(() => {
+    teamname && setTeamRepoSettings('', teamname, repoID, !chatDisabled)
+  }, [teamname, chatDisabled, repoID, setTeamRepoSettings])
+
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
-  const openUserTracker = (username: string) => {
-    showUser(username, true)
-  }
+  const openUserTracker = React.useCallback(
+    (username: string) => {
+      showUser(username, true)
+    },
+    [showUser]
+  )
 
-  const chatDisabled = git.chatDisabled
-
-  const props = {
-    _onOpenChannelSelection,
-    canDelete: git.canDelete,
-    canEdit: git.canDelete && !!git.teamname,
-    channelName: git.channelName,
-    chatDisabled,
-    devicename: git.devicename,
-    expanded,
-    isNew,
-    lastEditTime: git.lastEditTime,
-    lastEditUser: git.lastEditUser,
-    name: git.name,
-    onArchiveGitRepo: () => _onArchiveGitRepo(git.url),
-    onBrowseGitRepo: () =>
+  const onBrowseGitRepo = React.useCallback(
+    () =>
       _onBrowseGitRepo(
         T.FS.stringToPath(
-          git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
+          gitURL.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
         )
       ),
-    onChannelClick: (e: React.BaseSyntheticEvent) => {
+    [_onBrowseGitRepo, gitURL]
+  )
+
+  const onCopy = React.useCallback(() => copyToClipboard(gitURL), [copyToClipboard, gitURL])
+  const onShowDelete = React.useCallback(() => onShowDelete_(id), [onShowDelete_, id])
+  const onToggleExpand = React.useCallback(() => onToggleExpand_(id), [onToggleExpand_, id])
+
+  const onClickDevice = React.useCallback(() => {
+    lastEditUser && openURL(`https://keybase.io/${lastEditUser}/devices`)
+  }, [lastEditUser])
+
+  const onChannelClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
       if (!chatDisabled) {
         e.preventDefault()
         _onOpenChannelSelection()
       }
     },
-    onClickDevice: () => {
-      git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
-    },
-    onCopy: () => copyToClipboard(git.url),
-    onShowDelete: () => ownProps.onShowDelete(git.id),
-    onToggleChatEnabled: () => git.teamname && _setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
-    onToggleExpand: () => ownProps.onToggleExpand(git.id),
+    [_onOpenChannelSelection, chatDisabled]
+  )
+
+  const canEdit = canDelete && !!teamname
+  const props = {
+    _onOpenChannelSelection,
+    canDelete,
+    canEdit,
+    channelName,
+    chatDisabled,
+    devicename,
+    expanded,
+    isNew,
+    lastEditTime,
+    lastEditUser,
+    name,
+    onArchiveGitRepo,
+    onBrowseGitRepo,
+    onChannelClick,
+    onClickDevice,
+    onCopy,
+    onShowDelete,
+    onToggleChatEnabled,
+    onToggleExpand,
     openUserTracker,
-    teamname: git.teamname,
-    url: git.url,
+    teamname,
+    url: gitURL,
     you,
   }
   return <Row {...props} />
@@ -153,7 +175,7 @@ const Row = (props: Props) => (
               isTeam={!!props.teamname}
               teamname={props.teamname}
               username={props.teamname ? undefined : props.you}
-              style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              style={styles.iconTiny}
             />
             <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
               {props.teamname ? `${props.teamname}/${props.name}` : props.name}
@@ -268,7 +290,7 @@ const Row = (props: Props) => (
                   type="iconfont-file"
                   sizeType="Small"
                   color={Kb.Styles.globalColors.black_50}
-                  style={{marginRight: Kb.Styles.globalMargins.xtiny}}
+                  style={styles.iconXtiny}
                 />
               </Kb.Button>
               <Kb.Button
@@ -282,7 +304,7 @@ const Row = (props: Props) => (
                   type="iconfont-mailbox"
                   sizeType="Small"
                   color={Kb.Styles.globalColors.black_50}
-                  style={{marginRight: Kb.Styles.globalMargins.xtiny}}
+                  style={styles.iconXtiny}
                 />
               </Kb.Button>
               {props.canDelete && (
@@ -334,13 +356,11 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: 460,
         width: '100%',
       },
-
       device: {
         ...Kb.Styles.globalStyles.fontSemibold,
         ...Kb.Styles.globalStyles.italic,
         color: Kb.Styles.globalColors.black_50,
       },
-
       iconCaret: Kb.Styles.platformStyles({
         common: {
           marginBottom: 2,
@@ -350,26 +370,24 @@ const styles = Kb.Styles.styleSheetCreate(
           display: 'inline-block',
         },
       }),
-
+      iconTiny: {marginRight: Kb.Styles.globalMargins.tiny},
+      iconXtiny: {marginRight: Kb.Styles.globalMargins.xtiny},
       meta: {
         alignSelf: 'center',
         marginLeft: 6,
       },
-
       rowBottom: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
-
       rowClick: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
-
       rowClickExpanded: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: 0,
