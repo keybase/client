@@ -68,6 +68,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
+// eslint-disable-next-line
 const TabNavigator = createLeftTabNavigator()
 
 const shimmed = shim(cryptoSubRoutes, false, false)
@@ -84,6 +85,7 @@ const CryptoSubNavigator = () => (
           // @ts-ignore
           ({route, navigation}) => {
             const no = getOptions(cryptoSubRoutes[name])
+            // eslint-disable-next-line
             const opt = typeof no === 'function' ? no({navigation, route}) : no
             return {...opt}
           }

@@ -15,6 +15,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import './router.css'
 
+// eslint-disable-next-line
 const Tab = createLeftTabNavigator()
 
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
@@ -44,6 +45,7 @@ type Screen = (p: {
 const makeOptions = (val: RouteDef) => {
   return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
     const no = getOptions(val)
+    // eslint-disable-next-line
     const opt = typeof no === 'function' ? no({navigation, route} as any) : no
     return {...opt}
   }

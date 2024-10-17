@@ -58,6 +58,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
+// eslint-disable-next-line
 const TabNavigator = createLeftTabNavigator()
 
 const shimmed = shim(settingsSubRoutes, false, false)
@@ -72,11 +73,15 @@ const SettingsSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={settingsSubRoutes[name].getScreen as any}
+        getComponent={
+          // eslint-disable-next-line
+          settingsSubRoutes[name].getScreen as any
+        }
         options={
           // @ts-ignore
           ({route, navigation}) => {
             const no = getOptions(settingsSubRoutes[name])
+            // eslint-disable-next-line
             const opt = typeof no === 'function' ? no({navigation, route}) : no
             return {...opt}
           }

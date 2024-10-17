@@ -192,6 +192,7 @@ class SectionList2<T extends Section<any>> extends React.Component<
           {(section.section.renderItem || this.props.renderItem)?.({
             index: item.indexWithinSection,
             item: item.item,
+            // eslint-disable-next-line
             section: section.section as any,
             separators: {
               highlight: noop,

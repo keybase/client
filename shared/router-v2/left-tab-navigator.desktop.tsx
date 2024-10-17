@@ -53,7 +53,13 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
-        <TabBar state={state} navigation={navigation as any} />
+        <TabBar
+          state={state}
+          navigation={
+            // eslint-disable-next-line
+            navigation as any
+          }
+        />
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
             const routeKey = route.key
