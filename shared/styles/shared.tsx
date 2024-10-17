@@ -76,16 +76,15 @@ export const util = {
 type Unified<T> = {
   [P in keyof T]: P extends 'lineHeight' ? _StylesCrossPlatform[P] : T[P]
 }
-function unifyStyles<T extends {[key: string]: unknown}>(s_: T): Unified<T> {
-  const s: {[key: string]: unknown} = s_
-  return {
-    ...s,
-    ...(Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number'
-      ? ({
-          lineHeight: isMobile ? s['lineHeight'] : s['lineHeight'] === 0 ? '0' : `${s['lineHeight']}px`,
-        } as const)
-      : {}),
-  } as Unified<T>
+function unifyStyles<T extends {[key: string]: unknown}>(s: T): Unified<T> {
+  // only mutate this if we need to
+  if (!isMobile && Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number') {
+    return {
+      ...s,
+      lineHeight: s['lineHeight'] === 0 ? '0' : `${s['lineHeight']}px`,
+    } as Unified<T>
+  }
+  return s as Unified<T>
 }
 
 // This is a better literal to literal inferrer but is too slow
@@ -135,6 +134,7 @@ function unifyStyles<T extends {[key: string]: unknown}>(s_: T): Unified<T> {
 //   } as OUT
 // }
 
+const nostyle = {} as const
 export function platformStyles<
   T extends {
     common?: _StylesCrossPlatform
@@ -147,15 +147,27 @@ export function platformStyles<
   },
   OUT = _StylesCrossPlatform,
 >(o: T): OUT {
-  return {
-    ...(o.common ? unifyStyles(o.common) : {}),
-    ...(isMobile && o.isMobile ? o.isMobile : {}),
-    ...(isIOS && o.isIOS ? o.isIOS : {}),
-    ...(isAndroid && o.isAndroid ? o.isAndroid : {}),
-    ...(isPhone && o.isPhone ? o.isPhone : {}),
-    ...(isTablet && o.isTablet ? o.isTablet : {}),
-    ...(isElectron && o.isElectron ? unifyStyles(o.isElectron) : {}),
-  } as OUT
+  const ss = [
+    ...(o.common ? [unifyStyles(o.common)] : []),
+    ...(isMobile && o.isMobile ? [o.isMobile] : []),
+    ...(isIOS && o.isIOS ? [o.isIOS] : []),
+    ...(isAndroid && o.isAndroid ? [o.isAndroid] : []),
+    ...(isPhone && o.isPhone ? [o.isPhone] : []),
+    ...(isTablet && o.isTablet ? [o.isTablet] : []),
+    ...(isElectron && o.isElectron ? [unifyStyles(o.isElectron)] : []),
+  ]
+  const fss = ss.filter(Boolean)
+  if (fss.length === 0) {
+    return nostyle as OUT
+  }
+  // special common case for just per platform styles
+  if (fss.length === 1) {
+    const out = fss[0] as OUT
+    return out
+  }
+
+  const out = Object.assign({}, ...fss) as OUT
+  return out
 }
 
 /* eslint-disable sort-keys */
