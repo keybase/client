@@ -158,12 +158,13 @@ const AnimatedExpand = (() => {
           {scaleY: -0.6},
         ],
       })) as unknown as Kb.Styles.StylesCrossPlatform
-      const [lastExpanded, setLastExpanded] = React.useState(expanded)
-      if (lastExpanded !== expanded) {
-        setLastExpanded(expanded)
-        // eslint-disable-next-line react-compiler/react-compiler
-        offset.value = expanded ? 1 : 0
-      }
+      const lastExpandedRef = React.useRef(expanded)
+      React.useEffect(() => {
+        if (lastExpandedRef.current !== expanded) {
+          lastExpandedRef.current = expanded
+          offset.set(expanded ? 1 : 0)
+        }
+      }, [expanded, offset])
 
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -486,18 +487,19 @@ const AnimatedInput = (() => {
       React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
-        const [lastExpanded, setLastExpanded] = React.useState(expanded)
+        const lastExpandedRef = React.useRef(expanded)
         const offset = useSharedValue(expanded ? 1 : 0)
         const maxHeight = maxInputArea - inputAreaHeight - 15
         const as = useAnimatedStyle(() => ({
           maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
           minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
         }))
-        if (expanded !== lastExpanded) {
-          setLastExpanded(expanded)
-          // eslint-disable-next-line react-compiler/react-compiler
-          offset.value = expanded ? 1 : 0
-        }
+        React.useEffect(() => {
+          if (expanded !== lastExpandedRef.current) {
+            lastExpandedRef.current = expanded
+            offset.set(expanded ? 1 : 0)
+          }
+        }, [expanded, offset])
         return (
           <Animated.View style={[p.style, as]}>
             <Kb.Input2 multiline={true} {...rest} ref={ref} style={styles.inputInner} />

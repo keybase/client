@@ -158,8 +158,7 @@ export const ServiceTabBar = (props: Props) => {
   )
 
   React.useEffect(() => {
-    // eslint-disable-next-line react-compiler/react-compiler
-    bounceX.value = 0
+    bounceX.set(0)
   }, [bounceX])
 
   const animatedStyles = useAnimatedStyle(() => {

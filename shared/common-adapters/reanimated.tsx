@@ -41,8 +41,10 @@ if (isMobile && !skipAnimations) {
   useSharedValue = function <Value>(a: Value, _oneWayReadsOnly?: boolean) {
     return {
       addListener: () => {},
+      get: () => a,
       modify: () => {},
       removeListener: () => {},
+      set: () => {},
       value: a,
     }
   } as typeof useSharedValue

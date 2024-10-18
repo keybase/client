@@ -41,36 +41,26 @@ enum Visible {
 
 const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
-  const [lastShowTooltip, setLastShowTooltip] = React.useState(showTooltip)
+  const lastShowTooltipRef = React.useRef(showTooltip)
   const opacitySV = useSharedValue(0)
-
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
 
-  if (showTooltip) {
-    // eslint-disable-next-line react-compiler/react-compiler
-    opacitySV.value = withSequence(
-      withTiming(1, {duration: 200}),
-      withDelay(1000, withTiming(0, {duration: 200}))
-    )
-  }
-
-  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
-
-  if (showTooltip !== lastShowTooltip) {
-    setLastShowTooltip(showTooltip)
+  React.useEffect(() => {
+    if (showTooltip === lastShowTooltipRef.current) return
+    lastShowTooltipRef.current = showTooltip
     if (showTooltip) {
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(() => {
+      opacitySV.set(() =>
+        withSequence(withTiming(1, {duration: 200}), withDelay(1000, withTiming(0, {duration: 200})))
+      )
+      const id = setTimeout(() => {
         setShowTooltip(false)
       }, 1400)
+      return () => {
+        clearTimeout(id)
+      }
     }
-  }
-
-  React.useEffect(() => {
-    return () => {
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-    }
-  }, [])
+    return undefined
+  }, [showTooltip, opacitySV])
 
   const tooltip = showTooltip ? (
     <Portal hostName="convOverlay" useFullScreenOverlay={false}>
@@ -240,23 +230,23 @@ const useIconAndOverlay = (p: {
     (f: number) => {
       if (f === 0) {
         if (fadeSyncedSV.value !== 0) {
-          // eslint-disable-next-line react-compiler/react-compiler
-          fadeSyncedSV.value = 0
+          fadeSyncedSV.set(0)
           runOnJS(setVisible)(Visible.HIDDEN)
         }
       } else if (fadeSyncedSV.value !== 1) {
-        fadeSyncedSV.value = 1
+        fadeSyncedSV.set(1)
         runOnJS(setVisible)(Visible.SHOW)
       }
     }
   )
 
   const onReset = React.useCallback(() => {
-    fadeSV.value = withTiming(0, {duration: 200})
-    dragXSV.value = 0
-    dragYSV.value = 0
-    lockedSV.value = 0
-    canceledSV.value = 0
+    'worklet'
+    fadeSV.set(() => withTiming(0, {duration: 200}))
+    dragXSV.set(0)
+    dragYSV.set(0)
+    lockedSV.set(0)
+    canceledSV.set(0)
   }, [fadeSV, dragXSV, dragYSV, lockedSV, canceledSV])
 
   const onCancelRecording = React.useCallback(() => {
@@ -468,7 +458,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
         ampTracker.addAmp(amp)
         const maxScale = 8
         const minScale = 3
-        ampSV.value = withTiming(minScale + amp * (maxScale - minScale), {duration: 100})
+        ampSV.set(() => withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
       }
 
       const recording = await makeRecorder(onRecordingStatusUpdate)
@@ -636,11 +626,7 @@ const InnerCircle = (props: {
   return (
     <Animated.View style={[styles.innerCircleStyle, circleStyle]}>
       <Animated.View style={[iconStyle]}>
-        <AnimatedIcon
-          type="iconfont-stop"
-          color={Styles.globalColors.whiteOrWhite}
-          onClick={stageRecording}
-        />
+        <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} onClick={stageRecording} />
       </Animated.View>
     </Animated.View>
   )
@@ -687,17 +673,16 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <AnimatedIcon
-        type="iconfont-arrow-up"
-        sizeType="Tiny"
-        style={[styles.lockHintStyle, arrowStyle as any]}
-      />
-      <AnimatedIcon type="iconfont-lock" style={[styles.lockHintStyle, lockStyle as any]} />
+      <Kb.Box2Animated direction="vertical" style={[styles.lockHintStyle, arrowStyle as any]}>
+        <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
+      </Kb.Box2Animated>
+      <Kb.Box2Animated direction="vertical" style={[styles.lockHintStyle, lockStyle as any]}>
+        <Kb.Icon type="iconfont-lock" />
+      </Kb.Box2Animated>
     </>
   )
 }
 
-const AnimatedIcon = Animated.createAnimatedComponent(Kb.Icon)
 const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
@@ -762,12 +747,12 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
   return (
     <>
-      <AnimatedIcon
-        sizeType="Tiny"
-        type={'iconfont-arrow-left'}
-        style={[styles.cancelHintStyle, arrowStyle]}
-      />
-      <AnimatedIcon sizeType="Tiny" type={'iconfont-close'} style={[styles.cancelHintStyle, closeStyle]} />
+      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, arrowStyle]}>
+        <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
+      </Kb.Box2Animated>
+      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, closeStyle]}>
+        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} />
+      </Kb.Box2Animated>
       <AnimatedText
         type="BodySmallPrimaryLink"
         onClick={onCancel}
