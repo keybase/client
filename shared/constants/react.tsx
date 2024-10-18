@@ -13,6 +13,7 @@ export const useLogMount = () => {
 export const useIsMounted = () => {
   const mounted = React.useRef(true)
   React.useEffect(() => {
+    mounted.current = true
     return () => {
       mounted.current = false
     }
@@ -21,23 +22,36 @@ export const useIsMounted = () => {
   return isMounted
 }
 
-// Run a function on mount once
-export const useOnMountOnce = (f: () => void) => {
-  const onceRef = React.useRef(true)
-  if (onceRef.current) {
-    onceRef.current = false
-    // defer a frame so you don't get react issues
-    setTimeout(f, 1)
-  }
+export const useOnMountOnce = (fn: () => void, timeout = 1) => {
+  const hasCalledRef = React.useRef(false)
+  const timeoutIdRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const firstFNRef = React.useRef(fn)
+  const timeoutRef = React.useRef(timeout)
+
+  React.useEffect(() => {
+    timeoutIdRef.current = setTimeout(() => {
+      if (!hasCalledRef.current) {
+        hasCalledRef.current = true
+        firstFNRef.current()
+      }
+    }, timeoutRef.current)
+
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
+      }
+    }
+  }, [])
 }
 
 // Run a function on unmount, doesn't rerun if the function changes
 export const useOnUnMountOnce = (f: () => void) => {
-  const ref = React.useRef(f)
-  ref.current = f
+  const ref = React.useRef<undefined | (() => void)>(f)
   React.useEffect(() => {
     return () => {
-      ref.current()
+      ref.current?.()
+      ref.current = undefined
     }
   }, [])
 }

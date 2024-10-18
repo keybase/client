@@ -158,7 +158,7 @@ export const ServiceTabBar = (props: Props) => {
   )
 
   React.useEffect(() => {
-    bounceX.value = 0
+    bounceX.set(0)
   }, [bounceX])
 
   const animatedStyles = useAnimatedStyle(() => {

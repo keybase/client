@@ -61,6 +61,16 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
 
   // used to close other rows
   const swipeCloseRef = React.useRef<null | (() => void)>(null)
+  const closeOpenedRow = React.useCallback(() => {
+    if (swipeCloseRef.current) {
+      swipeCloseRef.current()
+      swipeCloseRef.current = null
+    }
+  }, [])
+  const setCloseOpenedRow = React.useCallback((close: () => void) => {
+    swipeCloseRef.current = close
+  }, [])
+
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
   const lastVisibleIdxRef = React.useRef(-1)
@@ -190,12 +200,26 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
       } else if (row.type === 'teamBuilder') {
         element = <BuildTeam />
       } else {
-        element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey, swipeCloseRef)
+        element = makeRow(
+          row,
+          navKey,
+          selectedConversationIDKey === row.conversationIDKey,
+          setCloseOpenedRow,
+          closeOpenedRow
+        )
       }
 
       return element
     },
-    [navKey, rows, selectedConversationIDKey, smallTeamsExpanded, toggleSmallTeamsExpanded]
+    [
+      navKey,
+      rows,
+      selectedConversationIDKey,
+      smallTeamsExpanded,
+      toggleSmallTeamsExpanded,
+      setCloseOpenedRow,
+      closeOpenedRow,
+    ]
   )
 
   const keyExtractor = React.useCallback((item: RowItem, idx: number) => {

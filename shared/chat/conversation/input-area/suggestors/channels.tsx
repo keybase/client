@@ -79,11 +79,6 @@ const getChannelSuggestions = (
 
 const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  C.Chat.useCIDChanged(conversationIDKey, () => {
-    channelSuggestionsTriggered()
-  })
-
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 
@@ -117,8 +112,8 @@ type ListProps = Pick<
 > & {
   filter: string
   onSelected: (item: ChannelType, final: boolean) => void
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  setOnMoveRef: (r: (up: boolean) => void) => void
+  setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p

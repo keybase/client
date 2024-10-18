@@ -13,7 +13,8 @@ const makeRow = (
   item: T.Chat.ChatInboxRowItem,
   navKey: string,
   selected: boolean,
-  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+  setCloseOpenedRow: (fn: () => void) => void,
+  closeOpenedRow: () => void
 ) => {
   if (item.type === 'bigTeamsLabel') {
     return (
@@ -52,7 +53,8 @@ const makeRow = (
             layoutTime={item.time}
             layoutSnippet={item.snippet}
             layoutSnippetDecoration={item.snippetDecoration}
-            swipeCloseRef={swipeCloseRef}
+            setCloseOpenedRow={setCloseOpenedRow}
+            closeOpenedRow={closeOpenedRow}
           />
         </C.ChatProvider>
       )

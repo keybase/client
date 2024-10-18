@@ -19,7 +19,7 @@ export declare const androidAddCompleteDownload: (o: {
     showNotification: boolean;
     title: string;
 }) => Promise<void>;
-export declare const androidAppColorSchemeChanged: (mode: 'system' | 'alwaysDark' | 'alwaysLight' | '') => void;
+export declare const androidAppColorSchemeChanged: (mode: "system" | "alwaysDark" | "alwaysLight" | "") => void;
 export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
 export declare const androidGetInitialBundleFromNotification: () => Promise<any>;
 export declare const androidGetInitialShareFileUrls: () => Promise<Array<string>>;

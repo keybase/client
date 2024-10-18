@@ -12,9 +12,11 @@ const showMakeIcons = __DEV__ && (false as boolean)
 const UseNativeFrame = () => {
   const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
   const onChangeUseNativeFrame = C.useConfigState(s => s.dispatch.setUseNativeFrame)
-  if (initialUseNativeFrame === undefined) {
-    initialUseNativeFrame = useNativeFrame
-  }
+  React.useEffect(() => {
+    if (initialUseNativeFrame === undefined) {
+      initialUseNativeFrame = useNativeFrame
+    }
+  }, [useNativeFrame])
   return C.isMobile ? null : (
     <>
       <Kb.Checkbox
@@ -67,6 +69,8 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
   )
 }
 
+let disableSpellCheckInitialValue: boolean | undefined
+
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
@@ -78,26 +82,30 @@ const Advanced = () => {
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
-
-  const initialDisableSpellCheck = React.useRef<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   // load it
-  if (disableSpellCheck === undefined) {
-    setTimeout(() => {
+  React.useEffect(() => {
+    if (disableSpellCheck === undefined) {
       loadDisableSpellcheck(
         [{path: 'ui.disableSpellCheck'}],
         result => {
           const res = result.b ?? false
-          initialDisableSpellCheck.current = res
           setDisableSpellcheck(res)
+          if (disableSpellCheckInitialValue === undefined) {
+            disableSpellCheckInitialValue = res
+          }
         },
         () => {
           setDisableSpellcheck(false)
+          if (disableSpellCheckInitialValue === undefined) {
+            disableSpellCheckInitialValue = false
+          }
         }
       )
-    }, 1)
-  }
+    }
+  }, [disableSpellCheck, loadDisableSpellcheck])
+
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   const onToggleDisableSpellcheck = () => {
@@ -161,7 +169,10 @@ const Advanced = () => {
             <Kb.Checkbox
               label={
                 'Disable spellchecking' +
-                (initialDisableSpellCheck.current === disableSpellCheck ? '' : ' (restart required)')
+                (disableSpellCheckInitialValue !== undefined &&
+                disableSpellCheckInitialValue !== disableSpellCheck
+                  ? ' (restart required)'
+                  : '')
               }
               disabled={disableSpellCheck === undefined}
               checked={!!disableSpellCheck}
@@ -270,66 +281,69 @@ const Developer = () => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkboxContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.tiny,
-    width: '100%',
-  },
-  developerButtons: {
-    marginTop: Kb.Styles.globalMargins.small,
-  },
-  developerContainer: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    paddingBottom: Kb.Styles.globalMargins.medium,
-  },
-  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
-  divider: {
-    marginTop: Kb.Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  error: {
-    color: Kb.Styles.globalColors.redDark,
-  },
-  filler: {
-    flex: 1,
-  },
-  progressContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 32,
-  },
-  proxyDivider: {
-    marginBottom: Kb.Styles.globalMargins.small,
-    marginTop: Kb.Styles.globalMargins.small,
-    width: '100%',
-  },
-  scrollview: {
-    width: '100%',
-  },
-  section: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.padding(
-        Kb.Styles.globalMargins.small,
-        Kb.Styles.globalMargins.mediumLarge,
-        Kb.Styles.globalMargins.medium,
-        Kb.Styles.globalMargins.small
-      ),
-    },
-    isElectron: {
-      maxWidth: 600,
-    },
-  }),
-  text: Kb.Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-    },
-  }),
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      checkboxContainer: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+        width: '100%',
+      },
+      developerButtons: {
+        marginTop: Kb.Styles.globalMargins.small,
+      },
+      developerContainer: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        paddingBottom: Kb.Styles.globalMargins.medium,
+      },
+      displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
+      divider: {
+        marginTop: Kb.Styles.globalMargins.xsmall,
+        width: '100%',
+      },
+      error: {
+        color: Kb.Styles.globalColors.redDark,
+      },
+      filler: {
+        flex: 1,
+      },
+      progressContainer: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 32,
+      },
+      proxyDivider: {
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
+      scrollview: {
+        width: '100%',
+      },
+      section: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(
+            Kb.Styles.globalMargins.small,
+            Kb.Styles.globalMargins.mediumLarge,
+            Kb.Styles.globalMargins.medium,
+            Kb.Styles.globalMargins.small
+          ),
+        },
+        isElectron: {
+          maxWidth: 600,
+        },
+      }),
+      text: Kb.Styles.platformStyles({
+        isElectron: {
+          cursor: 'default',
+        },
+      }),
+    }) as const
+)
 
 export default Advanced

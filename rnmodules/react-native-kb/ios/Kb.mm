@@ -12,6 +12,7 @@
 #import <cstring>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
+#import "./KBJSScheduler.h"
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
@@ -69,13 +70,19 @@ static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
-@interface RCTBridge ()
+@interface RCTBridge (JSIRuntime)
+- (void *)runtime;
+@end
 
+@interface RCTBridge (RCTTurboModule)
+- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+- (void)_tryAndHandleError:(dispatch_block_t)block;
+@end
+
+@interface RCTBridge ()
 - (JSGlobalContextRef)jsContextRef;
 - (void *)runtime;
 - (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
-- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
-
 @end
 
 @interface Kb ()
@@ -84,13 +91,16 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @implementation Kb
 
+jsi::Runtime *_jsRuntime;
+std::shared_ptr<KBJSScheduler> jsScheduler;
+
 // sanity check the runtime isn't out of sync due to reload etc
 void *currentRuntime = nil;
 
 RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
-  return NO;
+  return YES;
 }
 
 - (instancetype)init {
@@ -102,6 +112,7 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate {
   currentRuntime = nil;
+  _jsRuntime = nil;
   [super invalidate];
   Teardown();
   self.bridge = nil;
@@ -124,14 +135,8 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 
 - (void)sendToJS:(NSData *)data {
   __weak __typeof__(self) weakSelf = self;
-  auto invoker = self.bridge.jsCallInvoker;
 
-  if (!invoker) {
-    NSLog(@"Failed to find invoker in sendToJS!!!");
-    return;
-  }
-
-  invoker->invokeAsync([data, weakSelf]() {
+    jsScheduler->scheduleOnJS([data, weakSelf](jsi::Runtime &jsiRuntime) {
     __typeof__(self) strongSelf = weakSelf;
     if (!strongSelf) {
       NSLog(@"Failed to find self in sendToJS invokeAsync!!!");
@@ -144,7 +149,6 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
     }
 
     int size = (int)[data length];
-    auto &jsiRuntime = *jsRuntimePtr;
     auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
 
     RpcOnJS(jsiRuntime, values, [](const std::string &err) {
@@ -157,59 +161,7 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 
 - (jsi::Runtime *)javaScriptRuntimePointer {
-  if ([self.bridge respondsToSelector:@selector(runtime)]) {
-    auto runtime = reinterpret_cast<jsi::Runtime *>(self.bridge.runtime);
-    if (runtime == currentRuntime) {
-      return runtime;
-    }
-    return nil;
-  } else {
-    return nil;
-  }
-}
-
-- (void)installJsiBindings {
-  // stash the current runtime to keep in sync
-  currentRuntime = self.bridge.runtime;
-  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-                        const Value *arguments, size_t count) -> Value {
-    return RpcOnGo(runtime, thisValue, arguments, count,
-                   [](void *ptr, size_t size) {
-                     NSData *result = [NSData dataWithBytesNoCopy:ptr
-                                                           length:size
-                                                     freeWhenDone:NO];
-                     NSError *error = nil;
-                     KeybaseWriteArr(result, &error);
-                     if (error) {
-                       NSLog(@"Error writing data: %@", error);
-                     }
-                   });
-  };
-
-  auto jsRuntimePtr = [self javaScriptRuntimePointer];
-  if (!jsRuntimePtr) {
-    NSLog(@"Failed to install jsi!!!");
-    return;
-  }
-
-  KeybaseLogToService(
-      [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
-                                 [[NSDate date] timeIntervalSince1970] * 1000]);
-
-  auto &jsiRuntime = *jsRuntimePtr;
-  // register the global JS uses to call go
-  jsiRuntime.global().setProperty(
-      jsiRuntime, "rpcOnGo",
-      Function::createFromHostFunction(
-          jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-          std::move(rpcOnGoWrap)));
-
-  // register a global so we get notified when the runtime is killed so we can
-  // cleanup
-  jsiRuntime.global().setProperty(
-      jsiRuntime, "kbTeardown",
-      jsi::Object::createFromHostObject(jsiRuntime,
-                                        std::make_shared<KBTearDown>()));
+    return _jsRuntime;
 }
 
 // from react-native-localize
@@ -350,8 +302,70 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
-RCT_EXPORT_METHOD(install) {
-    [self installJsiBindings];
+BOOL isBridgeless = false; // SYNC with AppDelegate.mm
+
+#if defined(RCT_NEW_ARCH_ENABLED)
+@synthesize runtimeExecutor = _runtimeExecutor;
+#endif
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
+    if (isBridgeless) {
+#if defined(RCT_NEW_ARCH_ENABLED)
+        RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+        _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
+        auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
+        auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
+            // Convert to Objective-C block so it can be captured properly.
+            __block auto callbackBlock = callback;
+            
+            [executor execute:^(jsi::Runtime &runtime) {
+                callbackBlock(runtime);
+            }];
+        });
+        jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, executorFunction);
+#else // (RCT_NEW_ARCH_ENABLED)
+        [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
+#endif
+    } else {
+        _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
+        ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
+        : nullptr;
+        jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
+    }
+    
+    // stash the current runtime to keep in sync
+    auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
+                          const Value *arguments, size_t count) -> Value {
+        return RpcOnGo(runtime, thisValue, arguments, count,
+                       [](void *ptr, size_t size) {
+            NSData *result = [NSData dataWithBytesNoCopy:ptr
+                                                  length:size
+                                            freeWhenDone:NO];
+            NSError *error = nil;
+            KeybaseWriteArr(result, &error);
+            if (error) {
+                NSLog(@"Error writing data: %@", error);
+            }
+        });
+    };
+    
+    KeybaseLogToService(
+                        [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+                         [[NSDate date] timeIntervalSince1970] * 1000]);
+    
+    _jsRuntime->global().setProperty(
+                                     *_jsRuntime, "rpcOnGo",
+                                     Function::createFromHostFunction(
+                                                                      *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
+                                                                      std::move(rpcOnGoWrap)));
+    
+    // register a global so we get notified when the runtime is killed so we can
+    // cleanup
+    _jsRuntime->global().setProperty(
+                                     *_jsRuntime, "kbTeardown",
+                                     jsi::Object::createFromHostObject(*_jsRuntime,
+                                                                       std::make_shared<KBTearDown>()));
+    return @YES;
 }
 
 RCT_EXPORT_METHOD(getDefaultCountryCode
@@ -390,32 +404,31 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
   }];
 }
 
-- (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/ id)o {}
-- (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (NSNumber *)androidCheckPushPermissions {return @-1;}
+- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
+- (NSNumber *)androidRequestPushPermissions {return @-1;}
+- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
+- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
+- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSString *)androidGetInitialBundleFromNotification {return @"";}
 - (NSString *)androidGetInitialShareFileUrl {return @"";}
 - (NSString *)androidGetInitialShareText {return @"";}
 - (NSString *)androidGetRegistrationToken {return @"";}
-- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
-- (void)androidOpenSettings {}
-- (NSNumber *)androidRequestPushPermissions {return @-1;}
-- (void)androidSetApplicationIconBadgeNumber:(double)n {}
 - (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/id)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialBundleFromNotification:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareFileUrls:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareText:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetSecureFlagSetting:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidOpenSettings {}
 - (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
+- (void)androidSetApplicationIconBadgeNumber:(double)n {}
 - (void)androidSetSecureFlagSetting:(BOOL)s resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
-- (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (void)androidUnlink:(NSString *)path {}
 
 @end

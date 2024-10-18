@@ -17,8 +17,8 @@ const Slice = (props: Props) => {
         style={Kb.Styles.collapseStyles([
           styles.rotateContainer,
           Kb.Styles.platformStyles({
-            isElectron: {transform: 'rotate(' + props.degrees + 'deg)'},
-            isMobile: {transform: [{rotate: props.degrees + 'deg'}]},
+            isElectron: {transform: `rotate(${props.degrees}deg)`},
+            isMobile: {transform: [{rotate: `${props.degrees}deg`}]},
           }),
         ])}
       >

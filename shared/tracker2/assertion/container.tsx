@@ -32,14 +32,14 @@ const notAUserAssertion = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  let a = Constants.noAssertion
-  let notAUser = false as boolean
-  let stellarHidden = false
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
-  a = C.useTrackerState(
+  const data = C.useTrackerState(
     C.useShallow(s => {
+      let val = Constants.noAssertion
+      let stellarHidden = false
+      let notAUser = false as boolean
       if (ownProps.isSuggestion) {
-        a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
+        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
       } else {
         const d = Constants.getDetails(s, ownProps.username)
         if (isYours && d.stellarHidden) {
@@ -48,7 +48,7 @@ const Container = (ownProps: OwnProps) => {
         notAUser = d.state === 'notAUserYet'
         if (notAUser) {
           const nonUserDetails = Constants.getNonUserDetails(s, ownProps.username)
-          a = {
+          val = {
             ...notAUserAssertion,
             siteIcon: nonUserDetails.siteIcon,
             siteIconDarkmode: nonUserDetails.siteIconDarkmode,
@@ -59,14 +59,14 @@ const Container = (ownProps: OwnProps) => {
             value: nonUserDetails.assertionValue,
           }
         } else if (d.assertions) {
-          a = d.assertions.get(ownProps.assertionKey) || Constants.noAssertion
+          val = d.assertions.get(ownProps.assertionKey) || Constants.noAssertion
         }
       }
-      return a
+      return {...val, notAUser, stellarHidden}
     })
   )
-  const {color, metas: _metas, proofURL, sigID, siteIcon} = a
-  const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = a
+  const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
+  const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
   const addProof = C.useProfileState(s => s.dispatch.addProof)
   const hideStellar = C.useProfileState(s => s.dispatch.hideStellar)
   const recheckProof = C.useProfileState(s => s.dispatch.recheckProof)

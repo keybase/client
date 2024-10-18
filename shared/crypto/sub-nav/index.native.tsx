@@ -14,7 +14,7 @@ const CryptoSubNav = () => {
           title={t.title}
           illustration={t.illustration}
           description={t.description}
-          onClick={() => navigate(t.tab as any)}
+          onClick={() => navigate(t.tab)}
         />
       ))}
     </Kb.Box2>

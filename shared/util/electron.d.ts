@@ -6,6 +6,7 @@ type KB2 = {
       dst: string,
       originalFilePath: string
     ) => Promise<{outboxID: Uint8Array; path: string}>
+    getPathForFile?: (file: File) => string
   }
 }
 

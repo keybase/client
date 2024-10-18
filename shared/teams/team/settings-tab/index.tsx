@@ -254,6 +254,7 @@ export class Settings extends React.Component<Props, State> {
   setBoolSettings =
     (key: SettingName) =>
     (newSetting: boolean): void => {
+      // eslint-disable-next-line
       this.setState({[key]: newSetting} as any)
     }
 

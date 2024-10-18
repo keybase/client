@@ -11,7 +11,7 @@ export type DisallowedStyles = {
   hoverColor?: never
   fontSize?: never
 }
-export type IconStyle = CustomStyles<'color' | 'hoverColor' | 'fontSize', {}>
+export type IconStyle = CustomStyles<'color' | 'hoverColor' | 'fontSize'>
 
 export type Props = {
   type: IconType

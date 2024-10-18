@@ -284,6 +284,8 @@
 :is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
+  /* in chrome this will complain about main thread hit scroll scroll issues and clip works but*/
+  /* not clear its worth trying it */
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
