@@ -687,7 +687,7 @@ const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
   const {lockedSV, fadeSV, onCancel, dragXSV} = props
-  const arrowStyle: any = useAnimatedStyle(() => {
+  const arrowStyle = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
     const dragDistanceX = -50
     const deltaX = 180
@@ -700,7 +700,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const closeStyle: any = useAnimatedStyle(() => {
+  const closeStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -712,7 +712,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       transform: [{translateX: deltaX - spaceBetween - fadeSV.value * slideAmount}, {translateY: -4}],
     }
   })
-  const textStyle: any = useAnimatedStyle(() => {
+  const textStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
@@ -728,7 +728,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
       ],
     }
   })
-  const textStyleLocked: any = useAnimatedStyle(() => {
+  const textStyleLocked = useAnimatedStyle(() => {
     const dragDistanceX = -50
     const deltaX = 180
     const slideAmount = 220
