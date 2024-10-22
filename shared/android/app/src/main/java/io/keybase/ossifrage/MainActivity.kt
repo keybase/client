@@ -269,13 +269,6 @@ class MainActivity : ReactActivity() {
             sb.append(text)
         }
         val textPayload = sb.toString()
-        /*val filePaths = if (uris != null) Arrays.stream<Uri?>(uris)
-                .map<String?> { uri: Uri? -> readFileFromUri(reactContext, uri) }
-                .filter { obj: String? -> Objects.nonNull(obj) }
-                .toArray<String> { _Dummy_.__Array__() } else arrayOfNulls<String>(0)
-
-         */
-        // TODO check this works
         val filePaths = uris?.mapNotNull { uri ->
             readFileFromUri(reactContext, uri)
         }?.toTypedArray() ?: emptyArray()
@@ -288,7 +281,6 @@ class MainActivity : ReactActivity() {
         }
 
         val emitter = reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        // assert emitter != null;
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {
             var payload = Arguments.fromBundle(bundleFromNotification)
