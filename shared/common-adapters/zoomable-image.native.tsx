@@ -6,6 +6,12 @@ import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
 import ProgressIndicator from './progress-indicator.native'
 import {Box2} from './box'
+import {
+  default as ReAnimated,
+  useAnimatedStyle,
+  withTiming,
+  useSharedValue,
+} from '@/common-adapters/reanimated'
 
 const Kb = {
   Box2,
@@ -26,7 +32,7 @@ const getScale = (width: number, height: number, containerWidth: number, contain
 }
 
 const ZoomableImage = React.memo(function (p: Props) {
-  const {src, style, onChanged, onLoaded, onSwipe, onTap, onError, boxCacheKey = ''} = p
+  const {src, style, onChanged: onZoom, onLoaded, onSwipe, onTap, onError, boxCacheKey = ''} = p
   const [boxW, setBoxW] = React.useState(boxContextCache.get(boxCacheKey)?.width ?? 0)
   const [boxH, setBoxH] = React.useState(boxContextCache.get(boxCacheKey)?.height ?? 0)
   const [loading, setLoading] = React.useState(true)
@@ -35,8 +41,6 @@ const ZoomableImage = React.memo(function (p: Props) {
   const [scale, setScale] = React.useState(
     size && boxW && boxH ? getScale(size.width, size.height, boxW, boxH) : 1
   )
-
-  const onZoom = onChanged
 
   const onLayout = React.useCallback(
     (e: Partial<LayoutChangeEvent>) => {
@@ -57,6 +61,7 @@ const ZoomableImage = React.memo(function (p: Props) {
 
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
+      setLoading(false)
       if (!e.source) {
         return
       }
@@ -82,7 +87,6 @@ const ZoomableImage = React.memo(function (p: Props) {
     initialZoomRef.current = true
     const s = getScale(size.width, size.height, boxW, boxH)
     setScale(s)
-    setLoading(false)
   }, [boxW, boxH, size])
 
   React.useEffect(() => {
@@ -130,22 +134,34 @@ const ZoomableImage = React.memo(function (p: Props) {
     </>
   )
 
+  const opacity = useSharedValue(0)
+
+  React.useEffect(() => {
+    opacity.set(() => withTiming(1, {duration: 800}))
+  }, [opacity])
+
+  const fadeStyle = useAnimatedStyle(() => {
+    return {opacity: opacity.value}
+  })
+
   return (
-    <Kb.ZoomableBox
-      key={Styles.isAndroid ? src : src + String(scale)}
-      onSwipe={onSwipe}
-      onLayout={onLayout}
-      style={style}
-      maxZoom={10}
-      minZoom={scale}
-      contentContainerStyle={measuredStyle}
-      onZoom={onZoom}
-      onTap={onTap}
-      zoomScale={scale}
-      contentSize={size}
-    >
-      {content}
-    </Kb.ZoomableBox>
+    <ReAnimated.View style={fadeStyle}>
+      <Kb.ZoomableBox
+        key={Styles.isAndroid ? src : src + String(scale)}
+        onSwipe={onSwipe}
+        onLayout={onLayout}
+        style={style}
+        maxZoom={10}
+        minZoom={scale}
+        contentContainerStyle={measuredStyle}
+        onZoom={onZoom}
+        onTap={onTap}
+        zoomScale={scale}
+        contentSize={size}
+      >
+        {content}
+      </Kb.ZoomableBox>
+    </ReAnimated.View>
   )
 })
 

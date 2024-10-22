@@ -121,13 +121,10 @@ export type StylesDesktop = _StylesDesktopFalsy | ReadonlyArray<_StylesDesktopFa
 type _StylesMobileOverride = {
   textAlignVertical?: 'top' | 'bottom' | 'center'
   textAlign?: 'left' | 'right' | 'center' | 'justify'
-  transform?: ReadonlyArray<
-    {rotate: number | `${number}deg`} | {scale: number} | {translateY: number} | {translateX: number}
-  >
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign' | 'transform'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign' /* | 'transform'*/> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -139,6 +136,7 @@ type _StylesCrossPlatformOverride = {
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
   lineHeight: _StylesMobile['lineHeight']
+  transform: _StylesMobile['transform']
 }
 
 export type _StylesCrossPlatform = {

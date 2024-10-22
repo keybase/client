@@ -150,14 +150,14 @@ const AnimatedExpand = (() => {
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle = useAnimatedStyle(() => ({
         transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}] as const,
-      })) as unknown as Kb.Styles.StylesCrossPlatform
+      }))
       const bottomStyle = useAnimatedStyle(() => ({
         transform: [
           {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
           {scaleX: -0.6},
           {scaleY: -0.6},
         ],
-      })) as unknown as Kb.Styles.StylesCrossPlatform
+      }))
       const lastExpandedRef = React.useRef(expanded)
       React.useEffect(() => {
         if (lastExpandedRef.current !== expanded) {

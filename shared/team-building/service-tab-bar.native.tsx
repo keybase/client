@@ -64,7 +64,7 @@ const TabletBottomBorderExtension = React.memo(
               height: 2,
               position: 'absolute',
             },
-            Kb.Styles.platformStyles({isMobile: animatedStyles}),
+            animatedStyles,
           ])}
         />
       </Kb.Box2>

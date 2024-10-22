@@ -4,7 +4,7 @@ import type * as R from 'react-native-reanimated'
 
 let useSharedValue: typeof R.useSharedValue
 let withRepeat: typeof R.withRepeat
-let useAnimatedStyle: typeof R.useAnimatedStyle
+let useAnimatedStyle: <T extends () => Record<string, any>>(arg: T) => ReturnType<T>
 let withTiming: typeof R.withTiming
 let withDelay: typeof R.withDelay
 let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
@@ -19,7 +19,7 @@ if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated') as typeof R
   Animated = rnr.default
   createAnimatedComponent = rnr.default.createAnimatedComponent
-  useAnimatedStyle = rnr.useAnimatedStyle
+  useAnimatedStyle = rnr.useAnimatedStyle as typeof useAnimatedStyle
   useSharedValue = rnr.useSharedValue
   withRepeat = rnr.withRepeat
   withTiming = rnr.withTiming
