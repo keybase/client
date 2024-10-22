@@ -8,7 +8,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
   makeAction: () => React.ReactNode
   onSwiped: () => void
 }) {
-  const pan = React.useRef(new Animated.ValueXY()).current
+  const [pan] = React.useState(new Animated.ValueXY())
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const {children, makeAction, onSwiped} = p
   const resetPosition = React.useCallback(() => {
@@ -21,11 +21,11 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
   }, [pan])
 
   const threshold = 40
-  const running = React.useRef(false)
-  const panResponder = React.useRef(
-    PanResponder.create({
+  const panResponder = React.useMemo(() => {
+    let running = false
+    return PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        running.current = true
+        running = true
         const val = -gestureState.dx > threshold
         return val
       },
@@ -38,10 +38,10 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         pan.setValue({x: Math.min(gesture.dx, 0), y: 0})
       },
       onPanResponderRelease: () => {
-        if (!running.current) {
+        if (!running) {
           return
         }
-        running.current = false
+        running = false
         pan.flattenOffset()
         // only swipe if its actually still over
         // _value does exist, TODO maybe use addlistener instead or similar
@@ -53,10 +53,11 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         resetPosition()
       },
       onPanResponderTerminate: () => {
-        if (!running.current) {
+        if (!running) {
           return
         }
-        running.current = false
+        // eslint-disable-next-line
+        running = false
         // _value does exist, TODO maybe use addlistener instead or similar
         const px = pan.x as any as {_value: number}
         const val = -px._value
@@ -67,7 +68,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       },
       onStartShouldSetPanResponder: () => false,
     })
-  ).current
+  }, [onSwiped, pan, resetPosition])
 
   const action = React.useMemo(() => {
     return hasSwiped ? makeAction() : null
