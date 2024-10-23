@@ -6124,10 +6124,10 @@ expo-barcode-scanner@12.7.0:
   dependencies:
     expo-image-loader "~4.4.0"
 
-expo-clipboard@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-4.5.0.tgz#4ef8f1f5635dbe4813503898d7372c2e278fbc6c"
-  integrity sha512-M3RfLWYuD+gNo8C305oa0zySQIwtomI4nrY0gXkNB6Ud7+99K+k0JNKPEZQohCa7XgL1YZRbJxth/zrbxSnxZQ==
+expo-clipboard@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-5.0.0.tgz#da52c3ef02182378e4a1610aa1eb0558d957b65f"
+  integrity sha512-LUy35AGH86o+JoH1UgTLXxtNyGiJEAzxO/OPa0VI/CoWCAEseHI9KqrOlIiSidcDTC3nKUIy9PPNZUHwiVgpfw==
 
 expo-constants@~16.0.0:
   version "16.0.2"
