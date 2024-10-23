@@ -1,9 +1,7 @@
- edit messaage should focus so keyboard shows
  imgur preview doesn't have a collapse
  thread search loses focused
  mic tap tooltip doesnt show
  copy heic from imessage pastest as url w/ heic???
- crypto encrypt copy to clipboard button disabled .... flakey works sometimes sometimes not
 
 
 

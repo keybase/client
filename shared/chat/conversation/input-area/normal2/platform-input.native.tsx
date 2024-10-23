@@ -412,6 +412,16 @@ const PlatformInput = (p: Props) => {
     [setHasText, onChangeText]
   )
 
+  const lastEditRef = React.useRef(isEditing)
+  React.useEffect(() => {
+    if (isEditing !== lastEditRef.current) {
+      lastEditRef.current = isEditing
+      if (isEditing) {
+        inputRef.current?.focus()
+      }
+    }
+  }, [isEditing])
+
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
