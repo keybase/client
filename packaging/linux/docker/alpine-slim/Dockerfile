@@ -2,7 +2,7 @@ ARG BASE_IMAGE=keybaseio/client:alpine
 
 FROM $BASE_IMAGE AS base
 
-FROM alpine:3.19
+FROM alpine:3
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apk add --update --no-cache gnupg procps ca-certificates bash
