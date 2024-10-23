@@ -1686,7 +1686,7 @@ PODS:
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.20.0):
+  - RNGestureHandler (2.20.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2244,7 +2244,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
   RNCPicker: 0b6860a6b208d4046227d2f626ad0722f99a969c
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 6dfe7692a191ee224748964127114edf057a1475
+  RNGestureHandler: 1b7c5ed637e02f6898d08bffb701d378be5e091d
   RNReanimated: f42a5044d121d68e91680caacb0293f4274228eb
   RNScreens: 553584d07373a55d615a2db7d4cddd53c22f9e91
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
