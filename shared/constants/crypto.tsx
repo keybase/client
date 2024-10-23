@@ -263,6 +263,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     senderFullname: string
   ) => {
     cs.outputValid = outputValid
+
     resetWarnings(cs)
     cs.warningMessage = new HiddenString(warningMessage)
     cs.output = new HiddenString(output)

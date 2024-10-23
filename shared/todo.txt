@@ -1,4 +1,15 @@
-swipable turned off temp
+ edit messaage should focus so keyboard shows
+ imgur preview doesn't have a collapse
+ thread search loses focused
+ mic tap tooltip doesnt show
+ copy heic from imessage pastest as url w/ heic???
+ crypto encrypt copy to clipboard button disabled .... flakey works sometimes sometimes not
+
+
+
+
+
+
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 new unchecked kotline code for 'getInitialShareFileUrls'
 CHECK push / files etc on android
