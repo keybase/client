@@ -8,7 +8,7 @@ import * as Stats from './stats'
 Framed.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
 // Logging for rpcs
-function rpcLog(info: {method: string; reason: string; extra?: {}; type: string}): void {
+function rpcLog(info: {method: string; reason: string; extra?: object; type: string}): void {
   if (!printRPC) {
     return
   }
@@ -133,7 +133,7 @@ class TransportShared extends Framed.transport.RobustTransport {
   }
 
   // Override RobustTransport.invoke.
-  invoke(arg: Framed.InvokeArgs, cb: (err: Framed.ErrorType, data: {}) => void) {
+  invoke(arg: Framed.InvokeArgs, cb: (err: Framed.ErrorType, data: object) => void) {
     // don't actually compress
     // if (arg.ctype == undefined) {
     //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
@@ -148,7 +148,7 @@ class TransportShared extends Framed.transport.RobustTransport {
     Stats.gotStat(method, false)
 
     let once = false
-    super.invoke(arg, (err: Framed.ErrorType, data: {}) => {
+    super.invoke(arg, (err: Framed.ErrorType, data: object) => {
       if (once) {
         rpcLog({method, reason: 'ignoring multiple result calls', type: 'engineInternal'})
         return

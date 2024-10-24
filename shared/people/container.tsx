@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import People from '.'
 
-let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
@@ -13,6 +12,7 @@ const PeopleReloadable = () => {
   const oldItems = C.usePeopleState(s => s.oldItems)
   const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   const waiting = C.Waiting.useAnyWaiting(C.People.getPeopleDataWaitingKey)
+  const [lastRefresh, setLastRefresh] = React.useState<number>(0)
 
   const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
@@ -21,11 +21,11 @@ const PeopleReloadable = () => {
     (markViewed = true, force = false) => {
       const now = Date.now()
       if (force || !lastRefresh || lastRefresh + waitToRefresh < now) {
-        lastRefresh = now
+        setLastRefresh(now)
         loadPeople(markViewed, 10)
       }
     },
-    [loadPeople]
+    [loadPeople, lastRefresh]
   )
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)

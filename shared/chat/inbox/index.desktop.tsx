@@ -190,17 +190,15 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const firstOffscreenIdx = React.useRef(-1)
   const lastVisibleIdx = React.useRef(-1)
 
-  const mountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      mountedRef.current = false
-    }
-  }, [])
+  const isMounted = C.useIsMounted()
 
   const lastSmallTeamsExpanded = React.useRef(smallTeamsExpanded)
   const lastRowsLength = React.useRef(rows.length)
   const lastUnreadIndices = React.useRef(unreadIndices)
   const lastUnreadTotal = React.useRef(unreadTotal)
+
+  const closeOpenedRow = React.useCallback(() => {}, [])
+  const setCloseOpenedRow = React.useCallback(() => {}, [])
 
   const itemSizeGetter = React.useCallback(
     (index: number) => {
@@ -240,7 +238,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const onItemsRenderedDebounced = C.useDebouncedCallback(
     React.useCallback(
       (p: {visibleStartIndex: number; visibleStopIndex: number}) => {
-        if (!mountedRef.current) {
+        if (!isMounted()) {
           return
         }
         const {visibleStartIndex, visibleStopIndex} = p
@@ -255,7 +253,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         calculateShowFloating()
         onUntrustedInboxVisible(toUnbox)
       },
-      [calculateShowFloating, onUntrustedInboxVisible, rows]
+      [calculateShowFloating, onUntrustedInboxVisible, rows, isMounted]
     ),
     200
   )
@@ -295,7 +293,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       // pointer events on so you can click even right after a scroll
       return (
         <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-          {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+          {makeRow(
+            row,
+            navKey,
+            selectedConversationIDKey === row.conversationIDKey,
+            setCloseOpenedRow,
+            closeOpenedRow
+          )}
         </div>
       )
     },
@@ -307,6 +311,8 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       navKey,
       rows,
       selectedConversationIDKey,
+      setCloseOpenedRow,
+      closeOpenedRow,
     ]
   )
 
@@ -315,15 +321,15 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     [itemRenderer]
   )
 
-  if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rows.length !== lastRowsLength.current) {
-    // this calls setstate so defer
-    setTimeout(() => {
+  const rowsLength = rows.length
+  React.useEffect(() => {
+    if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rowsLength !== lastRowsLength.current) {
       listRef.current?.resetAfterIndex(0, true)
-    }, 0)
-  }
+    }
+  }, [rowsLength, smallTeamsExpanded])
 
   const calculateShowUnreadShortcut = React.useCallback(() => {
-    if (!mountedRef.current) {
+    if (!isMounted()) {
       return
     }
     if (!unreadIndices.size || lastVisibleIdx.current < 0) {
@@ -352,7 +358,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
       setUnreadCount(0)
       firstOffscreenIdx.current = -1
     }
-  }, [showUnread, unreadIndices])
+  }, [showUnread, unreadIndices, isMounted])
 
   const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
 
@@ -382,18 +388,27 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     }
   }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
 
-  if (rows.length !== lastRowsLength.current) {
-    calculateShowFloating()
-  }
+  React.useEffect(() => {
+    if (rowsLength !== lastRowsLength.current) {
+      calculateShowFloating()
+    }
+  }, [calculateShowFloating, rowsLength])
 
-  if (!C.shallowEqual(lastUnreadIndices.current, unreadIndices) || lastUnreadTotal.current !== unreadTotal) {
-    calculateShowUnreadShortcut()
-  }
+  React.useEffect(() => {
+    if (
+      !C.shallowEqual(lastUnreadIndices.current, unreadIndices) ||
+      lastUnreadTotal.current !== unreadTotal
+    ) {
+      calculateShowUnreadShortcut()
+    }
+  }, [calculateShowUnreadShortcut, unreadIndices, unreadTotal])
 
-  lastSmallTeamsExpanded.current = smallTeamsExpanded
-  lastRowsLength.current = rows.length
-  lastUnreadIndices.current = unreadIndices
-  lastUnreadTotal.current = unreadTotal
+  React.useEffect(() => {
+    lastSmallTeamsExpanded.current = smallTeamsExpanded
+    lastRowsLength.current = rowsLength
+    lastUnreadIndices.current = unreadIndices
+    lastUnreadTotal.current = unreadTotal
+  }, [unreadTotal, unreadIndices, rowsLength, smallTeamsExpanded])
 
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />

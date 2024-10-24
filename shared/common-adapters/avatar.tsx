@@ -27,7 +27,7 @@ export type OwnProps = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.CustomStyles<'borderStyle', {}>
+  style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
   showFollowingStatus?: boolean // show the green dots or not
@@ -50,7 +50,7 @@ export type Props = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.CustomStyles<'borderStyle', {}>
+  style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   url: URLType
   username?: string
@@ -137,7 +137,6 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
           ownProps.size
         )
   const iconInfo = followIconHelper(ownProps.size, followsYou, following)
-
   return (
     <Avatar
       blocked={blocked}

@@ -82,18 +82,14 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
 
   const divRef = React.useRef<HTMLDivElement>(null)
 
-  React.useImperativeHandle(
-    ref,
-    () => {
-      return {
-        divRef,
-        measure() {
-          return divRef.current?.getBoundingClientRect()
-        },
-      }
-    },
-    []
-  )
+  React.useImperativeHandle(ref, () => {
+    return {
+      divRef,
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  }, [])
 
   return (
     <div
@@ -154,7 +150,6 @@ export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function Click
   ref: React.Ref<MeasureRef>
 ) {
   const {onClick, children, style, className, onMouseOver} = p
-  const collapsed = Styles.useCollapseStylesDesktop(style, true)
   const divRef = React.useRef<HTMLDivElement>(null)
 
   React.useImperativeHandle(ref, () => {
@@ -169,7 +164,7 @@ export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function Click
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
-      style={collapsed}
+      style={Styles.castStyleDesktop(style)}
       ref={divRef}
       className={Styles.classNames('clickable-box2', className)}
     >

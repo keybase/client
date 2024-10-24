@@ -1,6 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {_useState as useDarkModeState} from '@/constants/darkmode'
-import {isIOS, isNewArch} from '@/constants/platform'
+import {useState_ as useDarkModeState} from '@/constants/darkmode'
+import {isIOS} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 
 export const colors = {
@@ -453,8 +453,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
 type Color = typeof colors
 type Names = keyof Color
 
-//https://github.com/facebook/react-native/pull/42117
-const dynamicColorsWorking = isIOS && !isNewArch
+const dynamicColorsWorking = isIOS
 
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
@@ -479,6 +478,7 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
       enumerable: true,
       get() {
         const {darkModePreference} = useDarkModeState.getState()
+
         // if we're in auto mode, use ios native dynamic colors
         if (darkModePreference === 'system') {
           return iosDynamicColors[name]

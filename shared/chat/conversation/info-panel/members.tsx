@@ -41,20 +41,21 @@ const MembersTab = (props: Props) => {
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = C.useChatContext(s => s.participants)
   const participants = C.useChatContext(
-    s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants
+    C.useShallow(s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants)
   )
-  const cidChanged = C.Chat.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
-  if (lastTeamName !== teamname || cidChanged) {
-    setLastTeamName(teamname)
-    if (teamname) {
-      refreshParticipants(
-        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-        () => {},
-        () => {}
-      )
+  React.useEffect(() => {
+    if (lastTeamName !== teamname) {
+      setLastTeamName(teamname)
+      if (teamname) {
+        refreshParticipants(
+          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+          () => {},
+          () => {}
+        )
+      }
     }
-  }
+  }, [conversationIDKey, lastTeamName, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants

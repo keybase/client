@@ -92,11 +92,6 @@
     .tab-tooltip.tooltip:hover:before {
       display: flex;
     }
-    .tab-badge {
-      position: absolute;
-      top: 8px;
-      left: 43px;
-    }
   }
 }
 .tab-container.forceSmallNav {
@@ -112,10 +107,5 @@
   }
   .tab-tooltip.tooltip:hover:before {
     display: flex;
-  }
-  .tab-badge {
-    position: absolute;
-    top: 8px;
-    left: 43px;
   }
 }

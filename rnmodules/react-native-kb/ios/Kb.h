@@ -6,8 +6,10 @@
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTEventEmitter.h>
 #import <foundation/Foundation.h>
+#import <React/RCTRuntimeExecutorModule.h>
+#import <ReactCommon/RCTRuntimeExecutor.h>
 
-@interface Kb : RCTEventEmitter <NativeKbSpec>
+@interface Kb : RCTEventEmitter <NativeKbSpec,RCTRuntimeExecutorModule>
 #else
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>

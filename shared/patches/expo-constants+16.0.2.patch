@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-constants/build/Constants.types.d.ts b/node_modules/expo-constants/build/Constants.types.d.ts
+index a7eb52d..bf54c04 100644
+--- a/node_modules/expo-constants/build/Constants.types.d.ts
++++ b/node_modules/expo-constants/build/Constants.types.d.ts
+@@ -1,5 +1,7 @@
+ import { ExpoConfig } from '@expo/config-types';
+-import type { EASConfig as ManifestsEASConfig, ExpoGoConfig as ManifestsExpoGoConfig, ExpoUpdatesManifest, EmbeddedManifest, ManifestAsset as ManifestAssetForReExport, ManifestExtra as ManifestExtraForReExport, ClientScopingConfig as ClientScopingConfigForReExport, ExpoGoPackagerOpts as ExpoGoPackagerOptsForReExport } from 'expo-manifests';
++import type { EASConfig as ManifestsEASConfig, ExpoGoConfig as ManifestsExpoGoConfig, ManifestAsset as ManifestAssetForReExport, ManifestExtra as ManifestExtraForReExport, ClientScopingConfig as ClientScopingConfigForReExport, ExpoGoPackagerOpts as ExpoGoPackagerOptsForReExport } from 'expo-manifests';
++type ExpoUpdatesManifest = any 
++type EmbeddedManifest = any
+ export declare enum AppOwnership {
+     /**
+      * The experience is running inside of the Expo Go app.

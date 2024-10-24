@@ -131,21 +131,26 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
-  const [lastOrdinal, setLastOrdinal] = React.useState(ordinal)
+  const lastOrdinalRef = React.useRef(ordinal)
 
   const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
-  if (ordinal !== lastOrdinal) {
-    setAllowDigging(false)
-    setLastOrdinal(ordinal)
-    digTimerRef.current && clearTimeout(digTimerRef.current)
-    digTimerRef.current = setTimeout(() => {
-      setAllowDigging(true)
-    }, 3000)
-  }
+  React.useEffect(() => {
+    if (ordinal !== lastOrdinalRef.current) {
+      setAllowDigging(false)
+      lastOrdinalRef.current = ordinal
+      digTimerRef.current && clearTimeout(digTimerRef.current)
+      digTimerRef.current = setTimeout(() => {
+        setAllowDigging(true)
+      }, 3000)
+    }
+  }, [ordinal])
 
   React.useEffect(() => {
     return () => {
-      digTimerRef.current && clearTimeout(digTimerRef.current)
+      if (digTimerRef.current) {
+        clearTimeout(digTimerRef.current)
+        digTimerRef.current = undefined
+      }
     }
   }, [])
 

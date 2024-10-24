@@ -51,14 +51,14 @@ export type ListProps<L> = {
   spinnerStyle: Kb.Styles.StylesCrossPlatform
   loading: boolean
   onSelected: (item: L, final: boolean) => void
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  setOnMoveRef: (r: (up: boolean) => void) => void
+  setOnSubmitRef: (r: () => boolean) => void
   ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
 
 export function List<T>(p: ListProps<T>) {
   const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected} = p
-  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, onMoveRef, onSubmitRef} = p
+  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
   const renderItem = React.useCallback(
@@ -71,15 +71,17 @@ export function List<T>(p: ListProps<T>) {
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)
-  if (lastSelectedIndex.current !== selectedIndex) {
-    lastSelectedIndex.current = selectedIndex
-    const sel = items[selectedIndex]
-    if (sel) {
-      onSelected(sel, false)
+  const sel = items[selectedIndex]
+  React.useEffect(() => {
+    if (lastSelectedIndex.current !== selectedIndex) {
+      lastSelectedIndex.current = selectedIndex
+      if (sel) {
+        onSelected(sel, false)
+      }
     }
-  }
+  }, [onSelected, sel, selectedIndex])
 
-  onMoveRef.current = React.useCallback(
+  const onMove = React.useCallback(
     (up: boolean) => {
       const length = items.length
       const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
@@ -90,11 +92,16 @@ export function List<T>(p: ListProps<T>) {
     [setSelectedIndex, items, selectedIndex]
   )
 
-  onSubmitRef.current = React.useCallback(() => {
+  const onSubmit = React.useCallback(() => {
     const sel = items[selectedIndex]
     sel && onSelected(sel, true)
     return !!sel
   }, [selectedIndex, onSelected, items])
+
+  React.useEffect(() => {
+    setOnMoveRef(onMove)
+    setOnSubmitRef(onSubmit)
+  }, [setOnMoveRef, setOnSubmitRef, onMove, onSubmit])
 
   return (
     <>
@@ -113,15 +120,18 @@ export function List<T>(p: ListProps<T>) {
   )
 }
 
-export const styles = Kb.Styles.styleSheetCreate(() => ({
-  fixSuggestionHeight: Kb.Styles.platformStyles({
-    isMobile: {height: 48},
-  }),
-  suggestionBase: {
-    alignItems: 'center',
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
-}))
+export const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      fixSuggestionHeight: Kb.Styles.platformStyles({
+        isMobile: {height: 48},
+      }),
+      suggestionBase: {
+        alignItems: 'center',
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
+      },
+    }) as const
+)
