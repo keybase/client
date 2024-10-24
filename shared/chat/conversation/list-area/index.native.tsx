@@ -155,11 +155,19 @@ const ConversationList = React.memo(function ConversationList() {
 
   const lastCenteredOrdinal = React.useRef(0)
   React.useEffect(() => {
-    if (lastCenteredOrdinal.current !== centeredOrdinal) return
-    lastCenteredOrdinal.current = centeredOrdinal
-    if (centeredOrdinal) {
-      scrollToCentered()
+    if (lastCenteredOrdinal.current === centeredOrdinal) {
+      return
     }
+    lastCenteredOrdinal.current = centeredOrdinal
+    if (centeredOrdinal > 0) {
+      const id = setTimeout(() => {
+        scrollToCentered()
+      }, 200)
+      return () => {
+        clearTimeout(id)
+      }
+    }
+    return undefined
   }, [centeredOrdinal, scrollToCentered])
 
   React.useEffect(() => {
@@ -285,6 +293,7 @@ const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: nu
   const numOrdinalsRef = React.useRef(numOrdinals)
   React.useEffect(() => {
     numOrdinalsRef.current = numOrdinals
+    nextCallbackRef.current = new Date().getTime() + minTimeDelta
   }, [numOrdinals])
 
   // this can't change ever, so we have to use refs to keep in sync
