@@ -1,3 +1,2584 @@
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/results.bin b/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/transformed/classes/classes_dex/classes.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..ee202b8
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/3ba1df48f3cd554c2ad080af4e91c49a/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/results.bin b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/results.bin
+new file mode 100644
+index 0000000..7ed749e
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/results.bin
+@@ -0,0 +1 @@
++o/bundleLibRuntimeToDirDebug
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.dex
+new file mode 100644
+index 0000000..b07280c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.dex
+new file mode 100644
+index 0000000..6b1d522
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.dex
+new file mode 100644
+index 0000000..f59d89f
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.dex
+new file mode 100644
+index 0000000..61038f7
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/BuildConfig.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/BuildConfig.dex
+new file mode 100644
+index 0000000..c920bc3
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/BuildConfig.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/CheckedTextViewImpl.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/CheckedTextViewImpl.dex
+new file mode 100644
+index 0000000..bfed9c5
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/CheckedTextViewImpl.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/FabricEnabledPicker.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/FabricEnabledPicker.dex
+new file mode 100644
+index 0000000..4f9b4c3
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/FabricEnabledPicker.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerBlurEvent.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerBlurEvent.dex
+new file mode 100644
+index 0000000..4bb69e2
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerBlurEvent.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerFocusEvent.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerFocusEvent.dex
+new file mode 100644
+index 0000000..1dbc6fc
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerFocusEvent.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerItemSelectEvent.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerItemSelectEvent.dex
+new file mode 100644
+index 0000000..211d0df
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/PickerItemSelectEvent.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/RNCPickerPackage.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/RNCPickerPackage.dex
+new file mode 100644
+index 0000000..9d94e67
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/RNCPickerPackage.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDialogPickerManager.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDialogPickerManager.dex
+new file mode 100644
+index 0000000..b9080e4
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDialogPickerManager.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDropdownPickerManager.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDropdownPickerManager.dex
+new file mode 100644
+index 0000000..7ce0764
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactDropdownPickerManager.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$1.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$1.dex
+new file mode 100644
+index 0000000..cf2a26a
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$1.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.dex
+new file mode 100644
+index 0000000..b50dfec
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.dex
+new file mode 100644
+index 0000000..0a08f63
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker.dex
+new file mode 100644
+index 0000000..321c28c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPicker.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerLocalData.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerLocalData.dex
+new file mode 100644
+index 0000000..57cc492
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerLocalData.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.dex
+new file mode 100644
+index 0000000..65798ce
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.dex
+new file mode 100644
+index 0000000..ca54dda
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager.dex
+new file mode 100644
+index 0000000..36bfdbd
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerManager.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerShadowNode.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerShadowNode.dex
+new file mode 100644
+index 0000000..f46c2af
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/ReactPickerShadowNode.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/TextViewImpl.dex b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/TextViewImpl.dex
+new file mode 100644
+index 0000000..7000e38
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactnativecommunity/picker/TextViewImpl.dex differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin
+new file mode 100644
+index 0000000..ac610fd
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/.transforms/8276be845248929e9643c8354facdd8b/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/buildConfig/debug/com/reactnativecommunity/picker/BuildConfig.java b/node_modules/@react-native-picker/picker/android/build/generated/source/buildConfig/debug/com/reactnativecommunity/picker/BuildConfig.java
+new file mode 100644
+index 0000000..bd8ed9d
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/buildConfig/debug/com/reactnativecommunity/picker/BuildConfig.java
+@@ -0,0 +1,12 @@
++/**
++ * Automatically generated file. DO NOT MODIFY
++ */
++package com.reactnativecommunity.picker;
++
++public final class BuildConfig {
++  public static final boolean DEBUG = Boolean.parseBoolean("true");
++  public static final String LIBRARY_PACKAGE_NAME = "com.reactnativecommunity.picker";
++  public static final String BUILD_TYPE = "debug";
++  // Field from default config.
++  public static final boolean IS_NEW_ARCHITECTURE_ENABLED = true;
++}
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.java b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.java
+new file mode 100644
+index 0000000..52efa34
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.java
+@@ -0,0 +1,72 @@
++/**
++* This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++*
++* Do not edit this file as changes may cause incorrect behavior and will be lost
++* once the code is regenerated.
++*
++* @generated by codegen project: GeneratePropsJavaDelegate.js
++*/
++
++package com.facebook.react.viewmanagers;
++
++import android.view.View;
++import androidx.annotation.Nullable;
++import com.facebook.react.bridge.ColorPropConverter;
++import com.facebook.react.bridge.ReadableArray;
++import com.facebook.react.uimanager.BaseViewManagerDelegate;
++import com.facebook.react.uimanager.BaseViewManagerInterface;
++
++public class RNCAndroidDialogPickerManagerDelegate<T extends View, U extends BaseViewManagerInterface<T> & RNCAndroidDialogPickerManagerInterface<T>> extends BaseViewManagerDelegate<T, U> {
++  public RNCAndroidDialogPickerManagerDelegate(U viewManager) {
++    super(viewManager);
++  }
++  @Override
++  public void setProperty(T view, String propName, @Nullable Object value) {
++    switch (propName) {
++      case "items":
++        mViewManager.setItems(view, (ReadableArray) value);
++        break;
++      case "color":
++        mViewManager.setColor(view, ColorPropConverter.getColor(value, view.getContext()));
++        break;
++      case "prompt":
++        mViewManager.setPrompt(view, value == null ? null : (String) value);
++        break;
++      case "enabled":
++        mViewManager.setEnabled(view, value == null ? false : (boolean) value);
++        break;
++      case "selected":
++        mViewManager.setSelected(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "backgroundColor":
++        mViewManager.setBackgroundColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "dropdownIconColor":
++        mViewManager.setDropdownIconColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "dropdownIconRippleColor":
++        mViewManager.setDropdownIconRippleColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "numberOfLines":
++        mViewManager.setNumberOfLines(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      default:
++        super.setProperty(view, propName, value);
++    }
++  }
++
++  @Override
++  public void receiveCommand(T view, String commandName, @Nullable ReadableArray args) {
++    switch (commandName) {
++      case "focus":
++        mViewManager.focus(view);
++        break;
++      case "blur":
++        mViewManager.blur(view);
++        break;
++      case "setNativeSelected":
++        mViewManager.setNativeSelected(view, args.getInt(0));
++        break;
++    }
++  }
++}
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.java b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.java
+new file mode 100644
+index 0000000..0e276a1
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.java
+@@ -0,0 +1,29 @@
++/**
++* This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++*
++* Do not edit this file as changes may cause incorrect behavior and will be lost
++* once the code is regenerated.
++*
++* @generated by codegen project: GeneratePropsJavaInterface.js
++*/
++
++package com.facebook.react.viewmanagers;
++
++import android.view.View;
++import androidx.annotation.Nullable;
++import com.facebook.react.bridge.ReadableArray;
++
++public interface RNCAndroidDialogPickerManagerInterface<T extends View> {
++  void setItems(T view, @Nullable ReadableArray value);
++  void setColor(T view, @Nullable Integer value);
++  void setPrompt(T view, @Nullable String value);
++  void setEnabled(T view, boolean value);
++  void setSelected(T view, int value);
++  void setBackgroundColor(T view, int value);
++  void setDropdownIconColor(T view, int value);
++  void setDropdownIconRippleColor(T view, int value);
++  void setNumberOfLines(T view, int value);
++  void focus(T view);
++  void blur(T view);
++  void setNativeSelected(T view, int selected);
++}
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.java b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.java
+new file mode 100644
+index 0000000..29f2cec
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.java
+@@ -0,0 +1,72 @@
++/**
++* This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++*
++* Do not edit this file as changes may cause incorrect behavior and will be lost
++* once the code is regenerated.
++*
++* @generated by codegen project: GeneratePropsJavaDelegate.js
++*/
++
++package com.facebook.react.viewmanagers;
++
++import android.view.View;
++import androidx.annotation.Nullable;
++import com.facebook.react.bridge.ColorPropConverter;
++import com.facebook.react.bridge.ReadableArray;
++import com.facebook.react.uimanager.BaseViewManagerDelegate;
++import com.facebook.react.uimanager.BaseViewManagerInterface;
++
++public class RNCAndroidDropdownPickerManagerDelegate<T extends View, U extends BaseViewManagerInterface<T> & RNCAndroidDropdownPickerManagerInterface<T>> extends BaseViewManagerDelegate<T, U> {
++  public RNCAndroidDropdownPickerManagerDelegate(U viewManager) {
++    super(viewManager);
++  }
++  @Override
++  public void setProperty(T view, String propName, @Nullable Object value) {
++    switch (propName) {
++      case "items":
++        mViewManager.setItems(view, (ReadableArray) value);
++        break;
++      case "color":
++        mViewManager.setColor(view, ColorPropConverter.getColor(value, view.getContext()));
++        break;
++      case "prompt":
++        mViewManager.setPrompt(view, value == null ? null : (String) value);
++        break;
++      case "enabled":
++        mViewManager.setEnabled(view, value == null ? false : (boolean) value);
++        break;
++      case "selected":
++        mViewManager.setSelected(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "backgroundColor":
++        mViewManager.setBackgroundColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "dropdownIconColor":
++        mViewManager.setDropdownIconColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "dropdownIconRippleColor":
++        mViewManager.setDropdownIconRippleColor(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      case "numberOfLines":
++        mViewManager.setNumberOfLines(view, value == null ? 0 : ((Double) value).intValue());
++        break;
++      default:
++        super.setProperty(view, propName, value);
++    }
++  }
++
++  @Override
++  public void receiveCommand(T view, String commandName, @Nullable ReadableArray args) {
++    switch (commandName) {
++      case "focus":
++        mViewManager.focus(view);
++        break;
++      case "blur":
++        mViewManager.blur(view);
++        break;
++      case "setNativeSelected":
++        mViewManager.setNativeSelected(view, args.getInt(0));
++        break;
++    }
++  }
++}
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.java b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.java
+new file mode 100644
+index 0000000..8a7b516
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/java/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.java
+@@ -0,0 +1,29 @@
++/**
++* This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++*
++* Do not edit this file as changes may cause incorrect behavior and will be lost
++* once the code is regenerated.
++*
++* @generated by codegen project: GeneratePropsJavaInterface.js
++*/
++
++package com.facebook.react.viewmanagers;
++
++import android.view.View;
++import androidx.annotation.Nullable;
++import com.facebook.react.bridge.ReadableArray;
++
++public interface RNCAndroidDropdownPickerManagerInterface<T extends View> {
++  void setItems(T view, @Nullable ReadableArray value);
++  void setColor(T view, @Nullable Integer value);
++  void setPrompt(T view, @Nullable String value);
++  void setEnabled(T view, boolean value);
++  void setSelected(T view, int value);
++  void setBackgroundColor(T view, int value);
++  void setDropdownIconColor(T view, int value);
++  void setDropdownIconRippleColor(T view, int value);
++  void setNumberOfLines(T view, int value);
++  void focus(T view);
++  void blur(T view);
++  void setNativeSelected(T view, int selected);
++}
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/CMakeLists.txt b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/CMakeLists.txt
+new file mode 100644
+index 0000000..f2bd089
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/CMakeLists.txt
+@@ -0,0 +1,36 @@
++# Copyright (c) Meta Platforms, Inc. and affiliates.
++#
++# This source code is licensed under the MIT license found in the
++# LICENSE file in the root directory of this source tree.
++
++cmake_minimum_required(VERSION 3.13)
++set(CMAKE_VERBOSE_MAKEFILE on)
++
++file(GLOB react_codegen_SRCS CONFIGURE_DEPENDS *.cpp react/renderer/components/rnpicker/*.cpp)
++
++add_library(
++  react_codegen_rnpicker
++  OBJECT
++  ${react_codegen_SRCS}
++)
++
++target_include_directories(react_codegen_rnpicker PUBLIC . react/renderer/components/rnpicker)
++
++target_link_libraries(
++  react_codegen_rnpicker
++  fbjni
++  jsi
++  # We need to link different libraries based on whether we are building rncore or not, that's necessary
++  # because we want to break a circular dependency between react_codegen_rncore and reactnative
++  reactnative
++)
++
++target_compile_options(
++  react_codegen_rnpicker
++  PRIVATE
++  -DLOG_TAG=\"ReactNative\"
++  -fexceptions
++  -frtti
++  -std=c++20
++  -Wall
++)
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.cpp
+new file mode 100644
+index 0000000..bbd89d9
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.cpp
+@@ -0,0 +1,22 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateComponentDescriptorCpp.js
++ */
++
++#include <react/renderer/components/rnpicker/ComponentDescriptors.h>
++#include <react/renderer/core/ConcreteComponentDescriptor.h>
++#include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
++
++namespace facebook::react {
++
++void rnpicker_registerComponentDescriptorsFromCodegen(
++  std::shared_ptr<const ComponentDescriptorProviderRegistry> registry) {
++registry->add(concreteComponentDescriptorProvider<RNCPickerComponentDescriptor>());
++}
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.h
+new file mode 100644
+index 0000000..a4b2b43
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ComponentDescriptors.h
+@@ -0,0 +1,24 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateComponentDescriptorH.js
++ */
++
++#pragma once
++
++#include <react/renderer/components/rnpicker/ShadowNodes.h>
++#include <react/renderer/core/ConcreteComponentDescriptor.h>
++#include <react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h>
++
++namespace facebook::react {
++
++using RNCPickerComponentDescriptor = ConcreteComponentDescriptor<RNCPickerShadowNode>;
++
++void rnpicker_registerComponentDescriptorsFromCodegen(
++  std::shared_ptr<const ComponentDescriptorProviderRegistry> registry);
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.cpp
+new file mode 100644
+index 0000000..6dad82b
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.cpp
+@@ -0,0 +1,79 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateEventEmitterCpp.js
++ */
++
++#include <react/renderer/components/rnpicker/EventEmitters.h>
++
++
++namespace facebook::react {
++
++void RNCAndroidDialogPickerEventEmitter::onSelect(OnSelect $event) const {
++  dispatchEvent("topSelect", [$event=std::move($event)](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    $payload.setProperty(runtime, "position", $event.position);
++    return $payload;
++  });
++}
++
++
++void RNCAndroidDialogPickerEventEmitter::onFocus(OnFocus $event) const {
++  dispatchEvent("topFocus", [](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    
++    return $payload;
++  });
++}
++
++
++void RNCAndroidDialogPickerEventEmitter::onBlur(OnBlur $event) const {
++  dispatchEvent("topBlur", [](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    
++    return $payload;
++  });
++}
++
++
++void RNCAndroidDropdownPickerEventEmitter::onSelect(OnSelect $event) const {
++  dispatchEvent("topSelect", [$event=std::move($event)](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    $payload.setProperty(runtime, "position", $event.position);
++    return $payload;
++  });
++}
++
++
++void RNCAndroidDropdownPickerEventEmitter::onFocus(OnFocus $event) const {
++  dispatchEvent("topFocus", [](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    
++    return $payload;
++  });
++}
++
++
++void RNCAndroidDropdownPickerEventEmitter::onBlur(OnBlur $event) const {
++  dispatchEvent("topBlur", [](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    
++    return $payload;
++  });
++}
++
++
++void RNCPickerEventEmitter::onChange(OnChange $event) const {
++  dispatchEvent("change", [$event=std::move($event)](jsi::Runtime &runtime) {
++    auto $payload = jsi::Object(runtime);
++    $payload.setProperty(runtime, "newValue", $event.newValue);
++$payload.setProperty(runtime, "newIndex", $event.newIndex);
++    return $payload;
++  });
++}
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.h
+new file mode 100644
+index 0000000..293e5f0
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/EventEmitters.h
+@@ -0,0 +1,68 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateEventEmitterH.js
++ */
++#pragma once
++
++#include <react/renderer/components/view/ViewEventEmitter.h>
++
++
++namespace facebook::react {
++class RNCAndroidDialogPickerEventEmitter : public ViewEventEmitter {
++ public:
++  using ViewEventEmitter::ViewEventEmitter;
++
++  struct OnSelect {
++      int position;
++    };
++
++  struct OnFocus {
++      
++    };
++
++  struct OnBlur {
++      
++    };
++  void onSelect(OnSelect value) const;
++
++  void onFocus(OnFocus value) const;
++
++  void onBlur(OnBlur value) const;
++};
++class RNCAndroidDropdownPickerEventEmitter : public ViewEventEmitter {
++ public:
++  using ViewEventEmitter::ViewEventEmitter;
++
++  struct OnSelect {
++      int position;
++    };
++
++  struct OnFocus {
++      
++    };
++
++  struct OnBlur {
++      
++    };
++  void onSelect(OnSelect value) const;
++
++  void onFocus(OnFocus value) const;
++
++  void onBlur(OnBlur value) const;
++};
++class RNCPickerEventEmitter : public ViewEventEmitter {
++ public:
++  using ViewEventEmitter::ViewEventEmitter;
++
++  struct OnChange {
++      std::string newValue;
++    int newIndex;
++    };
++  void onChange(OnChange value) const;
++};
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.cpp
+new file mode 100644
+index 0000000..b4d76ea
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.cpp
+@@ -0,0 +1,67 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GeneratePropsCpp.js
++ */
++
++#include <react/renderer/components/rnpicker/Props.h>
++#include <react/renderer/core/PropsParserContext.h>
++#include <react/renderer/core/propsConversions.h>
++
++namespace facebook::react {
++
++RNCAndroidDialogPickerProps::RNCAndroidDialogPickerProps(
++    const PropsParserContext &context,
++    const RNCAndroidDialogPickerProps &sourceProps,
++    const RawProps &rawProps): ViewProps(context, sourceProps, rawProps),
++
++    items(convertRawProp(context, rawProps, "items", sourceProps.items, {})),
++    color(convertRawProp(context, rawProps, "color", sourceProps.color, {})),
++    prompt(convertRawProp(context, rawProps, "prompt", sourceProps.prompt, {})),
++    enabled(convertRawProp(context, rawProps, "enabled", sourceProps.enabled, {false})),
++    selected(convertRawProp(context, rawProps, "selected", sourceProps.selected, {0})),
++    backgroundColor(convertRawProp(context, rawProps, "backgroundColor", sourceProps.backgroundColor, {0})),
++    dropdownIconColor(convertRawProp(context, rawProps, "dropdownIconColor", sourceProps.dropdownIconColor, {0})),
++    dropdownIconRippleColor(convertRawProp(context, rawProps, "dropdownIconRippleColor", sourceProps.dropdownIconRippleColor, {0})),
++    numberOfLines(convertRawProp(context, rawProps, "numberOfLines", sourceProps.numberOfLines, {0}))
++      {}
++RNCAndroidDropdownPickerProps::RNCAndroidDropdownPickerProps(
++    const PropsParserContext &context,
++    const RNCAndroidDropdownPickerProps &sourceProps,
++    const RawProps &rawProps): ViewProps(context, sourceProps, rawProps),
++
++    items(convertRawProp(context, rawProps, "items", sourceProps.items, {})),
++    color(convertRawProp(context, rawProps, "color", sourceProps.color, {})),
++    prompt(convertRawProp(context, rawProps, "prompt", sourceProps.prompt, {})),
++    enabled(convertRawProp(context, rawProps, "enabled", sourceProps.enabled, {false})),
++    selected(convertRawProp(context, rawProps, "selected", sourceProps.selected, {0})),
++    backgroundColor(convertRawProp(context, rawProps, "backgroundColor", sourceProps.backgroundColor, {0})),
++    dropdownIconColor(convertRawProp(context, rawProps, "dropdownIconColor", sourceProps.dropdownIconColor, {0})),
++    dropdownIconRippleColor(convertRawProp(context, rawProps, "dropdownIconRippleColor", sourceProps.dropdownIconRippleColor, {0})),
++    numberOfLines(convertRawProp(context, rawProps, "numberOfLines", sourceProps.numberOfLines, {0}))
++      {}
++RNCPickerProps::RNCPickerProps(
++    const PropsParserContext &context,
++    const RNCPickerProps &sourceProps,
++    const RawProps &rawProps): ViewProps(context, sourceProps, rawProps),
++
++    items(convertRawProp(context, rawProps, "items", sourceProps.items, {})),
++    selectedIndex(convertRawProp(context, rawProps, "selectedIndex", sourceProps.selectedIndex, {0})),
++    selectionColor(convertRawProp(context, rawProps, "selectionColor", sourceProps.selectionColor, {})),
++    color(convertRawProp(context, rawProps, "color", sourceProps.color, {})),
++    textAlign(convertRawProp(context, rawProps, "textAlign", sourceProps.textAlign, {})),
++    numberOfLines(convertRawProp(context, rawProps, "numberOfLines", sourceProps.numberOfLines, {0})),
++    fontSize(convertRawProp(context, rawProps, "fontSize", sourceProps.fontSize, {0})),
++    fontWeight(convertRawProp(context, rawProps, "fontWeight", sourceProps.fontWeight, {})),
++    fontStyle(convertRawProp(context, rawProps, "fontStyle", sourceProps.fontStyle, {})),
++    fontFamily(convertRawProp(context, rawProps, "fontFamily", sourceProps.fontFamily, {})),
++    testID(convertRawProp(context, rawProps, "testID", sourceProps.testID, {})),
++    themeVariant(convertRawProp(context, rawProps, "themeVariant", sourceProps.themeVariant, {})),
++    fakeProp(convertRawProp(context, rawProps, "fakeProp", sourceProps.fakeProp, {}))
++      {}
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.h
+new file mode 100644
+index 0000000..f609525
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/Props.h
+@@ -0,0 +1,317 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GeneratePropsH.js
++ */
++#pragma once
++
++#include <react/renderer/components/view/ViewProps.h>
++#include <react/renderer/core/PropsParserContext.h>
++#include <react/renderer/core/propsConversions.h>
++#include <react/renderer/graphics/Color.h>
++#include <vector>
++
++namespace facebook::react {
++
++struct RNCAndroidDialogPickerItemsStyleStruct {
++  SharedColor backgroundColor{};
++  SharedColor color{};
++  double fontSize{0.0};
++  std::string fontFamily{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCAndroidDialogPickerItemsStyleStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_backgroundColor = map.find("backgroundColor");
++  if (tmp_backgroundColor != map.end()) {
++    fromRawValue(context, tmp_backgroundColor->second, result.backgroundColor);
++  }
++  auto tmp_color = map.find("color");
++  if (tmp_color != map.end()) {
++    fromRawValue(context, tmp_color->second, result.color);
++  }
++  auto tmp_fontSize = map.find("fontSize");
++  if (tmp_fontSize != map.end()) {
++    fromRawValue(context, tmp_fontSize->second, result.fontSize);
++  }
++  auto tmp_fontFamily = map.find("fontFamily");
++  if (tmp_fontFamily != map.end()) {
++    fromRawValue(context, tmp_fontFamily->second, result.fontFamily);
++  }
++}
++
++static inline std::string toString(const RNCAndroidDialogPickerItemsStyleStruct &value) {
++  return "[Object RNCAndroidDialogPickerItemsStyleStruct]";
++}
++
++struct RNCAndroidDialogPickerItemsStruct {
++  std::string label{};
++  std::string value{};
++  SharedColor color{};
++  std::string fontFamily{};
++  bool enabled{false};
++  RNCAndroidDialogPickerItemsStyleStruct style{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCAndroidDialogPickerItemsStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_label = map.find("label");
++  if (tmp_label != map.end()) {
++    fromRawValue(context, tmp_label->second, result.label);
++  }
++  auto tmp_value = map.find("value");
++  if (tmp_value != map.end()) {
++    fromRawValue(context, tmp_value->second, result.value);
++  }
++  auto tmp_color = map.find("color");
++  if (tmp_color != map.end()) {
++    fromRawValue(context, tmp_color->second, result.color);
++  }
++  auto tmp_fontFamily = map.find("fontFamily");
++  if (tmp_fontFamily != map.end()) {
++    fromRawValue(context, tmp_fontFamily->second, result.fontFamily);
++  }
++  auto tmp_enabled = map.find("enabled");
++  if (tmp_enabled != map.end()) {
++    fromRawValue(context, tmp_enabled->second, result.enabled);
++  }
++  auto tmp_style = map.find("style");
++  if (tmp_style != map.end()) {
++    fromRawValue(context, tmp_style->second, result.style);
++  }
++}
++
++static inline std::string toString(const RNCAndroidDialogPickerItemsStruct &value) {
++  return "[Object RNCAndroidDialogPickerItemsStruct]";
++}
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, std::vector<RNCAndroidDialogPickerItemsStruct> &result) {
++  auto items = (std::vector<RawValue>)value;
++  for (const auto &item : items) {
++    RNCAndroidDialogPickerItemsStruct newItem;
++    fromRawValue(context, item, newItem);
++    result.emplace_back(newItem);
++  }
++}
++
++class RNCAndroidDialogPickerProps final : public ViewProps {
++ public:
++  RNCAndroidDialogPickerProps() = default;
++  RNCAndroidDialogPickerProps(const PropsParserContext& context, const RNCAndroidDialogPickerProps &sourceProps, const RawProps &rawProps);
++
++#pragma mark - Props
++
++  std::vector<RNCAndroidDialogPickerItemsStruct> items{};
++  SharedColor color{};
++  std::string prompt{};
++  bool enabled{false};
++  int selected{0};
++  int backgroundColor{0};
++  int dropdownIconColor{0};
++  int dropdownIconRippleColor{0};
++  int numberOfLines{0};
++};
++
++struct RNCAndroidDropdownPickerItemsStyleStruct {
++  SharedColor backgroundColor{};
++  SharedColor color{};
++  double fontSize{0.0};
++  std::string fontFamily{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCAndroidDropdownPickerItemsStyleStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_backgroundColor = map.find("backgroundColor");
++  if (tmp_backgroundColor != map.end()) {
++    fromRawValue(context, tmp_backgroundColor->second, result.backgroundColor);
++  }
++  auto tmp_color = map.find("color");
++  if (tmp_color != map.end()) {
++    fromRawValue(context, tmp_color->second, result.color);
++  }
++  auto tmp_fontSize = map.find("fontSize");
++  if (tmp_fontSize != map.end()) {
++    fromRawValue(context, tmp_fontSize->second, result.fontSize);
++  }
++  auto tmp_fontFamily = map.find("fontFamily");
++  if (tmp_fontFamily != map.end()) {
++    fromRawValue(context, tmp_fontFamily->second, result.fontFamily);
++  }
++}
++
++static inline std::string toString(const RNCAndroidDropdownPickerItemsStyleStruct &value) {
++  return "[Object RNCAndroidDropdownPickerItemsStyleStruct]";
++}
++
++struct RNCAndroidDropdownPickerItemsStruct {
++  std::string label{};
++  std::string value{};
++  SharedColor color{};
++  std::string fontFamily{};
++  bool enabled{false};
++  RNCAndroidDropdownPickerItemsStyleStruct style{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCAndroidDropdownPickerItemsStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_label = map.find("label");
++  if (tmp_label != map.end()) {
++    fromRawValue(context, tmp_label->second, result.label);
++  }
++  auto tmp_value = map.find("value");
++  if (tmp_value != map.end()) {
++    fromRawValue(context, tmp_value->second, result.value);
++  }
++  auto tmp_color = map.find("color");
++  if (tmp_color != map.end()) {
++    fromRawValue(context, tmp_color->second, result.color);
++  }
++  auto tmp_fontFamily = map.find("fontFamily");
++  if (tmp_fontFamily != map.end()) {
++    fromRawValue(context, tmp_fontFamily->second, result.fontFamily);
++  }
++  auto tmp_enabled = map.find("enabled");
++  if (tmp_enabled != map.end()) {
++    fromRawValue(context, tmp_enabled->second, result.enabled);
++  }
++  auto tmp_style = map.find("style");
++  if (tmp_style != map.end()) {
++    fromRawValue(context, tmp_style->second, result.style);
++  }
++}
++
++static inline std::string toString(const RNCAndroidDropdownPickerItemsStruct &value) {
++  return "[Object RNCAndroidDropdownPickerItemsStruct]";
++}
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, std::vector<RNCAndroidDropdownPickerItemsStruct> &result) {
++  auto items = (std::vector<RawValue>)value;
++  for (const auto &item : items) {
++    RNCAndroidDropdownPickerItemsStruct newItem;
++    fromRawValue(context, item, newItem);
++    result.emplace_back(newItem);
++  }
++}
++
++class RNCAndroidDropdownPickerProps final : public ViewProps {
++ public:
++  RNCAndroidDropdownPickerProps() = default;
++  RNCAndroidDropdownPickerProps(const PropsParserContext& context, const RNCAndroidDropdownPickerProps &sourceProps, const RawProps &rawProps);
++
++#pragma mark - Props
++
++  std::vector<RNCAndroidDropdownPickerItemsStruct> items{};
++  SharedColor color{};
++  std::string prompt{};
++  bool enabled{false};
++  int selected{0};
++  int backgroundColor{0};
++  int dropdownIconColor{0};
++  int dropdownIconRippleColor{0};
++  int numberOfLines{0};
++};
++
++struct RNCPickerItemsStruct {
++  std::string label{};
++  std::string value{};
++  SharedColor textColor{};
++  std::string testID{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCPickerItemsStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_label = map.find("label");
++  if (tmp_label != map.end()) {
++    fromRawValue(context, tmp_label->second, result.label);
++  }
++  auto tmp_value = map.find("value");
++  if (tmp_value != map.end()) {
++    fromRawValue(context, tmp_value->second, result.value);
++  }
++  auto tmp_textColor = map.find("textColor");
++  if (tmp_textColor != map.end()) {
++    fromRawValue(context, tmp_textColor->second, result.textColor);
++  }
++  auto tmp_testID = map.find("testID");
++  if (tmp_testID != map.end()) {
++    fromRawValue(context, tmp_testID->second, result.testID);
++  }
++}
++
++static inline std::string toString(const RNCPickerItemsStruct &value) {
++  return "[Object RNCPickerItemsStruct]";
++}
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, std::vector<RNCPickerItemsStruct> &result) {
++  auto items = (std::vector<RawValue>)value;
++  for (const auto &item : items) {
++    RNCPickerItemsStruct newItem;
++    fromRawValue(context, item, newItem);
++    result.emplace_back(newItem);
++  }
++}
++
++
++struct RNCPickerFakePropStruct {
++  std::string label{};
++  std::string value{};
++  SharedColor textColor{};
++  std::string testID{};
++};
++
++static inline void fromRawValue(const PropsParserContext& context, const RawValue &value, RNCPickerFakePropStruct &result) {
++  auto map = (std::unordered_map<std::string, RawValue>)value;
++
++  auto tmp_label = map.find("label");
++  if (tmp_label != map.end()) {
++    fromRawValue(context, tmp_label->second, result.label);
++  }
++  auto tmp_value = map.find("value");
++  if (tmp_value != map.end()) {
++    fromRawValue(context, tmp_value->second, result.value);
++  }
++  auto tmp_textColor = map.find("textColor");
++  if (tmp_textColor != map.end()) {
++    fromRawValue(context, tmp_textColor->second, result.textColor);
++  }
++  auto tmp_testID = map.find("testID");
++  if (tmp_testID != map.end()) {
++    fromRawValue(context, tmp_testID->second, result.testID);
++  }
++}
++
++static inline std::string toString(const RNCPickerFakePropStruct &value) {
++  return "[Object RNCPickerFakePropStruct]";
++}
++class RNCPickerProps final : public ViewProps {
++ public:
++  RNCPickerProps() = default;
++  RNCPickerProps(const PropsParserContext& context, const RNCPickerProps &sourceProps, const RawProps &rawProps);
++
++#pragma mark - Props
++
++  std::vector<RNCPickerItemsStruct> items{};
++  int selectedIndex{0};
++  SharedColor selectionColor{};
++  SharedColor color{};
++  std::string textAlign{};
++  int numberOfLines{0};
++  int fontSize{0};
++  std::string fontWeight{};
++  std::string fontStyle{};
++  std::string fontFamily{};
++  std::string testID{};
++  std::string themeVariant{};
++  RNCPickerFakePropStruct fakeProp{};
++};
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.cpp
+new file mode 100644
+index 0000000..b38e6f1
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.cpp
+@@ -0,0 +1,17 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateShadowNodeCpp.js
++ */
++
++#include <react/renderer/components/rnpicker/ShadowNodes.h>
++
++namespace facebook::react {
++
++extern const char RNCPickerComponentName[] = "RNCPicker";
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.h
+new file mode 100644
+index 0000000..9594bdf
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/ShadowNodes.h
+@@ -0,0 +1,32 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateShadowNodeH.js
++ */
++
++#pragma once
++
++#include <react/renderer/components/rnpicker/EventEmitters.h>
++#include <react/renderer/components/rnpicker/Props.h>
++#include <react/renderer/components/rnpicker/States.h>
++#include <react/renderer/components/view/ConcreteViewShadowNode.h>
++#include <jsi/jsi.h>
++
++namespace facebook::react {
++
++JSI_EXPORT extern const char RNCPickerComponentName[];
++
++/*
++ * `ShadowNode` for <RNCPicker> component.
++ */
++using RNCPickerShadowNode = ConcreteViewShadowNode<
++    RNCPickerComponentName,
++    RNCPickerProps,
++    RNCPickerEventEmitter,
++    RNCPickerState>;
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.cpp
+new file mode 100644
+index 0000000..68b3a24
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.cpp
+@@ -0,0 +1,16 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateStateCpp.js
++ */
++#include <react/renderer/components/rnpicker/States.h>
++
++namespace facebook::react {
++
++
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.h
+new file mode 100644
+index 0000000..adef950
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/States.h
+@@ -0,0 +1,29 @@
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateStateH.js
++ */
++#pragma once
++
++#ifdef ANDROID
++#include <folly/dynamic.h>
++#endif
++
++namespace facebook::react {
++
++class RNCPickerState {
++public:
++  RNCPickerState() = default;
++
++#ifdef ANDROID
++  RNCPickerState(RNCPickerState const &previousState, folly::dynamic data){};
++  folly::dynamic getDynamic() const {
++    return {};
++  };
++#endif
++};
++
++} // namespace facebook::react
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI-generated.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI-generated.cpp
+new file mode 100644
+index 0000000..a8625a2
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI-generated.cpp
+@@ -0,0 +1,17 @@
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateModuleCpp.js
++ */
++
++#include "rnpickerJSI.h"
++
++namespace facebook::react {
++
++
++
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI.h
+new file mode 100644
+index 0000000..ec16260
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/react/renderer/components/rnpicker/rnpickerJSI.h
+@@ -0,0 +1,19 @@
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateModuleH.js
++ */
++
++#pragma once
++
++#include <ReactCommon/TurboModule.h>
++#include <react/bridging/Bridging.h>
++
++namespace facebook::react {
++
++
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker-generated.cpp b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker-generated.cpp
+new file mode 100644
+index 0000000..89b22b4
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker-generated.cpp
+@@ -0,0 +1,22 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateModuleJniCpp.js
++ */
++
++#include "rnpicker.h"
++
++namespace facebook::react {
++
++
++
++std::shared_ptr<TurboModule> rnpicker_ModuleProvider(const std::string &moduleName, const JavaTurboModule::InitParams &params) {
++
++  return nullptr;
++}
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker.h b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker.h
+new file mode 100644
+index 0000000..c1b3bfa
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/rnpicker.h
+@@ -0,0 +1,24 @@
++
++/**
++ * This code was generated by [react-native-codegen](https://www.npmjs.com/package/react-native-codegen).
++ *
++ * Do not edit this file as changes may cause incorrect behavior and will be lost
++ * once the code is regenerated.
++ *
++ * @generated by codegen project: GenerateModuleJniH.js
++ */
++
++#pragma once
++
++#include <ReactCommon/JavaTurboModule.h>
++#include <ReactCommon/TurboModule.h>
++#include <jsi/jsi.h>
++
++namespace facebook::react {
++
++
++
++JSI_EXPORT
++std::shared_ptr<TurboModule> rnpicker_ModuleProvider(const std::string &moduleName, const JavaTurboModule::InitParams &params);
++
++} // namespace facebook::react
+diff --git a/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/schema.json b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/schema.json
+new file mode 100644
+index 0000000..b0081ce
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/schema.json
+@@ -0,0 +1,781 @@
++{
++  "modules": {
++    "RNCAndroidDialogPicker": {
++      "type": "Component",
++      "components": {
++        "RNCAndroidDialogPicker": {
++          "excludedPlatforms": [
++            "iOS"
++          ],
++          "interfaceOnly": true,
++          "extendsProps": [
++            {
++              "type": "ReactNativeBuiltInType",
++              "knownTypeName": "ReactNativeCoreViewProps"
++            }
++          ],
++          "events": [
++            {
++              "name": "onSelect",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topSelect",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "position",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "Int32TypeAnnotation"
++                      }
++                    }
++                  ]
++                }
++              }
++            },
++            {
++              "name": "onFocus",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topFocus",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": []
++                }
++              }
++            },
++            {
++              "name": "onBlur",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topBlur",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": []
++                }
++              }
++            }
++          ],
++          "props": [
++            {
++              "name": "items",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "ArrayTypeAnnotation",
++                "elementType": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "label",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "value",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "color",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "ReservedPropTypeAnnotation",
++                        "name": "ColorPrimitive"
++                      }
++                    },
++                    {
++                      "name": "fontFamily",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "enabled",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "BooleanTypeAnnotation",
++                        "default": false
++                      }
++                    },
++                    {
++                      "name": "style",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "ObjectTypeAnnotation",
++                        "properties": [
++                          {
++                            "name": "backgroundColor",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "ReservedPropTypeAnnotation",
++                              "name": "ColorPrimitive"
++                            }
++                          },
++                          {
++                            "name": "color",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "ReservedPropTypeAnnotation",
++                              "name": "ColorPrimitive"
++                            }
++                          },
++                          {
++                            "name": "fontSize",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "DoubleTypeAnnotation",
++                              "default": 0
++                            }
++                          },
++                          {
++                            "name": "fontFamily",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "StringTypeAnnotation",
++                              "default": null
++                            }
++                          }
++                        ]
++                      }
++                    }
++                  ]
++                }
++              }
++            },
++            {
++              "name": "color",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "ReservedPropTypeAnnotation",
++                "name": "ColorPrimitive"
++              }
++            },
++            {
++              "name": "prompt",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "enabled",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "BooleanTypeAnnotation",
++                "default": false
++              }
++            },
++            {
++              "name": "selected",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "backgroundColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "dropdownIconColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "dropdownIconRippleColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "numberOfLines",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            }
++          ],
++          "commands": [
++            {
++              "name": "focus",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            },
++            {
++              "name": "blur",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            },
++            {
++              "name": "setNativeSelected",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [
++                  {
++                    "name": "selected",
++                    "optional": false,
++                    "typeAnnotation": {
++                      "type": "Int32TypeAnnotation"
++                    }
++                  }
++                ],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            }
++          ]
++        }
++      }
++    },
++    "RNCAndroidDropdownPicker": {
++      "type": "Component",
++      "components": {
++        "RNCAndroidDropdownPicker": {
++          "excludedPlatforms": [
++            "iOS"
++          ],
++          "interfaceOnly": true,
++          "extendsProps": [
++            {
++              "type": "ReactNativeBuiltInType",
++              "knownTypeName": "ReactNativeCoreViewProps"
++            }
++          ],
++          "events": [
++            {
++              "name": "onSelect",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topSelect",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "position",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "Int32TypeAnnotation"
++                      }
++                    }
++                  ]
++                }
++              }
++            },
++            {
++              "name": "onFocus",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topFocus",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": []
++                }
++              }
++            },
++            {
++              "name": "onBlur",
++              "optional": true,
++              "bubblingType": "bubble",
++              "paperTopLevelNameDeprecated": "topBlur",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": []
++                }
++              }
++            }
++          ],
++          "props": [
++            {
++              "name": "items",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "ArrayTypeAnnotation",
++                "elementType": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "label",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "value",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "color",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "ReservedPropTypeAnnotation",
++                        "name": "ColorPrimitive"
++                      }
++                    },
++                    {
++                      "name": "fontFamily",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "enabled",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "BooleanTypeAnnotation",
++                        "default": false
++                      }
++                    },
++                    {
++                      "name": "style",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "ObjectTypeAnnotation",
++                        "properties": [
++                          {
++                            "name": "backgroundColor",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "ReservedPropTypeAnnotation",
++                              "name": "ColorPrimitive"
++                            }
++                          },
++                          {
++                            "name": "color",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "ReservedPropTypeAnnotation",
++                              "name": "ColorPrimitive"
++                            }
++                          },
++                          {
++                            "name": "fontSize",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "DoubleTypeAnnotation",
++                              "default": 0
++                            }
++                          },
++                          {
++                            "name": "fontFamily",
++                            "optional": true,
++                            "typeAnnotation": {
++                              "type": "StringTypeAnnotation",
++                              "default": null
++                            }
++                          }
++                        ]
++                      }
++                    }
++                  ]
++                }
++              }
++            },
++            {
++              "name": "color",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "ReservedPropTypeAnnotation",
++                "name": "ColorPrimitive"
++              }
++            },
++            {
++              "name": "prompt",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "enabled",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "BooleanTypeAnnotation",
++                "default": false
++              }
++            },
++            {
++              "name": "selected",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "backgroundColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "dropdownIconColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "dropdownIconRippleColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "numberOfLines",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            }
++          ],
++          "commands": [
++            {
++              "name": "focus",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            },
++            {
++              "name": "blur",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            },
++            {
++              "name": "setNativeSelected",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [
++                  {
++                    "name": "selected",
++                    "optional": false,
++                    "typeAnnotation": {
++                      "type": "Int32TypeAnnotation"
++                    }
++                  }
++                ],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            }
++          ]
++        }
++      }
++    },
++    "RNCPicker": {
++      "type": "Component",
++      "components": {
++        "RNCPicker": {
++          "excludedPlatforms": [
++            "android"
++          ],
++          "extendsProps": [
++            {
++              "type": "ReactNativeBuiltInType",
++              "knownTypeName": "ReactNativeCoreViewProps"
++            }
++          ],
++          "events": [
++            {
++              "name": "onChange",
++              "optional": false,
++              "bubblingType": "bubble",
++              "typeAnnotation": {
++                "type": "EventTypeAnnotation",
++                "argument": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "newValue",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation"
++                      }
++                    },
++                    {
++                      "name": "newIndex",
++                      "optional": false,
++                      "typeAnnotation": {
++                        "type": "Int32TypeAnnotation"
++                      }
++                    }
++                  ]
++                }
++              }
++            }
++          ],
++          "props": [
++            {
++              "name": "items",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "ArrayTypeAnnotation",
++                "elementType": {
++                  "type": "ObjectTypeAnnotation",
++                  "properties": [
++                    {
++                      "name": "label",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "value",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    },
++                    {
++                      "name": "textColor",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "ReservedPropTypeAnnotation",
++                        "name": "ColorPrimitive"
++                      }
++                    },
++                    {
++                      "name": "testID",
++                      "optional": true,
++                      "typeAnnotation": {
++                        "type": "StringTypeAnnotation",
++                        "default": null
++                      }
++                    }
++                  ]
++                }
++              }
++            },
++            {
++              "name": "selectedIndex",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "selectionColor",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "ReservedPropTypeAnnotation",
++                "name": "ColorPrimitive"
++              }
++            },
++            {
++              "name": "color",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "ReservedPropTypeAnnotation",
++                "name": "ColorPrimitive"
++              }
++            },
++            {
++              "name": "textAlign",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "numberOfLines",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "fontSize",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "Int32TypeAnnotation",
++                "default": 0
++              }
++            },
++            {
++              "name": "fontWeight",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "fontStyle",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "fontFamily",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "testID",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "themeVariant",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "StringTypeAnnotation",
++                "default": null
++              }
++            },
++            {
++              "name": "fakeProp",
++              "optional": true,
++              "typeAnnotation": {
++                "type": "ObjectTypeAnnotation",
++                "properties": [
++                  {
++                    "name": "label",
++                    "optional": true,
++                    "typeAnnotation": {
++                      "type": "StringTypeAnnotation",
++                      "default": null
++                    }
++                  },
++                  {
++                    "name": "value",
++                    "optional": true,
++                    "typeAnnotation": {
++                      "type": "StringTypeAnnotation",
++                      "default": null
++                    }
++                  },
++                  {
++                    "name": "textColor",
++                    "optional": true,
++                    "typeAnnotation": {
++                      "type": "ReservedPropTypeAnnotation",
++                      "name": "ColorPrimitive"
++                    }
++                  },
++                  {
++                    "name": "testID",
++                    "optional": true,
++                    "typeAnnotation": {
++                      "type": "StringTypeAnnotation",
++                      "default": null
++                    }
++                  }
++                ]
++              }
++            }
++          ],
++          "commands": [
++            {
++              "name": "setNativeSelectedIndex",
++              "optional": false,
++              "typeAnnotation": {
++                "type": "FunctionTypeAnnotation",
++                "params": [
++                  {
++                    "name": "selectedIndex",
++                    "optional": false,
++                    "typeAnnotation": {
++                      "type": "Int32TypeAnnotation"
++                    }
++                  }
++                ],
++                "returnTypeAnnotation": {
++                  "type": "VoidTypeAnnotation"
++                }
++              }
++            }
++          ]
++        }
++      }
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..7daee81
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.reactnativecommunity.picker" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json b/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..12cea15
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.reactnativecommunity.picker",
++  "variantName": "debug",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/@react-native-picker/picker/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json b/node_modules/@react-native-picker/picker/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar
+new file mode 100644
+index 0000000..ff2e884
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
+new file mode 100644
+index 0000000..c252cd3
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+new file mode 100644
+index 0000000..eb42e89
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+@@ -0,0 +1,6 @@
++int drawable ic_dropdown 0x0
++int drawable spinner_dropdown_background 0x0
++int id dropdown_background 0x0
++int id dropdown_icon 0x0
++int layout simple_spinner_dropdown_item 0x0
++int layout simple_spinner_item 0x0
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_ic_dropdown.xml.flat b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_ic_dropdown.xml.flat
+new file mode 100644
+index 0000000..a957b18
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_ic_dropdown.xml.flat differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_spinner_dropdown_background.xml.flat b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_spinner_dropdown_background.xml.flat
+new file mode 100644
+index 0000000..5f8bfe8
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/drawable_spinner_dropdown_background.xml.flat differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_dropdown_item.xml.flat b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_dropdown_item.xml.flat
+new file mode 100644
+index 0000000..d16da19
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_dropdown_item.xml.flat differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_item.xml.flat b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_item.xml.flat
+new file mode 100644
+index 0000000..14174c4
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/compiled_local_resources/debug/compileDebugLibraryResources/out/layout_simple_spinner_item.xml.flat differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+new file mode 100644
+index 0000000..81943bf
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+@@ -0,0 +1,5 @@
++#Thu Oct 24 11:54:50 EDT 2024
++com.reactnativecommunity.picker.react-native-picker_picker-main-6\:/drawable/ic_dropdown.xml=/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/ic_dropdown.xml
++com.reactnativecommunity.picker.react-native-picker_picker-main-6\:/layout/simple_spinner_dropdown_item.xml=/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_dropdown_item.xml
++com.reactnativecommunity.picker.react-native-picker_picker-main-6\:/layout/simple_spinner_item.xml=/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_item.xml
++com.reactnativecommunity.picker.react-native-picker_picker-main-6\:/drawable/spinner_dropdown_background.xml=/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/spinner_dropdown_background.xml
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+new file mode 100644
+index 0000000..c8511bf
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res"><file name="ic_dropdown" path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res/drawable/ic_dropdown.xml" qualifiers="" type="drawable"/><file name="spinner_dropdown_background" path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res/drawable/spinner_dropdown_background.xml" qualifiers="" type="drawable"/><file name="simple_spinner_item" path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res/layout/simple_spinner_item.xml" qualifiers="" type="layout"/><file name="simple_spinner_dropdown_item" path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/res/layout/simple_spinner_dropdown_item.xml" qualifiers="" type="layout"/></source></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/generated/res/resValues/debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/generated/res/resValues/debug"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/mergeDebugShaders/merger.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+new file mode 100644
+index 0000000..498926d
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/shaders"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/debug/shaders"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/packageDebugAssets/merger.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/packageDebugAssets/merger.xml
+new file mode 100644
+index 0000000..f2ded80
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/incremental/packageDebugAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/assets"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/debug/assets"/></dataSet><dataSet config="generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/build/intermediates/shader_assets/debug/compileDebugShaders/out"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class
+new file mode 100644
+index 0000000..75a4c5f
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class
+new file mode 100644
+index 0000000..abb53cd
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class
+new file mode 100644
+index 0000000..dac9376
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class
+new file mode 100644
+index 0000000..5052b9b
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/BuildConfig.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/BuildConfig.class
+new file mode 100644
+index 0000000..6038e1b
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/BuildConfig.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/CheckedTextViewImpl.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/CheckedTextViewImpl.class
+new file mode 100644
+index 0000000..7168792
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/CheckedTextViewImpl.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/FabricEnabledPicker.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/FabricEnabledPicker.class
+new file mode 100644
+index 0000000..14fd40a
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/FabricEnabledPicker.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerBlurEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerBlurEvent.class
+new file mode 100644
+index 0000000..182a8be
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerBlurEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerFocusEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerFocusEvent.class
+new file mode 100644
+index 0000000..d94bcdc
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerFocusEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerItemSelectEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerItemSelectEvent.class
+new file mode 100644
+index 0000000..d03e286
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/PickerItemSelectEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/RNCPickerPackage.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/RNCPickerPackage.class
+new file mode 100644
+index 0000000..00b8b84
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/RNCPickerPackage.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDialogPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDialogPickerManager.class
+new file mode 100644
+index 0000000..84fa854
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDialogPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDropdownPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDropdownPickerManager.class
+new file mode 100644
+index 0000000..ce12862
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactDropdownPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$1.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$1.class
+new file mode 100644
+index 0000000..2619a2e
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$1.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class
+new file mode 100644
+index 0000000..c70ce1a
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class
+new file mode 100644
+index 0000000..c6fe593
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker.class
+new file mode 100644
+index 0000000..71801aa
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPicker.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerLocalData.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerLocalData.class
+new file mode 100644
+index 0000000..f09c1f6
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerLocalData.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class
+new file mode 100644
+index 0000000..54ade99
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class
+new file mode 100644
+index 0000000..669da3c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager.class
+new file mode 100644
+index 0000000..911f73c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerShadowNode.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerShadowNode.class
+new file mode 100644
+index 0000000..0d61fa6
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/ReactPickerShadowNode.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/TextViewImpl.class b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/TextViewImpl.class
+new file mode 100644
+index 0000000..3c74997
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactnativecommunity/picker/TextViewImpl.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt b/node_modules/@react-native-picker/picker/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+new file mode 100644
+index 0000000..7a6208d
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+@@ -0,0 +1,8 @@
++R_DEF: Internal format may change without notice
++local
++drawable ic_dropdown
++drawable spinner_dropdown_background
++id dropdown_background
++id dropdown_icon
++layout simple_spinner_dropdown_item
++layout simple_spinner_item
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt b/node_modules/@react-native-picker/picker/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+new file mode 100644
+index 0000000..82e796a
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+@@ -0,0 +1,7 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.reactnativecommunity.picker" >
++4
++5    <uses-sdk android:minSdkVersion="24" />
++6
++7</manifest>
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..7daee81
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.reactnativecommunity.picker" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json b/node_modules/@react-native-picker/picker/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt b/node_modules/@react-native-picker/picker/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/ic_dropdown.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/ic_dropdown.xml
+new file mode 100644
+index 0000000..ad57729
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/ic_dropdown.xml
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="48dp"
++    android:height="48dp"
++    android:viewportWidth="48"
++    android:viewportHeight="48"
++    android:tint="?attr/colorControlNormal">
++  <path
++      android:fillColor="@android:color/black"
++      android:pathData="M19,22l5,5 5,-5z"/>
++</vector>
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/spinner_dropdown_background.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/spinner_dropdown_background.xml
+new file mode 100644
+index 0000000..a9a7a2b
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/drawable/spinner_dropdown_background.xml
+@@ -0,0 +1,29 @@
++<?xml version="1.0" encoding="utf-8"?>
++<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++    <item android:id="@+id/dropdown_background">
++        <shape android:shape="rectangle">
++            <solid android:color="@android:color/transparent" />
++        </shape>
++    </item>
++    <item
++        android:id="@+id/dropdown_icon"
++        android:gravity="end|center_vertical"
++        android:color="@android:color/black"
++        android:tint="@android:color/black">
++        <ripple
++            android:color="@android:color/darker_gray"
++            android:radius="18dp">
++            <item android:id="@android:id/mask">
++                <shape android:shape="rectangle">
++                    <solid android:color="@android:color/white" />
++                    <corners android:radius="18dp" />
++                </shape>
++            </item>
++            <item>
++                <selector>
++                    <item android:drawable="@drawable/ic_dropdown" />
++                </selector>
++            </item>
++        </ripple>
++    </item>
++</layer-list>
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_dropdown_item.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_dropdown_item.xml
+new file mode 100644
+index 0000000..a642d5c
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_dropdown_item.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<com.reactnativecommunity.picker.CheckedTextViewImpl xmlns:android="http://schemas.android.com/apk/res/android"
++          android:id="@android:id/text1"
++          style="?android:attr/spinnerDropDownItemStyle"
++          android:layout_width="match_parent"
++          android:layout_height="wrap_content"
++          android:ellipsize="end"
++          android:padding="16dp"/>
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_item.xml b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_item.xml
+new file mode 100644
+index 0000000..22419e6
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/packaged_res/debug/packageDebugResources/layout/simple_spinner_item.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<com.reactnativecommunity.picker.TextViewImpl xmlns:android="http://schemas.android.com/apk/res/android"
++          android:id="@android:id/text1"
++          style="?android:attr/spinnerItemStyle"
++          android:layout_width="match_parent"
++          android:layout_height="wrap_content"
++          android:ellipsize="end"
++          android:padding="16dp"/>
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class
+new file mode 100644
+index 0000000..75a4c5f
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerDelegate.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class
+new file mode 100644
+index 0000000..abb53cd
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDialogPickerManagerInterface.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class
+new file mode 100644
+index 0000000..dac9376
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerDelegate.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class
+new file mode 100644
+index 0000000..5052b9b
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/facebook/react/viewmanagers/RNCAndroidDropdownPickerManagerInterface.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/BuildConfig.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/BuildConfig.class
+new file mode 100644
+index 0000000..6038e1b
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/BuildConfig.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/CheckedTextViewImpl.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/CheckedTextViewImpl.class
+new file mode 100644
+index 0000000..7168792
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/CheckedTextViewImpl.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/FabricEnabledPicker.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/FabricEnabledPicker.class
+new file mode 100644
+index 0000000..14fd40a
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/FabricEnabledPicker.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerBlurEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerBlurEvent.class
+new file mode 100644
+index 0000000..182a8be
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerBlurEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerFocusEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerFocusEvent.class
+new file mode 100644
+index 0000000..d94bcdc
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerFocusEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerItemSelectEvent.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerItemSelectEvent.class
+new file mode 100644
+index 0000000..d03e286
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/PickerItemSelectEvent.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/RNCPickerPackage.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/RNCPickerPackage.class
+new file mode 100644
+index 0000000..00b8b84
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/RNCPickerPackage.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDialogPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDialogPickerManager.class
+new file mode 100644
+index 0000000..84fa854
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDialogPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDropdownPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDropdownPickerManager.class
+new file mode 100644
+index 0000000..ce12862
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactDropdownPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$1.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$1.class
+new file mode 100644
+index 0000000..2619a2e
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$1.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class
+new file mode 100644
+index 0000000..c70ce1a
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnFocusListener.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class
+new file mode 100644
+index 0000000..c6fe593
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker$OnSelectListener.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker.class
+new file mode 100644
+index 0000000..71801aa
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPicker.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerLocalData.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerLocalData.class
+new file mode 100644
+index 0000000..f09c1f6
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerLocalData.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class
+new file mode 100644
+index 0000000..54ade99
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$PickerEventEmitter.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class
+new file mode 100644
+index 0000000..669da3c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager$ReactPickerAdapter.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager.class
+new file mode 100644
+index 0000000..911f73c
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerManager.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerShadowNode.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerShadowNode.class
+new file mode 100644
+index 0000000..0d61fa6
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/ReactPickerShadowNode.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/TextViewImpl.class b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/TextViewImpl.class
+new file mode 100644
+index 0000000..3c74997
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactnativecommunity/picker/TextViewImpl.class differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar
+new file mode 100644
+index 0000000..363f401
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar differ
+diff --git a/node_modules/@react-native-picker/picker/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/@react-native-picker/picker/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..b4db306
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+@@ -0,0 +1,7 @@
++com.reactnativecommunity.picker
++drawable ic_dropdown
++drawable spinner_dropdown_background
++id dropdown_background
++id dropdown_icon
++layout simple_spinner_dropdown_item
++layout simple_spinner_item
+diff --git a/node_modules/@react-native-picker/picker/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/@react-native-picker/picker/android/build/outputs/logs/manifest-merger-debug-report.txt
+new file mode 100644
+index 0000000..1bddafc
+--- /dev/null
++++ b/node_modules/@react-native-picker/picker/android/build/outputs/logs/manifest-merger-debug-report.txt
+@@ -0,0 +1,17 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml:2:1-5:12
++INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml:2:1-5:12
++	package
++		ADDED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml:3:11-52
++		INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml:2:11-69
++uses-sdk
++INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml
++INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/chrisnojima/go/src/github.com/keybase/client/shared/node_modules/@react-native-picker/picker/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/@react-native-picker/picker/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin b/node_modules/@react-native-picker/picker/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..475c57b
+Binary files /dev/null and b/node_modules/@react-native-picker/picker/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin differ
+diff --git a/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt b/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
+index db67583..4d1eb14 100644
+--- a/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
++++ b/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
+@@ -35,25 +35,34 @@ target_include_directories(
+   ${LIB_ANDROID_GENERATED_COMPONENTS_DIR}
+ )
+ 
+-target_link_libraries(
+-  ${LIB_TARGET_NAME}
+-  fbjni
+-  folly_runtime
+-  glog
+-  jsi
+-  react_codegen_rncore
+-  react_debug
+-  react_nativemodule_core
+-  react_render_componentregistry
+-  react_utils
+-  react_render_core
+-  react_render_debug
+-  react_render_graphics
+-  react_render_mapbuffer
+-  rrc_view
+-  turbomodulejsijni
+-  yoga
+-)
++if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 76)
++  target_link_libraries(
++    ${LIB_TARGET_NAME}
++    ReactAndroid::reactnative
++    ReactAndroid::jsi
++    fbjni::fbjni
++  )
++else()
++  target_link_libraries(
++    ${LIB_TARGET_NAME}
++    fbjni
++    folly_runtime
++    glog
++    jsi
++    react_codegen_rncore
++    react_debug
++    react_nativemodule_core
++    react_render_componentregistry
++    react_utils
++    react_render_core
++    react_render_debug
++    react_render_graphics
++    react_render_mapbuffer
++    rrc_view
++    turbomodulejsijni
++    yoga
++  )
++endif()
+ 
+ target_compile_options(
+   ${LIB_TARGET_NAME}
 diff --git a/node_modules/@react-native-picker/picker/typings/Picker.d.ts b/node_modules/@react-native-picker/picker/typings/Picker.d.ts
 index 67a1e4b..687e466 100644
 --- a/node_modules/@react-native-picker/picker/typings/Picker.d.ts

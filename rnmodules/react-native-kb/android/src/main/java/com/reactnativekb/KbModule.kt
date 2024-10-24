@@ -336,14 +336,14 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
                 .addOnCompleteListener(OnCompleteListener { task ->
                         if (!task.isSuccessful()) {
                             NativeLogger.info("Fetching FCM registration token failed " + task.getException())
-                            promise.reject(task.getException())
+                            promise.reject("Fetching FCM registration token failed")
                             return@OnCompleteListener
                         }
 
                         // Get new FCM registration token
                         val token: String? = task.result
                         if (token == null) {
-                            promise.reject(task.getException())
+                            promise.reject("null token")
                             return@OnCompleteListener
                          }
                         NativeLogger.info("Got token: $token")
