@@ -1,11 +1,3 @@
- mic tap tooltip doesnt show
- copy heic from imessage pastest as url w/ heic???
-
-
-
-
-
-
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt
 new unchecked kotline code for 'getInitialShareFileUrls'
 CHECK push / files etc on android

@@ -45,6 +45,7 @@ export type Props = {
   textType?: TextType
   style?: Styles.StylesCrossPlatform
   onChangeText?: (value: string) => void
+  onPasteImage?: (uri: string) => void // mobile only
   multiline?: boolean
   rowsMin?: number
   rowsMax?: number

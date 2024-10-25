@@ -8,7 +8,7 @@ import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEvent
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
     const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
-    const {textType = 'Body', rowsMax, rowsMin, padding, disabled, autoFocus} = p
+    const {textType = 'Body', rowsMax, rowsMin, padding, disabled, autoFocus, onPasteImage} = p
 
     const valueRef = React.useRef('')
     const selectionRef = React.useRef<{start: number; end?: number | undefined} | undefined>(undefined)
@@ -97,8 +97,22 @@ export const Input2 = React.memo(
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
     }, [_style, multiline, textType, padding, rowsMax, rowsMin])
 
+    const onImageChangeImpl = React.useCallback(
+      (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
+        if (onPasteImage) {
+          const {uri, linkUri} = e.nativeEvent
+          uri && onPasteImage(linkUri || uri)
+        }
+      },
+      [onPasteImage]
+    )
+
+    const onImageChange = onPasteImage ? onImageChangeImpl : undefined
+
     return (
       <TextInput
+        // @ts-ignore in our patched impl
+        onImageChange={onImageChange}
         autoFocus={autoFocus}
         placeholder={placeholder}
         readOnly={disabled}

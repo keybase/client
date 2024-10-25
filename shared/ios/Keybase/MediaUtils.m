@@ -23,8 +23,14 @@
 + (NSError *) _scaleDownCGImageSourceRef:(CGImageSourceRef)img dstURL:(NSURL *)dstURL options:(CFDictionaryRef)options {
   NSLog(@"dstURL: %@", dstURL);
   CGImageRef scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options);
+  if (scaledRef == NULL) {
+    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error writing scaled down image"}];
+  }
   NSData * scaled = UIImageJPEGRepresentation([UIImage imageWithCGImage:scaledRef], 0.85);
   CGImageRelease(scaledRef);
+  if (scaled == nil) {
+    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error writing scaled down image"}];
+  }
   BOOL OK = [scaled writeToURL:dstURL atomically:true];
   if (!OK) {
     return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error writing scaled down image"}];
