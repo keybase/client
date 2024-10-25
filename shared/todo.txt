@@ -1,5 +1,4 @@
- imgur preview doesn't have a collapse
- thread search loses focused
+ search up several screens then scroll up, you lose jump to bottom and latest messages
  mic tap tooltip doesnt show
  copy heic from imessage pastest as url w/ heic???
 
