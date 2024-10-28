@@ -272,6 +272,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
 
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
         try {
+            // note in JS initPlatformSpecific changes the cache dir so this works
             val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
             startSharing(intent, promise)

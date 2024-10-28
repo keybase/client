@@ -1207,7 +1207,7 @@ interface State extends Store {
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
-    setupSubscriptions: () => void
+    setupSubscriptions: () => Promise<void>
     showIncomingShare: (initialDestinationParentPath: T.FS.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: T.FS.Path) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
@@ -1884,6 +1884,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         }
       }
       subscribeAndLoadJournalStatus()
+      // how this works isn't great. This function gets called way early before we set this
       get().dispatch.dynamic.afterKbfsDaemonRpcStatusChanged?.()
     },
     letResetUserBackIn: (id, username) => {
@@ -2534,12 +2535,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         s.tlfs.loaded = false
       })
     },
-    setupSubscriptions: () => {
-      const f = async () => {
-        const initPlatformSpecific = await import('./platform-specific')
-        initPlatformSpecific.default()
-      }
-      C.ignorePromise(f())
+    setupSubscriptions: async () => {
+      const initPlatformSpecific = await import('./platform-specific')
+      initPlatformSpecific.default()
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {
