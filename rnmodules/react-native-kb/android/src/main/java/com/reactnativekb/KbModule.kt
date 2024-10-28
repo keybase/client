@@ -111,9 +111,9 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
 
 
     // only old arch, uncomment
-//    override fun getConstants(): MutableMap<String, Any>? {
-//        return getTypedExportedConstants()
-//    }
+    override fun getConstants(): MutableMap<String, Any>? {
+        return getTypedExportedConstants()
+    }
 
     // newarch @Override
     override fun getTypedExportedConstants(): MutableMap<String, Any> {
@@ -271,9 +271,13 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
-        val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
-        intent.putExtra(Intent.EXTRA_STREAM, fileUri)
-        startSharing(intent, promise)
+        try {
+            val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
+            intent.putExtra(Intent.EXTRA_STREAM, fileUri)
+            startSharing(intent, promise)
+        } catch (ex: Exception) {
+            promise.reject(Exception("Error sharing file"))
+        }
     }
 
     private fun startSharing(intent: Intent, promise: Promise) {
