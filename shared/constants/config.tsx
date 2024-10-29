@@ -633,9 +633,11 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
 
         const updateServerConfig = async () => {
           if (get().loggedIn) {
-            await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-              serverConfigPath: C.serverConfigFileName,
-            })
+            try {
+              await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+                serverConfigPath: C.serverConfigFileName,
+              })
+            } catch {}
           }
         }
 
