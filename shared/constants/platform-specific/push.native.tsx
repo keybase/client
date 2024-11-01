@@ -146,22 +146,8 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
 // 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
 // 2. When a notification comes in it is handled only on Go/Java side (native only)
 // That's it.
+// If the intent is available and react isn't inited we'll stash it and emit when react is alive
 
-// If you want to pass data along to JS, you do so with an Intent.
-// The notification is built with a pending intent (a description of how to build a real Intent obj).
-// When you click the notification you fire the Intent, which starts the MainActivity and calls `onNewIntent`.
-// Take a look at MainActivity's onNewIntent, onResume, and emitIntent methods.
-//
-// High level:
-// 1. we read the intent that started the MainActivity (in onNewIntent)
-// 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
-// 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
-// 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
-
-// At startup the flow above can be racy, since we may not have registered the
-// event listener before the event is emitted. In that case you can always use
-// `getInitialPushAndroid`.
-// TODO update this comment
 const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
