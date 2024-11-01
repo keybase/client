@@ -8,7 +8,6 @@ import {
   androidSetApplicationIconBadgeNumber,
   // TODO likely remove these
   androidGetInitialShareFileUrls,
-  androidGetInitialShareText,
   getNativeEmitter,
 } from 'react-native-kb'
 
@@ -218,7 +217,7 @@ const iosListenForPushNotificationsFromJS = () => {
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
     const fileUrls = await androidGetInitialShareFileUrls()
-    const text = await androidGetInitialShareText()
+    const text = undefined
     return {fileUrls, text}
   } else {
     return Promise.resolve(undefined)

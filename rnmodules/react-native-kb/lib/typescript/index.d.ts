@@ -21,9 +21,7 @@ export declare const androidAddCompleteDownload: (o: {
 }) => Promise<void>;
 export declare const androidAppColorSchemeChanged: (mode: "system" | "alwaysDark" | "alwaysLight" | "") => void;
 export declare const androidSetApplicationIconBadgeNumber: (n: number) => void;
-export declare const androidGetInitialBundleFromNotification: () => Promise<any>;
 export declare const androidGetInitialShareFileUrls: () => Promise<Array<string>>;
-export declare const androidGetInitialShareText: () => Promise<string>;
 export declare const engineReset: () => void;
 export declare const engineStart: () => void;
 export declare const shareListenersRegistered: () => void;

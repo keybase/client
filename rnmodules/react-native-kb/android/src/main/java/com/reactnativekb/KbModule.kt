@@ -546,23 +546,6 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         promise.resolve("")
     }
 
-    @ReactMethod
-    override fun androidGetInitialShareText(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialShareText")
-                val shareText = m.invoke(activity)
-                if (shareText != null) {
-                    promise.resolve(shareText.toString())
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-        }
-        promise.resolve("")
-    }
-
     @ReactMethod(isBlockingSynchronousMethod = true)
     override fun install(): Boolean {
         try {

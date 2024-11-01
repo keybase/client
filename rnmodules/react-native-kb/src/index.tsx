@@ -138,12 +138,6 @@ export const androidGetInitialShareFileUrls = (): Promise<Array<string>> => {
   }
   return Promise.reject()
 }
-export const androidGetInitialShareText = (): Promise<string> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareText()
-  }
-  return Promise.reject()
-}
 export const engineReset = (): void => {
   return Kb.engineReset()
 }

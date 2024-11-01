@@ -96,21 +96,9 @@ export const androidSetApplicationIconBadgeNumber = n => {
     Kb.androidSetApplicationIconBadgeNumber(n);
   }
 };
-export const androidGetInitialBundleFromNotification = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialBundleFromNotification();
-  }
-  return Promise.reject();
-};
 export const androidGetInitialShareFileUrls = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrls();
-  }
-  return Promise.reject();
-};
-export const androidGetInitialShareText = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareText();
   }
   return Promise.reject();
 };

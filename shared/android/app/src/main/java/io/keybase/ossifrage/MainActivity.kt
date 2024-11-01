@@ -56,15 +56,6 @@ class MainActivity : ReactActivity() {
         set(urls) {
             shareFileUrls = urls
         }
-    var initialShareText: String?
-        get() {
-            val s = shareText
-            shareText = null
-            return s
-        }
-        set(text) {
-            shareText = text
-        }
 
     override fun invokeDefaultOnBackPressed() {
         moveTaskToBack(true)
@@ -289,11 +280,8 @@ class MainActivity : ReactActivity() {
         val filePaths = uris?.mapNotNull { uri ->
             readFileFromUri(rc, uri)
         }?.toTypedArray() ?: emptyArray()
-        if (bundleFromNotification != null) {
-        } else if (filePaths.size != 0) {
+        if (filePaths.size != 0) {
             initialShareFileUrls = filePaths
-        } else if (textPayload.length > 0) {
-            initialShareText = textPayload
         }
 
         // If there are any other bundle sources we care about, emit them here
