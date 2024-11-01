@@ -132,12 +132,6 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
-export const androidGetInitialBundleFromNotification = (): Promise<any> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialBundleFromNotification()
-  }
-  return Promise.reject()
-}
 export const androidGetInitialShareFileUrls = (): Promise<Array<string>> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrls()

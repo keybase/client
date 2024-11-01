@@ -523,28 +523,6 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         ShortcutBadger.applyCount(reactContext, badge.toInt())
     }
 
-    // init bundles
-    // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
-    // its own react module. That's because starting up a react module is a bit expensive and we
-    // wouldn't be able to lazy load this because we need it on startup.
-    @ReactMethod
-    override fun androidGetInitialBundleFromNotification(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialBundleFromNotification")
-                val initialBundleFromNotification = m.invoke(activity) as Bundle?
-                if (initialBundleFromNotification != null) {
-                    val map: WritableMap = Arguments.fromBundle(initialBundleFromNotification)
-                    promise.resolve(map)
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-        }
-        promise.resolve(null)
-    }
-
     @ReactMethod
     override fun androidGetInitialShareFileUrls(promise: Promise) {
         try {

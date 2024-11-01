@@ -45,12 +45,6 @@ import java.util.UUID
 class MainActivity : ReactActivity() {
     private val listener: PermissionListener? = null
     private var isUsingHardwareKeyboard = false
-    var initialBundleFromNotification: Bundle? = null
-        get() {
-            val b = field
-            field = null
-            return b
-        }
     private var shareFileUrls: Array<String>? = null
     private var shareText: String? = null
     var initialShareFileUrls: Array<String>?
@@ -296,7 +290,6 @@ class MainActivity : ReactActivity() {
             readFileFromUri(rc, uri)
         }?.toTypedArray() ?: emptyArray()
         if (bundleFromNotification != null) {
-            initialBundleFromNotification = bundleFromNotification
         } else if (filePaths.size != 0) {
             initialShareFileUrls = filePaths
         } else if (textPayload.length > 0) {
@@ -306,16 +299,10 @@ class MainActivity : ReactActivity() {
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {
             var payload = Arguments.fromBundle(bundleFromNotification)
-            // TODO we don't need initialIntentFromNotificationPayload  anymore likely
-            if (emitter != null) {
-                initialIntentFromNotificationPayload = null
-                emitter.emit(
-                    "initialIntentFromNotification",
-                    payload
-                )
-            } else {
-                initialIntentFromNotificationPayload = payload
-            }
+            emitter.emit(
+                "initialIntentFromNotification",
+                payload
+            )
         }
         if (filePaths.size != 0) {
             val args = Arguments.createMap()
@@ -324,28 +311,13 @@ class MainActivity : ReactActivity() {
                 lPaths.pushString(path)
             }
             args.putArray("localPaths", lPaths)
-            if (emitter != null) {
-                onShareDataPayload = null
-                emitter.emit("onShareData", args)
-            } else {
-                onShareDataPayload = args
-            }
+            emitter.emit("onShareData", args)
         } else if (textPayload.length > 0) {
             val args = Arguments.createMap()
             args.putString("text", textPayload)
-            if (emitter != null) {
-                onShareDataPayload = null
-                emitter.emit("onShareData", args)
-            } else {
-                onShareDataPayload = args
-            }
+            emitter.emit("onShareData", args)
         }
     }
-
-    // TODO remove?
-    var onShareDataPayload: WritableMap? = null
-    // TODO remove?
-    var initialIntentFromNotificationPayload: WritableMap? = null
 
     override fun getMainComponentName(): String = "Keybase"
 

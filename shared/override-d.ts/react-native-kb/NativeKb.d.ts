@@ -43,7 +43,6 @@ export interface Spec extends TurboModule {
   }): Promise<void>
   androidAppColorSchemeChanged(mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void
   androidSetApplicationIconBadgeNumber(n: number): void
-  androidGetInitialBundleFromNotification(): Promise<any>
   androidGetInitialShareFileUrls(): Promise<Array<string>>
   androidGetInitialShareText(): Promise<string>
   engineReset(): void
@@ -52,4 +51,3 @@ export interface Spec extends TurboModule {
 declare const _default: Spec
 export default _default
 //# sourceMappingURL=NativeKb.d.ts.map
-

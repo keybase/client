@@ -7,7 +7,6 @@ import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
   // TODO likely remove these
-  androidGetInitialBundleFromNotification,
   androidGetInitialShareFileUrls,
   androidGetInitialShareText,
   getNativeEmitter,
@@ -227,10 +226,7 @@ const getStartupDetailsFromInitialShare = async () => {
 }
 
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([
-    isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
-    C.timeoutPromise(10),
-  ])
+  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), C.timeoutPromise(10)])
   if (!notification) {
     return
   }
@@ -249,11 +245,6 @@ const getStartupDetailsFromInitialPush = async () => {
   }
 
   return
-}
-
-const getInitialPushAndroid = async () => {
-  const n = (await androidGetInitialBundleFromNotification()) as undefined | object
-  return n ? normalizePush(n) : undefined
 }
 
 const getInitialPushiOS = async () => {

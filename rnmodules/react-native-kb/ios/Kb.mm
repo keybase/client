@@ -317,7 +317,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
         auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
             // Convert to Objective-C block so it can be captured properly.
             __block auto callbackBlock = callback;
-            
+
             [executor execute:^(jsi::Runtime &runtime) {
                 callbackBlock(runtime);
             }];
@@ -332,7 +332,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
         : nullptr;
         jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
     }
-    
+
     // stash the current runtime to keep in sync
     auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
                           const Value *arguments, size_t count) -> Value {
@@ -348,17 +348,17 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
             }
         });
     };
-    
+
     KeybaseLogToService(
                         [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
                          [[NSDate date] timeIntervalSince1970] * 1000]);
-    
+
     _jsRuntime->global().setProperty(
                                      *_jsRuntime, "rpcOnGo",
                                      Function::createFromHostFunction(
                                                                       *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
                                                                       std::move(rpcOnGoWrap)));
-    
+
     // register a global so we get notified when the runtime is killed so we can
     // cleanup
     _jsRuntime->global().setProperty(
@@ -410,14 +410,12 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
 - (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
 - (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
-- (NSString *)androidGetInitialBundleFromNotification {return @"";}
 - (NSString *)androidGetInitialShareFileUrl {return @"";}
 - (NSString *)androidGetInitialShareText {return @"";}
 - (NSString *)androidGetRegistrationToken {return @"";}
 - (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/id)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidGetInitialBundleFromNotification:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareFileUrls:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetInitialShareText:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
