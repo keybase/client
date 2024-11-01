@@ -523,29 +523,6 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         ShortcutBadger.applyCount(reactContext, badge.toInt())
     }
 
-    @ReactMethod
-    override fun androidGetInitialShareFileUrls(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialShareFileUrls")
-                val o = m.invoke(activity)
-                if (o != null && o is Array<*>) {
-                    val us = o.filterIsInstance<String>()
-                    val writableArray: WritableArray = Arguments.createArray()
-                    for (str in us) {
-                        writableArray.pushString(str)
-                    }
-                    promise.resolve(writableArray)
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-            Log.d("ossifrageShare", "androidGetInitialShareFileUrl exception" + ex.toString())
-        }
-        promise.resolve("")
-    }
-
     @ReactMethod(isBlockingSynchronousMethod = true)
     override fun install(): Boolean {
         try {

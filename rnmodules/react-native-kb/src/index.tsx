@@ -132,12 +132,6 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
-export const androidGetInitialShareFileUrls = (): Promise<Array<string>> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareFileUrls()
-  }
-  return Promise.reject()
-}
 export const engineReset = (): void => {
   return Kb.engineReset()
 }

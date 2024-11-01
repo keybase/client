@@ -24,7 +24,6 @@ abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaM
     abstract fun androidAddCompleteDownload(config: ReadableMap, promise: Promise)
     abstract fun androidAppColorSchemeChanged(prefString: String)
     abstract fun androidSetApplicationIconBadgeNumber(badge: Double)
-    abstract fun androidGetInitialShareFileUrls(promise: Promise)
     abstract fun engineReset()
     abstract fun engineStart()
     abstract fun shareListenersRegistered()

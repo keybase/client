@@ -45,17 +45,6 @@ import java.util.UUID
 class MainActivity : ReactActivity() {
     private val listener: PermissionListener? = null
     private var isUsingHardwareKeyboard = false
-    private var shareFileUrls: Array<String>? = null
-    private var shareText: String? = null
-    var initialShareFileUrls: Array<String>?
-        get() {
-            val s = shareFileUrls
-            shareFileUrls = null
-            return s
-        }
-        set(urls) {
-            shareFileUrls = urls
-        }
 
     override fun invokeDefaultOnBackPressed() {
         moveTaskToBack(true)
@@ -280,9 +269,6 @@ class MainActivity : ReactActivity() {
         val filePaths = uris?.mapNotNull { uri ->
             readFileFromUri(rc, uri)
         }?.toTypedArray() ?: emptyArray()
-        if (filePaths.size != 0) {
-            initialShareFileUrls = filePaths
-        }
 
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {

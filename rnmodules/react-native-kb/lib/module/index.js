@@ -96,12 +96,6 @@ export const androidSetApplicationIconBadgeNumber = n => {
     Kb.androidSetApplicationIconBadgeNumber(n);
   }
 };
-export const androidGetInitialShareFileUrls = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareFileUrls();
-  }
-  return Promise.reject();
-};
 export const engineReset = () => {
   return Kb.engineReset();
 };

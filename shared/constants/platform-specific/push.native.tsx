@@ -6,8 +6,6 @@ import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
-  // TODO likely remove these
-  androidGetInitialShareFileUrls,
   getNativeEmitter,
 } from 'react-native-kb'
 
@@ -214,16 +212,6 @@ const iosListenForPushNotificationsFromJS = () => {
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-const getStartupDetailsFromInitialShare = async () => {
-  if (isAndroid) {
-    const fileUrls = await androidGetInitialShareFileUrls()
-    const text = undefined
-    return {fileUrls, text}
-  } else {
-    return Promise.resolve(undefined)
-  }
-}
-
 const getStartupDetailsFromInitialPush = async () => {
   const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), C.timeoutPromise(10)])
   if (!notification) {
@@ -302,4 +290,4 @@ export const initPushListener = () => {
   C.ignorePromise(listenNative())
 }
 
-export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}
+export {getStartupDetailsFromInitialPush}

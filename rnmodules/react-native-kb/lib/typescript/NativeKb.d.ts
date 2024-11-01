@@ -37,7 +37,6 @@ export interface Spec extends TurboModule {
     }): Promise<void>;
     androidAppColorSchemeChanged(mode: string): void;
     androidSetApplicationIconBadgeNumber(n: number): void;
-    androidGetInitialShareFileUrls(): Promise<Array<string>>;
     engineReset(): void;
     engineStart(): void;
     shareListenersRegistered(): void;
