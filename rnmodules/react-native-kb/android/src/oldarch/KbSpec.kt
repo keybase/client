@@ -29,6 +29,7 @@ abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaM
     abstract fun androidGetInitialShareText(promise: Promise)
     abstract fun engineReset()
     abstract fun engineStart()
+    abstract fun shareListenersRegistered()
     abstract fun addListener(eventType: String)
     abstract fun removeListeners(count: Double)
     abstract fun iosGetHasShownPushPrompt(promise: Promise)

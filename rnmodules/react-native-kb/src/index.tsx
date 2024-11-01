@@ -156,6 +156,9 @@ export const engineReset = (): void => {
 export const engineStart = (): void => {
   return Kb.engineStart()
 }
+export const shareListenersRegistered = (): void => {
+  return Kb.shareListenersRegistered()
+}
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)
 }

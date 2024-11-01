@@ -32,6 +32,7 @@ fi
 check_ci=${CHECK_CI:-}
 
 echo "Using GOPATH: $GOPATH"
+echo "Using go version: $(go version)"
 
 # gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
 # also want executables from our own GOPATH to override anything

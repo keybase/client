@@ -42,6 +42,7 @@ export interface Spec extends TurboModule {
     androidGetInitialShareText(): Promise<string>;
     engineReset(): void;
     engineStart(): void;
+    shareListenersRegistered(): void;
 }
 declare const _default: Spec;
 export default _default;

@@ -1,5 +1,5 @@
 package io.keybase.ossifrage
-
+import kotlin.concurrent.thread
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -13,6 +13,8 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -27,6 +29,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import android.util.Log
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
@@ -98,7 +101,13 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         // We need to specify these parameters so that the data returned
         // from the launching intent is processed correctly.
         // https://github.com/keybase/client/blob/95959e12d76612f455ab4a90835debff489eacf4/shared/actions/platform-specific/push.native.js#L363-L381
-        val bundle = bundle.clone() as Bundle
+
+        // needs to be in the background since we make network calls
+        thread(start = true) {
+            displayChatNotification2(chatNotification)
+        }
+    }
+    private fun displayChatNotification2(chatNotification: ChatNotification) {
         bundle.putBoolean("userInteraction", true)
         bundle.putString("type", "chat.newmessage")
         bundle.putString("convID", chatNotification.convID)

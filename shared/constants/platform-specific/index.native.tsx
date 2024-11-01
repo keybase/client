@@ -23,6 +23,7 @@ import {
   fsDownloadDir,
   androidAppColorSchemeChanged,
   guiConfig,
+  shareListenersRegistered,
 } from 'react-native-kb'
 import {
   initPushListener,
@@ -542,6 +543,9 @@ export const initPlatformListener = () => {
     })
   }
 
+  // we call this when we're logged in.
+  let calledShareListenersRegistered = false
+
   C.useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
@@ -550,6 +554,11 @@ export const initPlatformListener = () => {
       await C.timeoutPromise(1000)
       const path = C.Router2.getVisiblePath()
       C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+    }
+
+    if (!calledShareListenersRegistered && C.Router2.logState().loggedIn) {
+      calledShareListenersRegistered = true
+      shareListenersRegistered()
     }
     C.ignorePromise(f())
   })

@@ -6,6 +6,7 @@ import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
+  // TODO likely remove these
   androidGetInitialBundleFromNotification,
   androidGetInitialShareFileUrls,
   androidGetInitialShareText,
@@ -164,6 +165,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
+// TODO update this comment
 const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
@@ -298,19 +300,16 @@ export const initPushListener = () => {
 
   C.usePushState.getState().dispatch.initialPermissionsCheck()
 
-  C.useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-    const f = async () => {
-      if (isAndroid) {
-        try {
-          await listenForNativeAndroidIntentNotifications()
-        } catch {}
-      } else {
-        iosListenForPushNotificationsFromJS()
-      }
+  const listenNative = async () => {
+    if (isAndroid) {
+      try {
+        await listenForNativeAndroidIntentNotifications()
+      } catch {}
+    } else {
+      iosListenForPushNotificationsFromJS()
     }
-    C.ignorePromise(f())
-  })
+  }
+  C.ignorePromise(listenNative())
 }
 
 export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

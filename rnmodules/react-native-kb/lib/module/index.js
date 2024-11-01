@@ -120,6 +120,9 @@ export const engineReset = () => {
 export const engineStart = () => {
   return Kb.engineStart();
 };
+export const shareListenersRegistered = () => {
+  return Kb.shareListenersRegistered();
+};
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb);
 };

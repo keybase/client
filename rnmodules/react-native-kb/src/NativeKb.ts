@@ -50,6 +50,7 @@ export interface Spec extends TurboModule {
   androidGetInitialShareText(): Promise<string>
   engineReset(): void
   engineStart(): void
+  shareListenersRegistered(): void
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

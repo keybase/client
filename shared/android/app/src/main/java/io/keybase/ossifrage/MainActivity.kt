@@ -18,12 +18,14 @@ import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
+import com.facebook.react.ReactInstanceManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.core.PermissionListener
 import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule
 import com.reactnativekb.DarkModePreference
@@ -76,12 +78,10 @@ class MainActivity : ReactActivity() {
 
     private val reactContext: ReactContext?
          get() {
-            val reactHost = (application as ReactApplication).reactHost
-            if (reactHost == null) {
-                NativeLogger.warn("react instance manager not ready")
-                return null
-            }
-            return reactHost.currentReactContext
+        val reactHost = (application as ReactApplication).reactNativeHost
+        val reactInstanceManager = reactHost.reactInstanceManager
+            val currentContext = reactInstanceManager.currentReactContext
+            return currentContext
         }
 
     private fun colorSchemeForCurrentConfiguration(): String {
@@ -95,10 +95,11 @@ class MainActivity : ReactActivity() {
         return "light"
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     override fun onCreate(savedInstanceState: Bundle?) {
         NativeLogger.info("Activity onCreate")
         setupKBRuntime(this, true)
+        cachedIntent = intent
+
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
             try {
@@ -111,9 +112,25 @@ class MainActivity : ReactActivity() {
         }, 300)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
-        handleIntent(intent)
-    }
 
+        // old arch, hook up react starting up new arch does this by itself i think
+        val reactHost = (application as ReactApplication).reactNativeHost
+        val reactInstanceManager = reactHost.reactInstanceManager
+        if (reactInstanceManager.hasStartedCreatingInitialContext()) {
+            val currentContext = reactInstanceManager.currentReactContext
+            if (currentContext != null) {
+        handleIntent()
+                return
+            }
+        }
+        val listener = object : ReactInstanceManager.ReactInstanceEventListener {
+            override fun onReactContextInitialized(c: ReactContext) {
+        handleIntent()
+                reactInstanceManager.removeReactInstanceEventListener(this)
+            }
+        }
+        reactInstanceManager.addReactInstanceEventListener(listener)
+    }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         return if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
@@ -190,27 +207,6 @@ class MainActivity : ReactActivity() {
         return filePath
     }
 
-
-    fun onReactContextInitialized(context: ReactContext?) {
-        val emitter = reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        if (emitter == null) {
-            Log.w(TAG, "Error no emitter onReactContextInitialized")
-            return
-        }
-        if (onShareDataPayload != null) {
-            emitter.emit("onShareData", onShareDataPayload)
-            onShareDataPayload = null
-        }
-
-        if (initialIntentFromNotificationPayload != null) {
-            emitter.emit(
-                "initialIntentFromNotification",
-                initialIntentFromNotificationPayload
-            )
-            initialIntentFromNotificationPayload = null
-        }
-    }
-
     override fun onResume() {
         NativeLogger.info("Activity onResume")
         super.onResume()
@@ -229,16 +225,41 @@ class MainActivity : ReactActivity() {
         Keybase.appWillExit(KBPushNotifier(this, Bundle()))
     }
 
+    private var cachedIntent: Intent? = null
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleIntent(intent)
+        cachedIntent = intent
+        handleIntent()
     }
 
-    private fun handleIntent(intent: Intent?) {
-        if (intent == null) {
+    public fun shareListenersRegistered() {
+        jsIsListening  = true
+        handleIntent()
+    }
+
+    private var jsIsListening = false
+    private fun handleIntent() {
+        val intent = cachedIntent
+        var rc = reactContext
+        if (jsIsListening  == false) {
             return
         }
+        if (cachedIntent == null || intent == null) {
+            return
+        }
+        if (rc == null) {
+            return
+        }
+
+        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        if(emitter == null) {
+            return
+        }
+
+        cachedIntent = null
+
         // Here we are just reading from the notification bundle.
         // If other sources start the app, we can get their intent data the same way.
         val bundleFromNotification = intent.getBundleExtra("notification")
@@ -268,9 +289,11 @@ class MainActivity : ReactActivity() {
         if (text != null) {
             sb.append(text)
         }
+
         val textPayload = sb.toString()
+
         val filePaths = uris?.mapNotNull { uri ->
-            readFileFromUri(reactContext, uri)
+            readFileFromUri(rc, uri)
         }?.toTypedArray() ?: emptyArray()
         if (bundleFromNotification != null) {
             initialBundleFromNotification = bundleFromNotification
@@ -280,10 +303,10 @@ class MainActivity : ReactActivity() {
             initialShareText = textPayload
         }
 
-        val emitter = reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
         // If there are any other bundle sources we care about, emit them here
         if (bundleFromNotification != null) {
             var payload = Arguments.fromBundle(bundleFromNotification)
+            // TODO we don't need initialIntentFromNotificationPayload  anymore likely
             if (emitter != null) {
                 initialIntentFromNotificationPayload = null
                 emitter.emit(
@@ -319,7 +342,9 @@ class MainActivity : ReactActivity() {
         }
     }
 
+    // TODO remove?
     var onShareDataPayload: WritableMap? = null
+    // TODO remove?
     var initialIntentFromNotificationPayload: WritableMap? = null
 
     override fun getMainComponentName(): String = "Keybase"
@@ -385,8 +410,7 @@ class MainActivity : ReactActivity() {
     }
 
     companion object {
-        private val TAG = MainActivity::class.java.name
-        var createdReact = false
+        private val TAG = "ossifrage"
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")
             try {

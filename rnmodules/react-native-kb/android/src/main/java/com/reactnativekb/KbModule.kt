@@ -233,6 +233,19 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         }
     }
 
+
+    @ReactMethod
+    override fun shareListenersRegistered() {
+        try {
+            val activity: Activity? = reactContext.getCurrentActivity()
+            if (activity != null) {
+                val m: Method = activity.javaClass.getMethod("shareListenersRegistered")
+                m.invoke(activity)
+            }
+        } catch (ex: Exception) {
+        }
+    }
+
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {
