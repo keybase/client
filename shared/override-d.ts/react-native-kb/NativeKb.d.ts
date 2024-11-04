@@ -29,7 +29,7 @@ export interface Spec extends TurboModule {
   androidSetSecureFlagSetting(s: boolean): Promise<boolean>
   androidGetSecureFlagSetting(): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
-  androidShare(text: string, mimeType: string): Promise<boolean>
+  androidShare(filename: string, mimeType: string): Promise<boolean>
   androidCheckPushPermissions(): Promise<boolean>
   androidRequestPushPermissions(): Promise<boolean>
   androidGetRegistrationToken(): Promise<string>
