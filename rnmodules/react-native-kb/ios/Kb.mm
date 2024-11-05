@@ -256,6 +256,9 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
   };
 }
 
+RCT_EXPORT_METHOD(shareListenersRegistered) {
+}
+
 RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);
