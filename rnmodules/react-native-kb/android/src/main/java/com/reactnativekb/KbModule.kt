@@ -413,14 +413,18 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     private fun normalizePath(path: String): String {
-        if (!Regex("""\w+\:.*""").matches(path))
+        if (!Regex("""\w+\:.*""").matches(path)) {
+            return path
+        }
         if (path.startsWith("file://")) {
             return path.replace("file://", "")
         }
         val uri: Uri = Uri.parse(path)
-        return if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
-            path
-        } else PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
+        if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
+            return path
+        } else {
+            return PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
+        }
     }
 
     @ReactMethod
@@ -474,6 +478,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             return
         }
         val path = normalizePath(config.getString("path") ?: "")
+
         if (path == "") {
             promise.reject("EINVAL", "addCompleteDownload can not resolve URI:" + config.getString("path"))
             return
