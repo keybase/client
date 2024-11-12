@@ -167,7 +167,7 @@ const useIconAndOverlay = (p: {
         return
       }
       startedSV.set(1)
-      fadeSV.value = withSpring(1, {duration: 200})
+      fadeSV.set(() => withSpring(1, {duration: 200}))
       startRecording()
     }
 
@@ -195,8 +195,8 @@ const useIconAndOverlay = (p: {
       .onFinalize((_e: unknown, _success: boolean) => {
         'worklet'
         const diff = Date.now() - panStartSV.value
-        startedSV.value = 0
-        panStartSV.value = 0
+        startedSV.set(0)
+        panStartSV.set(0)
         runOnJS(cleanupOverlayTimeout)()
         const needTip = diff < 200
         const wasCancel = canceledSV.value === 1
@@ -214,7 +214,7 @@ const useIconAndOverlay = (p: {
         if (!panLocked) {
           runOnJS(sendRecording)()
           onReset()
-          fadeSV.value = withTiming(0, {duration: 200})
+          fadeSV.set(() => withTiming(0, {duration: 200}))
         }
       })
       .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
@@ -224,17 +224,16 @@ const useIconAndOverlay = (p: {
         }
         const maxCancelDrift = -120
         const maxLockDrift = -100
-        dragYSV.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-        dragXSV.value = interpolate(
-          e.translationX,
-          [maxCancelDrift, 0],
-          [maxCancelDrift, 0],
-          Extrapolation.CLAMP
+        dragYSV.set(() =>
+          interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+        )
+        dragXSV.set(() =>
+          interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
         )
         if (e.translationX < maxCancelDrift) {
-          canceledSV.value = 1
+          canceledSV.set(1)
         } else if (e.translationY < maxLockDrift) {
-          lockedSV.value = 1
+          lockedSV.set(1)
         }
       })
     return panGesture

@@ -1190,9 +1190,9 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         s.userSwitching = sw
       })
     },
-    setupSubscriptions: async () => {
+    setupSubscriptions: () => {
       // Kick off platform specific stuff
-      await C.PlatformSpecific.initPlatformListener()
+      C.PlatformSpecific.initPlatformListener()
     },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()

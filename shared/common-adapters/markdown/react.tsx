@@ -268,7 +268,10 @@ const reactComponentsForMarkdownType = {
   emoji: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
       <Emoji
-        emojiName={String(node['content']).toLowerCase()}
+        emojiName={
+          //eslint-disable-next-line
+          String(node['content']).toLowerCase()
+        }
         size={state.styleOverride?.emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state.virtualText}
@@ -404,7 +407,10 @@ export const bigEmojiOutput: SM.Output<React.ReactNode> = SimpleMarkdown.outputF
       react: (node: Node, _output: SM.ReactOutput, state: State) => (
         <Emoji
           style={state.styleOverride?.paragraph}
-          emojiName={String(node['content'])}
+          emojiName={
+            //eslint-disable-next-line
+            String(node['content'])
+          }
           size={32}
           key={state.key}
           allowFontScaling={state['allowFontScaling']}
