@@ -1453,7 +1453,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                   })
                   // inject them into the message map
-                  messagesAdd([message], {why: 'gallery inject', markAsRead: false})
+                  messagesAdd([message], {markAsRead: false, why: 'gallery inject'})
                 }
               },
             },
@@ -2307,7 +2307,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         onAttachmentEdit(placeholderID, message)
       } else {
         // A normal message
-        messagesAdd([message], {why: 'incoming general', incomingMessage: true})
+        messagesAdd([message], {incomingMessage: true, why: 'incoming general'})
       }
     },
     onMessageErrored: (outboxID, reason, errorTyp) => {
