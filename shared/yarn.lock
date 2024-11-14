@@ -3217,18 +3217,18 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@7.0.1":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.1.tgz#00df690355c65c6fb20d4389edeceb6b7ebcd8ab"
-  integrity sha512-j72pmsffXKWV/i9TFJ7dWiD4sUZVkt4cEaptV3C8FEgfKqF81JvsRg8hUmEZdwMFIyJBrymOAxVNYKbaEohh+A==
+"@react-navigation/bottom-tabs@7.0.3":
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.3.tgz#187c915d6518980f5de72130c430cec48bbc0cd5"
+  integrity sha512-pB8oBDV/NkKsi6c2cxd2Upq0u1xwgjLbTFoxvw8W4LN4hH4K4v5XcORe8QacFifGeKyND7gzqZkIS6gW9xJY/A==
   dependencies:
-    "@react-navigation/elements" "^2.0.0"
+    "@react-navigation/elements" "^2.0.2"
     color "^4.2.3"
 
-"@react-navigation/core@7.0.0", "@react-navigation/core@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.0.0.tgz#2c895598c490391428f9484de4292d512349e1d6"
-  integrity sha512-HZbWgx7Fco9orcQdAPgcq/G8C1/+Smm8LrzBsih1rBlpVornyEj8lumF6Y9fnYnHjuBhBydvYBgBqTwh87rWXA==
+"@react-navigation/core@7.0.2", "@react-navigation/core@^7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.0.2.tgz#8fd81ab0f8bd0a9d2dee24ab83d4333b216b7ae5"
+  integrity sha512-LbDVHSxX870QVnlndqDFFP6Kulc0atpCiswiM7f6GDIHJEniz3XaX7Wg9rliZ9L35/Uy81/F7UlF/USSU7LM1w==
   dependencies:
     "@react-navigation/routers" "^7.0.0"
     escape-string-regexp "^4.0.0"
@@ -3238,27 +3238,27 @@
     use-latest-callback "^0.2.1"
     use-sync-external-store "^1.2.2"
 
-"@react-navigation/elements@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.0.0.tgz#ab8fa606de0812b94ea202d64b23621c75f6a4c0"
-  integrity sha512-kt2Q5WLJ9jjJMA/Jt8S3z3Jub2V+HIJ2LM4z+dZqL00FVsTfa4rSk3BTktI3MmBiUCgzUo6jPOxkxsUbjoL/ig==
+"@react-navigation/elements@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.0.2.tgz#f80239c1c2f3cc27183915f5d2ec0d013cd060f0"
+  integrity sha512-RgvKIyrj6cecborOg+QcnI0pvKaOXDPAwnZ+0HCnnWQROTTQEOt7jYpx4B4YIqNW3ttc2EZRIPr069LYUmlViQ==
   dependencies:
     color "^4.2.3"
 
-"@react-navigation/native-stack@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.0.0.tgz#8f5a50919d8e58548053743a697e90a177976946"
-  integrity sha512-OZEvXaQDZesWnib+XD7PgWaVeS95/oD/gCSmDXXQZLTtGBXutmLycGtvjunFHRAkQ8u3TB89oOhs9YxDBAXl5Q==
+"@react-navigation/native-stack@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.0.2.tgz#9946ce68f3f5832f46da08db5272ec73aa634260"
+  integrity sha512-d7jJdDhZdBWYP+rQJQ4JRQkotM+0Vqkb7Hc16ARhetoBH/IzVtzC5g7VTZg1ognzNRrZ34NlT4+IB3KH34/2/g==
   dependencies:
-    "@react-navigation/elements" "^2.0.0"
+    "@react-navigation/elements" "^2.0.2"
     warn-once "^0.1.1"
 
-"@react-navigation/native@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.0.0.tgz#d3efaca481bef01cde89c2397f4b0815682f9137"
-  integrity sha512-OkfVzQNAuvy6WduON+4ctLImQWybBnOEycVpEEFA3y8nheLuo4hT+ObyyYu2DVqtslltUlTNGcd2G7pbB7y/bA==
+"@react-navigation/native@7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.0.2.tgz#193364690ca0d35fa31801d45a36f5baf1ce6efe"
+  integrity sha512-r/q7HR953H/VDIL/C1krQh9c11KgDhiRlvbkf0kGVN2WXQuiCVCqeDMoQzkgER/NbICPFLPgoqVRM8nnUbSCRA==
   dependencies:
-    "@react-navigation/core" "^7.0.0"
+    "@react-navigation/core" "^7.0.2"
     escape-string-regexp "^4.0.0"
     fast-deep-equal "^3.1.3"
     nanoid "3.3.7"
@@ -10176,10 +10176,10 @@ react-measure@2.5.2:
     prop-types "^15.6.2"
     resize-observer-polyfill "^1.5.0"
 
-react-native-gesture-handler@2.20.2:
-  version "2.20.2"
-  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.20.2.tgz#73844c8e9c417459c2f2981bc4d8f66ba8a5ee66"
-  integrity sha512-HqzFpFczV4qCnwKlvSAvpzEXisL+Z9fsR08YV5LfJDkzuArMhBu2sOoSPUF/K62PCoAb+ObGlTC83TKHfUd0vg==
+react-native-gesture-handler@2.21.0:
+  version "2.21.0"
+  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.21.0.tgz#b8d8ed4bb4a1ade9d2071741b63f955831388969"
+  integrity sha512-8fR1a8EX1aP+TFGiF8pP3UJks2CcfEu7WZzctkJg1yu2DtbVu+uJB/kAPS1XuZxFBKn7pyJcwuQhzuhilzK4DA==
   dependencies:
     "@egjs/hammerjs" "^2.0.17"
     hoist-non-react-statics "^3.3.0"
@@ -10218,10 +10218,10 @@ react-native-safe-area-context@4.14.0:
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.14.0.tgz#138f4b2e180cb7517c78bd5f4d4cf91325ba0b1a"
   integrity sha512-/SyYpCulWQOnnXhRq6wepkhoyQMowHm1ptDyRz20s+YS/R9mbd+mK+jFyFCyXFJn8jp7vFl43VUCgspuOiEbwA==
 
-react-native-screens@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-4.0.0.tgz#f4f4f3f37b2e71c9960ab37c14f2bb3bd6d80a7d"
-  integrity sha512-QGQ8+d90chOZ9JwA2K01nFzrGCTMNjsiAKJGPUXcLEiIF77/VSjLjQE9ZluMtkva0gzGI9tb/yxETkJnkw1iag==
+react-native-screens@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-4.1.0.tgz#3f703a1bb4fd65fd7963e616ddc373a97809c254"
+  integrity sha512-tCBwe7fRMpoi/nIgZxE86N8b2SH8d5PlfGaQO8lgqlXqIyvwqm3u1HJCaA0tsacPyzhW7vVtRfQyq9e1j0S2gA==
   dependencies:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"

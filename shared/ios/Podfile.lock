@@ -1705,7 +1705,7 @@ PODS:
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.20.2):
+  - RNGestureHandler (2.21.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1813,7 +1813,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (4.0.0):
+  - RNScreens (4.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2263,9 +2263,9 @@ SPEC CHECKSUMS:
   RNCMaskedView: e07a0b5e9e8d6962826def06e6ff2ecdb815433f
   RNCPicker: f963e01f78e546a93b98aa201501713dbda14e94
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 511250b190a284388f9dd0d2e56c1df76f14cfb8
+  RNGestureHandler: ec8a0db73b17ae2943429f2e8bbdd488d2d7cfed
   RNReanimated: f42a5044d121d68e91680caacb0293f4274228eb
-  RNScreens: de948b09c9a30f3ea52f9840dd6f8ce92b4e33d3
+  RNScreens: e6f9bc3a41be76af2ba0a815ea299a0000b1c838
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
