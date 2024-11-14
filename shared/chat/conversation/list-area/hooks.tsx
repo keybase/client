@@ -19,7 +19,7 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const hasCenter = C.useChatContext(s => (s.messageCenterOrdinal?.ordinal ?? 0) > 0)
+  const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
 
@@ -29,5 +29,5 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
     toggleThreadSearch(true)
   }, [toggleThreadSearch, jumpToRecent, scrollToBottom])
 
-  return hasCenter && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
+  return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }
