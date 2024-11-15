@@ -13,6 +13,8 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (11.0.1):
     - ExpoModulesCore
+  - ExpoAudio (0.2.3):
+    - ExpoModulesCore
   - ExpoCamera (16.0.5):
     - ExpoModulesCore
     - ZXingObjC/OneD
@@ -68,6 +70,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - ExpoSMS (13.0.0):
+    - ExpoModulesCore
+  - ExpoVideo (2.0.0):
     - ExpoModulesCore
   - EXTaskManager (12.0.3):
     - ExpoModulesCore
@@ -1965,6 +1969,7 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoContacts (from `../node_modules/expo-contacts/ios`)
@@ -1979,6 +1984,7 @@ DEPENDENCIES:
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSMS (from `../node_modules/expo-sms/ios`)
+  - ExpoVideo (from `../node_modules/expo-video/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -2085,6 +2091,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoAudio:
+    :path: "../node_modules/expo-audio/ios"
   ExpoCamera:
     :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
@@ -2113,6 +2121,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSMS:
     :path: "../node_modules/expo-sms/ios"
+  ExpoVideo:
+    :path: "../node_modules/expo-video/ios"
   EXTaskManager:
     :path: "../node_modules/expo-task-manager/ios"
   FBLazyVector:
@@ -2277,6 +2287,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   Expo: 46cbe74ce0d0f4a4d7b726e90693eb8dfcec6de0
   ExpoAsset: 8138f2a9ec55ae1ad7c3871448379f7d97692d15
+  ExpoAudio: 1312651a35d00c1b728be169d5a1e5d1e8f10f9a
   ExpoCamera: 8023b3d86065c2a71071cf252c4ddfb697b4f792
   ExpoClipboard: 166ca8c13ca1041f5ba619a211f59427ab5da8a7
   ExpoContacts: 209f0739c712bf808413c691722ce1bb1e2ea0af
@@ -2291,6 +2302,7 @@ SPEC CHECKSUMS:
   ExpoMediaLibrary: 83f47430d5193186029bc57bae16e2130941bc83
   ExpoModulesCore: f12deb734bfa4efc1f1783eafc324c933a985a48
   ExpoSMS: 884d6627c0848795ff9492fbfc7ba6087111e344
+  ExpoVideo: d419a84e8841e05443f3351cb937f55375b60650
   EXTaskManager: afcec33a6643f24fed4a89062757037b185c8a88
   FBLazyVector: bc70dcb22ad30ce734a7cce7210791dc737e230f
   fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be

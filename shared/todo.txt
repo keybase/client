@@ -1,5 +1,5 @@
 crash on dark mode change in fs tab?
-expo-av to expo-video / expo-audio
+expo-av to expo-video / expo-audio (not ready yet can't get video size...)
 inbox scroll perf issues
 
 
