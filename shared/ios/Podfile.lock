@@ -41,7 +41,7 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (14.0.1):
     - ExpoModulesCore
-  - ExpoMediaLibrary (17.0.0):
+  - ExpoMediaLibrary (17.0.2):
     - ExpoModulesCore
     - React-Core
   - ExpoModulesCore (2.0.3):
@@ -2288,7 +2288,7 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 783e68647b969b210a786047c3daa7b753dcac1f
   ExpoLocation: ac6a2c6605acfb9b70f765ea32d561dab51d481b
   ExpoMailComposer: 63589e1cbfa08220b2e650eecac0457be61ddd69
-  ExpoMediaLibrary: a85e3fcc6a85ede0ae2dae2577b8cf02d1051bbb
+  ExpoMediaLibrary: 83f47430d5193186029bc57bae16e2130941bc83
   ExpoModulesCore: f12deb734bfa4efc1f1783eafc324c933a985a48
   ExpoSMS: 884d6627c0848795ff9492fbfc7ba6087111e344
   EXTaskManager: afcec33a6643f24fed4a89062757037b185c8a88
