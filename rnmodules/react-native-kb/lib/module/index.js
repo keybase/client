@@ -96,29 +96,14 @@ export const androidSetApplicationIconBadgeNumber = n => {
     Kb.androidSetApplicationIconBadgeNumber(n);
   }
 };
-export const androidGetInitialBundleFromNotification = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialBundleFromNotification();
-  }
-  return Promise.reject();
-};
-export const androidGetInitialShareFileUrls = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareFileUrls();
-  }
-  return Promise.reject();
-};
-export const androidGetInitialShareText = () => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareText();
-  }
-  return Promise.reject();
-};
 export const engineReset = () => {
   return Kb.engineReset();
 };
 export const engineStart = () => {
   return Kb.engineStart();
+};
+export const shareListenersRegistered = () => {
+  return Kb.shareListenersRegistered();
 };
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb);

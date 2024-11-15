@@ -95,40 +95,45 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     })
   }, [closeOpenedRow, setCloseOpenedRow])
 
+  const renderRightActions = React.useCallback(
+    (progress: Reanimated.SharedValue<number>) => {
+      return (
+        <View style={[styles.container, {width: 3 * actionWidth}]}>
+          <Action
+            text="Unread"
+            color={Kb.Styles.globalColors.blue}
+            iconType="iconfont-envelope-solid"
+            onClick={onMarkAsUnread}
+            offset={0}
+            progress={progress}
+          />
+          <Action
+            text={isMuted ? 'Unmute' : 'Mute'}
+            color={Kb.Styles.globalColors.orange}
+            iconType="iconfont-shh"
+            onClick={onMute}
+            offset={1}
+            progress={progress}
+          />
+          <Action
+            text="Hide"
+            color={Kb.Styles.globalColors.greyDarker}
+            iconType="iconfont-hide"
+            onClick={onHide}
+            offset={2}
+            progress={progress}
+          />
+        </View>
+      )
+    },
+    [isMuted, onMarkAsUnread, onMute, onHide]
+  )
+
   return (
     <Swipeable
       ref={swipeableRef}
       onSwipeableWillOpen={onSwipeableWillOpen}
-      renderRightActions={progress => {
-        return (
-          <View style={[styles.container, {width: 3 * actionWidth}]}>
-            <Action
-              text="Unread"
-              color={Kb.Styles.globalColors.blue}
-              iconType="iconfont-envelope-solid"
-              onClick={onMarkAsUnread}
-              offset={0}
-              progress={progress}
-            />
-            <Action
-              text={isMuted ? 'Unmute' : 'Mute'}
-              color={Kb.Styles.globalColors.orange}
-              iconType="iconfont-shh"
-              onClick={onMute}
-              offset={1}
-              progress={progress}
-            />
-            <Action
-              text="Hide"
-              color={Kb.Styles.globalColors.greyDarker}
-              iconType="iconfont-hide"
-              onClick={onHide}
-              offset={2}
-              progress={progress}
-            />
-          </View>
-        )
-      }}
+      renderRightActions={renderRightActions}
     >
       {children}
     </Swipeable>

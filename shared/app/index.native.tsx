@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Main from './main.native'
+import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
 import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
@@ -129,6 +130,7 @@ const Keybase = () => {
 
   return show ? (
     <WRAP>
+      <ReducedMotionConfig mode={ReduceMotion.Never} />
       <GestureHandlerRootView style={styles.gesture}>
         <PortalProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">

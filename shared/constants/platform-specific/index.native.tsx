@@ -23,12 +23,9 @@ import {
   fsDownloadDir,
   androidAppColorSchemeChanged,
   guiConfig,
+  shareListenersRegistered,
 } from 'react-native-kb'
-import {
-  initPushListener,
-  getStartupDetailsFromInitialPush,
-  getStartupDetailsFromInitialShare,
-} from './push.native'
+import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -136,7 +133,7 @@ export const showShareActionSheet = async (options: {
 
 // TODO rewrite this, v slow
 const loadStartupDetails = async () => {
-  const [routeState, initialUrl, push, share] = await Promise.all([
+  const [routeState, initialUrl, push] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {
       try {
         const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
@@ -147,7 +144,6 @@ const loadStartupDetails = async () => {
     }),
     C.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     C.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
-    C.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
   ] as const)
 
   // Clear last value to be extra safe bad things don't hose us forever
@@ -162,8 +158,6 @@ const loadStartupDetails = async () => {
   let followUser = ''
   let link = ''
   let tab = ''
-  let sharePaths = new Array<string>()
-  let shareText = ''
 
   // Top priority, push
   if (push) {
@@ -174,10 +168,6 @@ const loadStartupDetails = async () => {
     logger.info('initialState: link', link)
     // Second priority, deep link
     link = initialUrl
-  } else if (share?.fileUrls || share?.text) {
-    logger.info('initialState: share')
-    sharePaths = share.fileUrls
-    shareText = share.text
   } else if (routeState) {
     // Last priority, saved from last session
     try {
@@ -205,14 +195,6 @@ const loadStartupDetails = async () => {
   // never allow this case
   if (tab === 'blank') {
     tab = ''
-  }
-
-  const {setAndroidShare} = C.useConfigState.getState().dispatch
-
-  if (sharePaths.length) {
-    setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls: sharePaths})
-  } else if (shareText) {
-    setAndroidShare({text: shareText, type: T.RPCGen.IncomingShareType.text})
   }
 
   C.useConfigState.getState().dispatch.setStartupDetails({
@@ -542,6 +524,9 @@ export const initPlatformListener = () => {
     })
   }
 
+  // we call this when we're logged in.
+  let calledShareListenersRegistered = false
+
   C.useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
@@ -550,6 +535,11 @@ export const initPlatformListener = () => {
       await C.timeoutPromise(1000)
       const path = C.Router2.getVisiblePath()
       C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+    }
+
+    if (!calledShareListenersRegistered && C.Router2.logState().loggedIn) {
+      calledShareListenersRegistered = true
+      shareListenersRegistered()
     }
     C.ignorePromise(f())
   })

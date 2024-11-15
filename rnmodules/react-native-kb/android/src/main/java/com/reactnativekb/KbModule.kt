@@ -111,9 +111,9 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
 
 
     // only old arch, uncomment
-//    override fun getConstants(): MutableMap<String, Any>? {
-//        return getTypedExportedConstants()
-//    }
+    // override fun getConstants(): MutableMap<String, Any>? {
+    //     return getTypedExportedConstants()
+    // }
 
     // newarch @Override
     override fun getTypedExportedConstants(): MutableMap<String, Any> {
@@ -233,6 +233,19 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         }
     }
 
+
+    @ReactMethod
+    override fun shareListenersRegistered() {
+        try {
+            val activity: Activity? = reactContext.getCurrentActivity()
+            if (activity != null) {
+                val m: Method = activity.javaClass.getMethod("shareListenersRegistered")
+                m.invoke(activity)
+            }
+        } catch (ex: Exception) {
+        }
+    }
+
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {
@@ -271,9 +284,14 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
-        val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
-        intent.putExtra(Intent.EXTRA_STREAM, fileUri)
-        startSharing(intent, promise)
+        try {
+            // note in JS initPlatformSpecific changes the cache dir so this works
+            val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
+            intent.putExtra(Intent.EXTRA_STREAM, fileUri)
+            startSharing(intent, promise)
+        } catch (ex: Exception) {
+            promise.reject(Exception("Error sharing file"))
+        }
     }
 
     private fun startSharing(intent: Intent, promise: Promise) {
@@ -395,14 +413,18 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     private fun normalizePath(path: String): String {
-        if (!Regex("""\w+\:.*""").matches(path))
+        if (!Regex("""\w+\:.*""").matches(path)) {
+            return path
+        }
         if (path.startsWith("file://")) {
             return path.replace("file://", "")
         }
         val uri: Uri = Uri.parse(path)
-        return if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
-            path
-        } else PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
+        if (path.startsWith(FILE_PREFIX_BUNDLE_ASSET)) {
+            return path
+        } else {
+            return PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
+        }
     }
 
     @ReactMethod
@@ -456,6 +478,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
             return
         }
         val path = normalizePath(config.getString("path") ?: "")
+
         if (path == "") {
             promise.reject("EINVAL", "addCompleteDownload can not resolve URI:" + config.getString("path"))
             return
@@ -503,68 +526,6 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     @ReactMethod
     override fun androidSetApplicationIconBadgeNumber(badge: Double) {
         ShortcutBadger.applyCount(reactContext, badge.toInt())
-    }
-
-    // init bundles
-    // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
-    // its own react module. That's because starting up a react module is a bit expensive and we
-    // wouldn't be able to lazy load this because we need it on startup.
-    @ReactMethod
-    override fun androidGetInitialBundleFromNotification(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialBundleFromNotification")
-                val initialBundleFromNotification = m.invoke(activity) as Bundle?
-                if (initialBundleFromNotification != null) {
-                    val map: WritableMap = Arguments.fromBundle(initialBundleFromNotification)
-                    promise.resolve(map)
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-        }
-        promise.resolve(null)
-    }
-
-    @ReactMethod
-    override fun androidGetInitialShareFileUrls(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialShareFileUrls")
-                val o = m.invoke(activity)
-                if (o != null && o is Array<*>) {
-                    val us = o.filterIsInstance<String>()
-                    val writableArray: WritableArray = Arguments.createArray()
-                    for (str in us) {
-                        writableArray.pushString(str)
-                    }
-                    promise.resolve(writableArray)
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-            Log.d("ossifrageShare", "androidGetInitialShareFileUrl exception" + ex.toString())
-        }
-        promise.resolve("")
-    }
-
-    @ReactMethod
-    override fun androidGetInitialShareText(promise: Promise) {
-        try {
-            val activity: Activity? = reactContext.getCurrentActivity()
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("getInitialShareText")
-                val shareText = m.invoke(activity)
-                if (shareText != null) {
-                    promise.resolve(shareText.toString())
-                    return
-                }
-            }
-        } catch (ex: Exception) {
-        }
-        promise.resolve("")
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

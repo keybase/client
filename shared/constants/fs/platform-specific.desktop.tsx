@@ -298,6 +298,8 @@ const initPlatformSpecific = () => {
         }
         dispatch.dynamic.refreshMountDirsDesktop?.()
       })
+      // force call as it could have happened already
+      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
     }
   })
 }

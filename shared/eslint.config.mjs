@@ -316,7 +316,7 @@ const tsRules = {
   '@typescript-eslint/space-before-function-paren': 'off',
   '@typescript-eslint/space-infix-ops': 'off',
   '@typescript-eslint/strict-boolean-expressions': 'off',
-  '@typescript-eslint/switch-exhaustiveness-check': 'error',
+  '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
   '@typescript-eslint/triple-slash-reference': 'error',
   '@typescript-eslint/typedef': 'error',
   '@typescript-eslint/unbound-method': 'error',

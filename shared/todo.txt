@@ -1,11 +1,6 @@
- imgur preview doesn't have a collapse
- thread search loses focused
- mic tap tooltip doesnt show
- copy heic from imessage pastest as url w/ heic???
-
-
-
-
+crash on dark mode change in fs tab?
+expo-av to expo-video / expo-audio
+inbox scroll perf issues
 
 
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt

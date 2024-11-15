@@ -1905,7 +1905,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           s.getState().dispatch.setExplodingMode(0, true)
         }
       } else {
-        logger.info('Got push state with some exploding modes')
+        // logger.info('Got push state with some exploding modes')
         explodingItems.forEach(i => {
           try {
             const {category, body} = i.item

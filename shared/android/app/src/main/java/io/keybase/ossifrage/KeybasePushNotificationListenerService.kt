@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -17,6 +19,7 @@ import keybase.Keybase
 import me.leolin.shortcutbadger.ShortcutBadger
 import org.json.JSONArray
 import org.json.JSONObject
+import android.util.Log
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // This keeps a small ring buffer cache of the last 5 messages per conversation the user
@@ -42,7 +45,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         createNotificationChannel(this)
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
     override fun onMessageReceived(message: RemoteMessage) {
         val bundle = Bundle()
         for ((key, value) in message.data) {
@@ -71,7 +73,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         try {
             val type = bundle.getString("type")
             val payload = bundle.getString("m")
-            val notifier = KBPushNotifier(applicationContext, bundle)
+            val notifier = KBPushNotifier(applicationContext, bundle.clone() as Bundle)
             when (type) {
                 "chat.newmessage", "chat.newmessageSilent_2" -> {
                     val n = NotificationData(type, bundle)
@@ -91,6 +93,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // later.
                     val dontNotify = type == "chat.newmessageSilent_2" && !n.displayPlaintext
                     notifier.setMsgCache(msgCache[n.convID])
+
                     val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
                         override fun task() {
                             try {
@@ -273,16 +276,16 @@ internal class NotificationData @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB
 }
 
 // Interface to run some task while in backgroundActive.
-// If already foreground, just runs the task.
+// If already foreground, ignore
 internal interface WithBackgroundActive {
     @Throws(Exception::class)
     fun task()
 
     @Throws(Exception::class)
     fun whileActive(context: Context?) {
-        // We are foreground we don't need to change to background active
+        // We are foreground don't show anything
         if (Keybase.isAppStateForeground()) {
-            task()
+            return
         } else {
             Keybase.setAppStateBackgroundActive()
             task()

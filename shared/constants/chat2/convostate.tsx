@@ -505,8 +505,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     NotifyPopup(title, {body: cleanBody, sound}, -1, author, onClick, onClose)
   }
 
-  const messagesAdd = (messages: Array<T.Chat.Message>, why: string, markAsRead = true) => {
+  const messagesAdd = (
+    messages: Array<T.Chat.Message>,
+    opt: {
+      why: string
+      markAsRead?: boolean
+      incomingMessage?: boolean
+    }
+  ) => {
+    const {why, markAsRead = true, incomingMessage = false} = opt
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
+
+    const caughtUp = get().isCaughtUp()
+    // we can't allow gaps in the ordinals so if we get an incoming message and we're not contiguous we need to ignore
+    if (incomingMessage && !caughtUp) {
+      return
+    }
+
     set(s => {
       for (const _m of messages) {
         const m = T.castDraft(_m)
@@ -913,7 +928,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             devicename
           )
           if (modMessage) {
-            messagesAdd([modMessage], 'onincoming edit')
+            messagesAdd([modMessage], {why: 'onincoming edit'})
           }
         }
         return true
@@ -957,9 +972,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // keep this
       message.ordinal = ordinal
       const next = Message.upgradeMessage(existing, message)
-      messagesAdd([next], 'incoming existing attachupload')
+      messagesAdd([next], {why: 'incoming existing attachupload'})
     } else {
-      messagesAdd([message], 'incoming new attachupload')
+      messagesAdd([message], {why: 'incoming new attachupload'})
     }
   }
 
@@ -1438,7 +1453,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     }
                   })
                   // inject them into the message map
-                  messagesAdd([message], 'gallery inject', false)
+                  messagesAdd([message], {markAsRead: false, why: 'gallery inject'})
                 }
               },
             },
@@ -1497,13 +1512,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
+
       let forceClear = p.forceClear ?? false
 
       if (centeredMessageID) {
         forceClear = true
       }
-
-      setMessageCenterOrdinal()
 
       // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
       if (forceClear) {
@@ -1573,11 +1587,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
           const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
           set(s => {
-            s.moreToLoad = moreToLoad
+            // moreToLoad is only about going back so ignore updating this if we're not going in that direction
+            if (sd !== 'forward') {
+              s.moreToLoad = moreToLoad
+            }
           })
 
           if (messages.length) {
-            messagesAdd(messages, `load more ongotthread: ${why}`)
+            messagesAdd(messages, {why: `load more ongotthread: ${why}`})
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({
@@ -1687,7 +1704,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             devicename
           )
           if (goodMessage?.type === 'attachment') {
-            messagesAdd([goodMessage], 'loadnextattachment')
+            messagesAdd([goodMessage], {why: 'loadnextattachment'})
             let ordinal = goodMessage.ordinal
             // sent?
             if (goodMessage.outboxID && !get().messageMap.get(ordinal)) {
@@ -2290,7 +2307,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         onAttachmentEdit(placeholderID, message)
       } else {
         // A normal message
-        messagesAdd([message], 'incoming general')
+        messagesAdd([message], {incomingMessage: true, why: 'incoming general'})
       }
     },
     onMessageErrored: (outboxID, reason, errorTyp) => {
@@ -2327,7 +2344,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           toAdd.push(message)
         })
       })
-      messagesAdd(toAdd, 'messages updated')
+      messagesAdd(toAdd, {why: 'messages updated'})
     },
     openFolder: () => {
       const meta = get().meta

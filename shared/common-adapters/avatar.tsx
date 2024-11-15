@@ -94,9 +94,11 @@ const followIconHelper = (size: AvatarSize, followsYou: boolean, following: bool
   }
 }
 
+const sizes = [960, 256, 192] as const
 const ConnectedAvatar = (ownProps: OwnProps) => {
-  const {username, showFollowingStatus, teamname} = ownProps
-  const isTeam = ownProps.isTeam || !!teamname
+  const {username, showFollowingStatus, teamname, isTeam: _isTeam, onClick: _onClick} = ownProps
+  const {onEditAvatarClick, imageOverrideUrl, size, lighterPlaceholders} = ownProps
+  const isTeam = _isTeam || !!teamname
   const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
   const following = C.useFollowerState(s =>
     showFollowingStatus && username ? s.following.has(username) : false
@@ -112,31 +114,44 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
     [showUserProfile, username]
   )
 
-  const opClick = ownProps.onClick === 'profile' ? (username ? goToProfile : undefined) : ownProps.onClick
-  const onClick = ownProps.onEditAvatarClick || opClick
+  const opClick = _onClick === 'profile' ? (username ? goToProfile : undefined) : _onClick
+  const onClick = onEditAvatarClick || opClick
   const name = isTeam ? teamname : username
-  const sizes = [960, 256, 192] as const
-  const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
-    m[size] = `http://${httpSrv.address}/av?typ=${
-      isTeam ? 'team' : 'user'
-    }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
-      httpSrv.token
-    }&count=${counter}`
-    return m
-  }, {})
-  const url = ownProps.imageOverrideUrl
-    ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
-    : httpSrv.address && name
-      ? urlsToImgSet(urlMap, ownProps.size)
-      : iconTypeToImgSet(
-          isTeam
-            ? teamPlaceHolders
-            : ownProps.lighterPlaceholders
-              ? avatarLighterPlaceHolders
-              : avatarPlaceHolders,
-          ownProps.size
-        )
-  const iconInfo = followIconHelper(ownProps.size, followsYou, following)
+
+  const {address, token} = httpSrv
+
+  const urlMap = React.useMemo(
+    () =>
+      sizes.reduce<{[key: number]: string}>((m, size) => {
+        m[size] = `http://${address}/av?typ=${
+          isTeam ? 'team' : 'user'
+        }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
+          token
+        }&count=${counter}`
+        return m
+      }, {}),
+    [counter, address, token, isTeam, name]
+  )
+  const url = React.useMemo(
+    () =>
+      imageOverrideUrl
+        ? `url("${encodeURI(imageOverrideUrl)}")`
+        : address && name
+          ? urlsToImgSet(urlMap, size)
+          : iconTypeToImgSet(
+              isTeam
+                ? teamPlaceHolders
+                : lighterPlaceholders
+                  ? avatarLighterPlaceHolders
+                  : avatarPlaceHolders,
+              size
+            ),
+    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
+  )
+  const iconInfo = React.useMemo(
+    () => followIconHelper(size, followsYou, following),
+    [size, followsYou, following]
+  )
   return (
     <Avatar
       blocked={blocked}
@@ -153,7 +168,7 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
       onClick={onClick}
       onEditAvatarClick={ownProps.onEditAvatarClick}
       opacity={ownProps.opacity}
-      size={ownProps.size}
+      size={size}
       skipBackground={ownProps.skipBackground}
       style={ownProps.style}
       url={url}

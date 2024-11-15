@@ -52,7 +52,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.small,
       },
       gradientContainer: {
-        bottom: 0,
+        bottom: Kb.Styles.isAndroid ? 5 : 0,
         left: 0,
         position: 'absolute',
         right: 0,

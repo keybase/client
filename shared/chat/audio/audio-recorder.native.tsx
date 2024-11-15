@@ -23,9 +23,9 @@ import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
 import AudioSend from './audio-send.native'
 
-const {useSharedValue, withTiming, useAnimatedStyle, withDelay, withSequence, withSpring} = Reanimated
-const {useAnimatedReaction, runOnJS, Extrapolation, interpolate, interpolateColor} = Reanimated
-const Animated = Reanimated.default
+const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
+const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
+const {useAnimatedReaction, withDelay, withTiming, interpolateColor, default: Animated} = Reanimated
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
@@ -75,135 +75,12 @@ const useTooltip = () => {
   ) : null
 
   const flashTip = React.useCallback(() => {
-    setShowTooltip(true)
+    'worklet'
+    runOnJS(setShowTooltip)(true)
   }, [setShowTooltip])
 
   return {flashTip, tooltip}
 }
-
-// these need to be out so they capture as little scope as possible
-const makePanOnFinalize = (p: {
-  startedSV: SVN
-  lockedSV: SVN
-  canceledSV: SVN
-  onCancelRecording: () => void
-  onFlashTip: () => void
-  sendRecording: () => void
-  fadeSV: SVN
-}) => {
-  const {onCancelRecording, onFlashTip} = p
-  const {sendRecording, fadeSV, startedSV, lockedSV, canceledSV} = p
-  const onPanFinalizeJS = (needTip: boolean, wasCancel: boolean, panLocked: boolean) => {
-    if (wasCancel) {
-      onCancelRecording()
-      return
-    }
-
-    if (needTip) {
-      onFlashTip()
-      return
-    }
-
-    if (!panLocked) {
-      sendRecording()
-      fadeSV.value = withTiming(0, {duration: 200})
-    }
-  }
-
-  const onPanFinalizeWorklet = (_e: unknown, success: boolean) => {
-    'worklet'
-    startedSV.value = 0
-    runOnJS(onPanFinalizeJS)(!success, canceledSV.value === 1, lockedSV.value === 1)
-  }
-
-  return onPanFinalizeWorklet
-}
-
-const makePanOnStart = (p: {startRecording: () => void; fadeSV: SVN; startedSV: SVN}) => {
-  const {startRecording, fadeSV, startedSV} = p
-  const onPanStartJS = () => {
-    startRecording()
-    fadeSV.value = withSpring(1)
-  }
-
-  const onPanStartWorklet = () => {
-    'worklet'
-    // we get this multiple times for some reason
-    if (startedSV.value) {
-      return
-    }
-
-    startedSV.value = 1
-    runOnJS(onPanStartJS)()
-  }
-
-  return onPanStartWorklet
-}
-
-const makePanOnUpdate = (p: {lockedSV: SVN; canceledSV: SVN; dragYSV: SVN; dragXSV: SVN}) => {
-  const {lockedSV, dragYSV, dragXSV, canceledSV} = p
-  const onOnUpdateWorklet = (e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-    'worklet'
-    if (lockedSV.value || canceledSV.value) {
-      return
-    }
-    const maxCancelDrift = -120
-    const maxLockDrift = -100
-    dragYSV.value = interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-    dragXSV.value = interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
-
-    if (e.translationX < maxCancelDrift) {
-      canceledSV.value = 1
-    } else if (e.translationY < maxLockDrift) {
-      lockedSV.value = 1
-    }
-  }
-  return onOnUpdateWorklet
-}
-
-const GestureIcon = React.memo(
-  function GestureIcon(p: {
-    panOnFinalize: ReturnType<typeof makePanOnFinalize>
-    panOnUpdate: ReturnType<typeof makePanOnUpdate>
-    panOnStart: ReturnType<typeof makePanOnStart>
-  }) {
-    const [visible, setVisible] = React.useState(false)
-
-    // work around bug in gesture handler where it crashes on mount
-    React.useEffect(() => {
-      const id = setTimeout(() => {
-        setVisible(true)
-        return () => {
-          clearTimeout(id)
-        }
-      }, 1000)
-    }, [])
-
-    const {panOnStart, panOnUpdate, panOnFinalize} = p
-    return visible ? (
-      <View>
-        <GestureDetector
-          gesture={Gesture.Pan()
-            .minDistance(0)
-            .minPointers(1)
-            .maxPointers(1)
-            .activateAfterLongPress(200)
-            .onStart(panOnStart)
-            .onFinalize(panOnFinalize)
-            .onUpdate(panOnUpdate)}
-        >
-          <Kb.Box2 direction="vertical" collapsable={false}>
-            <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-          </Kb.Box2>
-        </GestureDetector>
-      </View>
-    ) : (
-      <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-    )
-  },
-  // we never want to rerender the icon, all the helpers are fine at mount
-  () => true
-)
 
 const useIconAndOverlay = (p: {
   flashTip: () => void
@@ -266,30 +143,125 @@ const useIconAndOverlay = (p: {
 
   const onFlashTip = React.useCallback(() => {
     flashTip()
-    cancelRecording()
-  }, [flashTip, cancelRecording])
+    onCancelRecording()
+  }, [flashTip, onCancelRecording])
 
-  const icon = (
-    <GestureIcon
-      {...{
-        panOnFinalize: makePanOnFinalize({
-          canceledSV,
-          fadeSV,
-          lockedSV,
-          onCancelRecording,
-          onFlashTip,
-          sendRecording,
-          startedSV,
-        }),
-        panOnStart: makePanOnStart({fadeSV, startRecording, startedSV}),
-        panOnUpdate: makePanOnUpdate({
-          canceledSV,
-          dragXSV,
-          dragYSV,
-          lockedSV,
-        }),
-      }}
-    />
+  const [iconVisible, setIconVisible] = React.useState(false)
+
+  // work around bug in gesture handler where it crashes on mount
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      setIconVisible(true)
+      return () => {
+        clearTimeout(id)
+      }
+    }, 1000)
+  }, [])
+  const panStartSV = useSharedValue(0)
+
+  const gesture = React.useMemo(() => {
+    let id: number
+    const showOverlay = () => {
+      // we get this multiple times for some reason
+      if (startedSV.value) {
+        return
+      }
+      startedSV.set(1)
+      fadeSV.set(() => withSpring(1, {duration: 200}))
+      startRecording()
+    }
+
+    const setupOverlayTimeout = () => {
+      id = setTimeout(() => {
+        showOverlay()
+      }, 200) as unknown as number
+    }
+    const cleanupOverlayTimeout = () => {
+      clearTimeout(id)
+      id = 0
+    }
+
+    const panGesture = Gesture.Pan()
+      .minDistance(0)
+      .minPointers(1)
+      .maxPointers(1)
+      .onTouchesDown(() => {
+        'worklet'
+        runOnJS(setupOverlayTimeout)()
+        if (!panStartSV.value) {
+          panStartSV.set(Date.now())
+        }
+      })
+      .onFinalize((_e: unknown, _success: boolean) => {
+        'worklet'
+        const diff = Date.now() - panStartSV.value
+        startedSV.set(0)
+        panStartSV.set(0)
+        runOnJS(cleanupOverlayTimeout)()
+        const needTip = diff < 200
+        const wasCancel = canceledSV.value === 1
+        const panLocked = lockedSV.value === 1
+        if (wasCancel) {
+          runOnJS(onCancelRecording)()
+          return
+        }
+
+        if (needTip) {
+          runOnJS(onFlashTip)()
+          return
+        }
+
+        if (!panLocked) {
+          runOnJS(sendRecording)()
+          onReset()
+          fadeSV.set(() => withTiming(0, {duration: 200}))
+        }
+      })
+      .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+        'worklet'
+        if (lockedSV.value || canceledSV.value) {
+          return
+        }
+        const maxCancelDrift = -120
+        const maxLockDrift = -100
+        dragYSV.set(() =>
+          interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
+        )
+        dragXSV.set(() =>
+          interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
+        )
+        if (e.translationX < maxCancelDrift) {
+          canceledSV.set(1)
+        } else if (e.translationY < maxLockDrift) {
+          lockedSV.set(1)
+        }
+      })
+    return panGesture
+  }, [
+    onReset,
+    panStartSV,
+    fadeSV,
+    onFlashTip,
+    lockedSV,
+    canceledSV,
+    dragXSV,
+    dragYSV,
+    startRecording,
+    sendRecording,
+    onCancelRecording,
+    startedSV,
+  ])
+
+  const icon = iconVisible ? (
+    <View>
+      <GestureDetector gesture={gesture}>
+        <Kb.Box2 direction="vertical" collapsable={false}>
+          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+        </Kb.Box2>
+      </GestureDetector>
+    </View>
+  ) : (
+    <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
   )
 
   const durationStyle = useAnimatedStyle(() => ({
@@ -637,11 +609,13 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   const slideAmount = 150
   const spaceBetween = 20
   const deltaY = 50
+
   const arrowStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
     const dragDistanceX = -50
     const dragXOpacity =
       dragYSV.value < -10 ? 1 : interpolate(dragXSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP)
+
     return {
       opacity: lockedSV.value
         ? withTiming(0)

@@ -181,7 +181,6 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   )
 
   const actionsDisabled = waiting || !outputValid
-  console.log('aaaa actionsDisabled ', {outputValid, waiting})
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
