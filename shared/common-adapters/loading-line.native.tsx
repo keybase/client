@@ -5,7 +5,7 @@ import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, with
 const LoadingLine = React.memo(function LoadingLine() {
   const opacity = useSharedValue(1)
   React.useEffect(() => {
-    opacity.set(() => withDelay(1000, withRepeat(withTiming(0, {duration: 600}), -1, true)))
+    opacity.set(withDelay(1000, withRepeat(withTiming(0, {duration: 600}), -1, true)))
   }, [opacity])
   const animatedStyle = useAnimatedStyle(() => {
     return {opacity: opacity.value}

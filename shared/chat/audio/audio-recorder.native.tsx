@@ -49,9 +49,10 @@ const useTooltip = () => {
     if (showTooltip === lastShowTooltipRef.current) return
     lastShowTooltipRef.current = showTooltip
     if (showTooltip) {
-      opacitySV.set(() =>
+      opacitySV.set(
         withSequence(withTiming(1, {duration: 200}), withDelay(1000, withTiming(0, {duration: 200})))
       )
+
       const id = setTimeout(() => {
         setShowTooltip(false)
       }, 1400)
@@ -119,7 +120,7 @@ const useIconAndOverlay = (p: {
 
   const onReset = React.useCallback(() => {
     'worklet'
-    fadeSV.set(() => withTiming(0, {duration: 200}))
+    fadeSV.set(withTiming(0, {duration: 200}))
     dragXSV.set(0)
     dragYSV.set(0)
     lockedSV.set(0)
@@ -167,7 +168,7 @@ const useIconAndOverlay = (p: {
         return
       }
       startedSV.set(1)
-      fadeSV.set(() => withSpring(1, {duration: 200}))
+      fadeSV.set(withSpring(1, {duration: 200}))
       startRecording()
     }
 
@@ -214,7 +215,7 @@ const useIconAndOverlay = (p: {
         if (!panLocked) {
           runOnJS(sendRecording)()
           onReset()
-          fadeSV.set(() => withTiming(0, {duration: 200}))
+          fadeSV.set(withTiming(0, {duration: 200}))
         }
       })
       .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
@@ -224,10 +225,8 @@ const useIconAndOverlay = (p: {
         }
         const maxCancelDrift = -120
         const maxLockDrift = -100
-        dragYSV.set(() =>
-          interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP)
-        )
-        dragXSV.set(() =>
+        dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
+        dragXSV.set(
           interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
         )
         if (e.translationX < maxCancelDrift) {
@@ -430,7 +429,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
         ampTracker.addAmp(amp)
         const maxScale = 8
         const minScale = 3
-        ampSV.set(() => withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
+        ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
       }
 
       const recording = await makeRecorder(onRecordingStatusUpdate)

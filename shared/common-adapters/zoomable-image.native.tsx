@@ -137,7 +137,7 @@ const ZoomableImage = React.memo(function (p: Props) {
   const opacity = useSharedValue(0)
 
   React.useEffect(() => {
-    opacity.set(() => withTiming(1, {duration: 800}))
+    opacity.set(withTiming(1, {duration: 800}))
   }, [opacity])
 
   const fadeStyle = useAnimatedStyle(() => {
