@@ -1,0 +1,10 @@
+diff --git a/node_modules/react-native-screens/lib/module/components/ScreenFooter.web.js b/node_modules/react-native-screens/lib/module/components/ScreenFooter.web.js
+index 3285ca6..4c93a9d 100644
+--- a/node_modules/react-native-screens/lib/module/components/ScreenFooter.web.js
++++ b/node_modules/react-native-screens/lib/module/components/ScreenFooter.web.js
+@@ -1,4 +1,5 @@
+ import { View } from 'react-native';
+ const ScreenFooter = View;
++export const FooterComponent = View;
+ export default ScreenFooter;
+ //# sourceMappingURL=ScreenFooter.web.js.map
