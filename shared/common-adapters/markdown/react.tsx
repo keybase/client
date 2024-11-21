@@ -82,6 +82,8 @@ const _markdownStyles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.xtiny,
         },
       }),
       codeSnippetStyle: Styles.platformStyles({
@@ -173,7 +175,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box style={markdownStyles.codeSnippetBlockTextStyle}>
+    <Box>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}

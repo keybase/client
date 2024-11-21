@@ -32,6 +32,7 @@ export const defaultNavigationOptions = {
     alignItems: 'stretch' as const,
     flexGrow: 1,
   },
+  unstable_sheetFooter: null,
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
