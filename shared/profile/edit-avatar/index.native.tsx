@@ -21,8 +21,14 @@ const AvatarUploadWrapper = (props: Props) => {
     const f = async () => {
       try {
         const result = await launchImageLibraryAsync('photo')
-        if (!result.canceled && result.assets.length > 0) {
-          setSelectedImage(result.assets[0])
+        const first = result.assets?.reduce<typeof image>((acc, a) => {
+          if (!acc && (a.type === 'image' || a.type === 'video')) {
+            return a as typeof image
+          }
+          return acc
+        }, undefined)
+        if (!result.canceled && first) {
+          setSelectedImage(first)
         } else if (!props.wizard) {
           navUp()
         }

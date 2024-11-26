@@ -179,6 +179,7 @@ const useIconAndOverlay = (p: {
     }
     const cleanupOverlayTimeout = () => {
       clearTimeout(id)
+      // eslint-disable-next-line
       id = 0
     }
 

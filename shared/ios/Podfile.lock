@@ -9,11 +9,11 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.10):
+  - Expo (52.0.11):
     - ExpoModulesCore
   - ExpoAsset (11.0.1):
     - ExpoModulesCore
-  - ExpoCamera (16.0.6):
+  - ExpoCamera (16.0.7):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -41,10 +41,10 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (14.0.1):
     - ExpoModulesCore
-  - ExpoMediaLibrary (17.0.2):
+  - ExpoMediaLibrary (17.0.3):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (2.0.5):
+  - ExpoModulesCore (2.0.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2275,9 +2275,9 @@ SPEC CHECKSUMS:
   EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXConstants: dd2fe64c6cdb1383b694c309a63028a8e9f2be6d
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
-  Expo: 7571b8c65b98450ac23a123dcc4d8ee3d50f1e42
+  Expo: 148aac4ce0da148c63447d09ae41ddb153f35506
   ExpoAsset: 8138f2a9ec55ae1ad7c3871448379f7d97692d15
-  ExpoCamera: c98e7c44765d186469ca37985e76bda1cb972758
+  ExpoCamera: 0e504ac6907bddc915770c19f001dc361ce55f0b
   ExpoClipboard: 166ca8c13ca1041f5ba619a211f59427ab5da8a7
   ExpoContacts: 209f0739c712bf808413c691722ce1bb1e2ea0af
   ExpoFileSystem: dc2679a2b5d4c465ca881129074da95faee943d5
@@ -2288,8 +2288,8 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 783e68647b969b210a786047c3daa7b753dcac1f
   ExpoLocation: e0c5b5212381b0b800a2c1f715be823d17c51b05
   ExpoMailComposer: 63589e1cbfa08220b2e650eecac0457be61ddd69
-  ExpoMediaLibrary: 83f47430d5193186029bc57bae16e2130941bc83
-  ExpoModulesCore: 8f010532d9ab0115f047c76e0303b9f0a1a50e97
+  ExpoMediaLibrary: 2d20778aafaa2e6f60640167f0618cfacee6f81c
+  ExpoModulesCore: bb3f481a7912159f2289a653e4195146170f0a00
   ExpoSMS: 884d6627c0848795ff9492fbfc7ba6087111e344
   EXTaskManager: afcec33a6643f24fed4a89062757037b185c8a88
   FBLazyVector: be7314029d6ec6b90f0f75ce1195b8130ed9ac4f
@@ -2379,4 +2379,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: f27923d765b5852780350b18cffd55efc463ec07
 
-COCOAPODS: 1.16.1
+COCOAPODS: 1.16.2

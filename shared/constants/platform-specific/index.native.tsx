@@ -273,19 +273,19 @@ const ensureBackgroundTask = () => {
   if (madeBackgroundTask) return
   madeBackgroundTask = true
 
-  ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
+  ExpoTaskManager.defineTask(locationTaskName, async ({data, error}) => {
     if (error) {
       // check `error.message` for more details.
-      return
+      return Promise.resolve()
     }
 
     if (!data) {
-      return
+      return Promise.resolve()
     }
     const d = data as {locations?: Array<ExpoLocation.LocationObject>}
     const locations = d.locations
     if (!locations?.length) {
-      return
+      return Promise.resolve()
     }
     const pos = locations.at(-1)
     const coord = {
@@ -295,6 +295,7 @@ const ensureBackgroundTask = () => {
     }
 
     C.useChatState.getState().dispatch.updateLastCoord(coord)
+    return Promise.resolve()
   })
 }
 
