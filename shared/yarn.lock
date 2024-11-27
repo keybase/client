@@ -2347,20 +2347,20 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@7.0.11":
-  version "7.0.11"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.11.tgz#cb428dcc6a3af73f70020a8963650a37c92b9255"
-  integrity sha512-an6GOjhQNk8tdbWMB+6MUWAZxjQvJ+mNKhdRKcfjNwJkFWmQHzAH0ipX9Cihkl6IheJdstBGqdApMC2R2ias5Q==
+"@react-navigation/bottom-tabs@7.0.12":
+  version "7.0.12"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.0.12.tgz#c3d8deaf89d9a14ac4570c6717b93a58a6403057"
+  integrity sha512-g8sYxuhC4b7B/QaHDn0FW0vQ6y3IlIGRNrIyCrp7co7+0PC1ZryfXwOMNacpg12XrVuZrJi9JT7Wrrx5oPXvcw==
   dependencies:
-    "@react-navigation/elements" "^2.1.5"
+    "@react-navigation/elements" "^2.1.6"
     color "^4.2.3"
 
-"@react-navigation/core@7.0.6", "@react-navigation/core@^7.0.6":
-  version "7.0.6"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.0.6.tgz#b98265df073ee5f2707c2a3f391d77fa9d1361f3"
-  integrity sha512-YY68aTj9wshu8iln3TkV0X6+jcZTzNgRuUgv89O26cveGXuX/o17CVOn7NaMtkrq14sZpuivlA0hr32+tSpDEw==
+"@react-navigation/core@7.1.0", "@react-navigation/core@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.1.0.tgz#db379f324e6e4d0b5e26ab50397478d6ef9dae28"
+  integrity sha512-Rs0kawdQxouvc/88fROyHVRHEhgSbKrHeBaEspkbvWPea26ikcwTHlmba7Q2DDwC+433ZFyjegmar5bV4FBaqA==
   dependencies:
-    "@react-navigation/routers" "^7.0.0"
+    "@react-navigation/routers" "^7.1.0"
     escape-string-regexp "^4.0.0"
     nanoid "3.3.7"
     query-string "^7.1.3"
@@ -2368,36 +2368,36 @@
     use-latest-callback "^0.2.1"
     use-sync-external-store "^1.2.2"
 
-"@react-navigation/elements@^2.1.5":
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.1.5.tgz#e83b36308f5307be15d80bc269c2a5ea8a7e8495"
-  integrity sha512-+m74coqW8P7CFMhddjypZDubAaNZ5NlXC7jzFtWgkoK0Zt9SOu4NYT/UvyyMR+cCkjE8HtLr1HCOcmdDtRw5xQ==
+"@react-navigation/elements@^2.1.6":
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.1.6.tgz#b7166f4783fe90fe1f171ac210d6523a00caf919"
+  integrity sha512-XyjEm2EhR9XPaMbGYTPRXmIdfvz23jt7U3BsJK2CzOQq29G1fZLgsR1atyhG0fJ8YeYAZADt7vZ7bZ5k/whVvw==
   dependencies:
     color "^4.2.3"
 
-"@react-navigation/native-stack@7.1.7":
-  version "7.1.7"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.1.7.tgz#695bc12f21d2239cf327d007f0b8ae01039926da"
-  integrity sha512-Y8JJVdTsWs1nC27UfuJXnd7cP6O3anQCsPpQhM9I9UOwNcQKi702aRKiDcjM77/LWp8Z+IShMtGVpkdG+oy39g==
+"@react-navigation/native-stack@7.1.8":
+  version "7.1.8"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.1.8.tgz#9a9a3190c5d80d55c31cbf19fd591f7b558fef1e"
+  integrity sha512-cny6ykmOoYJd9pfAuQdDfxgQ5I9Wwq2jnLxxauBbTHVj19xjKI9Jkqxgzx2XKJ6uO6Zpq+hw0Bl3Hk91c07xOA==
   dependencies:
-    "@react-navigation/elements" "^2.1.5"
+    "@react-navigation/elements" "^2.1.6"
     warn-once "^0.1.1"
 
-"@react-navigation/native@7.0.6":
-  version "7.0.6"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.0.6.tgz#be948eed9cb796957bf5ba9ba4074e836a154621"
-  integrity sha512-Ynywfl+z5jZ6KnQYTIbsXof4F4L9qQhalJ4XzPmjqJkEO4wCdYq9gmcvx5VZbJ5vXOo2pPuJTEs1v2Yy3ZSGFw==
+"@react-navigation/native@7.0.7":
+  version "7.0.7"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.0.7.tgz#13a652cf36d74fde236e102fef74de246efd758f"
+  integrity sha512-xuX+nr1gAh8z2kBTotx+yN0JnFLV1Ln8PeLThDAruXOPPNzLf+A2FAvjzJjoz50cIKzx0/pK/QtwKJGE3EwB6w==
   dependencies:
-    "@react-navigation/core" "^7.0.6"
+    "@react-navigation/core" "^7.1.0"
     escape-string-regexp "^4.0.0"
     fast-deep-equal "^3.1.3"
     nanoid "3.3.7"
     use-latest-callback "^0.2.1"
 
-"@react-navigation/routers@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/routers/-/routers-7.0.0.tgz#fb55a4d70a14e16b630c386fd09ba43664cc7409"
-  integrity sha512-b2ehNmgAfDziTd0EERm0C9JI9JH1kdRS4SNBWbKQOVPv23WG+5ExovwWet26sGtMabLJ5lxSE8Z2/fByfggjNQ==
+"@react-navigation/routers@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/routers/-/routers-7.1.0.tgz#a70da606676320250d82d98666c7509b0048db0d"
+  integrity sha512-ln9/U4vbUKno8l5GcB0dj0QMXFfRDhTfL7WOGJnPEPHAq99PnlyrsDXpqKGOTH9qtLzrfSjR1QQomnQ9i/tGEg==
   dependencies:
     nanoid "3.3.7"
 

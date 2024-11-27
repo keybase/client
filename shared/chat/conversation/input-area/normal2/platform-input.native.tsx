@@ -293,9 +293,6 @@ const PlatformInput = (p: Props) => {
   const dummyInputRef = React.useRef<TextInputRaw | null>(null)
 
   const onQueueSubmit = React.useCallback(() => {
-    // force ios to auto correct at the end
-    dummyInputRef.current?.focus()
-    inputRef.current?.focus()
     setTimeout(() => {
       reallySend()
     }, 60)
@@ -304,7 +301,6 @@ const PlatformInput = (p: Props) => {
   const insertText = React.useCallback(
     (toInsert: string) => {
       const i = inputRef.current
-      i?.focus()
       i?.transformText(({selection, text}) => {
         return standardTransformer(
           toInsert,
