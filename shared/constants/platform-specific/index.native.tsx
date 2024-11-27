@@ -26,6 +26,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
+import type {ImageInfo} from '@/util/expo-image-picker.native'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -459,10 +460,16 @@ export const initPlatformListener = () => {
       const f = async () => {
         try {
           const result = await launchImageLibraryAsync('photo')
-          if (!result.canceled) {
+          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
+            if (!acc && (a.type === 'image' || a.type === 'video')) {
+              return a as ImageInfo
+            }
+            return acc
+          }, undefined)
+          if (!result.canceled && first) {
             C.useRouterState
               .getState()
-              .dispatch.navigateAppend({props: {image: result.assets[0]}, selected: 'profileEditAvatar'})
+              .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
           C.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
