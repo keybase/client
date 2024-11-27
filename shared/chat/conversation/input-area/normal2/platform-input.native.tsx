@@ -68,17 +68,18 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   }, [insertText])
 
   const pickKey = 'chatInput'
-  const {emojiStr} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
   const [lastEmoji, setLastEmoji] = React.useState('')
-  if (lastEmoji !== emojiStr) {
-    setTimeout(() => {
-      setLastEmoji(emojiStr)
-      emojiStr && insertText(emojiStr + ' ')
-      updatePickerMap(pickKey, undefined)
-    }, 1)
-  }
+  React.useEffect(() => {
+    if (lastEmoji === emojiStr) {
+      return
+    }
+    setLastEmoji(emojiStr)
+    emojiStr && insertText(emojiStr + ' ')
+    updatePickerMap(pickKey, undefined)
+  }, [emojiStr, insertText, lastEmoji, updatePickerMap])
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const openEmojiPicker = React.useCallback(() => {
@@ -290,8 +291,6 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
-  const dummyInputRef = React.useRef<TextInputRaw | null>(null)
-
   const onQueueSubmit = React.useCallback(() => {
     setTimeout(() => {
       reallySend()
@@ -447,7 +446,6 @@ const PlatformInput = (p: Props) => {
               rowsMin={1}
               expanded={expanded}
             />
-            <TextInputRaw ref={dummyInputRef} style={styles.dummyInput} />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
@@ -532,7 +530,6 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
-      dummyInput: {height: 0, opacity: 0, position: 'absolute', width: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,
