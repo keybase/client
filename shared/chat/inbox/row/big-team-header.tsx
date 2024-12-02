@@ -12,6 +12,13 @@ type Props = {
 }
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
+  return (
+    <C.ChatProvider id={C.Chat.dummyConversationIDKey}>
+      <BigTeamHeaderImpl {...props} />
+    </C.ChatProvider>
+  )
+})
+const BigTeamHeaderImpl = (props: Props) => {
   const {teamID, teamname} = props
   const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -68,7 +75,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       </Kb.ClickableBox>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

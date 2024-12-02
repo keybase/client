@@ -4,6 +4,14 @@ import {FixedSizeList, VariableSizeList} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
+type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
+const Row = React.memo(function Row<T>(p: {data: RowData<T>; index: number; style: React.CSSProperties}) {
+  const {index, style, data} = p
+  const {items, renderItem} = data
+  const item = items[index]
+  return item ? <div style={style}>{renderItem(index, item)}</div> : null
+})
+
 class List2<T> extends React.PureComponent<Props<T>> {
   _keyExtractor = (index: number) => {
     const item = this.props.items[index]
@@ -16,13 +24,16 @@ class List2<T> extends React.PureComponent<Props<T>> {
     return i[keyProp] ?? String(index)
   }
 
-  // This has to be a separate variable since if we construct it inside render
-  // it's a new function everytime, and that triggers react-window to unmount
-  // all rows and mount again.
-  _row = (p: {index: number; style: React.CSSProperties}) => {
-    const {index, style} = p
-    const item = this.props.items[index]
-    return item ? <div style={style}>{this.props.renderItem(index, item)}</div> : null
+  _getItemDataCached = {} as RowData<T>
+  _getItemData = () => {
+    if (
+      this._getItemDataCached.items === this.props.items &&
+      this._getItemDataCached.renderItem === this.props.renderItem
+    ) {
+      return this._getItemDataCached
+    }
+    this._getItemDataCached = {items: this.props.items, renderItem: this.props.renderItem}
+    return this._getItemDataCached
   }
 
   // Need to pass in itemData to make items re-render on prop changes.
@@ -34,11 +45,11 @@ class List2<T> extends React.PureComponent<Props<T>> {
         height={height}
         width={width}
         itemCount={this.props.items.length}
-        itemData={this.props.items}
+        itemData={this._getItemData() as any}
         itemKey={this._keyExtractor}
         itemSize={itemHeight}
       >
-        {this._row}
+        {Row}
       </FixedSizeList>
     )
   }
@@ -57,12 +68,12 @@ class List2<T> extends React.PureComponent<Props<T>> {
         height={height}
         width={width}
         itemCount={this.props.items.length}
-        itemData={this.props.items}
+        itemData={this._getItemData() as any}
         itemKey={this._keyExtractor}
         itemSize={this._variableItemSize}
         estimatedItemSize={this.props.estimatedItemHeight}
       >
-        {this._row}
+        {Row}
       </VariableSizeList>
     )
   }
