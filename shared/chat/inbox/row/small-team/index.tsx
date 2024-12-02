@@ -31,6 +31,14 @@ export type Props = {
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
+  return (
+    <C.ChatProvider id={p.conversationIDKey}>
+      <SmallTeamImpl {...p} />
+    </C.ChatProvider>
+  )
+})
+
+const SmallTeamImpl = (p: Props) => {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
   const {isInWidget, setCloseOpenedRow, closeOpenedRow} = p
 
@@ -154,7 +162,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       </ParticipantsContext.Provider>
     </IsTeamContext.Provider>
   )
-})
+}
 
 type RowAvatarProps = {
   backgroundColor?: string

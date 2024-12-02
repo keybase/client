@@ -493,7 +493,7 @@ const createTBStore = (namespace: T.TB.AllowedNamespace) => {
 const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
-export function Provider_({children, ...props}: TBProviderProps) {
+export function TBProvider_({children, ...props}: TBProviderProps) {
   return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
 }
 

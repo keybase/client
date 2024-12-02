@@ -14,7 +14,7 @@ type OwnProps = {
 }
 
 const noGit = C.Git.makeGitInfo()
-const ConnectedRow = (ownProps: OwnProps) => {
+const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = C.useTeamsState(s => (git.teamname ? C.Teams.getTeamID(s, git.teamname) : undefined))
@@ -112,7 +112,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     you,
   }
   return <Row {...props} />
-}
+})
 
 export default ConnectedRow
 
