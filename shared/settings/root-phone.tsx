@@ -215,7 +215,9 @@ function SettingsNav() {
         if (item.text === 'perf') {
           return <PerfRow />
         }
-        return item.text ? <SettingsItem {...item} /> : null
+        return item.text ? (
+          <SettingsItem {...item} type={item.text} onClick={() => item.onClick()} selected={false} />
+        ) : null
       }}
       renderSectionHeader={({section: {title}}) =>
         title ? (
