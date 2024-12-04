@@ -353,6 +353,10 @@ class EmojiPicker2 extends React.PureComponent<
     return section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
   }
 
+  private renderItem = (p: {item: Row}) => {
+    return this.getEmojiRow(p.item, this._emojisPerLine)
+  }
+
   render() {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
@@ -418,7 +422,7 @@ class EmojiPicker2 extends React.PureComponent<
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={true}
-            renderItem={({item}) => this.getEmojiRow(item, this._emojisPerLine)}
+            renderItem={this.renderItem}
             renderSectionHeader={this.renderSectionHeader}
           />
         </Kb.Box2>

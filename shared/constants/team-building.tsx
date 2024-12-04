@@ -282,13 +282,15 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         switch (namespace) {
           case 'people': {
             get().dispatch.cancelTeamBuilding()
-            // we want the first item
-            // eslint-disable-next-line no-unreachable-loop
-            for (const user of teamSoFar) {
-              const username = user.serviceMap.keybase || user.id
-              C.useProfileState.getState().dispatch.showUserProfile(username)
-              break
-            }
+            setTimeout(() => {
+              // we want the first item
+              // eslint-disable-next-line no-unreachable-loop
+              for (const user of teamSoFar) {
+                const username = user.serviceMap.keybase || user.id
+                C.useProfileState.getState().dispatch.showUserProfile(username)
+                break
+              }
+            }, 100)
             break
           }
           default:
