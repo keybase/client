@@ -133,6 +133,9 @@ const _markdownStyles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
+      quoteStyleText: Styles.platformStyles({
+        common: {backgroundColor: 'transparent'},
+      }),
       strikeStyle: Styles.platformStyles({
         isElectron: {
           ...electronWrapStyle,
@@ -225,6 +228,7 @@ const reactComponentsForMarkdownType = {
     react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInBlockQuote = state['inBlockQuote'] as boolean
       state['inBlockQuote'] = true
+
       const ret = (
         <Box key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
@@ -323,7 +327,11 @@ const reactComponentsForMarkdownType = {
           className={state.paragraphTextClassName}
           type="Body"
           key={state.key}
-          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
+          style={Styles.collapseStyles([
+            markdownStyles.textBlockStyle,
+            state.styleOverride?.paragraph,
+            state['inBlockQuote'] && markdownStyles.quoteStyleText,
+          ])}
           allowFontScaling={state['allowFontScaling']}
         >
           {output(node['content'], state)}
