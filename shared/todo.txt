@@ -1,4 +1,3 @@
-orange line on fast scroll? (only on prod?)
 block quote broken? (broken in app store build as well)
 
 crash on dark mode change in fs tab?

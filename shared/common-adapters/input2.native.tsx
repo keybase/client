@@ -44,6 +44,7 @@ export const Input2 = React.memo(
         },
         clear: () => {
           setValue('')
+          onChangeText('')
           setAutoFocus(true)
         },
         focus: () => {
