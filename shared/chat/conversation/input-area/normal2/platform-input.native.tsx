@@ -260,7 +260,13 @@ const PlatformInput = (p: Props) => {
   const suggestionSpinnerStyle = React.useMemo(() => {
     return Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   }, [height])
-  const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
+  const {
+    popup: suggestorPopup,
+    onChangeText,
+    onBlur,
+    onSelectionChange,
+    onFocus,
+  } = useSuggestors({
     expanded,
     inputRef,
     onChangeText: p.onChangeText,
@@ -352,7 +358,7 @@ const PlatformInput = (p: Props) => {
     [setExplodingMode]
   )
 
-  const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
+  const {popup: popupMenu, showPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
@@ -420,9 +426,9 @@ const PlatformInput = (p: Props) => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
-        {popup}
-        {menu}
-        {!popup && <Typing />}
+        {suggestorPopup}
+        {popupMenu}
+        {!suggestorPopup && <Typing />}
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}

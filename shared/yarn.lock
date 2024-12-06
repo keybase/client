@@ -1379,10 +1379,10 @@
   dependencies:
     uuid "^8.0.0"
 
-"@expo/cli@0.22.1":
-  version "0.22.1"
-  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.22.1.tgz#57144215073d2da10e783c3b8a24c34c4405894b"
-  integrity sha512-tpkFzlTYb/sNh8WqeTCa2ZVKMDkPgMggvY3tZeTfxeAO5olVXddKV+0U5zhHSd7pGM2w2fhEJNKI4Ub7IfyDmA==
+"@expo/cli@0.22.3":
+  version "0.22.3"
+  resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.22.3.tgz#8dbcc9396abf01b2dd91fe7f34fc23fdd2d8cc7f"
+  integrity sha512-1HBtqInFDFHUJWzTJ1CJj5MR3JwvOiozmRUWF2kVQAeq/bKzSYM6We6B3XoZBM5XP6z6WtnrG87C7BjeW5E/cA==
   dependencies:
     "@0no-co/graphql.web" "^1.0.8"
     "@babel/runtime" "^7.20.0"
@@ -1397,7 +1397,7 @@
     "@expo/osascript" "^2.0.31"
     "@expo/package-manager" "^1.5.0"
     "@expo/plist" "^0.2.0"
-    "@expo/prebuild-config" "^8.0.17"
+    "@expo/prebuild-config" "^8.0.22"
     "@expo/rudder-sdk-node" "^1.1.1"
     "@expo/spawn-async" "^1.7.2"
     "@expo/xcpretty" "^4.3.0"
@@ -1484,10 +1484,10 @@
     xcode "^3.0.1"
     xml2js "0.6.0"
 
-"@expo/config-plugins@~9.0.11":
-  version "9.0.11"
-  resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-9.0.11.tgz#7aec3663a783706ded3b6c7f3859221e17c9122a"
-  integrity sha512-zufuPQWkeEpXfMWFx2lWStoN43p6cO13p8n2KMIEK6jJMC/kkfldYyl8gYtEEYAL1nFfOf/W2pIXXPQ2sggnSw==
+"@expo/config-plugins@~9.0.12":
+  version "9.0.12"
+  resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-9.0.12.tgz#f122b2dca22e135eadf6e73442da3ced0ce8aa0a"
+  integrity sha512-/Ko/NM+GzvJyRkq8PITm8ms0KY5v0wmN1OQFYRMkcJqOi3PjlhndW+G6bHpJI9mkQXBaUnHwAiGLqIC3+MQ5Wg==
   dependencies:
     "@expo/config-types" "^52.0.0"
     "@expo/json-file" "~9.0.0"
@@ -1617,10 +1617,10 @@
     json5 "^2.2.3"
     write-file-atomic "^2.3.0"
 
-"@expo/metro-config@0.19.5":
-  version "0.19.5"
-  resolved "https://registry.yarnpkg.com/@expo/metro-config/-/metro-config-0.19.5.tgz#121817ac85cfc055686daafb8c85afb4f5d6a2d0"
-  integrity sha512-wl5lVgXq4FN4kBJHNyU5U9J5hH8S8rYXrp/pgbwA+J/smQfiElYKMYomTGbHUb4LQ0VnmlX6/kI4x/zJk+mq7w==
+"@expo/metro-config@0.19.6":
+  version "0.19.6"
+  resolved "https://registry.yarnpkg.com/@expo/metro-config/-/metro-config-0.19.6.tgz#81bbe70c77a322d6c688738fd7b736a3cbb7c5bd"
+  integrity sha512-pRwZyOstsQa1+Ecss3wOqC28wjyjq9qxvJaQL3LH4G8Sef9x2PX+ySRApeQ01nl4ZN5nlyez6iVDF51tn/WhOw==
   dependencies:
     "@babel/core" "^7.20.0"
     "@babel/generator" "^7.20.5"
@@ -1700,10 +1700,10 @@
     base64-js "^1.2.3"
     xmlbuilder "^14.0.0"
 
-"@expo/prebuild-config@^8.0.17":
-  version "8.0.20"
-  resolved "https://registry.yarnpkg.com/@expo/prebuild-config/-/prebuild-config-8.0.20.tgz#ff135bca966425e22e70141002d150dcaef9b7dc"
-  integrity sha512-2N2R3qP12Jitmi8V0UG/5s6Se2Fq9RKIdlOTrVA5TzJeHkhCcvQRaRUlojwqjlYh4B3cByLjhTXyWoxM6+wpXQ==
+"@expo/prebuild-config@^8.0.22":
+  version "8.0.22"
+  resolved "https://registry.yarnpkg.com/@expo/prebuild-config/-/prebuild-config-8.0.22.tgz#6e2762a5f333a0519f83ae05b69da45e3e26a913"
+  integrity sha512-Kwlf3ymHH37W2nuNA9FzYgZvrImJScLA98939kapnOxfNGAPhmhEw26sfIGmBWAa8ymdL6p+HXQ3+b/xJ74bOg==
   dependencies:
     "@expo/config" "~10.0.4"
     "@expo/config-plugins" "~9.0.10"
@@ -5295,10 +5295,10 @@ eslint-plugin-react-compiler@19.0.0-beta-df7b47d-20241124:
     zod "^3.22.4"
     zod-validation-error "^3.0.3"
 
-eslint-plugin-react-hooks@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-5.0.0.tgz#72e2eefbac4b694f5324154619fee44f5f60f101"
-  integrity sha512-hIOwI+5hYGpJEc4uPRmz2ulCjAGD/N13Lukkh8cLV0i2IRk/bdZDYjgLVHj+U9Z704kLIdIO6iueGvxNur0sgw==
+eslint-plugin-react-hooks@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-5.1.0.tgz#3d34e37d5770866c34b87d5b499f5f0b53bf0854"
+  integrity sha512-mpJRtPgHN2tNAvZ35AMfqeB3Xqeo273QxrHJsbBEPWODRM4r0yB6jfoROqKEYrOn27UtRPpcpHc2UqyBSuUNTw==
 
 eslint-plugin-react-hooks@^4.6.0:
   version "4.6.2"
@@ -5637,17 +5637,17 @@ expo-task-manager@12.0.3:
   dependencies:
     unimodules-app-loader "~5.0.0"
 
-expo@52.0.15:
-  version "52.0.15"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-52.0.15.tgz#488cb4f5e95b6985999106453a8dcbb8a28a6988"
-  integrity sha512-7eGv8y/aslaHvKH8XVvx0XpvJIQiJZ63kBHcdjtAmy+7KCMQp4lwmrnCzYhVdROe1i/GmHF2UwYfHXIYgC1WEw==
+expo@52.0.17:
+  version "52.0.17"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-52.0.17.tgz#8a3edc20dabdb69a47f7b4b92e1bb96284044c14"
+  integrity sha512-f0WBD2T6p9r/a8v8MqkoWQq7TmbbAgPUg2zZtOp+kBrSCb3obHeNAsPDAUFzh+jEgug2qDVVkauBJa6ACe9AMg==
   dependencies:
     "@babel/runtime" "^7.20.0"
-    "@expo/cli" "0.22.1"
+    "@expo/cli" "0.22.3"
     "@expo/config" "~10.0.6"
-    "@expo/config-plugins" "~9.0.11"
+    "@expo/config-plugins" "~9.0.12"
     "@expo/fingerprint" "0.11.3"
-    "@expo/metro-config" "0.19.5"
+    "@expo/metro-config" "0.19.6"
     "@expo/vector-icons" "^14.0.0"
     babel-preset-expo "~12.0.3"
     expo-asset "~11.0.1"
