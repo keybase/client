@@ -195,10 +195,12 @@ if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
 fi
 
 if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
-  echo "Keybase: Building for x86-64"
+  echo "Keybase: Building for x86-64 (cross compile)"
   export GOARCH=amd64
   export debian_arch=amd64
   export electron_arch=x64
+  export CC=x86_64-linux-gnu-gcc
+  export CXX=x86_64-linux-gnu-g++
   build_one_architecture
 else
   echo SKIPPING 64-bit build
