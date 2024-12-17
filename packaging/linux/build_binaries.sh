@@ -129,14 +129,15 @@ build_one_architecture() {
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
 
   (cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
-    "/tmp/kbnm_arm64" github.com/keybase/client/go/kbnm)
-
+    "$layout_dir/usr/bin/kbnm_arm64" github.com/keybase/client/go/kbnm)
 
   # Write allowlists into the overlay. Note that we have to explicitly set USER
   # here, because docker doesn't do it by default, and so otherwise the
   # CGO-disabled i386 cross platform build will fail because it's unable to
   # find the current user.
-  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "/tmp/kbnm_arm64" install
+  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm_arm64" install
+
+  rm "$layout_dir/usr/bin/kbnm_arm64"
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
