@@ -2,24 +2,26 @@ import * as React from 'react'
 import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
 
+export type ScrollEvent = {
+  nativeEvent?: {
+    contentSize: {
+      height: number
+      width: number
+    }
+    zoomScale: number
+    contentOffset: {
+      x: number
+      y: number
+    }
+  }
+  currentTarget?: HTMLDivElement
+}
+
 export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: (event: {
-    nativeEvent?: {
-      contentSize: {
-        height: number
-        width: number
-      }
-      zoomScale: number
-      contentOffset: {
-        x: number
-        y: number
-      }
-    }
-    currentTarget?: HTMLDivElement
-  }) => void
+  onScroll?: (event: ScrollEvent) => void
   className?: string
   ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean

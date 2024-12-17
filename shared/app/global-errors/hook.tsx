@@ -31,7 +31,7 @@ const useData = () => {
   const [cachedSummary, setSummary] = React.useState(summaryForError(error))
   const [cachedDetails, setDetails] = React.useState(detailsForError(error))
   const [size, setSize] = React.useState<Size>('Closed')
-  const countdownTimerRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const countdownTimerRef = React.useRef<undefined | ReturnType<typeof setTimeout>>(undefined)
 
   const clearCountdown = React.useCallback(() => {
     countdownTimerRef.current && clearTimeout(countdownTimerRef.current)

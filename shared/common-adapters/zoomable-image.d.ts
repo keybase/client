@@ -5,6 +5,7 @@ export type Props = {
   src: string
   style?: Styles.StylesCrossPlatform
   zoomRatio?: number
+  // desktop only
   onLoaded?: () => void
   onError?: () => void
   onIsZoomed?: (z: boolean) => void // desktop only

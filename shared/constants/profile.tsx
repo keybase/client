@@ -436,7 +436,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     },
     backToProfile: () => {
       C.useRouterState.getState().dispatch.clearModals()
-      get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
+      setTimeout(() => {
+        get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
+      }, 100)
     },
     checkProof: () => {
       set(s => {
@@ -612,7 +614,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       if (isMobile) {
         C.useRouterState.getState().dispatch.clearModals()
       }
-      C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+      setTimeout(() => {
+        C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+      }, 100)
     },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')

@@ -1,6 +1,6 @@
-attachments not working
-bottom sheet not closing
-
+zoom attach:
+todo check android
+todo check edit avatar
 
 
 crash on dark mode change in fs tab?
