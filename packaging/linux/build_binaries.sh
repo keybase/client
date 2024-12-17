@@ -132,7 +132,7 @@ build_one_architecture() {
   # here, because docker doesn't do it by default, and so otherwise the
   # CGO-disabled i386 cross platform build will fail because it's unable to
   # find the current user.
-  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
+  #USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
