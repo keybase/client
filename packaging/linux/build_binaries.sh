@@ -128,7 +128,7 @@ build_one_architecture() {
   (cd "$client_dir" && go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
 
-  (cd "$client_dir" && GOARCH=arm64 go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
+  (cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
     "/tmp/kbnm_arm64" github.com/keybase/client/go/kbnm)
 
 
