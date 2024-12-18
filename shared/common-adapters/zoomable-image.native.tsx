@@ -32,18 +32,27 @@ const ZoomableImage = React.memo(function (p: Props) {
     (s: CommonZoomState<number>) => {
       'worklet'
       currentZoomSV.set(s.scale)
-      if (onZoom) {
+      if (onZoom && resolution?.width) {
+        const actualScale = (s.scale * s.width) / resolution.width
+        const {height, width} = s
+        const scale = width / resolution.width
+        const scaledContainerWidth = containerSize.width / scale
+        const scaledContainerHeight = containerSize.height / scale
+
+        const left = scaledContainerWidth / 2 - s.translateX - containerSize.width / 2
+        const top = s.translateY - scaledContainerHeight / 2 + containerSize.height / 2
         const z = {
-          height: s.height,
-          scale: s.scale,
-          width: s.width,
-          x: 0, //s.width / 2 + s.translateX,
-          y: 0, //s.height / 2 + s.translateY,
+          height: s.height * s.scale,
+          scale: actualScale,
+          width: s.width * s.scale,
+          x: left,
+          y: top,
         }
+        console.log('aaaa', {s, z})
         runOnJS(onZoom)(z)
       }
     },
-    [currentZoomSV, onZoom]
+    [currentZoomSV, onZoom, resolution, containerSize]
   )
 
   const onSwipe = React.useCallback(
@@ -70,7 +79,19 @@ const ZoomableImage = React.memo(function (p: Props) {
   const size = fitContainer(resolution.width / resolution.height, containerSize)
 
   return (
-    <View style={[styles.container, style]} onLayout={onLayout} key={src}>
+    <View
+      style={[
+        styles.container,
+        style,
+        {
+          // TEMP
+          width: 400,
+          height: 400,
+        },
+      ]}
+      onLayout={onLayout}
+      key={src}
+    >
       {containerSize.width ? (
         <ResumableZoom
           maxScale={10}
