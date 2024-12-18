@@ -147,7 +147,7 @@ build_one_architecture() {
     # CGO-disabled i386 cross platform build will fail because it's unable to
     # find the current user.
     USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
-  end
+  fi
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
