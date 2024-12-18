@@ -135,8 +135,8 @@ build_one_architecture() {
 
 
   if is_arm64_host; then
-    echo "is_arm64_host true, building native kbnm for install"
-    
+    echo "is_arm64_host, building native kbnm for install"
+
     (cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbnm_arm64" github.com/keybase/client/go/kbnm)
     USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm_arm64" install
@@ -211,7 +211,7 @@ fi
 
 if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
   if is_arm64_host ; then
-    echo "Keybase: Building for x86-64 (cross compile)"
+    echo "Keybase: Building for x86-64 (arm64 host cross compile)"
     export CC=x86_64-linux-gnu-gcc
     export CXX=x86_64-linux-gnu-g++
   else
