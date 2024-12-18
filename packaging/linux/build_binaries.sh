@@ -4,7 +4,7 @@ set -euox pipefail
 
 # check host arch
 is_arm64_host() {
-  [ $(uname -m) == "arm64" ]
+  [[ $(uname -m) == "arm64" ]]
 }
 
 here="$(dirname "${BASH_SOURCE[0]}")"
@@ -134,7 +134,7 @@ build_one_architecture() {
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
 
 
-  if is_arm64_host; then
+  if is_arm64_host ; then
     echo "is_arm64_host, building native kbnm for install"
 
     (cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
