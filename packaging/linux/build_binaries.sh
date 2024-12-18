@@ -4,7 +4,7 @@ set -euox pipefail
 
 # check host arch
 is_arm64_host() {
-  [[ $(uname -m) == "arm64" ]]
+  [[ $(uname -m) == "arm64" ]] || [[ $(uname -m) == "aarch64" ]]
 }
 
 here="$(dirname "${BASH_SOURCE[0]}")"
