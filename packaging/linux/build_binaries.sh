@@ -216,7 +216,7 @@ if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
     export CXX=x86_64-linux-gnu-g++
   else
     echo "Keybase: Building for x86-64"
-  end
+  fi
   export GOARCH=amd64
   export debian_arch=amd64
   export electron_arch=x64
