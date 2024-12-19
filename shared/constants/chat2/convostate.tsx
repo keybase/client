@@ -3286,12 +3286,8 @@ export const useChatNavigateAppend = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const cid = useContext_(s => s.id)
   return React.useCallback(
-    (
-      makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType,
-      replace?: boolean,
-      fromKey?: string
-    ) => {
-      navigateAppend(makePath(cid), replace, fromKey)
+    (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
+      navigateAppend(makePath(cid), replace)
     },
     [cid, navigateAppend]
   )

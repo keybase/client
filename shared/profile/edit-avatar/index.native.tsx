@@ -5,6 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import * as Container from '@/util/container'
+import {CropZoom, useImageResolution, type CropZoomType} from 'react-native-zoom-toolkit'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -58,12 +59,50 @@ const AvatarUploadWrapper = (props: Props) => {
   )
 }
 
+const avatarSize = 256
+const cropSize = {height: avatarSize, width: avatarSize}
+
+type AvatarZoomRef = {
+  getRect: () => {width: number; height: number; x: number; y: number} | undefined
+}
+
+const AvatarZoom = React.forwardRef<AvatarZoomRef, {src: string}>((p, ref) => {
+  const {src} = p
+
+  React.useImperativeHandle(ref, () => {
+    // we don't use this in mobile for now, and likely never
+    return {
+      getRect: () => {
+        const c = czref.current?.crop(avatarSize)
+        if (c) {
+          const {originX: x, originY: y, width, height} = c.crop
+          return {height, width, x, y}
+        }
+        return
+      },
+    }
+  }, [])
+  const czref = React.useRef<CropZoomType>(null)
+
+  const {resolution} = useImageResolution({uri: src})
+  if (!resolution) {
+    return null
+  }
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={{borderRadius: avatarSize / 2, height: avatarSize, overflow: 'hidden', width: avatarSize}}
+    >
+      <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
+        <Kb.Image2 src={src} style={{height: '100%', width: '100%'}} />
+      </CropZoom>
+    </Kb.Box2>
+  )
+})
+
 class AvatarUpload extends React.Component<Props & WrappedProps> {
-  _h: number = 0
-  _w: number = 0
-  _x: number = 0
-  _y: number = 0
-  _z: boolean = false
+  _zoomRef = React.createRef<AvatarZoomRef>()
 
   private avatar_size = (): number => {
     const margin = this.props.type === 'team' ? Kb.Styles.globalMargins.large : Kb.Styles.globalMargins.medium
@@ -79,42 +118,20 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     if (!this.props.image) {
       throw new Error('Missing image when saving avatar')
     }
-    let crop: undefined | ReturnType<typeof this._getCropCoordinates>
-    // Only set the cropping coordinates if they’ve zoomed the image.
-    if (this._z) {
-      crop = this._getCropCoordinates()
+    const rect = this._zoomRef.current?.getRect()
+    console.log('aaaa avataronsave', rect)
+    if (rect) {
+      const xy = {
+        x0: rect.x,
+        x1: rect.x + rect.width,
+        y0: rect.y,
+        y1: rect.y + rect.height,
+      }
+      console.log('aaaa avataronsave2', xy)
+      this.props.onSave(this.props.image.uri, xy)
+    } else {
+      this.props.onSave(this.props.image.uri)
     }
-    this.props.onSave(this.props.image.uri, crop)
-  }
-
-  _getCropCoordinates = () => {
-    let height: number | undefined
-    let width: number | undefined
-    if (this.props.image) {
-      height = this.props.image.height
-      width = this.props.image.width
-    }
-
-    const x = this._x
-    const y = this._y
-    const rH = this._h !== 0 && height ? height / this._h : 1
-    const rW = this._w !== 0 && width ? width / this._w : 1
-    const x0 = rW * x
-    const y0 = rH * y
-    return {
-      x0: Math.round(x0),
-      x1: Math.round((x + this.avatar_size()) * rW),
-      y0: Math.round(y0),
-      y1: Math.round((y + this.avatar_size()) * rH),
-    }
-  }
-
-  _onZoom = ({height, width, x, y}: {height: number; width: number; x: number; y: number}) => {
-    this._h = height
-    this._w = width
-    this._x = x
-    this._y = y
-    this._z = true
   }
 
   _imageDimensions = () => {
@@ -129,10 +146,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       width = AVATAR_SIZE
     }
 
-    return {
-      height,
-      width,
-    }
+    return {height, width}
   }
 
   private getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
@@ -153,15 +167,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       )
     }
     const uri = this.props.image?.uri
-    return uri ? (
-      <Kb.ZoomableImage
-        src={uri}
-        onChanged={this._onZoom}
-        // using collapse doesn't work somehow, using devtools it loses the height on android only
-        style={{...styles.image, ...this.getImageStyle()}}
-        boxCacheKey="avatar"
-      />
-    ) : null
+    return uri ? <AvatarZoom src={uri} ref={this._zoomRef} /> : null
   }
 
   render() {

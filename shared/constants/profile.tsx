@@ -614,9 +614,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       if (isMobile) {
         C.useRouterState.getState().dispatch.clearModals()
       }
-      setTimeout(() => {
-        C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
-      }, 100)
+      C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
     },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')

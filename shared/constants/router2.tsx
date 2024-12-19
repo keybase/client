@@ -12,7 +12,6 @@ import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
-import logger from '@/logger'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
@@ -21,7 +20,7 @@ export type Route = NavigationState<KBRootParamList>['routes'][0]
 export type NavState = Partial<Route['state']>
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
-const DEBUG_NAV = __DEV__ && (false as boolean)
+const DEBUG_NAV = __DEV__ && (true as boolean)
 
 export const navigationRef_ = createNavigationContainerRef<KBRootParamList>()
 
@@ -289,7 +288,7 @@ export interface State extends Store {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
-    navigateAppend: (path: PathParam, replace?: boolean, fromKey?: string) => void
+    navigateAppend: (path: PathParam, replace?: boolean) => void
     navigateUp: () => void
     navUpToScreen: (name: RouteKeys) => void
     popStack: () => void
@@ -337,7 +336,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       })
       n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
     },
-    navigateAppend: (path, replace, fromKey) => {
+    navigateAppend: (path, replace) => {
       DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
       const n = _getNavigator()
       if (!n) {
@@ -367,21 +366,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      if (fromKey) {
-        if (fromKey !== visible?.key) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
+
       if (replace) {
         if (visible?.name === routeName) {
-          n.dispatch(CommonActions.setParams(params as object))
+          params && n.dispatch(CommonActions.setParams(params))
           return
         } else {
           n.dispatch(StackActions.replace(routeName, params))
           return
         }
       }
+
       n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {

@@ -162,6 +162,7 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
+      navigationInChildEnabled={true}
       ref={
         // eslint-disable-next-line
         C.Router2.navigationRef_ as any

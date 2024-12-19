@@ -1,6 +1,10 @@
+nav racing
+plumbing not wokring
+
+
 zoom attach:
 todo check android
-todo check edit avatar
+todo check edit avatar; saving not working?
 
 
 crash on dark mode change in fs tab?
