@@ -1,5 +1,5 @@
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/es/index.js b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
-index 7ee5c91..2a869e9 100644
+index 977de21..cbd8f09 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/es/index.js
 +++ b/node_modules/@khanacademy/simple-markdown/dist/es/index.js
 @@ -1,9 +1,9 @@
@@ -8,55 +8,56 @@ index 7ee5c91..2a869e9 100644
  
  // This file is processed by a Rollup plugin (replace) to inject the production
  const libName = "@khanacademy/simple-markdown";
- const libVersion = "0.13.6";
+ const libVersion = "0.13.13";
 -addLibraryVersionToPerseusDebug(libName, libVersion);
 +//addLibraryVersionToPerseusDebug(libName, libVersion);
  
  /* eslint-disable prefer-spread, no-regex-spaces, guard-for-in, no-console, no-var */
  
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
-index 6f3c7fc..784339d 100644
+index 6f3c7fc..c427aa9 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
 +++ b/node_modules/@khanacademy/simple-markdown/dist/index.d.ts
-@@ -62,30 +62,36 @@ type HtmlOutputRule = {
+@@ -61,31 +61,31 @@ type HtmlOutputRule = {
+ };
  type ArrayRule = {
      readonly react?: ArrayNodeOutput<ReactElements>;
-     readonly html?: ArrayNodeOutput<string>;
-+    }&{
+-    readonly html?: ArrayNodeOutput<string>;
++    readonly html?: ArrayNodeOutput<string>;}&{
      readonly [key: string]: ArrayNodeOutput<any>;
  };
  type ParserRules = {
-     readonly Array?: ArrayRule;
-+    }&{
+-    readonly Array?: ArrayRule;
++    readonly Array?: ArrayRule;}&{
      readonly [type: string]: ParserRule;
  };
  type OutputRules<Rule> = {
-     readonly Array?: ArrayRule;
-+    }&{
+-    readonly Array?: ArrayRule;
++    readonly Array?: ArrayRule;}&{
      readonly [type: string]: Rule;
  };
  type Rules<OutputRule> = {
-     readonly Array?: ArrayRule;
-+    }&{
+-    readonly Array?: ArrayRule;
++    readonly Array?: ArrayRule;}&{
      readonly [type: string]: ParserRule & OutputRule;
  };
  type ReactRules = {
      readonly Array?: {
          readonly react: ArrayNodeOutput<ReactElements>;
-     };
-+    }&{
+-    };
++    };}&{
      readonly [type: string]: ParserRule & ReactOutputRule;
  };
  type HtmlRules = {
      readonly Array?: {
          readonly html: ArrayNodeOutput<string>;
-     };
-+    }&{
+-    };
++    };}&{
      readonly [type: string]: ParserRule & HtmlOutputRule;
  };
  type NonNullReactOutputRule = {
 diff --git a/node_modules/@khanacademy/simple-markdown/dist/index.js b/node_modules/@khanacademy/simple-markdown/dist/index.js
-index be4e54e..ec1bc84 100644
+index 42e0e99..ece1fd8 100644
 --- a/node_modules/@khanacademy/simple-markdown/dist/index.js
 +++ b/node_modules/@khanacademy/simple-markdown/dist/index.js
 @@ -2,12 +2,12 @@
@@ -68,7 +69,7 @@ index be4e54e..ec1bc84 100644
  
  // This file is processed by a Rollup plugin (replace) to inject the production
  const libName = "@khanacademy/simple-markdown";
- const libVersion = "0.13.6";
+ const libVersion = "0.13.13";
 -perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
 +//perseusCore.addLibraryVersionToPerseusDebug(libName, libVersion);
  

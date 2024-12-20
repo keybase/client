@@ -13,3 +13,16 @@ index 236c4fc..67e43db 100644
  
      const { x, y } = pinchTransform({
        toScale: toScale,
+diff --git a/node_modules/react-native-zoom-toolkit/src/components/crop/CropZoom.tsx b/node_modules/react-native-zoom-toolkit/src/components/crop/CropZoom.tsx
+index c6f4da7..a3aca51 100644
+--- a/node_modules/react-native-zoom-toolkit/src/components/crop/CropZoom.tsx
++++ b/node_modules/react-native-zoom-toolkit/src/components/crop/CropZoom.tsx
+@@ -65,7 +65,7 @@ const CropZoom: React.FC<CropZoomPropsWithRef> = (props) => {
+   const rotation = useSharedValue<number>(0);
+   const rotate = useVector(0, 0);
+ 
+-  const container = useSizeVector(1, 1);
++  const container = useSizeVector(cropSize.width, cropSize.height); //useSizeVector(1, 1);
+   const detector = useSizeVector(1, 1);
+   const sizeAngle = useSharedValue<number>(0);
+ 

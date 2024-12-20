@@ -66,9 +66,9 @@ type AvatarZoomRef = {
   getRect: () => {width: number; height: number; x: number; y: number} | undefined
 }
 
-const AvatarZoom = React.forwardRef<AvatarZoomRef, {src: string}>((p, ref) => {
+const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string}>((p, ref) => {
   const {src} = p
-  const {resolution} = useImageResolution({uri: src})
+  const {resolution} = useImageResolution({uri: src ?? ''})
 
   React.useImperativeHandle(ref, () => {
     // we don't use this in mobile for now, and likely never
@@ -91,18 +91,21 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src: string}>((p, ref) => {
   }, [resolution])
   const czref = React.useRef<CropZoomType>(null)
 
-  if (!resolution) {
-    return null
-  }
-
   return (
     <Kb.Box2
       direction="vertical"
-      style={{borderRadius: avatarSize / 2, height: avatarSize, overflow: 'hidden', width: avatarSize}}
+      style={{
+        borderRadius: avatarSize / 2,
+        height: avatarSize,
+        overflow: 'hidden',
+        width: avatarSize,
+      }}
     >
-      <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
-        <Kb.Image2 src={src} style={{height: '100%', width: '100%'}} />
-      </CropZoom>
+      {src && resolution ? (
+        <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
+          <Kb.Image2 src={src} style={{height: '100%', width: '100%'}} />
+        </CropZoom>
+      ) : null}
     </Kb.Box2>
   )
 })
@@ -170,8 +173,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         </Kb.ClickableBox>
       )
     }
-    const uri = this.props.image?.uri
-    return uri ? <AvatarZoom src={uri} ref={this._zoomRef} /> : null
+    return <AvatarZoom src={this.props.image?.uri} ref={this._zoomRef} />
   }
 
   render() {
