@@ -1,10 +1,7 @@
-nav racing
-plumbing not wokring
+edit profile:
+choose image, second time not showing??
 
-
-zoom attach:
 todo check android
-todo check edit avatar; saving not working?
 
 
 crash on dark mode change in fs tab?
