@@ -34,7 +34,7 @@ const ZoomableImage = React.memo(function (p: Props) {
       currentZoomSV.set(s.scale)
       if (onZoom && resolution?.width) {
         const actualScale = (s.scale * s.width) / resolution.width
-        const {height, width} = s
+        const {width} = s
         const scale = width / resolution.width
         const scaledContainerWidth = containerSize.width / scale
         const scaledContainerHeight = containerSize.height / scale
@@ -48,7 +48,6 @@ const ZoomableImage = React.memo(function (p: Props) {
           x: left,
           y: top,
         }
-        console.log('aaaa', {s, z})
         runOnJS(onZoom)(z)
       }
     },

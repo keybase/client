@@ -20,7 +20,7 @@ export type Route = NavigationState<KBRootParamList>['routes'][0]
 export type NavState = Partial<Route['state']>
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
-const DEBUG_NAV = __DEV__ && (true as boolean)
+const DEBUG_NAV = __DEV__ && (false as boolean)
 
 export const navigationRef_ = createNavigationContainerRef<KBRootParamList>()
 

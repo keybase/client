@@ -68,23 +68,29 @@ type AvatarZoomRef = {
 
 const AvatarZoom = React.forwardRef<AvatarZoomRef, {src: string}>((p, ref) => {
   const {src} = p
+  const {resolution} = useImageResolution({uri: src})
 
   React.useImperativeHandle(ref, () => {
     // we don't use this in mobile for now, and likely never
     return {
       getRect: () => {
         const c = czref.current?.crop(avatarSize)
-        if (c) {
+        if (c && resolution) {
+          const rescale = resolution.width / (c.resize?.width ?? 1)
           const {originX: x, originY: y, width, height} = c.crop
-          return {height, width, x, y}
+          return {
+            height: height * rescale,
+            width: width * rescale,
+            x: x * rescale,
+            y: y * rescale,
+          }
         }
         return
       },
     }
-  }, [])
+  }, [resolution])
   const czref = React.useRef<CropZoomType>(null)
 
-  const {resolution} = useImageResolution({uri: src})
   if (!resolution) {
     return null
   }
@@ -119,15 +125,13 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       throw new Error('Missing image when saving avatar')
     }
     const rect = this._zoomRef.current?.getRect()
-    console.log('aaaa avataronsave', rect)
     if (rect) {
       const xy = {
-        x0: rect.x,
-        x1: rect.x + rect.width,
-        y0: rect.y,
-        y1: rect.y + rect.height,
+        x0: Math.floor(rect.x),
+        x1: Math.floor(rect.x + rect.width),
+        y0: Math.floor(rect.y),
+        y1: Math.floor(rect.y + rect.height),
       }
-      console.log('aaaa avataronsave2', xy)
       this.props.onSave(this.props.image.uri, xy)
     } else {
       this.props.onSave(this.props.image.uri)
