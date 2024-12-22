@@ -56,13 +56,12 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
+const defaultSnapPoints = ['75%']
+
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
-  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
-  React.useEffect(() => {
-    bottomSheetModalRef.current?.present()
-  }, [])
+  const shownRef = React.useRef(false)
 
   if (!visible && isModal === false) {
     return null
@@ -91,9 +90,16 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
     return (
       <BottomSheetModal
         containerComponent={FullWindow}
-        snapPoints={snapPoints}
+        snapPoints={snapPoints ?? defaultSnapPoints}
         enableDynamicSizing={true}
-        ref={bottomSheetModalRef}
+        ref={s => {
+          if (s && !shownRef.current) {
+            shownRef.current = true
+            setTimeout(() => {
+              s.present()
+            }, 100)
+          }
+        }}
         handleStyle={styles.handleStyle}
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}

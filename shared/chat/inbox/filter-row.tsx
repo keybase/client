@@ -15,14 +15,8 @@ type OwnProps = {
 const hotKeys = ['mod+n']
 
 const ConversationFilterInput = React.memo(function ConversationFilterInput(ownProps: OwnProps) {
-  const {
-    onEnsureSelection,
-    onSelectDown,
-    onSelectUp,
-    onQueryChanged: onSetFilter,
-    query: filter,
-    showSearch,
-  } = ownProps
+  const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
+  const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
   const isSearching = C.useChatState(s => !!s.inboxSearch)
 
@@ -81,13 +75,11 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     appendNewChatBuilder()
   }, [appendNewChatBuilder])
 
-  const [lastSearching, setLastSearching] = React.useState(isSearching)
-  if (lastSearching !== isSearching) {
-    setLastSearching(isSearching)
+  React.useEffect(() => {
     if (isSearching) {
       inputRef.current?.focus()
     }
-  }
+  }, [isSearching])
 
   const searchInput = (
     <Kb.SearchFilter

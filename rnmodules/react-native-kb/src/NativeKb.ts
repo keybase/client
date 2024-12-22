@@ -1,8 +1,7 @@
-import type {TurboModule} from 'react-native'
-import {TurboModuleRegistry} from 'react-native'
+import {TurboModuleRegistry, type TurboModule} from 'react-native'
 
 export interface Spec extends TurboModule {
-  install: () => void
+  install: () => boolean
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
   getConstants(): {
@@ -46,11 +45,9 @@ export interface Spec extends TurboModule {
   }): Promise<void>
   androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
   androidSetApplicationIconBadgeNumber(n: number): void
-  androidGetInitialBundleFromNotification(): Promise<any>
-  androidGetInitialShareFileUrls(): Promise<Array<string>>
-  androidGetInitialShareText(): Promise<string>
   engineReset(): void
   engineStart(): void
+  shareListenersRegistered(): void
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

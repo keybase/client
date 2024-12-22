@@ -57,7 +57,7 @@ const PopAttach = (ownProps: OwnProps) => {
   const _onShareAttachment = React.useCallback(() => {
     messageAttachmentNativeShare(ordinal)
   }, [messageAttachmentNativeShare, ordinal])
-  const onShareAttachment = C.isIOS ? _onShareAttachment : undefined
+  const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop

@@ -132,29 +132,14 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
-export const androidGetInitialBundleFromNotification = (): Promise<any> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialBundleFromNotification()
-  }
-  return Promise.reject()
-}
-export const androidGetInitialShareFileUrls = (): Promise<Array<string>> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareFileUrls()
-  }
-  return Promise.reject()
-}
-export const androidGetInitialShareText = (): Promise<string> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareText()
-  }
-  return Promise.reject()
-}
 export const engineReset = (): void => {
   return Kb.engineReset()
 }
 export const engineStart = (): void => {
   return Kb.engineStart()
+}
+export const shareListenersRegistered = (): void => {
+  return Kb.shareListenersRegistered()
 }
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)

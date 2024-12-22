@@ -43,27 +43,31 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, state) => {
-  const routeKeyMapRef = React.useRef(new Map<string, string>())
-  routeKeyMapRef.current = new Map(
-    state?.routes?.map((r: {name?: string; key?: string}) => {
-      return [r.name ?? '', r.key ?? ''] as const
-    }) ?? new Array<[string, string]>()
-  )
-
-  const stateKeyRef = React.useRef<string | undefined>()
-  stateKeyRef.current = state?.key
+  const routesRef = React.useRef(state?.routes)
+  const stateKeyRef = React.useRef(state?.key)
+  React.useEffect(() => {
+    routesRef.current = state?.routes
+    stateKeyRef.current = state?.key
+  }, [state])
 
   const navRef = React.useRef(navigation)
-  navRef.current = navigation
+  React.useEffect(() => {
+    navRef.current = navigation
+  }, [navigation])
 
   const onSelectTab = React.useCallback((tab: string) => {
-    const key = routeKeyMapRef.current.get(tab)
+    const r = routesRef.current?.find((r: {name?: string; key?: string}) => {
+      return r.name === tab
+    })
+
+    const key = r?.key ?? ''
     const event = key
       ? navRef.current.emit({
           canPreventDefault: true,
           target: key,
+          // @ts-ignore
           type: 'tabPress',
-        } as any)
+        })
       : {defaultPrevented: false}
 
     if (!event.defaultPrevented) {

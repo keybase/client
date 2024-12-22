@@ -109,6 +109,11 @@ const DarkCSSInjector = () => {
   return null
 }
 
+const UseStrict = true as boolean
+const WRAP = UseStrict
+  ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
+  : ({children}: {children: React.ReactNode}) => <>{children}</>
+
 const render = (Component = Main) => {
   const root = document.getElementById('root')
   if (!root) {
@@ -118,16 +123,16 @@ const render = (Component = Main) => {
   // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
   // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
   // else all nav stuff is broken
-  // <React.StrictMode>
-  // </React.StrictMode>
   ReactDOM.createRoot(root).render(
-    <Root>
-      <DarkCSSInjector />
-      <FontLoader />
-      <div style={{display: 'flex', flex: 1}}>
-        <Component />
-      </div>
-    </Root>
+    <WRAP>
+      <Root>
+        <DarkCSSInjector />
+        <FontLoader />
+        <div style={{display: 'flex', flex: 1}}>
+          <Component />
+        </div>
+      </Root>
+    </WRAP>
   )
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"runtime"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -23,6 +24,14 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
+	if runtime.GOOS == "android" {
+		// start as background
+		return &MobileAppState{
+			Contextified: NewContextified(g),
+			state:        keybase1.MobileAppState_BACKGROUND,
+			mtime:        nil,
+		}
+	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
 		state:        keybase1.MobileAppState_FOREGROUND,

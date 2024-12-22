@@ -6,7 +6,12 @@ import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
 import ProgressIndicator from './progress-indicator.native'
 import {Box2} from './box'
-import isEqual from 'lodash/isEqual'
+import {
+  default as ReAnimated,
+  useAnimatedStyle,
+  withTiming,
+  useSharedValue,
+} from '@/common-adapters/reanimated'
 
 const Kb = {
   Box2,
@@ -27,7 +32,7 @@ const getScale = (width: number, height: number, containerWidth: number, contain
 }
 
 const ZoomableImage = React.memo(function (p: Props) {
-  const {src, style, onChanged, onLoaded, onSwipe, onTap, onError, boxCacheKey = ''} = p
+  const {src, style, onChanged: onZoom, onLoaded, onSwipe, onTap, onError, boxCacheKey = ''} = p
   const [boxW, setBoxW] = React.useState(boxContextCache.get(boxCacheKey)?.width ?? 0)
   const [boxH, setBoxH] = React.useState(boxContextCache.get(boxCacheKey)?.height ?? 0)
   const [loading, setLoading] = React.useState(true)
@@ -36,8 +41,6 @@ const ZoomableImage = React.memo(function (p: Props) {
   const [scale, setScale] = React.useState(
     size && boxW && boxH ? getScale(size.width, size.height, boxW, boxH) : 1
   )
-
-  const onZoom = onChanged
 
   const onLayout = React.useCallback(
     (e: Partial<LayoutChangeEvent>) => {
@@ -58,10 +61,19 @@ const ZoomableImage = React.memo(function (p: Props) {
 
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
+      setLoading(false)
       if (!e.source) {
         return
       }
-      setSize(e.source)
+      const s = e.source
+      setSize((/*old*/) => {
+        return s
+        // this SHOULD work but breaks something in the zoomable-box. if you load an image it won't auto size correctly on initial load
+        // if (old?.width === s.width && old.height === s.height) {
+        //   return old
+        // }
+        // return {height: s.height, width: s.width}
+      })
       onLoaded?.()
     },
     [onLoaded]
@@ -75,18 +87,18 @@ const ZoomableImage = React.memo(function (p: Props) {
     initialZoomRef.current = true
     const s = getScale(size.width, size.height, boxW, boxH)
     setScale(s)
-    setLoading(false)
   }, [boxW, boxH, size])
 
-  if (lastSrc !== src) {
-    setLastSrc(src)
-    setLoading(true)
-    initialZoomRef.current = false
-  }
+  React.useEffect(() => {
+    if (lastSrc !== src) {
+      setLastSrc(src)
+      setLoading(true)
+      initialZoomRef.current = false
+    }
+  }, [lastSrc, src])
 
-  const imageSizeCacheRef = React.useRef(new Map<string, Styles.StylesCrossPlatform>())
   const imageSize = React.useMemo(() => {
-    const style = size
+    return size
       ? Styles.isAndroid
         ? ({
             backgroundColor: Styles.globalColors.black,
@@ -99,14 +111,7 @@ const ZoomableImage = React.memo(function (p: Props) {
             width: size.width,
           } as const)
       : undefined
-
-    const old = imageSizeCacheRef.current.get(src)
-    if (isEqual(style, old)) {
-      return old
-    }
-    imageSizeCacheRef.current.set(src, style)
-    return style
-  }, [src, size])
+  }, [size])
   const measuredStyle = size ? imageSize : dummySize
   const content = (
     <>
@@ -129,22 +134,34 @@ const ZoomableImage = React.memo(function (p: Props) {
     </>
   )
 
+  const opacity = useSharedValue(0)
+
+  React.useEffect(() => {
+    opacity.set(() => withTiming(1, {duration: 800}))
+  }, [opacity])
+
+  const fadeStyle = useAnimatedStyle(() => {
+    return {opacity: opacity.value}
+  })
+
   return (
-    <Kb.ZoomableBox
-      key={Styles.isAndroid ? src : src + String(scale)}
-      onSwipe={onSwipe}
-      onLayout={onLayout}
-      style={style}
-      maxZoom={10}
-      minZoom={scale}
-      contentContainerStyle={measuredStyle}
-      onZoom={onZoom}
-      onTap={onTap}
-      zoomScale={scale}
-      contentSize={size}
-    >
-      {content}
-    </Kb.ZoomableBox>
+    <ReAnimated.View style={fadeStyle}>
+      <Kb.ZoomableBox
+        key={Styles.isAndroid ? src : src + String(scale)}
+        onSwipe={onSwipe}
+        onLayout={onLayout}
+        style={style}
+        maxZoom={10}
+        minZoom={scale}
+        contentContainerStyle={measuredStyle}
+        onZoom={onZoom}
+        onTap={onTap}
+        zoomScale={scale}
+        contentSize={size}
+      >
+        {content}
+      </Kb.ZoomableBox>
+    </ReAnimated.View>
   )
 })
 

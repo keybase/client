@@ -16,6 +16,7 @@ type Props = {
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
+  const setInfoPanelTab = C.useChatState(s => s.dispatch.setInfoPanelTab)
   const initialTab = props.tab ?? storeSelectedTab
   const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
@@ -43,6 +44,11 @@ const InfoPanelConnector = (props: Props) => {
       onGoToInbox()
     }
   }
+
+  React.useEffect(() => {
+    if (selectedTab === storeSelectedTab) return
+    setInfoPanelTab(selectedTab)
+  }, [selectedTab, storeSelectedTab, setInfoPanelTab])
 
   const p = {
     channelname,

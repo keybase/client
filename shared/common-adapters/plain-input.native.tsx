@@ -204,8 +204,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
       autoFocus: this.props.autoFocus,
       children: this.props.children,
       editable: !this.props.disabled,
-      // needed to workaround changing this not doing the right thing
-      key: this.props.type,
       keyboardType: this.props.keyboardType ?? 'default',
       multiline: false,
       onBlur: this._onBlur,
@@ -254,7 +252,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
       return (
         <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
-            <NativeTextInput {...props} editable={false} />
+            <NativeTextInput
+              {...props}
+              editable={false}
+              // needed to workaround changing this not doing the right thing
+              key={this.props.type}
+            />
           </Box2>
         </ClickableBox>
       )

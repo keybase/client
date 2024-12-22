@@ -80,11 +80,14 @@ const useTabsState = (
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     (t: TabKey) => {
-      lastSelectedTabs[conversationIDKey] = t
       _setSelectedTab(t)
     },
-    [conversationIDKey, _setSelectedTab]
+    [_setSelectedTab]
   )
+
+  React.useEffect(() => {
+    lastSelectedTabs[conversationIDKey] = selectedTab
+  }, [conversationIDKey, selectedTab])
 
   const prevConvID = Container.usePrevious(conversationIDKey)
 
@@ -275,47 +278,50 @@ const Channel = (props: OwnProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    flex: 1,
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  endAnchor: {
-    flex: 1,
-    height: 0,
-  },
-  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
-  list: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-    },
-  }),
-  listContentContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-    },
-    isMobile: {
-      display: 'flex',
-      flexGrow: 1,
-    },
-  }),
-  smallHeader: {
-    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge),
-  },
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        flex: 1,
+        height: '100%',
+        position: 'relative',
+        width: '100%',
+      },
+      endAnchor: {
+        flex: 1,
+        height: 0,
+      },
+      header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+      list: Kb.Styles.platformStyles({
+        isElectron: {
+          ...Kb.Styles.globalStyles.fillAbsolute,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+        },
+      }),
+      listContentContainer: Kb.Styles.platformStyles({
+        isElectron: {
+          ...Kb.Styles.globalStyles.fillAbsolute,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+        },
+        isMobile: {
+          display: 'flex',
+          flexGrow: 1,
+        },
+      }),
+      smallHeader: {
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge),
+      },
+    }) as const
+)
 
 export default Channel

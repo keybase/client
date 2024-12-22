@@ -18,7 +18,7 @@ const Container = () => {
     setCommandStatusInfo()
   }
   const props = {
-    actions: _info.actions.map((a: T.RPCChat.UICommandStatusActionTyp) => {
+    actions: _info.actions.map((a: T.RPCChat.UICommandStatusActionTyp | unknown) => {
       switch (a) {
         case T.RPCChat.UICommandStatusActionTyp.appsettings:
           return {

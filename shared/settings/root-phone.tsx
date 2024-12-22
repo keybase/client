@@ -54,7 +54,7 @@ type Section = _Section<
     text: string
     icon?: Kb.IconType
     onClick: () => void
-    iconComponent?: (a: {}) => React.ReactElement
+    iconComponent?: (a: object) => React.ReactElement
     subText?: string
     textColor?: string
   },

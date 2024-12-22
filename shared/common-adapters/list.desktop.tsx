@@ -26,7 +26,7 @@ class List<T> extends React.PureComponent<Props<T>> {
     const keyProp = this.props.keyProperty || 'key'
     const i = item as {[key: string]: unknown} | undefined
     if (i?.[keyProp]) {
-      const key = i[keyProp]
+      const key: unknown = i[keyProp]
       // otherwise, see if key is set on item directly.
       return <React.Fragment key={String(key)}>{children}</React.Fragment>
     }
@@ -100,18 +100,21 @@ class List<T> extends React.PureComponent<Props<T>> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  innerDiv: Styles.platformStyles({
-    isElectron: {
-      height: '100%',
-      overflowY: 'auto',
-      width: '100%',
-    },
-  }),
-  outerDiv: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      innerDiv: Styles.platformStyles({
+        isElectron: {
+          height: '100%',
+          overflowY: 'auto',
+          width: '100%',
+        },
+      }),
+      outerDiv: {
+        flexGrow: 1,
+        position: 'relative',
+      },
+    }) as const
+)
 
 export default List

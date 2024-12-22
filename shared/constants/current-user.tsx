@@ -31,7 +31,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>(set => {
+export const useState_ = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     replaceUsername: u => {
       set(s => {

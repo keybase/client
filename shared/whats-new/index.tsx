@@ -5,7 +5,6 @@ import {currentVersion, lastVersion, lastLastVersion} from '@/constants/whats-ne
 import type {VersionProps} from './versions'
 
 type Props = {
-  onBack: () => void
   onNavigate: (props: C.Router2.PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: C.Tabs.AppTab) => void
@@ -50,43 +49,37 @@ const Wrapper = ({children}: {children: React.ReactNode}) => (
   </Kb.Box2>
 )
 
-class WhatsNew extends React.PureComponent<Props> {
-  componentWillUnmount() {
-    this.props.onBack()
-  }
-
-  render() {
-    const {Current, Last} = this.props
-    const {LastLast, seenVersions, onNavigate, onNavigateExternal, onSwitchTab} = this.props
-    return (
-      <Wrapper>
-        {Current && (
-          <Current
-            seen={seenVersions[currentVersion] ?? false}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
-            onSwitchTab={onSwitchTab}
-          />
-        )}
-        {lastVersion && Last && (
-          <Last
-            seen={seenVersions[lastVersion] ?? false}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
-            onSwitchTab={onSwitchTab}
-          />
-        )}
-        {lastLastVersion && LastLast && (
-          <LastLast
-            seen={seenVersions[lastLastVersion] ?? false}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
-            onSwitchTab={onSwitchTab}
-          />
-        )}
-      </Wrapper>
-    )
-  }
+const WhatsNew = (props: Props) => {
+  const {Current, Last} = props
+  const {LastLast, seenVersions, onNavigate, onNavigateExternal, onSwitchTab} = props
+  return (
+    <Wrapper>
+      {Current && (
+        <Current
+          seen={seenVersions[currentVersion] ?? false}
+          onNavigate={onNavigate}
+          onNavigateExternal={onNavigateExternal}
+          onSwitchTab={onSwitchTab}
+        />
+      )}
+      {lastVersion && Last && (
+        <Last
+          seen={seenVersions[lastVersion] ?? false}
+          onNavigate={onNavigate}
+          onNavigateExternal={onNavigateExternal}
+          onSwitchTab={onSwitchTab}
+        />
+      )}
+      {lastLastVersion && LastLast && (
+        <LastLast
+          seen={seenVersions[lastLastVersion] ?? false}
+          onNavigate={onNavigate}
+          onNavigateExternal={onNavigateExternal}
+          onSwitchTab={onSwitchTab}
+        />
+      )}
+    </Wrapper>
+  )
 }
 
 const modalWidth = 288

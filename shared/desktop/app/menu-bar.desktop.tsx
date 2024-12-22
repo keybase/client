@@ -109,6 +109,7 @@ const MenuBar = () => {
 
   Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
     switch (action.type) {
+      // eslint-disable-next-line
       case 'showTray': {
         badgeType = action.payload.badgeType
         badges = action.payload.desktopAppBadgeCount

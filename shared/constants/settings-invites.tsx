@@ -53,7 +53,7 @@ export interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadInvites: () => {
       const f = async () => {
@@ -64,23 +64,25 @@ export const _useState = Z.createZustand<State>((set, get) => {
           },
           settingsWaitingKey
         )
-        const results: {
-          invitations: Array<{
-            assertion: string | undefined
-            ctime: number
-            email: string
-            invitation_id: string
-            short_code: string
-            type: string
-            uid: string
-            username: string
-          }>
-        } = JSON.parse(json.body)
+        const results = JSON.parse(json.body) as
+          | {
+              invitations: Array<{
+                assertion: string | undefined
+                ctime: number
+                email: string
+                invitation_id: string
+                short_code: string
+                type: string
+                uid: string
+                username: string
+              }>
+            }
+          | undefined
 
         const acceptedInvites: Array<Invitation> = []
         const pendingInvites: Array<Invitation> = []
 
-        results.invitations.forEach(i => {
+        results?.invitations.forEach(i => {
           const invite: Invitation = {
             created: i.ctime,
             email: i.email,

@@ -50,7 +50,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
@@ -149,9 +149,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         let handshakeWait = false
-        let handshakeVersion = 0
+        const handshakeVersion = version
 
-        handshakeVersion = version
         // did we beat getBootstrapStatus?
         if (!C.useConfigState.getState().loggedIn) {
           handshakeWait = true

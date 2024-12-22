@@ -238,7 +238,7 @@ interface State extends Store {
 }
 
 export const openAtLoginKey = 'openAtLogin'
-export const _useConfigState = Z.createZustand<State>((set, get) => {
+export const useConfigState_ = Z.createZustand<State>((set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
   const forceSmallNavKey = 'ui.forceSmallNav'
@@ -633,9 +633,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
         const updateServerConfig = async () => {
           if (get().loggedIn) {
-            await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-              serverConfigPath: C.serverConfigFileName,
-            })
+            try {
+              await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+                serverConfigPath: C.serverConfigFileName,
+              })
+            } catch {}
           }
         }
 
@@ -1017,16 +1019,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       }
       updateTeams()
 
-      const updateChat = () => {
-        if (!b) return
-        b.conversations?.forEach(c => {
-          const id = T.Chat.conversationIDToKey(c.convID)
-          C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-          C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
-        })
-        C.useChatState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
-      }
-      updateChat()
+      C.useChatState.getState().dispatch.badgesUpdated(b)
     },
     setDefaultUsername: u => {
       set(s => {
