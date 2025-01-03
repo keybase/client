@@ -71,44 +71,35 @@ const ZoomableImage = React.memo(function (p: Props) {
     [_onSwipe, currentZoomSV]
   )
 
+  let content: React.ReactNode
+
   if (isFetching || !resolution) {
-    return null
+    content = <></>
+  } else {
+    const size = fitContainer(resolution.width / resolution.height, containerSize)
+    content = (
+      <Image2
+        contentFit="fill"
+        src={src}
+        style={size}
+        showLoadingStateUntilLoaded={false}
+        allowDownscaling={false}
+      />
+    )
   }
 
-  const size = fitContainer(resolution.width / resolution.height, containerSize)
-
   return (
-    <View
-      style={[
-        styles.container,
-        style,
-        {
-          // TEMP
-          width: 400,
-          height: 400,
-        },
-      ]}
-      onLayout={onLayout}
-      key={src}
-    >
-      {containerSize.width ? (
-        <ResumableZoom
-          maxScale={10}
-          extendGestures={true}
-          onTap={onTap}
-          onUpdate={onUpdate}
-          onSwipe={onSwipe}
-          panMode="clamp"
-        >
-          <Image2
-            contentFit="fill"
-            src={src}
-            style={size}
-            showLoadingStateUntilLoaded={false}
-            allowDownscaling={false}
-          />
-        </ResumableZoom>
-      ) : null}
+    <View style={[styles.container, style]} onLayout={onLayout}>
+      <ResumableZoom
+        maxScale={10}
+        extendGestures={true}
+        onTap={onTap}
+        onUpdate={onUpdate}
+        onSwipe={onSwipe}
+        panMode="clamp"
+      >
+        {content}
+      </ResumableZoom>
     </View>
   )
 })

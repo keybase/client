@@ -1,6 +1,3 @@
-edit profile:
-choose image, second time not showing??
-
 todo check android
 
 

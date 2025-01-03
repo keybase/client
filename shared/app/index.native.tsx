@@ -116,7 +116,8 @@ const useInit = () => {
   C.useConfigState.getState().dispatch.installerRan()
 }
 
-const UseStrict = true as boolean
+// reanimated has issues updating shared values with this on seemingly w/ zoom toolkit
+const UseStrict = false as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
   : ({children}: {children: React.ReactNode}) => <>{children}</>
