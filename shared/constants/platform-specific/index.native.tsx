@@ -76,7 +76,18 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       await requestPermissionsToWrite()
     } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.saveToLibraryAsync(fileURL)
+    if (isIOS) {
+      await MediaLibrary.saveToLibraryAsync(fileURL)
+    } else {
+      const asset = await MediaLibrary.createAssetAsync(fileURL)
+      const albumName = 'Keybase'
+      const _album = await MediaLibrary.getAlbumAsync(albumName)
+      let album = _album as typeof _album | null
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync(albumName, asset, false)
+      }
+      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false)
+    }
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
