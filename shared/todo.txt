@@ -5,6 +5,7 @@ kbfs save flows
 
 
 
+android can't click on title area (back, new chat etc)
 
 
 crash on dark mode change in fs tab?

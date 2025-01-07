@@ -80,7 +80,7 @@
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-masked-view/masked-view": "0.3.2",
-    "@react-native-picker/picker": "2.10.2",
+    "@react-native-picker/picker": "2.11.0",
     "@react-navigation/bottom-tabs": "7.2.0",
     "@react-navigation/core": "7.3.1",
     "@react-navigation/native": "7.0.14",
@@ -138,7 +138,7 @@
     "url-parse": "1.5.10",
     "use-debounce": "10.0.4",
     "util": "0.12.5",
-    "zustand": "5.0.2"
+    "zustand": "5.0.3"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
@@ -156,7 +156,7 @@
     "@react-native/babel-preset": "0.76.5",
     "@react-native/metro-config": "0.76.5",
     "@types/google-libphonenumber": "7.4.30",
-    "@types/lodash": "4.17.13",
+    "@types/lodash": "4.17.14",
     "@types/lodash-es": "4.17.12",
     "@types/react": "18.3.17",
     "@types/react-dom": "18.3.1",
