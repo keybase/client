@@ -5,7 +5,8 @@ kbfs save flows
 
 
 
-android can't click on title area (back, new chat etc)
+TEMP disabling new arch on android due to this
+android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
 
 
 crash on dark mode change in fs tab?

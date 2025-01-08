@@ -84,7 +84,7 @@ PODS:
     - libdav1d (>= 0.6.0)
   - libdav1d (1.2.0)
   - lottie-ios (4.5.0)
-  - lottie-react-native (7.1.0):
+  - lottie-react-native (7.2.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2299,7 +2299,7 @@ SPEC CHECKSUMS:
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
-  lottie-react-native: f6bc5e59ad94cb15984cfe5010e803532259c056
+  lottie-react-native: fd26cfcfde5a97c0fe61d8a1986e88ec6148f37f
   RCT-Folly: 84578c8756030547307e4572ab1947de1685c599
   RCTDeprecation: fb7d408617e25d7f537940000d766d60149c5fea
   RCTRequired: 9aaf0ffcc1f41f0c671af863970ef25c422a9920
