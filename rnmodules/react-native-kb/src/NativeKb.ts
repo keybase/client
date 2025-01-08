@@ -4,18 +4,22 @@ export interface Spec extends TurboModule {
   install: () => boolean
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
-  getConstants(): {
-    androidIsDeviceSecure: boolean
-    androidIsTestDevice: boolean
-    appVersionCode: string
-    appVersionName: string
-    darkModeSupported: boolean
-    fsCacheDir: string
-    fsDownloadDir: string
-    guiConfig: string
-    serverConfig: string
-    uses24HourClock: boolean
-    version: string
+  // not used directly, just used to get constants which are individually pulled out, see ./index.tsx
+  getTypedConstants: () => {
+    [key: string]: unknown
+    /*
+  androidIsDeviceSecure: boolean
+  androidIsTestDevice: boolean
+  appVersionCode: string
+  appVersionName: string
+  darkModeSupported: boolean
+  fsCacheDir: string
+  fsDownloadDir: string
+  guiConfig: string
+  serverConfig: string
+  uses24HourClock: boolean
+  version: string
+    */
   }
   getDefaultCountryCode(): Promise<string>
   logSend(

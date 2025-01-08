@@ -77,12 +77,9 @@ import {useConfigState_ as useConfigState} from './config'
 export {default as shallowEqual} from 'shallowequal'
 export * as PlatformSpecific from './platform-specific'
 
-export const initListeners = () => {
-  const f = async () => {
-    await useFSState.getState().dispatch.setupSubscriptions()
-    useConfigState.getState().dispatch.setupSubscriptions()
-  }
-  ignorePromise(f())
+export const initListeners = async () => {
+  await useFSState.getState().dispatch.setupSubscriptions()
+  useConfigState.getState().dispatch.setupSubscriptions()
 }
 
 // extracts the payload from pages used in routing

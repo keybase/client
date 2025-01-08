@@ -425,6 +425,16 @@ export const initPlatformListener = () => {
   })
 
   C.useDaemonState.subscribe((s, old) => {
+    if (isAndroid) {
+      C.ignorePromise(
+        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
+          // Android's cache dir is (when I tried) [app]/cache but Go side uses
+          // [app]/.cache by default, which can't be used for sharing to other apps.
+          cacheDirOverride: fsCacheDir,
+          downloadDirOverride: fsDownloadDir,
+        })
+      )
+    }
     if (s.handshakeVersion === old.handshakeVersion) return
 
     // loadStartupDetails finished already
@@ -439,17 +449,6 @@ export const initPlatformListener = () => {
         wait(startupDetailsWaiting, version, inc)
       }
       afterStartupDetails(true)
-    }
-
-    if (isAndroid) {
-      C.ignorePromise(
-        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
-          // Android's cache dir is (when I tried) [app]/cache but Go side uses
-          // [app]/.cache by default, which can't be used for sharing to other apps.
-          cacheDirOverride: fsCacheDir,
-          downloadDirOverride: fsDownloadDir,
-        })
-      )
     }
   })
 

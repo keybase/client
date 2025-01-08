@@ -109,14 +109,8 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         return GuiConfig.getInstance(reactContext.getFilesDir())?.asString()
     }
 
-
-    // only old arch, uncomment
-    // override fun getConstants(): MutableMap<String, Any>? {
-    //     return getTypedExportedConstants()
-    // }
-
-    // newarch @Override
-    override fun getTypedExportedConstants(): MutableMap<String, Any> {
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun getTypedConstants(): WritableMap {
         val versionCode: String = getBuildConfigValue("VERSION_CODE").toString()
         val versionName: String = getBuildConfigValue("VERSION_NAME").toString()
         var isDeviceSecure = false
@@ -146,18 +140,19 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
                 downloadDir = dir.getAbsolutePath()
             }
         }
-        val constants: MutableMap<String, Any> = HashMap()
-        constants.put("androidIsDeviceSecure", isDeviceSecure)
-        constants.put("androidIsTestDevice", misTestDevice)
-        constants.put("appVersionCode", versionCode)
-        constants.put("appVersionName", versionName)
-        constants.put("darkModeSupported", false)
-        constants.put("fsCacheDir", cacheDir)
-        constants.put("fsDownloadDir", downloadDir)
-        constants.put("guiConfig", readGuiConfig() as Any)
-        constants.put("serverConfig", serverConfig)
-        constants.put("uses24HourClock", DateFormat.is24HourFormat(reactContext))
-        constants.put("version", version())
+
+        val constants: WritableMap = Arguments.createMap()
+        constants.putBoolean("androidIsDeviceSecure", isDeviceSecure)
+        constants.putBoolean("androidIsTestDevice", misTestDevice)
+        constants.putString("appVersionCode", versionCode)
+        constants.putString("appVersionName", versionName)
+        constants.putBoolean("darkModeSupported", false)
+        constants.putString("fsCacheDir", cacheDir)
+        constants.putString("fsDownloadDir", downloadDir)
+        constants.putString("guiConfig", readGuiConfig())
+        constants.putString("serverConfig", serverConfig)
+        constants.putBoolean("uses24HourClock", DateFormat.is24HourFormat(reactContext))
+        constants.putString("version", version())
         return constants
     }
 
