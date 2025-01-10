@@ -519,10 +519,10 @@ PODS:
   - SocketRocket (0.6.1)
   - UMAppLoader (4.3.0)
   - Yoga (1.14.0)
-  - ZXingObjC/Core (3.6.5)
-  - ZXingObjC/OneD (3.6.5):
+  - ZXingObjC/Core (3.6.9)
+  - ZXingObjC/OneD (3.6.9):
     - ZXingObjC/Core
-  - ZXingObjC/PDF417 (3.6.5):
+  - ZXingObjC/PDF417 (3.6.9):
     - ZXingObjC/Core
 
 DEPENDENCIES:
@@ -770,28 +770,28 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
-  EXApplication: 042aa2e3f05258a16962ea1a9914bf288db9c9a1
-  EXAV: f48659990f6f3d00b5a7c31e3b73cdcc01373c80
-  EXBarCodeScanner: 296dd50f6c03928d1d71d37ea17473b304cfdb00
-  EXConstants: ce5bbea779da8031ac818c36bea41b10e14d04e1
-  EXContacts: afd38f7adacef9a76d6d0bc479f30051736f068f
-  EXFileSystem: aec89226b638b82cdd6d6c15d75a8b7f0696226d
-  EXFont: 738c44c390953ebcbab075a4848bfbef025fd9ee
-  EXImageLoader: 03063370bc06ea1825713d3f55fe0455f7c88d04
-  EXLocation: e5dd52bdf61ccb6153c9e46ad4cb2686c96a35f9
-  EXMediaLibrary: 802eee8ef888ee16ef80f1b79005d3d611793e14
-  Expo: 61a8e1aa94311557c137c0a4dfd4fe78281cfbb4
-  ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
-  ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
-  ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
-  ExpoImagePicker: 9e5c745cb3e56ee00e1cfe5d6af59caab66ecf1a
-  ExpoKeepAwake: be4cbd52d9b177cde0fd66daa1913afa3161fc1d
-  ExpoMailComposer: f88bdf18939c94eb965db28c13ba2d85cba70112
-  ExpoModulesCore: c480fd4e3c7c8e81f0a6ba3a7c56869f25fe016d
-  ExpoSMS: fbd73390bb7abf0388c8631d6b78186e1342049f
-  EXTaskManager: aae3b3c8144af1e0bfdbe8a3cc19fb116a01368d
+  EXApplication: aa0fc96f297b984950f2ca8d64c5a326403a0b29
+  EXAV: f2827e0ac9b139022feeb3e4912c7da2d4be29e5
+  EXBarCodeScanner: 5764b032e2d61d524bd68589a827e63381af014a
+  EXConstants: e7d8d1bec9a20242b4f92a9d66967c3904e0dcd0
+  EXContacts: e0e9cb0a8e52a49fae202bc6eab8721c032bb682
+  EXFileSystem: 009923a918abbd1ef8a4eea4bee0cf6d8eb2955a
+  EXFont: aa39b3f790e2b3188986ac5e8684cf6003c00a18
+  EXImageLoader: 0bf290da061ebd43c1dc57a481bb83a210eee16c
+  EXLocation: ba79521b873dd91b2fa935d027723a0d3c1f95d0
+  EXMediaLibrary: 3d81ae9bfb111a516a1c129bd75ba74de71928bb
+  Expo: 999421a55388ebad4009aeada631419d79d65793
+  ExpoClipboard: 4b79477d83511daf0dad491932ad2404f8e71ca4
+  ExpoHaptics: ec27ef9d57a20ddebeb2de1c43843319ab7d4c0e
+  ExpoImage: 426e9bc278a482bbdf7decb297e5f6951350c62d
+  ExpoImagePicker: 5b79d3ea005ec953a21e41c28b4c8312f101ea0a
+  ExpoKeepAwake: 8ab1087501f5ccb91146447756b787575b13f13e
+  ExpoMailComposer: 598deafcdb19715a33a9bcc6d75d25646062a352
+  ExpoModulesCore: 7a0ab2761761977aa79ccbac0a56887b98cebd5b
+  ExpoSMS: ceb85b9a5a3ba8a9d4685014d2447d4dfa770d28
+  EXTaskManager: b2143add60ad2cecdc0e58e7d519de5db00da208
   FBLazyVector: 5fbbff1d7734827299274638deb8ba3024f6c597
   FBReactNativeSpec: 638095fe8a01506634d77b260ef8a322019ac671
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
@@ -801,35 +801,35 @@ SPEC CHECKSUMS:
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: a2ae9c27c273b060b2affff2957bc0ff7fdca353
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  lottie-react-native: 75da908905bb0cac63e4a19f2abe6ac005516411
+  RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
   RCTRequired: 83bca1c184feb4d2e51c72c8369b83d641443f95
   RCTTypeSafety: 13c4a87a16d7db6cd66006ce9759f073402ef85b
   React: e67aa9f99957c7611c392b5e49355d877d6525e2
   React-callinvoker: 2790c09d964c2e5404b5410cde91b152e3746b7b
-  React-Codegen: 0f41cbc6bf783847c5756064dd05f116e7a21394
-  React-Core: 4fe233e5aa53635c5a9f945613178e8c056f9816
-  React-CoreModules: 6312c9b2fec4329d9ae6a2b8c350032d1664c51b
-  React-cxxreact: a4dff353b5e30ee81f1c3b44e4a8eaa8f20a6ed0
+  React-Codegen: 2924d1bbe57e97e2833f7df0254c9e710592f577
+  React-Core: 2e5affaf240821c3d3a3e01c20094ce024807805
+  React-CoreModules: 2a1850a46d60b901cceef4e64bcf5bf6a0130206
+  React-cxxreact: ff323a3b61670cb03c5b8e187cf0cacfe704d853
   React-debug: 4accb2b9dc09b575206d2c42f4082990a52ae436
   React-jsc: 643466d63d9c858d8dded262c547ea54eebcc25a
-  React-jsi: e4fe2cf2a8e58c04faf491c487ca63bc572c5856
-  React-jsiexecutor: 10e6c77ff6b32274b8d152d08ed0328c4b30a821
+  React-jsi: 8400dafd053311707eb5da17f8e9600d5b472f4b
+  React-jsiexecutor: 910407c8a3e6222f4d94e8b040d70efea9a6c0a4
   React-jsinspector: 8baadae51f01d867c3921213a25ab78ab4fbcd91
-  React-logger: 8edc785c47c8686c7962199a307015e2ce9a0e4f
-  react-native-drop-view: 4360a3af2492ac08b29cbb9333e5d14788ac724a
-  react-native-flipper-performance-plugin: 42ec5017abd26e7c5a1f527f2db92c14a90cabdb
-  react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
-  react-native-image-keyboard: b5572e3ac531a9b614f1036625aa14335919c58b
-  react-native-kb: d214fc08bf5420efd5dbc61d8c7ad8fb4226eb6a
-  react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
-  react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
-  react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
-  React-NativeModulesApple: 6f63747fd6e237b646c61957a8f877a2713617af
+  React-logger: 61efd44da84482aabbbbb478a49b893c7c912f99
+  react-native-drop-view: f28e5fc14c1507db1bc6a5c62c7a30c4588ffac1
+  react-native-flipper-performance-plugin: 89b34a4e97751839d38968c26286670b5b5c1bbf
+  react-native-hw-keyboard-event: 0821ba9b3613fac77a44b44927a301d3e5af4f12
+  react-native-image-keyboard: e851b53330b3b701c7e50b18c2e6fa3ca5fcae25
+  react-native-kb: cef90142690d1b2ac11b203296120f94b7d6475d
+  react-native-netinfo: f084f2324cb11b986503a39a3ccbb5d15e2a56d3
+  react-native-safe-area-context: bf9d9d58f0f6726d4a6257088044c2595017579d
+  react-native-webview: 508a7967877321541cc7ff68740f2c294243415c
+  React-NativeModulesApple: f4d815c5f45ccb8afa399c93f2ff98546a6c8b1e
   React-perflogger: 31ea61077185eb1428baf60c0db6e2886f141a5a
   React-RCTActionSheet: 392090a3abc8992eb269ef0eaa561750588fc39d
   React-RCTAnimation: 4b3cc6a29474bc0d78c4f04b52ab59bf760e8a9b
-  React-RCTAppDelegate: 6b79181c98abbbadb2f5c01d498097019d7a51b6
+  React-RCTAppDelegate: 39b2b72ee771a956c9c68f48ee632f9e490b1ae5
   React-RCTBlob: 77dc35833fbfc10243ea420b59b429870092541a
   React-RCTImage: 8a5d339d614a90a183fc1b8b6a7eb44e2e703943
   React-RCTLinking: b37dfbf646d77c326f9eae094b1fcd575b1c24c7
@@ -839,15 +839,15 @@ SPEC CHECKSUMS:
   React-RCTVibration: d1b78ca38f61ea4b3e9ebb2ddbd0b5662631d99b
   React-rncore: bfc2f6568b6fecbae6f2f774e95c60c3c9e95bf2
   React-runtimeexecutor: 47b0a2d5bbb416db65ef881a6f7bdcfefa0001ab
-  React-runtimescheduler: 14e0b0d971a4199af2aeb2ffa125429f02618229
-  React-utils: 56838edeaaf651220d1e53cd0b8934fb8ce68415
-  ReactCommon: 54a0af7fed8df83c4de245309f1627110ba1f8af
-  RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
-  RNCPicker: b18aaf30df596e9b1738e7c1f9ee55402a229dca
-  RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 32a01c29ecc9bb0b5bf7bc0a33547f61b4dc2741
-  RNReanimated: fdbaa9c964bbab7fac50c90862b6cc5f041679b9
-  RNScreens: 3c5b9f4a9dcde752466854b6109b79c0e205dad3
+  React-runtimescheduler: a3e58eb8e20569a45bf0535cff542179032a54fb
+  React-utils: 22f94a6e85b1323ffb1b9a747a1c03c5e6eaead6
+  ReactCommon: c71d95bcee2d5252e228fdb64c6bb9fcfd470036
+  RNCMaskedView: de80352547bd4f0d607bf6bab363d826822bd126
+  RNCPicker: 7ea4c112b43a2033ddb1e5e2ecb2e826f222b897
+  RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
+  RNGestureHandler: dc1acdc779554be3aa733f4a9a19bb782ec3a48c
+  RNReanimated: 49a1e0d191bdaefe1b394eb258bc52a42bcf704c
+  RNScreens: a425ae50ad66d024a6e936121bf5c9fbe6a5cdc6
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
@@ -855,8 +855,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   UMAppLoader: ca277561ba99dfaec72d6c29bc45843d11407a1f
   Yoga: 4c3aa327e4a6a23eeacd71f61c81df1bcdf677d5
-  ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
+  ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
 PODFILE CHECKSUM: bd232c9b9b57ef59b485e744e7c3603bfdf46dbf
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
