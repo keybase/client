@@ -11,6 +11,7 @@ export declare function showShareActionSheet(options: {
   method: string
 }>
 
+export declare function saveAttachmentToMobile(fileURL: string, mimeType: string): Promise<void>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: T.RPCChat.UIWatchPositionPerm): Promise<void>
 export declare function watchPositionForMap(conversationIDKey: T.Chat.ConversationIDKey): Promise<() => void>

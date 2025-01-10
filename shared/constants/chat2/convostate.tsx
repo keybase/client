@@ -1826,7 +1826,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           })
           logger.info('Trying to save chat attachment to camera roll')
-          await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
+          const isCamera = fileType.startsWith('image/') || fileType.startsWith('video/')
+          if (isCamera) {
+            await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
+          } else if (C.isAndroid) {
+            await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
+          }
           set(s => {
             const m3 = s.messageMap.get(ordinal)
             if (m3?.type === 'attachment') {

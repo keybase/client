@@ -66,6 +66,8 @@ export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionP
   }
 }
 
+export async function saveAttachmentToMobile(filePath: string, mimeType: string): Promise<void> {}
+
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'

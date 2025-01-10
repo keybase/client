@@ -26,6 +26,10 @@ export async function saveAttachmentToCameraRoll() {
   return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
 }
 
+export async function saveAttachmentToMobile() {
+  return Promise.reject(new Error('Save Attachment to mobile- unsupported on this platform'))
+}
+
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
