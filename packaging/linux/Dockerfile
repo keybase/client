@@ -13,7 +13,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - unzip because electron6 packager requires it
 RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo-c git wget \
-  build-essential curl s3cmd gnupg2 unzip rsync
+  build-essential curl s3cmd gnupg2 unzip rsync gcc-x86-64-linux-gnu
 
 # Install nodejs and yarn. (Note that this depends on curl above.)
 RUN mkdir -p /etc/apt/keyrings
