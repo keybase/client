@@ -462,7 +462,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     //     retry(5) {
     //       timeout(activity: true, time: 720, unit: 'SECONDS') {
     //         // Ignore the `dokan` directory since it contains lots of c code.
-    //         sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan  | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 10m0s'
+    //         sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan  | xargs realpath --relative-to=. | xargs golangci-lint run --timeout 10m0s'
     //       }
     //     }
     //   }
@@ -474,7 +474,7 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 720, unit: 'SECONDS') {
         // Ignore the `protocol` directory, autogeneration has some critques
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 10m0s"
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --timeout 10m0s"
       }
     } else {
       println("Running golangci-lint on all non-KBFS code")
