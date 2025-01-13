@@ -83,8 +83,8 @@ helpers.rootLinuxNode(env, {
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/kbweb:${kbwebTag}"),
   ]
   def kbfsfuseImage
-
-  def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+  def awsToken = httpRequest(httpMode: "PUT", url: "http://169.254.169.254/latest/api/token", customHeaders: [[name: "X-aws-ec2-metadata-token-ttl-seconds", value: "21600"]]).content
+  def kbwebNodePrivateIP = httpRequest(customHeaders: [[name: "X-aws-ec2-metadata-token", value: "${awsToken}"]], url: "http://169.254.169.254/latest/meta-data/local-ipv4").content
 
   println "Running on host $kbwebNodePrivateIP"
   println "Setting up build: ${env.BUILD_TAG}"
