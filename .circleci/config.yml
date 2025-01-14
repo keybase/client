@@ -5,7 +5,7 @@ jobs:
     parallelism: 1
 
     docker:
-      - image: keybaseprivate/circleci-client:go1.21
+      - image: keybaseprivate/circleci-client:go1.23
     resource_class: large
 
     steps:
