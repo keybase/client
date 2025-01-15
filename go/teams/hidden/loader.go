@@ -135,18 +135,18 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 		return nil
 	}
 	last := l.LastSeqno()
-	max := l.MaxRatchet()
-	if max < maxUncommittedSeqnoPromised {
-		max = maxUncommittedSeqnoPromised
+	maxR := l.MaxRatchet()
+	if maxR < maxUncommittedSeqnoPromised {
+		maxR = maxUncommittedSeqnoPromised
 	}
-	if max <= last {
+	if maxR <= last {
 		return nil
 	}
-	if len(links) > 0 && links[len(links)-1].Seqno() >= max {
+	if len(links) > 0 && links[len(links)-1].Seqno() >= maxR {
 		return nil
 	}
 	return libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorServerWitholdingLinks,
-		"Server promised a hidden chain up to %d, but never received; is it withholding?", max)
+		"Server promised a hidden chain up to %d, but never received; is it withholding?", maxR)
 }
 
 // checkLoadedRatchet checks the given loaded ratchet against the consumed update and verifies a (seqno, linkID) match

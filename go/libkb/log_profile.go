@@ -18,26 +18,26 @@ type LogProfileContext struct {
 }
 
 func (l *LogProfileContext) maxDuration(durations []time.Duration) time.Duration {
-	max := time.Duration(0)
+	maxD := time.Duration(0)
 	for _, d := range durations {
-		if d > max {
-			max = d
+		if d > maxD {
+			maxD = d
 		}
 	}
-	return max
+	return maxD
 }
 
 func (l *LogProfileContext) minDuration(durations []time.Duration) time.Duration {
 	if len(durations) == 0 {
 		return 0
 	}
-	min := durations[0]
+	minD := durations[0]
 	for _, d := range durations {
-		if d < min {
-			min = d
+		if d < minD {
+			minD = d
 		}
 	}
-	return min
+	return minD
 }
 
 func (l *LogProfileContext) avgDuration(durations []time.Duration) time.Duration {

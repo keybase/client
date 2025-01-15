@@ -544,7 +544,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkey(kid keybase1.KID) (key GenericKey,
 // replayed in order.
 func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(kid keybase1.KID, t time.Time) (key GenericKey, cki ComputedKeyInfo, err error) {
 	liveCki, err := ckf.getCkiIfActiveAtTime(kid, t)
-	if liveCki == nil || err != nil {
+	if liveCki == nil || err != nil { //nolint
 		// err gets returned.
 	} else if !liveCki.Sibkey {
 		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", kid)}
@@ -771,7 +771,7 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 }
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
-	if info, found := ckf.cki.Sigs[sig.ToMapKey()]; !found {
+	if info, found := ckf.cki.Sigs[sig.ToMapKey()]; !found { //nolint
 		// silently no-op if the signature doesn't exist
 	} else if _, found := info.Delegations[sig.ToMapKey()]; found {
 		// Tricky legacy detail: For some eldest links that implicitly delegate
@@ -1146,13 +1146,13 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID
 	if kid.IsNil() {
 		return
 	}
-	if cki, found := ckf.cki.Infos[kid]; !found {
+	cki, found := ckf.cki.Infos[kid]
+	if !found {
 		return
 	} else if !cki.Subkey.IsValid() {
 		return
-	} else {
-		key, _, err = ckf.FindActiveEncryptionSubkey(cki.Subkey)
 	}
+	key, _, err = ckf.FindActiveEncryptionSubkey(cki.Subkey)
 	return
 }
 

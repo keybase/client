@@ -32,7 +32,7 @@ func TemplateMessage(uid gregor1.UID) (gregor1.Message, error) {
 	}, nil
 }
 
-func FormMessageForInjectItem(ctx context.Context, uid gregor1.UID, cat string, body []byte,
+func FormMessageForInjectItem(_ context.Context, uid gregor1.UID, cat string, body []byte,
 	dtime gregor1.TimeOrOffset) (gregor.Message, error) {
 	creation, err := TemplateMessage(uid)
 	if err != nil {
@@ -46,7 +46,7 @@ func FormMessageForInjectItem(ctx context.Context, uid gregor1.UID, cat string, 
 	return creation, nil
 }
 
-func FormMessageForDismissItem(ctx context.Context, uid gregor1.UID, id gregor.MsgID) (gregor.Message, error) {
+func FormMessageForDismissItem(_ context.Context, uid gregor1.UID, id gregor.MsgID) (gregor.Message, error) {
 	dismissal, err := TemplateMessage(uid)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func FormMessageForDismissItem(ctx context.Context, uid gregor1.UID, id gregor.M
 	return dismissal, nil
 }
 
-func FormMessageForDismissCategory(ctx context.Context, uid gregor1.UID, cat gregor1.Category) (gregor.Message, error) {
+func FormMessageForDismissCategory(_ context.Context, uid gregor1.UID, cat gregor1.Category) (gregor.Message, error) {
 	dismissal, err := TemplateMessage(uid)
 	if err != nil {
 		return nil, err

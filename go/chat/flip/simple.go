@@ -88,7 +88,7 @@ func Flip(cp CommitmentPayload, players []PlayerState) (*PRNG, error) {
 // FlipOneBig takes all the completed PlayerStates, and checks them.  If no error,
 // then outputs one random number between 0 and the given modulus, which is an arbitrarily
 // big number. If there was an error in the game setup, then it will return nil and the error.
-func FlipOneBig(cp CommitmentPayload, players []PlayerState, modulus *big.Int) (*big.Int, error) {
+func FlipOneBig(cp CommitmentPayload, players []PlayerState, modulus *big.Int) (*big.Int, error) { // nolint
 	prng, err := Flip(cp, players)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func FlipOneBig(cp CommitmentPayload, players []PlayerState, modulus *big.Int) (
 // FlipOneInt takes all the completed PlayerStates, and checks them.  If no error,
 // then outputs one random number between 0 and the given modulus, a signed 64-bit int.
 // If there was an  error in the game setup, then it will return 0 and the error.
-func FlipInt(cp CommitmentPayload, players []PlayerState, modulus int64) (int64, error) {
+func FlipInt(cp CommitmentPayload, players []PlayerState, modulus int64) (int64, error) { // nolint
 	prng, err := Flip(cp, players)
 	if err != nil {
 		return 0, err
@@ -110,7 +110,7 @@ func FlipInt(cp CommitmentPayload, players []PlayerState, modulus int64) (int64,
 // FlipOneBool takes all the completed PlayerStates, and checks them. If no error,
 // then outputs one random bool. If there was an error in the game setup, then it will
 // return false and the error.
-func FlipBool(cp CommitmentPayload, players []PlayerState) (bool, error) {
+func FlipBool(cp CommitmentPayload, players []PlayerState) (bool, error) { // nolint
 	prng, err := Flip(cp, players)
 	if err != nil {
 		return false, err

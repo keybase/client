@@ -348,9 +348,8 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 			return true
 		} else if l.Username > r.Username {
 			return false
-		} else {
-			return l.Name < r.Name
 		}
+		return l.Name < r.Name
 	})
 	return res, alias, nil
 }

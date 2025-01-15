@@ -311,7 +311,7 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, _ bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, &err, "LookupID(%s)", name)()
 
 	teamName, err := keybase1.TeamNameFromString(name)
@@ -332,7 +332,7 @@ func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public 
 	}, nil
 }
 
-func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
+func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, _ bool,
 	unverifiedTLFName string) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, &err, "LookupName(%s)", tlfID)()
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())

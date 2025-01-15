@@ -225,13 +225,13 @@ func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username st
 	return query, opts
 }
 
-func MinMaxIDs(conv chat1.Conversation) (min, max chat1.MessageID) {
+func MinMaxIDs(conv chat1.Conversation) (minID, maxID chat1.MessageID) {
 	// lowest msgID we care about
-	min = conv.GetMaxDeletedUpTo()
-	if min == 0 {
-		min = 1
+	minID = conv.GetMaxDeletedUpTo()
+	if minID == 0 {
+		minID = 1
 	}
 	// highest msgID we care about
-	max = conv.GetMaxMessageID()
-	return min, max
+	maxID = conv.GetMaxMessageID()
+	return minID, maxID
 }

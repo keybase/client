@@ -181,7 +181,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, _ gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
 	defer b.Trace(ctx, &err, "RemoteSetConversationStatus")()
 	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
@@ -268,9 +268,8 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 		}
 		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
-	} else {
-		return res, errors.New("invalid name query")
 	}
+	return res, errors.New("invalid name query")
 }
 
 type RemoteInboxSource struct {

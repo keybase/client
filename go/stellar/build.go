@@ -882,7 +882,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		res.sendingIntentionXLM = false
 		convertAmountOutside := "0"
 
-		if zeroOrNoAmountRE.MatchString(arg.Amount) {
+		if zeroOrNoAmountRE.MatchString(arg.Amount) { // nolint
 			// Zero or no amount given. Still convert for 0.
 		} else {
 			amount, err := stellarnet.ParseAmount(arg.Amount)
@@ -946,7 +946,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		}
 		// Amount is of asset.
 		useAmount := "0"
-		if zeroOrNoAmountRE.MatchString(arg.Amount) {
+		if zeroOrNoAmountRE.MatchString(arg.Amount) { // nolint
 			// Zero or no amount given.
 		} else {
 			amountInt64, err := stellarnet.ParseStellarAmount(arg.Amount)

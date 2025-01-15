@@ -33,14 +33,14 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	_ = p.parent.Output("(1) Use an existing device\n")
 	_ = p.parent.Output("(2) Use a paper key\n")
 	_ = p.parent.Output("(3) Use my Keybase passphrase\n")
-	max := 3
+	maxOption := 3
 	if arg.GpgOption {
 		_, _ = p.parent.Printf("(4) Use GPG\n")
-		max = 4
+		maxOption = 4
 	}
 
 	var res keybase1.ProvisionMethod
-	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseProvisioningMethod, p.parent, "Choose a signing option", 1, max)
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseProvisioningMethod, p.parent, "Choose a signing option", 1, maxOption)
 	if err != nil {
 		if err == ErrInputCanceled {
 			return res, libkb.CanceledError{M: "user canceled input"}

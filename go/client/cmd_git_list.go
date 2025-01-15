@@ -40,14 +40,14 @@ func (c *CmdGitList) ParseArgv(ctx *cli.Context) error {
 }
 
 func longestRepoName(repos []keybase1.GitRepoInfo) int {
-	max := 0
+	maxLen := 0
 	for _, repo := range repos {
 		l := len(repo.FullName())
-		if l > max {
-			max = l
+		if l > maxLen {
+			maxLen = l
 		}
 	}
-	return max
+	return maxLen
 }
 
 func padToLen(s string, paddedLen int) string {

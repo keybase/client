@@ -126,13 +126,13 @@ func (i *InMemoryStorageEngine) LookupLatestRoot(c logger.ContextInterface, t Tr
 	if len(i.Roots) == 0 {
 		return 0, RootMetadata{}, NewNoLatestRootFoundError()
 	}
-	max := Seqno(0)
+	maxSeqno := Seqno(0)
 	for k := range i.Roots {
-		if k > max {
-			max = k
+		if k > maxSeqno {
+			maxSeqno = k
 		}
 	}
-	return max, i.Roots[max], nil
+	return maxSeqno, i.Roots[maxSeqno], nil
 }
 
 func (i *InMemoryStorageEngine) LookupRoot(c logger.ContextInterface, t Transaction, s Seqno) (RootMetadata, error) {

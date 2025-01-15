@@ -113,7 +113,7 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	err := arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIDs(tc.G)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

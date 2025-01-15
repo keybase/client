@@ -162,9 +162,8 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 		} else if attempt >= maxAttempts || reachedLast {
 			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), after %v attempts. Giving up.", len(thread.Messages), attempt)
 			break
-		} else {
-			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v of %v, retrying", len(thread.Messages), attempt, maxAttempts)
 		}
+		s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v of %v, retrying", len(thread.Messages), attempt, maxAttempts)
 		attempt++
 	}
 
@@ -657,7 +656,7 @@ func (s *BlockingSender) handleEmojis(ctx context.Context, uid gregor1.UID,
 	return msg, nil
 }
 
-func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, uid gregor1.UID,
+func (s *BlockingSender) getUsernamesForMentions(ctx context.Context, _ gregor1.UID,
 	conv *chat1.ConversationLocal) (res []string, err error) {
 	if conv == nil {
 		return nil, nil
@@ -1145,8 +1144,8 @@ func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, con
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
-	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
+	msg chat1.MessagePlaintext, _ chat1.MessageID,
+	_ *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, &err, "Send(%s)", convID)()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 

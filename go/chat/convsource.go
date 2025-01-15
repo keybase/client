@@ -62,7 +62,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 		types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
-		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+		func(ctx context.Context, _ chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
 				s.Debug(ctx, "DeleteAssets: Error purging ephemeral attachments %v", err)

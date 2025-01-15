@@ -33,7 +33,7 @@ func TestChatCommands(t *testing.T) {
 		case msg := <-list.newMessageRemote:
 			require.True(t, msg.Message.IsValid())
 			require.True(t, msg.Message.Valid().MessageBody.IsType(chat1.MessageType_HEADLINE))
-			require.Equal(t, "chat about some pointless stuff",
+			require.Equal(t, headline,
 				msg.Message.Valid().MessageBody.Headline().Headline)
 		case <-time.After(timeout):
 			require.Fail(t, "no msg")
@@ -113,12 +113,12 @@ func TestChatCommands(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))
-	checkHeadline(listener0, "/topic chat about some pointless stuff")
+	checkHeadline(listener0, "chat about some pointless stuff")
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))
-	checkHeadline(listener0, "/topic chat about some pointless stuff")
-	checkHeadline(listener1, "/topic chat about some pointless stuff")
+	checkHeadline(listener0, "chat about some pointless stuff")
+	checkHeadline(listener1, "chat about some pointless stuff")
 
 	testLeave := func() {
 		mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info,

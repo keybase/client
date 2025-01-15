@@ -102,7 +102,7 @@ func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigning
 		return
 	}
 	copy(ret.Public[:], body)
-	if priv == nil {
+	if priv == nil { //nolint
 	} else if len(priv) != ed25519.PrivateKeySize {
 		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {
@@ -174,7 +174,7 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, e
 		return
 	}
 	copy(ret.Public[:], body)
-	if priv == nil {
+	if priv == nil { // nolint
 	} else if len(priv) != NaclDHKeysize {
 		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {

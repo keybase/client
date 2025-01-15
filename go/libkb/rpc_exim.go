@@ -1570,7 +1570,7 @@ func (t TrackChainLink) Export() keybase1.RemoteTrack {
 func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.Ids.Export()}
+	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.IDs.Export()}
 }
 
 // =============================================================================
@@ -1578,7 +1578,7 @@ func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.Ids = ImportPGPIdentities(a.CreateUids.Ids)
+	ret.IDs = ImportPGPIdentities(a.CreateUids.Ids)
 	return ret
 }
 
