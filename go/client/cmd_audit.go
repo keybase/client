@@ -242,10 +242,10 @@ func describeAttempt(g *libkb.GlobalContext, attempt *keybase1.BoxAuditAttempt, 
 		prefix = info + " "
 	}
 	if attempt == nil {
-		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+"Audit not attempted."))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", "%s", prefix+"Audit not attempted."))
 	} else if attempt.Error == nil {
-		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "green", prefix+attempt.String()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "green", "%s", prefix+attempt.String()))
 	} else {
-		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+attempt.String()))
+		_, _ = tui.PrintfUnescaped("%s\n", ColorString(g, "red", "%s", prefix+attempt.String()))
 	}
 }

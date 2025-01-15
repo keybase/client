@@ -309,12 +309,12 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 
 	ptkChain := dat.perTeamKey(gen)
 	if ptkChain == nil {
-		return seed, NewFastLoadError(fmt.Sprintf("no per team key public halves at generation %d", gen))
+		return seed, NewFastLoadError("no per team key public halves at generation %d", gen)
 	}
 
 	check, ok := state.SeedChecks[gen]
 	if !ok {
-		return seed, NewFastLoadError(fmt.Sprintf("no per team key seed check at %d", gen))
+		return seed, NewFastLoadError("no per team key seed check at %d", gen)
 	}
 
 	km, err := NewTeamKeyManagerWithSecret(state.ID(), tmp, gen, &check)
@@ -329,7 +329,7 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 
 	if !ptkChain.SigKID.SecureEqual(sigKey.GetKID()) {
 		m.Debug("sig KID gen:%v (local) %v != %v (chain)", gen, sigKey.GetKID(), ptkChain.SigKID)
-		return seed, NewFastLoadError(fmt.Sprintf("wrong team key (sig) found at generation %v", gen))
+		return seed, NewFastLoadError("wrong team key (sig) found at generation %v", gen)
 	}
 
 	encKey, err := km.EncryptionKey()
@@ -339,7 +339,7 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 
 	if !ptkChain.EncKID.SecureEqual(encKey.GetKID()) {
 		m.Debug("enc KID gen:%v (local) %v != %v (chain)", gen, encKey.GetKID(), ptkChain.EncKID)
-		return seed, NewFastLoadError(fmt.Sprintf("wrong team key (enc) found at generation %v", gen))
+		return seed, NewFastLoadError("wrong team key (enc) found at generation %v", gen)
 	}
 
 	// write back to cache

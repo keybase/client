@@ -222,7 +222,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)

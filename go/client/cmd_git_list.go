@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 
@@ -75,7 +74,7 @@ func (c *CmdGitList) Run() error {
 	for _, repoRes := range repoResults {
 		repo, err := repoRes.GetIfOk()
 		if err != nil {
-			_, _ = dui.PrintfUnescaped(ColorString(c.G(), "red", fmt.Sprintf("Error in repo: %v\n", err)))
+			_, _ = dui.PrintfUnescaped(ColorString(c.G(), "red", "Error in repo: %v\n", err))
 			continue
 		}
 		repos = append(repos, repo)

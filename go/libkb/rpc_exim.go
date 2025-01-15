@@ -145,7 +145,7 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 	if ps == keybase1.ProofStatus_OK {
 		return nil
 	}
-	return NewProofError(ps, e.Desc)
+	return NewProofError(ps, "%s", e.Desc)
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
@@ -427,7 +427,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause.Err = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf("%s", field.Value)
 			case "Code":
 				if code, err := strconv.Atoi(field.Value); err == nil {
 					ret.Cause.StatusCode = code
@@ -440,7 +440,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause.Err = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf("%s", field.Value)
 			case "Code":
 				if code, err := strconv.Atoi(field.Value); err == nil {
 					ret.Cause.StatusCode = code

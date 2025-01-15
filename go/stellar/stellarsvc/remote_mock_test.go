@@ -699,7 +699,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	if post.QuickReturn {
 		msg := "SubmitPayment with QuickReturn not implemented on BackendMock"
-		r.T.Fatalf(msg)
+		r.T.Fatalf("%s", msg)
 		return res, errors.New(msg)
 	}
 
@@ -799,7 +799,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 
 	if post.QuickReturn {
 		msg := "SubmitRelayPayment with QuickReturn not implemented on BackendMock"
-		r.T.Fatalf(msg)
+		r.T.Fatalf("%s", msg)
 		return res, errors.New(msg)
 	}
 

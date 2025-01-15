@@ -1049,7 +1049,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
-	defer s.Trace(ctx, &err, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	defer s.Trace(ctx, &err, "GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID)()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)

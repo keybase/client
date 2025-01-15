@@ -1,5 +1,5 @@
-run:
-  skip-files:
+issues:
+  exclude-files:
     - prot.go
     - 'cmd_wallet.*.go'
 

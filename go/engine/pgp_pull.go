@@ -64,7 +64,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	allTrackedSummaries := e.listTrackingEngine.TableResult().Users
 
 	// Without any userAsserts specified, just all summaries and no leftovers.
-	if e.userAsserts == nil || len(e.userAsserts) == 0 {
+	if len(e.userAsserts) == 0 {
 		return allTrackedSummaries, nil, nil
 	}
 

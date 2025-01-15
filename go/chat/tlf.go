@@ -90,7 +90,7 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 }
 
 func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, public bool) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("Lookup(%s)", tlfName))()
+	defer t.Trace(ctx, &err, "Lookup(%s)", tlfName)()
 	res, _, err = t.loadAll(ctx, tlfName, public)
 	return res, err
 }
@@ -184,7 +184,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
+		"CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior)()
 
 	username := t.G().Env.GetUsername()
 	if len(username) == 0 {
@@ -252,7 +252,7 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
+		"PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior)()
 
 	// call Identify and CanonicalTLFNameAndIDWithBreaks concurrently:
 	group, ectx := errgroup.WithContext(globals.BackgroundChatCtx(ctx, t.G()))

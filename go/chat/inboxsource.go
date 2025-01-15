@@ -1644,7 +1644,7 @@ func (s *HybridInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
-	defer s.Trace(ctx, &err, debugLabel)()
+	defer s.Trace(ctx, &err, "%s", debugLabel)()
 	ib := s.createInbox()
 	if cerr := mod(ctx, ib); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)

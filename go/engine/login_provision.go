@@ -222,7 +222,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 				provisionee.Cancel()
 				m.Warning("DisplayAndPromptSecret error: %s", err)
 				break
-			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+			} else if len(receivedSecret.Secret) > 0 {
 				m.Debug("received secret, adding to provisionee")
 				var ks kex2.Secret
 				copy(ks[:], receivedSecret.Secret)
