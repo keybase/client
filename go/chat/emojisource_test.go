@@ -55,7 +55,6 @@ func checkEmoji(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 }
 
 func TestEmojiSourceBasic(t *testing.T) {
-	t.Skip() // TODO
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, "TestEmojiSourceBasic", 1)
@@ -309,7 +308,6 @@ func TestEmojiSourceAliasDecorate(t *testing.T) {
 }
 
 func TestEmojiSourceCrossTeam(t *testing.T) {
-	t.Skip() // TODO
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, "TestEmojiSourceCrossTeam", 4)
