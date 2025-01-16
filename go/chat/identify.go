@@ -125,7 +125,7 @@ func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.U
 
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
 	defer h.Trace(context.Background(), &err,
-		fmt.Sprintf("HandleUserChanged(uid=%s)", uid))()
+		"HandleUserChanged(uid=%s)", uid)()
 	// If this is about us we don't care
 	me := h.G().Env.GetUID()
 	if me.Equal(uid) {
@@ -170,8 +170,8 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("Identify(names=%s,mode=%v,uid=%s)", strings.Join(names, ","), identBehavior,
-			t.G().GetEnv().GetUsername()))()
+		"Identify(names=%s,mode=%v,uid=%s)", strings.Join(names, ","), identBehavior,
+		t.G().GetEnv().GetUsername())()
 
 	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		t.Debug(ctx, "SKIP behavior found, not running identify")

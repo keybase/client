@@ -248,7 +248,7 @@ func (s *MerkleStoreImpl) fetch(m libkb.MetaContext, hash keybase1.MerkleStoreKi
 		},
 	}, &res)
 	if err != nil {
-		return "", NewMerkleStoreError(err.Error())
+		return "", NewMerkleStoreError("%s", err.Error())
 	}
 	if res.KitJSON == "" {
 		return "", NewMerkleStoreError("server returned empty kit for %s", s.tag)

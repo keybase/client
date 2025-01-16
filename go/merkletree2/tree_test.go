@@ -387,7 +387,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make test deterministic.
-	rand.Seed(1)
+	randSrc := rand.New(rand.NewSource(1))
 
 	tests := []struct {
 		cfg         Config
@@ -412,11 +412,11 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			keys, keysNotInTree, err := makeRandomKeysForTesting(uint(test.cfg.KeysByteLength), test.numIncPairs, test.numExcPairs)
+			keys, keysNotInTree, err := makeRandomKeysForTesting(uint(test.cfg.KeysByteLength), test.numIncPairs, test.numExcPairs, randSrc)
 			require.NoError(t, err)
-			kvp1, err := makeRandomKVPFromKeysForTesting(keys)
+			kvp1, err := makeRandomKVPFromKeysForTesting(keys, randSrc)
 			require.NoError(t, err)
-			kvp2, err := makeRandomKVPFromKeysForTesting(keys)
+			kvp2, err := makeRandomKVPFromKeysForTesting(keys, randSrc)
 			require.NoError(t, err)
 
 			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp1, nil)
@@ -921,12 +921,12 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	require.NoError(t, err)
 
 	// make test deterministic
-	rand.Seed(1)
+	randSrc := rand.New(rand.NewSource(1))
 
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0, randSrc)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)
@@ -934,12 +934,12 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	maxSeqno := Seqno(100)
 	// build a bunch of tree versions:
 	for j := Seqno(1); j < maxSeqno; j++ {
-		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		kvps, err := makeRandomKVPFromKeysForTesting(keys, randSrc)
 		addOnsHash := Hash(nil)
 		// put a random AddOnsHash in half of the tree roots
-		if rand.Intn(2) == 1 {
+		if randSrc.Intn(2) == 1 {
 			buf := make([]byte, 32)
-			rand.Read(buf)
+			randSrc.Read(buf)
 			addOnsHash = Hash(buf)
 		}
 		require.NoError(t, err)
@@ -952,8 +952,8 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 
 	numTests := 50
 	for j := 0; j < numTests; j++ {
-		startSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
-		endSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
+		startSeqno := Seqno(randSrc.Intn(int(maxSeqno)-1) + 1)
+		endSeqno := Seqno(randSrc.Intn(int(maxSeqno)-1) + 1)
 		if startSeqno > endSeqno {
 			startSeqno, endSeqno = endSeqno, startSeqno
 		}
@@ -964,7 +964,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 		err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 		require.NoError(t, err)
 
-		k := keys[rand.Intn(len(keys))]
+		k := keys[randSrc.Intn(len(keys))]
 
 		kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
 		require.NoError(t, err)
@@ -975,7 +975,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	}
 
 	// Test the special cases start == end and start == end - 1
-	startSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
+	startSeqno := Seqno(randSrc.Intn(int(maxSeqno)-1) + 1)
 	endSeqno := startSeqno
 
 	eProof, err := tree.GetExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno)
@@ -984,7 +984,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.NoError(t, err)
 
-	k := keys[rand.Intn(len(keys))]
+	k := keys[randSrc.Intn(len(keys))]
 
 	kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
 	require.NoError(t, err)
@@ -1014,12 +1014,12 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	require.NoError(t, err)
 
 	// make test deterministic
-	rand.Seed(1)
+	randSrc := rand.New(rand.NewSource(1))
 
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0, randSrc)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)
@@ -1027,7 +1027,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	maxSeqno := Seqno(100)
 	// build a bunch of tree versions:
 	for j := Seqno(1); j < maxSeqno; j++ {
-		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		kvps, err := makeRandomKVPFromKeysForTesting(keys, randSrc)
 		require.NoError(t, err)
 		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, nil)
 		rootHashes[j] = hash
@@ -1130,12 +1130,12 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	require.NoError(t, err)
 
 	// make test deterministic
-	rand.Seed(1)
+	randSrc := rand.New(rand.NewSource(1))
 
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0, randSrc)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)
@@ -1143,7 +1143,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	maxSeqno := Seqno(100)
 	// build a bunch of tree versions:
 	for j := Seqno(1); j < maxSeqno; j++ {
-		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		kvps, err := makeRandomKVPFromKeysForTesting(keys, randSrc)
 		require.NoError(t, err)
 		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, nil)
 		rootHashes[j] = hash
@@ -1155,7 +1155,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	startSeqno := Seqno(20)
 	endSeqno := Seqno(39)
 
-	k := keys[rand.Intn(len(keys))]
+	k := keys[randSrc.Intn(len(keys))]
 
 	// real proof verifies successfully
 	kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)

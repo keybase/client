@@ -42,7 +42,7 @@ func (w Warnings) Warnings() []Warning {
 }
 
 func (w Warnings) IsEmpty() bool {
-	return w.w == nil || len(w.w) == 0
+	return len(w.w) == 0
 }
 
 func (w *Warnings) Push(e Warning) {

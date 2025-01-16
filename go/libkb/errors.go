@@ -143,9 +143,9 @@ func XapiError(err error, u string) *ProofAPIError {
 		default:
 			code = keybase1.ProofStatus_HTTP_OTHER
 		}
-		return NewProofAPIError(code, u, ae.Msg)
+		return NewProofAPIError(code, u, "%s", ae.Msg)
 	}
-	return NewProofAPIError(keybase1.ProofStatus_INTERNAL_ERROR, u, err.Error())
+	return NewProofAPIError(keybase1.ProofStatus_INTERNAL_ERROR, u, "%s", err.Error())
 }
 
 // =============================================================================
@@ -2663,7 +2663,7 @@ type RecipientNotFoundError struct {
 
 func NewRecipientNotFoundError(message string) error {
 	return RecipientNotFoundError{
-		error: fmt.Errorf(message),
+		error: errors.New(message),
 	}
 }
 

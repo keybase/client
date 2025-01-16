@@ -945,7 +945,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 	}
 	allowInImplicitTeam := func(allow bool) error {
 		if team.Implicit && !allow {
-			return NewImplicitTeamOperationError(payload.Body.Type)
+			return NewImplicitTeamOperationError("%s", payload.Body.Type)
 		}
 		return nil
 	}
@@ -1458,7 +1458,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, fmt.Errorf("subteam has root team name: %s", teamName)
 		}
 		if teamName.IsImplicit() || team.Implicit {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError("%s", payload.Body.Type)
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{

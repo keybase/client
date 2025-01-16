@@ -425,7 +425,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job *
 }
 
 func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandUpdaterJob) (botInfo chat1.BotInfo, doUpdate bool, err error) {
-	defer b.Trace(ctx, &err, fmt.Sprintf("getBotInfo: %v", job.convID))()
+	defer b.Trace(ctx, &err, "getBotInfo: %v", job.convID)()
 	if job.info != nil {
 		return *job.info, true, nil
 	}

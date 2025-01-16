@@ -233,7 +233,7 @@ func (c *CmdChatSetRetention) showNonTeamConv(conv *chat1.ConversationLocal) {
 	if conv.ConvRetention != nil {
 		policy = *conv.ConvRetention
 	}
-	c.println(dui, policy.HumanSummary())
+	c.println(dui, "%s", policy.HumanSummary())
 }
 
 func (c *CmdChatSetRetention) showTeamChannel(conv *chat1.ConversationLocal) {

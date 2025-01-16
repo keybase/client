@@ -440,7 +440,7 @@ func runDNS(m metaContext, userdomain string, scripts []scriptT, mknewstate stat
 		descs = append(descs, err.GetDesc())
 	}
 	// Use the code from the first error
-	return libkb.NewProofError(errs[0].GetProofStatus(), strings.Join(descs, "; "))
+	return libkb.NewProofError(errs[0].GetProofStatus(), "%s", strings.Join(descs, "; "))
 }
 
 func formatDNSServer(srv string) string {
@@ -1100,7 +1100,7 @@ func replaceCustomError(m metaContext, state scriptState, spec *errorT, err1 lib
 		if subErr == nil {
 			newDesc = subbedDesc
 		}
-		err2 := libkb.NewProofError(spec.Status, newDesc)
+		err2 := libkb.NewProofError(spec.Status, "%s", newDesc)
 		debugWithState(m, state, "Replacing error with custom error")
 		debugWithStateError(m, state, err2)
 

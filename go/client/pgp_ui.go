@@ -24,16 +24,16 @@ func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 }
 
 func (p PgpUI) OutputPGPWarning(_ context.Context, arg keybase1.OutputPGPWarningArg) error {
-	_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", arg.Warning))))
+	_, _ = p.w.Write([]byte(ColorString(p.G(), "red", "WARNING: %s\n", arg.Warning)))
 	return nil
 }
 
 func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
-	un := ColorString(p.G(), "bold", arg.Username)
+	un := ColorString(p.G(), "bold", "%s", arg.Username)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
-		s = ColorString(p.G(), "green", s)
+		s = ColorString(p.G(), "green", "%s", s)
 		_, _ = p.w.Write([]byte(s))
 	}
 
@@ -59,7 +59,7 @@ func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.Outpu
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
-		s = ColorString(p.G(), "red", s)
+		s = ColorString(p.G(), "red", "%s", s)
 		_, _ = p.w.Write([]byte(s))
 	}
 
