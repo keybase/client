@@ -6,6 +6,9 @@ ARG SIGNING_FINGERPRINT
 COPY .docker/code_signing_key /code_signing_key
 RUN gpg --import /code_signing_key
 
+RUN apt-get update 
+RUN apt-get install -y gcc-x86-64-linux-gnu
+
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
     KEYBASE_NO_GUI=1 \
