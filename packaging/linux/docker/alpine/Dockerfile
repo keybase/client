@@ -1,6 +1,6 @@
 FROM golang:1.23.4-alpine3.21 AS builder
 
-RUN apk add --update --no-cache gnupg bash build-base
+RUN apk add --update --no-cache gnupg bash build-base gcc-cross-x86_64
 
 ARG SOURCE_COMMIT=unknown
 
