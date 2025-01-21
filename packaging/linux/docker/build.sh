@@ -28,6 +28,7 @@ for variant in "${variants[@]}"; do
 
   if [ "$base_variant" = "null" ]; then
     docker build \
+      --platform=linux/amd64 \
       --pull \
       --build-arg SOURCE_COMMIT="$source_commit" \
       --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
@@ -36,6 +37,7 @@ for variant in "${variants[@]}"; do
       "$client_dir"
   else
     docker build \
+      --platform=linux/amd64 \
       --build-arg BASE_IMAGE="$image_name:$tag$base_variant" \
       -f "$client_dir/$dockerfile" \
       -t "$image_name:$tag$variant" \
