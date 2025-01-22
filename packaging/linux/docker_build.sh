@@ -58,10 +58,10 @@ gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v53
+image=keybase_packaging_v52
 if [ -z "$(sudo docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
-  sudo docker build --platform=linux/amd64 -t "$image" "$clientdir/packaging/linux"
+  sudo docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
 # Run the docker job in interactive mode if we're actually talking to a
