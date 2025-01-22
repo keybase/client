@@ -118,9 +118,8 @@ func (a *APIError) Error() string {
 		return a.Msg
 	} else if a.Code > 0 {
 		return fmt.Sprintf("Error HTTP status %d", a.Code)
-	} else {
-		return "Generic API error"
 	}
+	return "Generic API error"
 }
 
 // Errors

@@ -18,9 +18,8 @@ func fullURL(hostname, path string) string {
 		return path
 	} else if strings.HasPrefix(path, "//") {
 		return "http:" + path
-	} else {
-		return "http://" + hostname + path
 	}
+	return "http://" + hostname + path
 }
 
 func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *scoredGenericRaw, score int) {

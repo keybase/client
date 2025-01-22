@@ -24,7 +24,7 @@ var getKeyMu sync.Mutex
 // have your device keys cached, or you aren't.
 //
 // If the key isn't found in the ActiveDevice cache, this will return LoginRequiredError.
-func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, secretKeyType libkb.SecretKeyType, _ string) (libkb.GenericKey, error) {
 	key, err := g.ActiveDevice.KeyByType(secretKeyType)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {

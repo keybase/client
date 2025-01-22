@@ -175,7 +175,7 @@ func TestConcurrentGlobals(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go func(index int) {
+		go func(_ int) {
 			for j := 0; j < 10; j++ {
 				f := fns[rand.Intn(len(fns))]
 				f(tc.G)

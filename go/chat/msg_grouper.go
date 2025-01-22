@@ -58,8 +58,8 @@ type joinLeaveGrouper struct {
 
 var _ msgGrouper = (*joinLeaveGrouper)(nil)
 
-func newJoinLeaveGrouper(g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	dataSource types.InboxSourceDataSourceTyp) *joinLeaveGrouper {
+func newJoinLeaveGrouper(_ *globals.Context, uid gregor1.UID, _ chat1.ConversationID,
+	_ types.InboxSourceDataSourceTyp) *joinLeaveGrouper {
 	return &joinLeaveGrouper{
 		uid: uid,
 	}

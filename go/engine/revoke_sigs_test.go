@@ -37,7 +37,7 @@ func TestRevokeSig(t *testing.T) {
 		},
 		AllowMulti: true,
 	}
-	err := arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIDs(tc.G)
 	require.NoError(t, err)
 	pgpEngine := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)

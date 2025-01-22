@@ -80,7 +80,7 @@ func TestTempPathRandFail(t *testing.T) {
 	// Replace rand.Read with a failing read
 	defaultRandRead := randRead
 	defer func() { randRead = defaultRandRead }()
-	randRead = func(b []byte) (int, error) {
+	randRead = func(_ []byte) (int, error) {
 		return 0, fmt.Errorf("Test rand failure")
 	}
 
@@ -253,7 +253,7 @@ func TestCopyFileInvalidDest(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestCloseNil(t *testing.T) {
+func TestCloseNil(_ *testing.T) {
 	Close(nil)
 }
 

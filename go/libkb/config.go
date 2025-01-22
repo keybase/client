@@ -345,15 +345,14 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 	defer f.setMutex.Unlock()
 
 	f.G().Log.Debug("| Setting DeviceID to %v\n", did)
-	var u *UserConfig
-	if u, err = f.getUserConfigWithLock(); err != nil {
+	u, err := f.getUserConfigWithLock()
+	if err != nil {
+		return err
 	} else if u == nil {
-		err = NoUserConfigError{}
-	} else {
-		u.SetDevice(did)
-		err = f.setUserConfigWithLock(u, true)
+		return NoUserConfigError{}
 	}
-	return
+	u.SetDevice(did)
+	return f.setUserConfigWithLock(u, true)
 }
 
 func (f *JSONConfigFile) getCurrentUser() NormalizedUsername {
@@ -511,11 +510,11 @@ func (f *JSONConfigFile) GetTimers() string {
 
 func (f *JSONConfigFile) GetGpgOptions() []string {
 	var ret []string
-	if f.jw == nil {
+	if f.jw == nil { //nolint
 		// noop
-	} else if v := f.jw.AtPath("gpg.options"); v == nil {
+	} else if v := f.jw.AtPath("gpg.options"); v == nil { // nolint
 		// noop
-	} else if l, e := v.Len(); e != nil || l == 0 {
+	} else if l, e := v.Len(); e != nil || l == 0 { //nolint
 		// noop
 	} else {
 		ret = make([]string, 0, l)
@@ -582,15 +581,14 @@ func (f *JSONConfigFile) SetPassphraseState(passphraseState keybase1.PassphraseS
 	defer f.setMutex.Unlock()
 
 	f.G().Log.Debug("| Setting PassphraseState to %v\n", passphraseState)
-	var u *UserConfig
-	if u, err = f.getUserConfigWithLock(); err != nil {
+	u, err := f.getUserConfigWithLock()
+	if err != nil {
+		return err
 	} else if u == nil {
-		err = NoUserConfigError{}
-	} else {
-		u.SetPassphraseState(passphraseState)
-		err = f.setUserConfigWithLock(u, true)
+		return NoUserConfigError{}
 	}
-	return
+	u.SetPassphraseState(passphraseState)
+	return f.setUserConfigWithLock(u, true)
 }
 
 func (f *JSONConfigFile) GetTorMode() (ret TorMode, err error) {

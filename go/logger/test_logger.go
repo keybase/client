@@ -179,7 +179,7 @@ func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
 	log.common(context.TODO(), logging.CRITICAL, false, fmts, arg...)
 }
 
-func (log *TestLogger) Configure(style string, debug bool, filename string) {
+func (log *TestLogger) Configure(_ string, _ bool, _ string) {
 	// no-op
 }
 

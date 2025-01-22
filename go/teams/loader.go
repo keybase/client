@@ -959,9 +959,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Name, err)
 	}
 	if !ret.Name.Eq(newName) {
-		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
-		copy := ret.DeepCopy()
-		ret = &copy
+		// This deep cp is an absurd price to pay, but these mid-team renames should be quite rare.
+		cp := ret.DeepCopy()
+		ret = &cp
 		ret.Name = newName
 	}
 

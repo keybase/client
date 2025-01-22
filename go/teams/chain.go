@@ -2323,11 +2323,10 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 				// We didn't find it, possibly because server stubbed it out (we're not allowed to
 				// see it; didn't load with admin perms).
 				continue
-			} else {
-				// We couldn't find the invite, and we have no stubbed links, which
-				// means that inviteID is invalid.
-				return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 			}
+			// We couldn't find the invite, and we have no stubbed links, which
+			// means that inviteID is invalid.
+			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 		}
 
 		isNewStyle, err := IsNewStyleInvite(inviteMD.Invite)

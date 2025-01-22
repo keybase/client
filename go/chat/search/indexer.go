@@ -801,9 +801,9 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	defer func() {
 		res.ConvName = utils.GetRemoteConvDisplayName(conv)
 		if md != nil {
-			min, max := MinMaxIDs(conv.Conv)
-			res.MinConvID = min
-			res.MaxConvID = max
+			minID, maxID := MinMaxIDs(conv.Conv)
+			res.MinConvID = minID
+			res.MaxConvID = maxID
 			res.NumMissing = len(md.MissingIDForConv(conv.Conv))
 			res.NumMessages = len(md.SeenIDs)
 			res.PercentIndexed = md.PercentIndexed(conv.Conv)

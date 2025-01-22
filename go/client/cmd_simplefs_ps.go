@@ -77,8 +77,8 @@ func outputOp(ui libkb.TerminalUI, o keybase1.OpDescription) {
 		write := o.Write()
 		ui.Printf("%s\t%s\t%s\t%d\n", hex.EncodeToString(write.OpID[:]), op.String(), getPathString(write.Path), write.Offset)
 	case keybase1.AsyncOps_COPY:
-		copy := o.Copy()
-		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(copy.OpID[:]), op.String(), getPathString(copy.Src), getPathString(copy.Dest))
+		copyOp := o.Copy()
+		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(copyOp.OpID[:]), op.String(), getPathString(copyOp.Src), getPathString(copyOp.Dest))
 	case keybase1.AsyncOps_MOVE:
 		move := o.Move()
 		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(move.OpID[:]), op.String(), getPathString(move.Src), getPathString(move.Dest))

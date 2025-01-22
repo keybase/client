@@ -77,12 +77,12 @@ func (s slowestRemote) delay(ctx context.Context) {
 	}
 }
 
-func (s slowestRemote) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
+func (s slowestRemote) GetThreadRemote(ctx context.Context, _ chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
 	s.delay(ctx)
 	return res, context.Canceled
 }
 
-func (s slowestRemote) GetMessagesRemote(ctx context.Context, arg chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
+func (s slowestRemote) GetMessagesRemote(ctx context.Context, _ chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
 	s.delay(ctx)
 	return res, context.Canceled
 }

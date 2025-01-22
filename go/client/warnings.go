@@ -87,7 +87,7 @@ func PrintOutOfDateWarnings(g *libkb.GlobalContext) {
 	}
 }
 
-type ClientSpecificCustomMessage struct {
+type ClientSpecificCustomMessage struct { //nolint
 	CliMessage string `json:"cli_message"`
 	// Ignore other fields.
 }

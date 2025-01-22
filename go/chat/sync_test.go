@@ -34,7 +34,7 @@ func localizeConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 }
 
 func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
-	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string,
+	uid gregor1.UID, ri chat1.RemoteInterface, _ types.Sender, tlfName string,
 	membersType chat1.ConversationMembersType) chat1.Conversation {
 	res, created, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_CHAT, membersType,
 		keybase1.TLFVisibility_PRIVATE, nil, func() chat1.RemoteInterface { return ri },

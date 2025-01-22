@@ -580,9 +580,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 			return p
 		} else if p, ok := offlineOrderMap[key]; ok {
 			return p + maxServerPriority + 1
-		} else {
-			return len(offlineOrderMap) + maxServerPriority
 		}
+		return len(offlineOrderMap) + maxServerPriority
 	}
 	for i := range suggestions {
 		suggestions[i].Priority = priorityFn(suggestions[i].Key)
