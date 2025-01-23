@@ -5,6 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get --allow-releaseinfo-change update
 apt-get install -yq git curl vim python3-pip jq
+apt-get install -t bullseye-backports qemu-user-static
 
 GOLANG_VERSION=1.23.4
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-arm64.tar.gz
