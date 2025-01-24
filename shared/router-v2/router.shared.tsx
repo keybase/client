@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as React from 'react'
@@ -17,12 +16,10 @@ export enum AppState {
 
 const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)
-  const setNavigatorExists = C.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
       if (C.Router2.navigationRef_.isReady()) {
         setNavOnce.current = true
-        setNavigatorExists()
 
         if (__DEV__) {
           window.DEBUGNavigator = C.Router2.navigationRef_.current
@@ -36,7 +33,7 @@ const useConnectNavToState = () => {
         }
       }
     }
-  }, [setNavigatorExists, setNavOnce])
+  }, [setNavOnce])
 }
 
 // if dark mode changes we should redraw
@@ -71,21 +68,6 @@ const useNavKey = (appState: AppState, setNavKey: React.Dispatch<React.SetStateA
   useDarkNeedsRedraw(needsInit ? () => {} : setNavKey)
 }
 
-const useIsDarkChanged = () => {
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
-  const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  return darkChanged
-}
-
-const useInitialState = () => {
-  const darkChanged = useIsDarkChanged()
-  return darkChanged
-    ? C.Router2.navigationRef_.isReady()
-      ? C.Router2.navigationRef_.getRootState()
-      : undefined
-    : undefined
-}
-
 export const useShared = () => {
   useConnectNavToState()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
@@ -118,7 +100,6 @@ export const useShared = () => {
   }, [setNavState])
 
   useNavKey(appState, setNavKey)
-  const initialState = useInitialState()
 
   const onUnhandledAction = React.useCallback(
     (
@@ -135,7 +116,7 @@ export const useShared = () => {
   )
   return {
     appState,
-    initialState,
+    // initialState,
     loggedIn,
     loggedInLoaded,
     loggedInUser,
@@ -152,10 +133,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
       direction="vertical"
       fullHeight={true}
       fullWidth={true}
-      style={{
-        backgroundColor: Kb.Styles.globalColors.white,
-        // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
-      }}
+      style={{backgroundColor: Kb.Styles.globalColors.white}}
     >
       <Loading allowFeedback={false} failed="" status="" />
     </Kb.Box2>

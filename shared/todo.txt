@@ -1,5 +1,8 @@
 TEMP disabling new arch on android due to this
-android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
+maybe fixed? android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
+ios dynamic colors not working in settings|display , TODO make a demo to get rn to fix
+
+ios not starting on old tab?
 
 
 crash on dark mode change in fs tab?

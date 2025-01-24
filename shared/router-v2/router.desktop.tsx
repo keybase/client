@@ -149,7 +149,7 @@ const rootScreenOptions = {
 const ElectronApp = React.memo(function ElectronApp() {
   const s = Shared.useShared()
   const {loggedInLoaded, loggedIn, onStateChange, loggedInUser} = s
-  const {navKey, initialState, onUnhandledAction, setAppState} = s
+  const {onUnhandledAction, setAppState} = s
 
   React.useEffect(() => {
     setAppState(Shared.AppState.INITED)
@@ -167,9 +167,8 @@ const ElectronApp = React.memo(function ElectronApp() {
         // eslint-disable-next-line
         C.Router2.navigationRef_ as any
       }
-      key={String(navKey)}
+      //key={String(navKey)}
       theme={Shared.theme}
-      initialState={initialState}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
       documentTitle={documentTitle}
