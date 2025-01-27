@@ -20,7 +20,7 @@ var username = flag.String("username", "", "username of sigchain owner")
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func errout(msg string) {
-	fmt.Fprintf(os.Stderr, msg+"\n")
+	fmt.Fprintf(os.Stderr, "%s", msg+"\n")
 	os.Exit(1)
 }
 

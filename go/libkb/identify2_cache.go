@@ -77,9 +77,9 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCa
 // Insert adds a user to the cache, keyed on UID.
 func (c *Identify2Cache) Insert(up *keybase1.Identify2ResUPK2) error {
 	tmp := *up
-	copy := &tmp
-	copy.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
-	return c.cache.Set(string(up.Upk.GetUID()), copy)
+	cp := &tmp
+	cp.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	return c.cache.Set(string(up.Upk.GetUID()), cp)
 }
 
 func (c *Identify2Cache) Delete(uid keybase1.UID) error {

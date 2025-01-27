@@ -59,7 +59,7 @@ func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner
 			return err
 		}
 
-		if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+		if len(receivedSecret.Secret) > 0 {
 			m.Debug("received secret, adding to provisioner")
 			var ks kex2.Secret
 			copy(ks[:], receivedSecret.Secret)

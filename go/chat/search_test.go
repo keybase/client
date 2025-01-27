@@ -538,7 +538,7 @@ func TestChatSearchInbox(t *testing.T) {
 			return msgID
 		}
 
-		verifyHit := func(convID chat1.ConversationID, beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID,
+		verifyHit := func(_ chat1.ConversationID, beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID,
 			afterMsgIDs []chat1.MessageID, matches []chat1.ChatSearchMatch, searchHit chat1.ChatSearchHit) {
 			if beforeMsgIDs == nil {
 				require.Nil(t, searchHit.BeforeMessages)

@@ -125,7 +125,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-			} else if mvalid.MessageBody.IsNil() {
+			} else if mvalid.MessageBody.IsNil() { //nolint
 				// do nothing
 			} else {
 				msgPurged, assets := s.purgeMessage(mvalid)

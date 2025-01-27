@@ -323,7 +323,7 @@ func TestCanningFacility(t *testing.T) {
 	pukSeed, pukGen := ring.makeGen(t, 3)
 	boxed, err := BoxAndEncode(&bundleLocal, pukGen, pukSeed)
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(boxed))
+	t.Logf("%s", spew.Sdump(boxed))
 	t.Logf("puk seed: %v", toB64(pukSeed[:]))
 	t.Logf("puk gen: %v", pukGen)
 	t.Logf("nonce: %v", toB64(boxed.EncParent.N[:]))

@@ -1,6 +1,7 @@
 package stellarsvc
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"testing"
@@ -148,7 +149,7 @@ func TestLookupRecipientKeybaseFederation(t *testing.T) {
 		lookupAddr: func(addy string) (*proto.NameResponse, error) {
 			const unexpected = "unexpected federation client call"
 			require.Fail(t, unexpected)
-			return nil, fmt.Errorf(unexpected)
+			return nil, errors.New(unexpected)
 		},
 	}
 

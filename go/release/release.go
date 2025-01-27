@@ -160,7 +160,7 @@ func main() {
 
 	case urlCmd.FullCommand():
 		release, err := gh.ReleaseOfTag(*urlUser, *urlRepo, tag(*urlVersion), githubToken(false))
-		if _, ok := err.(*gh.ErrNotFound); ok {
+		if _, ok := err.(*gh.ErrNotFound); ok { //nolint
 			// No release
 		} else if err != nil {
 			log.Fatal(err)

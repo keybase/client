@@ -100,9 +100,8 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 			}
 		}
 		return nil, fmt.Errorf("PGP key %s is not active", e.kid)
-	} else {
-		return nil, fmt.Errorf("Unknown revoke mode: %d", e.mode)
 	}
+	return nil, fmt.Errorf("Unknown revoke mode: %d", e.mode)
 }
 
 func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.DeviceID {

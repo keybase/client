@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 
@@ -41,14 +40,14 @@ func (c *CmdGitList) ParseArgv(ctx *cli.Context) error {
 }
 
 func longestRepoName(repos []keybase1.GitRepoInfo) int {
-	max := 0
+	maxLen := 0
 	for _, repo := range repos {
 		l := len(repo.FullName())
-		if l > max {
-			max = l
+		if l > maxLen {
+			maxLen = l
 		}
 	}
-	return max
+	return maxLen
 }
 
 func padToLen(s string, paddedLen int) string {
@@ -75,7 +74,7 @@ func (c *CmdGitList) Run() error {
 	for _, repoRes := range repoResults {
 		repo, err := repoRes.GetIfOk()
 		if err != nil {
-			_, _ = dui.PrintfUnescaped(ColorString(c.G(), "red", fmt.Sprintf("Error in repo: %v\n", err)))
+			_, _ = dui.PrintfUnescaped(ColorString(c.G(), "red", "Error in repo: %v\n", err))
 			continue
 		}
 		repos = append(repos, repo)

@@ -102,7 +102,7 @@ func (t testSigningKey) ToKID() []byte {
 	return t.kid
 }
 
-func (t testSigningKey) Verify(message []byte, signature []byte) error {
+func (t testSigningKey) Verify(_ []byte, _ []byte) error {
 	panic("Unsupported")
 }
 

@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"sort"
 	"sync"
@@ -80,7 +79,7 @@ func (s *searchSession) incrementNumConvsSearched() {
 // searchConv finds all messages that match the given set of tokens and opts,
 // results are ordered desc by msg id.
 func (s *searchSession) searchConv(ctx context.Context, convID chat1.ConversationID) (msgIDs []chat1.MessageID, err error) {
-	defer s.indexer.Trace(ctx, &err, fmt.Sprintf("searchConv convID: %s", convID))()
+	defer s.indexer.Trace(ctx, &err, "searchConv convID: %s", convID)()
 	var allMsgIDs mapset.Set
 	for token := range s.tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
@@ -164,7 +163,7 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 	msgIDs []chat1.MessageID) (convHits *chat1.ChatSearchInboxHit, err error) {
 	convID := conv.GetConvID()
 	defer s.indexer.Trace(ctx, &err,
-		fmt.Sprintf("searchHitsFromMsgIDs convID: %s msgIDs: %d", convID, len(msgIDs)))()
+		"searchHitsFromMsgIDs convID: %s msgIDs: %d", convID, len(msgIDs))()
 	if msgIDs == nil {
 		return nil, nil
 	}

@@ -33,15 +33,15 @@ func JSONStringSimple(object *jsonw.Wrapper) (string, error) {
 
 // pyindex converts an index into a real index like python.
 // Returns an index to use and whether the index is safe to use.
-func pyindex(index, len int) (int, bool) {
-	if len <= 0 {
+func pyindex(index, length int) (int, bool) {
+	if length <= 0 {
 		return 0, false
 	}
 	// wrap from the end
 	if index < 0 {
-		index = len + index
+		index = length + index
 	}
-	if index < 0 || index >= len {
+	if index < 0 || index >= length {
 		return 0, false
 	}
 	return index, true

@@ -62,7 +62,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
 		types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
-		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+		func(ctx context.Context, _ chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
 				s.Debug(ctx, "DeleteAssets: Error purging ephemeral attachments %v", err)
@@ -1049,7 +1049,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
-	defer s.Trace(ctx, &err, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	defer s.Trace(ctx, &err, "GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID)()
 	defer s.maybeNuke(ctx, convID, uid, &err)
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)

@@ -55,8 +55,8 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 	// For each PTK (right now we really only expect one - the Reader PTK),
 	// update our maximum PTK generation
 	for _, ptk := range rotateKey.PTKs() {
-		max, ok := ret.LastPerTeamKeys[ptk.PTKType]
-		if !ok || max < q {
+		maxG, ok := ret.LastPerTeamKeys[ptk.PTKType]
+		if !ok || maxG < q {
 			ret.LastPerTeamKeys[ptk.PTKType] = q
 		}
 		if ptk.PTKType == keybase1.PTKType_READER {

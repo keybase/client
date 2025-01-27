@@ -14,25 +14,25 @@ func NewNull() *Null {
 // Verify Null fully implements the Logger interface.
 var _ Logger = (*Null)(nil)
 
-func (l *Null) Debug(format string, args ...interface{})                       {}
-func (l *Null) Info(format string, args ...interface{})                        {}
-func (l *Null) Warning(format string, args ...interface{})                     {}
-func (l *Null) Notice(format string, args ...interface{})                      {}
-func (l *Null) Errorf(format string, args ...interface{})                      {}
-func (l *Null) Critical(format string, args ...interface{})                    {}
-func (l *Null) CCriticalf(ctx context.Context, fmt string, arg ...interface{}) {}
-func (l *Null) Fatalf(fmt string, arg ...interface{})                          {}
-func (l *Null) CFatalf(ctx context.Context, fmt string, arg ...interface{})    {}
-func (l *Null) Profile(fmts string, arg ...interface{})                        {}
-func (l *Null) CDebugf(ctx context.Context, fmt string, arg ...interface{})    {}
-func (l *Null) CInfof(ctx context.Context, fmt string, arg ...interface{})     {}
-func (l *Null) CNoticef(ctx context.Context, fmt string, arg ...interface{})   {}
-func (l *Null) CWarningf(ctx context.Context, fmt string, arg ...interface{})  {}
-func (l *Null) CErrorf(ctx context.Context, fmt string, arg ...interface{})    {}
-func (l *Null) Error(fmt string, arg ...interface{})                           {}
-func (l *Null) Configure(style string, debug bool, filename string)            {}
+func (l *Null) Debug(_ string, _ ...interface{})                         {}
+func (l *Null) Info(_ string, _ ...interface{})                          {}
+func (l *Null) Warning(_ string, _ ...interface{})                       {}
+func (l *Null) Notice(_ string, _ ...interface{})                        {}
+func (l *Null) Errorf(_ string, _ ...interface{})                        {}
+func (l *Null) Critical(_ string, _ ...interface{})                      {}
+func (l *Null) CCriticalf(_ context.Context, _ string, _ ...interface{}) {}
+func (l *Null) Fatalf(_ string, _ ...interface{})                        {}
+func (l *Null) CFatalf(_ context.Context, _ string, _ ...interface{})    {}
+func (l *Null) Profile(_ string, _ ...interface{})                       {}
+func (l *Null) CDebugf(_ context.Context, _ string, _ ...interface{})    {}
+func (l *Null) CInfof(_ context.Context, _ string, _ ...interface{})     {}
+func (l *Null) CNoticef(_ context.Context, _ string, _ ...interface{})   {}
+func (l *Null) CWarningf(_ context.Context, _ string, _ ...interface{})  {}
+func (l *Null) CErrorf(_ context.Context, _ string, _ ...interface{})    {}
+func (l *Null) Error(_ string, _ ...interface{})                         {}
+func (l *Null) Configure(_ string, _ bool, _ string)                     {}
 
-func (l *Null) CloneWithAddedDepth(depth int) Logger { return l }
+func (l *Null) CloneWithAddedDepth(_ int) Logger { return l }
 
-func (l *Null) SetExternalHandler(handler ExternalHandler) {}
-func (l *Null) Shutdown()                                  {}
+func (l *Null) SetExternalHandler(_ ExternalHandler) {}
+func (l *Null) Shutdown()                            {}

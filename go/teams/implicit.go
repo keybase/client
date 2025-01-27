@@ -103,7 +103,7 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 			code := keybase1.StatusCode(aerr.Code)
 			switch code {
 			case keybase1.StatusCode_SCTeamReadError:
-				return imp, NewTeamDoesNotExistError(public, displayName)
+				return imp, NewTeamDoesNotExistError(public, "%s", displayName)
 			case keybase1.StatusCode_SCTeamProvisionalCanKey, keybase1.StatusCode_SCTeamProvisionalCannotKey:
 				return imp, libkb.NewTeamProvisionalError(
 					(code == keybase1.StatusCode_SCTeamProvisionalCanKey), public, displayName)

@@ -96,7 +96,7 @@ func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 			// Omit if the client already has it, only if requestSeqnos is not set.
 			omit = true
 		}
-		if omit {
+		if omit { //nolint
 			// pass
 		} else if stub {
 			l.t.Logf("MockLoaderContext stubbing link seqno: %v", seqno)

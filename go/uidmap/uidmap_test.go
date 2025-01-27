@@ -17,8 +17,8 @@ type testPair struct {
 	username string
 }
 
-const mikem = keybase1.UID("95e88f2087e480cae28f08d81554bc00")
-const max = keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+const mikemUID = keybase1.UID("95e88f2087e480cae28f08d81554bc00")
+const maxUID = keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
 
 func TestLookupUsernameOnly(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookup", 1)
@@ -31,9 +31,9 @@ func TestLookupUsernameOnly(t *testing.T) {
 		{"00000000000000000000000000000219", ""},
 		{"9cbca30c38afba6ab02d76b206515919", "t_helen"},
 		{"00000000000000000000000000000319", ""},
-		{string(max), "max"},
+		{string(maxUID), "max"},
 		{"00000000000000000000000000000419", ""},
-		{string(mikem), "mikem"},
+		{string(mikemUID), "mikem"},
 		{"00000000000000000000000000000519", ""},
 		{"9f9611a4b7920637b1c2a839b2a0e119", "t_george"},
 		{"00000000000000000000000000000619", ""},
@@ -82,9 +82,9 @@ func TestLookupUsernameConcurrent(t *testing.T) {
 			{"00000000000000000000000000000219", ""},
 			{"9cbca30c38afba6ab02d76b206515919", "t_helen"},
 			{"00000000000000000000000000000319", ""},
-			{string(max), "max"},
+			{string(maxUID), "max"},
 			{"00000000000000000000000000000419", ""},
-			{string(mikem), "mikem"},
+			{string(mikemUID), "mikem"},
 			{"00000000000000000000000000000519", ""},
 			{"9f9611a4b7920637b1c2a839b2a0e119", "t_george"},
 			{"00000000000000000000000000000619", ""},
@@ -166,7 +166,7 @@ func TestRanOutOfTime(t *testing.T) {
 
 	// user mikem has a fullname, but we're again not giving ourselves enough time to grab it;
 	// however, he has a hard-coded UID mapping so we should be able to still grab his username
-	uids = []keybase1.UID{mikem}
+	uids = []keybase1.UID{mikemUID}
 	hit = false
 	results, err = uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, time.Nanosecond, true)
 	require.Error(t, err)
@@ -231,7 +231,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[0].FullName.Status, keybase1.StatusCode_SCOk)
 
 	// Do a happy path for several users:
-	uids = []keybase1.UID{mikem, tKB, max}
+	uids = []keybase1.UID{mikemUID, tKB, maxUID}
 	results, err = uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, false)
 	require.NoError(t, err)
 
@@ -263,7 +263,7 @@ func TestOfflineUIDMapNoCache(t *testing.T) {
 	defer tc.Cleanup()
 
 	uidMap := NewUIDMap(10)
-	uids := []keybase1.UID{mikem, max, tKB}
+	uids := []keybase1.UID{mikemUID, maxUID, tKB}
 
 	uidMap.testBatchIterHook = func() {
 		require.Fail(t, "unexpected network activity during offline uidmap call")

@@ -144,11 +144,11 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 
 	// encrypt the stream
 	enc := NewSignEncrypter()
-	len := enc.EncryptedLen(task.FileSize)
+	size := enc.EncryptedLen(task.FileSize)
 
 	// check for previous interrupted upload attempt
 	var previous *AttachmentInfo
-	resumable := len > minMultiSize // can only resume multi uploads
+	resumable := size > minMultiSize // can only resume multi uploads
 	if resumable {
 		previous = a.previousUpload(ctx, task)
 	}

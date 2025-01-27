@@ -5,10 +5,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get --allow-releaseinfo-change update
 apt-get install -yq git curl vim python3-pip jq
+apt-get install -t bullseye-backports qemu-user-static
 
-GOLANG_VERSION=1.21.6
+GOLANG_VERSION=1.23.4
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-arm64.tar.gz
-GOLANG_DOWNLOAD_SHA256=e2e8aa88e1b5170a0d495d7d9c766af2b2b6c6925a8f8956d834ad6b4cacbd9a
+GOLANG_DOWNLOAD_SHA256=16e5017863a7f6071363782b1b8042eb12c6ca4f4cd71528b2123f0a1275b13e
 wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 tar -C /usr/local -xzf /root/go.tar.gz

@@ -321,7 +321,7 @@ func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
 	s.notifyFailureChs = make(map[string]chan []chat1.OutboxRecord)
 }
 
-func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (resType chat1.OutboxErrorType, resErr error, resFail bool) {
+func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (resType chat1.OutboxErrorType, resErr error, resFail bool) { // nolint
 	defer func() {
 		if resErr != nil && resFail {
 			s.Debug(ctx, "doNotRetryFailure: sending back to not retry: err: %s: typ: %T", resErr, resErr)

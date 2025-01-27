@@ -77,8 +77,8 @@ func (t *DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostP
 }
 
 func (t *DNSServiceType) PostInstructions(un string) *libkb.Markup {
-	return libkb.FmtMarkup(`Please save the following as a DNS TXT entry for
-<strong>` + un + `</strong> OR <strong>_keybase.` + un + `</strong>:`)
+	return libkb.FmtMarkup("%s", `Please save the following as a DNS TXT entry for
+<strong>`+un+`</strong> OR <strong>_keybase.`+un+`</strong>:`)
 }
 
 func (t *DNSServiceType) DisplayName() string   { return "Dns" }
@@ -86,7 +86,7 @@ func (t *DNSServiceType) GetTypeName() string   { return "dns" }
 func (t *DNSServiceType) PickerSubtext() string { return t.GetTypeName() }
 
 func (t *DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, dn string) (warning *libkb.Markup, err error) {
-	warning = libkb.FmtMarkup(`<p>We couldn't find a DNS proof for ` + dn + ` ... <strong>yet</strong></p>
+	warning = libkb.FmtMarkup("%s", `<p>We couldn't find a DNS proof for `+dn+` ... <strong>yet</strong></p>
 <p>DNS propagation can be slow; we'll keep trying and email you the result</p>`)
 	err = libkb.WaitForItError{}
 	return

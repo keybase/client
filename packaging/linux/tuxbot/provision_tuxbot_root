@@ -6,9 +6,9 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get --allow-releaseinfo-change update
 apt-get install -yq git curl vim python3-pip jq
 
-GOLANG_VERSION=1.21.6
+GOLANG_VERSION=1.23.4
 GOLANG_DOWNLOAD_URL=https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz
-GOLANG_DOWNLOAD_SHA256=3f934f40ac360b9c01f616a9aa1796d227d8b0328bf64cb045c7b8c4ee9caea4
+GOLANG_DOWNLOAD_SHA256=6924efde5de86fe277676e929dc9917d466efa02fb934197bc2eba35d5680971
 wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -
 tar -C /usr/local -xzf /root/go.tar.gz

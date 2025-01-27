@@ -15,7 +15,6 @@
       "dockerfile": "packaging/linux/docker/slim/Dockerfile",
       "base": ""
     },
-
     "-alpine": {
       "dockerfile": "packaging/linux/docker/alpine/Dockerfile",
       "base": null
@@ -24,7 +23,6 @@
       "dockerfile": "packaging/linux/docker/alpine-slim/Dockerfile",
       "base": "-alpine"
     },
-
     "-node": {
       "dockerfile": "packaging/linux/docker/node/Dockerfile",
       "base": ""

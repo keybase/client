@@ -145,7 +145,7 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 	if ps == keybase1.ProofStatus_OK {
 		return nil
 	}
-	return NewProofError(ps, e.Desc)
+	return NewProofError(ps, "%s", e.Desc)
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
@@ -427,7 +427,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause.Err = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf("%s", field.Value)
 			case "Code":
 				if code, err := strconv.Atoi(field.Value); err == nil {
 					ret.Cause.StatusCode = code
@@ -440,7 +440,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.Cause.Err = fmt.Errorf(field.Value)
+				ret.Cause.Err = fmt.Errorf("%s", field.Value)
 			case "Code":
 				if code, err := strconv.Atoi(field.Value); err == nil {
 					ret.Cause.StatusCode = code
@@ -1570,7 +1570,7 @@ func (t TrackChainLink) Export() keybase1.RemoteTrack {
 func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.Ids.Export()}
+	ret.CreateUids = keybase1.PGPCreateUids{Ids: a.IDs.Export()}
 }
 
 // =============================================================================
@@ -1578,7 +1578,7 @@ func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
 func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 	ret.PrimaryBits = a.PrimaryBits
 	ret.SubkeyBits = a.SubkeyBits
-	ret.Ids = ImportPGPIdentities(a.CreateUids.Ids)
+	ret.IDs = ImportPGPIdentities(a.CreateUids.Ids)
 	return ret
 }
 

@@ -935,7 +935,7 @@ func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationI
 func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upto chat1.MessageID) (err Error) {
 	var ierr error
-	defer s.Trace(ctx, &ierr, fmt.Sprintf("ClearBefore: convID: %s, uid: %s, msgID: %d", convID, uid, upto))()
+	defer s.Trace(ctx, &ierr, "ClearBefore: convID: %s, uid: %s, msgID: %d", convID, uid, upto)()
 	defer func() { ierr = s.castInternalError(err) }()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)

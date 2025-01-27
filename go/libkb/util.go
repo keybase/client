@@ -421,8 +421,8 @@ func IsArmored(buf []byte) bool {
 }
 
 func RandInt64() (int64, error) {
-	max := big.NewInt(math.MaxInt64)
-	x, err := rand.Int(rand.Reader, max)
+	maxI := big.NewInt(math.MaxInt64)
+	x, err := rand.Int(rand.Reader, maxI)
 	if err != nil {
 		return 0, err
 	}

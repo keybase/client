@@ -181,7 +181,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, _ gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
 	defer b.Trace(ctx, &err, "RemoteSetConversationStatus")()
 	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
@@ -268,9 +268,8 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 		}
 		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
-	} else {
-		return res, errors.New("invalid name query")
 	}
+	return res, errors.New("invalid name query")
 }
 
 type RemoteInboxSource struct {
@@ -1644,7 +1643,7 @@ func (s *HybridInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
-	defer s.Trace(ctx, &err, debugLabel)()
+	defer s.Trace(ctx, &err, "%s", debugLabel)()
 	ib := s.createInbox()
 	if cerr := mod(ctx, ib); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)

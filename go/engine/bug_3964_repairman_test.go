@@ -204,7 +204,7 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 	return nil
 }
 
-func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
+func checkAuditLogForBug3964Repair(t *testing.T, log []string, _ keybase1.DeviceID, _ *libkb.DeviceKey) {
 	log = limitToTrace(log, "bug3964Repairman#Run")
 	require.NotZero(t, len(log))
 	log = findLine(t, log, "| Repairman wasn't short-circuited")

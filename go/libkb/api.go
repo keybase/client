@@ -118,9 +118,8 @@ func (a *APIError) Error() string {
 		return a.Msg
 	} else if a.Code > 0 {
 		return fmt.Sprintf("Error HTTP status %d", a.Code)
-	} else {
-		return "Generic API error"
 	}
+	return "Generic API error"
 }
 
 // Errors
@@ -457,7 +456,7 @@ func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Durat
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
 	var set []int
-	if arg.HTTPStatus == nil || len(arg.HTTPStatus) == 0 {
+	if len(arg.HTTPStatus) == 0 {
 		set = []int{200}
 	} else {
 		set = arg.HTTPStatus
