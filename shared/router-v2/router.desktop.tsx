@@ -3,8 +3,9 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
+import {shim, getOptions} from './shim'
+import logger from '@/logger'
 import Header from './header/index.desktop'
 import type {RouteDef, RouteMap} from '@/constants/types/router2'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -13,6 +14,7 @@ import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {registerDebugClear} from '@/util/debug'
 import './router.css'
 
 // eslint-disable-next-line
@@ -146,14 +148,48 @@ const rootScreenOptions = {
   title: '',
 } as const
 
-const ElectronApp = React.memo(function ElectronApp() {
-  const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, onStateChange, loggedInUser} = s
-  const {navKey, initialState, onUnhandledAction, setAppState} = s
-
+const useConnectNavToState = () => {
+  const setNavOnce = React.useRef(false)
   React.useEffect(() => {
-    setAppState(Shared.AppState.INITED)
-  }, [setAppState])
+    if (!setNavOnce.current) {
+      if (C.Router2.navigationRef_.isReady()) {
+        setNavOnce.current = true
+
+        if (__DEV__) {
+          window.DEBUGNavigator = C.Router2.navigationRef_.current
+          window.DEBUGRouter2 = C.Router2
+          window.KBCONSTANTS = require('@/constants')
+          registerDebugClear(() => {
+            window.DEBUGNavigator = undefined
+            window.DEBUGRouter2 = undefined
+            window.KBCONSTANTS = undefined
+          })
+        }
+      }
+    }
+  }, [setNavOnce])
+}
+
+const ElectronApp = React.memo(function ElectronApp() {
+  useConnectNavToState()
+  const loggedInUser = C.useCurrentUserState(s => s.username)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const everLoadedRef = React.useRef(false)
+  const loggedInLoaded = C.useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
+
+  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+    logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+  }, [])
+
+  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
+  const onStateChange = React.useCallback(() => {
+    const ns = C.Router2.getRootState()
+    setNavState(ns)
+  }, [setNavState])
 
   const ModalScreens = React.useMemo(
     () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),
@@ -167,9 +203,7 @@ const ElectronApp = React.memo(function ElectronApp() {
         // eslint-disable-next-line
         C.Router2.navigationRef_ as any
       }
-      key={String(navKey)}
       theme={Shared.theme}
-      initialState={initialState}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
       documentTitle={documentTitle}

@@ -3,11 +3,11 @@ import * as Constants from '@/constants/router2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
-import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
-import {StatusBar, View, useWindowDimensions} from 'react-native'
+import {shim, getOptions} from './shim'
+import logger from '@/logger'
+import {StatusBar, View, useWindowDimensions, Linking} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -278,106 +278,236 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
-const useRestartLastSession = (
-  appState: Shared.AppState,
-  setAppState: React.Dispatch<React.SetStateAction<Shared.AppState>>
-) => {
-  const initialNav = RouterLinking.useStateToLinking(appState)
-  const [ready, setReady] = React.useState(false)
-  const onReady = React.useCallback(() => {
-    setReady(true)
-  }, [])
+type InitialStateState = 'init' | 'loading' | 'loaded'
 
-  const didInitialNav = React.useRef(false)
-  const [showNav, setShowNav] = React.useState(false)
-  const [initialState, setInitialState] = React.useState<unknown>(undefined)
+const argArrayGood = (arr: Array<string>, len: number) => {
+  return arr.length === len && arr.every(p => !!p.length)
+}
+const isValidLink = (link: string) => {
+  const urlPrefix = 'https://keybase.io/'
+  if (link.startsWith(urlPrefix)) {
+    if (link.substring(urlPrefix.length).split('/').length === 1) {
+      return true
+    }
+  }
+  const prefix = 'keybase://'
+  if (!link.startsWith(prefix)) {
+    return false
+  }
+  const path = link.substring(prefix.length)
+  const [root, ...parts] = path.split('/')
+
+  switch (root) {
+    case 'profile':
+      switch (parts[0]) {
+        case 'new-proof':
+          return argArrayGood(parts, 2) || argArrayGood(parts, 3)
+        case 'show':
+          return argArrayGood(parts, 2)
+        default:
+      }
+      return false
+    case 'private':
+      return true
+    case 'public':
+      return true
+    case 'team':
+      return true
+    case 'convid':
+      return argArrayGood(parts, 1)
+    case 'chat':
+      return argArrayGood(parts, 1) || argArrayGood(parts, 2)
+    case 'team-page':
+      return argArrayGood(parts, 3)
+    case 'incoming-share':
+      return true
+    case 'team-invite-link':
+      return argArrayGood(parts, 1)
+    case 'settingsPushPrompt':
+      return true
+    default:
+      return false
+  }
+}
+
+const useInitialState = () => {
+  const startup = C.useConfigState(s => s.startup)
+  const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
+  let {conversation: startupConversation} = startup
+
+  if (!C.Chat.isValidConversationIDKey(startupConversation)) {
+    startupConversation = ''
+  }
+
+  const showMonster = C.usePushState(s => {
+    const {hasPermissions, justSignedUp, showPushPrompt} = s
+    return loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
+  })
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const androidShare = C.useConfigState(s => s.androidShare)
+
+  const [initialState, setInitialState] = React.useState<undefined | object>(undefined)
+  const [initialStateState, setInitialStateState] = React.useState<InitialStateState>('init')
 
   React.useEffect(() => {
-    if (!ready || didInitialNav.current || !initialNav) {
+    if (!startupLoaded) return
+    if (initialStateState !== 'init') {
       return
     }
-    didInitialNav.current = true
-    setAppState(Shared.AppState.INITED)
-    const f = async () => {
-      const url = await initialNav()
-      if (url) {
-        if (url.startsWith('keybase://convid/')) {
-          const conversationIDKey = url.split('/')[3]
-          const rs = C.Router2.getRootState()
-          try {
-            const next = C.produce(rs, draft => {
-              const tabsState = draft?.routes?.[0]?.state
-              if (!tabsState || tabsState.routes.length < 2) return
-              tabsState.index = 1
-              tabsState.routes[1] = {
-                name: Tabs.chatTab,
+    setInitialStateState('loading')
+    const loadInitialURL = async () => {
+      let url = await Linking.getInitialURL()
+
+      // don't try and resume or follow links if we're signed out
+      if (!loggedIn) return
+
+      if (!url && showMonster) {
+        url = 'keybase://settingsPushPrompt'
+      }
+      if (!url && androidShare) {
+        url = `keybase://incoming-share`
+      }
+
+      if (url && isValidLink(url)) {
+        setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
+      } else if (startupFollowUser && !startupConversation) {
+        url = `keybase://profile/show/${startupFollowUser}`
+        if (isValidLink(url)) {
+          const initialTabState = {
+            state: {
+              index: 1,
+              routes: [{name: 'peopleRoot'}, {name: 'profile', params: {username: startupFollowUser}}],
+            },
+          }
+          setInitialState({
+            index: 0,
+            routes: [
+              {
+                name: 'loggedIn',
+                state: {
+                  index: 0,
+                  routeNames: [Tabs.peopleTab],
+                  routes: [{name: Tabs.peopleTab, ...initialTabState}],
+                },
+              },
+            ],
+          })
+        }
+      } else if (startupTab || startupConversation) {
+        try {
+          const tab = startupConversation ? Tabs.chatTab : startupTab
+          C.Chat.useState_.getState().dispatch.unboxRows([startupConversation])
+          C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
+            reason: 'savedLastState',
+          })
+
+          const initialTabState = startupConversation
+            ? {
                 state: {
                   index: 1,
-                  routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
+                  routes: [
+                    {name: 'chatRoot'},
+                    {name: 'chatConversation', params: {conversationIDKey: startupConversation}},
+                  ],
                 },
               }
-            })
-            setInitialState(next)
-          } catch {}
-          setShowNav(true)
-        } else {
-          setTimeout(() => {
-            C.useDeepLinksState.getState().dispatch.handleAppLink(url)
-            setTimeout(() => {
-              setShowNav(true)
-            }, 500)
-          }, 1)
-        }
-      } else {
-        setShowNav(true)
+            : {}
+
+          setInitialState({
+            index: 0,
+            routes: [
+              {
+                name: 'loggedIn',
+                state: {
+                  index: 0,
+                  routeNames: [tab],
+                  routes: [{name: tab, ...initialTabState}],
+                },
+              },
+            ],
+          })
+        } catch {}
       }
     }
+
+    const f = async () => {
+      await loadInitialURL()
+      setInitialStateState('loaded')
+    }
+
     C.ignorePromise(f())
-  }, [initialNav, ready, setAppState])
-  return {initialState, onReady, setShowNav, showNav}
+  }, [
+    loggedIn,
+    startupLoaded,
+    initialState,
+    initialStateState,
+    androidShare,
+    showMonster,
+    startupConversation,
+    startupFollowUser,
+    startupTab,
+  ])
+
+  return {initialState, initialStateState}
+}
+
+// on android we rerender everything on dark mode changes
+const useRootKey = () => {
+  const [rootKey, setRootKey] = React.useState('')
+  const isDarkMode = Kb.Styles.useIsDarkMode()
+  React.useEffect(() => {
+    if (!C.isAndroid) return
+    setRootKey(isDarkMode ? 'android-dark' : 'android-light')
+  }, [isDarkMode])
+
+  return rootKey
 }
 
 const RNApp = React.memo(function RNApp() {
-  const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange: _onStateChange} = s
-  const {navKey: _navKey, initialState: _initialState, onUnhandledAction, setAppState} = s
-  // we only send certain params to the container depending on the state so we can remount w/ the right data
-  // instead of using useEffect and flashing all the time
-  // we use linking and force a key change if we're in NEEDS_INIT
-  // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
+  const everLoadedRef = React.useRef(false)
+  const loggedInLoaded = C.useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
 
-  const {onReady, showNav, setShowNav, initialState} = useRestartLastSession(appState, setAppState)
+  const {initialState, initialStateState} = useInitialState()
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
-    _onStateChange()
-    setShowNav(true)
-  }, [_onStateChange, setShowNav])
+    const ns = C.Router2.getRootState()
+    setNavState(ns)
+  }, [setNavState])
 
-  // force an update if we have a new initialState
-  const navKey = _navKey + (initialState ? 1 : 0)
-  const forcedChangeOnInitialStateRef = React.useRef(false)
-  React.useEffect(() => {
-    if (initialState && !forcedChangeOnInitialStateRef.current) {
-      forcedChangeOnInitialStateRef.current = true
-      onStateChange()
-    }
-  }, [initialState, onStateChange])
+  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+    logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+  }, [])
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
-      appState,
       initialState,
+      initialStateState,
       loggedIn,
       loggedInLoaded,
-      navKey,
       onStateChange,
     })
   }
   const barStyle = useBarStyle()
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
 
+  const rootKey = useRootKey()
+
+  if (initialStateState !== 'loaded' || !loggedInLoaded) {
+    return (
+      <Kb.Box2 direction="vertical" style={styles.loading}>
+        <Shared.SimpleLoading />
+      </Kb.Box2>
+    )
+  }
+
   return (
-    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
       <NavigationContainer
         navigationInChildEnabled={true}
@@ -386,15 +516,10 @@ const RNApp = React.memo(function RNApp() {
           // eslint-disable-next-line
           Constants.navigationRef_ as any
         }
-        key={String(navKey)}
         theme={Shared.theme}
-        initialState={
-          // eslint-disable-next-line
-          initialState as any
-        }
+        initialState={initialState as any}
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
-        onReady={onReady}
       >
         <RootStack.Navigator
           key="root"
@@ -402,10 +527,7 @@ const RNApp = React.memo(function RNApp() {
             headerShown: false, // eventually do this after we pull apart modal2 etc
           }}
         >
-          {!loggedInLoaded && (
-            <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
-          )}
-          {loggedInLoaded && loggedIn && (
+          {loggedIn ? (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
               <RootStack.Group
@@ -419,15 +541,11 @@ const RNApp = React.memo(function RNApp() {
                 {ModalScreens}
               </RootStack.Group>
             </>
+          ) : (
+            <RootStack.Screen name="loggedOut" component={LoggedOut} />
           )}
-          {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
-      {showNav ? null : (
-        <Kb.Box2 direction="vertical" style={styles.loading}>
-          <Shared.SimpleLoading />
-        </Kb.Box2>
-      )}
     </Kb.Box2>
   )
 })

@@ -14,7 +14,9 @@ const People = React.memo(function People(props: WrapProps) {
 })
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {...Kb.Styles.globalStyles.fullHeight},
+  container: {
+    ...Kb.Styles.globalStyles.fullHeight,
+  },
   header: {flexGrow: 1},
   progress: {
     height: 24,

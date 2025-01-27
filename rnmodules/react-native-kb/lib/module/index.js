@@ -108,15 +108,16 @@ export const shareListenersRegistered = () => {
 export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb);
 };
-export const androidIsDeviceSecure = Kb.getConstants().androidIsDeviceSecure;
-export const androidIsTestDevice = Kb.getConstants().androidIsTestDevice;
-export const appVersionCode = Kb.getConstants().appVersionCode;
-export const appVersionName = Kb.getConstants().appVersionCode;
-export const darkModeSupported = Kb.getConstants().darkModeSupported;
-export const fsCacheDir = Kb.getConstants().fsCacheDir;
-export const fsDownloadDir = Kb.getConstants().fsDownloadDir;
-export const guiConfig = Kb.getConstants().guiConfig;
-export const serverConfig = Kb.getConstants().serverConfig;
-export const uses24HourClock = Kb.getConstants().uses24HourClock;
-export const version = Kb.getConstants().version;
+const KBC = Kb.getTypedConstants();
+export const androidIsDeviceSecure = KBC.androidIsDeviceSecure;
+export const androidIsTestDevice = KBC.androidIsTestDevice;
+export const appVersionCode = KBC.appVersionCode;
+export const appVersionName = KBC.appVersionName;
+export const darkModeSupported = KBC.darkModeSupported;
+export const fsCacheDir = KBC.fsCacheDir;
+export const fsDownloadDir = KBC.fsDownloadDir;
+export const guiConfig = KBC.guiConfig;
+export const serverConfig = KBC.serverConfig;
+export const uses24HourClock = KBC.uses24HourClock;
+export const version = KBC.version;
 //# sourceMappingURL=index.js.map

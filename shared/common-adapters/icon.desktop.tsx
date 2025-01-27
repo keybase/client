@@ -117,6 +117,11 @@ const Icon = React.memo<Props>(
         }
       }
 
+      if (props.skipColor) {
+        hoverStyleName = undefined
+        colorStyleName = ''
+      }
+
       const mergedStyle = Styles.collapseStyles([
         fontSizeHint,
         onClick && (Styles.desktopStyles.clickable as any),

@@ -132,7 +132,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-// TODO rewrite this, v slow
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {

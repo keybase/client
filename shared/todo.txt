@@ -1,8 +1,6 @@
 TEMP disabling new arch on android due to this
-android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
+maybe fixed? android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
 
-
-crash on dark mode change in fs tab?
 expo-av to expo-video / expo-audio (not ready yet can't get video size...)
 inbox scroll perf issues
 

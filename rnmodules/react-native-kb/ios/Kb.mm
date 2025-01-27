@@ -208,11 +208,11 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
   return val;
 }
 
-- (NSDictionary *)getConstants {
-  return [self constantsToExport];
-}
+ - (NSDictionary *)getConstants {
+     return @{};
+ }
 
-- (NSDictionary *)constantsToExport {
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
   NSString *serverConfig = [self setupServerConfig];
   NSString *guiConfig = [self setupGuiConfig];
 

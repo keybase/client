@@ -120,17 +120,19 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
 
   const {address, token} = httpSrv
 
+  const isDarkMode = Styles.useIsDarkMode()
+
   const urlMap = React.useMemo(
     () =>
       sizes.reduce<{[key: number]: string}>((m, size) => {
         m[size] = `http://${address}/av?typ=${
           isTeam ? 'team' : 'user'
-        }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
+        }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
           token
         }&count=${counter}`
         return m
       }, {}),
-    [counter, address, token, isTeam, name]
+    [counter, address, token, isTeam, name, isDarkMode]
   )
   const url = React.useMemo(
     () =>
