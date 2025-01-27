@@ -8,6 +8,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
+#import <React/RCTCallInvoker.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
 #import <jsi/jsi.h>
@@ -308,7 +309,7 @@ RCT_EXPORT_METHOD(engineStart) {
 BOOL isBridgeless = true; // SYNC with AppDelegate.mm
 
 #if defined(RCT_NEW_ARCH_ENABLED)
-@synthesize runtimeExecutor = _runtimeExecutor;
+@synthesize callInvoker = _callInvoker;
 #endif
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
@@ -317,15 +318,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
         RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
         _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
         auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
-        auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
-            // Convert to Objective-C block so it can be captured properly.
-            __block auto callbackBlock = callback;
-
-            [executor execute:^(jsi::Runtime &runtime) {
-                callbackBlock(runtime);
-            }];
-        });
-        jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, executorFunction);
+        jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, _callInvoker.callInvoker);
 #else // (RCT_NEW_ARCH_ENABLED)
         [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
 #endif
