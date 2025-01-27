@@ -369,7 +369,7 @@ const config = (_, {mode}) => {
         ...commonConfig.resolve.alias,
         'path-parse': false,
       },
-      fallback: {process: false},
+      fallback: {process: false, url: false},
     },
     target: 'web',
     node: false,
