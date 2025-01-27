@@ -66,6 +66,8 @@ export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionP
   }
 }
 
+export async function saveAttachmentToMobile(filePath: string, mimeType: string): Promise<void> {}
+
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
@@ -76,7 +78,18 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       await requestPermissionsToWrite()
     } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await MediaLibrary.saveToLibraryAsync(fileURL)
+    if (isIOS) {
+      await MediaLibrary.saveToLibraryAsync(fileURL)
+    } else {
+      const asset = await MediaLibrary.createAssetAsync(fileURL)
+      const albumName = 'Keybase'
+      const _album = await MediaLibrary.getAlbumAsync(albumName)
+      let album = _album as typeof _album | null
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync(albumName, asset, false)
+      }
+      await MediaLibrary.addAssetsToAlbumAsync([asset], album, false)
+    }
     logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
@@ -414,6 +427,16 @@ export const initPlatformListener = () => {
   })
 
   C.useDaemonState.subscribe((s, old) => {
+    if (isAndroid) {
+      C.ignorePromise(
+        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
+          // Android's cache dir is (when I tried) [app]/cache but Go side uses
+          // [app]/.cache by default, which can't be used for sharing to other apps.
+          cacheDirOverride: fsCacheDir,
+          downloadDirOverride: fsDownloadDir,
+        })
+      )
+    }
     if (s.handshakeVersion === old.handshakeVersion) return
 
     // loadStartupDetails finished already
@@ -428,17 +451,6 @@ export const initPlatformListener = () => {
         wait(startupDetailsWaiting, version, inc)
       }
       afterStartupDetails(true)
-    }
-
-    if (isAndroid) {
-      C.ignorePromise(
-        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
-          // Android's cache dir is (when I tried) [app]/cache but Go side uses
-          // [app]/.cache by default, which can't be used for sharing to other apps.
-          cacheDirOverride: fsCacheDir,
-          downloadDirOverride: fsDownloadDir,
-        })
-      )
     }
   })
 

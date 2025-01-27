@@ -145,14 +145,16 @@ export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)
 }
 
-export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
-export const androidIsTestDevice: boolean = Kb.getConstants().androidIsTestDevice
-export const appVersionCode: string = Kb.getConstants().appVersionCode
-export const appVersionName: string = Kb.getConstants().appVersionCode
-export const darkModeSupported: boolean = Kb.getConstants().darkModeSupported
-export const fsCacheDir: string = Kb.getConstants().fsCacheDir
-export const fsDownloadDir: string = Kb.getConstants().fsDownloadDir
-export const guiConfig: string = Kb.getConstants().guiConfig
-export const serverConfig: string = Kb.getConstants().serverConfig
-export const uses24HourClock: boolean = Kb.getConstants().uses24HourClock
-export const version: string = Kb.getConstants().version
+const pc = Kb.getTypedConstants()
+
+export const androidIsDeviceSecure: boolean = pc.androidIsDeviceSecure
+export const androidIsTestDevice: boolean = pc.androidIsTestDevice
+export const appVersionCode: string = pc.appVersionCode
+export const appVersionName: string = pc.appVersionCode
+export const darkModeSupported: boolean = pc.darkModeSupported
+export const fsCacheDir: string = pc.fsCacheDir
+export const fsDownloadDir: string = pc.fsDownloadDir
+export const guiConfig: string = pc.guiConfig
+export const serverConfig: string = pc.serverConfig
+export const uses24HourClock: boolean = pc.uses24HourClock
+export const version: string = pc.version

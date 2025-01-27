@@ -101,19 +101,22 @@ let inited = false
 const useInit = () => {
   if (inited) return
   inited = true
-  const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(batch, c => {
-    if (c) {
-      C.useEngineState.getState().dispatch.onEngineConnected()
-    } else {
-      C.useEngineState.getState().dispatch.onEngineDisconnected()
-    }
-  })
-  C.initListeners()
-  eng.listenersAreReady()
+  const f = async () => {
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(batch, c => {
+      if (c) {
+        C.useEngineState.getState().dispatch.onEngineConnected()
+      } else {
+        C.useEngineState.getState().dispatch.onEngineDisconnected()
+      }
+    })
+    await C.initListeners()
+    eng.listenersAreReady()
 
-  // On mobile there is no installer
-  C.useConfigState.getState().dispatch.installerRan()
+    // On mobile there is no installer
+    C.useConfigState.getState().dispatch.installerRan()
+  }
+  C.ignorePromise(f())
 }
 
 // reanimated has issues updating shared values with this on seemingly w/ zoom toolkit

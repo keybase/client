@@ -115,6 +115,7 @@ class Engine {
   // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
     this._hasConnected = true
+
     this._onConnectedCB(true)
   }
 
