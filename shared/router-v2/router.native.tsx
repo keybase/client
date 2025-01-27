@@ -334,6 +334,7 @@ const useInitialState = () => {
   const startup = C.useConfigState(s => s.startup)
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
   let {conversation: startupConversation} = startup
+
   if (!C.Chat.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
@@ -354,9 +355,8 @@ const useInitialState = () => {
       return
     }
     setInitialStateState('loading')
-    const f = async () => {
+    const loadInitialURL = async () => {
       let url = await Linking.getInitialURL()
-      setInitialStateState('loaded')
 
       // don't try and resume or follow links if we're signed out
       if (!loggedIn) return
@@ -429,6 +429,12 @@ const useInitialState = () => {
         } catch {}
       }
     }
+
+    const f = async () => {
+      await loadInitialURL()
+      setInitialStateState('loaded')
+    }
+
     C.ignorePromise(f())
   }, [
     loggedIn,
