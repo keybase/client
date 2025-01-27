@@ -451,6 +451,18 @@ const useInitialState = () => {
   return {initialState, initialStateState}
 }
 
+// on android we rerender everything on dark mode changes
+const useRootKey = () => {
+  const [rootKey, setRootKey] = React.useState('')
+  const isDarkMode = Kb.Styles.useIsDarkMode()
+  React.useEffect(() => {
+    if (!C.isAndroid) return
+    setRootKey(isDarkMode ? 'android-dark' : 'android-light')
+  }, [isDarkMode])
+
+  return rootKey
+}
+
 const RNApp = React.memo(function RNApp() {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = C.useDaemonState(s => {
@@ -484,6 +496,8 @@ const RNApp = React.memo(function RNApp() {
   const barStyle = useBarStyle()
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
 
+  const rootKey = useRootKey()
+
   if (initialStateState !== 'loaded' || !loggedInLoaded) {
     return (
       <Kb.Box2 direction="vertical" style={styles.loading}>
@@ -493,7 +507,7 @@ const RNApp = React.memo(function RNApp() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
       <NavigationContainer
         navigationInChildEnabled={true}
