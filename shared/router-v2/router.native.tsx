@@ -533,9 +533,7 @@ const RNApp = React.memo(function RNApp() {
               <RootStack.Group
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel2 />,
-                  // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Kb.Styles.isAndroid ? undefined : 'modal',
-                  title: '',
+                  presentation: 'modal',
                 }}
               >
                 {ModalScreens}

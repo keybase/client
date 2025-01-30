@@ -8,6 +8,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
+#import <React/RCTCallInvoker.h>
 #import <UserNotifications/UserNotifications.h>
 #import <cstring>
 #import <jsi/jsi.h>
@@ -34,8 +35,7 @@ public:
   virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
     return jsi::Value::undefined();
   }
-  virtual void set(jsi::Runtime &, const jsi::PropNameID &name,
-                   const jsi::Value &value) {}
+  virtual void set(jsi::Runtime &, const jsi::PropNameID &name, const jsi::Value &value) {}
   virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
     return {};
   }
@@ -105,8 +105,6 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init {
   self = [super init];
-  if (self) {
-  }
   return self;
 }
 
@@ -178,11 +176,9 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 
 - (NSString *)setupServerConfig {
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,
-                                                       NSUserDomainMask, YES);
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
   NSString *cachePath = [paths objectAtIndex:0];
-  NSString *filePath = [cachePath
-      stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
   NSError *err;
   NSString *val = [NSString stringWithContentsOfFile:filePath
                                             encoding:NSUTF8StringEncoding
@@ -194,14 +190,10 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 
 - (NSString *)setupGuiConfig {
-  NSString *filePath =
-      [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
-          stringByAppendingPathComponent:
-              @"/Library/Application Support/Keybase/gui_config.json"];
+  NSString *filePath = [[[FsPathsHolder sharedFsPathsHolder] fsPaths][@"sharedHome"]
+          stringByAppendingPathComponent: @"/Library/Application Support/Keybase/gui_config.json"];
   NSError *err;
-  NSString *val = [NSString stringWithContentsOfFile:filePath
-                                            encoding:NSUTF8StringEncoding
-                                               error:&err];
+  NSString *val = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
   if (err != nil || val == nil) {
     return @"";
   }
@@ -221,21 +213,17 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
     darkModeSupported = @"1";
   };
 
-  NSString *appVersionString = [[NSBundle mainBundle]
-      objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString *appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   if (appVersionString == nil) {
     appVersionString = @"";
   }
-  NSString *appBuildString =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+  NSString *appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
   if (appBuildString == nil) {
     appBuildString = @"";
   }
   NSLocale *currentLocale = [NSLocale currentLocale];
-  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(
-      NSCachesDirectory, NSUserDomainMask, YES) firstObject];
-  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(
-      NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
+  NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+  NSString *downloadDir = [NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES) firstObject];
 
   NSString *kbVersion = KeybaseVersion();
   if (kbVersion == nil) {
@@ -305,45 +293,27 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
-BOOL isBridgeless = true; // SYNC with AppDelegate.mm
-
 #if defined(RCT_NEW_ARCH_ENABLED)
-@synthesize runtimeExecutor = _runtimeExecutor;
+@synthesize callInvoker = _callInvoker;
 #endif
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
-    if (isBridgeless) {
 #if defined(RCT_NEW_ARCH_ENABLED)
-        RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
-        _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
-        auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
-        auto executorFunction = ([executor = _runtimeExecutor](std::function<void(jsi::Runtime & runtime)> &&callback) {
-            // Convert to Objective-C block so it can be captured properly.
-            __block auto callbackBlock = callback;
-
-            [executor execute:^(jsi::Runtime &runtime) {
-                callbackBlock(runtime);
-            }];
-        });
-        jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, executorFunction);
+    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+    _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
+    auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
+    jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, _callInvoker.callInvoker);
 #else // (RCT_NEW_ARCH_ENABLED)
-        [NSException raise:@"Missing bridge" format:@"Failed to obtain the bridge."];
+    _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
+    ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
+    : nullptr;
+    jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
 #endif
-    } else {
-        _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
-        ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
-        : nullptr;
-        jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
-    }
 
     // stash the current runtime to keep in sync
-    auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-                          const Value *arguments, size_t count) -> Value {
-        return RpcOnGo(runtime, thisValue, arguments, count,
-                       [](void *ptr, size_t size) {
-            NSData *result = [NSData dataWithBytesNoCopy:ptr
-                                                  length:size
-                                            freeWhenDone:NO];
+    auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
+        return RpcOnGo(runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
+            NSData *result = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
             NSError *error = nil;
             KeybaseWriteArr(result, &error);
             if (error) {
@@ -352,22 +322,15 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
         });
     };
 
-    KeybaseLogToService(
-                        [NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
+    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
                          [[NSDate date] timeIntervalSince1970] * 1000]);
 
-    _jsRuntime->global().setProperty(
-                                     *_jsRuntime, "rpcOnGo",
-                                     Function::createFromHostFunction(
-                                                                      *_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1,
-                                                                      std::move(rpcOnGoWrap)));
+    _jsRuntime->global().setProperty(*_jsRuntime, "rpcOnGo",
+    Function::createFromHostFunction(*_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1, std::move(rpcOnGoWrap)));
 
     // register a global so we get notified when the runtime is killed so we can
     // cleanup
-    _jsRuntime->global().setProperty(
-                                     *_jsRuntime, "kbTeardown",
-                                     jsi::Object::createFromHostObject(*_jsRuntime,
-                                                                       std::make_shared<KBTearDown>()));
+    _jsRuntime->global().setProperty(*_jsRuntime, "kbTeardown", jsi::Object::createFromHostObject(*_jsRuntime, std::make_shared<KBTearDown>()));
     return @YES;
 }
 
@@ -383,8 +346,7 @@ RCT_EXPORT_METHOD(getDefaultCountryCode
 RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendLogs:(BOOL)sendLogs sendMaxBytes:(BOOL)sendMaxBytes traceDir:(NSString *)traceDir cpuProfileDir:(NSString *)cpuProfileDir resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   NSString *logId = nil;
   NSError *err = nil;
-  logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, traceDir,
-                         cpuProfileDir, &err);
+  logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir, &err);
   if (err == nil) {
     resolve(logId);
   } else {
@@ -393,10 +355,8 @@ RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendL
 }
 
 RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-  UNUserNotificationCenter *current =
-      UNUserNotificationCenter.currentNotificationCenter;
-  [current getNotificationSettingsWithCompletionHandler:^(
-               UNNotificationSettings *_Nonnull settings) {
+  UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
+  [current getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *_Nonnull settings) {
     if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined) {
       // We haven't asked yet
       resolve(@FALSE);
