@@ -135,45 +135,45 @@ type SearchProps = {
   text: string
 }
 
-class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
-  private hotKeys = ['esc']
-  private onHotKey = (cmd: string) => {
+const ThreadSearchDesktop = (props: SearchProps & Props) => {
+  const hotKeys = ['esc']
+  const onHotKey = (cmd: string) => {
     if (cmd === 'esc') {
-      this.props.onToggleThreadSearch()
+      props.onToggleThreadSearch()
     }
   }
-  private inputRef = React.createRef<Kb.PlainInput>()
-  private onKeyDown = (e: React.KeyboardEvent) => {
+  const inputRef = React.createRef<Kb.PlainInput>()
+  const onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
-        this.props.selfHide()
+        props.selfHide()
         break
       case 'g':
         if (e.ctrlKey || e.metaKey) {
           if (e.shiftKey) {
-            this.props.onDown()
+            props.onDown()
           } else {
-            this.props.onUp()
+            props.onUp()
           }
         }
         break
       case 'ArrowUp':
-        this.props.onUp()
+        props.onUp()
         break
       case 'ArrowDown':
-        this.props.onDown()
+        props.onDown()
         break
       case 'Enter':
         if (e.shiftKey) {
-          this.props.onDown()
+          props.onDown()
         }
         break
     }
   }
 
-  _renderHit = (index: number, item: SearchHit) => {
+  const _renderHit = (index: number, item: SearchHit) => {
     return (
-      <Kb.ClickableBox key={index} onClick={() => this.props.selectResult(index)} style={styles.hitRow}>
+      <Kb.ClickableBox key={index} onClick={() => props.selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
@@ -185,71 +185,65 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     )
   }
 
-  componentDidUpdate(prevProps: SearchProps) {
-    if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
-      if (this.inputRef.current) {
-        this.inputRef.current.focus()
-      }
+  React.useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
     }
-  }
+  }, [props.conversationIDKey, inputRef])
 
-  render() {
-    const noResults = this.props.status === 'done' && this.props.hits.length === 0
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
-        <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
-        <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
-          <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.PlainInput
-                autoFocus={true}
-                flexable={true}
-                onChangeText={this.props.onChangedText}
-                onEnterKeyDown={this.props.onEnter}
-                onKeyDown={this.onKeyDown}
-                placeholder="Search..."
-                ref={this.inputRef}
-                value={this.props.text}
-              />
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-              {this.props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-              {this.props.hasResults() && (
-                <Kb.Box2 direction="horizontal" gap="tiny">
-                  <Kb.Text type="BodySmall" style={styles.results}>
-                    {noResults
-                      ? 'No results'
-                      : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
-                  </Kb.Text>
-                  <Kb.Icon
-                    color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onUp : undefined}
-                    type="iconfont-arrow-up"
-                  />
-                  <Kb.Icon
-                    color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onDown : undefined}
-                    type="iconfont-arrow-down"
-                  />
-                </Kb.Box2>
-              )}
-            </Kb.Box2>
+  const noResults = props.status === 'done' && props.hits.length === 0
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
+      <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
+      <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
+            <Kb.PlainInput
+              autoFocus={true}
+              flexable={true}
+              onChangeText={props.onChangedText}
+              onEnterKeyDown={props.onEnter}
+              onKeyDown={onKeyDown}
+              placeholder="Search..."
+              ref={inputRef}
+              value={props.text}
+            />
           </Kb.Box2>
-          <Kb.Button disabled={this.props.inProgress()} onClick={this.props.submitSearch} label="Search" />
-          <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
+            {props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
+            {props.hasResults() && (
+              <Kb.Box2 direction="horizontal" gap="tiny">
+                <Kb.Text type="BodySmall" style={styles.results}>
+                  {noResults ? 'No results' : `${props.selectedIndex + 1} of ${props.hits.length}`}
+                </Kb.Text>
+                <Kb.Icon
+                  color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                  onClick={!noResults ? props.onUp : undefined}
+                  type="iconfont-arrow-up"
+                />
+                <Kb.Icon
+                  color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
+                  onClick={!noResults ? props.onDown : undefined}
+                  type="iconfont-arrow-down"
+                />
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-        {this.props.hits.length > 0 && (
-          <Kb.List2
-            indexAsKey={true}
-            items={this.props.hits}
-            itemHeight={{height: hitHeight, type: 'fixed'}}
-            renderItem={this._renderHit}
-            style={styles.hitList}
-          />
-        )}
+        <Kb.Button disabled={props.inProgress()} onClick={props.submitSearch} label="Search" />
+        <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
       </Kb.Box2>
-    )
-  }
+      {props.hits.length > 0 && (
+        <Kb.List2
+          indexAsKey={true}
+          items={props.hits}
+          itemHeight={{height: hitHeight, type: 'fixed'}}
+          renderItem={_renderHit}
+          style={styles.hitList}
+        />
+      )}
+    </Kb.Box2>
+  )
 }
 
 const ThreadSearchMobile = (props: SearchProps & Props) => (

@@ -3051,10 +3051,15 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*", "@types/lodash@4.17.14":
+"@types/lodash@*":
   version "4.17.14"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.14.tgz#bafc053533f4cdc5fcc9635af46a963c1f3deaff"
   integrity sha512-jsxagdikDiDBeIRaPYtArcT8my4tN1og7MtMRquFT3XNA6axxyHDRUemqDz/taRDdOUn0GnGHRCuff4q48sW9A==
+
+"@types/lodash@4.17.15":
+  version "4.17.15"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.15.tgz#12d4af0ed17cc7600ce1f9980cec48fc17ad1e89"
+  integrity sha512-w/P33JFeySuhN6JLkysYUK2gEmy9kHHFN7E8ro0tkfmlDOgxBDzWEZ/J8cWA+fHqFevpswDTFZnDx+R9lbL6xw==
 
 "@types/mime@^1":
   version "1.3.5"
@@ -3191,10 +3196,10 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.3.tgz#6209321eb2c1712a7e7466422b8cb1fc0d9dd5d8"
   integrity sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==
 
-"@types/webpack-env@1.18.6":
-  version "1.18.6"
-  resolved "https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.18.6.tgz#27823a5de13e4304b47af0cbb7ce2aeebd40971c"
-  integrity sha512-b32JtXK2UJHdXWUiNdIXxeAUXJu+FZG6HRMDNZu+o6QTzQ3dsDNR6Q7XQj5GD5skljXgb5zxc/+G/ZxkFKdlyg==
+"@types/webpack-env@1.18.8":
+  version "1.18.8"
+  resolved "https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.18.8.tgz#71f083718c094204d7b64443701d32f1db3989e3"
+  integrity sha512-G9eAoJRMLjcvN4I08wB5I7YofOb/kaJNd5uoCMX+LbKXTPCF+ZIHuqTnFaK9Jz1rgs035f9JUPUhNFtqgucy/A==
 
 "@types/ws@^8.5.10":
   version "8.5.14"
@@ -3591,10 +3596,10 @@
   resolved "https://registry.yarnpkg.com/@webpack-cli/serve/-/serve-3.0.1.tgz#bd8b1f824d57e30faa19eb78e4c0951056f72f00"
   integrity sha512-sbgw03xQaCLiT6gcY/6u3qBDn01CWw/nbaXl3gTdTFuJJ75Gffv3E3DBpgvY2fkkrdS1fpjaXNOmJlnbtKauKg==
 
-"@welldone-software/why-did-you-render@8.0.3":
-  version "8.0.3"
-  resolved "https://registry.yarnpkg.com/@welldone-software/why-did-you-render/-/why-did-you-render-8.0.3.tgz#3a90c12a2236834478a8a48900110fc9166dc903"
-  integrity sha512-bb5bKPMStYnocyTBVBu4UTegZdBqzV1mPhxc0UIV/S43KFUSRflux9gvzJfu2aM4EWLJ3egTvdjOi+viK+LKGA==
+"@welldone-software/why-did-you-render@10.0.1":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@welldone-software/why-did-you-render/-/why-did-you-render-10.0.1.tgz#4513c1883add0496b98bcdcdcd243ff10c0f5ece"
+  integrity sha512-tMgGkt30iVYeLMUKExNmtm019QgyjLtA7lwB0QAizYNEuihlCG2eoAWBBaz/bDeI7LeqAJ9msC6hY3vX+JB97g==
   dependencies:
     lodash "^4"
 
@@ -5239,10 +5244,10 @@ electron-to-chromium@^1.5.73:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.88.tgz#cdb6e2dda85e6521e8d7d3035ba391c8848e073a"
   integrity sha512-K3C2qf1o+bGzbilTDCTBhTQcMS9KW60yTAaTeeXsfvQuTDDwlokLam/AdqlqcSy9u4UainDgsHV23ksXAOgamw==
 
-electron@34.0.1:
-  version "34.0.1"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-34.0.1.tgz#bc2fdb8956831ba4c5c7d17bfa7b8780a7d635e7"
-  integrity sha512-aArw5tAM80i3CKwEREnyZSM1SkARf5Jd1yBMTIdOL4pB1M+p/oDeyWSFI9Dl+vujyfJKiK4SS5+j19wna1onMw==
+electron@34.0.2:
+  version "34.0.2"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-34.0.2.tgz#84432ab1efa165e260ce943c472879228b620573"
+  integrity sha512-u3F+DSUlg9NaGS+9qnYmSRN8VjAnc3LJDDk1ye1uISJnh4gjG76y3681qLowsPMx4obvCP2eBINnmbLo0yT5WA==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^20.9.0"
@@ -9794,10 +9799,10 @@ react-native-safe-area-context@5.1.0:
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-5.1.0.tgz#0125f0c7762a2c189a3d067623ab8fbcdcb79cb8"
   integrity sha512-Y4vyJX+0HPJUQNVeIJTj2/UOjbSJcB09OEwirAWDrOZ67Lz5p43AmjxSy8nnZft1rMzoh3rcPuonB6jJyHTfCw==
 
-react-native-screens@4.6.0-beta.1:
-  version "4.6.0-beta.1"
-  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-4.6.0-beta.1.tgz#f0f944f5c81647c6d76be1f1f67f8453d9df20bb"
-  integrity sha512-49SDaRzRys2etQLT5OmLT6wC0MGWh5wwmbgNdPSszaxXvkf2AFddlCkMWu3IYacDccLqt2sRXKo161GGcC567g==
+react-native-screens@4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-4.6.0.tgz#2b60ab6f4cd5010c6f9cb01b034f2aa0e17ccf4b"
+  integrity sha512-PqGtR/moJLiTMSavhfo5spKXNHZrlxffq3g5UUVPmyuu7MmazFlPvYqiAYnR2iB9tkJYgvZO6sbjYAE7619M0A==
   dependencies:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
@@ -9816,10 +9821,10 @@ react-native-web@0.19.13:
     postcss-value-parser "^4.2.0"
     styleq "^0.1.3"
 
-react-native-webview@13.13.1:
-  version "13.13.1"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-13.13.1.tgz#a016557afc02126175f151caaed545abbdef4eb2"
-  integrity sha512-Qwrvdwl2U2bG8QlghfRzGR/PCwKzW/cXTCR/WfMWHeGoADp2CHuCaEpfYO/HhlLLGy3Jqizsy+sjFhnKa1AgrA==
+react-native-webview@13.13.2:
+  version "13.13.2"
+  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-13.13.2.tgz#6d72fd8492f11accbcf3be4d1386fa961e424357"
+  integrity sha512-zACPDTF0WnaEnKZ9mA/r/UpcOpV2gQM06AAIrOOexnO8UJvXL8Pjso0b/wTqKFxUZZnmjKuwd8gHVUosVOdVrw==
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
