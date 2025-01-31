@@ -20,21 +20,6 @@ type Props = {
   pending: boolean
 }
 
-type Props2 = {
-  exploded: boolean
-  explodesAt: number
-  forceUpdateIDRef: React.MutableRefObject<ReturnType<typeof setTimeout> | undefined>
-  isParentHighlighted: boolean
-  messageKey: string
-  mode: Mode
-  onClick?: () => void
-  pending: boolean
-  setMode: (m: Mode) => void
-  sharedTimerIDRef: React.MutableRefObject<number>
-  sharedTimerKeyRef: React.MutableRefObject<string>
-  tickerIDRef: React.MutableRefObject<number>
-}
-
 const ExplodingMeta = (p: Props) => {
   const {exploded, explodesAt, messageKey, onClick, pending} = p
 
@@ -54,167 +39,152 @@ const ExplodingMeta = (p: Props) => {
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = React.useContext(HighlightedContext)
 
-  const props2 = {
-    exploded,
-    explodesAt,
-    forceUpdateIDRef,
-    isParentHighlighted,
-    messageKey,
-    mode,
-    onClick,
-    pending,
-    setMode,
-    sharedTimerIDRef,
-    sharedTimerKeyRef,
-    tickerIDRef,
-  }
+  const [_force, setforce] = React.useState(0)
+  const forceUpdate = React.useCallback(() => {
+    setforce(f => f + 1)
+  }, [])
 
-  return <ExplodingMeta2 {...props2} />
-}
-
-class ExplodingMeta2 extends React.Component<Props2> {
-  componentDidMount() {
-    this.hideOrStart()
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (!this.props.pending && prevProps.pending) {
-      this.hideOrStart()
-    }
-
-    if (this.props.exploded && !prevProps.exploded) {
-      this.props.setMode('boom')
-      this.props.sharedTimerIDRef.current &&
-        SharedTimer.removeObserver(this.props.messageKey, this.props.sharedTimerIDRef.current)
-      this.props.sharedTimerKeyRef.current = this.props.messageKey
-      this.props.sharedTimerIDRef.current = SharedTimer.addObserver(() => this.props.setMode('hidden'), {
-        key: this.props.sharedTimerKeyRef.current,
-        ms: animationDuration,
-      })
-    }
-  }
-
-  private hideOrStart = () => {
-    if (
-      this.props.mode === 'none' &&
-      !this.props.pending &&
-      (Date.now() >= this.props.explodesAt || this.props.exploded)
-    ) {
-      this._setHidden()
+  const _secondLoop = React.useCallback(() => {
+    const difference = explodesAt - Date.now()
+    if (difference <= 0 || exploded) {
+      if (mode === 'countdown') {
+        setMode('boom')
+      }
+      tickerIDRef.current && removeTicker(tickerIDRef.current)
       return
     }
-    !this.props.pending && this._setCountdown()
-  }
+    forceUpdate()
+  }, [exploded, explodesAt, forceUpdate, mode, setMode, tickerIDRef])
 
-  componentWillUnmount() {
-    this.props.tickerIDRef.current && removeTicker(this.props.tickerIDRef.current)
-    this.props.sharedTimerIDRef.current &&
-      SharedTimer.removeObserver(this.props.sharedTimerKeyRef.current, this.props.sharedTimerIDRef.current)
-    this.props.forceUpdateIDRef.current && clearTimeout(this.props.forceUpdateIDRef.current)
-  }
-
-  private updateLoop = () => {
-    if (this.props.pending) {
+  const updateLoop = React.useCallback(() => {
+    if (pending) {
       return
     }
 
-    const difference = this.props.explodesAt - Date.now()
-    if (difference <= 0 || this.props.exploded) {
-      this.props.setMode('boom')
+    const difference = explodesAt - Date.now()
+    if (difference <= 0 || exploded) {
+      setMode('boom')
       return
     }
     // we don't need a timer longer than 60000 (android complains also)
     const interval = Math.min(getLoopInterval(difference), 60000)
     if (interval < 1000) {
-      this.props.tickerIDRef.current && removeTicker(this.props.tickerIDRef.current)
+      tickerIDRef.current && removeTicker(tickerIDRef.current)
       // switch to 'seconds' mode
-      this.props.tickerIDRef.current = addTicker(this._secondLoop)
+      tickerIDRef.current = addTicker(_secondLoop)
       return
     }
-    this.props.forceUpdateIDRef.current = setTimeout(() => {
-      this.forceUpdate(this.updateLoop)
+    forceUpdateIDRef.current = setTimeout(() => {
+      forceUpdate()
+      updateLoop()
     }, interval)
-  }
+  }, [_secondLoop, exploded, explodesAt, forceUpdate, forceUpdateIDRef, pending, setMode, tickerIDRef])
 
-  _secondLoop = () => {
-    const difference = this.props.explodesAt - Date.now()
-    if (difference <= 0 || this.props.exploded) {
-      if (this.props.mode === 'countdown') {
-        this.props.setMode('boom')
-      }
-      this.props.tickerIDRef.current && removeTicker(this.props.tickerIDRef.current)
+  const _setHidden = React.useCallback(() => {
+    mode !== 'hidden' && setMode('hidden')
+  }, [mode, setMode])
+
+  const _setCountdown = React.useCallback(() => {
+    if (mode === 'countdown') return
+    setMode('countdown')
+    updateLoop()
+  }, [mode, setMode, updateLoop])
+
+  const hideOrStart = React.useCallback(() => {
+    if (mode === 'none' && !pending && (Date.now() >= explodesAt || exploded)) {
+      _setHidden()
       return
     }
-    this.forceUpdate()
-  }
+    !pending && _setCountdown()
+  }, [_setCountdown, _setHidden, exploded, explodesAt, mode, pending])
 
-  _setHidden = () => this.props.mode !== 'hidden' && this.props.setMode('hidden')
-  _setCountdown = () => {
-    if (this.props.mode === 'countdown') return
-    this.props.setMode('countdown')
-    this.updateLoop()
-  }
+  React.useEffect(() => {
+    hideOrStart()
+  }, [hideOrStart])
 
-  render() {
-    const backgroundColor = this.props.pending
-      ? Kb.Styles.globalColors.black
-      : this.props.explodesAt - Date.now() < oneMinuteInMs
-        ? Kb.Styles.globalColors.red
-        : Kb.Styles.globalColors.black
-    let children: React.ReactNode
-    const m = this.props.pending ? 'countdown' : this.props.mode
-    switch (m) {
-      case 'countdown':
-        children = (
-          <Kb.Box2 direction="horizontal" gap="xtiny">
-            <Kb.Box2
-              className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-top-left')}
-              direction="horizontal"
-              tooltip="Exploding message"
-              style={Kb.Styles.collapseStyles([
-                styles.countdownContainer,
-                {backgroundColor},
-                this.props.isParentHighlighted && styles.countdownContainerHighlighted,
-                this.props.pending && styles.hidden,
-              ])}
-            >
-              <Kb.Text
-                className="explodingTimeText"
-                type="Body"
-                style={Kb.Styles.collapseStyles([
-                  styles.countdown,
-                  this.props.isParentHighlighted && styles.countdownHighlighted,
-                ])}
-                virtualText={true}
-              >
-                {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
-        )
-        break
-      case 'boom':
-        children = (
-          <Kb.Icon
-            className="explodingTimeIcon"
-            type="iconfont-boom"
-            color={
-              this.props.isParentHighlighted
-                ? Kb.Styles.globalColors.blackOrBlack
-                : Kb.Styles.globalColors.black
-            }
-          />
-        )
-        break
-      default:
+  const lastPendingRef = React.useRef(pending)
+  React.useEffect(() => {
+    if (!pending && lastPendingRef.current) {
+      hideOrStart()
     }
+    lastPendingRef.current = pending
+  }, [hideOrStart, pending])
 
-    return (
-      <Kb.ClickableBox onClick={this.props.onClick} style={styles.container}>
-        {children}
-      </Kb.ClickableBox>
-    )
+  const lastExplodedRef = React.useRef(exploded)
+  React.useEffect(() => {
+    if (exploded && !lastExplodedRef.current) {
+      setMode('boom')
+      sharedTimerIDRef.current && SharedTimer.removeObserver(messageKey, sharedTimerIDRef.current)
+      sharedTimerKeyRef.current = messageKey
+      sharedTimerIDRef.current = SharedTimer.addObserver(() => setMode('hidden'), {
+        key: sharedTimerKeyRef.current,
+        ms: animationDuration,
+      })
+    }
+    lastExplodedRef.current = exploded
+
+    return () => {
+      tickerIDRef.current && removeTicker(tickerIDRef.current)
+      sharedTimerIDRef.current &&
+        SharedTimer.removeObserver(sharedTimerKeyRef.current, sharedTimerIDRef.current)
+      forceUpdateIDRef.current && clearTimeout(forceUpdateIDRef.current)
+    }
+  }, [exploded, forceUpdateIDRef, messageKey, setMode, sharedTimerIDRef, sharedTimerKeyRef, tickerIDRef])
+
+  const backgroundColor = pending
+    ? Kb.Styles.globalColors.black
+    : explodesAt - Date.now() < oneMinuteInMs
+      ? Kb.Styles.globalColors.red
+      : Kb.Styles.globalColors.black
+  let children: React.ReactNode
+  const m = pending ? 'countdown' : mode
+  switch (m) {
+    case 'countdown':
+      children = (
+        <Kb.Box2 direction="horizontal" gap="xtiny">
+          <Kb.Box2
+            className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-top-left')}
+            direction="horizontal"
+            tooltip="Exploding message"
+            style={Kb.Styles.collapseStyles([
+              styles.countdownContainer,
+              {backgroundColor},
+              isParentHighlighted && styles.countdownContainerHighlighted,
+              pending && styles.hidden,
+            ])}
+          >
+            <Kb.Text
+              className="explodingTimeText"
+              type="Body"
+              style={Kb.Styles.collapseStyles([
+                styles.countdown,
+                isParentHighlighted && styles.countdownHighlighted,
+              ])}
+              virtualText={true}
+            >
+              {pending ? '' : formatDurationShort(explodesAt - Date.now())}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+      )
+      break
+    case 'boom':
+      children = (
+        <Kb.Icon
+          className="explodingTimeIcon"
+          type="iconfont-boom"
+          color={isParentHighlighted ? Kb.Styles.globalColors.blackOrBlack : Kb.Styles.globalColors.black}
+        />
+      )
+      break
+    default:
   }
+
+  return (
+    <Kb.ClickableBox onClick={onClick} style={styles.container}>
+      {children}
+    </Kb.ClickableBox>
+  )
 }
 
 const getLoopInterval = (diff: number) => {
