@@ -65,7 +65,6 @@ const Header2 = (props: HeaderProps) => {
     },
     [widerWidth]
   )
-  const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
   let subTitle: React.ReactNode = null
