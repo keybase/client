@@ -23,116 +23,120 @@ type ProvidersProps = {
   filter: string
 } & Props
 
-class Providers extends React.Component<ProvidersProps> {
-  static _itemHeight = {
-    height: Kb.Styles.isMobile ? 56 : 48,
-    type: 'fixed',
-  } as const
-  _renderItem = (_: unknown, provider: IdentityProvider) => (
-    <React.Fragment key={provider.name}>
-      <Kb.Divider />
-      <Kb.ClickableBox
-        className="hover_background_color_blueLighter2"
-        onClick={() => this.props.providerClicked(provider.key)}
-        style={styles.containerBox}
-      >
-        <SiteIcon set={provider.icon} style={styles.icon} full={true} />
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySemibold" style={styles.title}>
-            {provider.name}
-          </Kb.Text>
-          {(provider.new || !!provider.desc) && (
-            <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-              {provider.new && (
-                <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
-              )}
-              <Kb.Text type="BodySmall" style={styles.description}>
-                {provider.desc}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-        <Kb.Icon
-          type="iconfont-arrow-right"
-          color={Kb.Styles.globalColors.black_50}
-          fontSize={Kb.Styles.isMobile ? 20 : 16}
-          style={styles.iconArrow}
-        />
-      </Kb.ClickableBox>
-    </React.Fragment>
+const Providers = React.memo(({filter, providerClicked, providers}: ProvidersProps) => {
+  const _itemHeight = React.useMemo(
+    () =>
+      ({
+        height: Kb.Styles.isMobile ? 56 : 48,
+        type: 'fixed',
+      }) as const,
+    []
   )
-  render() {
-    const filterRegexp = makeInsertMatcher(this.props.filter)
 
+  const _renderItem = React.useCallback(
+    (_: unknown, provider: IdentityProvider) => (
+      <React.Fragment key={provider.name}>
+        <Kb.Divider />
+        <Kb.ClickableBox
+          className="hover_background_color_blueLighter2"
+          onClick={() => providerClicked(provider.key)}
+          style={styles.containerBox}
+        >
+          <SiteIcon set={provider.icon} style={styles.icon} full={true} />
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySemibold" style={styles.title}>
+              {provider.name}
+            </Kb.Text>
+            {(provider.new || !!provider.desc) && (
+              <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+                {provider.new && (
+                  <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
+                )}
+                <Kb.Text type="BodySmall" style={styles.description}>
+                  {provider.desc}
+                </Kb.Text>
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+          <Kb.Icon
+            type="iconfont-arrow-right"
+            color={Kb.Styles.globalColors.black_50}
+            fontSize={Kb.Styles.isMobile ? 20 : 16}
+            style={styles.iconArrow}
+          />
+        </Kb.ClickableBox>
+      </React.Fragment>
+    ),
+    [providerClicked]
+  )
+
+  const filterRegexp = React.useMemo(() => makeInsertMatcher(filter), [filter])
+
+  const items = React.useMemo(() => {
     const exact: Array<IdentityProvider> = []
     const inexact: Array<IdentityProvider> = []
-    this.props.providers.forEach(p => {
-      if (p.name === this.props.filter) {
+    providers.forEach(p => {
+      if (p.name === filter) {
         exact.push(p)
       } else if (filterProvider(p, filterRegexp)) {
         inexact.push(p)
       }
     })
+    return [...exact, ...inexact]
+  }, [filter, filterRegexp, providers])
 
-    const items = [...exact, ...inexact]
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
-          <Kb.List2 items={items} renderItem={this._renderItem} itemHeight={Providers._itemHeight} />
-        </Kb.Box2>
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
+        <Kb.List2 items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
       </Kb.Box2>
-    )
-  }
-}
+    </Kb.Box2>
+  )
+})
 
 const normalizeForFiltering = (input: string) => input.toLowerCase().replace(/[.\s]/g, '')
 
 const filterProvider = (p: IdentityProvider, filter: RegExp) =>
   normalizeForFiltering(p.name).search(filter) !== -1 || normalizeForFiltering(p.desc).search(filter) !== -1
 
-type State = {
-  filter: string
-}
+const ProofsList = (p: Props) => {
+  const {onCancel, providers} = p
+  const [filter, setFilter] = React.useState('')
 
-class ProofsList extends React.Component<Props, State> {
-  state = {filter: ''}
-  _onSetFilter = (filter: string) => this.setState({filter})
-  render() {
-    return (
-      <Kb.PopupWrapper onCancel={this.props.onCancel}>
-        <Kb.Box style={styles.mobileFlex}>
-          <Kb.Box2 direction="vertical" style={styles.container}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Text center={true} type="Header" style={styles.header}>
-                Prove your...
-              </Kb.Text>
-            )}
-            <Kb.Box style={styles.inputContainer}>
-              <Kb.Icon
-                type="iconfont-search"
-                color={Kb.Styles.globalColors.black_50}
-                fontSize={Kb.Styles.isMobile ? 20 : 16}
-              />
-              <Kb.PlainInput
-                autoFocus={true}
-                placeholder={`Search ${this.props.providers.length} platforms`}
-                flexable={true}
-                multiline={false}
-                onChangeText={this._onSetFilter}
-                type="text"
-                style={styles.text}
-                value={this.state.filter}
-              />
-            </Kb.Box>
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-              <Providers {...this.props} filter={this.state.filter} />
-              <Kb.Divider />
-            </Kb.Box2>
+  return (
+    <Kb.PopupWrapper onCancel={onCancel}>
+      <Kb.Box style={styles.mobileFlex}>
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          {!Kb.Styles.isMobile && (
+            <Kb.Text center={true} type="Header" style={styles.header}>
+              Prove your...
+            </Kb.Text>
+          )}
+          <Kb.Box style={styles.inputContainer}>
+            <Kb.Icon
+              type="iconfont-search"
+              color={Kb.Styles.globalColors.black_50}
+              fontSize={Kb.Styles.isMobile ? 20 : 16}
+            />
+            <Kb.PlainInput
+              autoFocus={true}
+              placeholder={`Search ${providers.length} platforms`}
+              flexable={true}
+              multiline={false}
+              onChangeText={setFilter}
+              type="text"
+              style={styles.text}
+              value={filter}
+            />
+          </Kb.Box>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+            <Providers {...p} filter={filter} />
+            <Kb.Divider />
           </Kb.Box2>
-        </Kb.Box>
-      </Kb.PopupWrapper>
-    )
-  }
+        </Kb.Box2>
+      </Kb.Box>
+    </Kb.PopupWrapper>
+  )
 }
 
 const rightColumnStyle = Kb.Styles.platformStyles({

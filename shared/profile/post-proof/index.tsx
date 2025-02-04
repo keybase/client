@@ -122,94 +122,86 @@ const descriptionMap = new Map([
   ['web', WebDescription],
 ])
 
-type State = {
-  showSubmit: boolean
-}
+const PostProof = (props: Props) => {
+  const [showSubmit, setShowSubmit] = React.useState(!props.openLinkBeforeSubmit)
 
-class PostProof extends React.Component<Props, State> {
-  state = {
-    showSubmit: !this.props.openLinkBeforeSubmit,
-  }
-  render() {
-    const props = this.props
-    const platformSubtitle = subtitle(props.platform)
-    const proofActionText = actionMap.get(props.platform) ?? ''
-    const onCompleteText = checkMap.get(props.platform) ?? 'OK posted! Check for it!'
-    const noteText = noteMap.get(props.platform) ?? ''
-    const DescriptionView = descriptionMap.get(props.platform) ?? null
-    const {proofText} = props
+  const platformSubtitle = subtitle(props.platform)
+  const proofActionText = actionMap.get(props.platform) ?? ''
+  const onCompleteText = checkMap.get(props.platform) ?? 'OK posted! Check for it!'
+  const noteText = noteMap.get(props.platform) ?? ''
+  const DescriptionView = descriptionMap.get(props.platform) ?? null
+  const {proofText} = props
 
-    return (
-      <Modal onCancel={props.onCancel} skipButton={true}>
-        <Kb.ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          key={
-            props.errorMessage || 'scroll' /* if we get an error redraw entirely so we're not scrolled down */
-          }
+  return (
+    <Modal onCancel={props.onCancel} skipButton={true}>
+      <Kb.ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        key={
+          props.errorMessage || 'scroll'
+          /* if we get an error redraw entirely so we're not scrolled down */
+        }
+      >
+        <Kb.Box2
+          direction="vertical"
+          gap="small"
+          onCopyCapture={e => {
+            e.preventDefault()
+            proofText && props.copyToClipboard(proofText)
+          }}
         >
-          <Kb.Box2
-            direction="vertical"
-            gap="small"
-            onCopyCapture={e => {
-              // disallow copying the whole screen by accident
-              e.preventDefault()
-              proofText && props.copyToClipboard(proofText)
-            }}
-          >
-            {!!props.errorMessage && (
-              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
-                <Kb.Text center={true} negative={true} type="BodySemibold">
-                  {props.errorMessage}
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-            <Kb.PlatformIcon
-              platform={props.platform}
-              style={styles.center}
-              overlay="icon-proof-unfinished"
-              overlayColor={Kb.Styles.globalColors.greyDark}
-            />
-            <>
-              <Kb.Text center={true} style={styles.blue} type="Header">
-                {props.platformUserName}
+          {!!props.errorMessage && (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
+              <Kb.Text center={true} negative={true} type="BodySemibold">
+                {props.errorMessage}
               </Kb.Text>
-              {!!platformSubtitle && (
-                <Kb.Text center={true} style={styles.grey} type="Body">
-                  {platformSubtitle}
-                </Kb.Text>
-              )}
-            </>
-            {DescriptionView && <DescriptionView platformUserName={props.platformUserName} />}
-            {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
-            {!!noteText && (
-              <Kb.Text center={true} type="Body">
-                {noteText}
-              </Kb.Text>
-            )}
-            <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
-              <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
-              {this.state.showSubmit ? (
-                <Kb.WaitingButton
-                  onClick={props.onSubmit}
-                  label={onCompleteText || ''}
-                  waitingKey={C.Profile.waitingKey}
-                />
-              ) : (
-                <Kb.Button
-                  onClick={() => {
-                    this.setState({showSubmit: true})
-                    props.url && openUrl(props.url)
-                  }}
-                  label={proofActionText || ''}
-                />
-              )}
             </Kb.Box2>
+          )}
+          <Kb.PlatformIcon
+            platform={props.platform}
+            style={styles.center}
+            overlay="icon-proof-unfinished"
+            overlayColor={Kb.Styles.globalColors.greyDark}
+          />
+          <>
+            <Kb.Text center={true} style={styles.blue} type="Header">
+              {props.platformUserName}
+            </Kb.Text>
+            {!!platformSubtitle && (
+              <Kb.Text center={true} style={styles.grey} type="Body">
+                {platformSubtitle}
+              </Kb.Text>
+            )}
+          </>
+          {DescriptionView && <DescriptionView platformUserName={props.platformUserName} />}
+          {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
+          {!!noteText && (
+            <Kb.Text center={true} type="Body">
+              {noteText}
+            </Kb.Text>
+          )}
+          <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
+            <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
+            {showSubmit ? (
+              <Kb.WaitingButton
+                onClick={props.onSubmit}
+                label={onCompleteText || ''}
+                waitingKey={C.Profile.waitingKey}
+              />
+            ) : (
+              <Kb.Button
+                onClick={() => {
+                  setShowSubmit(true)
+                  props.url && openUrl(props.url)
+                }}
+                label={proofActionText || ''}
+              />
+            )}
           </Kb.Box2>
-        </Kb.ScrollView>
-      </Modal>
-    )
-  }
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </Modal>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
