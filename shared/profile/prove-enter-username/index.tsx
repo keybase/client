@@ -12,72 +12,74 @@ type Props = {
   onCancel: () => void
 }
 
-type State = {
-  canSubmit: boolean
-  username: string
-}
+const EnterUsername = (props: Props) => {
+  const [username, setUsername] = React.useState('')
+  const [canSubmit, setCanSubmit] = React.useState(false)
 
-class EnterUsername extends React.Component<Props, State> {
-  state = {canSubmit: false, username: ''}
-  _submit = () => {
-    this.state.canSubmit && this.props.onSubmit(this.state.username)
-  }
-  _onChangeUsername = (username: string) => this.setState({canSubmit: !!username.length, username})
-  render() {
-    const pt = platformText[this.props.platform]
-    if (!pt.headerText) {
-      // TODO support generic proofs
-      throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
+  const submit = () => {
+    if (canSubmit) {
+      props.onSubmit(username)
     }
-    const {headerText, hintText} = pt
-    return (
-      <Modal onCancel={this.props.onCancel} skipButton={true} title={C.isMobile ? headerText : undefined}>
-        {!!this.props.errorText && (
-          <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
-            <Kb.Text center={true} negative={true} type="BodySemibold">
-              {this.props.errorText}
-            </Kb.Text>
-          </Kb.Box2>
-        )}
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-          {C.isMobile ? null : (
-            <Kb.Text center={true} type="Header">
-              {headerText}
-            </Kb.Text>
-          )}
-          <Kb.PlatformIcon
-            style={styles.centered}
-            platform={this.props.platform}
-            overlay="icon-proof-unfinished"
-            overlayColor={Kb.Styles.globalColors.greyDark}
-          />
-          <Kb.LabeledInput
-            autoFocus={true}
-            placeholder={hintText}
-            value={this.state.username}
-            onChangeText={this._onChangeUsername}
-            onEnterKeyDown={this._submit}
-          />
-          <UsernameTips platform={this.props.platform} />
-          <Kb.Box2 direction="horizontal" gap="small">
-            <Kb.WaitingButton
-              waitingKey={C.Profile.waitingKey}
-              onlyDisable={true}
-              type="Dim"
-              onClick={this.props.onCancel}
-              label="Cancel"
-            />
-            <Kb.WaitingButton
-              waitingKey={C.Profile.waitingKey}
-              disabled={!this.state.canSubmit}
-              onClick={this._submit}
-              label="Continue"
-            />
-          </Kb.Box2>
-        </Kb.Box2>
-      </Modal>
-    )
   }
+
+  const onChangeUsername = (username: string) => {
+    setUsername(username)
+    setCanSubmit(!!username.length)
+  }
+
+  const pt = platformText[props.platform]
+  if (!pt.headerText) {
+    throw new Error(`Proofs for platform ${props.platform} are unsupported.`)
+  }
+  const {headerText, hintText} = pt
+
+  return (
+    <Modal onCancel={props.onCancel} skipButton={true} title={C.isMobile ? headerText : undefined}>
+      {!!props.errorText && (
+        <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
+          <Kb.Text center={true} negative={true} type="BodySemibold">
+            {props.errorText}
+          </Kb.Text>
+        </Kb.Box2>
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        {C.isMobile ? null : (
+          <Kb.Text center={true} type="Header">
+            {headerText}
+          </Kb.Text>
+        )}
+        <Kb.PlatformIcon
+          style={styles.centered}
+          platform={props.platform}
+          overlay="icon-proof-unfinished"
+          overlayColor={Kb.Styles.globalColors.greyDark}
+        />
+        <Kb.LabeledInput
+          autoFocus={true}
+          placeholder={hintText}
+          value={username}
+          onChangeText={onChangeUsername}
+          onEnterKeyDown={submit}
+        />
+        <UsernameTips platform={props.platform} />
+        <Kb.Box2 direction="horizontal" gap="small">
+          <Kb.WaitingButton
+            waitingKey={C.Profile.waitingKey}
+            onlyDisable={true}
+            type="Dim"
+            onClick={props.onCancel}
+            label="Cancel"
+          />
+          <Kb.WaitingButton
+            waitingKey={C.Profile.waitingKey}
+            disabled={!canSubmit}
+            onClick={submit}
+            label="Continue"
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Modal>
+  )
 }
 
 const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
