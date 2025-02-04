@@ -110,24 +110,26 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string}>((p, ref) => {
   )
 })
 
-class AvatarUpload extends React.Component<Props & WrappedProps> {
-  _zoomRef = React.createRef<AvatarZoomRef>()
+const AvatarUpload = (props: Props & WrappedProps) => {
+  const {onSave: _onSave, image, type, onChooseNewAvatar, error} = props
+  const {onBack, wizard, waitingKey, onClose, onSkip, teamID} = props
+  const _zoomRef = React.useRef<AvatarZoomRef>(null)
 
-  private avatar_size = (): number => {
-    const margin = this.props.type === 'team' ? Kb.Styles.globalMargins.large : Kb.Styles.globalMargins.medium
+  const avatar_size = React.useCallback(() => {
+    const margin = type === 'team' ? Kb.Styles.globalMargins.large : Kb.Styles.globalMargins.medium
     const big = Kb.Styles.dimensionWidth - margin * 2
     if (C.isTablet) {
       return Math.min(500, big)
     } else {
       return big
     }
-  }
+  }, [type])
 
-  private onSave = () => {
-    if (!this.props.image) {
+  const onSave = React.useCallback(() => {
+    if (!image) {
       throw new Error('Missing image when saving avatar')
     }
-    const rect = this._zoomRef.current?.getRect()
+    const rect = _zoomRef.current?.getRect()
     if (rect) {
       const xy = {
         x0: Math.floor(rect.x),
@@ -135,143 +137,120 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         y0: Math.floor(rect.y),
         y1: Math.floor(rect.y + rect.height),
       }
-      this.props.onSave(this.props.image.uri, xy)
+      _onSave(image.uri, xy)
     } else {
-      this.props.onSave(this.props.image.uri)
+      _onSave(image.uri)
     }
-  }
+  }, [image, _onSave])
 
-  _imageDimensions = () => {
-    if (!this.props.image) return
+  const getImageStyle = React.useCallback(
+    (): Kb.Styles.StylesCrossPlatform => ({
+      borderRadius: type === 'team' ? 32 : avatar_size(),
+      height: avatar_size(),
+      width: avatar_size(),
+    }),
+    [type, avatar_size]
+  )
 
-    const AVATAR_SIZE = this.avatar_size()
-    let height = AVATAR_SIZE
-    let width = (AVATAR_SIZE * this.props.image.width) / this.props.image.height
-
-    if (width < AVATAR_SIZE) {
-      height = (AVATAR_SIZE * this.props.image.height) / this.props.image.width
-      width = AVATAR_SIZE
-    }
-
-    return {height, width}
-  }
-
-  private getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
-    borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
-    height: this.avatar_size(),
-    width: this.avatar_size(),
-  })
-
-  private renderImageZoomer() {
-    if (this.props.type === 'team' && !this.props.image) {
+  const renderImageZoomer = React.useCallback(() => {
+    if (type === 'team' && !image) {
       return (
         <Kb.ClickableBox
-          style={Kb.Styles.collapseStyles([styles.placeholder, this.getImageStyle()])}
-          onClick={this.props.onChooseNewAvatar}
+          style={Kb.Styles.collapseStyles([styles.placeholder, getImageStyle()])}
+          onClick={onChooseNewAvatar}
         >
           <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
         </Kb.ClickableBox>
       )
     }
-    return <AvatarZoom src={this.props.image?.uri} ref={this._zoomRef} />
-  }
+    return <AvatarZoom src={image?.uri} ref={_zoomRef} />
+  }, [type, image, onChooseNewAvatar, getImageStyle])
 
-  render() {
-    if (this.props.type === 'team') {
-      return (
-        <Kb.Modal
-          banners={
-            this.props.error ? (
-              <Kb.Banner key="err" color="red">
-                <Kb.Text type="Body">{this.props.error}</Kb.Text>
-              </Kb.Banner>
-            ) : null
-          }
-          header={{
-            leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />,
-            rightButton: this.props.wizard ? (
-              <Kb.Text type="BodyBigLink" onClick={this.props.onSkip}>
-                Skip
-              </Kb.Text>
-            ) : undefined,
-
-            title: (
-              <ModalTitle
-                teamID={this.props.teamID}
-                title={
-                  this.props.image && C.isIOS
-                    ? 'Zoom and pan'
-                    : this.props.wizard
-                      ? 'Upload avatar'
-                      : 'Change avatar'
-                }
-              />
-            ),
-          }}
-          footer={{
-            content: (
-              <Kb.Button
-                fullWidth={true}
-                label={this.props.wizard ? 'Continue' : 'Save'}
-                onClick={this.onSave}
-                disabled={!this.props.image}
-              />
-            ),
-          }}
-        >
-          <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
-            {this.renderImageZoomer()}
-            <Kb.Box style={styles.flexReallyGrow} />
-            <Kb.Button
-              label={this.props.image ? 'Pick a new avatar' : 'Pick an avatar'}
-              mode="Secondary"
-              onClick={this.props.onChooseNewAvatar}
-            />
-          </Kb.Box2>
-        </Kb.Modal>
-      )
-    }
+  if (type === 'team') {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.HeaderHocHeader
-          onCancel={this.props.onClose}
-          title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'}
-        />
-        {this.props.error ? (
-          <Kb.Banner color="red">
-            <Kb.Text type="Body">{this.props.error}</Kb.Text>
-          </Kb.Banner>
-        ) : null}
-        <Kb.Box style={styles.container}>
-          <Kb.Box
-            style={
-              C.isIOS
-                ? null
-                : Kb.Styles.collapseStyles([
-                    styles.zoomContainer,
-                    {
-                      borderRadius: this.avatar_size(),
-                      height: this.avatar_size(),
-                      width: this.avatar_size(),
-                    },
-                  ])
-            }
-          >
-            {this.renderImageZoomer()}
-          </Kb.Box>
-          <Kb.ButtonBar direction="column">
-            <Kb.WaitingButton
-              fullWidth={true}
-              label="Save"
-              onClick={this.onSave}
-              style={styles.button}
-              waitingKey={this.props.waitingKey}
+      <Kb.Modal
+        banners={
+          error ? (
+            <Kb.Banner key="err" color="red">
+              <Kb.Text type="Body">{error}</Kb.Text>
+            </Kb.Banner>
+          ) : null
+        }
+        header={{
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+          rightButton: wizard ? (
+            <Kb.Text type="BodyBigLink" onClick={onSkip}>
+              Skip
+            </Kb.Text>
+          ) : undefined,
+
+          title: (
+            <ModalTitle
+              teamID={teamID ?? ''}
+              title={image && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
             />
-          </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.Box2>
+          ),
+        }}
+        footer={{
+          content: (
+            <Kb.Button
+              fullWidth={true}
+              label={wizard ? 'Continue' : 'Save'}
+              onClick={onSave}
+              disabled={!image}
+            />
+          ),
+        }}
+      >
+        <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
+          {renderImageZoomer()}
+          <Kb.Box style={styles.flexReallyGrow} />
+          <Kb.Button
+            label={image ? 'Pick a new avatar' : 'Pick an avatar'}
+            mode="Secondary"
+            onClick={onChooseNewAvatar}
+          />
+        </Kb.Box2>
+      </Kb.Modal>
     )
   }
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.HeaderHocHeader onCancel={onClose} title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+      {error ? (
+        <Kb.Banner color="red">
+          <Kb.Text type="Body">{error}</Kb.Text>
+        </Kb.Banner>
+      ) : null}
+      <Kb.Box style={styles.container}>
+        <Kb.Box
+          style={
+            C.isIOS
+              ? null
+              : Kb.Styles.collapseStyles([
+                  styles.zoomContainer,
+                  {
+                    borderRadius: avatar_size(),
+                    height: avatar_size(),
+                    width: avatar_size(),
+                  },
+                ])
+          }
+        >
+          {renderImageZoomer()}
+        </Kb.Box>
+        <Kb.ButtonBar direction="column">
+          <Kb.WaitingButton
+            fullWidth={true}
+            label="Save"
+            onClick={onSave}
+            style={styles.button}
+            waitingKey={waitingKey}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box>
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
