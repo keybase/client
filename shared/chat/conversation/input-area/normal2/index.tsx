@@ -139,16 +139,20 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       console.log('injectText injectingTextRef null')
       return
     }
-    inputRef.current.transformText(
-      () => ({
-        selection:
-          text === '!>spoiler<!'
-            ? {end: text.length - 2, start: text.length - 2 - 7}
-            : {end: text.length, start: text.length},
-        text,
-      }),
-      true
-    )
+    if (!text) {
+      inputRef.current.clear()
+    } else {
+      inputRef.current.transformText(
+        () => ({
+          selection:
+            text === '!>spoiler<!'
+              ? {end: text.length - 2, start: text.length - 2 - 7}
+              : {end: text.length, start: text.length},
+          text,
+        }),
+        true
+      )
+    }
     if (focus) {
       inputRef.current.focus()
     }

@@ -37,7 +37,8 @@ const ShhIcon = React.memo(function ShhIcon() {
 const useMaxWidthStyle = () => {
   const {width} = useWindowDimensions()
   const hasBadge = useBackBadge() > 0
-  return React.useMemo(() => ({maxWidth: width - 140 - (hasBadge ? 40 : 0)}), [width, hasBadge])
+  const w = width - 140 - (hasBadge ? 40 : 0)
+  return React.useMemo(() => ({maxWidth: w, minWidth: w}), [w])
 }
 
 const ChannelHeader = () => {

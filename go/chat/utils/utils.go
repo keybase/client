@@ -2542,9 +2542,8 @@ func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv cha
 		return retentionRes, nil
 	} else if gregorRes != nil {
 		return gregorRes, nil
-	} else {
-		return nil, nil
 	}
+	return nil, nil
 }
 
 var decorateBegin = "$>kb$"

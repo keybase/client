@@ -1285,7 +1285,7 @@ func TestBuildRequestLocal(t *testing.T) {
 		To: tcs[1].Fu.Username,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToRequest)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1302,7 +1302,7 @@ func TestBuildRequestLocal(t *testing.T) {
 		Amount: "-1",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToRequest)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "Invalid amount.", bres.AmountErrMsg)
@@ -1319,7 +1319,7 @@ func TestBuildRequestLocal(t *testing.T) {
 		Amount: "15",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToRequest)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1338,7 +1338,7 @@ func TestBuildRequestLocal(t *testing.T) {
 		Currency: &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToRequest)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1373,7 +1373,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 			ToIsAccountID: toIsAccountID,
 		})
 		require.NoError(t, err)
-		t.Logf(spew.Sdump(bres))
+		t.Logf("%s", spew.Sdump(bres))
 		require.Equal(t, false, bres.ReadyToReview)
 		require.Equal(t, "", bres.ToErrMsg)
 		require.Equal(t, "", bres.AmountErrMsg)
@@ -1395,7 +1395,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		To:   tcs[1].Fu.Username,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1418,7 +1418,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		ToIsAccountID: true,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1440,7 +1440,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "-1",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "Invalid amount.", bres.AmountErrMsg)
@@ -1462,7 +1462,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "30",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You have *0 XLM* available to send.", bres.AmountErrMsg)
@@ -1485,7 +1485,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency: &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You have *$0.00 USD* worth of Lumens available to send.", bres.AmountErrMsg)
@@ -1515,7 +1515,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "30",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You only have *18.9999900 XLM* available to send.", bres.AmountErrMsg)
@@ -1542,7 +1542,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency: &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You only have *$6.04 USD* worth of Lumens available to send.", bres.AmountErrMsg)
@@ -1565,7 +1565,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount:        "0.01",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You must send at least *1 XLM*", bres.AmountErrMsg)
@@ -1587,7 +1587,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "15",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1609,7 +1609,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "15",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1655,7 +1655,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		PublicMemo: "🥔🥔🥔🥔🥔🥔🥔🥔",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
@@ -1687,7 +1687,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Amount: "3.99999900",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "You only have *3.9999800 XLM* available to send.", bres.AmountErrMsg)
@@ -1712,7 +1712,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency: &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, senderAccountID, bres.From)
 	require.Equal(t, "", bres.ToErrMsg)
@@ -1758,7 +1758,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 			require.Equal(t, "invalid build payment parameters", err.Error())
 		} else {
 			require.NoError(t, err)
-			t.Logf(spew.Sdump(bres))
+			t.Logf("%s", spew.Sdump(bres))
 			require.Equal(t, true, bres.ReadyToReview)
 			require.Equal(t, fromRes, bres.From, x)
 			require.Equal(t, "", bres.ToErrMsg)
@@ -1783,7 +1783,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1824,7 +1824,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1852,7 +1852,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1892,7 +1892,7 @@ func TestBuildPaymentLocalATSRounding(t *testing.T) {
 		Currency: &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	// Before the fix, AmountErrMsg had $2.32
@@ -1945,7 +1945,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1970,7 +1970,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -1994,7 +1994,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -2021,7 +2021,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 		Currency:      &usd,
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
@@ -2070,7 +2070,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 		Amount: "11",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 
 	t.Logf("Change the amount")
@@ -2081,7 +2081,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 		Amount: "15",
 	})
 	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
+	t.Logf("%s", spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToReview)
 
 	if !bypassReview {

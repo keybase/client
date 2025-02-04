@@ -179,7 +179,7 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 func (c *TeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res gregor1.Time, err error) {
 	defer c.Trace(ctx, &err,
-		fmt.Sprintf("GetLastActiveForTLF: tlfID: %v, topicType: %v", tlfID, topicType))()
+		"GetLastActiveForTLF: tlfID: %v, topicType: %v", tlfID, topicType)()
 
 	rcs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
@@ -196,7 +196,7 @@ func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid grego
 	res chat1.LastActiveTimeAll, err error) {
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
-		fmt.Sprintf("GetLastActiveForTeams: topicType: %v", topicType))()
+		"GetLastActiveForTeams: topicType: %v", topicType)()
 
 	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
@@ -229,7 +229,7 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
-		fmt.Sprintf("GetChannelsFull: tlfID: %v, topicType: %v", tlfID, topicType))()
+		"GetChannelsFull: tlfID: %v, topicType: %v", tlfID, topicType)()
 
 	rcs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
 	if err != nil {
@@ -253,7 +253,7 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ChannelNameMention, err error) {
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
-		fmt.Sprintf("GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType))()
+		"GetChannelsTopicName: tlfID: %v, topicType: %v", tlfID, topicType)()
 
 	addValidMetadataMsg := func(convID chat1.ConversationID, msg chat1.MessageUnboxed) {
 		if !msg.IsValid() {
@@ -308,7 +308,7 @@ func (c *TeamChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 	tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (res string, err error) {
 	ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 	defer c.Trace(ctx, &err,
-		fmt.Sprintf("GetChannelTopicName: tlfID: %v, topicType: %v, convID: %v", tlfID, topicType, convID))()
+		"GetChannelTopicName: tlfID: %v, topicType: %v, convID: %v", tlfID, topicType, convID)()
 
 	convs, err := c.GetChannelsTopicName(ctx, uid, tlfID, topicType)
 	if err != nil {

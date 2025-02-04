@@ -82,7 +82,7 @@ func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID 
 }
 
 func DisplayUnfurl(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
-	unfurl chat1.Unfurl) (res chat1.UnfurlDisplay, err error) {
+	unfurl chat1.Unfurl) (res chat1.UnfurlDisplay, err error) { // nolint
 	typ, err := unfurl.UnfurlType()
 	if err != nil {
 		return res, err

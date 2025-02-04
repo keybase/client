@@ -12,82 +12,75 @@ type InputProps = {
   username: string
 }
 
-type InputState = {
-  focus: boolean
-  username: string
-}
+const EnterUsernameInput = (props: InputProps) => {
+  const [focus, setFocus] = React.useState(false)
+  const [username, setUsername] = React.useState(props.username)
+  const {onChangeUsername: _onChangeUsername} = props
 
-class EnterUsernameInput extends React.Component<InputProps, InputState> {
-  state = {focus: false, username: this.props.username}
+  const onChangeUsername = React.useCallback(
+    (username: string) => {
+      _onChangeUsername(username)
+      setUsername(username)
+    },
+    [_onChangeUsername]
+  )
 
-  _onChangeUsername = (username: string) => {
-    this.props.onChangeUsername(username)
-    this.setState({username})
-  }
+  const onFocus = React.useCallback(() => setFocus(true), [])
+  const onBlur = React.useCallback(() => setFocus(false), [])
 
-  _setFocus = (focus: boolean) => this.setState(s => (s.focus === focus ? null : {focus}))
-  _onFocus = () => this._setFocus(true)
-  _onBlur = () => this._setFocus(false)
-
-  render() {
-    // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
-    const usernamePlaceholder =
-      this.props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
-    return (
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([
-          styles.inputBox,
-          this.state.username && styles.inputBoxSmall,
-          this.state.focus && styles.borderBlue,
-          this.props.error && styles.borderRed,
-        ])}
-        fullWidth={true}
-      >
-        {!!this.state.username && (
-          <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
-            {usernamePlaceholder}
-          </Kb.Text>
-        )}
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
-          <SiteIcon
-            set={this.props.serviceIcon}
-            full={false}
-            style={this.state.username ? styles.opacity75 : styles.opacity40}
+  // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
+  const usernamePlaceholder = props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([
+        styles.inputBox,
+        username && styles.inputBoxSmall,
+        focus && styles.borderBlue,
+        props.error && styles.borderRed,
+      ])}
+      fullWidth={true}
+    >
+      {!!username && (
+        <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
+          {usernamePlaceholder}
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
+        <SiteIcon
+          set={props.serviceIcon}
+          full={false}
+          style={username ? styles.opacity75 : styles.opacity40}
+        />
+        <Kb.Box2 direction="horizontal" style={styles.positionRelative} fullWidth={true}>
+          <Kb.PlainInput
+            autoFocus={true}
+            flexable={true}
+            textType="BodySemibold"
+            value={username}
+            onChangeText={onChangeUsername}
+            onEnterKeyDown={props.onEnterKeyDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            style={styles.input}
           />
-          <Kb.Box2 direction="horizontal" style={styles.positionRelative} fullWidth={true}>
-            <Kb.PlainInput
-              autoFocus={true}
-              flexable={true}
-              textType="BodySemibold"
-              value={this.state.username}
-              onChangeText={this._onChangeUsername}
-              onEnterKeyDown={this.props.onEnterKeyDown}
-              onFocus={this._onFocus}
-              onBlur={this._onBlur}
-              style={styles.input}
-            />
-            <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
-              <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
-                <Kb.Text
-                  type="BodySemibold"
-                  style={Kb.Styles.collapseStyles([
-                    styles.placeholder,
-                    !!this.state.username && styles.invisible,
-                  ])}
-                >
-                  {this.state.username || usernamePlaceholder}
-                </Kb.Text>
-                <Kb.Text type="BodySemibold" style={styles.placeholderService}>
-                  {this.props.serviceSuffix}
-                </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
+            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
+              <Kb.Text
+                type="BodySemibold"
+                style={Kb.Styles.collapseStyles([styles.placeholder, !!username && styles.invisible])}
+              >
+                {username || usernamePlaceholder}
               </Kb.Text>
-            </Kb.Box2>
+              <Kb.Text type="BodySemibold" style={styles.placeholderService}>
+                {props.serviceSuffix}
+              </Kb.Text>
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    )
-  }
+    </Kb.Box2>
+  )
 }
 
 const Unreachable = (props: {
@@ -143,109 +136,106 @@ type Props = {
   waiting: boolean
 }
 
-class EnterUsername extends React.Component<Props> {
-  _waitingButtonKey = 0
-  componentDidUpdate(prevProps: Props) {
-    if (!this.props.waiting && prevProps.waiting) {
-      this.props.onContinue()
+const EnterUsername = (props: Props) => {
+  const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
+  const {waiting, onContinue, error} = props
+
+  React.useEffect(() => {
+    if (!waiting) {
+      onContinue()
     }
-    if (this.props.error && !prevProps.error) {
-      // We just tried an invalid username
-      // increment waiting button key so it
-      // remounts and we avoid a perma-spinner
-      this._waitingButtonKey++
+    if (error) {
+      setWaitingButtonKey(s => s + 1)
     }
-  }
-  render() {
-    const props = this.props
-    return (
-      <Kb.PopupWrapper onCancel={props.onCancel}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-          {!props.unreachable && !Kb.Styles.isMobile && (
-            <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
-          )}
-          <Kb.Box2
-            alignItems="center"
-            direction="vertical"
-            gap="xtiny"
-            style={styles.serviceIconHeaderContainer}
-          >
-            <Kb.Box2 direction="vertical" style={styles.positionRelative}>
-              <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
-              <Kb.Icon
-                type={props.unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
-                style={styles.serviceProofIcon}
-              />
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
-              <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
-              <Kb.Text type="BodySmall" center={true}>
-                {props.serviceSub}
-              </Kb.Text>
-            </Kb.Box2>
+  }, [waiting, error, onContinue])
+
+  return (
+    <Kb.PopupWrapper onCancel={props.onCancel}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        {!props.unreachable && !Kb.Styles.isMobile && (
+          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        )}
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          gap="xtiny"
+          style={styles.serviceIconHeaderContainer}
+        >
+          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+            <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
+            <Kb.Icon
+              type={props.unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
+              style={styles.serviceProofIcon}
+            />
           </Kb.Box2>
-          <Kb.Box2
-            fullWidth={true}
-            direction="vertical"
-            alignItems="flex-start"
-            gap="xtiny"
-            style={styles.inputContainer}
-          >
-            {props.unreachable ? (
-              <Unreachable
-                serviceIcon={props.serviceIcon}
-                serviceSuffix={props.serviceSuffix}
-                username={props.username}
-              />
-            ) : (
-              <EnterUsernameInput
-                error={!!props.error}
-                serviceIcon={props.serviceIcon}
-                serviceSuffix={props.serviceSuffix}
-                username={props.username}
-                onChangeUsername={props.onChangeUsername}
-                onEnterKeyDown={props.onSubmit}
-              />
-            )}
-            {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
-          </Kb.Box2>
-          <Kb.Box2
-            alignItems="center"
-            fullWidth={true}
-            direction="vertical"
-            style={props.unreachable ? styles.buttonBarWarning : null}
-          >
-            {props.unreachable && (
-              <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
-                You need to authorize your proof on {props.serviceName}.
-              </Kb.Text>
-            )}
-            <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-              {!Kb.Styles.isMobile && !props.unreachable && (
-                <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
-              )}
-              {props.unreachable ? (
-                <Kb.Button
-                  type="Success"
-                  onClick={props.onSubmit}
-                  label={props.submitButtonLabel}
-                  style={styles.buttonBig}
-                />
-              ) : (
-                <Kb.WaitingButton
-                  type="Success"
-                  onClick={props.onSubmit}
-                  label={props.submitButtonLabel}
-                  style={styles.buttonBig}
-                  key={this._waitingButtonKey}
-                />
-              )}
-            </Kb.ButtonBar>
+          <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
+            <Kb.Text type="BodySemibold">{props.serviceName}</Kb.Text>
+            <Kb.Text type="BodySmall" center={true}>
+              {props.serviceSub}
+            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.PopupWrapper>
-    )
-  }
+        <Kb.Box2
+          fullWidth={true}
+          direction="vertical"
+          alignItems="flex-start"
+          gap="xtiny"
+          style={styles.inputContainer}
+        >
+          {props.unreachable ? (
+            <Unreachable
+              serviceIcon={props.serviceIcon}
+              serviceSuffix={props.serviceSuffix}
+              username={props.username}
+            />
+          ) : (
+            <EnterUsernameInput
+              error={!!props.error}
+              serviceIcon={props.serviceIcon}
+              serviceSuffix={props.serviceSuffix}
+              username={props.username}
+              onChangeUsername={props.onChangeUsername}
+              onEnterKeyDown={props.onSubmit}
+            />
+          )}
+          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+        </Kb.Box2>
+        <Kb.Box2
+          alignItems="center"
+          fullWidth={true}
+          direction="vertical"
+          style={props.unreachable ? styles.buttonBarWarning : null}
+        >
+          {props.unreachable && (
+            <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
+              You need to authorize your proof on {props.serviceName}.
+            </Kb.Text>
+          )}
+          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+            {!Kb.Styles.isMobile && !props.unreachable && (
+              <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+            )}
+            {props.unreachable ? (
+              <Kb.Button
+                type="Success"
+                onClick={props.onSubmit}
+                label={props.submitButtonLabel}
+                style={styles.buttonBig}
+              />
+            ) : (
+              <Kb.WaitingButton
+                type="Success"
+                onClick={props.onSubmit}
+                label={props.submitButtonLabel}
+                style={styles.buttonBig}
+                key={waitingButtonKey}
+              />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.PopupWrapper>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

@@ -420,9 +420,8 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			if jcd.hasShownOrDismissedOrLockout(convID, cardType) {
 				if breakOnShown {
 					break
-				} else {
-					continue
 				}
+				continue
 			}
 			if cond, ok := cardConditions[cardType]; ok && cond(ctx) {
 				cc.Debug(ctx, "selected new card: %v", cardType)
@@ -500,7 +499,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 // Card type: WELCOME (1 on design)
 // Condition: Only in #general channel
 // Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
-func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeycardData, debugDebug logFn) bool {
+func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, _ chat1.ConversationID, conv convForJourneycard, jcd journeycardData, debugDebug logFn) bool {
 	// TODO PICNIC-593 Welcome's interaction with existing system message
 	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
 	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
@@ -816,7 +815,7 @@ func (cc *JourneyCardManagerSingleUser) timeSinceJoinedLE(ctx context.Context, t
 }
 
 func (cc *JourneyCardManagerSingleUser) messageSince(ctx context.Context, msgID chat1.MessageID,
-	conv convForJourneycard, thread *chat1.ThreadView, debugDebug logFn) bool {
+	_ convForJourneycard, thread *chat1.ThreadView, debugDebug logFn) bool {
 	for _, msg := range thread.Messages {
 		state, err := msg.State()
 		if err != nil {

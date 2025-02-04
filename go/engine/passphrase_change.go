@@ -309,7 +309,7 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (c *PassphraseChange) commonArgs(m libkb.MetaContext, oldClientHalf libkb.LKSecClientHalf, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
+func (c *PassphraseChange) commonArgs(_ libkb.MetaContext, oldClientHalf libkb.LKSecClientHalf, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
 
 	salt, err := c.me.GetSalt()
 	if err != nil {

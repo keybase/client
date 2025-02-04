@@ -23,7 +23,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	err := arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIDs(tc.G)
 	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),

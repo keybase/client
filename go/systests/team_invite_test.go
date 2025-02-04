@@ -660,7 +660,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 		var invite keybase1.TeamInvite
 		invites := teamObj.GetActiveAndObsoleteInvites()
 		require.Len(t, invites, 1)
-		for _, invite = range invites {
+		for _, invite = range invites { //nolint
 			// Get the (only) invite from the map to local variable
 		}
 

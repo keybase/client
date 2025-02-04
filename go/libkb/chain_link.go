@@ -89,9 +89,8 @@ func (l LinkID) Eq(i2 LinkID) bool {
 		return true
 	} else if l == nil || i2 == nil {
 		return false
-	} else {
-		return FastByteArrayEq(l[:], i2[:])
 	}
+	return FastByteArrayEq(l[:], i2[:])
 }
 
 type ChainLinkUnpacked struct {

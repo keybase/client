@@ -407,7 +407,6 @@ const plumbEvents = () => {
         const url = pathToURL(resolvedPath)
         logger.info('Open URL (directory):', url)
 
-        // eslint-disable-next-line promise/no-promise-in-callback
         Electron.shell
           .openExternal(url, {activate: true})
           .then(() => {

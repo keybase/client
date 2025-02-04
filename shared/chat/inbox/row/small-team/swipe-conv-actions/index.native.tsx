@@ -134,6 +134,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       ref={swipeableRef}
       onSwipeableWillOpen={onSwipeableWillOpen}
       renderRightActions={renderRightActions}
+      containerStyle={styles.row}
     >
       {children}
     </Swipeable>

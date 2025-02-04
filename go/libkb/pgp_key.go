@@ -93,9 +93,8 @@ func PGPFingerprintFromHexNoError(s string) *PGPFingerprint {
 		return nil
 	} else if f, e := PGPFingerprintFromHex(s); e == nil {
 		return f
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (p PGPFingerprint) String() string {
@@ -255,11 +254,11 @@ func GetPGPFingerprintFromGenericKey(k GenericKey) *PGPFingerprint {
 	}
 }
 
-func (k PGPKeyBundle) KeysById(id uint64, fp []byte) []openpgp.Key {
+func (k PGPKeyBundle) KeysById(id uint64, fp []byte) []openpgp.Key { //nolint
 	return k.toList().KeysById(id, fp)
 }
 
-func (k PGPKeyBundle) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key {
+func (k PGPKeyBundle) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key { //nolint
 	return k.toList().KeysByIdUsage(id, fp, usage)
 }
 

@@ -48,7 +48,7 @@ func NewBadger(g *libkb.GlobalContext) *Badger {
 		shutdownCh:     make(chan struct{}),
 	}
 	go b.notifyLoop()
-	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+	g.PushShutdownHook(func(_ libkb.MetaContext) error {
 		close(b.shutdownCh)
 		return nil
 	})

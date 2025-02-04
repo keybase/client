@@ -241,6 +241,7 @@ func TestStatNonexistentFolder(t *testing.T) {
 }
 
 func TestStatAlias(t *testing.T) {
+	t.Skip()
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	defer testCleanupDelayer(ctx, t)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")

@@ -117,8 +117,8 @@ func getCannedMessage(t *testing.T, tag string) cannedMessage {
 		}
 	}
 	errStr := fmt.Sprintf("Cannot find canned message: %q", tag)
-	t.Fatalf(errStr)
-	panic(errStr)
+	t.Fatalf("%s", errStr)
+	return cannedMessage{}
 }
 
 func (cm cannedMessage) AsBoxed(t *testing.T) (res chat1.MessageBoxed) {

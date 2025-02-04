@@ -26,7 +26,7 @@ const Container = (ownProps: OwnProps) => {
     writable: _pathItem.writable,
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
       <Kbfs.Errs />
       <BrowserContent {...props} />
       <Footer path={props.path} />

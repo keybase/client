@@ -79,7 +79,7 @@ type rpcTagKey string
 // rather than the original uniquely typed key, since the latter isn't
 // available in the RPC tags.
 func ConvertRPCTagsToLogTags(ctx context.Context) context.Context {
-	rpcTags, ok := rpc.RpcTagsFromContext(ctx)
+	rpcTags, ok := rpc.TagsFromContext(ctx)
 	if !ok {
 		return ctx
 	}
@@ -91,7 +91,7 @@ func ConvertRPCTagsToLogTags(ctx context.Context) context.Context {
 		tags[rpcTagKey(key)] = key
 		ctx = context.WithValue(ctx, rpcTagKey(key), value)
 	}
-	ctx = context.WithValue(ctx, rpc.CtxRpcTagsKey, nil)
+	ctx = context.WithValue(ctx, rpc.CtxRPCTagsKey, nil)
 	return NewContextWithLogTags(ctx, tags)
 }
 

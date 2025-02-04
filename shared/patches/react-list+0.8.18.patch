@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-list/react-list.js b/node_modules/react-list/react-list.js
-index 98cef81..0b19182 100644
+index ac8447d..8b249a7 100644
 --- a/node_modules/react-list/react-list.js
 +++ b/node_modules/react-list/react-list.js
-@@ -247,6 +247,7 @@
+@@ -196,6 +196,7 @@
          window.removeEventListener('resize', this.updateFrameAndClearCache);
          this.scrollParent.removeEventListener('scroll', this.updateFrameAndClearCache, PASSIVE);
          this.scrollParent.removeEventListener('mousewheel', NOOP, PASSIVE);

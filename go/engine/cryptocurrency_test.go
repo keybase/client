@@ -187,7 +187,7 @@ func TestCryptocurrencyWithSecretStore(t *testing.T) {
 // Make sure the Cryptocurrency engine uses the secret store.
 func _testCryptocurrencyWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) {
 	testEngineWithSecretStore(t, func(
-		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
+		tc libkb.TestContext, _ *FakeUser, secretUI libkb.SecretUI) {
 		sv := keybase1.SigVersion(sigVersion)
 		e := NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, Force: true, SigVersion: &sv})
 		uis := libkb.UIs{

@@ -11,12 +11,8 @@ const defaultOptions = {
 
 const mediaTypeToImagePickerMediaType = (
   mediaType: 'photo' | 'video' | 'mixed'
-): ImagePicker.MediaTypeOptions =>
-  mediaType === 'photo'
-    ? ImagePicker.MediaTypeOptions.Images
-    : mediaType === 'video'
-    ? ImagePicker.MediaTypeOptions.Videos
-    : ImagePicker.MediaTypeOptions.All
+): Array<ImagePicker.MediaType> =>
+  mediaType === 'photo' ? ['images'] : mediaType === 'video' ? ['videos'] : ['images', 'videos']
 
 export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',

@@ -7,42 +7,43 @@ type Props = {
   onLeaveChannel: () => void
 }
 
-type State = {
-  clicked: undefined | 'join' | 'leave'
+export const ChannelPreview = (props: Props) => {
+  const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
+
+  const _onClick = (join: boolean) => {
+    setClicked(join ? 'join' : 'leave')
+    if (join) {
+      props.onJoinChannel()
+    } else {
+      props.onLeaveChannel()
+    }
+  }
+
+  return (
+    <Kb.Box style={styles.container}>
+      <Kb.Text type="BodySemibold" negative={true}>
+        Would you like to join #{props.channelname}?
+      </Kb.Text>
+      {!clicked && (
+        <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => _onClick(true)}>
+            Yes, join
+          </Kb.Text>
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => _onClick(false)}>
+            No, thanks
+          </Kb.Text>
+        </Kb.Box2>
+      )}
+      {!!clicked && (
+        <Kb.Text type="BodySemibold" negative={true}>
+          {clicked === 'join' ? 'Joining...' : 'Leaving...'}
+        </Kb.Text>
+      )}
+    </Kb.Box>
+  )
 }
 
-export default class ChannelPreview extends React.Component<Props, State> {
-  state: State = {clicked: undefined}
-  _onClick = (join: boolean) =>
-    this.setState(
-      {clicked: join ? 'join' : 'leave'},
-      join ? this.props.onJoinChannel : this.props.onLeaveChannel
-    )
-  render() {
-    return (
-      <Kb.Box style={styles.container}>
-        <Kb.Text type="BodySemibold" negative={true}>
-          Would you like to join #{this.props.channelname}?
-        </Kb.Text>
-        {!this.state.clicked && (
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => this._onClick(true)}>
-              Yes, join
-            </Kb.Text>
-            <Kb.Text type="BodySemiboldLink" negative={true} onClick={() => this._onClick(false)}>
-              No, thanks
-            </Kb.Text>
-          </Kb.Box2>
-        )}
-        {!!this.state.clicked && (
-          <Kb.Text type="BodySemibold" negative={true}>
-            {this.state.clicked === 'join' ? 'Joining...' : 'Leaving...'}
-          </Kb.Text>
-        )}
-      </Kb.Box>
-    )
-  }
-}
+export default ChannelPreview
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

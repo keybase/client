@@ -329,7 +329,7 @@ func TestPGPImportGPGExport(t *testing.T) {
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
-	if err := genArg.MakeAllIds(tc.G); err != nil {
+	if err := genArg.MakeAllIDs(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	arg := PGPKeyImportEngineArg{

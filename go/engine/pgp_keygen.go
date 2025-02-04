@@ -58,7 +58,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 	if e.genArg != nil {
 		genArg = *e.genArg
 	}
-	genArg.Ids = libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)
+	genArg.IDs = libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)
 	arg := PGPKeyImportEngineArg{
 		AllowMulti: true,
 		OnlySave:   true,

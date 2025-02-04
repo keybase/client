@@ -311,8 +311,8 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("LookupID(%s)", name))()
+func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, _ bool) (res types.NameInfo, err error) {
+	defer t.Trace(ctx, &err, "LookupID(%s)", name)()
 
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
@@ -332,9 +332,9 @@ func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public 
 	}, nil
 }
 
-func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
+func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, _ bool,
 	unverifiedTLFName string) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("LookupName(%s)", tlfID))()
+	defer t.Trace(ctx, &err, "LookupName(%s)", tlfID)()
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
 		return res, err
@@ -370,7 +370,7 @@ func (t *TeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, pub
 func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID))()
+		"EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID)()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	if botUID == nil && !public {
@@ -400,8 +400,8 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("DecryptionKey(%s,%s,%v,%d,%v,%v)", name, teamID, public,
-			keyGeneration, kbfsEncrypted, botUID))()
+		"DecryptionKey(%s,%s,%v,%d,%v,%v)", name, teamID, public,
+		keyGeneration, kbfsEncrypted, botUID)()
 
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	if botUID == nil && !kbfsEncrypted && !public {
@@ -560,7 +560,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, team *teams.
 
 	// identify the members in the conversation
 	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
-	defer t.Trace(ctx, &err, fmt.Sprintf("identify(%s, %v)", impTeamName.String(), identBehavior))()
+	defer t.Trace(ctx, &err, "identify(%s, %v)", impTeamName.String(), identBehavior)()
 	if !ok {
 		return errors.New("invalid context with no chat metadata")
 	}
@@ -619,7 +619,7 @@ func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Cont
 }
 
 func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("LookupID(%s)", name))()
+	defer t.Trace(ctx, &err, "LookupID(%s)", name)()
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, public)
@@ -660,7 +660,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 
 func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
 	unverifiedTLFName string) (res types.NameInfo, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("LookupName(%s)", tlfID))()
+	defer t.Trace(ctx, &err, "LookupName(%s)", tlfID)()
 	team, err := t.loader.loadTeam(ctx, tlfID, unverifiedTLFName, t.membersType, public, nil)
 	if err != nil {
 		return res, err
@@ -703,7 +703,7 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	membersType chat1.ConversationMembersType, public bool,
 	botUID *gregor1.UID) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID))()
+		"EncryptionKey(%s,%s,%v,%v)", name, teamID, public, botUID)()
 
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
@@ -732,7 +732,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (res types.CryptKey, err error) {
 	defer t.Trace(ctx, &err,
-		fmt.Sprintf("DecryptionKey(%s,%s,%v,%d,%v,%v)", name, teamID, public, keyGeneration, kbfsEncrypted, botUID))()
+		"DecryptionKey(%s,%s,%v,%d,%v,%v)", name, teamID, public, keyGeneration, kbfsEncrypted, botUID)()
 	mctx := libkb.NewMetaContext(ctx, t.G().ExternalG())
 
 	if botUID == nil && !kbfsEncrypted && !public {

@@ -16,102 +16,95 @@ type Props = {
   tooltipPosition?: Kb.Styles.Position
 }
 
-class HoverEmoji extends React.Component<
-  {emoji: T.RPCGen.UserReacji; onClick: () => void},
-  {hovering: boolean}
-> {
-  state = {hovering: false}
-  _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
-  _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
-  render() {
-    return (
-      <Kb.ClickableBox
-        onClick={this.props.onClick}
-        onMouseOver={this._setHovering}
-        onMouseLeave={this._setNotHovering}
-        underlayColor={Kb.Styles.globalColors.transparent}
-        hoverColor={Kb.Styles.globalColors.transparent}
-        style={styles.emojiBox}
-      >
-        {renderEmoji({
-          emoji: RPCUserReacjiToRenderableEmoji(this.props.emoji, !this.state.hovering),
-          showTooltip: false,
-          size: this.state.hovering ? 22 : 18,
-          style: styles.hoverEmoji,
-          virtualText: true,
-        })}
-      </Kb.ClickableBox>
-    )
-  }
+const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
+  const [hovering, setHovering] = React.useState(false)
+  const _setHovering = React.useCallback(() => setHovering(true), [])
+  const _setNotHovering = React.useCallback(() => setHovering(false), [])
+  return (
+    <Kb.ClickableBox
+      onClick={props.onClick}
+      onMouseOver={_setHovering}
+      onMouseLeave={_setNotHovering}
+      underlayColor={Kb.Styles.globalColors.transparent}
+      hoverColor={Kb.Styles.globalColors.transparent}
+      style={styles.emojiBox}
+    >
+      {renderEmoji({
+        emoji: RPCUserReacjiToRenderableEmoji(props.emoji, !hovering),
+        showTooltip: false,
+        size: hovering ? 22 : 18,
+        style: styles.hoverEmoji,
+        virtualText: true,
+      })}
+    </Kb.ClickableBox>
+  )
 }
 
-class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
-  state = {showingPicker: false}
-  popupAnchor = React.createRef<Kb.MeasureRef>()
-  _setShowingPicker = (showingPicker: boolean) => {
-    this.props.onShowingEmojiPicker?.(showingPicker)
-    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+const EmojiRow = (props: Props) => {
+  const [showingPicker, setShowingPicker] = React.useState(false)
+  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const _setShowingPicker = (showingPicker: boolean) => {
+    props.onShowingEmojiPicker?.(showingPicker)
+    setShowingPicker(showingPicker)
   }
-  _showPicker = () => this._setShowingPicker(true)
-  _hidePicker = () => this._setShowingPicker(false)
-  render() {
-    return (
-      <Kb.Box2Measure
-        direction="horizontal"
-        ref={this.popupAnchor}
-        style={Kb.Styles.collapseStyles([styles.container, this.props.style])}
-        className={this.props.className}
-      >
-        <Kb.Box2 direction="horizontal" gap="tiny">
-          {this.props.emojis.map(e => (
-            <HoverEmoji emoji={e} key={e.name} onClick={() => this.props.onReact(e.name)} />
-          ))}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal">
-          <Kb.Divider style={styles.divider} vertical={true} />
+  const _showPicker = () => _setShowingPicker(true)
+  const _hidePicker = () => _setShowingPicker(false)
+  return (
+    <Kb.Box2Measure
+      direction="horizontal"
+      ref={popupAnchor}
+      style={Kb.Styles.collapseStyles([styles.container, props.style])}
+      className={props.className}
+    >
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        {props.emojis.map(e => (
+          <HoverEmoji emoji={e} key={e.name} onClick={() => props.onReact(e.name)} />
+        ))}
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal">
+        <Kb.Divider style={styles.divider} vertical={true} />
+        <Kb.Box
+          className="hover_container"
+          onClick={_showPicker}
+          style={styles.iconContainer}
+          tooltip="React"
+        >
+          <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
+        </Kb.Box>
+        {!!props.onReply && (
           <Kb.Box
             className="hover_container"
-            onClick={this._showPicker}
+            onClick={props.onReply}
             style={styles.iconContainer}
-            tooltip="React"
+            tooltip="Reply"
           >
-            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
+            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
           </Kb.Box>
-          {!!this.props.onReply && (
-            <Kb.Box
-              className="hover_container"
-              onClick={this.props.onReply}
-              style={styles.iconContainer}
-              tooltip="Reply"
-            >
-              <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-            </Kb.Box>
-          )}
-          {!!this.props.onForward && (
-            <Kb.Box
-              className="hover_container"
-              onClick={this.props.onForward}
-              style={styles.iconContainer}
-              tooltip="Forward"
-            >
-              <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-            </Kb.Box>
-          )}
-        </Kb.Box2>
-        {this.state.showingPicker && (
-          <Kb.FloatingBox
-            attachTo={this.popupAnchor}
-            containerStyle={styles.pickerContainer}
-            position="top right"
-            onHidden={this._hidePicker}
-            propagateOutsideClicks={false}
-          >
-            <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
-          </Kb.FloatingBox>
         )}
-      </Kb.Box2Measure>
-    )
-  }
+        {!!props.onForward && (
+          <Kb.Box
+            className="hover_container"
+            onClick={props.onForward}
+            style={styles.iconContainer}
+            tooltip="Forward"
+          >
+            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
+          </Kb.Box>
+        )}
+      </Kb.Box2>
+      {showingPicker && (
+        <Kb.FloatingBox
+          attachTo={popupAnchor}
+          containerStyle={styles.pickerContainer}
+          position="top right"
+          onHidden={_hidePicker}
+          propagateOutsideClicks={false}
+        >
+          <EmojiPickerDesktop onPickAddToMessageOrdinal={props.ordinal} onDidPick={_hidePicker} />
+        </Kb.FloatingBox>
+      )}
+    </Kb.Box2Measure>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

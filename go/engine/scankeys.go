@@ -97,7 +97,7 @@ func (s *ScanKeys) Count() int {
 
 // KeysById returns the set of keys that have the given key id.
 // It is only called during decryption by openpgp.
-func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key {
+func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key { //nolint
 	m := s.M()
 	primaries := s.unlockByID(m, id)
 	memres := primaries.KeysById(id, fp)
@@ -125,7 +125,7 @@ func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key {
 // requiredUsage will only equal KeyFlagSign, thus only public
 // keys are required.  If this ever changes upstream in openpgp,
 // this function will panic.
-func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []openpgp.Key {
+func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []openpgp.Key { //nolint
 	if requiredUsage != packet.KeyFlagSign {
 		panic(fmt.Sprintf("ScanKeys: unexpected requiredUsage flags set: %x", requiredUsage))
 	}

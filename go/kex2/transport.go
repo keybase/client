@@ -608,6 +608,6 @@ func (c *Conn) SetReadDeadline(t time.Time) error {
 // A zero value for t means Write will not time out.
 // We're not implementing this feature for now, so make it an error
 // if we try to do so.
-func (c *Conn) SetWriteDeadline(t time.Time) error {
+func (c *Conn) SetWriteDeadline(_ time.Time) error {
 	return ErrUnimplemented
 }

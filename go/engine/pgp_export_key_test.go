@@ -142,7 +142,7 @@ type PGPTestSecretUI struct {
 	Prompts []string
 }
 
-func (t *PGPTestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+func (t *PGPTestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, _ *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetPassphrase = true
 	t.Prompts = append(t.Prompts, p.Prompt)
 	return keybase1.GetPassphraseRes{

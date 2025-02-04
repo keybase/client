@@ -637,7 +637,7 @@ func (i *Inbox) ReadAll(ctx context.Context, uid gregor1.UID, useInMemory bool) 
 
 func (i *Inbox) GetConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err Error) {
 	var ierr error
-	defer i.Trace(ctx, &ierr, fmt.Sprintf("GetConversation(%s,%s)", uid, convID))()
+	defer i.Trace(ctx, &ierr, "GetConversation(%s,%s)", uid, convID)()
 	defer func() { ierr = i.castInternalError(err) }()
 	_, iboxRes, err := i.Read(ctx, uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
@@ -653,7 +653,7 @@ func (i *Inbox) GetConversation(ctx context.Context, uid gregor1.UID, convID cha
 
 func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
 	var ierr error
-	defer i.Trace(ctx, &ierr, fmt.Sprintf("Read(%s)", uid))()
+	defer i.Trace(ctx, &ierr, "Read(%s)", uid)()
 	defer func() { ierr = i.castInternalError(err) }()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
@@ -714,18 +714,18 @@ func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	for _, convID := range iboxIndex.ConversationIDs {
 		if ierr := i.G().LocalChatDb.Delete(i.dbConvKey(uid, convID)); ierr != nil {
 			msg := fmt.Sprintf("error clearing conv: convID: %s err: %s", convID, ierr)
-			err = NewInternalError(ctx, i.DebugLabeler, msg)
+			err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
 			i.Debug(ctx, msg)
 		}
 	}
 	if ierr := i.G().LocalChatDb.Delete(i.dbVersionsKey(uid)); ierr != nil {
 		msg := fmt.Sprintf("error clearing inbox versions: err: %s", ierr)
-		err = NewInternalError(ctx, i.DebugLabeler, msg)
+		err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
 		i.Debug(ctx, msg)
 	}
 	if ierr := i.G().LocalChatDb.Delete(i.dbIndexKey(uid)); ierr != nil {
 		msg := fmt.Sprintf("error clearing inbox index: err: %s", ierr)
-		err = NewInternalError(ctx, i.DebugLabeler, msg)
+		err = NewInternalError(ctx, i.DebugLabeler, "%s", msg)
 		i.Debug(ctx, msg)
 	}
 	inboxMemCache.Clear(uid)

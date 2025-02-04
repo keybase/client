@@ -25,7 +25,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 	if p.Unread {
 		timeStr += " *"
 	}
-	lineUnescaped(ColorString(g, "bold", timeStr))
+	lineUnescaped(ColorString(g, "bold", "%s", timeStr))
 
 	if details {
 		if p.PublicNote != "" {
@@ -53,7 +53,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 		if err != nil {
 			lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 		} else {
-			lineUnescaped("%v", ColorString(g, "yellow", sourceAmount))
+			lineUnescaped("%v", ColorString(g, "yellow", "%s", sourceAmount))
 		}
 	}
 
@@ -66,7 +66,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 	} else {
 		lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 	}
-	lineUnescaped("%v", ColorString(g, "green", amount))
+	lineUnescaped("%v", ColorString(g, "green", "%s", amount))
 
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
 	var showedAbbreviation bool
@@ -109,17 +109,17 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 	}
 	if g.Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
 		if len(p.Note) > 0 {
-			lineUnescaped("Note: %v", ColorString(g, "yellow", printPaymentFilterNote(p.Note)))
+			lineUnescaped("Note: %v", ColorString(g, "yellow", "%s", printPaymentFilterNote(p.Note)))
 		}
 		if len(p.NoteErr) > 0 {
-			lineUnescaped("Note Error: %v", ColorString(g, "red", p.NoteErr))
+			lineUnescaped("Note Error: %v", ColorString(g, "red", "%s", p.NoteErr))
 		}
 	} else {
 		if len(p.Note) > 0 {
-			lineUnescaped("Note: %v", ColorString(g, "yellow", printPaymentFilterNote(terminalescaper.Clean(p.Note))))
+			lineUnescaped("Note: %v", ColorString(g, "yellow", "%s", printPaymentFilterNote(terminalescaper.Clean(p.Note))))
 		}
 		if len(p.NoteErr) > 0 {
-			lineUnescaped("Note Error: %v", ColorString(g, "red", terminalescaper.Clean(p.NoteErr)))
+			lineUnescaped("Note Error: %v", ColorString(g, "red", "%s", terminalescaper.Clean(p.NoteErr)))
 		}
 	}
 	if verbose {
@@ -133,8 +133,8 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, d
 		if strings.EqualFold(p.Status, "claimable") {
 			color = "yellow"
 		}
-		lineUnescaped("Status: %v", ColorString(g, color, p.Status))
-		lineUnescaped("        %v", ColorString(g, color, p.StatusDetail))
+		lineUnescaped("Status: %v", ColorString(g, color, "%s", p.Status))
+		lineUnescaped("        %v", ColorString(g, color, "%s", p.StatusDetail))
 	}
 }
 

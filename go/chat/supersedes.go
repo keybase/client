@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -202,7 +201,7 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 func (t *basicSupersedesTransform) Run(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
 	maxDeletedUpTo *chat1.MessageID) (newMsgs []chat1.MessageUnboxed, err error) {
-	defer t.Trace(ctx, &err, fmt.Sprintf("Run(%s)", convID))()
+	defer t.Trace(ctx, &err, "Run(%s)", convID)()
 	originalMsgsMap := make(map[chat1.MessageID]chat1.MessageUnboxed, len(originalMsgs))
 	for _, msg := range originalMsgs {
 		originalMsgsMap[msg.GetMessageID()] = msg
