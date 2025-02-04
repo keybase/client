@@ -43,7 +43,7 @@ export type AddToTeamProps = {
   waiting: boolean
 }
 
-type Props = {} & AddToTeamProps & RolePickerProps & ComponentState
+type Props = AddToTeamProps & RolePickerProps & ComponentState
 
 const TeamRow = (props: RowProps) => (
   <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>

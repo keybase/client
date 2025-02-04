@@ -28,10 +28,9 @@ type ExtraProps = {
 }
 
 const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
-  const {_teamNameToRole} = p
+  const {_teamNameToRole, clearAddUserToTeamsResults, loadTeamList, onAddToTeams} = p
 
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
-
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
   const [sendNotification, setSendNotification] = React.useState(true)
@@ -40,92 +39,57 @@ const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
     () => getOwnerDisabledReason(selectedTeams, _teamNameToRole),
     [selectedTeams, _teamNameToRole]
   )
-  const props = {
-    ...p,
-    ownerDisabledReason,
-    rolePickerOpen,
-    selectedRole,
-    selectedTeams,
-    sendNotification,
-    setRolePickerOpen,
-    setSelectedRole,
-    setSelectedTeams,
-    setSendNotification,
+
+  React.useEffect(() => {
+    clearAddUserToTeamsResults()
+    loadTeamList()
+  }, [clearAddUserToTeamsResults, loadTeamList])
+
+  const onSave = () => {
+    onAddToTeams(selectedRole, [...selectedTeams])
   }
 
-  return <AddToTeamStateWrapper2 {...props} />
-}
-
-class AddToTeamStateWrapper2 extends React.Component<
-  ExtraProps &
-    AddToTeamProps & {
-      ownerDisabledReason: string | undefined
-      selectedTeams: Set<string>
-      setSelectedTeams: (s: Set<string>) => void
-      setRolePickerOpen: React.Dispatch<React.SetStateAction<boolean>>
-      setSelectedRole: React.Dispatch<React.SetStateAction<T.Teams.TeamRoleType>>
-      setSendNotification: React.Dispatch<React.SetStateAction<boolean>>
-      rolePickerOpen: boolean
-      selectedRole: T.Teams.TeamRoleType
-      sendNotification: boolean
-    }
-> {
-  componentDidMount() {
-    this.props.clearAddUserToTeamsResults()
-    this.props.loadTeamList()
-  }
-
-  onSave = () => {
-    this.props.onAddToTeams(this.props.selectedRole, [...this.props.selectedTeams])
-  }
-
-  toggleTeamSelected = (teamName: string, selected: boolean) => {
-    const nextSelectedTeams = new Set(this.props.selectedTeams)
+  const toggleTeamSelected = (teamName: string, selected: boolean) => {
+    const nextSelectedTeams = new Set(selectedTeams)
     if (selected) {
       nextSelectedTeams.add(teamName)
     } else {
       nextSelectedTeams.delete(teamName)
     }
-    const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, this.props._teamNameToRole)
+    const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, _teamNameToRole)
 
     // If you selected them to be an owner, but they cannot be an owner,
     // then fallback to admin
-    this.props.setSelectedRole(
-      this.props.selectedRole === 'owner' && canNotBeOwner ? 'admin' : this.props.selectedRole
-    )
-    this.props.setSelectedTeams(nextSelectedTeams)
+    setSelectedRole(selectedRole === 'owner' && canNotBeOwner ? 'admin' : selectedRole)
+    setSelectedTeams(nextSelectedTeams)
   }
 
-  render() {
-    const {ownerDisabledReason, _teamNameToRole, clearAddUserToTeamsResults, onAddToTeams, ...rest} =
-      this.props
-    return (
-      <AddToTeam
-        {...rest}
-        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
-        onOpenRolePicker={() => this.props.setRolePickerOpen(true)}
-        onConfirmRolePicker={role => {
-          this.props.setRolePickerOpen(false)
-          this.props.setSelectedRole(role)
-        }}
-        footerComponent={
-          <>
-            {sendNotificationFooter('Announce them in team chats', this.props.sendNotification, nextVal =>
-              this.props.setSendNotification(nextVal)
-            )}
-          </>
-        }
-        isRolePickerOpen={this.props.rolePickerOpen}
-        onCancelRolePicker={() => {
-          this.props.setRolePickerOpen(false)
-        }}
-        selectedRole={this.props.selectedRole}
-        onToggle={this.toggleTeamSelected}
-        onSave={this.onSave}
-        selectedTeams={this.props.selectedTeams}
-      />
-    )
-  }
+  return (
+    <AddToTeam
+      {...p}
+      disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
+      onOpenRolePicker={() => setRolePickerOpen(true)}
+      onConfirmRolePicker={role => {
+        setRolePickerOpen(false)
+        setSelectedRole(role)
+      }}
+      footerComponent={
+        <>
+          {sendNotificationFooter('Announce them in team chats', sendNotification, nextVal =>
+            setSendNotification(nextVal)
+          )}
+        </>
+      }
+      isRolePickerOpen={rolePickerOpen}
+      onCancelRolePicker={() => {
+        setRolePickerOpen(false)
+      }}
+      selectedRole={selectedRole}
+      onToggle={toggleTeamSelected}
+      onSave={onSave}
+      selectedTeams={selectedTeams}
+    />
+  )
 }
 
 type OwnProps = {username: string}
