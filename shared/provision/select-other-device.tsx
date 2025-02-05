@@ -49,7 +49,7 @@ type Props = {
 const resetSignal = 'reset'
 type DeviceOrReset = C.Provision.Device | 'reset'
 
-const SelectOtherDevice = (props: Props) => {
+export const SelectOtherDevice = (props: Props) => {
   const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
   const items: DeviceOrReset[] = React.useMemo(() => [...devices, resetSignal], [devices])
 

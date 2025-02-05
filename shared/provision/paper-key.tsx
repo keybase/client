@@ -31,7 +31,7 @@ type Props = {
   waiting: boolean
 }
 
-const PaperKey = (props: Props) => {
+export const PaperKey = (props: Props) => {
   const [paperKey, setPaperKey] = React.useState('')
 
   const _onSubmit = () => {
