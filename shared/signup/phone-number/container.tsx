@@ -7,31 +7,33 @@ type WatcherProps = Props & {
   onGoToVerify: () => void
   pendingVerification: string
 }
-// Watches for `pendingVerification` to change and routes to the verification screen
-export class WatchForGoToVerify extends React.Component<WatcherProps> {
-  componentDidUpdate(prevProps: WatcherProps) {
-    if (
-      !this.props.error &&
-      !!this.props.pendingVerification &&
-      this.props.pendingVerification !== prevProps.pendingVerification
-    ) {
-      this.props.onGoToVerify()
+
+const WatchForGoToVerify = (props: WatcherProps) => {
+  const {onClear, onGoToVerify, pendingVerification, error} = props
+
+  React.useEffect(() => {
+    return () => {
+      onClear()
     }
-  }
-  componentWillUnmount() {
-    this.props.onClear()
-  }
-  render() {
-    return (
-      <EnterPhoneNumber
-        defaultCountry={this.props.defaultCountry}
-        error={this.props.error}
-        onContinue={this.props.onContinue}
-        onSkip={this.props.onSkip}
-        waiting={this.props.waiting}
-      />
-    )
-  }
+  }, [onClear])
+
+  const lastPendingVerificationRef = React.useRef(pendingVerification)
+  React.useEffect(() => {
+    if (!error && pendingVerification && lastPendingVerificationRef.current !== pendingVerification) {
+      onGoToVerify()
+    }
+    lastPendingVerificationRef.current = pendingVerification
+  }, [pendingVerification, error, onGoToVerify])
+
+  return (
+    <EnterPhoneNumber
+      defaultCountry={props.defaultCountry}
+      error={props.error}
+      onContinue={props.onContinue}
+      onSkip={props.onSkip}
+      waiting={props.waiting}
+    />
+  )
 }
 
 const ConnectedEnterPhoneNumber = () => {
@@ -45,13 +47,14 @@ const ConnectedEnterPhoneNumber = () => {
   const addPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = addPhoneNumber
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onGoToVerify = () => {
+  const onGoToVerify = React.useCallback(() => {
     navigateAppend('signupVerifyPhoneNumber')
-  }
-  const onSkip = () => {
+  }, [navigateAppend])
+  const onSkip = React.useCallback(() => {
     clearPhoneNumberAdd()
     navigateAppend('signupEnterEmail', true)
-  }
+  }, [clearPhoneNumberAdd, navigateAppend])
+
   const props = {
     defaultCountry,
     error,
@@ -62,6 +65,7 @@ const ConnectedEnterPhoneNumber = () => {
     pendingVerification,
     waiting,
   }
+
   return <WatchForGoToVerify {...props} />
 }
 
