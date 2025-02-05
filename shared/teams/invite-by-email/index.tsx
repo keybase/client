@@ -28,123 +28,102 @@ const _makeDropdownItem = (item: string) => (
   </Kb.Box>
 )
 
-type State = {
-  invitees: string
-  malformedEmails: ReadonlySet<string>
-  role: T.Teams.TeamRoleType
-  isRolePickerOpen: boolean
-}
+const InviteByEmailDesktop = (props: Props) => {
+  const {onClearInviteError, onClose, malformedEmails: _malformedEmails, errorMessage} = props
+  const [invitees, setInvitees] = React.useState('')
+  const [role, setRole] = React.useState<T.Teams.TeamRoleType>('reader')
+  const [isRolePickerOpen, setIsRolePickerOpen] = React.useState(false)
 
-class InviteByEmailDesktop extends React.Component<Props, State> {
-  state = {
-    invitees: '',
-    isRolePickerOpen: false,
-    malformedEmails: this.props.malformedEmails,
-    role: 'reader' as T.Teams.TeamRoleType,
-  }
-
-  componentDidUpdate(_: Props, prevState: State) {
-    // update contents of input box if we get a new list of malformed emails
-    if (this.props.malformedEmails !== prevState.malformedEmails) {
-      if (this.props.malformedEmails.size > 0) {
-        this._setMalformedEmails(this.props.malformedEmails)
-      } else if (!this.props.errorMessage) {
-        // we just invited successfully
-        this.props.onClose()
+  const lastMalformedEmailsRef = React.useRef(_malformedEmails)
+  React.useEffect(() => {
+    if (lastMalformedEmailsRef.current !== _malformedEmails) {
+      if (_malformedEmails.size > 0) {
+        setInvitees([..._malformedEmails].join('\n'))
+      } else if (!errorMessage) {
+        onClose()
       }
     }
+    lastMalformedEmailsRef.current = _malformedEmails
+  }, [_malformedEmails, errorMessage, onClose])
+
+  React.useEffect(() => {
+    return () => {
+      onClearInviteError()
+    }
+  }, [onClearInviteError])
+
+  const onCancelRolePicker = () => setIsRolePickerOpen(false)
+  const onConfirmRolePicker = (role: T.Teams.TeamRoleType) => {
+    setIsRolePickerOpen(false)
+    setRole(role)
   }
+  const onOpenRolePicker = () => setIsRolePickerOpen(true)
 
-  onCancelRolePicker = () => {
-    this.setState({isRolePickerOpen: false})
-  }
+  const onInvite = () => props.onInvite(invitees, role)
 
-  onConfirmRolePicker = (role: T.Teams.TeamRoleType) => {
-    this.setState({isRolePickerOpen: false, role})
-  }
-
-  onOpenRolePicker = () => {
-    this.setState({isRolePickerOpen: true})
-  }
-
-  componentWillUnmount() {
-    this.props.onClearInviteError()
-  }
-
-  _setMalformedEmails = (malformedEmails: ReadonlySet<string>) => {
-    this.setState({invitees: [...malformedEmails].join('\n'), malformedEmails})
-  }
-
-  _setRole = (role: T.Teams.TeamRoleType) => this.setState({role})
-
-  _onInvite = () => this.props.onInvite(this.state.invitees, this.state.role)
-
-  render() {
-    const props = this.props
-    return (
-      <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
-        <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
+  return (
+    <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
+        <Kb.Box
+          style={{
+            ...Kb.Styles.globalStyles.flexBoxColumn,
+            alignItems: 'center',
+            margin: Kb.Styles.globalMargins.medium,
+          }}
+        >
+          <Kb.Text style={styles.header} type="Header">
+            Invite by email
+          </Kb.Text>
           <Kb.Box
             style={{
-              ...Kb.Styles.globalStyles.flexBoxColumn,
+              ...Kb.Styles.globalStyles.flexBoxRow,
               alignItems: 'center',
-              margin: Kb.Styles.globalMargins.medium,
+              margin: Kb.Styles.globalMargins.tiny,
             }}
           >
-            <Kb.Text style={styles.header} type="Header">
-              Invite by email
+            <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
+              Add these team members to {props.name} as:
             </Kb.Text>
-            <Kb.Box
-              style={{
-                ...Kb.Styles.globalStyles.flexBoxRow,
-                alignItems: 'center',
-                margin: Kb.Styles.globalMargins.tiny,
-              }}
+            <FloatingRolePicker
+              presetRole={role}
+              floatingContainerStyle={styles.floatingRolePicker}
+              onConfirm={onConfirmRolePicker}
+              onCancel={onCancelRolePicker}
+              position="bottom center"
+              open={isRolePickerOpen}
+              disabledRoles={{owner: 'Cannot invite an owner via email.'}}
             >
-              <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
-                Add these team members to {props.name} as:
-              </Kb.Text>
-              <FloatingRolePicker
-                presetRole={this.state.role}
-                floatingContainerStyle={styles.floatingRolePicker}
-                onConfirm={this.onConfirmRolePicker}
-                onCancel={this.onCancelRolePicker}
-                position="bottom center"
-                open={this.state.isRolePickerOpen}
-                disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-              >
-                <Kb.DropdownButton
-                  toggleOpen={this.onOpenRolePicker}
-                  selected={_makeDropdownItem(this.state.role)}
-                  style={{width: 100}}
-                />
-              </FloatingRolePicker>
-            </Kb.Box>
-            <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
-              <Kb.LabeledInput
-                autoFocus={true}
-                error={!!props.errorMessage}
-                multiline={true}
-                onChangeText={invitees => this.setState({invitees})}
-                placeholder="Enter multiple email addresses, separated by commas"
-                rowsMin={3}
-                rowsMax={8}
-                value={this.state.invitees}
+              <Kb.DropdownButton
+                toggleOpen={onOpenRolePicker}
+                selected={_makeDropdownItem(role)}
+                style={{width: 100}}
               />
-              {!!props.errorMessage && (
-                <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
-                  {props.errorMessage}
-                </Kb.Text>
-              )}
-            </Kb.Box2>
-            <Kb.ButtonBar>
-              <Kb.WaitingButton label="Invite" onClick={this._onInvite} waitingKey={props.waitingKey} />
-            </Kb.ButtonBar>
+            </FloatingRolePicker>
           </Kb.Box>
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
+            <Kb.LabeledInput
+              autoFocus={true}
+              error={!!props.errorMessage}
+              multiline={true}
+              onChangeText={setInvitees}
+              placeholder="Enter multiple email addresses, separated by commas"
+              rowsMin={3}
+              rowsMax={8}
+              value={invitees}
+            />
+            {!!props.errorMessage && (
+              <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+                {props.errorMessage}
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+          <Kb.ButtonBar>
+            <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={props.waitingKey} />
+          </Kb.ButtonBar>
         </Kb.Box>
-      </Kb.PopupDialog>
-    )
-  }
+      </Kb.Box>
+    </Kb.PopupDialog>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
