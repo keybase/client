@@ -422,43 +422,41 @@ export type FloatingProps<T extends boolean> = {
   open: boolean
 } & Props<T>
 
-export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> extends React.Component<
-  FloatingProps<IncludeSetIndividually>
-> {
-  popupAnchor = React.createRef<Kb.MeasureRef>()
-  render() {
-    const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
-    const picker = (
-      <RolePicker<IncludeSetIndividually> {...props} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
-    )
-    return (
-      <>
-        {children}
-        <Kb.Box2Measure direction="vertical" ref={this.popupAnchor} />
-        {open && (
-          <Kb.FloatingBox
-            attachTo={this.popupAnchor}
-            position={position || 'top center'}
-            onHidden={onCancel}
-            hideKeyboard={true}
-          >
-            <Kb.SafeAreaView>
-              <Kb.Box2
-                direction="vertical"
-                fullHeight={Kb.Styles.isMobile}
-                style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
-              >
-                {Kb.Styles.isMobile && (
-                  <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
-                )}
-                {picker}
-              </Kb.Box2>
-            </Kb.SafeAreaView>
-          </Kb.FloatingBox>
-        )}
-      </>
-    )
-  }
+export function FloatingRolePicker<IncludeSetIndividually extends boolean = false>(
+  props: FloatingProps<IncludeSetIndividually>
+) {
+  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const {position, children, open, floatingContainerStyle, onCancel, ...rest} = props
+  const picker = (
+    <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
+  )
+  return (
+    <>
+      {children}
+      <Kb.Box2Measure direction="vertical" ref={popupAnchor} />
+      {open && (
+        <Kb.FloatingBox
+          attachTo={popupAnchor}
+          position={position || 'top center'}
+          onHidden={onCancel}
+          hideKeyboard={true}
+        >
+          <Kb.SafeAreaView>
+            <Kb.Box2
+              direction="vertical"
+              fullHeight={Kb.Styles.isMobile}
+              style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+            >
+              {Kb.Styles.isMobile && (
+                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
+              )}
+              {picker}
+            </Kb.Box2>
+          </Kb.SafeAreaView>
+        </Kb.FloatingBox>
+      )}
+    </>
+  )
 }
 
 // Helper since it's common for some users to want this
