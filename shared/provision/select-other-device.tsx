@@ -14,15 +14,18 @@ const SelectOtherDeviceContainer = () => {
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
   const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
+
   const onResetAccount = React.useCallback(() => {
     startAccountReset(false, username)
   }, [startAccountReset, username])
+
   const onSelect = React.useCallback(
     (name: string) => {
-      !waiting && submitDeviceSelect?.(name)
+      if (!waiting) submitDeviceSelect?.(name)
     },
     [submitDeviceSelect, waiting]
   )
+
   return (
     <SelectOtherDevice
       devices={devices}
@@ -32,6 +35,7 @@ const SelectOtherDeviceContainer = () => {
     />
   )
 }
+
 export default SelectOtherDeviceContainer
 
 type Props = {
@@ -44,8 +48,12 @@ type Props = {
 
 const resetSignal = 'reset'
 type DeviceOrReset = C.Provision.Device | 'reset'
-export class SelectOtherDevice extends React.Component<Props> {
-  _renderItem = (index: number, item: DeviceOrReset) => {
+
+const SelectOtherDevice = (props: Props) => {
+  const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
+  const items: DeviceOrReset[] = React.useMemo(() => [...devices, resetSignal], [devices])
+
+  const renderItem = (index: number, item: DeviceOrReset) => {
     if (item === resetSignal) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} key="reset">
@@ -56,7 +64,7 @@ export class SelectOtherDevice extends React.Component<Props> {
             type="Small"
             firstItem={true}
             key="reset"
-            onClick={this.props.onResetAccount}
+            onClick={onResetAccount}
             icon={<Kb.Icon type="icon-skull-32" />}
             body={
               <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -74,67 +82,56 @@ export class SelectOtherDevice extends React.Component<Props> {
       desktop: 'Computer',
       mobile: 'Phone',
     }
-    const {name, type} = item
+
     return (
       <Kb.ListItem2
         type="Small"
         firstItem={index === 0}
-        key={name}
-        onClick={() => this.props.onSelect(name)}
+        key={item.name}
+        onClick={() => onSelect(item.name)}
         icon={<DeviceIcon device={item} size={32} />}
         body={
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold">{name}</Kb.Text>
-            <Kb.Text type="BodySmall">{descriptions[type]}</Kb.Text>
+            <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
+            <Kb.Text type="BodySmall">{descriptions[item.type]}</Kb.Text>
           </Kb.Box2>
         }
       />
     )
   }
 
-  render() {
-    const items: DeviceOrReset[] = [...this.props.devices, resetSignal]
-    return (
-      <SignupScreen
-        noBackground={true}
-        onBack={this.props.onBack}
-        title={
-          this.props.passwordRecovery
-            ? 'Recover password'
-            : `Authorize this ${Kb.Styles.isMobile ? 'device' : 'computer'}`
-        }
-        contentContainerStyle={Kb.Styles.padding(0)}
-      >
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={true}
-          fullWidth={true}
-          style={styles.contentBox}
-          gap="medium"
-        >
-          <Kb.List
-            style={styles.list}
-            items={items}
-            renderItem={this._renderItem}
-            keyProperty="name"
-            ListHeaderComponent={
-              <Kb.Box2 direction="vertical" style={styles.headerText}>
-                {!this.props.passwordRecovery && (
-                  <Kb.Text center={true} type="Body">
-                    For security reasons, you need to authorize this{' '}
-                    {Kb.Styles.isMobile ? 'phone' : 'computer'} with another device or a paper key.
-                  </Kb.Text>
-                )}
+  return (
+    <SignupScreen
+      noBackground={true}
+      onBack={onBack}
+      title={
+        passwordRecovery ? 'Recover password' : `Authorize this ${Kb.Styles.isMobile ? 'device' : 'computer'}`
+      }
+      contentContainerStyle={Kb.Styles.padding(0)}
+    >
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox} gap="medium">
+        <Kb.List
+          style={styles.list}
+          items={items}
+          renderItem={renderItem}
+          keyProperty="name"
+          ListHeaderComponent={
+            <Kb.Box2 direction="vertical" style={styles.headerText}>
+              {!passwordRecovery && (
                 <Kb.Text center={true} type="Body">
-                  Which do you have handy?
+                  For security reasons, you need to authorize this {Kb.Styles.isMobile ? 'phone' : 'computer'}{' '}
+                  with another device or a paper key.
                 </Kb.Text>
-              </Kb.Box2>
-            }
-          />
-        </Kb.Box2>
-      </SignupScreen>
-    )
-  }
+              )}
+              <Kb.Text center={true} type="Body">
+                Which do you have handy?
+              </Kb.Text>
+            </Kb.Box2>
+          }
+        />
+      </Kb.Box2>
+    </SignupScreen>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
