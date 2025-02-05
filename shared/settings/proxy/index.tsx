@@ -10,12 +10,6 @@ const proxyTypeToDisplayName = {
   socks: 'SOCKS5',
 }
 
-type State = {
-  address: string
-  port: string
-  proxyType: 'noProxy' | 'httpConnect' | 'socks'
-}
-
 type Props = {
   loadProxyData: () => void
   resetCertPinningToggle: () => void
@@ -27,120 +21,104 @@ type Props = {
   saveProxyData: (proxyData: T.RPCGen.ProxyData) => void
 }
 
-class ProxySettings extends React.Component<Props, State> {
-  state: State = {
-    address: '',
-    port: '',
-    proxyType: 'noProxy' as const,
-  }
+const ProxySettings = (props: Props) => {
+  const {loadProxyData, resetCertPinningToggle, proxyData} = props
+  const [address, setAddress] = React.useState('')
+  const [port, setPort] = React.useState('')
+  const [proxyType, setProxyType] = React.useState<'noProxy' | 'httpConnect' | 'socks'>('noProxy')
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.proxyData !== this.props.proxyData) {
-      if (!this.props.proxyData) {
-        return
-      }
-      const addressPort = this.props.proxyData.addressWithPort.split(':')
-      const address = addressPort.slice(0, addressPort.length - 1).join(':')
-      let port = '8080'
-      if (addressPort.length >= 2) {
-        port = addressPort.at(-1) ?? ''
-      }
+  React.useEffect(() => {
+    loadProxyData()
+  }, [loadProxyData])
 
-      const proxyType = T.RPCGen.ProxyType[this.props.proxyData.proxyType] as State['proxyType']
-      this.setState({address, port, proxyType})
+  React.useEffect(() => {
+    return () => {
+      resetCertPinningToggle()
     }
-  }
+  }, [resetCertPinningToggle])
 
-  componentDidMount() {
-    this.props.loadProxyData()
-  }
+  const lastProxyDataRef = React.useRef(proxyData)
+  React.useEffect(() => {
+    if (lastProxyDataRef.current !== proxyData) {
+      if (proxyData) {
+        const addressPort = proxyData.addressWithPort.split(':')
+        const newAddress = addressPort.slice(0, addressPort.length - 1).join(':')
+        const newPort = addressPort.length >= 2 ? (addressPort.at(-1) ?? '') : '8080'
+        const newProxyType = T.RPCGen.ProxyType[proxyData.proxyType] as typeof proxyType
 
-  componentWillUnmount() {
-    this.props.resetCertPinningToggle()
-  }
+        setAddress(newAddress)
+        setPort(newPort)
+        setProxyType(newProxyType)
+      }
+    }
+    lastProxyDataRef.current = proxyData
+  }, [proxyData])
 
-  toggleCertPinning = () => {
-    if (this.certPinning()) {
-      this.props.onDisableCertPinning()
+  const certPinning = (): boolean => {
+    if (props.allowTlsMitmToggle === undefined) {
+      return props.proxyData ? props.proxyData.certPinning : true
     } else {
-      this.props.onEnableCertPinning()
+      return !props.allowTlsMitmToggle
     }
   }
 
-  saveProxySettings = () => {
+  const toggleCertPinning = () => {
+    if (certPinning()) {
+      props.onDisableCertPinning()
+    } else {
+      props.onEnableCertPinning()
+    }
+  }
+
+  const saveProxySettings = () => {
     const proxyData = {
-      addressWithPort: this.state.address + ':' + this.state.port,
-      certPinning: this.certPinning(),
-      proxyType: T.RPCGen.ProxyType[this.state.proxyType],
+      addressWithPort: address + ':' + port,
+      certPinning: certPinning(),
+      proxyType: T.RPCGen.ProxyType[proxyType],
     }
-    this.props.saveProxyData(proxyData)
+    props.saveProxyData(proxyData)
   }
 
-  certPinning = (): boolean => {
-    if (this.props.allowTlsMitmToggle === undefined) {
-      if (this.props.proxyData) {
-        return this.props.proxyData.certPinning
-      } else {
-        return true // Default value
-      }
-    } else {
-      return !this.props.allowTlsMitmToggle
+  const proxyTypeSelected = (newProxyType: typeof proxyType) => {
+    setProxyType(newProxyType)
+    if (newProxyType === 'noProxy') {
+      saveProxySettings()
     }
   }
 
-  proxyTypeSelected = (proxyType: State['proxyType']) => {
-    let cb = () => {}
-    if (proxyType === 'noProxy') {
-      // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
-      cb = this.saveProxySettings
-    }
-    this.setState({proxyType}, cb)
-  }
-
-  render() {
-    return (
-      <>
-        <Kb.Text type="Header" style={styles.text}>
-          Proxy settings
-        </Kb.Text>
-        {proxyTypeList.map(proxyType => (
-          <Kb.RadioButton
-            onSelect={() => this.proxyTypeSelected(proxyType)}
-            selected={this.state.proxyType === proxyType}
-            key={proxyType}
-            label={proxyTypeToDisplayName[proxyType]}
-            style={styles.radioButton}
-          />
-        ))}
-        {this.state.proxyType === 'noProxy' ? null : (
-          <>
-            <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-            <Kb.NewInput
-              placeholder="127.0.0.1"
-              onChangeText={address => this.setState({address})}
-              value={this.state.address}
-            />
-            <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-            <Kb.NewInput
-              placeholder="8080"
-              onChangeText={port => this.setState({port})}
-              value={this.state.port}
-            />
-          </>
-        )}
-        <Kb.Checkbox
-          checked={!this.certPinning()}
-          onCheck={this.toggleCertPinning}
-          label="Allow TLS Interception"
-          style={styles.proxySetting}
+  return (
+    <>
+      <Kb.Text type="Header" style={styles.text}>
+        Proxy settings
+      </Kb.Text>
+      {proxyTypeList.map(pt => (
+        <Kb.RadioButton
+          onSelect={() => proxyTypeSelected(pt)}
+          selected={proxyType === pt}
+          key={pt}
+          label={proxyTypeToDisplayName[pt]}
+          style={styles.radioButton}
         />
-        <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
-      </>
-    )
-  }
+      ))}
+      {proxyType === 'noProxy' ? null : (
+        <>
+          <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
+          <Kb.NewInput placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
+          <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
+          <Kb.NewInput placeholder="8080" onChangeText={setPort} value={port} />
+        </>
+      )}
+      <Kb.Checkbox
+        checked={!certPinning()}
+        onCheck={toggleCertPinning}
+        label="Allow TLS Interception"
+        style={styles.proxySetting}
+      />
+      <Kb.Button onClick={saveProxySettings} label="Save Proxy Settings" />
+    </>
+  )
 }
 
-// TODO liklely use PopupWrapper
 const ProxySettingsPopup = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
