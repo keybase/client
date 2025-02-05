@@ -9,9 +9,9 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.28):
+  - Expo (52.0.30):
     - ExpoModulesCore
-  - ExpoAsset (11.0.2):
+  - ExpoAsset (11.0.3):
     - ExpoModulesCore
   - ExpoCamera (16.0.14):
     - ExpoModulesCore
@@ -19,9 +19,9 @@ PODS:
     - ZXingObjC/PDF417
   - ExpoClipboard (7.0.1):
     - ExpoModulesCore
-  - ExpoContacts (14.0.4):
+  - ExpoContacts (14.0.5):
     - ExpoModulesCore
-  - ExpoFileSystem (18.0.7):
+  - ExpoFileSystem (18.0.9):
     - ExpoModulesCore
   - ExpoFont (13.0.3):
     - ExpoModulesCore
@@ -33,7 +33,7 @@ PODS:
     - SDWebImage (~> 5.19.1)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
-  - ExpoImagePicker (16.0.4):
+  - ExpoImagePicker (16.0.5):
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.2):
     - ExpoModulesCore
@@ -1358,7 +1358,7 @@ PODS:
     - Yoga
   - react-native-netinfo (11.4.1):
     - React-Core
-  - react-native-safe-area-context (5.1.0):
+  - react-native-safe-area-context (5.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1371,8 +1371,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 5.1.0)
-    - react-native-safe-area-context/fabric (= 5.1.0)
+    - react-native-safe-area-context/common (= 5.2.0)
+    - react-native-safe-area-context/fabric (= 5.2.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1381,7 +1381,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (5.1.0):
+  - react-native-safe-area-context/common (5.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1402,7 +1402,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (5.1.0):
+  - react-native-safe-area-context/fabric (5.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1778,7 +1778,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.22.1):
+  - RNGestureHandler (2.23.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2275,16 +2275,16 @@ SPEC CHECKSUMS:
   EXAV: 4c41f0a6ae54a0b96597abc90e37962ab2ee0d85
   EXConstants: e25c3f3ef5d1cf7a6ef911ebf7a3ab94d8d06d82
   EXImageLoader: e5da974e25b13585c196b658a440720c075482d5
-  Expo: f160c4be97b390767b78adaae25fd9492bebb6c6
-  ExpoAsset: d2d2cbc6a4efadf51a3da27d85d589935abd0b98
+  Expo: 6a56836eb57959aec7bc0e6ce8234305af6803b7
+  ExpoAsset: 715ce37a36951fee71c32773b3be50f2285e2fbe
   ExpoCamera: 5b48734e47a2e8fa6fc16835531fcf97cbf9e0e2
   ExpoClipboard: 44fd1c8959ee8f6175d059dc011b154c9709a969
-  ExpoContacts: e8f4fd6ec162657108e1050d88dbc2b30010f615
-  ExpoFileSystem: 818e82dbb71175414d1ca310e926c48ff0d07348
+  ExpoContacts: 98484e09e4caccd2daa6042f341dc2e62a29697e
+  ExpoFileSystem: 65eee7cfa2a032fa06657d18e475de429f43e920
   ExpoFont: 38656978c2a4022fb7e0c43e4968d66340f5e2f3
   ExpoHaptics: 8d199b2f33245ea85289ff6c954c7ee7c00a5b5d
   ExpoImage: f2c9cfd2a4cb918bba7ddbb40da851858f7aece4
-  ExpoImagePicker: 0213e20a6635ffd56c5012d2b1cb3af4d3b71bed
+  ExpoImagePicker: 32f78cf8edbe0444aefbea1b51bfb12b67730005
   ExpoKeepAwake: 62ff49bbc3bff90d8ee28329190f9ba371bf88e7
   ExpoLocation: 5437fb925d0b0dbe728c20536335a964e9202f5a
   ExpoMailComposer: 05d7236221229740563ed12f008f8b2054ed0474
@@ -2335,7 +2335,7 @@ SPEC CHECKSUMS:
   react-native-image-keyboard: e851b53330b3b701c7e50b18c2e6fa3ca5fcae25
   react-native-kb: ea9ec7540a32062d5e341ff2e1f6460687f7b9c7
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
-  react-native-safe-area-context: efd435f89b73d91f37438e5ac2d725f0e7adff95
+  react-native-safe-area-context: 7e513d737b0b5c1d10bbe0e5fcc9f925a7be144c
   react-native-webview: 449c3f27cdb926086a5eff7993421fd096cc5ae3
   React-nativeconfig: cd0fbb40987a9658c24dab5812c14e5522a64929
   React-NativeModulesApple: 4a9c304aa4fb086af32e8758ba892386d895b4d3
@@ -2369,7 +2369,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: 308c763227e237d4d260bd8841870e099572bb3e
   RNCPicker: cfb51a08c6e10357d9a65832e791825b0747b483
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: 657b9ff1f40ee3ace3de2bcf467f86d9a6874197
+  RNGestureHandler: 0ea07666b2252aa48b192764eb21a25c60e6b6db
   RNReanimated: 8a4ea733f88a33379150eb2e73b375e14de81e84
   RNScreens: 5a1573ceb1a13b2d0663cbfb42cb4aa8803554eb
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
