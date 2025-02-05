@@ -16,144 +16,130 @@ export type Props = {
   waitingForResponse: boolean
 }
 
-type State = {
-  loggingOut: boolean
-  password: string
-  showTyping: boolean
-}
+const LogOut = (props: Props) => {
+  const {onBootstrap} = props
+  const [loggingOut, setLoggingOut] = React.useState(false)
+  const [password, setPassword] = React.useState('')
+  const [showTyping, setShowTyping] = React.useState(false)
 
-class LogOut extends React.Component<Props, State> {
-  state = {
-    loggingOut: false,
-    password: '',
-    showTyping: false,
+  React.useEffect(() => {
+    onBootstrap()
+  }, [onBootstrap])
+
+  const logOut = () => {
+    if (loggingOut) return
+    props.onLogout()
+    setLoggingOut(true)
   }
 
-  logOut = () => {
-    if (this.state.loggingOut) {
-      return
-    }
-    this.props.onLogout()
-    this.setState({loggingOut: true})
-  }
+  const inputType = showTyping ? 'text' : 'password'
+  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
-  componentDidMount() {
-    this.props.onBootstrap()
-  }
-
-  render() {
-    const inputType = this.state.showTyping ? 'text' : 'password'
-    const keyboardType = this.state.showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
-    return this.props.hasRandomPW === undefined ? (
-      <Kb.Modal onClose={this.props.onCancel}>
-        <Kb.ProgressIndicator style={styles.progress} type="Huge" />
-      </Kb.Modal>
-    ) : this.props.hasRandomPW ? (
-      <UpdatePassword
-        error=""
-        onUpdatePGPSettings={this.props.onUpdatePGPSettings}
-        hasPGPKeyOnServer={this.props.hasPGPKeyOnServer}
-        hasRandomPW={this.props.hasRandomPW}
-        onCancel={this.props.onCancel}
-        onSave={this.props.onSavePassword}
-        saveLabel="Sign out"
-        waitingForResponse={this.props.waitingForResponse}
-      />
-    ) : (
-      <Kb.Modal
-        backgroundStyle={styles.logoutBackground}
-        banners={
-          <>
-            {this.props.checkPasswordIsCorrect === false ? (
-              <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
-            ) : null}
-            {this.props.checkPasswordIsCorrect === true ? (
-              <Kb.Banner color="green">Your password is correct.</Kb.Banner>
-            ) : null}
-          </>
-        }
-        footer={{
-          content: !this.props.checkPasswordIsCorrect ? (
-            <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
-              <Kb.WaitingButton
-                fullWidth={true}
-                waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!this.state.password || this.state.loggingOut}
-                label="Test password"
-                onClick={() => {
-                  this.props.onCheckPassword(this.state.password)
-                }}
-              />
-              <Kb.Box2 direction="horizontal">
-                {this.state.loggingOut ? (
-                  <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
-                ) : (
-                  <Kb.ClickableBox
-                    onClick={this.logOut}
-                    style={styles.logoutContainer}
-                    className="hover-underline-container"
-                  >
-                    <Kb.Icon type="iconfont-leave" />
-                    <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
-                      Just sign out
-                    </Kb.Text>
-                  </Kb.ClickableBox>
-                )}
-              </Kb.Box2>
-            </Kb.ButtonBar>
-          ) : (
-            <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-              {this.state.loggingOut ? (
+  return props.hasRandomPW === undefined ? (
+    <Kb.Modal onClose={props.onCancel}>
+      <Kb.ProgressIndicator style={styles.progress} type="Huge" />
+    </Kb.Modal>
+  ) : props.hasRandomPW ? (
+    <UpdatePassword
+      error=""
+      onUpdatePGPSettings={props.onUpdatePGPSettings}
+      hasPGPKeyOnServer={props.hasPGPKeyOnServer}
+      hasRandomPW={props.hasRandomPW}
+      onCancel={props.onCancel}
+      onSave={props.onSavePassword}
+      saveLabel="Sign out"
+      waitingForResponse={props.waitingForResponse}
+    />
+  ) : (
+    <Kb.Modal
+      backgroundStyle={styles.logoutBackground}
+      banners={
+        <>
+          {props.checkPasswordIsCorrect === false ? (
+            <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+          ) : null}
+          {props.checkPasswordIsCorrect === true ? (
+            <Kb.Banner color="green">Your password is correct.</Kb.Banner>
+          ) : null}
+        </>
+      }
+      footer={{
+        content: !props.checkPasswordIsCorrect ? (
+          <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
+            <Kb.WaitingButton
+              fullWidth={true}
+              waitingKey={Constants.checkPasswordWaitingKey}
+              disabled={!password || loggingOut}
+              label="Test password"
+              onClick={() => props.onCheckPassword(password)}
+            />
+            <Kb.Box2 direction="horizontal">
+              {loggingOut ? (
                 <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
               ) : (
-                <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
+                <Kb.ClickableBox
+                  onClick={logOut}
+                  style={styles.logoutContainer}
+                  className="hover-underline-container"
+                >
+                  <Kb.Icon type="iconfont-leave" />
+                  <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
+                    Just sign out
+                  </Kb.Text>
+                </Kb.ClickableBox>
               )}
-            </Kb.ButtonBar>
-          ),
-        }}
-        header={{
-          leftButton: Kb.Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
-              Cancel
-            </Kb.Text>
-          ) : null,
-          title: !Kb.Styles.isMobile && 'Do you know your password?',
-        }}
-        onClose={this.props.onCancel}
-      >
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-          {Kb.Styles.isMobile && (
-            <Kb.Text style={styles.headerText} type="Header">
-              Do you know your password?
-            </Kb.Text>
-          )}
-          <Kb.Text style={styles.bodyText} type="Body">
-            You will need it to sign back in.
+            </Kb.Box2>
+          </Kb.ButtonBar>
+        ) : (
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+            {loggingOut ? (
+              <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+            ) : (
+              <Kb.Button label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
+            )}
+          </Kb.ButtonBar>
+        ),
+      }}
+      header={{
+        leftButton: Kb.Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
+            Cancel
           </Kb.Text>
-          <Kb.RoundedBox>
-            <Kb.PlainInput
-              keyboardType={keyboardType}
-              onEnterKeyDown={() => {
-                this.props.checkPasswordIsCorrect
-                  ? this.logOut()
-                  : this.props.onCheckPassword(this.state.password)
-              }}
-              onChangeText={password => this.setState({password})}
-              placeholder="Your password"
-              type={inputType}
-              value={this.state.password}
-            />
-          </Kb.RoundedBox>
-          <Kb.Checkbox
-            checked={this.state.showTyping}
-            label="Show typing"
-            onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-            style={styles.checkbox}
+        ) : null,
+        title: !Kb.Styles.isMobile && 'Do you know your password?',
+      }}
+      onClose={props.onCancel}
+    >
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+        {Kb.Styles.isMobile && (
+          <Kb.Text style={styles.headerText} type="Header">
+            Do you know your password?
+          </Kb.Text>
+        )}
+        <Kb.Text style={styles.bodyText} type="Body">
+          You will need it to sign back in.
+        </Kb.Text>
+        <Kb.RoundedBox>
+          <Kb.PlainInput
+            keyboardType={keyboardType}
+            onEnterKeyDown={() => {
+              props.checkPasswordIsCorrect ? logOut() : props.onCheckPassword(password)
+            }}
+            onChangeText={setPassword}
+            placeholder="Your password"
+            type={inputType}
+            value={password}
           />
-        </Kb.Box2>
-      </Kb.Modal>
-    )
-  }
+        </Kb.RoundedBox>
+        <Kb.Checkbox
+          checked={showTyping}
+          label="Show typing"
+          onCheck={() => setShowTyping(!showTyping)}
+          style={styles.checkbox}
+        />
+      </Kb.Box2>
+    </Kb.Modal>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
