@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import RetentionNotice from '.'
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
@@ -41,22 +41,56 @@ function makeRetentionNotice(
 
 const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() {
   const meta = C.useChatContext(s => s.meta)
-  const {teamType, retentionPolicy, teamRetentionPolicy} = meta
+  const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
   const canChange = C.useTeamsState(s => {
     return meta.teamType !== 'adhoc' ? C.Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
-
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onChange = React.useCallback(() => showInfoPanel(true, 'settings'), [showInfoPanel])
-  const explanation = makeRetentionNotice(retentionPolicy, teamRetentionPolicy, teamType) ?? undefined
+  const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined
 
-  const props = {
-    canChange,
-    explanation,
-    onChange,
-    policy: retentionPolicy,
-    teamPolicy: teamRetentionPolicy,
-  }
-  return <RetentionNotice {...props} />
+  const iconType =
+    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy.type === 'explode')
+      ? 'iconfont-bomb-solid'
+      : 'iconfont-timer-solid'
+
+  return (
+    <Kb.Box style={styles.container}>
+      <Kb.Box style={styles.iconBox}>
+        <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
+      </Kb.Box>
+      {!!explanation && (
+        <Kb.Text center={true} type="BodySmallSemibold">
+          {explanation}
+        </Kb.Text>
+      )}
+      {canChange && (
+        <Kb.Text
+          type="BodySmallSemiboldPrimaryLink"
+          style={{color: Kb.Styles.globalColors.blueDark}}
+          onClick={onChange}
+        >
+          Change this
+        </Kb.Text>
+      )}
+    </Kb.Box>
+  )
 })
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.medium,
+        paddingRight: Kb.Styles.globalMargins.medium,
+        paddingTop: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
+      iconBox: {marginBottom: Kb.Styles.globalMargins.xtiny},
+    }) as const
+)
 export default RetentionNoticeContainer
