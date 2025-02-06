@@ -415,7 +415,6 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         onShowingEmojiPicker={setShowingPicker}
-        tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
       />
     ) : null
