@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import AddToTeam, {type AddToTeamProps} from '.'
+import AddToTeam from '.'
 import type * as T from '@/constants/types'
 import {sendNotificationFooter} from '@/teams/role-picker'
 
@@ -20,16 +20,37 @@ const getOwnerDisabledReason = (
     .find(v => !!v)
 }
 
-type ExtraProps = {
-  clearAddUserToTeamsResults: () => void
-  loadTeamList: () => void
-  onAddToTeams: (role: T.Teams.TeamRoleType, teams: Array<string>) => void
-  _teamNameToRole: Map<string, T.Teams.MaybeTeamRoleType>
-}
+type OwnProps = {username: string}
+const Container = (ownProps: OwnProps) => {
+  const {username: them} = ownProps
+  const roles = C.useTeamsState(s => s.teamRoleMap.roles)
+  const teams = C.useTeamsState(s => s.teamMeta)
+  const addUserToTeamsResults = C.useTeamsState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = C.useTeamsState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
+  const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
+  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamProfileAddListWaitingKey)
+  const _onAddToTeams = addUserToTeams
+  const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
+  const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
+  const loadTeamList = React.useCallback(() => {
+    getTeamProfileAddList(them)
+  }, [getTeamProfileAddList, them])
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onBack = () => {
+    navigateUp()
+    resetTeamProfileAddList()
+  }
 
-const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
-  const {_teamNameToRole, clearAddUserToTeamsResults, loadTeamList, onAddToTeams} = p
+  const title = `Add ${them} to...`
 
+  // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
+  const _teamNameToRole = [...teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
+    (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
+    new Map()
+  )
+  const onAddToTeams = (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, them)
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
@@ -66,7 +87,14 @@ const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
 
   return (
     <AddToTeam
-      {...p}
+      teamProfileAddList={teamProfileAddList}
+      them={them}
+      waiting={waiting}
+      addUserToTeamsResults={addUserToTeamsResults}
+      addUserToTeamsState={addUserToTeamsState}
+      loadTeamList={loadTeamList}
+      onBack={onBack}
+      title={title}
       disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
       onOpenRolePicker={() => setRolePickerOpen(true)}
       onConfirmRolePicker={role => {
@@ -90,52 +118,6 @@ const AddToTeamStateWrapper = (p: ExtraProps & AddToTeamProps) => {
       selectedTeams={selectedTeams}
     />
   )
-}
-
-type OwnProps = {username: string}
-const Container = (ownProps: OwnProps) => {
-  const _them = ownProps.username
-  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
-  const _teams = C.useTeamsState(s => s.teamMeta)
-  const addUserToTeamsResults = C.useTeamsState(s => s.addUserToTeamsResults)
-  const addUserToTeamsState = C.useTeamsState(s => s.addUserToTeamsState)
-  const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
-  const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
-  const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
-  const waiting = C.Waiting.useAnyWaiting(C.Teams.teamProfileAddListWaitingKey)
-  const _onAddToTeams = addUserToTeams
-  const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
-  const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
-  const loadTeamList = () => {
-    getTeamProfileAddList(_them)
-  }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-    resetTeamProfileAddList()
-  }
-
-  const title = `Add ${_them} to...`
-
-  // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-  const _teamNameToRole = [..._teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
-    (res, curr) => res.set(curr.teamname, _roles.get(curr.id)?.role || 'none'),
-    new Map()
-  )
-  const props = {
-    _teamNameToRole,
-    addUserToTeamsResults,
-    addUserToTeamsState,
-    clearAddUserToTeamsResults,
-    loadTeamList,
-    onAddToTeams: (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, _them),
-    onBack,
-    teamProfileAddList,
-    them: _them,
-    title,
-    waiting,
-  }
-  return <AddToTeamStateWrapper {...props} />
 }
 
 export default Container
