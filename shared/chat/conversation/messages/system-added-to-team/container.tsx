@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {getAddedUsernames} from '../system-users-added-to-conv'
+import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
