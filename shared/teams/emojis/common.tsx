@@ -12,7 +12,8 @@ type AliasInputProps = {
   small: boolean
 }
 
-export const AliasInput = React.memo((props: AliasInputProps) => {
+export type AliasRef = {focus: () => void}
+export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
   const inputRef = React.useRef<Kb.PlainInput>(null)
   const [mounted, setMounted] = React.useState(true)
 
@@ -32,6 +33,13 @@ export const AliasInput = React.memo((props: AliasInputProps) => {
       }
     })
   }
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus()
+      onFocus()
+    },
+  }))
 
   React.useEffect(() => {
     setMounted(true)
