@@ -189,7 +189,7 @@ const Tabs = (p: TabsProps) => {
 }
 
 const widthToDimensions = (width: number) => {
-  const singleItemWidth = Kb.Styles.isMobile ? 130 : 120
+  const singleItemWidth = Kb.Styles.isMobile ? 134 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}

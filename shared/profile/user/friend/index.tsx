@@ -23,6 +23,7 @@ const Friend = React.memo(function Friend(p: Props) {
           onUsernameClicked="profile"
           colorBroken={true}
           colorFollowing={true}
+          lineClamp={1}
         />
         <Kb.Text2 type="BodySmall" lineClamp={1} style={styles.fullname}>
           {p.fullname}
