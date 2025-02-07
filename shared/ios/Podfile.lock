@@ -9,11 +9,11 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.30):
+  - Expo (52.0.31):
     - ExpoModulesCore
   - ExpoAsset (11.0.3):
     - ExpoModulesCore
-  - ExpoCamera (16.0.14):
+  - ExpoCamera (16.0.15):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -21,7 +21,7 @@ PODS:
     - ExpoModulesCore
   - ExpoContacts (14.0.5):
     - ExpoModulesCore
-  - ExpoFileSystem (18.0.9):
+  - ExpoFileSystem (18.0.10):
     - ExpoModulesCore
   - ExpoFont (13.0.3):
     - ExpoModulesCore
@@ -44,7 +44,7 @@ PODS:
   - ExpoMediaLibrary (17.0.5):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (2.2.0):
+  - ExpoModulesCore (2.2.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2275,12 +2275,12 @@ SPEC CHECKSUMS:
   EXAV: 4c41f0a6ae54a0b96597abc90e37962ab2ee0d85
   EXConstants: e25c3f3ef5d1cf7a6ef911ebf7a3ab94d8d06d82
   EXImageLoader: e5da974e25b13585c196b658a440720c075482d5
-  Expo: 6a56836eb57959aec7bc0e6ce8234305af6803b7
+  Expo: 00d0b7e489e495472fa3d5ac20e267d174fe0c72
   ExpoAsset: 715ce37a36951fee71c32773b3be50f2285e2fbe
-  ExpoCamera: 5b48734e47a2e8fa6fc16835531fcf97cbf9e0e2
+  ExpoCamera: 969427803b03c9084a3f48e942daf3f0a6da267f
   ExpoClipboard: 44fd1c8959ee8f6175d059dc011b154c9709a969
   ExpoContacts: 98484e09e4caccd2daa6042f341dc2e62a29697e
-  ExpoFileSystem: 65eee7cfa2a032fa06657d18e475de429f43e920
+  ExpoFileSystem: 5df53001901f76b493bd5deb75ac506871cc9b2e
   ExpoFont: 38656978c2a4022fb7e0c43e4968d66340f5e2f3
   ExpoHaptics: 8d199b2f33245ea85289ff6c954c7ee7c00a5b5d
   ExpoImage: f2c9cfd2a4cb918bba7ddbb40da851858f7aece4
@@ -2289,7 +2289,7 @@ SPEC CHECKSUMS:
   ExpoLocation: 5437fb925d0b0dbe728c20536335a964e9202f5a
   ExpoMailComposer: 05d7236221229740563ed12f008f8b2054ed0474
   ExpoMediaLibrary: 2ee639eb9b43a2e3cbd27bc9a575e7fc8061363b
-  ExpoModulesCore: b5e013a0cf08704c5a7c282fa281d878f972520d
+  ExpoModulesCore: 2ad42f48a988d073f4cef0363dd4bee3c7194085
   ExpoSMS: 9cd812ab438c5c1d86bddaa7749387c762e43b92
   EXTaskManager: 56043fa052a0b9f2e9714dbef594a8c46cafa346
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
