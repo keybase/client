@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as React from 'react'
-import Loading from '../login/loading'
+import {Splash} from '../login/loading/container'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
 
@@ -14,7 +14,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
       fullWidth={true}
       style={{backgroundColor: Kb.Styles.globalColors.white}}
     >
-      <Loading allowFeedback={false} failed="" status="" />
+      <Splash allowFeedback={false} failed="" status="" />
     </Kb.Box2>
   )
 })
