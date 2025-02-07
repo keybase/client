@@ -1,7 +1,8 @@
 import * as C from '@/constants'
-import Announcement from '.'
 import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
+import * as Kb from '@/common-adapters'
+import PeopleItem from '../item'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -71,16 +72,36 @@ const Container = (ownProps: OwnProps) => {
     dismissAnnouncement(id)
     loadPeople(true, 10)
   }
-  const props = {
-    badged,
-    confirmLabel,
-    iconUrl,
-    onConfirm,
-    onDismiss: dismissable ? _onDismiss : undefined,
-    text,
-    url,
-  }
-  return <Announcement {...props} />
+  const onDismiss = dismissable ? _onDismiss : undefined
+
+  return (
+    <PeopleItem
+      badged={badged}
+      icon={
+        iconUrl ? (
+          <Kb.Image2 src={iconUrl} style={styles.icon} />
+        ) : (
+          <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
+        )
+      }
+    >
+      <Kb.Text type="Body">{text}</Kb.Text>
+      {(!!confirmLabel || !!onDismiss) && (
+        <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} style={styles.container}>
+          {!!confirmLabel && <Kb.Button small={true} label={confirmLabel} onClick={onConfirm} />}
+          {!!onDismiss && <Kb.Button small={true} label="Later" onClick={onDismiss} mode="Secondary" />}
+        </Kb.Box2>
+      )}
+    </PeopleItem>
+  )
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {alignSelf: 'flex-start'},
+      icon: {flexShrink: 0, height: 32, width: 32},
+    }) as const
+)
 
 export default Container

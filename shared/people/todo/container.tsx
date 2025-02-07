@@ -3,8 +3,8 @@ import * as React from 'react'
 import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import type {TaskButton} from '../item'
-import {Task} from '.'
+import PeopleItem, {type TaskButton} from '../item'
+import * as Kb from '@/common-adapters'
 
 type TodoOwnProps = {
   badged: boolean
@@ -343,5 +343,35 @@ const TaskChooser = (props: TodoOwnProps) => {
       return null
   }
 }
+
+type Props = {
+  badged: boolean
+  icon: Kb.IconType
+  instructions: string
+  subText?: string
+  buttons: Array<TaskButton>
+}
+
+const Task = (props: Props) => (
+  <PeopleItem
+    format="multi"
+    badged={props.badged}
+    icon={<Kb.Icon type={props.icon} />}
+    buttons={props.buttons}
+  >
+    <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
+    {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+  </PeopleItem>
+)
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  instructions: {marginTop: 2},
+  search: {
+    alignSelf: undefined,
+    flexGrow: 0,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
+  },
+}))
 
 export default TaskChooser
