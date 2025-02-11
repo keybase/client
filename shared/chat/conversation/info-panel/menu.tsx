@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import * as InfoPanelCommon from '../common'
+import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
 

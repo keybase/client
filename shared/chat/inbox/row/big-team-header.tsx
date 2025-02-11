@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
-import TeamMenu from '@/chat/conversation/info-panel/menu/container'
+import TeamMenu from '@/chat/conversation/info-panel/menu'
 
 type Props = {
   navKey: string
