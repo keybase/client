@@ -7,7 +7,7 @@ import {isPathSaltpack} from '@/constants/crypto'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {getEditStyle, ShowToastAfterSaving} from '../shared'
+import {getEditStyle, ShowToastAfterSaving} from './shared'
 import * as CryptoConstants from '@/constants/crypto'
 
 type OwnProps = {showPopup: () => void}

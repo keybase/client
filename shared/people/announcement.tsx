@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
-import PeopleItem from '../item'
+import PeopleItem from './item'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType

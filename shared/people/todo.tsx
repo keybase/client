@@ -3,7 +3,7 @@ import * as React from 'react'
 import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import PeopleItem, {type TaskButton} from '../item'
+import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
 
 type TodoOwnProps = {

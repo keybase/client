@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {Text} from '@/common-adapters'
-import UserNotice from '../user-notice'
+import UserNotice from './user-notice'
 import {globalColors} from '@/styles'
 
 const Container = () => {

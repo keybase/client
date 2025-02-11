@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import Normal from './normal2'
-import Preview from './preview/container'
-import ThreadSearch from '../search/container'
+import Preview from './preview'
+import ThreadSearch from '../search'
 
 const InputAreaContainer = () => {
   const conversationIDKey = C.useChatContext(s => s.id)

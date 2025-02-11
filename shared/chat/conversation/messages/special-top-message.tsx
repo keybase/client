@@ -6,8 +6,8 @@ import Separator from './separator'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
-import ProfileResetNotice from './system-profile-reset-notice/container'
-import RetentionNotice from './retention-notice/container'
+import ProfileResetNotice from './system-profile-reset-notice'
+import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {

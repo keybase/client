@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 

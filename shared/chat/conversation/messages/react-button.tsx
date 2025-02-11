@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
-import {OrdinalContext} from '../ids-context'
+import {OrdinalContext} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 

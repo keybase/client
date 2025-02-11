@@ -10,7 +10,7 @@ import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
-import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 
 type OwnProps = {path: T.FS.Path}
 

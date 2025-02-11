@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import EmojiRow from '../emoji-row/container'
-import ReactButton from '../react-button/container'
-import ReactionTooltip from '../reaction-tooltip'
+import EmojiRow from './emoji-row'
+import ReactButton from './react-button'
+import ReactionTooltip from './reaction-tooltip'
 import type * as T from '@/constants/types'
-import {OrdinalContext} from '../ids-context'
+import {OrdinalContext} from './ids-context'
 import {Keyboard} from 'react-native'
 
 // Get array of emoji names in the order of their earliest reaction

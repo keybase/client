@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {OrdinalContext} from '../ids-context'
+import {OrdinalContext} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
