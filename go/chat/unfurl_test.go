@@ -63,13 +63,13 @@ func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
 }
 
-func (d *dummyHTTPSrv) handleApple(w http.ResponseWriter, r *http.Request) {
+func (d *dummyHTTPSrv) handleApple(w http.ResponseWriter, _ *http.Request) {
 	d.Lock()
 	defer d.Unlock()
 	w.WriteHeader(404)
 }
 
-func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
+func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, _ *http.Request) {
 	d.Lock()
 	defer d.Unlock()
 	w.WriteHeader(200)
@@ -79,7 +79,7 @@ func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
 	require.NoError(d.t, err)
 }
 
-func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
+func (d *dummyHTTPSrv) handle(w http.ResponseWriter, _ *http.Request) {
 	d.Lock()
 	defer d.Unlock()
 	if d.succeed {

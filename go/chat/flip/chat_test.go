@@ -229,7 +229,7 @@ func (c *chatClient) consumeRevealsAndError(t *testing.T, nReveals int) {
 	require.True(t, revealsReceived <= nReveals)
 }
 
-func (c *chatClient) consumeTimeoutError(t *testing.T) {
+func (c *chatClient) consumeTimeoutError(_ *testing.T) {
 	msg := <-c.dealer.UpdateCh()
 	testPrintf("ERR %+v\n", msg)
 }

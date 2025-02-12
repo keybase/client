@@ -141,9 +141,8 @@ func ColorBytes(g *libkb.GlobalContext, which string, text []byte) []byte {
 		ret = append(ret, text...)
 		ret = append(ret, colorByteSequence(cp.Close)...)
 		return ret
-	} else {
-		return text
 	}
+	return text
 }
 
 func ColorString(g *libkb.GlobalContext, which, format string, args ...interface{}) string {

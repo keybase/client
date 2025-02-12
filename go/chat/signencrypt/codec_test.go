@@ -3,7 +3,7 @@ package signencrypt
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -491,7 +491,7 @@ var fakeErrorString = "random error for the first read"
 func (f *FakeIOErrorReader) Read(buf []byte) (int, error) {
 	if !f.returnedErrorAlready {
 		f.returnedErrorAlready = true
-		return 0, fmt.Errorf(fakeErrorString)
+		return 0, errors.New(fakeErrorString)
 	}
 	return f.inner.Read(buf)
 }

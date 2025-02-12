@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -156,9 +155,9 @@ func TestExitOnSuccess(t *testing.T) {
 
 func procTestPath(name string) (string, string) {
 	// Copy test executable to tmp
-	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("GOPATH"), "bin", "test.exe"), filepath.Join(os.TempDir(), name+".exe")
-	}
+	// if runtime.GOOS == "windows" {
+	//	return filepath.Join(os.Getenv("GOPATH"), "bin", "test.exe"), filepath.Join(os.TempDir(), name+".exe")
+	//}
 	return filepath.Join(os.Getenv("GOPATH"), "bin", "test"), filepath.Join(os.TempDir(), name)
 }
 

@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-zoom-toolkit/src/commons/hooks/useDoubleTapCommons.ts b/node_modules/react-native-zoom-toolkit/src/commons/hooks/useDoubleTapCommons.ts
+index 236c4fc..a61ed9f 100644
+--- a/node_modules/react-native-zoom-toolkit/src/commons/hooks/useDoubleTapCommons.ts
++++ b/node_modules/react-native-zoom-toolkit/src/commons/hooks/useDoubleTapCommons.ts
+@@ -37,7 +37,7 @@ export const useDoubleTapCommons = ({
+     const originX = event.x - container.width.value / 2;
+     const originY = event.y - container.height.value / 2;
+     const toScale =
+-      scale.value >= maxScale.value * 0.8 ? minScale : maxScale.value;
++      scale.value === minScale ? maxScale.value : minScale;
+ 
+     const { x, y } = pinchTransform({
+       toScale: toScale,

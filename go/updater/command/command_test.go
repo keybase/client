@@ -45,7 +45,7 @@ func TestExecEcho(t *testing.T) {
 }
 
 func TestExecNil(t *testing.T) {
-	execCmd := func(name string, arg ...string) *exec.Cmd {
+	execCmd := func(_ string, _ ...string) *exec.Cmd {
 		return nil
 	}
 	_, err := execWithFunc("echo", []string{"arg1", "arg2"}, nil, execCmd, time.Second, testLog)

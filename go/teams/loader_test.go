@@ -711,7 +711,7 @@ func TestLoaderHiddenSubteam(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err, "load team")
-	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
 	require.Len(t, team.chain().ListSubteams(), 1, "subteam list")
 	require.Equal(t, *subteamID, team.chain().ListSubteams()[0].Id, "subteam ID")
 	require.Equal(t, subteamName1.String(), team.chain().ListSubteams()[0].Name.String(), "subteam name")
@@ -722,7 +722,7 @@ func TestLoaderHiddenSubteam(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err, "load team")
-	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
 	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 

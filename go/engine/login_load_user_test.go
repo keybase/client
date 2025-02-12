@@ -46,10 +46,9 @@ func TestLoginLoadUser(t *testing.T) {
 			} else if reflect.TypeOf(test.err) != reflect.TypeOf(err) {
 				t.Errorf("%s: error type %T, expected %T", test.name, err, test.err)
 				continue
-			} else {
-				// error types matched
-				continue
 			}
+			// error types matched
+			continue
 		}
 
 		if test.uid == "" {
@@ -91,10 +90,9 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 			} else if reflect.TypeOf(test.err) != reflect.TypeOf(err) {
 				t.Errorf("%s: error type %T, expected %T", test.name, err, test.err)
 				continue
-			} else {
-				// error types matched
-				continue
 			}
+			// error types matched
+			continue
 		}
 
 		if test.uid == "" {

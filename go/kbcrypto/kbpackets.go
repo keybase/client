@@ -229,21 +229,20 @@ func (p *keybasePacket) hashSum() ([]byte, error) {
 	return ret[:], nil
 }
 
-func (p *keybasePacket) checkHash() error {
+func (p *keybasePacket) checkHash() (err error) {
 	var gotten []byte
-	var err error
 	if p.Hash == nil {
 		return nil
 	}
 	given := p.Hash.Value
 	if p.Hash.Type != SHA256Code {
-		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
+		return fmt.Errorf("Bad hash code: %d", p.Hash.Type)
 	} else if gotten, err = p.hashToBytes(); err != nil {
-
+		return err
 	} else if !FastByteArrayEq(gotten, given) {
-		err = fmt.Errorf("Bad packet hash")
+		return fmt.Errorf("Bad packet hash")
 	}
-	return err
+	return nil
 }
 
 func (p *keybasePacket) encode() ([]byte, error) {

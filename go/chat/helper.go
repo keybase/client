@@ -505,7 +505,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 	return pc
 }
 
-func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+func GetTopicNameState(ctx context.Context, _ *globals.Context, debugger utils.DebugLabeler,
 	convs []chat1.ConversationLocal,
 	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, err error) {

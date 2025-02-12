@@ -85,7 +85,7 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 }
 
 func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	src *attachments.BufReadResetter, filename string, len int64, md chat1.AssetMetadata, contentType string) (res chat1.Asset, err error) {
+	src *attachments.BufReadResetter, filename string, size int64, md chat1.AssetMetadata, contentType string) (res chat1.Asset, err error) {
 	atyp, err := md.AssetType()
 	if err != nil {
 		return res, err
@@ -108,7 +108,7 @@ func (p *Packager) uploadAsset(ctx context.Context, uid gregor1.UID, convID chat
 	task := attachments.UploadTask{
 		S3Params:       s3params,
 		Filename:       filename,
-		FileSize:       len,
+		FileSize:       size,
 		Plaintext:      src,
 		S3Signer:       p.s3signer,
 		ConversationID: convID,
@@ -170,22 +170,22 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 
 func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	video chat1.UnfurlVideo) (res chat1.Asset, err error) {
-	body, len, err := p.assetBodyAndLength(ctx, video.Url)
+	body, size, err := p.assetBodyAndLength(ctx, video.Url)
 	if err != nil {
 		return res, err
 	}
 	defer body.Close()
-	return p.uploadVideoWithBody(ctx, uid, convID, body, len, video)
+	return p.uploadVideoWithBody(ctx, uid, convID, body, size, video)
 }
 
 func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
+	body io.ReadCloser, size int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
 	dat, err := io.ReadAll(body)
 	if err != nil {
 		return res, err
 	}
 	return p.uploadAsset(ctx, uid, convID, attachments.NewBufReadResetter(dat), "video.mp4",
-		len, chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
+		size, chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
 			Width:      video.Width,
 			Height:     video.Height,
 			DurationMs: 1,

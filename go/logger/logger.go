@@ -150,8 +150,8 @@ func (l *InternalLogger) CFatalf(ctx context.Context, fmt string,
 func (l *InternalLogger) Profile(fmts string, arg ...interface{}) {
 	l.log.Printf(keybase1.LogLevel_DEBUG.String()+fmts, arg...)
 }
-func (l *InternalLogger) Configure(style string, debug bool, filename string) {}
-func (l *InternalLogger) SetExternalHandler(handler ExternalHandler)          {}
-func (l *InternalLogger) CloneWithAddedDepth(depth int) Logger {
+func (l *InternalLogger) Configure(_ string, _ bool, _ string) {}
+func (l *InternalLogger) SetExternalHandler(_ ExternalHandler) {}
+func (l *InternalLogger) CloneWithAddedDepth(_ int) Logger {
 	return l
 }

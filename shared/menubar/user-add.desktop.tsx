@@ -9,29 +9,27 @@ export type Props = {
   username?: string
 }
 
-type State = {
-  showingInput: boolean
-  text: string
-}
-
-const UserButton = ({isPublic, onClick}: {isPublic: boolean; onClick: () => void}) => (
-  <Box
-    style={{
-      ...stylesButtonContainer,
-      backgroundColor: globalColors.white,
-    }}
-  >
-    <Button
-      small={true}
-      onClick={onClick}
-      labelStyle={{color: globalColors.white}}
+const UserButton = (props: {isPublic: boolean; onClick: () => void}) => {
+  const {isPublic, onClick} = props
+  return (
+    <Box
       style={{
-        backgroundColor: globalColors.blue,
+        ...stylesButtonContainer,
+        backgroundColor: globalColors.white,
       }}
-      label={isPublic ? 'Open public folder' : 'New private folder'}
-    />
-  </Box>
-)
+    >
+      <Button
+        small={true}
+        onClick={onClick}
+        labelStyle={{color: globalColors.white}}
+        style={{
+          backgroundColor: globalColors.blue,
+        }}
+        label={isPublic ? 'Open public folder' : 'New private folder'}
+      />
+    </Box>
+  )
+}
 
 type UserInputProps = {
   isPublic: boolean
@@ -42,7 +40,8 @@ type UserInputProps = {
   text: string
 }
 
-const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}: UserInputProps) => {
+const UserInput = (props: UserInputProps) => {
+  const {isPublic, onSubmit, onCancel, onUpdateText, username, text} = props
   return (
     <Box
       style={{
@@ -80,46 +79,39 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
   )
 }
 
-class UserAdd extends React.Component<Props, State> {
-  state: State
+const UserAdd = (props: Props) => {
+  const {isPublic, onAdded, username} = props
+  const [showingInput, setShowingInput] = React.useState(false)
+  const [text, setText] = React.useState('')
 
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      showingInput: false,
-      text: '',
-    }
-  }
-
-  _submit() {
-    if (this.state.text) {
-      this.props.onAdded(
-        this.props.isPublic
-          ? `${defaultKBFSPath}/public/${this.state.text}`
-          : `${defaultKBFSPath}/private/${this.props.username || ''},${this.state.text}`
+  const submit = () => {
+    if (text) {
+      onAdded(
+        isPublic
+          ? `${defaultKBFSPath}/public/${text}`
+          : `${defaultKBFSPath}/private/${username || ''},${text}`
       )
     }
-    this._showInput(false)
+    showInput(false)
   }
 
-  _showInput(showingInput: boolean) {
-    this.setState({showingInput, text: ''})
+  const showInput = (showing: boolean) => {
+    setShowingInput(showing)
+    setText('')
   }
 
-  render() {
-    return this.state.showingInput ? (
-      <UserInput
-        onSubmit={() => this._submit()}
-        text={this.state.text}
-        onCancel={() => this._showInput(false)}
-        onUpdateText={text => this.setState({text})}
-        {...this.props}
-      />
-    ) : (
-      <UserButton onClick={() => this._showInput(true)} {...this.props} />
-    )
-  }
+  return showingInput ? (
+    <UserInput
+      onSubmit={submit}
+      text={text}
+      onCancel={() => showInput(false)}
+      onUpdateText={setText}
+      isPublic={isPublic}
+      username={username}
+    />
+  ) : (
+    <UserButton onClick={() => showInput(true)} isPublic={isPublic} />
+  )
 }
 
 const stylesButtonContainer = {

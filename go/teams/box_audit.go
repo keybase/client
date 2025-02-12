@@ -892,13 +892,6 @@ func getPUKCheckpoints(mctx libkb.MetaContext, teamchain *TeamSigChainState, che
 	return checkpoints, nil
 }
 
-func max(a, b merkleSeqno) merkleSeqno {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // calculateCurrentSummary calculates the box summary as it is currently for
 // all users in the team (i.e., if the team were rotated right now, what the summary
 // should be afterwards).

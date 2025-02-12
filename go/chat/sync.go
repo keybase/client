@@ -155,7 +155,7 @@ func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID
 	}
 }
 
-func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, srvVers int) bool {
+func (s *Syncer) isServerInboxClear(ctx context.Context, _ *storage.Inbox, srvVers int) bool {
 	if _, err := s.G().ServerCacheVersions.MatchInbox(ctx, srvVers); err != nil {
 		s.Debug(ctx, "isServerInboxClear: inbox server version match error: %s", err.Error())
 		return true

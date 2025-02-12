@@ -1,0 +1,314 @@
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+index d5e2e22..d756961 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+@@ -264,6 +264,11 @@ static UIColor *defaultPlaceholderColor(void)
+     return NO;
+   }
+ 
++  BOOL del = [self.textInputDelegate canPerformAction:action withSender:sender];
++  if (del) {
++      return NO;
++  }
++
+   return [super canPerformAction:action withSender:sender];
+ }
+ 
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+index 7187177..980ab88 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
+@@ -12,7 +12,7 @@
+ NS_ASSUME_NONNULL_BEGIN
+ 
+ @protocol RCTBackedTextInputDelegate <NSObject>
+-
++- (BOOL)canPerformAction:(SEL)action withSender:(id)sender; // added
+ - (BOOL)textInputShouldBeginEditing; // Return `NO` to disallow editing.
+ - (void)textInputDidBeginEditing;
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h
+index 377e9aa..eafd491 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h
+@@ -26,6 +26,7 @@ struct Color {
+   Color(const ColorComponents& components);
+   Color(std::shared_ptr<void> uiColor);
+   int32_t getColor() const;
++  int32_t getUIColorHash() const;
+   std::shared_ptr<void> getUIColor() const {
+     return uiColor_;
+   }
+@@ -104,7 +105,7 @@ template <>
+ struct std::hash<facebook::react::Color> {
+   size_t operator()(const facebook::react::Color& color) const {
+     auto seed = size_t{0};
+-    facebook::react::hash_combine(seed, color.getColor());
++    facebook::react::hash_combine(seed, color.getUIColorHash());
+     return seed;
+   }
+ };
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
+index 4e7293b..3476fb1 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
+@@ -6,11 +6,14 @@
+  */
+ 
+ #import "HostPlatformColor.h"
++#import "UIColor+Graphics.h"
+ 
+ #import <Foundation/Foundation.h>
+ #import <UIKit/UIKit.h>
+ #import <react/utils/ManagedObjectWrapper.h>
+ #import <string>
++#import <objc/runtime.h>
++#import "UIColor+Graphics.h"
+ 
+ using namespace facebook::react;
+ 
+@@ -19,13 +22,30 @@ NS_ASSUME_NONNULL_BEGIN
+ namespace facebook::react {
+ 
+ namespace {
++bool UIColorIsP3ColorSpace(const std::shared_ptr<void> &uiColor)
++{
++  UIColor *color = unwrapManagedObject(uiColor);
++  CGColorSpaceRef colorSpace = CGColorGetColorSpace(color.CGColor);
++
++  if (CGColorSpaceGetModel(colorSpace) == kCGColorSpaceModelRGB) {
++    CFStringRef name = CGColorSpaceGetName(colorSpace);
++    if (name != NULL && CFEqual(name, kCGColorSpaceDisplayP3)) {
++      return true;
++    }
++  }
++  return false;
++}
++
+ UIColor *_Nullable UIColorFromInt32(int32_t intColor)
+ {
+   CGFloat a = CGFloat((intColor >> 24) & 0xFF) / 255.0;
+   CGFloat r = CGFloat((intColor >> 16) & 0xFF) / 255.0;
+   CGFloat g = CGFloat((intColor >> 8) & 0xFF) / 255.0;
+   CGFloat b = CGFloat(intColor & 0xFF) / 255.0;
+-  return [UIColor colorWithRed:r green:g blue:b alpha:a];
++  UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:a];
++  auto colorHash = facebook::react::hash_combine(intColor, 0);
++  color.reactHash = colorHash;
++  return color;
+ }
+ 
+ UIColor *_Nullable UIColorFromDynamicColor(const facebook::react::DynamicColor &dynamicColor)
+@@ -56,6 +76,8 @@ UIColor *_Nullable UIColorFromDynamicColor(const facebook::react::DynamicColor &
+         }
+       }
+     }];
++    auto colorHash = facebook::react::hash_combine(dark, light, highContrastDark, highContrastLight, 0);
++    color.reactHash = colorHash;
+     return color;
+   } else {
+     return nil;
+@@ -64,36 +86,94 @@ UIColor *_Nullable UIColorFromDynamicColor(const facebook::react::DynamicColor &
+   return nil;
+ }
+ 
+-int32_t ColorFromUIColor(UIColor *color)
++int32_t ColorFromColorComponents(const facebook::react::ColorComponents &components)
+ {
+   float ratio = 255;
++   auto color = ((int32_t)round((float)components.alpha * ratio) & 0xff) << 24 |
++      ((int)round((float)components.red * ratio) & 0xff) << 16 |
++      ((int)round((float)components.green * ratio) & 0xff) << 8 | ((int)round((float)components.blue * ratio) & 0xff);
++  return color;
++}
++
++int32_t ColorFromUIColor(UIColor *color)
++{
+   CGFloat rgba[4];
+   [color getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
+-  return ((int32_t)round((float)rgba[3] * ratio) & 0xff) << 24 | ((int)round((float)rgba[0] * ratio) & 0xff) << 16 |
+-      ((int)round((float)rgba[1] * ratio) & 0xff) << 8 | ((int)round((float)rgba[2] * ratio) & 0xff);
++  return ColorFromColorComponents({(float)rgba[0], (float)rgba[1], (float)rgba[2], (float)rgba[3]});
+ }
+ 
+-int32_t ColorFromUIColor(const std::shared_ptr<void> &uiColor)
++int32_t ColorFromUIColorForSpecificTraitCollection(
++    const std::shared_ptr<void> &uiColor,
++    UITraitCollection *traitCollection)
+ {
+   UIColor *color = (UIColor *)unwrapManagedObject(uiColor);
+   if (color) {
+-    UITraitCollection *currentTraitCollection = [UITraitCollection currentTraitCollection];
+-    color = [color resolvedColorWithTraitCollection:currentTraitCollection];
++    color = [color resolvedColorWithTraitCollection:traitCollection];
+     return ColorFromUIColor(color);
+   }
+ 
+   return 0;
+ }
+ 
++
++int32_t ColorFromUIColor(const std::shared_ptr<void> &uiColor)
++{
++  return ColorFromUIColorForSpecificTraitCollection(uiColor, [UITraitCollection currentTraitCollection]);
++}
++
+ UIColor *_Nullable UIColorFromComponentsColor(const facebook::react::ColorComponents &components)
+ {
++  UIColor *uiColor = nil;
+   if (components.colorSpace == ColorSpace::DisplayP3) {
+-    return [UIColor colorWithDisplayP3Red:components.red
+-                                    green:components.green
+-                                     blue:components.blue
+-                                    alpha:components.alpha];
++    uiColor = [UIColor colorWithDisplayP3Red:components.red
++                                       green:components.green
++                                        blue:components.blue
++                                       alpha:components.alpha];
++  } else {
++    uiColor = [UIColor colorWithRed:components.red green:components.green blue:components.blue alpha:components.alpha];
+   }
+-  return [UIColor colorWithRed:components.red green:components.green blue:components.blue alpha:components.alpha];
++
++  auto color = ColorFromColorComponents(components);
++  auto colorHash = facebook::react::hash_combine(color, components.colorSpace == ColorSpace::DisplayP3);
++  uiColor.reactHash = colorHash;
++
++  return uiColor;
++}
++
++int32_t hashFromUIColor(const std::shared_ptr<void> &uiColor)
++{
++  if (uiColor == nullptr) {
++    return 0;
++  }
++  static UITraitCollection *darkModeTraitCollection =
++      [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark];
++  auto darkColor = ColorFromUIColorForSpecificTraitCollection(uiColor, darkModeTraitCollection);
++
++  static UITraitCollection *lightModeTraitCollection =
++      [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleLight];
++  auto lightColor = ColorFromUIColorForSpecificTraitCollection(uiColor, lightModeTraitCollection);
++
++  static UITraitCollection *darkModeAccessibilityContrastTraitCollection =
++      [UITraitCollection traitCollectionWithTraitsFromCollections:@[
++        darkModeTraitCollection,
++        [UITraitCollection traitCollectionWithAccessibilityContrast:UIAccessibilityContrastHigh]
++      ]];
++  auto darkAccessibilityContrastColor =
++      ColorFromUIColorForSpecificTraitCollection(uiColor, darkModeAccessibilityContrastTraitCollection);
++
++  static UITraitCollection *lightModeAccessibilityContrastTraitCollection =
++      [UITraitCollection traitCollectionWithTraitsFromCollections:@[
++        lightModeTraitCollection,
++        [UITraitCollection traitCollectionWithAccessibilityContrast:UIAccessibilityContrastHigh]
++      ]];
++  auto lightAccessibilityContrastColor =
++      ColorFromUIColorForSpecificTraitCollection(uiColor, lightModeAccessibilityContrastTraitCollection);
++  return facebook::react::hash_combine(
++      darkColor,
++      lightColor,
++      darkAccessibilityContrastColor,
++      lightAccessibilityContrastColor,
++      UIColorIsP3ColorSpace(uiColor));
+ }
+ } // anonymous namespace
+ 
+@@ -114,6 +194,11 @@ Color::Color(const ColorComponents &components)
+ 
+ Color::Color(std::shared_ptr<void> uiColor)
+ {
++  UIColor *color = ((UIColor *)unwrapManagedObject(uiColor));
++  if (color && color.reactHash == 0) {
++    auto colorHash = hashFromUIColor(uiColor);
++    color.reactHash = colorHash;
++  }
+   uiColor_ = std::move(uiColor);
+ }
+ 
+@@ -121,7 +206,8 @@ bool Color::operator==(const Color &other) const
+ {
+   return (!uiColor_ && !other.uiColor_) ||
+       (uiColor_ && other.uiColor_ &&
+-       [unwrapManagedObject(getUIColor()) isEqual:unwrapManagedObject(other.getUIColor())]);
++ 	  ((UIColor *)unwrapManagedObject(getUIColor())).reactHash ==
++           ((UIColor *)unwrapManagedObject(other.getUIColor())).reactHash);
+ }
+ 
+ bool Color::operator!=(const Color &other) const
+@@ -142,6 +228,39 @@ float Color::getChannel(int channelId) const
+   return static_cast<float>(rgba[channelId]);
+ }
+ 
++int32_t Color::getUIColorHash() const
++{
++  return [(UIColor *)unwrapManagedObject(uiColor_) reactHash];
++}
++
+ } // namespace facebook::react
+ 
++
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++
++
++@implementation UIColor (Graphics)
++
++- (int32_t)reactHash
++{
++  return [objc_getAssociatedObject(self, _cmd) intValue];
++}
++
++- (void)setReactHash:(int32_t)reactHash
++{
++  objc_setAssociatedObject(self, @selector(reactHash), @(reactHash), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
++}
++
++@end
++
++
++
++
++
+ NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/UIColor+Graphics.h b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/UIColor+Graphics.h
+new file mode 100644
+index 0000000..da2038a
+--- /dev/null
++++ b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/UIColor+Graphics.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#pragma once
++
++#import <UIKit/UIKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++@interface UIColor (Graphics)
++@property (nonatomic, assign) int32_t reactHash;
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/types/index.d.ts b/node_modules/react-native/types/index.d.ts
+index 5aeec06..5ea7042 100644
+--- a/node_modules/react-native/types/index.d.ts
++++ b/node_modules/react-native/types/index.d.ts
+@@ -68,7 +68,6 @@
+ /// <reference path="modules/BatchedBridge.d.ts" />
+ /// <reference path="modules/Codegen.d.ts" />
+ /// <reference path="modules/Devtools.d.ts" />
+-/// <reference path="modules/globals.d.ts" />
+ /// <reference path="modules/LaunchScreen.d.ts" />
+ 
+ export * from '../Libraries/ActionSheetIOS/ActionSheetIOS';

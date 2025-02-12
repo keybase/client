@@ -40,22 +40,22 @@ const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
-class UserBubbleCollection extends React.PureComponent<{
-  teamSoFar: Props['teamSoFar']
-  onRemove: Props['onRemove']
-}> {
-  render() {
-    return this.props.teamSoFar.map(u => (
-      <UserBubble
-        key={u.userId}
-        onRemove={() => this.props.onRemove(u.userId)}
-        username={u.username}
-        service={u.service}
-        tooltip={formatNameForUserBubble(u)}
-      />
-    ))
-  }
-}
+const UserBubbleCollection = React.memo((p: {teamSoFar: Props['teamSoFar']; onRemove: Props['onRemove']}) => {
+  const {teamSoFar, onRemove} = p
+  return (
+    <>
+      {teamSoFar.map(u => (
+        <UserBubble
+          key={u.userId}
+          onRemove={() => onRemove(u.userId)}
+          username={u.username}
+          service={u.service}
+          tooltip={formatNameForUserBubble(u)}
+        />
+      ))}
+    </>
+  )
+})
 
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.

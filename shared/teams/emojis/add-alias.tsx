@@ -10,7 +10,7 @@ import {
   getEmojiStr,
   renderEmoji,
 } from '@/util/emoji'
-import {AliasInput, Modal} from './common'
+import {AliasInput, Modal, type AliasRef} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 
@@ -28,7 +28,7 @@ const AddAliasModal = (props: Props) => {
   const [error, setError] = React.useState<undefined | string>(undefined)
   const conversationIDKey = C.useChatContext(s => s.id)
 
-  const aliasInputRef = React.useRef<AliasInput>(null)
+  const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
     setEmoji({emojiStr, renderableEmoji})
     setAlias(

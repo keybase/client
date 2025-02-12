@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import * as Data from '@/util/emoji'
 import type {LayoutEvent} from '@/common-adapters/box'
 import startCase from 'lodash/startCase'
-import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, type RenderableEmoji} from '@/util/emoji'
@@ -56,19 +55,18 @@ const useSkinTone = () => {
   const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
   const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
   const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
-  const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
-    rpc(
-      [
-        {
-          skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone),
-        },
-      ],
-      res => updateUserReacjis(res),
-      err => {
-        throw err
-      }
-    )
-  }
+  const setSkinTone = React.useCallback(
+    (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
+      rpc(
+        [{skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone)}],
+        res => updateUserReacjis(res),
+        err => {
+          throw err
+        }
+      )
+    },
+    [rpc, updateUserReacjis]
+  )
   return {currentSkinTone, setSkinTone}
 }
 
@@ -178,19 +176,22 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
+  const {onDidPick} = props
+  const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = C.Chat.useChatNavigateAppend()
-  const addEmoji = () => {
-    props.onDidPick?.()
+  const addEmoji = React.useCallback(() => {
+    onDidPick?.()
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, teamID: T.Teams.noTeamID},
       selected: 'teamAddEmoji',
     }))
-  }
+  }, [onDidPick, navigateAppend])
+
+  const setFilter = C.useThrottledCallback(_setFilter, 200)
 
   return (
     <Kb.Box2
@@ -214,7 +215,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           size="full-width"
           icon="iconfont-search"
           placeholderText="Search"
-          onChange={debounce(setFilter, 200)}
+          onChange={setFilter}
         />
         <SkinTonePicker currentSkinTone={currentSkinTone} setSkinTone={setSkinTone} />
       </Kb.Box2>

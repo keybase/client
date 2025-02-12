@@ -10,7 +10,7 @@ import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
-import {Keyboard, TextInput as TextInputRaw} from 'react-native'
+import {Keyboard} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
@@ -68,17 +68,18 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   }, [insertText])
 
   const pickKey = 'chatInput'
-  const {emojiStr} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
   const [lastEmoji, setLastEmoji] = React.useState('')
-  if (lastEmoji !== emojiStr) {
-    setTimeout(() => {
-      setLastEmoji(emojiStr)
-      emojiStr && insertText(emojiStr + ' ')
-      updatePickerMap(pickKey, undefined)
-    }, 1)
-  }
+  React.useEffect(() => {
+    if (lastEmoji === emojiStr) {
+      return
+    }
+    setLastEmoji(emojiStr)
+    emojiStr && insertText(emojiStr + ' ')
+    updatePickerMap(pickKey, undefined)
+  }, [emojiStr, insertText, lastEmoji, updatePickerMap])
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const openEmojiPicker = React.useCallback(() => {
@@ -259,7 +260,13 @@ const PlatformInput = (p: Props) => {
   const suggestionSpinnerStyle = React.useMemo(() => {
     return Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   }, [height])
-  const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
+  const {
+    popup: suggestorPopup,
+    onChangeText,
+    onBlur,
+    onSelectionChange,
+    onFocus,
+  } = useSuggestors({
     expanded,
     inputRef,
     onChangeText: p.onChangeText,
@@ -290,12 +297,7 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
-  const dummyInputRef = React.useRef<TextInputRaw | null>(null)
-
   const onQueueSubmit = React.useCallback(() => {
-    // force ios to auto correct at the end
-    dummyInputRef.current?.focus()
-    inputRef.current?.focus()
     setTimeout(() => {
       reallySend()
     }, 60)
@@ -304,7 +306,6 @@ const PlatformInput = (p: Props) => {
   const insertText = React.useCallback(
     (toInsert: string) => {
       const i = inputRef.current
-      i?.focus()
       i?.transformText(({selection, text}) => {
         return standardTransformer(
           toInsert,
@@ -357,7 +358,7 @@ const PlatformInput = (p: Props) => {
     [setExplodingMode]
   )
 
-  const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
+  const {popup: popupMenu, showPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
@@ -425,9 +426,9 @@ const PlatformInput = (p: Props) => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
-        {popup}
-        {menu}
-        {!popup && <Typing />}
+        {suggestorPopup}
+        {popupMenu}
+        {!suggestorPopup && <Typing />}
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
@@ -451,7 +452,6 @@ const PlatformInput = (p: Props) => {
               rowsMin={1}
               expanded={expanded}
             />
-            <TextInputRaw ref={dummyInputRef} style={styles.dummyInput} />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
@@ -536,7 +536,6 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
-      dummyInput: {height: 0, opacity: 0, position: 'absolute', width: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

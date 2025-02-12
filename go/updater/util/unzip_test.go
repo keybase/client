@@ -37,7 +37,7 @@ func assertFileExists(t *testing.T, path string) {
 func testUnzipOverValid(t *testing.T, path string) string {
 	destinationPath := TempPath("", "TestUnzipOver.")
 
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 
 	err := UnzipOver(path, "test", destinationPath, noCheck, "", testLog)
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func testUnzipOverValid(t *testing.T, path string) string {
 	require.True(t, fileExists2)
 
 	// Unzip again over existing path, fail check
-	failCheck := func(sourcePath, destinationPath string) error { return fmt.Errorf("Failed check") }
+	failCheck := func(_, _ string) error { return fmt.Errorf("Failed check") }
 	err = UnzipOver(testZipPath, "test", destinationPath, failCheck, "", testLog)
 	assert.Error(t, err)
 
@@ -86,7 +86,7 @@ func TestUnzipOverSymlink(t *testing.T) {
 }
 
 func TestUnzipOverInvalidPath(t *testing.T) {
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 	err := UnzipOver(testZipPath, "test", "", noCheck, "", testLog)
 	assert.Error(t, err)
 
@@ -103,7 +103,7 @@ func TestUnzipOverInvalidPath(t *testing.T) {
 }
 
 func TestUnzipOverInvalidZip(t *testing.T) {
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 	destinationPath := TempPath("", "TestUnzipOverInvalidZip.")
 	defer RemoveFileAtPath(destinationPath)
 	err := UnzipOver(testInvalidZipPath, "test", destinationPath, noCheck, "", testLog)
@@ -112,7 +112,7 @@ func TestUnzipOverInvalidZip(t *testing.T) {
 }
 
 func TestUnzipOverInvalidContents(t *testing.T) {
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 	destinationPath := TempPath("", "TestUnzipOverInvalidContents.")
 	defer RemoveFileAtPath(destinationPath)
 	err := UnzipOver(testInvalidZipPath, "invalid", destinationPath, noCheck, "", testLog)
@@ -121,7 +121,7 @@ func TestUnzipOverInvalidContents(t *testing.T) {
 }
 
 func TestUnzipOverCorrupted(t *testing.T) {
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 	destinationPath := TempPath("", "TestUnzipOverCorrupted.")
 	defer RemoveFileAtPath(destinationPath)
 	err := UnzipOver(testCorruptedZipPath, "test", destinationPath, noCheck, "", testLog)
@@ -137,7 +137,7 @@ func tempDir(t *testing.T) string {
 }
 
 func TestUnzipOverMoveExisting(t *testing.T) {
-	noCheck := func(sourcePath, destinationPath string) error { return nil }
+	noCheck := func(_, _ string) error { return nil }
 	destinationPath := TempPath("", "TestUnzipOverMoveExisting.")
 	defer RemoveFileAtPath(destinationPath)
 	tmpDir := tempDir(t)

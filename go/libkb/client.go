@@ -189,7 +189,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 			// where DNS requests keep failing even though the network is up.
 			// This is similar to what the Rust standard library does:
 			// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
-			resinit.ResInitIfDNSError(err)
+			resinit.IfDNSError(err)
 			return c, err
 		}
 		if err = rpc.DisableSigPipe(c); err != nil {

@@ -216,7 +216,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 			SubkeyBits:  768,
 		},
 	}
-	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
 		tc.T.Fatal(err)
 	}
 	uis := libkb.UIs{
@@ -241,7 +241,7 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 			SubkeyBits:  768,
 		},
 	}
-	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
 		tc.T.Fatal(err)
 	}
 	uis := libkb.UIs{
@@ -268,7 +268,7 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 		PushSecret: true,
 		NoSave:     true,
 	}
-	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
 		tc.T.Fatal(err)
 	}
 	uis := libkb.UIs{
@@ -295,7 +295,7 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 		PushSecret: true,
 		NoSave:     true,
 	}
-	if err := arg.Gen.MakeAllIds(tc.G); err != nil {
+	if err := arg.Gen.MakeAllIDs(tc.G); err != nil {
 		tc.T.Fatal(err)
 	}
 	uis := libkb.UIs{

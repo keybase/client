@@ -50,7 +50,7 @@ func testServerWithETag(t *testing.T, data string, delay time.Duration, etag str
 }
 
 func testServerForError(err error) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, err.Error(), 500)
 	}))
 }

@@ -222,14 +222,14 @@ func ParseGpgPrimaryKey(g *GlobalContext, l *GpgIndexLine) (key *GpgPrimaryKey, 
 func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 	var id *Identity
 	if f := l.At(9); len(f) == 0 {
+		return nil
 	} else if id, err = ParseIdentity(f); err != nil {
+		err = ErrorToGpgIndexError(l.lineno, err)
+		return err
 	} else if l.At(1) != "r" { // is not revoked
 		k.identities = append(k.identities, id)
 	}
-	if err != nil {
-		err = ErrorToGpgIndexError(l.lineno, err)
-	}
-	return
+	return nil
 }
 
 func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
@@ -466,7 +466,7 @@ func (p *GpgIndexParser) Warn(w Warning) {
 func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 	var line *GpgIndexLine
 	line, err = p.GetLine()
-	if err != nil || line == nil {
+	if err != nil || line == nil { //nolint
 	} else if line.IsNewKey() {
 		ret, err = p.ParseKey(line)
 	}
@@ -478,11 +478,11 @@ func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err erro
 	ret, err = ParseGpgPrimaryKey(p.G(), l)
 	done := false
 	for !done && err == nil && !p.isEOF() {
-		if line, err = p.GetLine(); line == nil || err != nil {
+		if line, err = p.GetLine(); line == nil || err != nil { //nolint
 		} else if line.IsNewKey() {
 			p.PutbackLine(line)
 			done = true
-		} else if e2 := ret.AddLine(line); e2 == nil {
+		} else if e2 := ret.AddLine(line); e2 == nil { // nolint
 		} else {
 			p.warnings.Push(ErrorToWarning(e2))
 		}

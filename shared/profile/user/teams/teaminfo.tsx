@@ -36,103 +36,105 @@ export type Props = {
   visible: boolean
 }
 
-class TeamInfo extends React.Component<Props, {requested: boolean}> {
-  state = {requested: false}
-  _isPrivate = () => {
-    return this.props.membersCount === 0 && this.props.description.length === 0
+const TeamInfo = (props: Props) => {
+  const [requested, setRequested] = React.useState(false)
+
+  const _isPrivate = () => {
+    return props.membersCount === 0 && props.description.length === 0
   }
-  _onJoinTeam = () => {
-    this.props.onJoinTeam(this.props.name)
-    this.setState({requested: true})
+
+  const _onJoinTeam = () => {
+    props.onJoinTeam(props.name)
+    setRequested(true)
   }
-  _onViewTeam = () => {
-    this.props.onViewTeam()
-    this.props.onHidden()
+
+  const _onViewTeam = () => {
+    props.onViewTeam()
+    props.onHidden()
   }
-  _onChat = () => {
-    if (this.props.onChat) {
-      this.props.onChat()
-      this.props.onHidden()
+
+  const _onChat = () => {
+    if (props.onChat) {
+      props.onChat()
+      props.onHidden()
     }
   }
-  render() {
-    const memberText = this._isPrivate()
-      ? 'This team is private. Admins will decide if they can let you in.'
-      : `${this.props.membersCount} member${this.props.membersCount > 1 ? 's' : ''}`
-    return (
-      <Kb.FloatingMenu
-        attachTo={this.props.attachTo}
-        closeOnSelect={false}
-        onHidden={this.props.onHidden}
-        visible={this.props.visible}
-        propagateOutsideClicks={true}
-        header={
-          <Kb.Box2
-            centerChildren={true}
-            direction="vertical"
-            gap="tiny"
-            gapStart={true}
-            gapEnd={true}
-            style={styles.infoPopup}
-          >
-            <Kb.NameWithIcon
-              size="small"
-              teamname={this.props.name}
-              title={this.props.name}
-              metaOne={<OpenMeta isOpen={this.props.isOpen} />}
-              metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
-            />
-            <Kb.Text type="Body" selectable={true} style={styles.description}>
-              {this.props.description}
-            </Kb.Text>
-            {this.props.onChat && (
-              <Kb.WaitingButton
-                waitingKey={Constants.waitingKey}
-                label="Chat"
-                onClick={this._onChat}
-                mode="Secondary"
-              />
-            )}
-            {/* With teamsRedesign we have external team page, always show view team button */}
+
+  const memberText = _isPrivate()
+    ? 'This team is private. Admins will decide if they can let you in.'
+    : `${props.membersCount} member${props.membersCount > 1 ? 's' : ''}`
+
+  return (
+    <Kb.FloatingMenu
+      attachTo={props.attachTo}
+      closeOnSelect={false}
+      onHidden={props.onHidden}
+      visible={props.visible}
+      propagateOutsideClicks={true}
+      header={
+        <Kb.Box2
+          centerChildren={true}
+          direction="vertical"
+          gap="tiny"
+          gapStart={true}
+          gapEnd={true}
+          style={styles.infoPopup}
+        >
+          <Kb.NameWithIcon
+            size="small"
+            teamname={props.name}
+            title={props.name}
+            metaOne={<OpenMeta isOpen={props.isOpen} />}
+            metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
+          />
+          <Kb.Text type="Body" selectable={true} style={styles.description}>
+            {props.description}
+          </Kb.Text>
+          {props.onChat && (
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
-              label="View team"
-              onClick={this._onViewTeam}
+              label="Chat"
+              onClick={_onChat}
               mode="Secondary"
             />
-            {!this.props.inTeam && (
-              <Kb.WaitingButton
-                waitingKey={Constants.waitingKey}
-                label={
-                  this.state.requested ? 'Requested!' : this.props.isOpen ? 'Join team' : 'Request to join'
-                }
-                onClick={this.state.requested ? undefined : this._onJoinTeam}
-                type={this.props.isOpen ? 'Success' : 'Default'}
-                mode={this.state.requested ? 'Secondary' : 'Primary'}
-              />
-            )}
-            {!!this.props.publicAdmins.length && (
-              <Kb.Text center={true} type="BodySmall">
-                Public admins:{' '}
-                {
-                  <Kb.ConnectedUsernames
-                    type="BodySmallBold"
-                    colorFollowing={true}
-                    colorBroken={true}
-                    onUsernameClicked="profile"
-                    usernames={this.props.publicAdmins}
-                    containerStyle={styles.publicAdmins}
-                  />
-                }
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-        }
-        position={this.props.position ?? 'bottom left'}
-        items={[]}
-      />
-    )
-  }
+          )}
+          {/* With teamsRedesign we have external team page, always show view team button */}
+          <Kb.WaitingButton
+            waitingKey={Constants.waitingKey}
+            label="View team"
+            onClick={_onViewTeam}
+            mode="Secondary"
+          />
+          {!props.inTeam && (
+            <Kb.WaitingButton
+              waitingKey={Constants.waitingKey}
+              label={requested ? 'Requested!' : props.isOpen ? 'Join team' : 'Request to join'}
+              onClick={requested ? undefined : _onJoinTeam}
+              type={props.isOpen ? 'Success' : 'Default'}
+              mode={requested ? 'Secondary' : 'Primary'}
+            />
+          )}
+          {!!props.publicAdmins.length && (
+            <Kb.Text center={true} type="BodySmall">
+              Public admins:{' '}
+              {
+                <Kb.ConnectedUsernames
+                  type="BodySmallBold"
+                  colorFollowing={true}
+                  colorBroken={true}
+                  onUsernameClicked="profile"
+                  usernames={props.publicAdmins}
+                  containerStyle={styles.publicAdmins}
+                />
+              }
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      }
+      position={props.position ?? 'bottom left'}
+      items={[]}
+    />
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

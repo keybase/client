@@ -145,14 +145,15 @@ export const getNativeEmitter = () => {
   return new NativeEventEmitter(Kb as any)
 }
 
-export const androidIsDeviceSecure: boolean = Kb.getConstants().androidIsDeviceSecure
-export const androidIsTestDevice: boolean = Kb.getConstants().androidIsTestDevice
-export const appVersionCode: string = Kb.getConstants().appVersionCode
-export const appVersionName: string = Kb.getConstants().appVersionCode
-export const darkModeSupported: boolean = Kb.getConstants().darkModeSupported
-export const fsCacheDir: string = Kb.getConstants().fsCacheDir
-export const fsDownloadDir: string = Kb.getConstants().fsDownloadDir
-export const guiConfig: string = Kb.getConstants().guiConfig
-export const serverConfig: string = Kb.getConstants().serverConfig
-export const uses24HourClock: boolean = Kb.getConstants().uses24HourClock
-export const version: string = Kb.getConstants().version
+const KBC = Kb.getTypedConstants()
+export const androidIsDeviceSecure: boolean = KBC.androidIsDeviceSecure
+export const androidIsTestDevice: boolean = KBC.androidIsTestDevice
+export const appVersionCode: string = KBC.appVersionCode
+export const appVersionName: string = KBC.appVersionName
+export const darkModeSupported: boolean = KBC.darkModeSupported
+export const fsCacheDir: string = KBC.fsCacheDir
+export const fsDownloadDir: string = KBC.fsDownloadDir
+export const guiConfig: string = KBC.guiConfig
+export const serverConfig: string = KBC.serverConfig
+export const uses24HourClock: boolean = KBC.uses24HourClock
+export const version: string = KBC.version
