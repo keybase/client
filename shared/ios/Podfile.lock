@@ -9,11 +9,11 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.31):
+  - Expo (52.0.33):
     - ExpoModulesCore
   - ExpoAsset (11.0.3):
     - ExpoModulesCore
-  - ExpoCamera (16.0.15):
+  - ExpoCamera (16.0.16):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -27,17 +27,17 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (14.0.1):
     - ExpoModulesCore
-  - ExpoImage (2.0.4):
+  - ExpoImage (2.0.5):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
-  - ExpoImagePicker (16.0.5):
+  - ExpoImagePicker (16.0.6):
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.2):
     - ExpoModulesCore
-  - ExpoLocation (18.0.5):
+  - ExpoLocation (18.0.6):
     - ExpoModulesCore
   - ExpoMailComposer (14.0.2):
     - ExpoModulesCore
@@ -1778,7 +1778,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.23.0):
+  - RNGestureHandler (2.23.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2275,18 +2275,18 @@ SPEC CHECKSUMS:
   EXAV: 4c41f0a6ae54a0b96597abc90e37962ab2ee0d85
   EXConstants: e25c3f3ef5d1cf7a6ef911ebf7a3ab94d8d06d82
   EXImageLoader: e5da974e25b13585c196b658a440720c075482d5
-  Expo: 00d0b7e489e495472fa3d5ac20e267d174fe0c72
+  Expo: ad550eed41b5b0013d2a1b793fd33b6958a1b16f
   ExpoAsset: 715ce37a36951fee71c32773b3be50f2285e2fbe
-  ExpoCamera: 969427803b03c9084a3f48e942daf3f0a6da267f
+  ExpoCamera: c8a041b7f7229e4ee3674cae589a102ac03e7f4b
   ExpoClipboard: 44fd1c8959ee8f6175d059dc011b154c9709a969
   ExpoContacts: 98484e09e4caccd2daa6042f341dc2e62a29697e
   ExpoFileSystem: 5df53001901f76b493bd5deb75ac506871cc9b2e
   ExpoFont: 38656978c2a4022fb7e0c43e4968d66340f5e2f3
   ExpoHaptics: 8d199b2f33245ea85289ff6c954c7ee7c00a5b5d
-  ExpoImage: f2c9cfd2a4cb918bba7ddbb40da851858f7aece4
-  ExpoImagePicker: 32f78cf8edbe0444aefbea1b51bfb12b67730005
+  ExpoImage: 5d5e8b6dac825198fa38295b7da8d405657d0a2f
+  ExpoImagePicker: 24e5ba8da111f74519b1e6dc556e0b438b2b8464
   ExpoKeepAwake: 62ff49bbc3bff90d8ee28329190f9ba371bf88e7
-  ExpoLocation: 5437fb925d0b0dbe728c20536335a964e9202f5a
+  ExpoLocation: 350b114ad54777187cf83c88bb4713101cbab6cf
   ExpoMailComposer: 05d7236221229740563ed12f008f8b2054ed0474
   ExpoMediaLibrary: 2ee639eb9b43a2e3cbd27bc9a575e7fc8061363b
   ExpoModulesCore: 2ad42f48a988d073f4cef0363dd4bee3c7194085
@@ -2369,7 +2369,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: 308c763227e237d4d260bd8841870e099572bb3e
   RNCPicker: cfb51a08c6e10357d9a65832e791825b0747b483
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: 0ea07666b2252aa48b192764eb21a25c60e6b6db
+  RNGestureHandler: 63273d6c9936df3da2461766615eade82284adac
   RNReanimated: 8a4ea733f88a33379150eb2e73b375e14de81e84
   RNScreens: 5a1573ceb1a13b2d0663cbfb42cb4aa8803554eb
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
