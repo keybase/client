@@ -16,11 +16,9 @@ export type _Props = {
 }
 
 type Props = PropsWithInput<_Props>
-type RefProps = {
-  forwardedRef: React.Ref<PlainInput>
-}
 
-const ReflessNewInput = React.forwardRef<PlainInput, Props & RefProps>((props, ref) => {
+const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
+  const {textType = 'BodySemibold'} = props
   const [focused, setFocused] = React.useState(false)
 
   const _onFocus = () => {
@@ -36,7 +34,7 @@ const ReflessNewInput = React.forwardRef<PlainInput, Props & RefProps>((props, r
     props.onBlur && props.onBlur()
   }
 
-  const textStyle = getTextStyle(props.textType ?? 'BodySemibold')
+  const textStyle = getTextStyle(textType)
   const {containerStyle, decoration, error, hideBorder, icon, prefix, ...plainInputProps} = props
   const plainInputStyle = prefix
     ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
@@ -64,7 +62,7 @@ const ReflessNewInput = React.forwardRef<PlainInput, Props & RefProps>((props, r
         </Box>
       )}
       {!!prefix && (
-        <Text type={plainInputProps.textType ?? 'Body'} style={styles.prefix}>
+        <Text type={textType} style={styles.prefix}>
           {prefix}
         </Text>
       )}
@@ -77,21 +75,6 @@ const ReflessNewInput = React.forwardRef<PlainInput, Props & RefProps>((props, r
       />
       {props.decoration}
     </Box2>
-  )
-})
-
-const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
-  const flexable = props.flexable ?? true
-  const keyboardType = props.keyboardType ?? 'default'
-  const textType = props.textType ?? 'BodySemibold'
-  return (
-    <ReflessNewInput
-      {...props}
-      forwardedRef={ref}
-      flexable={flexable}
-      keyboardType={keyboardType}
-      textType={textType}
-    />
   )
 })
 

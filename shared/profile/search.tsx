@@ -12,7 +12,7 @@ const ProfileSearch = () => {
         icon="iconfont-search"
         onFocus={Kb.Styles.isMobile ? undefined : onSearch}
         onClick={!Kb.Styles.isMobile ? undefined : onSearch}
-        placeholderText={`Search${Kb.Styles.isMobile ? '' : ' people'}`}
+        placeholderText={Kb.Styles.isMobile ? 'Search' : 'Search people'}
         size="full-width"
         style={styles.filter}
       />
