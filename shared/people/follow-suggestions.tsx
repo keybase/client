@@ -63,7 +63,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   suggestionContainer: {
     flexShrink: 0,
     height: 112,
-    width: 112,
+    width: 120,
   },
   text: {
     marginBottom: Kb.Styles.globalMargins.tiny,
