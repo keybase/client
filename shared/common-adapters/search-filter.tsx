@@ -173,6 +173,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         : ''
     return (
       <Kb.NewInput
+        flexable={true}
         autoFocus={this.props.focusOnMount}
         value={this.text()}
         placeholder={this.props.placeholderText + hotkeyText}
