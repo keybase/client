@@ -12,106 +12,117 @@ const Row = React.memo(function Row<T>(p: {data: RowData<T>; index: number; styl
   return item ? <div style={style}>{renderItem(index, item)}</div> : null
 })
 
-class List2<T> extends React.PureComponent<Props<T>> {
-  _keyExtractor = (index: number) => {
-    const item = this.props.items[index]
-    if (this.props.indexAsKey || !item) {
-      return String(index)
-    }
+const List2 = <T,>(props: Props<T>) => {
+  const {items, indexAsKey, keyProperty, renderItem, estimatedItemHeight} = props
+  const {style, itemHeight, forceLayout} = props
+  const variableSizeListRef = React.useRef<VariableSizeList>(null)
 
-    const keyProp = this.props.keyProperty || 'key'
-    const i: {[key: string]: string} = item
-    return i[keyProp] ?? String(index)
-  }
+  const _keyExtractor = React.useCallback(
+    (index: number) => {
+      const item = items[index]
+      if (indexAsKey || !item) {
+        return String(index)
+      }
 
-  _getItemDataCached = {} as RowData<T>
-  _getItemData = () => {
-    if (
-      this._getItemDataCached.items === this.props.items &&
-      this._getItemDataCached.renderItem === this.props.renderItem
-    ) {
-      return this._getItemDataCached
+      const keyProp = keyProperty || 'key'
+      const i: {[key: string]: string} = item
+      return i[keyProp] ?? String(index)
+    },
+    [items, indexAsKey, keyProperty]
+  )
+
+  const _getItemDataCached = React.useRef<RowData<T>>()
+  const _getItemData = React.useCallback(() => {
+    if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
+      return _getItemDataCached.current
     }
-    this._getItemDataCached = {items: this.props.items, renderItem: this.props.renderItem}
-    return this._getItemDataCached
-  }
+    _getItemDataCached.current = {items, renderItem}
+    return _getItemDataCached.current
+  }, [items, renderItem])
 
   // Need to pass in itemData to make items re-render on prop changes.
-  _fixed = (p: {height: number; width: number; itemHeight: number}) => {
-    const {height, width, itemHeight} = p
-    return (
-      <FixedSizeList
-        style={this.props.style as React.CSSProperties}
-        height={height}
-        width={width}
-        itemCount={this.props.items.length}
-        itemData={this._getItemData() as any}
-        itemKey={this._keyExtractor}
-        itemSize={itemHeight}
-      >
-        {Row}
-      </FixedSizeList>
-    )
-  }
+  const _fixed = React.useCallback(
+    (p: {height: number; width: number; itemHeight: number}) => {
+      const {height, width, itemHeight} = p
+      return (
+        <FixedSizeList
+          style={style as React.CSSProperties}
+          height={height}
+          width={width}
+          itemCount={items.length}
+          itemData={_getItemData() as any}
+          itemKey={_keyExtractor}
+          itemSize={itemHeight}
+        >
+          {Row}
+        </FixedSizeList>
+      )
+    },
+    [style, items.length, _getItemData, _keyExtractor]
+  )
 
-  private variableSizeListRef = React.createRef<VariableSizeList>()
-  _variableItemSize = (index: number) =>
-    this.props.itemHeight.type === 'variable'
-      ? this.props.itemHeight.getItemLayout(index, this.props.items[index]).length
-      : 0
-  _variable = (p: {height: number; width: number}) => {
-    const {height, width} = p
-    return (
-      <VariableSizeList
-        ref={this.variableSizeListRef}
-        style={this.props.style as React.CSSProperties}
-        height={height}
-        width={width}
-        itemCount={this.props.items.length}
-        itemData={this._getItemData() as any}
-        itemKey={this._keyExtractor}
-        itemSize={this._variableItemSize}
-        estimatedItemSize={this.props.estimatedItemHeight}
-      >
-        {Row}
-      </VariableSizeList>
-    )
-  }
+  const _variableItemSize = React.useCallback(
+    (index: number) =>
+      itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index]).length : 0,
+    [itemHeight, items]
+  )
 
-  componentDidUpdate(prevProps: Props<T>) {
-    if (prevProps.forceLayout !== this.props.forceLayout) {
-      this.variableSizeListRef.current?.resetAfterIndex(0, true)
+  const _variable = React.useCallback(
+    (p: {height: number; width: number}) => {
+      const {height, width} = p
+      return (
+        <VariableSizeList
+          ref={variableSizeListRef}
+          style={style as React.CSSProperties}
+          height={height}
+          width={width}
+          itemCount={items.length}
+          itemData={_getItemData() as any}
+          itemKey={_keyExtractor}
+          itemSize={_variableItemSize}
+          estimatedItemSize={estimatedItemHeight}
+        >
+          {Row}
+        </VariableSizeList>
+      )
+    },
+    [style, items.length, _getItemData, _keyExtractor, _variableItemSize, estimatedItemHeight]
+  )
+
+  const lastForceLayoutRef = React.useRef(forceLayout)
+  React.useEffect(() => {
+    if (lastForceLayoutRef.current !== forceLayout) {
+      lastForceLayoutRef.current = forceLayout
+      variableSizeListRef.current?.resetAfterIndex(0, true)
     }
-  }
+  }, [forceLayout])
 
-  render() {
-    if (this.props.items.length === 0) return null
-    return (
-      <AutoSizer doNotBailOutOnEmptyChildren={true}>
-        {(p: {height?: number; width?: number}) => {
-          let {height = 1, width = 1} = p
-          if (isNaN(height)) {
-            height = 1
+  if (items.length === 0) return null
+  return (
+    <AutoSizer doNotBailOutOnEmptyChildren={true}>
+      {(p: {height?: number; width?: number}) => {
+        let {height = 1, width = 1} = p
+        if (isNaN(height)) {
+          height = 1
+        }
+        if (isNaN(width)) {
+          width = 1
+        }
+        switch (props.itemHeight.type) {
+          case 'fixed':
+            return _fixed({height, itemHeight: props.itemHeight.height, width})
+          case 'fixedListItem2Auto': {
+            const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+            return _fixed({height, itemHeight, width})
           }
-          if (isNaN(width)) {
-            width = 1
-          }
-          switch (this.props.itemHeight.type) {
-            case 'fixed':
-              return this._fixed({height, itemHeight: this.props.itemHeight.height, width})
-            case 'fixedListItem2Auto': {
-              const itemHeight = this.props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-              return this._fixed({height, itemHeight, width})
-            }
-            case 'variable':
-              return this._variable({height, width})
-            default:
-              return <></>
-          }
-        }}
-      </AutoSizer>
-    )
-  }
+          case 'variable':
+            return _variable({height, width})
+          default:
+            return <></>
+        }
+      }}
+    </AutoSizer>
+  )
 }
 
 export default List2
