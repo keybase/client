@@ -128,7 +128,13 @@ const Header2 = () => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <Kb.Box2 direction="horizontal" style={styles.left}>
-        {Kb.Styles.isMobile ? null : <SearchRow headerContext="chat-header" />}
+        {Kb.Styles.isMobile ? null : (
+          <Kb.BoxGrow2>
+            <Kb.Box2 direction="vertical" style={{width: '100%', height: '100%'}}>
+              <SearchRow headerContext="chat-header" />
+            </Kb.Box2>
+          </Kb.BoxGrow2>
+        )}
         <NewChatButton />
       </Kb.Box2>
       <Kb.Box2
