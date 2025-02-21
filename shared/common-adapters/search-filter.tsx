@@ -60,158 +60,170 @@ type Props = {
   measureRef?: React.RefObject<MeasureRef>
 }
 
-type State = {
-  focused: boolean
-  hover: boolean
-  text: string
+export type SearchFilterRef = {
+  blur: () => void
+  focus: () => void
 }
+const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
+  const {onChange} = props
+  const [focused, setFocused] = React.useState(props.focusOnMount || false)
+  const [hover, setHover] = React.useState(false)
+  const [text, setText] = React.useState('')
+  const inputRef = React.useRef<PlainInput>(null)
+  const mounted = React.useRef(false)
 
-class SearchFilter extends React.PureComponent<Props, State> {
-  state = {
-    // If we recieve the focusOnMount prop, then we can use autoFocus to immediately focus the input element.
-    // However we also need to make sure the state is initialized to be focused
-    // to prevent an additional render which appears to the user as the search
-    // icon and clear button appear/disappearing
-    focused: this.props.focusOnMount || false,
-    hover: false,
-    text: '',
-  }
+  const focusOnMountRef = React.useRef(props.focusOnMount)
 
-  private mounted = false
-  private inputRef: React.RefObject<PlainInput> = React.createRef()
-  private onBlur = () => {
-    this.setState({focused: false})
-    this.props.onBlur && this.props.onBlur()
-  }
-  private onFocus = () => {
-    this.setState({focused: true})
-    this.props.onFocus && this.props.onFocus()
-  }
-
-  private text = () => (this.props.valueControlled ? this.props.value : this.state.text)
-  focus = () => {
-    // When focusOnMount is true so is state.focused.
-    // This is to speed up the focus time when using focusOnMount
-    // So continue to focus() the input elemenet if both are true
-    if (this.state.focused && !this.props.focusOnMount) {
-      return
+  React.useEffect(() => {
+    mounted.current = true
+    let id = 0
+    if (focusOnMountRef.current) {
+      focusOnMountRef.current = false
+      id = setTimeout(() => {
+        if (mounted.current) {
+          inputRef.current?.focus()
+        }
+      }, 20) as unknown as number
     }
-    this.inputRef.current?.focus()
+    return () => {
+      mounted.current = false
+      clearTimeout(id)
+    }
+  }, [])
+
+  const onBlur = () => {
+    setFocused(false)
+    props.onBlur?.()
   }
-  blur = () => {
-    this.inputRef.current?.blur()
+
+  const onFocus = () => {
+    setFocused(true)
+    props.onFocus?.()
   }
-  private clear = () => {
-    this.update('')
-  }
-  private cancel = (e?: React.BaseSyntheticEvent) => {
-    this.blur()
-    this.props.onCancel ? this.props.onCancel() : this.clear()
+
+  const currentText = () => (props.valueControlled ? props.value : text)
+
+  const focus = React.useCallback(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const blur = React.useCallback(() => {
+    inputRef.current?.blur()
+  }, [])
+
+  React.useImperativeHandle(ref, () => ({blur, focus}))
+
+  const update = React.useCallback(
+    (text: string) => {
+      setText(text)
+      onChange?.(text)
+    },
+    [onChange]
+  )
+
+  const clear = React.useCallback(() => {
+    update('')
+  }, [update])
+
+  const cancel = (e?: React.BaseSyntheticEvent) => {
+    blur()
+    props.onCancel ? props.onCancel() : clear()
     e?.stopPropagation()
   }
-  private update = (text: string) => {
-    this.setState({text})
-    this.props.onChange?.(text)
-  }
-  private mouseOver = () => this.setState({hover: true})
-  private mouseLeave = () => this.setState({hover: false})
-  private onHotkey = (cmd: string) => {
-    this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this.focus()
-  }
-  private onKeyDown = (e: React.KeyboardEvent) => {
-    e.key === 'Escape' && this.cancel(e)
-    this.props.onKeyDown && this.props.onKeyDown(e)
-  }
-  private typing = () => this.state.focused || !!this.text()
-  // RN fails at tracking this keyboard if we don't delay this, making it get stuck open.
-  private focusOnMount = () => setTimeout(() => this.mounted && this.focus(), 20)
-  componentDidMount() {
-    this.mounted = true
-    this.props.focusOnMount && this.focusOnMount()
-  }
-  componentWillUnmount() {
-    this.mounted = false
-  }
-  componentDidUpdate(prevProps: Props) {
-    // Get focus on the rising edge of focusOnMount even if the component does not remount.
-    if (this.props.focusOnMount && !prevProps.focusOnMount) {
-      this.focusOnMount()
-    }
+
+  const mouseOver = () => setHover(true)
+  const mouseLeave = () => setHover(false)
+
+  const onHotkey = (cmd: string) => {
+    props.hotkey && cmd.endsWith('+' + props.hotkey) && focus()
   }
 
-  private keyHandler() {
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    e.key === 'Escape' && cancel(e)
+    props.onKeyDown?.(e)
+  }
+
+  const typing = () => focused || !!currentText()
+
+  const keyHandler = () => {
     return (
       !Styles.isMobile &&
-      this.props.hotkey &&
-      !this.props.onClick && <Kb.HotKey onHotKey={this.onHotkey} hotKeys={`mod+${this.props.hotkey}`} />
+      props.hotkey &&
+      !props.onClick && <Kb.HotKey onHotKey={onHotkey} hotKeys={`mod+${props.hotkey}`} />
     )
   }
-  private iconSizeType() {
-    return !Styles.isMobile && this.props.size === 'full-width' ? 'Default' : 'Small'
+
+  const iconSizeType = () => {
+    return !Styles.isMobile && props.size === 'full-width' ? 'Default' : 'Small'
   }
-  private iconColor() {
-    return this.props.iconColor ? this.props.iconColor : Styles.globalColors.black_50
+
+  const iconColor = () => {
+    return props.iconColor ? props.iconColor : Styles.globalColors.black_50
   }
-  private leftIcon() {
+
+  const leftIcon = () => {
     return (
-      this.props.icon &&
-      !this.typing() && (
+      props.icon &&
+      !typing() && (
         <Kb.Icon
-          type={this.props.icon}
-          sizeType={this.iconSizeType()}
-          color={this.iconColor()}
+          type={props.icon}
+          sizeType={iconSizeType()}
+          color={iconColor()}
           boxStyle={styles.icon}
-          style={!Styles.isMobile && this.props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
+          style={!Styles.isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
         />
       )
     )
   }
-  private input() {
+
+  const input = () => {
     const hotkeyText =
-      this.props.hotkey && !this.props.onClick && !this.state.focused && !Styles.isMobile
-        ? ` (${Platforms.shortcutSymbol}${this.props.hotkey.toUpperCase()})`
+      props.hotkey && !props.onClick && !focused && !Styles.isMobile
+        ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
     return (
       <Kb.NewInput
         flexable={true}
-        autoFocus={this.props.focusOnMount}
-        value={this.text()}
-        placeholder={this.props.placeholderText + hotkeyText}
-        dummyInput={this.props.dummyInput}
-        onChangeText={this.update}
-        onBlur={this.onBlur}
-        onFocus={this.onFocus}
-        onKeyDown={this.onKeyDown}
-        onKeyUp={this.props.onKeyUp}
-        onKeyPress={this.props.onKeyPress}
-        onEnterKeyDown={this.props.onEnterKeyDown}
-        ref={this.inputRef}
+        autoFocus={props.focusOnMount}
+        value={currentText()}
+        placeholder={props.placeholderText + hotkeyText}
+        dummyInput={props.dummyInput}
+        onChangeText={update}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        onKeyDown={onKeyDown}
+        onKeyUp={props.onKeyUp}
+        onKeyPress={props.onKeyPress}
+        onEnterKeyDown={props.onEnterKeyDown}
+        ref={inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
         style={styles.input}
       />
     )
   }
-  private waiting() {
+
+  const waiting = () => {
     return (
-      !!this.props.waiting &&
+      !!props.waiting &&
       (Styles.isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={false} />
       ) : (
         <Kb.Animation
           animationType={'spinner'}
           containerStyle={styles.icon}
-          style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
+          style={props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
       ))
     )
   }
-  private rightCancelIcon() {
-    let show = this.typing()
-    if (this.props.showXOverride === true) {
+
+  const rightCancelIcon = () => {
+    let show = typing()
+    if (props.showXOverride === true) {
       show = true
     }
-    if (this.props.showXOverride === false) {
+    if (props.showXOverride === false) {
       show = false
     }
     if (!show) {
@@ -219,11 +231,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
     }
     if (Styles.isMobile) {
       return (
-        <Kb.ClickableBox2 onClick={this.props.mobileCancelButton ? this.clear : this.cancel} hitSlop={10}>
+        <Kb.ClickableBox2 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10}>
           <Kb.Icon
             type="iconfont-remove"
-            sizeType={this.iconSizeType()}
-            color={this.iconColor()}
+            sizeType={iconSizeType()}
+            color={iconColor()}
             style={styles.removeIconNonFullWidth}
           />
         </Kb.ClickableBox2>
@@ -232,17 +244,13 @@ class SearchFilter extends React.PureComponent<Props, State> {
       return (
         <Kb.ClickableBox
           onClick={() => {}}
-          // use onMouseDown to work around input's onBlur disappearing the "x" button prior to onClick firing.
-          // https://stackoverflow.com/questions/9335325/blur-event-stops-click-event-from-working
-          onMouseDown={this.cancel}
-          style={
-            this.props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
-          }
+          onMouseDown={cancel}
+          style={props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
         >
           <Kb.Icon
             type="iconfont-remove"
-            sizeType={this.iconSizeType()}
-            color={this.iconColor()}
+            sizeType={iconSizeType()}
+            color={iconColor()}
             boxStyle={styles.icon}
           />
         </Kb.ClickableBox>
@@ -250,61 +258,55 @@ class SearchFilter extends React.PureComponent<Props, State> {
     }
   }
 
-  render() {
-    const content = (
-      <Kb.ClickableBox
-        style={Styles.collapseStyles([
-          styles.container,
-          this.props.placeholderCentered && styles.containerCenter,
-          !Styles.isMobile && this.props.size === 'small' && styles.containerSmall,
-          (Styles.isMobile || this.props.size === 'full-width') && styles.containerNonSmall,
-          this.state.focused || this.state.hover ? styles.light : styles.dark,
-          !Styles.isMobile && this.props.style,
-        ])}
-        onMouseOver={this.mouseOver}
-        onMouseLeave={this.mouseLeave}
-        onClick={
-          this.props.onClick ||
-          // On mobile we can't just make a null for Kb.ClickableBox here when
-          // focused, as that'd cause PlainInput to be re-constructed.
-          (Styles.isMobile || !this.state.focused ? this.focus : undefined)
-        }
-        underlayColor={Styles.globalColors.transparent}
-        hoverColor={Styles.globalColors.transparent}
-      >
-        <Kb.Box2Measure
-          ref={this.props.measureRef}
-          direction="horizontal"
-          style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
-          pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
-        >
-          {this.keyHandler()}
-          {this.leftIcon()}
-          {this.input()}
-          {this.waiting()}
-          {this.rightCancelIcon()}
-        </Kb.Box2Measure>
-      </Kb.ClickableBox>
-    )
-    return Styles.isMobile ? (
-      <Kb.Box2
+  const content = (
+    <Kb.ClickableBox
+      style={Styles.collapseStyles([
+        styles.container,
+        props.placeholderCentered && styles.containerCenter,
+        !Styles.isMobile && props.size === 'small' && styles.containerSmall,
+        (Styles.isMobile || props.size === 'full-width') && styles.containerNonSmall,
+        focused || hover ? styles.light : styles.dark,
+        !Styles.isMobile && props.style,
+      ])}
+      onMouseOver={mouseOver}
+      onMouseLeave={mouseLeave}
+      onClick={props.onClick || (Styles.isMobile || !focused ? focus : undefined)}
+      underlayColor={Styles.globalColors.transparent}
+      hoverColor={Styles.globalColors.transparent}
+    >
+      <Kb.Box2Measure
+        ref={props.measureRef}
         direction="horizontal"
-        style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
-        alignItems="center"
-        gap="xsmall"
+        style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
+        pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
       >
-        {!!this.props.mobileCancelButton && this.typing() && (
-          <Kb.Text type={'BodyBigLink'} onClick={this.cancel}>
-            Cancel
-          </Kb.Text>
-        )}
-        {content}
-      </Kb.Box2>
-    ) : (
-      content
-    )
-  }
-}
+        {keyHandler()}
+        {leftIcon()}
+        {input()}
+        {waiting()}
+        {rightCancelIcon()}
+      </Kb.Box2Measure>
+    </Kb.ClickableBox>
+  )
+
+  return Styles.isMobile ? (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.collapseStyles([styles.containerMobile, props.style])}
+      alignItems="center"
+      gap="xsmall"
+    >
+      {!!props.mobileCancelButton && typing() && (
+        <Kb.Text type={'BodyBigLink'} onClick={cancel}>
+          Cancel
+        </Kb.Text>
+      )}
+      {content}
+    </Kb.Box2>
+  ) : (
+    content
+  )
+})
 
 export default SearchFilter
 

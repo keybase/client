@@ -29,7 +29,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     toggleInboxSearch(false)
   }, [toggleInboxSearch])
 
-  const inputRef = React.useRef<Kb.SearchFilter>(null)
+  const inputRef = React.useRef<Kb.SearchFilterRef>(null)
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
