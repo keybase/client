@@ -4,7 +4,7 @@ import Box, {Box2, Box2Measure} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
 import NewInput from './new-input'
 import {HotKey} from './hot-key'
-import PlainInput from './plain-input'
+import PlainInput, {type PlainInputRef} from './plain-input'
 import Text, {type AllowedColors} from './text'
 import ProgressIndicator from './progress-indicator'
 import Icon, {type IconType} from './icon'
@@ -70,7 +70,7 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
-  const inputRef = React.useRef<PlainInput>(null)
+  const inputRef = React.useRef<PlainInputRef>(null)
   const mounted = React.useRef(false)
 
   const focusOnMountRef = React.useRef(props.focusOnMount)

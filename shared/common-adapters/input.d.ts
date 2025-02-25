@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import type {TextContentType} from './plain-input'
 
@@ -87,7 +87,7 @@ export type TextInfo = {
   selection: Selection
 }
 
-declare class Input extends React.Component<Props> {
+export type InputRef = {
   blur: () => void
   focus: () => void
   select: () => void
@@ -99,4 +99,6 @@ declare class Input extends React.Component<Props> {
   // will be called after the transform
   transformText: (fn: (t: TextInfo) => TextInfo, reflectChange?: boolean) => void
 }
+
+declare const Input: React.ForwardRefExoticComponent<Props & React.RefAttributes<InputRef>>
 export default Input

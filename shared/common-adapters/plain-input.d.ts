@@ -130,7 +130,7 @@ export type TextInfo = {
 
 export type InternalProps = Props
 
-declare class PlainInput extends React.Component<Props> {
+export type PlainInputRef = {
   blur: () => void
   clear: () => void
   focus: () => void
@@ -155,6 +155,9 @@ declare class PlainInput extends React.Component<Props> {
    **/
   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
 
-  _input: React.RefObject<{getBoundingClientRect?: () => MeasureDesktop}>
+  //_input: React.RefObject<{getBoundingClientRect?: () => MeasureDesktop}>
 }
+
+declare const PlainInput: React.ForwardRefExoticComponent<Props & React.RefAttributes<PlainInputRef>>
+
 export default PlainInput

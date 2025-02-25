@@ -11,7 +11,7 @@ import noop from 'lodash/noop'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.PlainInput>(null)
+  const ref = React.useRef<Kb.PlainInputRef>(null)
 
   return (
     <Kb.Box2

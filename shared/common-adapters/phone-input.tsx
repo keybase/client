@@ -5,7 +5,7 @@ import Text from './text'
 import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
-import PlainInput from './plain-input'
+import PlainInput, {type PlainInputRef} from './plain-input'
 import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
@@ -40,7 +40,7 @@ const Kb = {
 const normalizeCountryCode = (countryCode: string) =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
 const getCallingCode = (countryCode: string) =>
-  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)]?.callingCode ?? '' : ''
+  countryCode !== '' ? (countryData()[normalizeCountryCode(countryCode)]?.callingCode ?? '') : ''
 const getCountryEmoji = (countryCode: string) => (
   <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
 )
@@ -283,7 +283,7 @@ type OldProps = Props & {
   setFormatter: React.Dispatch<React.SetStateAction<libphonenumber.AsYouTypeFormatter | undefined>>
   prefix: string | undefined
   setPrefix: React.Dispatch<React.SetStateAction<string | undefined>>
-  phoneInputRef: React.MutableRefObject<PlainInput | null>
+  phoneInputRef: React.MutableRefObject<PlainInputRef | null>
   countrySelectorRef: React.MutableRefObject<CountrySelector | null>
   toggleShowingMenu: () => void
 }
@@ -601,7 +601,7 @@ const PhoneInput = (p: Props) => {
   const [prefix, setPrefix] = React.useState(p.defaultCountry && getCallingCode(p.defaultCountry).slice(1))
 
   const oldRef = React.useRef<_PhoneInput | null>(null)
-  const phoneInputRef = React.useRef<PlainInput | null>(null)
+  const phoneInputRef = React.useRef<PlainInputRef | null>(null)
   const countrySelectorRef = React.useRef<CountrySelector | null>(null)
 
   const onSelectCountry = React.useCallback((code: string | undefined) => {

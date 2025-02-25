@@ -187,7 +187,7 @@ const ThreadSearchDesktop = (props: SearchProps) => {
       onToggleThreadSearch()
     }
   }
-  const inputRef = React.createRef<Kb.PlainInput>()
+  const inputRef = React.createRef<Kb.PlainInputRef>()
   const onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':

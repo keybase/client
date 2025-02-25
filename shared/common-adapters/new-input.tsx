@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PlainInput, {type PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType} from './icon'
 import Text, {getStyle as getTextStyle} from './text'
@@ -17,7 +17,7 @@ export type _Props = {
 
 type Props = PropsWithInput<_Props>
 
-const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
+const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(props, ref) {
   const {textType = 'BodySemibold', onFocus: _onFocus, disabled, onBlur: _onBlur} = props
   const [focused, setFocused] = React.useState(false)
 

@@ -14,7 +14,7 @@ type AliasInputProps = {
 
 export type AliasRef = {focus: () => void}
 export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
-  const inputRef = React.useRef<Kb.PlainInput>(null)
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
   const [mounted, setMounted] = React.useState(true)
 
   const onFocus = () => {
