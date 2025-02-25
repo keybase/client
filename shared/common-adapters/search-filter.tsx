@@ -65,7 +65,8 @@ export type SearchFilterRef = {
   focus: () => void
 }
 const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
-  const {onChange} = props
+  const {onChange, onBlur: _onBlur, onFocus: _onFocus, hotkey} = props
+  const {onKeyDown: _onKeyDown, onCancel} = props
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
@@ -91,15 +92,15 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
     }
   }, [])
 
-  const onBlur = () => {
+  const onBlur = React.useCallback(() => {
     setFocused(false)
-    props.onBlur?.()
-  }
+    _onBlur?.()
+  }, [_onBlur])
 
-  const onFocus = () => {
+  const onFocus = React.useCallback(() => {
     setFocused(true)
-    props.onFocus?.()
-  }
+    _onFocus?.()
+  }, [_onFocus])
 
   const currentText = () => (props.valueControlled ? props.value : text)
 
@@ -125,23 +126,32 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
     update('')
   }, [update])
 
-  const cancel = (e?: React.BaseSyntheticEvent) => {
-    blur()
-    props.onCancel ? props.onCancel() : clear()
-    e?.stopPropagation()
-  }
+  const cancel = React.useCallback(
+    (e?: React.BaseSyntheticEvent) => {
+      blur()
+      onCancel ? onCancel() : clear()
+      e?.stopPropagation()
+    },
+    [blur, onCancel, clear]
+  )
 
-  const mouseOver = () => setHover(true)
-  const mouseLeave = () => setHover(false)
+  const mouseOver = React.useCallback(() => setHover(true), [])
+  const mouseLeave = React.useCallback(() => setHover(false), [])
 
-  const onHotkey = (cmd: string) => {
-    props.hotkey && cmd.endsWith('+' + props.hotkey) && focus()
-  }
+  const onHotkey = React.useCallback(
+    (cmd: string) => {
+      hotkey && cmd.endsWith('+' + hotkey) && focus()
+    },
+    [hotkey, focus]
+  )
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    e.key === 'Escape' && cancel(e)
-    props.onKeyDown?.(e)
-  }
+  const onKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      e.key === 'Escape' && cancel(e)
+      _onKeyDown?.(e)
+    },
+    [cancel, _onKeyDown]
+  )
 
   const typing = () => focused || !!currentText()
 

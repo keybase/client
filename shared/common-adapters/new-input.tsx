@@ -18,21 +18,21 @@ export type _Props = {
 type Props = PropsWithInput<_Props>
 
 const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
-  const {textType = 'BodySemibold'} = props
+  const {textType = 'BodySemibold', onFocus: _onFocus, disabled, onBlur: _onBlur} = props
   const [focused, setFocused] = React.useState(false)
 
-  const _onFocus = () => {
-    if (props.disabled) {
+  const onFocus = React.useCallback(() => {
+    if (disabled) {
       return
     }
     setFocused(true)
-    props.onFocus && props.onFocus()
-  }
+    _onFocus?.()
+  }, [disabled, _onFocus])
 
-  const _onBlur = () => {
+  const onBlur = React.useCallback(() => {
     setFocused(false)
-    props.onBlur && props.onBlur()
-  }
+    _onBlur?.()
+  }, [_onBlur])
 
   const textStyle = getTextStyle(textType)
   const {containerStyle, decoration, error, hideBorder, icon, prefix, ...plainInputProps} = props
@@ -66,13 +66,7 @@ const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(prop
           {prefix}
         </Text>
       )}
-      <PlainInput
-        {...plainInputProps}
-        onFocus={_onFocus}
-        onBlur={_onBlur}
-        ref={ref}
-        style={plainInputStyle}
-      />
+      <PlainInput {...plainInputProps} onFocus={onFocus} onBlur={onBlur} ref={ref} style={plainInputStyle} />
       {props.decoration}
     </Box2>
   )
