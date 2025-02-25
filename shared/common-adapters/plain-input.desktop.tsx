@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {getStyle as getTextStyle} from './text.desktop'
-import pick from 'lodash/pick'
 import logger from '@/logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
@@ -9,312 +8,343 @@ import {stringToUint8Array} from 'uint8array-extras'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
-// A plain text input component. Handles callbacks, text styling, and auto resizing but
-// adds no styling.
-class PlainInput extends React.PureComponent<InternalProps> {
-  private _input = React.createRef<HTMLTextAreaElement | HTMLInputElement | null>()
-  private _isComposingIME: boolean = false
-  private mounted: boolean = true
 
-  get value() {
-    return this._input.current?.value ?? ''
-  }
+export type PlainInputRef = {
+  blur: () => void
+  focus: () => void
+  clear: () => void
+  value: () => string
+  isFocused: () => boolean
+  transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
+  getSelection: () => {
+    end: number | null
+    start: number | null
+  } | null
+  setSelection: (s: Selection) => void
+}
 
-  // This is controlled if a value prop is passed
-  private _controlled = () => typeof this.props.value === 'string'
+type NativeTextRef = {
+  focus: () => void
+  blur: () => void
+  value: string
+  style: {height: string}
+  scrollHeight: number
+  selectionStart: number | null
+  selectionEnd: number | null
+}
 
-  private _onChange = ({target: {value = ''}}) => {
-    if (this.props.maxBytes) {
-      const {maxBytes} = this.props
-      if (stringToUint8Array(value).byteLength > maxBytes) {
+const PlainInput = React.memo(
+  React.forwardRef<PlainInputRef, InternalProps>((p, ref) => {
+    const {onKeyDown: _onKeyDown, onEnterKeyDown: _onEnterKeyDown, onKeyUp: _onKeyUp} = p
+    const {growAndScroll, multiline, onFocus: _onFocus, selectTextOnFocus, onChangeText} = p
+    const {maxBytes, globalCaptureKeypress, onBlur, onClick, style, resize, maxLength} = p
+    const {rowsMin, rowsMax, textType, padding, flexable, type} = p
+    const {autoFocus, allowKeyboardEvents, placeholder, spellCheck, disabled, value, className} = p
+    const inputRef = React.useRef<NativeTextRef>(null)
+    const isComposingIMERef = React.useRef(false)
+    const mountedRef = React.useRef(true)
+    const autoResizeLastRef = React.useRef('')
+
+    const focus = React.useCallback(() => {
+      inputRef.current?.focus()
+    }, [])
+
+    const onCompositionStart = React.useCallback(() => {
+      isComposingIMERef.current = true
+    }, [])
+
+    const onCompositionEnd = React.useCallback(() => {
+      isComposingIMERef.current = false
+    }, [])
+
+    const onKeyDown = React.useCallback(
+      (e: React.KeyboardEvent) => {
+        if (isComposingIMERef.current) {
+          return
+        }
+        _onKeyDown?.(e)
+        if (e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
+          _onEnterKeyDown?.(e)
+        }
+      },
+      [_onKeyDown, _onEnterKeyDown]
+    )
+
+    const onKeyUp = React.useCallback(
+      (e: React.KeyboardEvent) => {
+        if (isComposingIMERef.current) {
+          return
+        }
+        _onKeyUp?.(e)
+      },
+      [_onKeyUp]
+    )
+
+    const autoResize = React.useCallback(() => {
+      if (!multiline) {
+        // no resizing height on single-line inputs
         return
       }
+
+      // Allow textarea to layout automatically
+      if (growAndScroll) {
+        return
+      }
+
+      const n = inputRef.current
+      if (!n) {
+        return
+      }
+
+      // ignore if value hasn't changed
+      if (n.value === autoResizeLastRef.current) {
+        return
+      }
+      autoResizeLastRef.current = n.value
+
+      n.style.height = '1px'
+      n.style.height = `${n.scrollHeight}px`
+    }, [multiline, growAndScroll])
+
+    // This is controlled if a value prop is passed
+    const isControlled = typeof p.value === 'string'
+
+    const setSelection = React.useCallback(
+      (s: Selection) => {
+        if (!isControlled) {
+          const errMsg =
+            'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
+          logger.error(errMsg)
+          throw new Error(errMsg)
+        }
+        const n = inputRef.current
+        if (n) {
+          n.selectionStart = s.start
+          n.selectionEnd = s.end
+        }
+      },
+      [isControlled]
+    )
+
+    const onFocus = React.useCallback(() => {
+      _onFocus?.()
+      selectTextOnFocus &&
+        // doesn't work within the same tick
+        setTimeout(
+          () =>
+            mountedRef.current &&
+            setSelection({
+              end: inputRef.current?.value.length || 0,
+              start: 0,
+            })
+        )
+    }, [_onFocus, selectTextOnFocus, setSelection])
+
+    const onChange = React.useCallback(
+      ({target: {value = ''}}) => {
+        if (maxBytes) {
+          if (stringToUint8Array(value).byteLength > maxBytes) {
+            return
+          }
+        }
+
+        onChangeText?.(value)
+        autoResize()
+      },
+      [maxBytes, onChangeText, autoResize]
+    )
+
+    const globalKeyDownHandler = React.useCallback(
+      (ev: KeyboardEvent) => {
+        const target = ev.target
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+          return
+        }
+
+        const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+        const isValidSpecialKey = [
+          'Backspace',
+          'Delete',
+          'ArrowLeft',
+          'ArrowRight',
+          'ArrowUp',
+          'ArrowDown',
+          'Enter',
+        ].includes(ev.key)
+        if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+          focus()
+        }
+      },
+      [focus]
+    )
+
+    React.useEffect(() => {
+      if (globalCaptureKeypress) {
+        const body = document.body
+        body.addEventListener('keydown', globalKeyDownHandler)
+        body.addEventListener('keypress', globalKeyDownHandler)
+        return () => {
+          body.removeEventListener('keydown', globalKeyDownHandler)
+          body.removeEventListener('keypress', globalKeyDownHandler)
+        }
+      }
+      return () => {}
+    }, [globalCaptureKeypress, globalKeyDownHandler])
+
+    React.useEffect(() => {
+      mountedRef.current = true
+      return () => {
+        mountedRef.current = false
+      }
+    }, [])
+
+    const getCommonProps = () => {
+      const commonProps = {
+        autoFocus,
+        className: Styles.classNames((allowKeyboardEvents ?? true) && 'mousetrap', className),
+        maxLength,
+        onBlur,
+        onChange,
+        onClick,
+        onCompositionEnd,
+        onCompositionStart,
+        onFocus,
+        onKeyDown,
+        onKeyUp,
+        placeholder,
+        ref: inputRef,
+        spellCheck,
+        value,
+        ...(maxLength ? {maxLength} : {}),
+        ...(disabled ? {readOnly: true} : {}),
+      }
+      return commonProps
     }
 
-    this.props.onChangeText?.(value)
-    this._autoResize()
-  }
+    const getMultilineProps = () => {
+      const rows = rowsMin || Math.min(2, rowsMax || 2)
+      const textStyle = getTextStyle(textType ?? 'Body')
+      const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
+        minHeight:
+          rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
+          (padding ? Styles.globalMargins[padding] * 2 : 0),
+      }
+      if (rowsMax) {
+        heightStyles.maxHeight =
+          rowsMax * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
+      } else {
+        heightStyles.overflowY = 'hidden'
+      }
 
-  private _autoResizeLast = ''
-  private _autoResize = () => {
-    if (!this.props.multiline) {
-      // no resizing height on single-line inputs
-      return
+      const paddingStyles = padding ? Styles.padding(Styles.globalMargins[padding]) : {}
+      return {
+        ...getCommonProps(),
+        rows,
+        style: Styles.collapseStyles([
+          styles.noChrome, // noChrome comes before because we want lineHeight set in multiline
+          textStyle,
+          styles.multiline,
+          heightStyles,
+          paddingStyles,
+          resize && styles.resize,
+          growAndScroll && styles.growAndScroll,
+          style,
+        ]) as React.CSSProperties,
+      }
     }
 
-    // Allow textarea to layout automatically
-    if (this.props.growAndScroll) {
-      return
+    const getSinglelineProps = () => {
+      const textStyle = getTextStyle(textType ?? 'Body')
+      return {
+        ...getCommonProps(),
+        style: Styles.collapseStyles([
+          textStyle,
+          styles.noChrome, // noChrome comes after to unset lineHeight in singleline
+          flexable && styles.flexable,
+          style,
+        ]) as React.CSSProperties,
+        type,
+      }
     }
 
-    const n = this._input.current
-    if (!n) {
-      return
-    }
+    const inputProps = multiline ? getMultilineProps() : getSinglelineProps()
 
-    // ignore if value hasn't changed
-    if (n.value === this._autoResizeLast) {
-      return
-    }
-    this._autoResizeLast = n.value
+    const transformText = React.useCallback(
+      (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
+        if (isControlled) {
+          const errMsg =
+            'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
+          logger.error(errMsg)
+          throw new Error(errMsg)
+        }
+        const n = inputRef.current
+        if (n) {
+          const textInfo: TextInfo = {
+            selection: {
+              end: n.selectionEnd,
+              start: n.selectionStart,
+            },
+            text: n.value,
+          }
+          const newTextInfo = fn(textInfo)
+          checkTextInfo(newTextInfo)
+          n.value = newTextInfo.text
+          // if we change this immediately it can fail
+          setTimeout(() => {
+            n.selectionStart = newTextInfo.selection.start
+            n.selectionEnd = newTextInfo.selection.end
+          }, 1)
 
-    n.style.height = '1px'
-    n.style.height = `${n.scrollHeight}px`
-  }
+          if (reflectChange) {
+            onChange({target: inputRef.current})
+          }
 
-  focus = () => {
-    this._input.current?.focus()
-  }
+          autoResize()
+        }
+      },
+      [autoResize, isControlled, onChange]
+    )
 
-  clear = () => {
-    if (this._input.current) {
-      this._input.current.value = ''
-    }
-  }
-
-  blur = () => {
-    this._input.current?.blur()
-  }
-
-  isFocused = () => !!this._input.current && document.activeElement === this._input.current
-
-  transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
-    if (this._controlled()) {
-      const errMsg =
-        'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    const n = this._input.current
-    if (n) {
-      const textInfo: TextInfo = {
-        selection: {
-          end: n.selectionEnd,
-          start: n.selectionStart,
+    React.useImperativeHandle(ref, () => {
+      return {
+        blur: () => {
+          inputRef.current?.blur()
         },
-        text: n.value,
+        clear: () => {
+          if (inputRef.current) {
+            inputRef.current.value = ''
+          }
+        },
+        focus,
+        getSelection: () => {
+          const n = inputRef.current
+          if (n) {
+            return {end: n.selectionEnd, start: n.selectionStart}
+          }
+          return null
+        },
+        isFocused: () => {
+          return !!inputRef.current && document.activeElement === (inputRef.current as any)
+        },
+        setSelection,
+        transformText,
+        value: () => {
+          return inputRef.current?.value ?? ''
+        },
       }
-      const newTextInfo = fn(textInfo)
-      checkTextInfo(newTextInfo)
-      n.value = newTextInfo.text
-      // if we change this immediately it can fail
-      setTimeout(() => {
-        n.selectionStart = newTextInfo.selection.start
-        n.selectionEnd = newTextInfo.selection.end
-      }, 1)
+    })
 
-      if (reflectChange && this._input.current) {
-        this._onChange({target: this._input.current})
-      }
-
-      this._autoResize()
-    }
-  }
-
-  getSelection = () => {
-    const n = this._input.current
-    if (n) {
-      return {end: n.selectionEnd, start: n.selectionStart}
-    }
-    return null
-  }
-
-  setSelection = (s: Selection) => {
-    if (!this._controlled()) {
-      const errMsg =
-        'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    const n = this._input.current
-    if (n) {
-      n.selectionStart = s.start
-      n.selectionEnd = s.end
-    }
-  }
-
-  private _onCompositionStart = () => {
-    this._isComposingIME = true
-  }
-
-  private _onCompositionEnd = () => {
-    this._isComposingIME = false
-  }
-
-  private _onKeyDown = (e: React.KeyboardEvent) => {
-    if (this._isComposingIME) {
-      return
-    }
-    if (this.props.onKeyDown) {
-      this.props.onKeyDown(e)
-    }
-    if (this.props.onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
-      this.props.onEnterKeyDown(e)
-    }
-  }
-
-  private _onKeyUp = (e: React.KeyboardEvent) => {
-    if (this._isComposingIME) {
-      return
-    }
-    if (this.props.onKeyUp) {
-      this.props.onKeyUp(e)
-    }
-  }
-
-  private _onFocus = () => {
-    this.props.onFocus?.()
-    this.props.selectTextOnFocus &&
-      // doesn't work within the same tick
-      setTimeout(
-        () =>
-          this.mounted &&
-          this.setSelection({
-            end: this.props.value?.length || 0,
-            start: 0,
-          })
-      )
-  }
-
-  private _onBlur = () => {
-    this.props.onBlur?.()
-  }
-
-  private _getCommonProps = () => {
-    const commonProps = {
-      ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
-      autoFocus: this.props.autoFocus,
-      className: Styles.classNames(
-        (this.props.allowKeyboardEvents ?? true) && 'mousetrap',
-        this.props.className
-      ),
-      onBlur: this._onBlur,
-      onChange: this._onChange,
-      onClick: this.props.onClick,
-      onCompositionEnd: this._onCompositionEnd,
-      onCompositionStart: this._onCompositionStart,
-      onFocus: this._onFocus,
-      onKeyDown: this._onKeyDown,
-      onKeyUp: this._onKeyUp,
-      placeholder: this.props.placeholder,
-      ref: this._input,
-      spellCheck: this.props.spellCheck,
-      ...(this.props.disabled ? {readOnly: true} : {}),
-    }
-    return commonProps
-  }
-
-  private _getMultilineProps = () => {
-    const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle = getTextStyle(this.props.textType ?? 'Body')
-    const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
-      minHeight:
-        rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
-        (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
-    }
-    if (this.props.rowsMax) {
-      heightStyles.maxHeight =
-        this.props.rowsMax *
-        (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
-    } else {
-      heightStyles.overflowY = 'hidden'
-    }
-
-    const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
-    return {
-      ...this._getCommonProps(),
-      rows,
-      style: Styles.collapseStyles([
-        styles.noChrome, // noChrome comes before because we want lineHeight set in multiline
-        textStyle,
-        styles.multiline,
-        heightStyles,
-        paddingStyles,
-        this.props.resize && styles.resize,
-        this.props.growAndScroll && styles.growAndScroll,
-        this.props.style,
-      ]) as React.CSSProperties,
-    }
-  }
-
-  private _getSinglelineProps = () => {
-    const textStyle = getTextStyle(this.props.textType ?? 'Body')
-    return {
-      ...this._getCommonProps(),
-      style: Styles.collapseStyles([
-        textStyle,
-        styles.noChrome, // noChrome comes after to unset lineHeight in singleline
-        this.props.flexable && styles.flexable,
-        this.props.style,
-      ]) as React.CSSProperties,
-      type: this.props.type,
-    }
-  }
-
-  private _getInputProps = () => {
-    return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
-  }
-
-  componentDidMount() {
-    this.props.globalCaptureKeypress && this._registerBodyEvents(true)
-  }
-
-  componentDidUpdate(prevProps: InternalProps) {
-    if (this.props.globalCaptureKeypress !== prevProps.globalCaptureKeypress) {
-      this._registerBodyEvents(!!this.props.globalCaptureKeypress)
-    }
-  }
-
-  componentWillUnmount() {
-    this._registerBodyEvents(false)
-    this.mounted = false
-  }
-
-  private _registerBodyEvents = (add: boolean) => {
-    const body = document.body
-    if (add) {
-      body.addEventListener('keydown', this._globalKeyDownHandler)
-      body.addEventListener('keypress', this._globalKeyDownHandler)
-    } else {
-      body.removeEventListener('keydown', this._globalKeyDownHandler)
-      body.removeEventListener('keypress', this._globalKeyDownHandler)
-    }
-  }
-
-  private _globalKeyDownHandler = (ev: KeyboardEvent) => {
-    const target = ev.target
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      return
-    }
-
-    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidSpecialKey = [
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Enter',
-    ].includes(ev.key)
-    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this.focus()
-    }
-  }
-
-  render() {
-    const {ref, ...inputProps} = this._getInputProps()
     return (
       <>
-        {this.props.multiline ? (
-          <textarea {...inputProps} ref={ref as any as React.RefObject<HTMLTextAreaElement>} />
+        {multiline ? (
+          <textarea {...inputProps} ref={inputProps.ref as any as React.RefObject<HTMLTextAreaElement>} />
         ) : (
-          <input {...inputProps} ref={ref as any as React.RefObject<HTMLInputElement>} />
+          <input {...inputProps} ref={inputProps.ref as any as React.RefObject<HTMLInputElement>} />
         )}
       </>
     )
-  }
-}
+  })
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   flexable: {
