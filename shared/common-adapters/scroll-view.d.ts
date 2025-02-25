@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
 
@@ -46,7 +46,11 @@ export type Props = {
   onTouchEnd?: (e: GestureResponderEvent) => void
 }
 
-export default class ScrollView extends React.Component<Props> {
-  scrollTo: ((arg0: {x: number; y: number; animated?: boolean}) => void) | null
+export interface ScrollViewRef {
+  scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
   scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
 }
+
+declare const ScrollView: React.ForwardRefExoticComponent<Props & React.RefAttributes<ScrollViewRef>>
+
+export default ScrollView

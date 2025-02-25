@@ -59,7 +59,7 @@ const UserBubbleCollection = React.memo((p: {teamSoFar: Props['teamSoFar']; onRe
 
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.
-  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const scrollViewRef = React.useRef<Kb.ScrollViewRef>(null)
   const last = !!props.teamSoFar.length && props.teamSoFar.at(-1)?.userId
   const prevLast = Container.usePrevious(last)
   React.useEffect(() => {

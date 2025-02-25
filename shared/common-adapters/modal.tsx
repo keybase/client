@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import PopupDialog from './popup-dialog'
-import ScrollView from '@/common-adapters/scroll-view'
+import ScrollView, {type ScrollViewRef} from '@/common-adapters/scroll-view'
 import {Box2, Box, type LayoutEvent} from '@/common-adapters/box'
 import BoxGrow from './box-grow'
 import Text from '@/common-adapters/text'
@@ -45,7 +45,7 @@ type Props = {
   mobileStyle?: Styles.StylesCrossPlatform
   noScrollView?: boolean // content must push footer to bottom with this on.
   backgroundStyle?: Styles.StylesCrossPlatform
-  scrollViewRef?: React.Ref<ScrollView>
+  scrollViewRef?: React.Ref<ScrollViewRef>
   scrollViewContainerStyle?: Styles.StylesCrossPlatform
 
   // Desktop only popup overrides
