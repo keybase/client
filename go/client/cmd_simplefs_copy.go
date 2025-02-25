@@ -22,6 +22,7 @@ type CmdSimpleFSCopy struct {
 	recurse     bool
 	interactive bool
 	force       bool
+	noglob      bool
 	opCanceler  *OpCanceler
 }
 
@@ -53,6 +54,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "f, force",
 				Usage: "force overwrite",
 			},
+			cli.BoolFlag{
+				Name:  "G, no-glob",
+				Usage: "Do not perform glob expansion",
+			},
 			cli.IntFlag{
 				Name:  "rev",
 				Usage: "a revision number for the KBFS folder of the source paths",
@@ -80,9 +85,13 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, c.dest)
 
-	destPaths, err := doSimpleFSGlob(ctx, c.G(), cli, c.src)
-	if err != nil {
-		return err
+	destPaths := c.src
+
+	if ! c.noglob {
+		destPaths, err = doSimpleFSGlob(ctx, c.G(), cli, c.src)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Eat the error because it's ok here if the dest doesn't exist
@@ -150,6 +159,7 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	c.recurse = ctx.Bool("recursive")
 	c.interactive = ctx.Bool("interactive")
 	c.force = ctx.Bool("force")
+	c.noglob = ctx.Bool("no-glob")
 
 	if c.force && c.interactive {
 		return errors.New("force and interactive are incompatible")
