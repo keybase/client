@@ -165,9 +165,9 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input() {
-    return require('./input').default
-  },
+  // get Input() {
+  //   return require('./input').default
+  // },
   get Input2() {
     return require('./input2').Input2
   },
