@@ -8,61 +8,68 @@ import noop from 'lodash/noop'
 
 const AnimatedFlatList = ReAnimated.FlatList
 
-class List2<T> extends React.PureComponent<Props<T>> {
-  _itemRender = ({item, index}: {item: T; index: number}) => {
-    return this.props.renderItem(index, item)
-  }
+const List2 = React.memo(function List2<T>(p: Props<T>) {
+  const {indexAsKey, keyProperty, itemHeight, renderItem, ...props} = p
 
-  _getItemLayout = (data: ArrayLike<T> | null | undefined, index: number) => {
-    switch (this.props.itemHeight.type) {
-      case 'fixed':
-        return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
-      case 'fixedListItem2Auto': {
-        const itemHeight = this.props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-        return {index, length: itemHeight, offset: itemHeight * index}
+  const itemRender = React.useCallback(
+    ({item, index}: {item: T; index: number}) => {
+      return renderItem(index, item)
+    },
+    [renderItem]
+  )
+
+  const getItemLayout = React.useCallback(
+    (data: ArrayLike<T> | null | undefined, index: number) => {
+      switch (itemHeight.type) {
+        case 'fixed':
+          return {index, length: itemHeight.height, offset: itemHeight.height * index}
+        case 'fixedListItem2Auto': {
+          const length = itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+          return {index, length, offset: length * index}
+        }
+        case 'variable':
+          return {...itemHeight.getItemLayout(index, data ? data[index] : undefined)}
+        default:
+          return {index, length: 0, offset: 0}
       }
-      case 'variable':
-        return {...this.props.itemHeight.getItemLayout(index, data ? data[index] : undefined)}
-      default:
-        return {index, length: 0, offset: 0}
-    }
-  }
+    },
+    [itemHeight]
+  )
 
-  _keyExtractor = (item: T, index: number) => {
-    if (this.props.indexAsKey || !item) {
-      return String(index)
-    }
+  const keyExtractor = React.useCallback(
+    (item: T, index: number) => {
+      if (indexAsKey || !item) {
+        return String(index)
+      }
 
-    const keyProp = this.props.keyProperty || 'key'
-    const i: {[key: string]: string} = item
-    return i[keyProp] ?? String(index)
-  }
+      const keyProp = keyProperty || 'key'
+      const i: {[key: string]: string} = item
+      return i[keyProp] ?? String(index)
+    },
+    [indexAsKey, keyProperty]
+  )
 
-  render() {
-    const List = this.props.reAnimated ? AnimatedFlatList : FlatList
-    return (
-      <View style={styles.outerView}>
-        {/* need windowSize so iphone 6 doesn't have OOM issues */}
-        <List
-          overScrollMode="never"
-          bounces={this.props.bounces}
-          renderItem={this._itemRender}
-          data={this.props.items}
-          getItemLayout={(data: ArrayLike<T> | null | undefined, index: number) =>
-            this._getItemLayout(data, index)
-          }
-          keyExtractor={this._keyExtractor}
-          keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps ?? 'handled'}
-          onEndReached={this.props.onEndReached}
-          windowSize={this.props.windowSize || 10}
-          debug={false /* set to true to debug the list */}
-          contentContainerStyle={this.props.style}
-          onScrollToIndexFailed={noop}
-        />
-      </View>
-    )
-  }
-}
+  const List = props.reAnimated ? AnimatedFlatList : FlatList
+  return (
+    <View style={styles.outerView}>
+      {/* need windowSize so iphone 6 doesn't have OOM issues */}
+      <List
+        overScrollMode="never"
+        bounces={p.bounces}
+        renderItem={itemRender}
+        data={p.items}
+        getItemLayout={(data: ArrayLike<T> | null | undefined, index: number) => getItemLayout(data, index)}
+        keyExtractor={keyExtractor}
+        keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+        onEndReached={props.onEndReached}
+        windowSize={props.windowSize || 10}
+        debug={false /* set to true to debug the list */}
+        contentContainerStyle={props.style}
+        onScrollToIndexFailed={noop}
+      />
+    </View>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
