@@ -11,356 +11,324 @@ import {
   type TextInputContentSizeChangeEventData,
   type TextInputSelectionChangeEventData,
 } from 'react-native'
-import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import type {KeyboardType, Props, Selection, TextInfo, InputRef} from './input'
 import {checkTextInfo} from './input.shared'
 
-type State = {
-  focused: boolean
-  height?: number
-}
+const Input = React.forwardRef<InputRef, Props>((p, ref) => {
+  const {...props} = p
+  const {uncontrolled, value: _value, small, rowsMin, rowsMax, multiline, hideUnderline} = p
+  const {onBlur: _onBlur, onFocus: _onFocus, errorText, onChangeText: _onChangeText} = p
+  const {clearTextCounter, maxLength, autoCapitalize, autoFocus, autoCorrect, onEndEditing} = p
+  const {onEnterKeyDown, hintText, returnKeyType, type, selectTextOnFocus, textContentType} = p
+  const {inputStyle, style, hideLabel, smallLabel, smallLabelStyle, errorTextComponent, errorStyle} = p
+  const {floatingHintTextOverride, keyboardType: _keyboardType, editable} = p
 
-class Input extends React.Component<Props, State> {
-  state: State
-  private input = React.createRef<TextInput>()
-  private lastNativeText: string | undefined
-  private lastNativeSelection:
+  const [focused, setFocused] = React.useState(false)
+  const [height, setHeight] = React.useState<number | undefined>(undefined)
+
+  const inputRef = React.useRef<TextInput>(null)
+  // Needed to support wrapping with e.g. a ClickableBox. See
+  // https://facebook.github.io/react-native/docs/direct-manipulation.html .
+  const setNativeProps = React.useCallback((nativeProps: object) => {
+    inputRef.current?.setNativeProps(nativeProps)
+  }, [])
+
+  const lastNativeTextRef = React.useRef<string | undefined>()
+  const lastNativeSelectionRef = React.useRef<
     | {
         start: number | null
         end: number | null
       }
     | undefined
+  >()
 
-  private timeoutIds: Array<ReturnType<typeof setTimeout>>
+  const getValueImpl = React.useCallback(() => {
+    return (uncontrolled ? lastNativeTextRef.current : _value) || ''
+  }, [uncontrolled, _value])
 
-  private setTimeout = (f: () => void, n: number) => {
-    const id = setTimeout(f, n)
-    this.timeoutIds.push(id)
-    return id
-  }
-
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      focused: false,
-      height: undefined,
-    }
-
-    this.timeoutIds = []
-  }
-
-  componentWillUnmount() {
-    this.timeoutIds.forEach(clearTimeout)
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
-      this.clearText()
-    }
-  }
-
-  private clearText = () => {
-    if (!this.props.uncontrolled) {
-      throw new Error('clearTextCounter only works on uncontrolled components')
-    }
-
-    this.transformText(() => ({
-      selection: {end: 0, start: 0},
-      text: '',
-    }))
-  }
-
-  // Does nothing on mobile
-  select = () => {}
-
-  // Needed to support wrapping with e.g. a ClickableBox. See
-  // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-  setNativeProps = (nativeProps: object) => {
-    this.input.current?.setNativeProps(nativeProps)
-  }
-
-  private onContentSizeChange = (event?: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
-    if (
-      this.props.multiline &&
-      event?.nativeEvent.contentSize.height &&
-      event.nativeEvent.contentSize.width
-    ) {
-      let height = event.nativeEvent.contentSize.height
-      const minHeight = this.props.rowsMin && this.rowsToHeight(this.props.rowsMin)
-      const maxHeight = this.props.rowsMax && this.rowsToHeight(this.props.rowsMax)
-      if (minHeight && height < minHeight) {
-        height = minHeight
-      } else if (maxHeight && height > maxHeight) {
-        height = maxHeight
-      }
-
-      if (height !== this.state.height) {
-        this.setState({height})
-      }
-    }
-  }
-
-  private getValueImpl = () => {
-    return (this.props.uncontrolled ? this.lastNativeText : this.props.value) || ''
-  }
-
-  getValue = (): string => {
-    if (this.props.uncontrolled) {
-      return this.getValueImpl()
+  const getValue = React.useCallback((): string => {
+    if (uncontrolled) {
+      return getValueImpl()
     } else {
       throw new Error('getValue only supported on uncontrolled inputs')
     }
+  }, [getValueImpl, uncontrolled])
+
+  const selection = (): Selection => {
+    return lastNativeSelectionRef.current || {end: 0, start: 0}
   }
 
-  selection = (): Selection => {
-    return this.lastNativeSelection || {end: 0, start: 0}
-  }
-
-  private onChangeTextDone = (value: string) => {
-    this.props.onChangeText && this.props.onChangeText(value)
-  }
-
-  private onChangeText = (text: string) => {
-    this.lastNativeText = text
-    this.onChangeTextDone(text)
-  }
-
-  focus = () => {
-    this.input.current && this.input.current.focus()
-  }
-
-  blur = () => {
-    this.input.current && this.input.current.blur()
-  }
-
-  transformText = (fn: (textInfo: TextInfo) => TextInfo) => {
-    if (!this.props.uncontrolled) {
-      throw new Error('transformText can only be called on uncontrolled components')
-    }
-
-    const textInfo: TextInfo = {
-      selection: this.selection(),
-      text: this.getValueImpl(),
-    }
-    const newTextInfo = fn(textInfo)
-    checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    this.lastNativeText = newTextInfo.text
-    // Setting both the text and the selection at the same time
-    // doesn't seem to work, but setting a short timeout to set the
-    // selection does.
-    this.setTimeout(() => {
-      // It's possible that, by the time this runs, the selection is
-      // out of bounds with respect to the current text value. So fix
-      // it up if necessary.
-      const text = this.getValueImpl()
-      let {start, end} = newTextInfo.selection
-      end = Math.max(0, Math.min(end || 0, text.length))
-      start = Math.max(0, Math.min(start || 0, end))
-      const selection = {end, start}
-      this.setNativeProps({selection})
-      this.lastNativeSelection = selection
-    }, 0)
-  }
-
-  private onFocus = () => {
-    this.setState({focused: true})
-    this.props.onFocus && this.props.onFocus()
-    this.setNativeProps({style: {textAlignVertical: 'top'}})
-  }
-
-  private onBlur = () => {
-    this.setState({focused: false})
-    this.props.onBlur && this.props.onBlur()
-  }
-
-  private lineHeight = () => {
-    if (this.props.small) {
+  const lineHeight = (() => {
+    if (small) {
       return 20
-    } else if (this.props.multiline && isAndroid) {
+    } else if (multiline && isAndroid) {
       return 34
     } else return 28
+  })()
+
+  const rowsToHeight = (rows: number) => {
+    const border = hideUnderline ? 0 : 1
+    return rows * lineHeight + border
   }
 
-  private underlineColor = () => {
-    if (this.props.hideUnderline) {
-      return Styles.globalColors.transparent
+  const onContentSizeChange = (event?: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+    if (multiline && event?.nativeEvent.contentSize.height && event.nativeEvent.contentSize.width) {
+      let h = event.nativeEvent.contentSize.height
+      const minHeight = rowsMin && rowsToHeight(rowsMin)
+      const maxHeight = rowsMax && rowsToHeight(rowsMax)
+      if (minHeight && h < minHeight) {
+        h = minHeight
+      } else if (maxHeight && h > maxHeight) {
+        h = maxHeight
+      }
+      setHeight(h)
     }
-
-    if (this.props.errorText?.length) {
-      return Styles.globalColors.red
-    }
-
-    return this.state.focused ? Styles.globalColors.blue : Styles.globalColors.black_10_on_white
   }
 
-  private rowsToHeight = (rows: number) => {
-    const border = this.props.hideUnderline ? 0 : 1
-    return rows * this.lineHeight() + border
+  const underlineColor = (() => {
+    if (hideUnderline) return Styles.globalColors.transparent
+    if (errorText?.length) return Styles.globalColors.red
+    return focused ? Styles.globalColors.blue : Styles.globalColors.black_10_on_white
+  })()
+
+  const onChangeText = (text: string) => {
+    lastNativeTextRef.current = text
+    _onChangeText?.(text)
   }
 
-  private containerStyle = (underlineColor: Styles.Color) => {
-    return this.props.small
-      ? ({
-          ...Styles.globalStyles.flexBoxRow,
-          backgroundColor: Styles.globalColors.fastBlank,
-          borderBottomColor: underlineColor,
-          borderBottomWidth: 1,
-          flex: 1,
-        } as const)
-      : ({
-          ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.fastBlank,
-          justifyContent: 'flex-start',
-          maxWidth: 400,
-        } as const)
-  }
-
-  private onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+  const onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
-    this.lastNativeSelection = {end, start}
+    lastNativeSelectionRef.current = {end, start}
     // Bit of a hack here: Unlike the desktop case, where the text and
     // selection are updated simultaneously, on mobile the text gets
     // updated first, so handlers that rely on an updated selection
     // will get strange results. So trigger a text change notification
     // when the selection changes.
-    this.onChangeTextDone(this.getValueImpl())
+    _onChangeText?.(getValueImpl())
   }
 
-  render() {
-    const underlineColor = this.underlineColor()
-    const lineHeight = this.lineHeight()
-    const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
-    const containerStyle = this.containerStyle(underlineColor)
-
-    const singlelineStyle = Styles.collapseStyles([
-      styles.commonInput,
-      {
-        lineHeight: lineHeight,
-        maxHeight: lineHeight, // ensure it doesn't grow or shrink
-        minHeight: lineHeight,
-        padding: 0,
-      },
-      this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
-    ])
-
-    const multilineStyle = Styles.collapseStyles([
-      styles.commonInput,
-      {
-        height: undefined,
-        lineHeight: lineHeight,
-        minHeight: this.rowsToHeight(this.props.rowsMin || defaultRowsToShow),
-        paddingBottom: 0,
-        paddingTop: 0,
-        ...(this.props.rowsMax ? {maxHeight: this.rowsToHeight(this.props.rowsMax)} : null),
-      },
-      this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
-      // Override height if we received an onContentSizeChange() earlier.
-      isIOS && this.state.height && {height: this.state.height},
-    ])
-
-    const value = this.getValueImpl()
-
-    const floatingHintText =
-      !!value.length &&
-      (Object.hasOwn(this.props, 'floatingHintTextOverride')
-        ? this.props.floatingHintTextOverride
-        : this.props.hintText || ' ')
-
-    let keyboardType: KeyboardType | undefined = this.props.keyboardType
-    if (!keyboardType) {
-      if (isAndroid && this.props.type === 'passwordVisible') {
-        keyboardType = 'visible-password'
-      } else {
-        // Defers to secureTextEntry when props.type === 'password'.
-        keyboardType = 'default'
+  const timeoutIdsRef = React.useRef<Array<ReturnType<typeof setTimeout>>>([])
+  const transformText = React.useCallback(
+    (fn: (textInfo: TextInfo) => TextInfo) => {
+      if (!uncontrolled) {
+        throw new Error('transformText can only be called on uncontrolled components')
       }
+
+      const textInfo: TextInfo = {
+        selection: selection(),
+        text: getValueImpl(),
+      }
+      const newTextInfo = fn(textInfo)
+      checkTextInfo(newTextInfo)
+      setNativeProps({text: newTextInfo.text})
+      lastNativeTextRef.current = newTextInfo.text
+      // Setting both the text and the selection at the same time
+      // doesn't seem to work, but setting a short timeout to set the
+      // selection does.
+      const id = setTimeout(() => {
+        // It's possible that, by the time this runs, the selection is
+        // out of bounds with respect to the current text value. So fix
+        // it up if necessary.
+        const text = getValueImpl()
+        let {start, end} = newTextInfo.selection
+        end = Math.max(0, Math.min(end || 0, text.length))
+        start = Math.max(0, Math.min(start || 0, end))
+        const selection = {end, start}
+        setNativeProps({selection})
+        lastNativeSelectionRef.current = selection
+      }, 0)
+      timeoutIdsRef.current.push(id)
+    },
+    [getValueImpl, uncontrolled, setNativeProps]
+  )
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      blur: () => {
+        inputRef.current?.blur()
+      },
+      focus: () => {
+        inputRef.current?.focus()
+      },
+      getValue,
+      select: () => {
+        // Does nothing on mobile
+      },
+      selection,
+      transformText,
+    }),
+    [getValue, transformText]
+  )
+
+  React.useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach(clearTimeout)
+      timeoutIdsRef.current = []
     }
+  }, [])
 
-    // We want to be able to set the selection property,
-    // too. Unfortunately, that triggers an Android crash:
-    // https://github.com/facebook/react-native/issues/18316 .
-    const commonProps = {
-      autoCapitalize: this.props.autoCapitalize || 'none',
-      autoCorrect: Object.hasOwn(this.props, 'autoCorrect') && this.props.autoCorrect,
-      autoFocus: this.props.autoFocus,
-      editable: Object.hasOwn(this.props, 'editable') ? this.props.editable : true,
-      keyboardType,
-      onBlur: this.onBlur,
-      onChangeText: this.onChangeText,
-      onEndEditing: this.props.onEndEditing,
-      onFocus: this.onFocus,
-      onSelectionChange: this.onSelectionChange,
-      onSubmitEditing: this.props.onEnterKeyDown,
-      placeholder: this.props.hintText,
-      placeholderTextColor: Styles.globalColors.black_40,
-      ref: this.input,
-      returnKeyType: this.props.returnKeyType,
-      secureTextEntry: this.props.type === 'password',
-      selectTextOnFocus: this.props.selectTextOnFocus,
-      textContentType: this.props.textContentType,
-      underlineColorAndroid: 'transparent',
-      ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
-      ...(this.props.uncontrolled ? null : {value}),
-    } as const
+  const lastClearTextCounterRef = React.useRef(clearTextCounter)
+  React.useEffect(() => {
+    if (lastClearTextCounterRef.current !== clearTextCounter) {
+      lastClearTextCounterRef.current = clearTextCounter
 
-    const singlelineProps = {
-      ...commonProps,
-      multiline: false,
-      style: Styles.collapseStyles([singlelineStyle, this.props.inputStyle]),
+      if (!uncontrolled) {
+        throw new Error('clearTextCounter only works on uncontrolled components')
+      }
+
+      transformText(() => ({
+        selection: {end: 0, start: 0},
+        text: '',
+      }))
     }
+  }, [clearTextCounter, transformText, uncontrolled])
 
-    const multilineProps = {
-      ...commonProps,
-      blurOnSubmit: false,
-      multiline: true,
-      onContentSizeChange: this.onContentSizeChange,
-      style: Styles.collapseStyles([multilineStyle, this.props.inputStyle]),
-      ...(this.props.rowsMax ? {maxHeight: this.rowsToHeight(this.props.rowsMax)} : {}),
+  const defaultRowsToShow = Math.min(2, rowsMax || 2)
+
+  const value = getValueImpl()
+
+  const floatingHintText =
+    !!value.length &&
+    (Object.hasOwn(props, 'floatingHintTextOverride') ? floatingHintTextOverride : hintText || ' ')
+
+  let keyboardType: KeyboardType | undefined = _keyboardType
+  if (!keyboardType) {
+    if (isAndroid && type === 'passwordVisible') {
+      keyboardType = 'visible-password'
+    } else {
+      // Defers to secureTextEntry when props.type === 'password'.
+      keyboardType = 'default'
     }
-
-    return (
-      <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
-        {!this.props.small && !this.props.hideLabel && (
-          <Text center={true} type="BodySmall" style={styles.floating}>
-            {floatingHintText}
-          </Text>
-        )}
-        {!!this.props.small && !!this.props.smallLabel && !this.props.hideLabel && (
-          <Text
-            type="BodySmall"
-            style={Styles.collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
-          >
-            {this.props.smallLabel}
-          </Text>
-        )}
-        <Box
-          style={
-            this.props.small
-              ? styles.inputContainerSmall
-              : [styles.inputContainer, {borderBottomColor: underlineColor}]
-          }
-        >
-          <TextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
-        </Box>
-        {!!this.props.errorTextComponent && this.props.errorTextComponent}
-        {!this.props.small && (
-          <Text
-            center={true}
-            type="BodySmallError"
-            style={Styles.collapseStyles([styles.error, this.props.errorStyle])}
-          >
-            {this.props.errorText || ''}
-          </Text>
-        )}
-      </Box>
-    )
   }
-}
+
+  const onFocus = () => {
+    setFocused(true)
+    _onFocus?.()
+    setNativeProps({style: {textAlignVertical: 'top'}})
+  }
+
+  const onBlur = () => {
+    setFocused(false)
+    _onBlur?.()
+  }
+
+  // We want to be able to set the selection property,
+  // too. Unfortunately, that triggers an Android crash:
+  // https://github.com/facebook/react-native/issues/18316 .
+  const inputProps = {
+    autoCapitalize: autoCapitalize || 'none',
+    autoCorrect: Object.hasOwn(props, 'autoCorrect') && autoCorrect,
+    autoFocus,
+    editable: Object.hasOwn(props, 'editable') ? editable : true,
+    keyboardType,
+    onBlur,
+    onChangeText,
+    onEndEditing,
+    onFocus,
+    onSelectionChange,
+    onSubmitEditing: onEnterKeyDown,
+    placeholder: hintText,
+    placeholderTextColor: Styles.globalColors.black_40,
+    ref: inputRef,
+    returnKeyType,
+    secureTextEntry: type === 'password',
+    selectTextOnFocus,
+    textContentType,
+    underlineColorAndroid: 'transparent',
+    ...(maxLength ? {maxLength: maxLength} : null),
+    ...(uncontrolled ? null : {value}),
+    ...(multiline
+      ? {
+          blurOnSubmit: false,
+          multiline: true,
+          onContentSizeChange,
+          style: Styles.collapseStyles([
+            styles.commonInput,
+            {
+              height: undefined,
+              lineHeight,
+              minHeight: rowsToHeight(rowsMin || defaultRowsToShow),
+              paddingBottom: 0,
+              paddingTop: 0,
+              ...(rowsMax ? {maxHeight: rowsToHeight(rowsMax)} : null),
+            },
+            small ? styles.commonInputSmall : styles.commonInputRegular,
+            // Override height if we received an onContentSizeChange() earlier.
+            isIOS && height && {height: height},
+            inputStyle,
+          ]),
+          ...(rowsMax ? {maxHeight: rowsToHeight(rowsMax)} : {}),
+        }
+      : {
+          multiline: false,
+          style: Styles.collapseStyles([
+            styles.commonInput,
+            {
+              lineHeight,
+              maxHeight: lineHeight, // ensure it doesn't grow or shrink
+              minHeight: lineHeight,
+              padding: 0,
+            },
+            small ? styles.commonInputSmall : styles.commonInputRegular,
+            inputStyle,
+          ]),
+        }),
+  } as const
+
+  return (
+    <Box
+      style={Styles.collapseStyles([
+        small
+          ? ({
+              ...Styles.globalStyles.flexBoxRow,
+              backgroundColor: Styles.globalColors.fastBlank,
+              borderBottomColor: underlineColor,
+              borderBottomWidth: 1,
+              flex: 1,
+            } as const)
+          : ({
+              ...Styles.globalStyles.flexBoxColumn,
+              backgroundColor: Styles.globalColors.fastBlank,
+              justifyContent: 'flex-start',
+              maxWidth: 400,
+            } as const),
+        style,
+      ])}
+    >
+      {!small && !hideLabel && (
+        <Text center={true} type="BodySmall" style={styles.floating}>
+          {floatingHintText}
+        </Text>
+      )}
+      {!!small && !!smallLabel && !hideLabel && (
+        <Text
+          type="BodySmall"
+          style={Styles.collapseStyles([styles.smallLabel, {lineHeight}, smallLabelStyle])}
+        >
+          {smallLabel}
+        </Text>
+      )}
+      <Box
+        style={
+          small ? styles.inputContainerSmall : [styles.inputContainer, {borderBottomColor: underlineColor}]
+        }
+      >
+        <TextInput {...inputProps} />
+      </Box>
+      {!!errorTextComponent && errorTextComponent}
+      {!small && (
+        <Text center={true} type="BodySmallError" style={Styles.collapseStyles([styles.error, errorStyle])}>
+          {errorText || ''}
+        </Text>
+      )}
+    </Box>
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => {
   const _headerTextStyle = getTextStyle('Header')
