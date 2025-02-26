@@ -270,7 +270,7 @@ const EmojiPicker2 = (
       <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={mapper} />
     )
 
-  const sectionListRef = React.createRef<Kb.SectionList<Section>>()
+  const sectionListRef = React.createRef<Kb.SectionListRef>()
 
   const getBookmarkBar = (bookmarks: Array<Bookmark>) => {
     const content = (
