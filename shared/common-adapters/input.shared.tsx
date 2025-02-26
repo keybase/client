@@ -1,5 +1,3 @@
-// // TODO: PlainInput depends on this file, so migrate it over if/when Input is deprecated.
-//import type {TextInfo} from './input'
 import './input.css'
 
 type Selection = {
