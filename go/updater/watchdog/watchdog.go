@@ -95,7 +95,7 @@ func (p *Program) dieIfRunning(log Log) bool {
 	return false
 }
 
-func (p *Program) Run(log Log, shutdownCh chan struct{}) (err error) {
+func (p *Program) Run(log Log, _ chan struct{}) (err error) {
 	p.dieIfRunning(log)
 	cmd := exec.Command(p.Path, p.Args...)
 	if err = cmd.Start(); err != nil {

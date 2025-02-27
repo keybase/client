@@ -1,9 +1,10 @@
 package flip
 
 import (
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPRNG(t *testing.T) {
@@ -88,11 +89,11 @@ func TestPRNGRanges(t *testing.T) {
 		found0 := false
 		foundMax := false
 		prng := NewPRNG(secret)
-		max := n
-		if max > 0 {
-			max--
+		maxV := n
+		if maxV > 0 {
+			maxV--
 		} else {
-			max++
+			maxV++
 		}
 
 		for i := 0; i < 1000 && (!found0 || !foundMax); i++ {
@@ -100,7 +101,7 @@ func TestPRNGRanges(t *testing.T) {
 			if val == 0 {
 				found0 = true
 			}
-			if val == max {
+			if val == maxV {
 				foundMax = true
 			}
 		}

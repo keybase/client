@@ -178,7 +178,7 @@ func (d *DiskLRU) entryKey(key string) libkb.DbKey {
 	}
 }
 
-func (d *DiskLRU) readIndex(ctx context.Context, lctx libkb.LRUContext) (res *diskLRUIndex, err error) {
+func (d *DiskLRU) readIndex(_ context.Context, lctx libkb.LRUContext) (res *diskLRUIndex, err error) {
 	// Check memory and stash if we read with no error
 	if d.index != nil {
 		return d.index, nil
@@ -203,7 +203,7 @@ func (d *DiskLRU) readIndex(ctx context.Context, lctx libkb.LRUContext) (res *di
 	return res, nil
 }
 
-func (d *DiskLRU) writeIndex(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
+func (d *DiskLRU) writeIndex(_ context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
 	forceFlush bool) error {
 	if forceFlush || lctx.GetClock().Now().Sub(d.lastFlush) > d.flushDuration {
 		marshalIndex := index.Marshal()

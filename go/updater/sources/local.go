@@ -34,7 +34,7 @@ func (k LocalUpdateSource) Description() string {
 }
 
 // FindUpdate returns update for options
-func (k LocalUpdateSource) FindUpdate(options updater.UpdateOptions) (*updater.Update, error) {
+func (k LocalUpdateSource) FindUpdate(_ updater.UpdateOptions) (*updater.Update, error) {
 	jsonFile, err := os.Open(k.jsonPath)
 	defer util.Close(jsonFile)
 	if err != nil {

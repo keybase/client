@@ -351,7 +351,7 @@ func pollFor(t *testing.T, label string, totalTime time.Duration, poller func(i 
 		if since > totalTime {
 			// Game over
 			msg := fmt.Sprintf("pollFor '%s' timed out after %v attempts over %v", label, i, since)
-			t.Logf(msg)
+			t.Logf("%s", msg)
 			require.Fail(t, msg)
 			require.FailNow(t, msg)
 			return

@@ -297,7 +297,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 style={styles.iconBox} direction="horizontal">
-          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
+          <Kb.Icon
+            className="tab-icon"
+            type={Tabs.desktopTabMeta[tab].icon}
+            sizeType="Big"
+            skipColor={true}
+          />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text className="tab-label" type="BodySmallSemibold">

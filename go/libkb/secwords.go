@@ -24,9 +24,9 @@ func secWordCount(entropy int) int {
 // secWordListN returns n random words from secwords.
 func secWordListN(n int) ([]string, error) {
 	var res []string
-	max := big.NewInt(int64(len(secwords)))
+	maxI := big.NewInt(int64(len(secwords)))
 	for i := 0; i < n; i++ {
-		x, err := rand.Int(rand.Reader, max)
+		x, err := rand.Int(rand.Reader, maxI)
 		if err != nil {
 			return []string{}, err
 		}

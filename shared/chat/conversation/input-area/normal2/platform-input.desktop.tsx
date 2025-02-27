@@ -283,7 +283,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
         'Enter',
         'Escape',
       ].includes(ev.key)
-      if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+      if (ev.type === 'keypress' || ev.type === 'keydown' || isPasteKey || isValidSpecialKey) {
         focusInput()
       }
     },

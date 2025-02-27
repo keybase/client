@@ -221,7 +221,6 @@ interface State extends Store {
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean, causedByStartup: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
-    setNavigatorExists: () => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
@@ -1124,9 +1123,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       if (nextAppState === 'background' && C.useChatState.getState().inboxSearch) {
         C.useChatState.getState().dispatch.toggleInboxSearch(false)
       }
-    },
-    setNavigatorExists: () => {
-      get().dispatch.dynamic.setNavigatorExistsNative?.()
     },
     setNotifySound: n => {
       set(s => {

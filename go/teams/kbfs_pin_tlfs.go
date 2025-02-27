@@ -2,10 +2,11 @@ package teams
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	insecurerand "math/rand"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func getUnpinnedTLF(m libkb.MetaContext) (res *unpinnedTLF, err error) {
@@ -106,11 +107,11 @@ func (p defaultPinLoopTimer) StartupWait(m libkb.MetaContext) error {
 func (p defaultPinLoopTimer) LoopWait(m libkb.MetaContext, lastRes error) error {
 	// Wait at least 1 minute for the next, or 30 minutes if there was an error
 	// of any sort. Jiggle the wait for up to 3 minutes.
-	min := int64(1)
+	minV := int64(1)
 	if lastRes != nil {
-		min = int64(30)
+		minV = int64(30)
 	}
-	return p.wait(m, "next iteration", 3, min)
+	return p.wait(m, "next iteration", 3, minV)
 }
 
 type backgroundTLFPinner struct {

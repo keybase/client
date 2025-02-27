@@ -82,6 +82,6 @@ type nlistener struct {
 
 var _ libkb.NotifyListener = (*nlistener)(nil)
 
-func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
+func (n *nlistener) PaperKeyCached(_ keybase1.UID, encKID, _ keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }

@@ -432,9 +432,9 @@ func TestInboxNewMessage(t *testing.T) {
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
 	require.Equal(t, delMsg.GetMessageID(), maxMsg.GetMessageID())
-	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil))
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), delete,
+	deleteMsg := makeInboxMsg(5, chat1.MessageType_DELETE)
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), deleteMsg, nil))
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), deleteMsg,
 		[]chat1.MessageSummary{msg2.Summary()}))
 	_, res, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
 		ConvID: &convID,
@@ -443,8 +443,8 @@ func TestInboxNewMessage(t *testing.T) {
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
 	require.Equal(t, msg2.GetMessageID(), maxMsg.GetMessageID())
-	delete = makeInboxMsg(6, chat1.MessageType_DELETE)
-	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), delete, nil)
+	deleteMsg = makeInboxMsg(6, chat1.MessageType_DELETE)
+	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), deleteMsg, nil)
 	require.Error(t, err)
 	require.IsType(t, VersionMismatchError{}, err)
 

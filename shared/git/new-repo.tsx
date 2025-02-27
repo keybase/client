@@ -59,26 +59,23 @@ type Props = {
   loadTeams: () => void
 }
 
-type State = {
-  name: string
-  notifyTeam: boolean
-  selectedTeam: string
-}
-
 const NewTeamSentry = '---NewTeam---'
 
-class NewRepo extends React.Component<Props, State> {
-  state = {
-    name: '',
-    notifyTeam: true,
-    selectedTeam: '',
+const NewRepo = (props: Props) => {
+  const {teams, loadTeams, onNewTeam, isTeam, onCreate} = props
+  const [name, setName] = React.useState('')
+  const [notifyTeam, setNotifyTeam] = React.useState(true)
+  const [selectedTeam, setSelectedTeam] = React.useState('')
+
+  React.useEffect(() => {
+    loadTeams()
+  }, [loadTeams])
+
+  const makeDropdownItems = () => {
+    return (teams || []).concat(NewTeamSentry).map(makeDropdownItem)
   }
 
-  _makeDropdownItems = () => {
-    return (this.props.teams || []).concat(NewTeamSentry).map(this._makeDropdownItem)
-  }
-
-  _makeDropdownItem = (item?: string) => {
+  const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
         <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
@@ -130,94 +127,87 @@ class NewRepo extends React.Component<Props, State> {
     )
   }
 
-  _dropdownChanged = (idx: number) => {
-    const t = this.props.teams?.at(idx)
+  const dropdownChanged = (idx: number) => {
+    const t = teams?.at(idx)
     if (!t) {
-      this.props.onNewTeam()
+      onNewTeam()
     } else {
-      this.setState({selectedTeam: t})
+      setSelectedTeam(t)
     }
   }
 
-  _onSubmit = () => {
-    this.props.onCreate(this.state.name, this.state.selectedTeam, this.props.isTeam && this.state.notifyTeam)
+  const onSubmit = () => {
+    onCreate(name, selectedTeam, isTeam && notifyTeam)
   }
 
-  _canSubmit = () => {
-    return this.state.name && !(this.props.isTeam && !this.state.selectedTeam)
+  const canSubmit = () => {
+    return name && !(isTeam && !selectedTeam)
   }
-
-  componentDidMount() {
-    this.props.loadTeams()
-  }
-
-  render() {
-    return (
-      <Kb.PopupWrapper onCancel={this.props.onClose}>
-        <Kb.ScrollView>
-          <Kb.Box style={styles.container}>
-            {!!this.props.error && (
-              <Kb.Box style={styles.error}>
-                <Kb.Text type="Body" negative={true}>
-                  {this.props.error.message}
-                </Kb.Text>
-              </Kb.Box>
-            )}
-            <Kb.Text type="Header" style={{marginBottom: 27}}>
-              New {this.props.isTeam ? 'team' : 'personal'} git repository
-            </Kb.Text>
-            <Kb.Icon
-              type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-              style={styles.addIcon}
+  return (
+    <Kb.PopupWrapper onCancel={props.onClose}>
+      <Kb.ScrollView>
+        <Kb.Box style={styles.container}>
+          {!!props.error && (
+            <Kb.Box style={styles.error}>
+              <Kb.Text type="Body" negative={true}>
+                {props.error.message}
+              </Kb.Text>
+            </Kb.Box>
+          )}
+          <Kb.Text type="Header" style={{marginBottom: 27}}>
+            New {props.isTeam ? 'team' : 'personal'} git repository
+          </Kb.Text>
+          <Kb.Icon
+            type={props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+            style={styles.addIcon}
+          />
+          <Kb.Text type="Body" style={{marginBottom: 27}}>
+            {props.isTeam
+              ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
+              : 'Your repository will be encrypted and only accessible by you.'}
+          </Kb.Text>
+          {props.isTeam && (
+            <Kb.Dropdown
+              items={makeDropdownItems()}
+              selected={makeDropdownItem(selectedTeam)}
+              onChangedIdx={dropdownChanged}
+              style={styles.dropdown}
             />
-            <Kb.Text type="Body" style={{marginBottom: 27}}>
-              {this.props.isTeam
-                ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
-                : 'Your repository will be encrypted and only accessible by you.'}
-            </Kb.Text>
-            {this.props.isTeam && (
-              <Kb.Dropdown
-                items={this._makeDropdownItems()}
-                selected={this._makeDropdownItem(this.state.selectedTeam)}
-                onChangedIdx={this._dropdownChanged}
-                style={styles.dropdown}
-              />
-            )}
-            <Kb.LabeledInput
-              value={this.state.name}
-              autoFocus={true}
-              onChangeText={name => this.setState({name})}
-              placeholder="Name your repository"
-              onEnterKeyDown={this._onSubmit}
+          )}
+          <Kb.LabeledInput
+            value={name}
+            autoFocus={true}
+            onChangeText={setName}
+            placeholder="Name your repository"
+            onEnterKeyDown={onSubmit}
+          />
+          {props.isTeam && (
+            <Kb.Checkbox
+              label="Notify the team"
+              checked={notifyTeam}
+              onCheck={setNotifyTeam}
+              style={styles.checkbox}
             />
-            {this.props.isTeam && (
-              <Kb.Checkbox
-                label="Notify the team"
-                checked={this.state.notifyTeam}
-                onCheck={notifyTeam => this.setState({notifyTeam})}
-                style={styles.checkbox}
-              />
-            )}
-            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-              <Kb.WaitingButton
-                type="Dim"
-                onClick={this.props.onClose}
-                label="Cancel"
-                waitingKey={this.props.waitingKey}
-                onlyDisable={true}
-              />
-              <Kb.WaitingButton
-                onClick={this._onSubmit}
-                label="Create"
-                disabled={!this._canSubmit()}
-                waitingKey={this.props.waitingKey}
-              />
-            </Kb.ButtonBar>
-          </Kb.Box>
-        </Kb.ScrollView>
-      </Kb.PopupWrapper>
-    )
-  }
+          )}
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            <Kb.WaitingButton
+              type="Dim"
+              onClick={props.onClose}
+              label="Cancel"
+              waitingKey={props.waitingKey}
+              onlyDisable={true}
+            />
+            <Kb.WaitingButton
+              onClick={onSubmit}
+              label="Create"
+              disabled={!canSubmit()}
+              waitingKey={props.waitingKey}
+            />
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.ScrollView>
+    </Kb.PopupWrapper>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

@@ -68,8 +68,8 @@ func mustMerge(t testing.TB, storage *Storage,
 	return res
 }
 
-func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
-	for i := max; i > 0; i-- {
+func makeMsgRange(maxMsgs int) (res []chat1.MessageUnboxed) {
+	for i := maxMsgs; i > 0; i-- {
 		res = append(res, MakeText(chat1.MessageID(i), "junk text"))
 	}
 	return res
@@ -119,7 +119,7 @@ func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 	}
 }
 
-func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int) {
+func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, length int) {
 	msgs := makeMsgRange(num)
 	conv := MakeConversation(msgs[0].GetMessageID())
 	b.ResetTimer()
@@ -140,7 +140,7 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 			next, err := encode(chat1.MessageID(bi.Int64()))
 			require.NoError(b, err)
 			p := chat1.Pagination{
-				Num:  len,
+				Num:  length,
 				Next: next,
 			}
 			b.StartTimer()

@@ -30,7 +30,7 @@ func newTriggerableTimer(d time.Duration) *triggerableTimer {
 	t := &triggerableTimer{
 		C:          make(chan struct{}, 1),
 		sentinelCh: make(chan struct{}, 1),
-		timer:      time.NewTimer(0),
+		timer:      time.NewTimer(d),
 		shutdownCh: make(chan struct{}),
 	}
 	go func() {

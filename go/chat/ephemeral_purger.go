@@ -343,7 +343,7 @@ func (b *BackgroundEphemeralPurger) resetTimer(ctx context.Context, purgeInfo ch
 }
 
 func newConvLoaderEphemeralPurgeHook(g *globals.Context, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+	return func(ctx context.Context, _ chat1.ThreadView, job types.ConvLoaderJob) {
 		if _, _, err := g.ConvSource.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo); err != nil {
 			g.GetLog().CDebugf(ctx, "ephemeralPurge: %s", err)
 		}

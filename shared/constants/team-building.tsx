@@ -282,13 +282,15 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         switch (namespace) {
           case 'people': {
             get().dispatch.cancelTeamBuilding()
-            // we want the first item
-            // eslint-disable-next-line no-unreachable-loop
-            for (const user of teamSoFar) {
-              const username = user.serviceMap.keybase || user.id
-              C.useProfileState.getState().dispatch.showUserProfile(username)
-              break
-            }
+            setTimeout(() => {
+              // we want the first item
+              // eslint-disable-next-line no-unreachable-loop
+              for (const user of teamSoFar) {
+                const username = user.serviceMap.keybase || user.id
+                C.useProfileState.getState().dispatch.showUserProfile(username)
+                break
+              }
+            }, 100)
             break
           }
           default:
@@ -493,7 +495,7 @@ const createTBStore = (namespace: T.TB.AllowedNamespace) => {
 const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
-export function Provider_({children, ...props}: TBProviderProps) {
+export function TBProvider_({children, ...props}: TBProviderProps) {
   return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
 }
 

@@ -4,11 +4,12 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import java.util.Map
 
 abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaModule(context) {
 
-    abstract fun getTypedExportedConstants(): MutableMap<String, Any>
+    abstract fun getTypedConstants(): WritableMap
     abstract fun install(): Boolean
     abstract fun getDefaultCountryCode(promise: Promise)
     abstract fun logSend(status: String, feedback: String, sendLogs: Boolean, sendMaxBytes: Boolean, traceDir: String, cpuProfileDir: String, promise: Promise)

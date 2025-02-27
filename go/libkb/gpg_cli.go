@@ -289,7 +289,7 @@ func (g *GpgCLI) SemanticVersion() (*semver.Version, error) {
 }
 
 func (g *GpgCLI) VersionAtLeast(s string) (bool, error) {
-	min, err := semver.New(s)
+	minV, err := semver.New(s)
 	if err != nil {
 		return false, err
 	}
@@ -297,7 +297,7 @@ func (g *GpgCLI) VersionAtLeast(s string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return cur.GTE(*min), nil
+	return cur.GTE(*minV), nil
 }
 
 type RunGpg2Arg struct {

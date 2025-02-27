@@ -5,6 +5,7 @@ import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 
 type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
   layoutChannelname: string
   navKey: string
   selected: boolean
@@ -12,6 +13,13 @@ type Props = {
 }
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
+  return (
+    <C.ChatProvider id={props.conversationIDKey}>
+      <BigTeamChannelImpl {...props} />
+    </C.ChatProvider>
+  )
+})
+const BigTeamChannelImpl = (props: Props) => {
   const {selected, layoutChannelname, layoutSnippetDecoration} = props
   const channelname = C.useChatContext(s => s.meta.channelname || layoutChannelname)
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
@@ -140,7 +148,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
       </Kb.ClickableBox>
     </Kb.Styles.CanFixOverdrawContext.Provider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -1,6 +1,7 @@
 package ephemeral
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -204,7 +205,7 @@ func (e *EKLib) keygenIfNeededLocked(mctx libkb.MetaContext, merkleRoot libkb.Me
 
 	// Abort. We only care about calling `cleanupStaleUserAndDeviceEKs.
 	if merkleRoot.IsNil() {
-		return fmt.Errorf(SkipKeygenNilMerkleRoot)
+		return errors.New(SkipKeygenNilMerkleRoot)
 	}
 
 	if deviceEKNeeded, err := e.newDeviceEKNeeded(mctx, merkleRoot); err != nil {

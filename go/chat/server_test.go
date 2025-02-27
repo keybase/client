@@ -99,7 +99,7 @@ func (g *gregorTestConnection) Reconnect(ctx context.Context) (bool, error) {
 	return false, nil
 }
 
-func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connection,
+func (g *gregorTestConnection) OnConnect(ctx context.Context, _ *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) error {
 	g.Debug(ctx, "logged in: authenticating")
 	ac := gregor1.AuthClient{Cli: cli}

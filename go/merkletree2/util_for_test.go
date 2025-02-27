@@ -1,6 +1,7 @@
 package merkletree2
 
 import (
+	cryptorand "crypto/rand"
 	"crypto/sha512"
 	"errors"
 	"fmt"
@@ -235,7 +236,7 @@ func (i IdentityHasherBlinded) HashKeyEncodedValuePairWithKeySpecificSecretTo(ke
 
 func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error) {
 	ms := make([]byte, 1)
-	_, err := rand.Read(ms)
+	_, err := cryptorand.Read(ms)
 	return MasterSecret(ms), err
 }
 
@@ -262,7 +263,7 @@ func (i IdentityHasherBlinded) ComputeKeySpecificSecretTo(ms MasterSecret, k Key
 }
 
 // returns two disjoint lists of sorted and unique keys of size numPairs1, numPairs2
-func makeRandomKeysForTesting(keysByteLength uint, numPairs1, numPairs2 int) ([]Key, []Key, error) {
+func makeRandomKeysForTesting(keysByteLength uint, numPairs1, numPairs2 int, randSrc *rand.Rand) ([]Key, []Key, error) {
 	numPairs := numPairs1 + numPairs2
 
 	if keysByteLength < 8 && numPairs > 1<<(keysByteLength*8) {
@@ -272,7 +273,7 @@ func makeRandomKeysForTesting(keysByteLength uint, numPairs1, numPairs2 int) ([]
 	keyMap := make(map[string]bool, numPairs)
 	for len(keyMap) < numPairs {
 		key := make([]byte, keysByteLength)
-		_, err := rand.Read(key)
+		_, err := randSrc.Read(key)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -308,12 +309,12 @@ func makeRandomKeysForTesting(keysByteLength uint, numPairs1, numPairs2 int) ([]
 	return keys1, keys2, nil
 }
 
-func makeRandomKVPFromKeysForTesting(keys []Key) ([]KeyValuePair, error) {
+func makeRandomKVPFromKeysForTesting(keys []Key, randSrc *rand.Rand) ([]KeyValuePair, error) {
 	kvps := make([]KeyValuePair, len(keys))
 	valBuffer := make([]byte, 10)
 	for i, key := range keys {
 		kvps[i].Key = key
-		_, err := rand.Read(valBuffer)
+		_, err := randSrc.Read(valBuffer)
 		if err != nil {
 			return nil, err
 		}

@@ -652,7 +652,7 @@ func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversatio
 	case chat1.MessageType_PIN:
 		mv.Renderable = false
 	default:
-		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
+		return mv, fmt.Errorf("unsupported MessageType: %s", typ.String())
 	}
 
 	possiblyRevokedMark := ""

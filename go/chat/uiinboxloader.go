@@ -507,9 +507,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 				return true
 			} else if !ibadged && jbadged {
 				return false
-			} else {
-				return widgetList[i].Time.After(widgetList[j].Time)
 			}
+			return widgetList[i].Time.After(widgetList[j].Time)
 		})
 		// only set widget entries on desktop to the top 3 overall convs
 		if len(widgetList) > 5 {

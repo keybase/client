@@ -91,7 +91,7 @@ func (i *Identify2WithUIDTester) ListDisplayConfigs(libkb.MetaContext) []keybase
 }
 func (i *Identify2WithUIDTester) SuggestionFoldPriority(libkb.MetaContext) int { return 0 }
 func (i *Identify2WithUIDTester) Key() string                                  { return i.GetTypeName() }
-func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
+func (i *Identify2WithUIDTester) CheckProofText(_ string, _ keybase1.SigID, _ string) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayName() string  { return "Identify2WithUIDTester" }
@@ -101,12 +101,12 @@ func (i *Identify2WithUIDTester) GetTypeName() string  { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
-func (i *Identify2WithUIDTester) NormalizeUsername(name string) (string, error)    { return name, nil }
-func (i *Identify2WithUIDTester) PostInstructions(remotename string) *libkb.Markup { return nil }
-func (i *Identify2WithUIDTester) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (*libkb.Markup, error) {
+func (i *Identify2WithUIDTester) NormalizeUsername(name string) (string, error) { return name, nil }
+func (i *Identify2WithUIDTester) PostInstructions(_ string) *libkb.Markup       { return nil }
+func (i *Identify2WithUIDTester) RecheckProofPosting(_ int, _ keybase1.ProofStatus, _ string) (*libkb.Markup, error) {
 	return nil, nil
 }
-func (i *Identify2WithUIDTester) ToServiceJSON(remotename string) *jsonw.Wrapper { return nil }
+func (i *Identify2WithUIDTester) ToServiceJSON(_ string) *jsonw.Wrapper { return nil }
 
 func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return i
@@ -230,9 +230,9 @@ func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2ResUPK2) error {
 	i.Lock()
 	defer i.Unlock()
 	tmp := *up
-	copy := &tmp
-	copy.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
-	i.cache[up.Upk.GetUID()] = copy
+	cp := &tmp
+	cp.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
+	i.cache[up.Upk.GetUID()] = cp
 	return nil
 }
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {

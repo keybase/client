@@ -81,7 +81,7 @@ const TextInput = (props: TextProps) => {
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
-  const inputRef = React.useRef<Kb.PlainInput>(null)
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
   const onFocusInput = () => {
     inputRef.current?.focus()
   }

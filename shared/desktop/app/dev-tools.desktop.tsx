@@ -4,7 +4,7 @@ import flags from '@/util/feature-flags'
 
 export function setupDevToolsExtensions() {
   if (!skipExtensions && process.env['KEYBASE_DEV_TOOL_EXTENSIONS']) {
-    process.env['KEYBASE_DEV_TOOL_EXTENSIONS'].split(',').forEach(p => {
+    process.env['KEYBASE_DEV_TOOL_EXTENSIONS'].split(',').forEach((p: string) => {
       Electron.app
         .whenReady()
         .then(async () => {

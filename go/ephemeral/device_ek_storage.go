@@ -472,19 +472,18 @@ func (s *DeviceEKStorage) DeleteExpired(mctx libkb.MetaContext, merkleRoot libkb
 	for generation, cacheItem := range cache {
 		if cacheItem.Err != nil {
 			continue
-		} else {
-			deviceEK := cacheItem.DeviceEK
-			var ctime keybase1.Time
-			// If we have a nil root _and_ a valid DeviceCtime, use that. If we're
-			// missing a DeviceCtime it's better to use the slightly off
-			// merkleCtime than a 0
-			if merkleRoot.IsNil() && deviceEK.Metadata.DeviceCtime > 0 {
-				ctime = deviceEK.Metadata.DeviceCtime
-			} else {
-				ctime = deviceEK.Metadata.Ctime
-			}
-			keyMap[generation] = ctime
 		}
+		deviceEK := cacheItem.DeviceEK
+		var ctime keybase1.Time
+		// If we have a nil root _and_ a valid DeviceCtime, use that. If we're
+		// missing a DeviceCtime it's better to use the slightly off
+		// merkleCtime than a 0
+		if merkleRoot.IsNil() && deviceEK.Metadata.DeviceCtime > 0 {
+			ctime = deviceEK.Metadata.DeviceCtime
+		} else {
+			ctime = deviceEK.Metadata.Ctime
+		}
+		keyMap[generation] = ctime
 	}
 
 	expired = s.getExpiredGenerations(mctx, keyMap, now)

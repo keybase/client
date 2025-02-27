@@ -222,7 +222,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 				provisionee.Cancel()
 				m.Warning("DisplayAndPromptSecret error: %s", err)
 				break
-			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+			} else if len(receivedSecret.Secret) > 0 {
 				m.Debug("received secret, adding to provisionee")
 				var ks kex2.Secret
 				copy(ks[:], receivedSecret.Secret)
@@ -244,12 +244,11 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 					provisionee.AddSecret(ks.Secret())
 				}
 				break
-			} else {
-				// empty secret, so must have been a display-only case.
-				// ok to stop the loop
-				m.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
-				break
 			}
+			// empty secret, so must have been a display-only case.
+			// ok to stop the loop
+			m.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
+			break
 		}
 	}()
 
@@ -739,7 +738,7 @@ func (e *loginProvision) route(m libkb.MetaContext) (err error) {
 		// reset their account at this point.
 		// TODO: Once we make your account auto-reset after revoking your last
 		// device, change this error message.
-		return errors.New("Cannot add a new device when all existing devices are revoked. Reset your account on keybase.io.")
+		return errors.New("Cannot add a new device when all existing devices are revoked. Reset your account on keybase.io.") // nolint
 	}
 
 	// User has no existing devices or pgp keys, so create

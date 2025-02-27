@@ -70,6 +70,7 @@ export const Input2 = React.memo(
         clear: () => {
           if (i) {
             i.value = ''
+            onChange({target: i})
           }
         },
         focus: () => {

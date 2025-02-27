@@ -53,7 +53,8 @@ function startHot() {
 
   // Find extensions
 
-  const devToolRoots = !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
+  const devToolRoots: undefined | string =
+    !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
   const devToolExtensions = devToolRoots
     ? {
         KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots

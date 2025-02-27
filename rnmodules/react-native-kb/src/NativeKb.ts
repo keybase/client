@@ -4,7 +4,7 @@ export interface Spec extends TurboModule {
   install: () => boolean
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
-  getConstants(): {
+  getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
     appVersionCode: string

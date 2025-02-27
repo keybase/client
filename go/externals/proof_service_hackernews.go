@@ -84,8 +84,8 @@ func (t *HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 }
 
 func (t *HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
-	return libkb.FmtMarkup(`Please edit your HackerNews profile to contain the
-following text. Click here: https://news.ycombinator.com/user?id=` + un)
+	return libkb.FmtMarkup("%s", `Please edit your HackerNews profile to contain the
+following text. Click here: https://news.ycombinator.com/user?id=`+un)
 }
 
 func (t *HackerNewsServiceType) DisplayName() string   { return "Hacker News" }
@@ -110,10 +110,10 @@ func (t *HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, s
 
 func (t *HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string) (markup *libkb.Markup, err error) {
 	if _, e := CheckKarma(mctx, un); e != nil {
-		markup = libkb.FmtMarkup(`
+		markup = libkb.FmtMarkup("%s", `
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
-<p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
+<p>Your account <strong>`+un+`</strong> doesn't qualify or doesn't exist.</p>`)
 		mctx.Debug("Error from HN: %s", e)
 		err = libkb.NewInsufficientKarmaError(un)
 	}

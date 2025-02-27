@@ -433,11 +433,10 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 				be.Debug(ctx, "readMessages: adding placeholder: %d (blockid: %d pos: %d)",
 					lastAdded, b.BlockID, index)
 				continue
-			} else {
-				be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
-					b.BlockID, be.getMsgID(b.BlockID, index))
-				return MissError{}
 			}
+			be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
+				b.BlockID, be.getMsgID(b.BlockID, index))
+			return MissError{}
 		} else if msg.GetMessageID() <= minID {
 			// If we drop below the min ID, just bail out of here with no error
 			return nil

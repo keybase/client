@@ -1,25 +1,27 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '@/styles'
+
+export type ScrollEvent = {
+  nativeEvent?: {
+    contentSize: {
+      height: number
+      width: number
+    }
+    zoomScale: number
+    contentOffset: {
+      x: number
+      y: number
+    }
+  }
+  currentTarget?: HTMLDivElement
+}
 
 export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: (event: {
-    nativeEvent?: {
-      contentSize: {
-        height: number
-        width: number
-      }
-      zoomScale: number
-      contentOffset: {
-        x: number
-        y: number
-      }
-    }
-    currentTarget?: HTMLDivElement
-  }) => void
+  onScroll?: (event: ScrollEvent) => void
   className?: string
   ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean
@@ -44,7 +46,11 @@ export type Props = {
   onTouchEnd?: (e: GestureResponderEvent) => void
 }
 
-export default class ScrollView extends React.Component<Props> {
-  scrollTo: ((arg0: {x: number; y: number; animated?: boolean}) => void) | null
+export interface ScrollViewRef {
+  scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
   scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
 }
+
+declare const ScrollView: React.ForwardRefExoticComponent<Props & React.RefAttributes<ScrollViewRef>>
+
+export default ScrollView

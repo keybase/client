@@ -180,15 +180,12 @@ const darwinInstall = (callback: CB) => {
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
-      // eslint-disable-next-line promise/no-promise-in-callback
       loggingPromise
         .then(async () =>
-          // eslint-disable-next-line promise/no-promise-in-callback
           Electron.dialog.showMessageBox({buttons, detail, message}).then(({response}) => {
             if (response === 1) {
               ctlQuit()
             } else {
-              // eslint-disable-next-line promise/no-callback-in-promise
               callback(null)
             }
           })

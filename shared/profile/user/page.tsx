@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import type * as C from '@/constants'
 import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
 
-const Title = React.lazy(async () => import('../search/bar'))
+const Title = React.lazy(async () => import('../search'))
 const getOptions = {
   headerLeft: (p: {onPress?: () => void; tintColor: string}) => {
     return (

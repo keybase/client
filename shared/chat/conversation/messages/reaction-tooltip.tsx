@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import ReactButton from './react-button/container'
+import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from './ids-context'
 

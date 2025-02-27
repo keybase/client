@@ -14,14 +14,8 @@ export type ReportSettings = {
   includeTranscript: boolean
   reason: string
 }
-type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean; report?: ReportSettings}
-
 export type NewBlocksMap = Map<string, BlocksForUser>
-type State = {
-  blockTeam: boolean
-  finishClicked: boolean
-  newBlocks: NewBlocksMap
-}
+type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean; report?: ReportSettings}
 
 export type Props = {
   adderUsername?: string
@@ -133,62 +127,75 @@ const ReportOptions = (props: ReportOptionsProps) => {
 // In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
 type Item = 'topStuff' | {username: string}
 
-class BlockModal extends React.PureComponent<Props, State> {
-  state: State = {
-    blockTeam: true,
-    finishClicked: false,
-    // newBlocks holds a Map of blocks that will be applied when user clicks
-    // "Finish" button. reports is the same thing for reporting.
-    newBlocks: new Map(),
-  }
+const BlockModal = React.memo((p: Props) => {
+  const {finishWaiting, onClose, refreshBlocks, context, blockUserByDefault, adderUsername, otherUsernames} =
+    p
+  const {reportsUserByDefault, flagUserByDefault} = p
+  const [blockTeam, setBlockTeam] = React.useState(true)
+  const [finishClicked, setFinishClicked] = React.useState(false)
+  // newBlocks holds a Map of blocks that will be applied when user clicks
+  // "Finish" button. reports is the same thing for reporting.
+  const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(new Map())
 
-  componentDidMount() {
+  const loadedOnceRef = React.useRef(false)
+  React.useEffect(() => {
+    if (loadedOnceRef.current) return
+    loadedOnceRef.current = true
+
     // Once we get here, trigger actions to refresh current block state of
     // users.
-    this.props.refreshBlocks()
+    refreshBlocks()
 
     // Set default checkbox block values for adder user. We don't care if they
     // are already blocked, setting a block is idempotent.
-    if (this.props.blockUserByDefault && this.props.adderUsername) {
-      const map = this.state.newBlocks
-      map.set(this.props.adderUsername, {
+    if (blockUserByDefault && adderUsername) {
+      const map = newBlocks
+      map.set(adderUsername, {
         chatBlocked: true,
         followBlocked: true,
-        report: this.props.reportsUserByDefault
+        report: reportsUserByDefault
           ? {
               ...defaultReport,
-              ...(this.props.flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
+              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
             }
           : undefined,
       })
-      this.setState({newBlocks: new Map(map)})
+      setNewBlocks(new Map(map))
     }
-    if (this.props.context === 'message-popup') {
+    if (context === 'message-popup') {
       // Do not block conversation by default when coming from message popup
       // menu.
-      this.setState({blockTeam: false})
+      setBlockTeam(false)
     }
-  }
+  }, [
+    adderUsername,
+    blockUserByDefault,
+    context,
+    flagUserByDefault,
+    newBlocks,
+    refreshBlocks,
+    reportsUserByDefault,
+  ])
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.state.finishClicked && prevProps.finishWaiting && !this.props.finishWaiting) {
-      this.props.onClose()
+  const lastFinishWaitingRef = React.useRef(finishWaiting)
+  React.useEffect(() => {
+    if (finishClicked && lastFinishWaitingRef.current && !finishWaiting) {
+      onClose()
     }
-  }
+    lastFinishWaitingRef.current = finishWaiting
+  }, [finishClicked, onClose, finishWaiting])
 
-  getBlockFor(username: string, which: BlockType) {
+  const getBlockFor = (username: string, which: BlockType) => {
     // First get a current setting from a checkbox, if user has checked anything.
-    const {newBlocks} = this.state
     const current = newBlocks.get(username)
     if (current?.[which] !== undefined) {
       return current[which] || false
     }
     // If we don't have a checkbox, check the store for current block value.
-    return this.props.isBlocked(username, which)
+    return p.isBlocked(username, which)
   }
 
-  setReportForUsername = (username: string, shouldReport: boolean) => {
-    const {newBlocks} = this.state
+  const setReportForUsername = (username: string, shouldReport: boolean) => {
     const current = newBlocks.get(username)
     if (current) {
       if (current.report === undefined && shouldReport) {
@@ -201,21 +208,19 @@ class BlockModal extends React.PureComponent<Props, State> {
       newBlocks.set(username, {report: {...defaultReport}})
     }
     // Need to make a new object so the component re-renders.
-    this.setState({newBlocks: new Map(newBlocks)})
+    setNewBlocks(new Map(newBlocks))
   }
 
-  setReportReasonForUsername = (username: string, reason: string) => {
-    const {newBlocks} = this.state
+  const setReportReasonForUsername = (username: string, reason: string) => {
     const current = newBlocks.get(username)
     if (current?.report) {
       current.report.reason = reason
       newBlocks.set(username, current)
-      this.setState({newBlocks: new Map(newBlocks)})
+      setNewBlocks(new Map(newBlocks))
     }
   }
 
-  setBlockFor(username: string, which: BlockType, block: boolean) {
-    const {newBlocks} = this.state
+  const setBlockFor = (username: string, which: BlockType, block: boolean) => {
     const current = newBlocks.get(username)
     if (current) {
       current[which] = block
@@ -224,92 +229,89 @@ class BlockModal extends React.PureComponent<Props, State> {
       newBlocks.set(username, {[which]: block})
     }
     // Need to make a new object so the component re-renders.
-    this.setState({newBlocks: new Map(newBlocks)})
+    setNewBlocks(new Map(newBlocks))
   }
 
-  setBlockTeam = (checked: boolean) => {
-    this.setState({blockTeam: checked})
-  }
-
-  setExtraNotesForUsername = (username: string, extraNotes: string) => {
-    const {newBlocks} = this.state
+  const setExtraNotesForUsername = (username: string, extraNotes: string) => {
     const current = newBlocks.get(username)
     if (current?.report) {
       current.report.extraNotes = extraNotes
       newBlocks.set(username, current)
-      this.setState({newBlocks: new Map(newBlocks)})
+      setNewBlocks(new Map(newBlocks))
     }
   }
 
-  setIncludeTranscriptForUsername = (username: string, includeTranscript: boolean) => {
-    const {newBlocks} = this.state
+  const setIncludeTranscriptForUsername = (username: string, includeTranscript: boolean) => {
     const current = newBlocks.get(username)
     if (current?.report) {
       current.report.includeTranscript = includeTranscript
       newBlocks.set(username, current)
-      this.setState({newBlocks: new Map(newBlocks)})
+      setNewBlocks(new Map(newBlocks))
     }
   }
 
-  onFinish = () => {
-    this.setState({finishClicked: true})
-    this.props.onFinish(this.state.newBlocks, this.state.blockTeam)
+  const onFinish = () => {
+    setFinishClicked(true)
+    p.onFinish(newBlocks, blockTeam)
   }
 
-  shouldShowReport = (username: string): boolean => {
-    if (this.props.adderUsername) {
-      return username === this.props.adderUsername
+  const shouldShowReport = (username: string): boolean => {
+    if (adderUsername) {
+      return username === adderUsername
     }
     return true
   }
 
-  getShouldReport = (username: string): boolean => this.state.newBlocks.get(username)?.report !== undefined
-  getIncludeTranscript = (username: string): boolean =>
-    this.state.newBlocks.get(username)?.report?.includeTranscript ?? false
-  getReportReason = (username: string): string =>
-    this.state.newBlocks.get(username)?.report?.reason ?? reasons[0]
-  getExtraNotes = (username: string): string => this.state.newBlocks.get(username)?.report?.extraNotes ?? ''
+  const getShouldReport = (username: string): boolean => newBlocks.get(username)?.report !== undefined
+  const getIncludeTranscript = (username: string): boolean =>
+    newBlocks.get(username)?.report?.includeTranscript ?? false
+  const getReportReason = (username: string): string => newBlocks.get(username)?.report?.reason ?? reasons[0]
+  const getExtraNotes = (username: string): string => newBlocks.get(username)?.report?.extraNotes ?? ''
 
-  renderRowsForUsername = (username: string, last: boolean, teamLabel?: boolean): React.ReactElement => (
+  const renderRowsForUsername = (
+    username: string,
+    last: boolean,
+    teamLabel?: boolean
+  ): React.ReactElement => (
     <>
       <CheckboxRow
         text={
           !teamLabel
-            ? `${this.props.filterUserByDefault ? 'Filter' : 'Block'} ${username}`
-            : `${this.props.filterUserByDefault ? 'Filter' : 'Block'} ${username} from messaging me directly`
+            ? `${p.filterUserByDefault ? 'Filter' : 'Block'} ${username}`
+            : `${p.filterUserByDefault ? 'Filter' : 'Block'} ${username} from messaging me directly`
         }
-        onCheck={checked => this.setBlockFor(username, 'chatBlocked', checked)}
-        checked={this.getBlockFor(username, 'chatBlocked')}
+        onCheck={checked => setBlockFor(username, 'chatBlocked', checked)}
+        checked={getBlockFor(username, 'chatBlocked')}
         info={`${username} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
         key={`block-${username}`}
       />
       <CheckboxRow
         text={`Hide ${username} from your followers`}
-        onCheck={checked => this.setBlockFor(username, 'followBlocked', checked)}
-        checked={this.getBlockFor(username, 'followBlocked')}
+        onCheck={checked => setBlockFor(username, 'followBlocked', checked)}
+        checked={getBlockFor(username, 'followBlocked')}
         info={`If ${username} chooses to follow you on Keybase, they still won't show up in the list when someone views your profile.`}
         key={`hide-${username}`}
       />
-      {this.shouldShowReport(username) && (
+      {shouldShowReport(username) && (
         <>
           <CheckboxRow
             text={`Report ${username} to Keybase admins`}
-            onCheck={shouldReport => this.setReportForUsername(username, shouldReport)}
-            checked={this.getShouldReport(username)}
+            onCheck={shouldReport => setReportForUsername(username, shouldReport)}
+            checked={getShouldReport(username)}
             key={`report-${username}`}
           />
-          {this.getShouldReport(username) && (
+          {getShouldReport(username) && (
             <>
               <ReportOptions
-                extraNotes={this.getExtraNotes(username)}
-                includeTranscript={this.getIncludeTranscript(username)}
-                reason={this.getReportReason(username)}
-                setExtraNotes={(notes: string) => this.setExtraNotesForUsername(username, notes)}
+                extraNotes={getExtraNotes(username)}
+                includeTranscript={getIncludeTranscript(username)}
+                reason={getReportReason(username)}
+                setExtraNotes={(notes: string) => setExtraNotesForUsername(username, notes)}
                 setIncludeTranscript={(include: boolean) =>
-                  this.setIncludeTranscriptForUsername(username, include)
+                  setIncludeTranscriptForUsername(username, include)
                 }
-                setReason={(reason: string) => this.setReportReasonForUsername(username, reason)}
-                showIncludeTranscript={!!this.props.convID}
+                setReason={(reason: string) => setReportReasonForUsername(username, reason)}
+                showIncludeTranscript={!!p.convID}
                 key={`reportoptions-${username}`}
               />
             </>
@@ -319,93 +321,90 @@ class BlockModal extends React.PureComponent<Props, State> {
       {!last && <Kb.Divider key={`divider-${username}`} />}
     </>
   )
-  render() {
-    const {teamname, adderUsername} = this.props
 
-    const header = {
-      leftButton: Styles.isMobile ? (
-        <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
-          Cancel
-        </Kb.Text>
-      ) : undefined,
-      title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Styles.globalColors.red} />,
-    }
+  const {teamname} = p
 
-    if (this.props.loadingWaiting) {
-      return (
-        <Kb.Modal mode="Default" header={header}>
-          <Kb.Box style={styles.loadingAnimationBox}>
-            <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-          </Kb.Box>
-        </Kb.Modal>
-      )
-    }
+  const header = {
+    leftButton: Styles.isMobile ? (
+      <Kb.Text onClick={onClose} type="BodyPrimaryLink">
+        Cancel
+      </Kb.Text>
+    ) : undefined,
+    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Styles.globalColors.red} />,
+  }
 
-    const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
-    const teamLabel = this.props.context === 'message-popup'
-
-    const topStuff = (
-      <React.Fragment key="topStuff">
-        {(!!teamname || !adderUsername) && (
-          <>
-            <CheckboxRow
-              text={`Leave and block ${teamname || 'this conversation'}`}
-              onCheck={this.setBlockTeam}
-              checked={this.state.blockTeam}
-              disabled={teamCheckboxDisabled}
-            />
-            <Kb.Divider />
-          </>
-        )}
-        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
-        {!!this.props.otherUsernames?.length && (
-          <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-            <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-          </Kb.Box2>
-        )}
-      </React.Fragment>
-    )
-
-    const items: Array<Item> = ['topStuff']
-    this.props.otherUsernames?.forEach(username => items.push({username}))
+  if (p.loadingWaiting) {
     return (
-      <Kb.Modal
-        mode="Default"
-        onClose={this.props.onClose}
-        header={header}
-        footer={{
-          content: (
-            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-              {!Styles.isMobile && (
-                <Kb.Button fullWidth={true} label="Cancel" onClick={this.props.onClose} type="Dim" />
-              )}
-              <Kb.WaitingButton label="Finish" onClick={this.onFinish} fullWidth={true} type="Danger" />
-            </Kb.ButtonBar>
-          ),
-        }}
-        noScrollView={true}
-      >
-        <Kb.List
-          items={items}
-          renderItem={(idx: number, item: Item) =>
-            item === 'topStuff'
-              ? topStuff
-              : this.renderRowsForUsername(item.username, idx === this.props.otherUsernames?.length)
-          }
-          indexAsKey={true}
-          style={
-            Styles.isMobile
-              ? styles.grow
-              : getListHeightStyle(
-                  this.props.otherUsernames?.length ?? 0,
-                  !!this.props.adderUsername && this.getShouldReport(this.props.adderUsername)
-                )
-          }
-        />
+      <Kb.Modal mode="Default" header={header}>
+        <Kb.Box style={styles.loadingAnimationBox}>
+          <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
+        </Kb.Box>
       </Kb.Modal>
     )
   }
-}
+
+  const teamCheckboxDisabled = !!teamname && !otherUsernames?.length && !adderUsername
+  const teamLabel = context === 'message-popup'
+
+  const topStuff = (
+    <React.Fragment key="topStuff">
+      {(!!teamname || !adderUsername) && (
+        <>
+          <CheckboxRow
+            text={`Leave and block ${teamname || 'this conversation'}`}
+            onCheck={setBlockTeam}
+            checked={blockTeam}
+            disabled={teamCheckboxDisabled}
+          />
+          <Kb.Divider />
+        </>
+      )}
+      {!!adderUsername && renderRowsForUsername(adderUsername, true, teamLabel)}
+      {!!otherUsernames?.length && (
+        <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+          <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+        </Kb.Box2>
+      )}
+    </React.Fragment>
+  )
+
+  const items: Array<Item> = ['topStuff']
+  otherUsernames?.forEach(username => items.push({username}))
+  return (
+    <Kb.Modal
+      mode="Default"
+      onClose={onClose}
+      header={header}
+      footer={{
+        content: (
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!Styles.isMobile && <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />}
+            <Kb.WaitingButton label="Finish" onClick={onFinish} fullWidth={true} type="Danger" />
+          </Kb.ButtonBar>
+        ),
+      }}
+      noScrollView={true}
+    >
+      <Kb.List
+        items={items}
+        renderItem={(idx: number, item: Item) =>
+          item === 'topStuff'
+            ? topStuff
+            : renderRowsForUsername(item.username, idx === otherUsernames?.length)
+        }
+        indexAsKey={true}
+        style={
+          Styles.isMobile
+            ? styles.grow
+            : getListHeightStyle(
+                otherUsernames?.length ?? 0,
+                !!adderUsername && getShouldReport(adderUsername)
+              )
+        }
+      />
+    </Kb.Modal>
+  )
+})
 
 export default BlockModal
 
