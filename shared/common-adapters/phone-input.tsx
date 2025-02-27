@@ -285,54 +285,10 @@ type OldProps = Props & {
   countrySelectorRef: React.MutableRefObject<CountrySelectorRef | null>
   toggleShowingMenu: () => void
   reformatPhoneNumberSkipCountry: (_newText: string) => void
+  setCountry2NoKeepPrefix: (_country: string) => void
 }
 
 class _PhoneInput extends React.Component<OldProps> {
-  // TODO exposed
-  setCountry2NoKeepPrefix = (_country: string) => {
-    let country = _country
-    if (this.props.country !== country) {
-      country = normalizeCountryCode(country)
-
-      this.props.setCountry(country)
-      this.props.setFormatter(country ? new AsYouTypeFormatter(country) : undefined)
-
-      // Special behaviour for NA numbers
-      if (getCallingCode(country).length === 6) {
-        this.props.reformatPhoneNumberSkipCountry(getCallingCode(country).slice(-3))
-      } else {
-        this.props.reformatPhoneNumberSkipCountry('')
-      }
-
-      const _newText = getCallingCode(country).slice(1)
-      let newText = filterNumeric(_newText)
-      // NA countries that use area codes require special behaviour
-      if (newText.length === 4) {
-        newText = newText[0]!
-      }
-      this.props.setPrefix(newText)
-    }
-  }
-
-  componentDidUpdate(prevProps: OldProps) {
-    if (this.props.formatted !== prevProps.formatted) {
-      const validation = validateNumber(this.props.formatted, this.props.country)
-      this.props.onChangeNumber(validation.e164, validation.valid)
-    }
-
-    if (prevProps.defaultCountry) {
-      return null
-    }
-
-    if (!this.props.country && this.props.defaultCountry) {
-      this.props.setCountry(this.props.defaultCountry)
-      this.props.setFormatter(new AsYouTypeFormatter(this.props.defaultCountry))
-      this.props.setPrefix(getCallingCode(this.props.defaultCountry).slice(1))
-    }
-
-    return null
-  }
-
   render() {
     const isSmall = this.props.small ?? !Styles.isMobile
 
@@ -444,7 +400,7 @@ class _PhoneInput extends React.Component<OldProps> {
           // First look it up against the table
           const possibleMatch = codeToCountry()[extPrefix]
           if (possibleMatch) {
-            this.setCountry2NoKeepPrefix(possibleMatch)
+            this.props.setCountry2NoKeepPrefix(possibleMatch)
           } else if (areaCodeIsCanadian(areaCode)) {
             // Otherwise determine the country using the hardcoded ranges
             setCountry2KeepPrefix('CA')
@@ -542,10 +498,10 @@ class _PhoneInput extends React.Component<OldProps> {
                   let newText = filterNumeric(_newText)
                   const matchedCountry = codeToCountry()[newText]
                   if (matchedCountry) {
-                    this.setCountry2NoKeepPrefix(matchedCountry)
+                    this.props.setCountry2NoKeepPrefix(matchedCountry)
                   } else {
                     // Invalid country
-                    this.setCountry2NoKeepPrefix('')
+                    this.props.setCountry2NoKeepPrefix('')
                   }
 
                   // NA countries that use area codes require special behaviour
@@ -600,6 +556,7 @@ class _PhoneInput extends React.Component<OldProps> {
 }
 
 const PhoneInput = (p: Props) => {
+  const {onChangeNumber} = p
   const [country, setCountry] = React.useState(p.defaultCountry)
   const [focused, setFocused] = React.useState(false)
   const [formatted, setFormatted] = React.useState('')
@@ -612,10 +569,79 @@ const PhoneInput = (p: Props) => {
   const phoneInputRef = React.useRef<PlainInputRef | null>(null)
   const countrySelectorRef = React.useRef<CountrySelectorRef | null>(null)
 
-  const onSelectCountry = React.useCallback((code: string | undefined) => {
-    oldRef.current?.setCountry2NoKeepPrefix(code ?? '')
-    phoneInputRef.current?.focus()
-  }, [])
+  // AsYouTypeFormatter doesn't support backspace
+  // To get around this, on every text change:
+  // 1. Clear the formatter
+  // 2. Remove any non-numerics from the text
+  // 3. Feed the new text into the formatter char by char
+  // 4. Set the value of the input to the new formatted
+  const reformatPhoneNumberSkipCountry = React.useCallback(
+    (_newText: string) => {
+      if (!formatter) {
+        return
+      }
+
+      let newText = _newText
+
+      // ACME DIGIT REMOVAL MACHINE 5000
+      // This code works around iOS not letting you accurately move your cursor
+      // anymore. Fixes editing "middle" numbers in the phone number input.
+      // 1) It doesn't run in reformats with skipCountry:true
+      // 2) It only runs when the total length decreased
+      // 3) It only runs when we had formatted text before
+      // 4) It should not do anything if it wasn't a whitespace change in the middle
+
+      formatter.clear()
+      newText = filterNumeric(newText)
+
+      if (newText.trim().length === 0) {
+        setFormatted('')
+        return
+      }
+      for (let i = 0; i < newText.length - 1; i++) {
+        formatter.inputDigit(newText[i]!)
+      }
+      const formatted = formatter.inputDigit(newText.at(-1)!)
+      setFormatted(formatted)
+    },
+    [formatter]
+  )
+
+  const setCountry2NoKeepPrefix = React.useCallback(
+    (_country: string) => {
+      let c = _country
+      if (country !== c) {
+        c = normalizeCountryCode(c)
+
+        setCountry(c)
+        setFormatter(c ? new AsYouTypeFormatter(c) : undefined)
+
+        // Special behaviour for NA numbers
+        if (getCallingCode(c).length === 6) {
+          reformatPhoneNumberSkipCountry(getCallingCode(c).slice(-3))
+        } else {
+          reformatPhoneNumberSkipCountry('')
+        }
+
+        const _newText = getCallingCode(c).slice(1)
+        let newText = filterNumeric(_newText)
+        // NA countries that use area codes require special behaviour
+        if (newText.length === 4) {
+          newText = newText[0]!
+        }
+        setPrefix(newText)
+      }
+    },
+    [country, reformatPhoneNumberSkipCountry]
+  )
+
+  const onSelectCountry = React.useCallback(
+    (code: string | undefined) => {
+      setCountry2NoKeepPrefix(code ?? '')
+      phoneInputRef.current?.focus()
+    },
+    [setCountry2NoKeepPrefix]
+  )
 
   const {defaultCountry} = p
 
@@ -653,46 +679,35 @@ const PhoneInput = (p: Props) => {
     toggleShowingMenu(showPopup)
   }, [toggleShowingMenu, showPopup])
 
-  // AsYouTypeFormatter doesn't support backspace
-  // To get around this, on every text change:
-  // 1. Clear the formatter
-  // 2. Remove any non-numerics from the text
-  // 3. Feed the new text into the formatter char by char
-  // 4. Set the value of the input to the new formatted
-  const reformatPhoneNumberSkipCountry = (_newText: string) => {
-    if (!formatter) {
+  const lastFormattedRef = React.useRef(formatted)
+  React.useEffect(() => {
+    if (lastFormattedRef.current !== formatted) {
+      lastFormattedRef.current = formatted
+      const validation = validateNumber(formatted, country)
+      onChangeNumber(validation.e164, validation.valid)
+    }
+  }, [formatted, onChangeNumber, country])
+
+  const lastDefaultCountryRef = React.useRef(defaultCountry)
+
+  React.useEffect(() => {
+    if (lastDefaultCountryRef.current) {
       return
     }
-
-    let newText = _newText
-
-    // ACME DIGIT REMOVAL MACHINE 5000
-    // This code works around iOS not letting you accurately move your cursor
-    // anymore. Fixes editing "middle" numbers in the phone number input.
-    // 1) It doesn't run in reformats with skipCountry:true
-    // 2) It only runs when the total length decreased
-    // 3) It only runs when we had formatted text before
-    // 4) It should not do anything if it wasn't a whitespace change in the middle
-
-    formatter.clear()
-    newText = filterNumeric(newText)
-
-    if (newText.trim().length === 0) {
-      setFormatted('')
-      return
+    lastDefaultCountryRef.current = defaultCountry
+    if (!country && defaultCountry) {
+      setCountry(defaultCountry)
+      setFormatter(new AsYouTypeFormatter(defaultCountry))
+      setPrefix(getCallingCode(defaultCountry).slice(1))
     }
-    for (let i = 0; i < newText.length - 1; i++) {
-      formatter.inputDigit(newText[i]!)
-    }
-    const formatted = formatter.inputDigit(newText.at(-1)!)
-    setFormatted(formatted)
-  }
+  }, [country, defaultCountry])
 
   // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
   // want to rewrite this now
   return (
     <_PhoneInput
       reformatPhoneNumberSkipCountry={reformatPhoneNumberSkipCountry}
+      setCountry2NoKeepPrefix={setCountry2NoKeepPrefix}
       {...p}
       ref={oldRef}
       popup={popup}
