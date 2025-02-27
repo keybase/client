@@ -268,295 +268,8 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-type OldProps = Props & {
-  popup: React.ReactNode
-  popupAnchor: React.RefObject<MeasureRef>
-  country: string | undefined
-  setCountry: React.Dispatch<React.SetStateAction<string | undefined>>
-  focused: boolean
-  setFocused: React.Dispatch<React.SetStateAction<boolean>>
-  formatted: string
-  setFormatted: React.Dispatch<React.SetStateAction<string>>
-  formatter?: libphonenumber.AsYouTypeFormatter
-  setFormatter: React.Dispatch<React.SetStateAction<libphonenumber.AsYouTypeFormatter | undefined>>
-  prefix: string | undefined
-  setPrefix: React.Dispatch<React.SetStateAction<string | undefined>>
-  phoneInputRef: React.MutableRefObject<PlainInputRef | null>
-  countrySelectorRef: React.MutableRefObject<CountrySelectorRef | null>
-  toggleShowingMenu: () => void
-  reformatPhoneNumberSkipCountry: (_newText: string) => void
-  setCountry2NoKeepPrefix: (_country: string) => void
-}
-
-class _PhoneInput extends React.Component<OldProps> {
-  render() {
-    const isSmall = this.props.small ?? !Styles.isMobile
-
-    // If country is falsey, the input is loading
-    if (this.props.country === undefined) {
-      return (
-        <Kb.Box2
-          direction={isSmall ? 'horizontal' : 'vertical'}
-          style={Styles.collapseStyles([
-            isSmall ? styles.containerSmall : styles.containerBig,
-            styles.containerLoading,
-          ])}
-        >
-          <Kb.ProgressIndicator type="Small" />
-        </Kb.Box2>
-      )
-    }
-
-    const reformatPhoneNumberNoSkipCountry = (_newText: string) => {
-      if (!this.props.formatter) {
-        return
-      }
-
-      const setCountry2KeepPrefix = (_country: string) => {
-        let country = _country
-        if (this.props.country !== country) {
-          country = normalizeCountryCode(country)
-
-          this.props.setCountry(country)
-          this.props.setFormatter(country ? new AsYouTypeFormatter(country) : undefined)
-
-          // Special behaviour for NA numbers
-          if (getCallingCode(country).length === 6) {
-            this.props.reformatPhoneNumberSkipCountry(getCallingCode(country).slice(-3))
-          }
-
-          const _newText = getCallingCode(country).slice(1)
-          let newText = filterNumeric(_newText)
-          // NA countries that use area codes require special behaviour
-          if (newText.length === 4) {
-            newText = newText[0]!
-          }
-          this.props.setPrefix(newText)
-        }
-      }
-
-      let newText = _newText
-
-      // ACME DIGIT REMOVAL MACHINE 5000
-      // This code works around iOS not letting you accurately move your cursor
-      // anymore. Fixes editing "middle" numbers in the phone number input.
-      // 1) It doesn't run in reformats with skipCountry:true
-      // 2) It only runs when the total length decreased
-      // 3) It only runs when we had formatted text before
-      // 4) It should not do anything if it wasn't a whitespace change in the middle
-      if (newText.length < this.props.formatted.length && this.props.formatted.length !== 0) {
-        // Look at the new text and figure out which character is different
-        let diffIndex: number = -1
-        for (let i = 0; i < newText.length; i++) {
-          if (i + 1 > this.props.formatted.length || newText[i] !== this.props.formatted[i]) {
-            diffIndex = i
-            break
-          }
-        }
-
-        // Make sure that the change was in the middle of the text
-        if (diffIndex !== -1 && diffIndex + 1 <= this.props.formatted.length) {
-          // Look at the original character at that location
-          const changedChar = this.props.formatted[diffIndex]
-
-          // Make sure that the changed char isn't a number
-          if (isNaN(parseInt(changedChar ?? '', 10))) {
-            // At this point we're certain we're in the special scenario.
-
-            // Take everything BUT the different character, make it all numbers
-            const beforeDiff = filterNumeric(newText.substring(0, diffIndex))
-            // We don't care about what's in the section that includes the difference
-            const afterDiff = newText.substring(diffIndex)
-
-            // Combine it back into a newText, slicing off the last character of beforeDiff
-            newText = beforeDiff.slice(0, -1).concat(afterDiff)
-          }
-        }
-      }
-
-      this.props.formatter.clear()
-      newText = filterNumeric(newText)
-
-      if (newText.trim().length === 0) {
-        this.props.setFormatted('')
-        return
-      }
-      for (let i = 0; i < newText.length - 1; i++) {
-        this.props.formatter.inputDigit(newText[i]!)
-      }
-      const formatted = this.props.formatter.inputDigit(newText.at(-1)!)
-      this.props.setFormatted(formatted)
-
-      // Special case for NA area
-      if (this.props.prefix === '1') {
-        // Only numeric, trimmed from whitespace
-        const trimmedText = newText.trim()
-        // If the area code is present...
-        if (trimmedText.length >= 3) {
-          // Prepare the potential 4 number prefix
-          const areaCode = trimmedText.slice(0, 3)
-          const extPrefix = this.props.prefix + ' ' + areaCode
-
-          // First look it up against the table
-          const possibleMatch = codeToCountry()[extPrefix]
-          if (possibleMatch) {
-            this.props.setCountry2NoKeepPrefix(possibleMatch)
-          } else if (areaCodeIsCanadian(areaCode)) {
-            // Otherwise determine the country using the hardcoded ranges
-            setCountry2KeepPrefix('CA')
-          } else {
-            setCountry2KeepPrefix('US')
-          }
-        }
-      }
-    }
-
-    const renderCountrySelector = () => {
-      const isSmall = this.props.small ?? !Styles.isMobile
-      if (this.props.country === undefined) {
-        return null
-      }
-
-      if (!isSmall) {
-        return (
-          <Kb.Text
-            type="BodySemibold"
-            style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
-          >
-            {!this.props.country
-              ? !this.props.prefix
-                ? '- Pick a country -'
-                : '- Invalid country prefix -'
-              : countryData()[this.props.country]?.emoji + ' ' + countryData()[this.props.country]?.name}
-          </Kb.Text>
-        )
-      }
-
-      return (
-        <>
-          <Kb.Text type="Body" style={styles.countrySelector}>
-            {getCountryEmoji(this.props.country)}
-          </Kb.Text>
-          <Kb.Text type="BodySemibold" style={styles.countrySelector}>
-            {'+' + this.props.prefix}
-          </Kb.Text>
-        </>
-      )
-    }
-
-    return (
-      <Kb.Box2
-        direction={isSmall ? 'horizontal' : 'vertical'}
-        style={Styles.collapseStyles([
-          isSmall ? styles.containerSmall : styles.containerBig,
-          isSmall && this.props.focused && styles.highlight,
-        ])}
-      >
-        <Kb.Box2
-          alignItems="center"
-          direction="horizontal"
-          style={
-            isSmall ? undefined : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
-          }
-        >
-          <Kb.ClickableBox
-            onClick={this.props.toggleShowingMenu}
-            style={isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth}
-          >
-            <Kb.Box2Measure
-              direction="horizontal"
-              style={styles.countrySelectorContainer}
-              alignItems="center"
-              gap="xtiny"
-              ref={this.props.popupAnchor}
-            >
-              {renderCountrySelector()}
-              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-            </Kb.Box2Measure>
-          </Kb.ClickableBox>
-        </Kb.Box2>
-        <Kb.Box2
-          direction="horizontal"
-          gap={isSmall ? undefined : 'tiny'}
-          fullWidth={true}
-          style={isSmall ? Styles.globalStyles.flexOne : undefined}
-        >
-          {!isSmall && (
-            <Kb.Box2
-              alignItems="center"
-              direction="horizontal"
-              style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInputBig])}
-            >
-              <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
-                {'+'}
-              </Kb.Text>
-              <Kb.PlainInput
-                style={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
-                flexable={true}
-                keyboardType={isIOS ? 'number-pad' : 'numeric'}
-                onChangeText={_newText => {
-                  let newText = filterNumeric(_newText)
-                  const matchedCountry = codeToCountry()[newText]
-                  if (matchedCountry) {
-                    this.props.setCountry2NoKeepPrefix(matchedCountry)
-                  } else {
-                    // Invalid country
-                    this.props.setCountry2NoKeepPrefix('')
-                  }
-
-                  // NA countries that use area codes require special behaviour
-                  if (newText.length === 4) {
-                    newText = newText[0]!
-                  }
-                  this.props.setPrefix(newText)
-                }}
-                maxLength={3}
-                onEnterKeyDown={() => {
-                  this.props.phoneInputRef.current && this.props.phoneInputRef.current.focus()
-                }}
-                returnKeyType="next"
-                value={this.props.prefix}
-              />
-            </Kb.Box2>
-          )}
-          <Kb.Box2
-            alignItems="center"
-            direction="horizontal"
-            style={Styles.collapseStyles([
-              styles.phoneNumberContainer,
-              !isSmall && styles.fakeInputBig,
-              !isSmall && this.props.focused && styles.highlight,
-            ])}
-          >
-            <Kb.PlainInput
-              autoFocus={this.props.autoFocus}
-              style={isSmall ? styles.plainInputSmall : styles.plainInputBig}
-              flexable={true}
-              keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              placeholder={getPlaceholder(this.props.country)}
-              onChangeText={x => reformatPhoneNumberNoSkipCountry(x)}
-              onEnterKeyDown={this.props.onEnterKeyDown}
-              onFocus={() => this.props.setFocused(true)}
-              onBlur={() => this.props.setFocused(false)}
-              value={this.props.formatted}
-              disabled={!this.props.country}
-              ref={this.props.phoneInputRef}
-              maxLength={17}
-              textContentType="telephoneNumber"
-            />
-            {this.props.onClear && (
-              <Kb.Icon type="iconfont-remove" onClick={this.props.onClear} style={styles.clearIcon} />
-            )}
-          </Kb.Box2>
-        </Kb.Box2>
-        {this.props.popup}
-      </Kb.Box2>
-    )
-  }
-}
-
 const PhoneInput = (p: Props) => {
-  const {onChangeNumber} = p
+  const {onChangeNumber, onClear, small, autoFocus, onEnterKeyDown} = p
   const [country, setCountry] = React.useState(p.defaultCountry)
   const [focused, setFocused] = React.useState(false)
   const [formatted, setFormatted] = React.useState('')
@@ -565,7 +278,6 @@ const PhoneInput = (p: Props) => {
   )
   const [prefix, setPrefix] = React.useState(p.defaultCountry && getCallingCode(p.defaultCountry).slice(1))
 
-  const oldRef = React.useRef<_PhoneInput | null>(null)
   const phoneInputRef = React.useRef<PlainInputRef | null>(null)
   const countrySelectorRef = React.useRef<CountrySelectorRef | null>(null)
 
@@ -645,7 +357,7 @@ const PhoneInput = (p: Props) => {
 
   const {defaultCountry} = p
 
-  const toggleShowingMenu = React.useCallback(
+  const _toggleShowingMenu = React.useCallback(
     (hidePopup: () => void) => {
       if (!country && defaultCountry) {
         countrySelectorRef.current?.onSelectMenu(defaultCountry)
@@ -663,21 +375,21 @@ const PhoneInput = (p: Props) => {
         <CountrySelector
           attachTo={attachTo}
           onSelect={onSelectCountry}
-          onHidden={() => toggleShowingMenu(hidePopup)}
+          onHidden={() => _toggleShowingMenu(hidePopup)}
           selected={country}
           visible={true}
           ref={countrySelectorRef}
         />
       )
     },
-    [country, onSelectCountry, toggleShowingMenu]
+    [country, onSelectCountry, _toggleShowingMenu]
   )
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const _toggleShowingMenu = React.useCallback(() => {
-    toggleShowingMenu(showPopup)
-  }, [toggleShowingMenu, showPopup])
+  const toggleShowingMenu = React.useCallback(() => {
+    _toggleShowingMenu(showPopup)
+  }, [_toggleShowingMenu, showPopup])
 
   const lastFormattedRef = React.useRef(formatted)
   React.useEffect(() => {
@@ -702,30 +414,260 @@ const PhoneInput = (p: Props) => {
     }
   }, [country, defaultCountry])
 
-  // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
-  // want to rewrite this now
+  const isSmall = small ?? !Styles.isMobile
+
+  // If country is falsey, the input is loading
+  if (country === undefined) {
+    return (
+      <Kb.Box2
+        direction={isSmall ? 'horizontal' : 'vertical'}
+        style={Styles.collapseStyles([
+          isSmall ? styles.containerSmall : styles.containerBig,
+          styles.containerLoading,
+        ])}
+      >
+        <Kb.ProgressIndicator type="Small" />
+      </Kb.Box2>
+    )
+  }
+
+  const reformatPhoneNumberNoSkipCountry = (_newText: string) => {
+    if (!formatter) {
+      return
+    }
+
+    const setCountry2KeepPrefix = (_country: string) => {
+      let c = _country
+      if (country !== c) {
+        c = normalizeCountryCode(c)
+
+        setCountry(c)
+        setFormatter(c ? new AsYouTypeFormatter(c) : undefined)
+
+        // Special behaviour for NA numbers
+        if (getCallingCode(c).length === 6) {
+          reformatPhoneNumberSkipCountry(getCallingCode(c).slice(-3))
+        }
+
+        const _newText = getCallingCode(c).slice(1)
+        let newText = filterNumeric(_newText)
+        // NA countries that use area codes require special behaviour
+        if (newText.length === 4) {
+          newText = newText[0]!
+        }
+        setPrefix(newText)
+      }
+    }
+
+    let newText = _newText
+
+    // ACME DIGIT REMOVAL MACHINE 5000
+    // This code works around iOS not letting you accurately move your cursor
+    // anymore. Fixes editing "middle" numbers in the phone number input.
+    // 1) It doesn't run in reformats with skipCountry:true
+    // 2) It only runs when the total length decreased
+    // 3) It only runs when we had formatted text before
+    // 4) It should not do anything if it wasn't a whitespace change in the middle
+    if (newText.length < formatted.length && formatted.length !== 0) {
+      // Look at the new text and figure out which character is different
+      let diffIndex: number = -1
+      for (let i = 0; i < newText.length; i++) {
+        if (i + 1 > formatted.length || newText[i] !== formatted[i]) {
+          diffIndex = i
+          break
+        }
+      }
+
+      // Make sure that the change was in the middle of the text
+      if (diffIndex !== -1 && diffIndex + 1 <= formatted.length) {
+        // Look at the original character at that location
+        const changedChar = formatted[diffIndex]
+
+        // Make sure that the changed char isn't a number
+        if (isNaN(parseInt(changedChar ?? '', 10))) {
+          // At this point we're certain we're in the special scenario.
+
+          // Take everything BUT the different character, make it all numbers
+          const beforeDiff = filterNumeric(newText.substring(0, diffIndex))
+          // We don't care about what's in the section that includes the difference
+          const afterDiff = newText.substring(diffIndex)
+
+          // Combine it back into a newText, slicing off the last character of beforeDiff
+          newText = beforeDiff.slice(0, -1).concat(afterDiff)
+        }
+      }
+    }
+
+    formatter.clear()
+    newText = filterNumeric(newText)
+
+    if (newText.trim().length === 0) {
+      setFormatted('')
+      return
+    }
+    for (let i = 0; i < newText.length - 1; i++) {
+      formatter.inputDigit(newText[i]!)
+    }
+    setFormatted(formatter.inputDigit(newText.at(-1)!))
+
+    // Special case for NA area
+    if (prefix === '1') {
+      // Only numeric, trimmed from whitespace
+      const trimmedText = newText.trim()
+      // If the area code is present...
+      if (trimmedText.length >= 3) {
+        // Prepare the potential 4 number prefix
+        const areaCode = trimmedText.slice(0, 3)
+        const extPrefix = prefix + ' ' + areaCode
+
+        // First look it up against the table
+        const possibleMatch = codeToCountry()[extPrefix]
+        if (possibleMatch) {
+          setCountry2NoKeepPrefix(possibleMatch)
+        } else if (areaCodeIsCanadian(areaCode)) {
+          // Otherwise determine the country using the hardcoded ranges
+          setCountry2KeepPrefix('CA')
+        } else {
+          setCountry2KeepPrefix('US')
+        }
+      }
+    }
+  }
+
+  const renderCountrySelector = () => {
+    const isSmall = small ?? !Styles.isMobile
+    if (!isSmall) {
+      return (
+        <Kb.Text
+          type="BodySemibold"
+          style={Styles.collapseStyles([styles.countrySelector, styles.countrySelectorBig])}
+        >
+          {!country
+            ? !prefix
+              ? '- Pick a country -'
+              : '- Invalid country prefix -'
+            : countryData()[country]?.emoji + ' ' + countryData()[country]?.name}
+        </Kb.Text>
+      )
+    }
+
+    return (
+      <>
+        <Kb.Text type="Body" style={styles.countrySelector}>
+          {getCountryEmoji(country)}
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
+          {'+' + prefix}
+        </Kb.Text>
+      </>
+    )
+  }
+
   return (
-    <_PhoneInput
-      reformatPhoneNumberSkipCountry={reformatPhoneNumberSkipCountry}
-      setCountry2NoKeepPrefix={setCountry2NoKeepPrefix}
-      {...p}
-      ref={oldRef}
-      popup={popup}
-      popupAnchor={popupAnchor}
-      countrySelectorRef={countrySelectorRef}
-      country={country}
-      setCountry={setCountry}
-      focused={focused}
-      setFocused={setFocused}
-      formatted={formatted}
-      setFormatted={setFormatted}
-      formatter={formatter}
-      setFormatter={setFormatter}
-      prefix={prefix}
-      setPrefix={setPrefix}
-      phoneInputRef={phoneInputRef}
-      toggleShowingMenu={_toggleShowingMenu}
-    />
+    <Kb.Box2
+      direction={isSmall ? 'horizontal' : 'vertical'}
+      style={Styles.collapseStyles([
+        isSmall ? styles.containerSmall : styles.containerBig,
+        isSmall && focused && styles.highlight,
+      ])}
+    >
+      <Kb.Box2
+        alignItems="center"
+        direction="horizontal"
+        style={
+          isSmall ? undefined : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
+        }
+      >
+        <Kb.ClickableBox
+          onClick={toggleShowingMenu}
+          style={isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth}
+        >
+          <Kb.Box2Measure
+            direction="horizontal"
+            style={styles.countrySelectorContainer}
+            alignItems="center"
+            gap="xtiny"
+            ref={popupAnchor}
+          >
+            {renderCountrySelector()}
+            <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
+          </Kb.Box2Measure>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+      <Kb.Box2
+        direction="horizontal"
+        gap={isSmall ? undefined : 'tiny'}
+        fullWidth={true}
+        style={isSmall ? Styles.globalStyles.flexOne : undefined}
+      >
+        {!isSmall && (
+          <Kb.Box2
+            alignItems="center"
+            direction="horizontal"
+            style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInputBig])}
+          >
+            <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+              {'+'}
+            </Kb.Text>
+            <Kb.PlainInput
+              style={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
+              flexable={true}
+              keyboardType={isIOS ? 'number-pad' : 'numeric'}
+              onChangeText={_newText => {
+                let newText = filterNumeric(_newText)
+                const matchedCountry = codeToCountry()[newText]
+                if (matchedCountry) {
+                  setCountry2NoKeepPrefix(matchedCountry)
+                } else {
+                  // Invalid country
+                  setCountry2NoKeepPrefix('')
+                }
+
+                // NA countries that use area codes require special behaviour
+                if (newText.length === 4) {
+                  newText = newText[0]!
+                }
+                setPrefix(newText)
+              }}
+              maxLength={3}
+              onEnterKeyDown={() => {
+                phoneInputRef.current && phoneInputRef.current.focus()
+              }}
+              returnKeyType="next"
+              value={prefix}
+            />
+          </Kb.Box2>
+        )}
+        <Kb.Box2
+          alignItems="center"
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styles.phoneNumberContainer,
+            !isSmall && styles.fakeInputBig,
+            !isSmall && focused && styles.highlight,
+          ])}
+        >
+          <Kb.PlainInput
+            autoFocus={autoFocus}
+            style={isSmall ? styles.plainInputSmall : styles.plainInputBig}
+            flexable={true}
+            keyboardType={isIOS ? 'number-pad' : 'numeric'}
+            placeholder={getPlaceholder(country)}
+            onChangeText={x => reformatPhoneNumberNoSkipCountry(x)}
+            onEnterKeyDown={onEnterKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            value={formatted}
+            disabled={!country}
+            ref={phoneInputRef}
+            maxLength={17}
+            textContentType="telephoneNumber"
+          />
+          {onClear && <Kb.Icon type="iconfont-remove" onClick={onClear} style={styles.clearIcon} />}
+        </Kb.Box2>
+      </Kb.Box2>
+      {popup}
+    </Kb.Box2>
   )
 }
 
