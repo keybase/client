@@ -2703,7 +2703,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             teamWaitingKey(teamID),
             setMemberPublicityWaitingKey(teamID),
           ])
-          return
+          get().dispatch.getTeams(false)
         } catch (error) {
           set(s => {
             if (error instanceof RPCError) {
