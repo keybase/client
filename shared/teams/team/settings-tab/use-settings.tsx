@@ -17,7 +17,7 @@ interface State extends Store {
 }
 // just to plumb the state, really the settings tab should change how it works, its quite
 // old and creaky
-export const useSettingsState = Z.createZustand<State>(set => {
+export const useSettingsTabState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     triggerAllowOpen: () => {
