@@ -8,52 +8,48 @@ import type {Props} from '.'
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-class ThresholdDropdown extends React.PureComponent<
-  Props,
-  {notificationThreshold: number; visible: boolean}
-> {
-  state = {
-    notificationThreshold: this.props.spaceAvailableNotificationThreshold,
-    visible: false,
+const ThresholdDropdown = (props: Props) => {
+  const [notificationThreshold, setNotificationThreshold] = React.useState(
+    props.spaceAvailableNotificationThreshold
+  )
+  const [visible, setVisible] = React.useState(false)
+
+  const hide = () => setVisible(false)
+  const done = () => {
+    props.onSetSyncNotificationThreshold(notificationThreshold)
+    setVisible(false)
   }
-  _hide = () => this.setState({visible: false})
-  _done = () => {
-    this.props.onSetSyncNotificationThreshold(this.state.notificationThreshold)
-    this.setState({visible: false})
-  }
-  _select = (selectedVal?: number) => selectedVal && this.setState({notificationThreshold: selectedVal})
-  _show = () => this.setState({visible: true})
-  _toggleShowingMenu = () => this.setState(s => ({visible: !s.visible}))
-  render() {
-    return (
-      <>
-        <Kb.DropdownButton
-          disabled={!this.props.spaceAvailableNotificationThreshold}
-          selected={
-            <Kb.Text type="Body" style={styles.selectedText}>
-              {this.props.humanizedNotificationThreshold}
-            </Kb.Text>
-          }
-          toggleOpen={this._toggleShowingMenu}
-        />
-        <Kb.FloatingPicker
-          items={this.props.allowedThresholds}
-          visible={this.state.visible}
-          selectedValue={this.state.notificationThreshold}
-          promptString="Pick a threshold"
-          prompt={
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
-              <Kb.Text type="BodySmallSemibold">Pick a threshold</Kb.Text>
-            </Kb.Box2>
-          }
-          onCancel={this._hide}
-          onHidden={this._hide}
-          onDone={this._done}
-          onSelect={this._select}
-        />
-      </>
-    )
-  }
+  const select = (selectedVal?: number) => selectedVal && setNotificationThreshold(selectedVal)
+  const toggleShowingMenu = () => setVisible(v => !v)
+
+  return (
+    <>
+      <Kb.DropdownButton
+        disabled={!props.spaceAvailableNotificationThreshold}
+        selected={
+          <Kb.Text type="Body" style={styles.selectedText}>
+            {props.humanizedNotificationThreshold}
+          </Kb.Text>
+        }
+        toggleOpen={toggleShowingMenu}
+      />
+      <Kb.FloatingPicker
+        items={props.allowedThresholds}
+        visible={visible}
+        selectedValue={notificationThreshold}
+        promptString="Pick a threshold"
+        prompt={
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
+            <Kb.Text type="BodySmallSemibold">Pick a threshold</Kb.Text>
+          </Kb.Box2>
+        }
+        onCancel={hide}
+        onHidden={hide}
+        onDone={done}
+        onSelect={select}
+      />
+    </>
+  )
 }
 
 const Files = (props: Props) => {

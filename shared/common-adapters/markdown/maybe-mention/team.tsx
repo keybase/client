@@ -23,90 +23,84 @@ export type Props = {
   style?: StylesTextCrossPlatform
 }
 
-type State = {
-  showPopup: boolean
-}
+const TeamMention = (props: Props) => {
+  const [showPopup, setShowPopup] = React.useState(false)
+  const mentionRef = React.useRef<MeasureRef>(null)
 
-class TeamMention extends React.Component<Props, State> {
-  state = {showPopup: false}
-  _mentionRef = React.createRef<MeasureRef>()
-
-  _onClick = () => {
-    if (this.props.onChat) {
-      this.props.onChat()
+  const handleClick = () => {
+    if (props.onChat) {
+      props.onChat()
     } else {
-      this.setState({showPopup: true})
+      setShowPopup(true)
     }
   }
-  _onMouseOver = () => {
-    this.setState({showPopup: true})
-  }
-  _onMouseLeave = () => {
-    this.setState({showPopup: false})
-  }
-  render() {
-    let text = `@${this.props.name}`
-    if (this.props.channel.length > 0) {
-      text += `#${this.props.channel}`
-    }
 
-    const content = (
+  const handleMouseOver = () => setShowPopup(true)
+  const handleMouseLeave = () => setShowPopup(false)
+
+  let text = `@${props.name}`
+  if (props.channel.length > 0) {
+    text += `#${props.channel}`
+  }
+
+  const content = (
+    <Kb.Text
+      textRef={mentionRef}
+      type="BodyBold"
+      className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      style={Kb.Styles.collapseStyles([props.style, styles.text])}
+      allowFontScaling={props.allowFontScaling}
+      onClick={handleClick}
+    >
       <Kb.Text
-        textRef={this._mentionRef as React.MutableRefObject<MeasureRef>}
         type="BodyBold"
-        className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
-        style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
-        allowFontScaling={this.props.allowFontScaling}
-        onClick={this._onClick}
+        style={Kb.Styles.collapseStyles([props.style, styles.resolved, styles.text])}
+        allowFontScaling={props.allowFontScaling}
       >
-        <Kb.Text
-          type="BodyBold"
-          style={Kb.Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
-          allowFontScaling={this.props.allowFontScaling}
-        >
-          {text}
-        </Kb.Text>
-      </Kb.Text>
-    )
-    const popups = (
-      <TeamInfo
-        attachTo={this._mentionRef}
-        description={this.props.description}
-        inTeam={this.props.inTeam}
-        isOpen={this.props.isOpen}
-        name={this.props.name}
-        membersCount={this.props.numMembers}
-        onChat={this.props.onChat}
-        onHidden={this._onMouseLeave}
-        onJoinTeam={this.props.onJoinTeam}
-        onViewTeam={this.props.onViewTeam}
-        publicAdmins={this.props.publicAdmins}
-        visible={this.state.showPopup}
-      />
-    )
-    return this.props.resolved ? (
-      Kb.Styles.isMobile ? (
-        <>
-          {content}
-          {popups}
-        </>
-      ) : (
-        <Kb.Box2
-          direction="horizontal"
-          style={styles.container}
-          onMouseOver={this._onMouseOver}
-          onMouseLeave={this._onMouseLeave}
-        >
-          {content}
-          {popups}
-        </Kb.Box2>
-      )
-    ) : (
-      <Kb.Text type="BodySemibold" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
         {text}
       </Kb.Text>
+    </Kb.Text>
+  )
+
+  const popups = (
+    <TeamInfo
+      attachTo={mentionRef}
+      description={props.description}
+      inTeam={props.inTeam}
+      isOpen={props.isOpen}
+      name={props.name}
+      membersCount={props.numMembers}
+      onChat={props.onChat}
+      onHidden={handleMouseLeave}
+      onJoinTeam={props.onJoinTeam}
+      onViewTeam={props.onViewTeam}
+      publicAdmins={props.publicAdmins}
+      visible={showPopup}
+    />
+  )
+
+  return props.resolved ? (
+    Kb.Styles.isMobile ? (
+      <>
+        {content}
+        {popups}
+      </>
+    ) : (
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.container}
+        onMouseOver={handleMouseOver}
+        onMouseLeave={handleMouseLeave}
+      >
+        {content}
+        {popups}
+      </Kb.Box2>
     )
-  }
+  ) : (
+    <Kb.Text type="BodySemibold" style={props.style} allowFontScaling={props.allowFontScaling}>
+      {text}
+    </Kb.Text>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

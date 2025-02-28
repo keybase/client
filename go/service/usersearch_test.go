@@ -210,9 +210,9 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 	for _, user := range p.users {
 		var found bool
 		var score float64
-		if found, score = query.scoreString(user.username); found {
+		if found, score = query.scoreString(user.username); found { // nolint
 			// noop, query matched username
-		} else if found, score = query.scoreString(user.fullName); found {
+		} else if found, score = query.scoreString(user.fullName); found { // nolint
 			// noop, query matched full name
 		} else if user.serviceMap != nil {
 			for _, serviceUser := range user.serviceMap {

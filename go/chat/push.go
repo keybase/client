@@ -377,8 +377,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 // squashChanMention will silence a chanMention if sent by a non-admin on a
 // large (> chat1.MaxChanMentionConvSize member) team. The server drives this
 // for mobile push notifications, client checks this for desktop notifications
-func (g *PushHandler) squashChanMention(ctx context.Context, conv *chat1.ConversationLocal,
-	mvalid chat1.MessageUnboxedValid, untrustedTeamRole keybase1.TeamRole) (bool, error) {
+func (g *PushHandler) squashChanMention(_ context.Context, conv *chat1.ConversationLocal,
+	_ chat1.MessageUnboxedValid, untrustedTeamRole keybase1.TeamRole) (bool, error) {
 	// Verify the chanMention is for a TEAM that is larger than
 	// MaxChanMentionConvSize
 	if conv == nil ||

@@ -301,7 +301,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 			mctx.Debug("TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			if code, ok := libkb.GetAppStatusCode(err); ok && code == keybase1.StatusCode_SCTeamNotFound {
 				mctx.Debug("replacing error: %v", err)
-				return nil, nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+				return nil, nil, NewTeamDoesNotExistError(lArg.Public, "%s", teamName.String())
 			}
 			return nil, nil, err
 		}
@@ -355,7 +355,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		// but it's better to have this understandable error message that's accurate
 		// most of the time than one with an ID that's always accurate.
 		mctx.Debug("replacing error: %v", err)
-		return nil, nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+		return nil, nil, NewTeamDoesNotExistError(lArg.Public, "%s", teamName.String())
 	case nil:
 	default:
 		return nil, nil, err
@@ -959,9 +959,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Name, err)
 	}
 	if !ret.Name.Eq(newName) {
-		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
-		copy := ret.DeepCopy()
-		ret = &copy
+		// This deep cp is an absurd price to pay, but these mid-team renames should be quite rare.
+		cp := ret.DeepCopy()
+		ret = &cp
 		ret.Name = newName
 	}
 

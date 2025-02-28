@@ -85,9 +85,10 @@ func (t *Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err
 	}
 	prompt := p + " " + ch + " "
 	done := false
-	for !done && err == nil {
+	for !done {
 		var s string
 		if s, err = t.Prompt(prompt); err != nil {
+			return ret, err
 		} else if libkb.IsYes(s) {
 			ret = true
 			done = true
@@ -104,7 +105,7 @@ func (t *Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err
 			}
 		}
 	}
-	return
+	return ret, err
 }
 
 // GetSize tries to get the size for the current terminal.

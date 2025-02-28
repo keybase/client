@@ -389,9 +389,9 @@ func TestGetKeyIntervalUnderPosition(t *testing.T) {
 		t.Run(fmt.Sprintf("%v bits: %s", test.c.BitsPerIndex, test.position), func(t *testing.T) {
 			p, err := makePositionFromStringForTesting(test.position)
 			require.NoError(t, err)
-			min, max := test.c.GetKeyIntervalUnderPosition(&p)
-			require.Equal(t, test.minKey, min)
-			require.Equal(t, test.maxKey, max)
+			minI, maxI := test.c.GetKeyIntervalUnderPosition(&p)
+			require.Equal(t, test.minKey, minI)
+			require.Equal(t, test.maxKey, maxI)
 		})
 	}
 

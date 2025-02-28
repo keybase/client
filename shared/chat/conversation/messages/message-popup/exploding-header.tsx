@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
-import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
+import {addTicker, removeTicker} from '@/util/second-timer'
 
 type Props = {
   explodesAt: number
@@ -13,137 +13,127 @@ type Props = {
   timestamp: number
   yourMessage: boolean
 }
-type State = {secondsLeft: number}
 
-class ExplodingPopupHeader extends React.Component<Props, State> {
-  timer?: TickerID
-  state = {secondsLeft: this.secondsLeft()}
-
-  componentDidMount() {
-    this.timer = addTicker(this.tick)
+const _secondsLeft = (explodesAt: number) => {
+  const now = Date.now()
+  let secondsLeft = Math.floor((explodesAt - now) / 1000)
+  if (secondsLeft < 0) {
+    secondsLeft = 0
   }
+  return secondsLeft
+}
 
-  componentWillUnmount() {
-    this.timer && removeTicker(this.timer)
-  }
+const ExplodingPopupHeader = (props: Props) => {
+  const {explodesAt} = props
+  const [secondsLeft, setSecondsLeft] = React.useState(_secondsLeft(explodesAt))
 
-  secondsLeft() {
-    const now = Date.now()
-    let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
-    if (secondsLeft < 0) {
-      secondsLeft = 0
+  React.useEffect(() => {
+    const id = addTicker(() => setSecondsLeft(_secondsLeft(explodesAt)))
+    return () => {
+      removeTicker(id)
     }
-    return secondsLeft
-  }
+  }, [explodesAt])
 
-  tick = () => {
-    this.setState({secondsLeft: this.secondsLeft()})
-  }
-
-  render() {
-    const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = this.props
-    const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
-    const info = (
-      <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
+  const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
+  const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
+  const info = (
+    <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
+      <Kb.Box2 direction="horizontal">
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
+          <Kb.Avatar username={author} size={16} onClick="profile" />
+          <Kb.ConnectedUsernames
+            onUsernameClicked="profile"
+            colorFollowing={true}
+            colorYou={true}
+            usernames={author}
+            underline={true}
+            type="BodySmallBold"
+          />
+          <Kb.Text center={true} type="BodySmall">
+            {deviceName}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      {botUsername ? (
         <Kb.Box2 direction="horizontal">
-          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
-            <Kb.Avatar username={author} size={16} onClick="profile" />
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+            <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
               onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
-              usernames={author}
+              usernames={botUsername}
               underline={true}
               type="BodySmallBold"
             />
-            <Kb.Text center={true} type="BodySmall">
-              {deviceName}
-            </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        {botUsername ? (
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
-            <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
-              <Kb.Avatar username={botUsername} size={16} onClick="profile" />
-              <Kb.ConnectedUsernames
-                onUsernameClicked="profile"
-                colorFollowing={true}
-                colorYou={true}
-                usernames={botUsername}
-                underline={true}
-                type="BodySmallBold"
-              />
-            </Kb.Box2>
-          </Kb.Box2>
+      ) : null}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Text center={true} type="BodySmall">
+          {formatTimeForPopup(timestamp)}
+        </Kb.Text>
+        {deviceRevokedAt ? (
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.blue}
+            style={styles.revokedAt}
+          >
+            Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
+          </Kb.PopupHeaderText>
         ) : null}
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text center={true} type="BodySmall">
-            {formatTimeForPopup(timestamp)}
-          </Kb.Text>
-          {deviceRevokedAt ? (
-            <Kb.PopupHeaderText
-              color={Kb.Styles.globalColors.white}
-              backgroundColor={Kb.Styles.globalColors.blue}
-              style={styles.revokedAt}
-            >
-              Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
-            </Kb.PopupHeaderText>
-          ) : null}
-        </Kb.Box2>
       </Kb.Box2>
-    )
+    </Kb.Box2>
+  )
 
-    const banner = (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Kb.Styles.collapseStyles([
-          styles.timerBox,
-          {
-            backgroundColor:
-              this.state.secondsLeft < oneMinuteInS
-                ? Kb.Styles.globalColors.red
-                : Kb.Styles.globalColors.black,
-          },
-        ])}
-      >
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
-            {this.props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
+  const banner = (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([
+        styles.timerBox,
+        {
+          backgroundColor:
+            secondsLeft < oneMinuteInS ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.black,
+        },
+      ])}
+    >
+      <Kb.Box2 direction="vertical">
+        <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.white}}>
+          {props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
+        </Kb.Text>
+      </Kb.Box2>
+      {props.explodesAt === 0 ? null : hideTimer ? (
+        <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
+      ) : (
+        <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
+          <Kb.Icon
+            type="iconfont-timer"
+            fontSize={Kb.Styles.isMobile ? 20 : 16}
+            color={Kb.Styles.globalColors.white}
+          />
+          <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
+            {msToDHMS(props.explodesAt - Date.now())}
           </Kb.Text>
         </Kb.Box2>
-        {this.props.explodesAt === 0 ? null : hideTimer ? (
-          <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
-        ) : (
-          <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
-            <Kb.Icon
-              type="iconfont-timer"
-              fontSize={Kb.Styles.isMobile ? 20 : 16}
-              color={Kb.Styles.globalColors.white}
-            />
-            <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
-              {msToDHMS(this.props.explodesAt - Date.now())}
-            </Kb.Text>
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    )
-    return Kb.Styles.isMobile ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
-        {banner}
-        {info}
-        <Kb.Divider style={{width: '100%'}} />
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
-        {icon}
-        {banner}
-        {info}
-        <Kb.Divider style={{width: '100%'}} />
-      </Kb.Box2>
-    )
-  }
+      )}
+    </Kb.Box2>
+  )
+  return Kb.Styles.isMobile ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
+      {banner}
+      {info}
+      <Kb.Divider style={{width: '100%'}} />
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
+      {icon}
+      {banner}
+      {info}
+      <Kb.Divider style={{width: '100%'}} />
+    </Kb.Box2>
+  )
 }
 
 const headerIconType = Kb.Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'

@@ -710,14 +710,14 @@ type Key struct {
 //	}
 //
 // See http://goo.gl/YjQTc for details.
-func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, err error) {
+func (b *Bucket) List(prefix, delim, marker string, maxK int) (result *ListResp, err error) {
 	params := map[string][]string{
 		"prefix":    {prefix},
 		"delimiter": {delim},
 		"marker":    {marker},
 	}
-	if max != 0 {
-		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
+	if maxK != 0 {
+		params["max-keys"] = []string{strconv.FormatInt(int64(maxK), 10)}
 	}
 	headers := map[string][]string{}
 	b.addTokenHeader(headers)
@@ -767,7 +767,7 @@ type Version struct {
 	StorageClass string
 }
 
-func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker string, max int) (result *VersionsResp, err error) {
+func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker string, maxK int) (result *VersionsResp, err error) {
 	params := map[string][]string{
 		"versions":  {""},
 		"prefix":    {prefix},
@@ -781,8 +781,8 @@ func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker strin
 		params["key-marker"] = []string{keyMarker}
 	}
 
-	if max != 0 {
-		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
+	if maxK != 0 {
+		params["max-keys"] = []string{strconv.FormatInt(int64(maxK), 10)}
 	}
 	req := &request{
 		bucket: b.Name,

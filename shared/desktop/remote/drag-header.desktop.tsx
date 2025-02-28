@@ -12,10 +12,10 @@ export type Props = {
   type?: HeaderType
 }
 
-class DragHeader extends React.Component<Props> {
-  renderDefault() {
+const DragHeader = (props: Props) => {
+  const renderDefault = () => {
     const maybeWindowDraggingStyle =
-      this.props.windowDragging ?? true ? Kb.Styles.desktopStyles.windowDragging : {}
+      (props.windowDragging ?? true) ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
         style={
@@ -23,25 +23,23 @@ class DragHeader extends React.Component<Props> {
             styles.container,
             maybeWindowDraggingStyle,
             styles.defaultContainer,
-            this.props.style,
+            props.style,
           ]) as React.CSSProperties
         }
       >
-        {this.props.children}
-        {this.props.icon && <Kb.Icon type="icon-keybase-logo-24" />}
+        {props.children}
+        {props.icon && <Kb.Icon type="icon-keybase-logo-24" />}
         <Kb.Text type="Body" style={{flex: 1, paddingLeft: 6}}>
-          {this.props.title}
+          {props.title}
         </Kb.Text>
-        {this.props.onClose && (
-          <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
-        )}
+        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
       </div>
     )
   }
 
-  renderStrong() {
+  const renderStrong = () => {
     const maybeWindowDraggingStyle =
-      this.props.windowDragging ?? true ? Kb.Styles.desktopStyles.windowDragging : {}
+      (props.windowDragging ?? true) ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
         style={
@@ -49,11 +47,11 @@ class DragHeader extends React.Component<Props> {
             styles.container,
             maybeWindowDraggingStyle,
             styles.strongContainer,
-            this.props.style,
+            props.style,
           ]) as React.CSSProperties
         }
       >
-        {this.props.title && (
+        {props.title && (
           <Kb.Text
             type="Header"
             negative={true}
@@ -62,23 +60,19 @@ class DragHeader extends React.Component<Props> {
               isElectron: {cursor: 'default'},
             })}
           >
-            {this.props.title}
+            {props.title}
           </Kb.Text>
         )}
-        {this.props.children}
-        {this.props.onClose && (
-          <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
-        )}
+        {props.children}
+        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
       </div>
     )
   }
 
-  render() {
-    if ((this.props.type ?? 'Default') === 'Default') {
-      return this.renderDefault()
-    } else {
-      return this.renderStrong()
-    }
+  if ((props.type ?? 'Default') === 'Default') {
+    return renderDefault()
+  } else {
+    return renderStrong()
   }
 }
 

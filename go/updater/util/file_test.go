@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -81,7 +80,7 @@ func TestTempPathRandFail(t *testing.T) {
 	// Replace rand.Read with a failing read
 	defaultRandRead := randRead
 	defer func() { randRead = defaultRandRead }()
-	randRead = func(b []byte) (int, error) {
+	randRead = func(_ []byte) (int, error) {
 		return 0, fmt.Errorf("Test rand failure")
 	}
 
@@ -108,17 +107,11 @@ func TestIsDirReal(t *testing.T) {
 	assert.Equal(t, "Path is not a directory", err.Error())
 	assert.False(t, ok)
 
-	// Windows requires privileges to create symbolic links
 	symLinkPath := TempPath("", "TestIsDirReal")
 	defer RemoveFileAtPath(symLinkPath)
 	target := os.TempDir()
-	if runtime.GOOS == "windows" {
-		err = exec.Command("cmd", "/C", "mklink", "/J", symLinkPath, target).Run()
-		assert.NoError(t, err)
-	} else {
-		err = os.Symlink(target, symLinkPath)
-		assert.NoError(t, err)
-	}
+	err = os.Symlink(target, symLinkPath)
+	assert.NoError(t, err)
 	ok, err = IsDirReal(symLinkPath)
 	assert.Error(t, err)
 	assert.Equal(t, "Path is a symlink", err.Error())
@@ -260,7 +253,7 @@ func TestCopyFileInvalidDest(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestCloseNil(t *testing.T) {
+func TestCloseNil(_ *testing.T) {
 	Close(nil)
 }
 

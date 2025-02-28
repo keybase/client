@@ -43,24 +43,19 @@ export type Props = {
   debugLog?: (arg0: string) => void
 }
 
-export type State = {
-  // Mirrors Props.saving.
-  saving: boolean
-  // Last time saving went from false to true.
-  lastSave: Date
-  saveState: SaveState
-  // Last time saveState was set to 'justSaved'.
-  lastJustSaved: Date
-}
-
 // computeNextState takes props and state, possibly with updated
 // saving / lastSave fields, the current time, and returns either:
 //
 // - null:      Remain in the current state.
 // - SaveState: Transition to the returned state.
 // - number:    Wait the returned number of ms, then run computeNextState again.
-const computeNextState = (props: Props, state: State, now: Date): null | SaveState | number => {
+const computeNextState = (
+  props: {minSavingTimeMs: number; savedTimeoutMs: number},
+  state: {saving: boolean; lastSave: Date; saveState: SaveState; lastJustSaved: Date},
+  now: Date
+): null | SaveState | number => {
   const {saveState} = state
+  const {minSavingTimeMs, savedTimeoutMs} = props
   switch (saveState) {
     case 'steady':
       if (state.saving) {
@@ -76,7 +71,7 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
       if (state.saving) {
         return 'saving'
       }
-      const timeToJustSaved = state.lastSave.getTime() + props.minSavingTimeMs - now.getTime()
+      const timeToJustSaved = state.lastSave.getTime() + minSavingTimeMs - now.getTime()
       if (timeToJustSaved > 0) {
         return timeToJustSaved
       }
@@ -86,7 +81,7 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
       if (state.saving) {
         return 'saving'
       }
-      const timeToSteady = state.lastJustSaved.getTime() + props.savedTimeoutMs - now.getTime()
+      const timeToSteady = state.lastJustSaved.getTime() + savedTimeoutMs - now.getTime()
       if (timeToSteady > 0) {
         return timeToSteady
       }
@@ -102,71 +97,73 @@ const defaultStyle = {
   justifyContent: 'center',
 } as const
 
-class SaveIndicator extends React.Component<Props, State> {
-  private timeoutID?: ReturnType<typeof setInterval>
-  private clearTimeout = () => {
-    if (this.timeoutID) {
-      clearTimeout(this.timeoutID)
-      this.timeoutID = undefined
+const SaveIndicator = (props: Props) => {
+  const {minSavingTimeMs, savedTimeoutMs, debugLog, saving, style} = props
+  const [state, setState] = React.useState({
+    lastJustSaved: new Date(0),
+    lastSave: new Date(0),
+    saveState: 'steady' as SaveState,
+    saving: false,
+  })
+
+  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>()
+
+  const _clearTimeout = () => {
+    if (timeoutIDRef.current) {
+      clearTimeout(timeoutIDRef.current)
+      timeoutIDRef.current = undefined
     }
   }
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {lastJustSaved: new Date(0), lastSave: new Date(0), saveState: 'steady', saving: false}
-  }
-
-  private runStateMachine = () => {
-    this.clearTimeout()
+  const runStateMachine = React.useCallback(() => {
+    _clearTimeout()
 
     const now = new Date()
-    const result = computeNextState(this.props, this.state, now)
+    const result = computeNextState({minSavingTimeMs, savedTimeoutMs}, state, now)
     if (!result) {
       return
     }
 
     if (typeof result === 'number') {
-      this.timeoutID = setTimeout(this.runStateMachine, result)
+      timeoutIDRef.current = setTimeout(runStateMachine, result)
       return
     }
 
-    const debugLog = this.props.debugLog
     const newPartialState = {
-      lastJustSaved: result === 'justSaved' ? now : this.state.lastJustSaved,
+      lastJustSaved: result === 'justSaved' ? now : state.lastJustSaved,
       saveState: result,
     } as const
     if (debugLog) {
-      debugLog(
-        `runStateMachine: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`
-      )
+      debugLog(`runStateMachine: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(state)}`)
     }
-    this.setState(newPartialState)
-  }
+    setState(prevState => ({...prevState, ...newPartialState}))
+  }, [debugLog, minSavingTimeMs, savedTimeoutMs, state])
 
-  componentWillUnmount() {
-    this.clearTimeout()
-  }
-
-  componentDidUpdate(_: Props, prevState: State) {
-    if (this.props.saving !== this.state.saving) {
-      const debugLog = this.props.debugLog
+  React.useEffect(() => {
+    if (saving !== state.saving) {
       const newPartialState = {
-        lastSave: this.props.saving ? new Date() : this.state.lastSave,
-        saving: this.props.saving,
+        lastSave: saving ? new Date() : state.lastSave,
+        saving: saving,
       }
       if (debugLog) {
         debugLog(
-          `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
+          `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(state)}`
         )
       }
-      this.setState(newPartialState)
+      setState(prevState => ({...prevState, ...newPartialState}))
     }
 
-    this.runStateMachine()
-  }
+    runStateMachine()
+  }, [debugLog, saving, runStateMachine, state])
 
-  private getChildren = () => {
-    const {saveState} = this.state
+  React.useEffect(() => {
+    return () => {
+      _clearTimeout()
+    }
+  }, [])
+
+  const getChildren = () => {
+    const {saveState} = state
     switch (saveState) {
       case 'steady':
         return null
@@ -185,11 +182,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
   }
 
-  render() {
-    return (
-      <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style])}>{this.getChildren()}</Kb.Box>
-    )
-  }
+  return <Kb.Box style={Styles.collapseStyles([defaultStyle, style])}>{getChildren()}</Kb.Box>
 }
 
 export default SaveIndicator

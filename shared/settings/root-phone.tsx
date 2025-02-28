@@ -11,7 +11,7 @@ import noop from 'lodash/noop'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.PlainInput>(null)
+  const ref = React.useRef<Kb.PlainInputRef>(null)
 
   return (
     <Kb.Box2
@@ -215,7 +215,9 @@ function SettingsNav() {
         if (item.text === 'perf') {
           return <PerfRow />
         }
-        return item.text ? <SettingsItem {...item} /> : null
+        return item.text ? (
+          <SettingsItem {...item} type={item.text} onClick={() => item.onClick()} selected={false} />
+        ) : null
       }}
       renderSectionHeader={({section: {title}}) =>
         title ? (

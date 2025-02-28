@@ -37,7 +37,7 @@ import (
 
 const keyPrefixLen = 2
 
-var blankProgress = func(bytesComplete, bytesTotal int64) {}
+var blankProgress = func(_, _ int64) {}
 
 type AttachmentHTTPSrv struct {
 	sync.Mutex

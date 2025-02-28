@@ -68,7 +68,7 @@ func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion cha
 	return textMsgWithHeader(t, text, header)
 }
 
-func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHeader) chat1.MessagePlaintext {
+func textMsgWithHeader(_ *testing.T, text string, header chat1.MessageClientHeader) chat1.MessagePlaintext {
 	return chat1.MessagePlaintext{
 		ClientHeader: header,
 		MessageBody:  chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}),

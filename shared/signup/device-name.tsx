@@ -59,7 +59,7 @@ const EnterDevicename = (props: Props) => {
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
 
-  const inputRef = React.useRef<Kb.PlainInput>(null)
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
   C.useOnMountOnce(() => {
     inputRef.current?.transformText(i => {
       if (!props.initialDevicename) return i

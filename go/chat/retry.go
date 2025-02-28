@@ -294,7 +294,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 
 // Failure indicates a failure of type kind has happened when loading a conversation.
 func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
-	defer f.Trace(ctx, nil, fmt.Sprintf("Failure(%s)", desc))()
+	defer f.Trace(ctx, nil, "Failure(%s)", desc)()
 	f.Lock()
 	defer f.Unlock()
 	if !f.running {
@@ -313,7 +313,7 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 // Success indicates a success of type kind loading a conversation. This effectively removes
 // that conversation from the retry queue.
 func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
-	defer f.Trace(ctx, nil, fmt.Sprintf("Success(%s)", desc))()
+	defer f.Trace(ctx, nil, "Success(%s)", desc)()
 	f.Lock()
 	defer f.Unlock()
 	key := f.key(uid, desc)

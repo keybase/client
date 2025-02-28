@@ -147,7 +147,7 @@ func (mr *mockRouter) Post(i SessionID, sender DeviceID, seqno Seqno, msg []byte
 	return ss.post(seqno, msg)
 }
 
-func (ss *simplexSession) get(seqno Seqno, poll time.Duration, behavior int) (ret [][]byte, err error) {
+func (ss *simplexSession) get(_ Seqno, poll time.Duration, behavior int) (ret [][]byte, err error) {
 	timeout := false
 	handleMessage := func(msg message) {
 		ret = append(ret, msg.msg)

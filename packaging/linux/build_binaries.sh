@@ -2,6 +2,11 @@
 
 set -euox pipefail
 
+# check host arch
+is_arm64_host() {
+  [[ $(uname -m) == "arm64" ]] || [[ $(uname -m) == "aarch64" ]]
+}
+
 here="$(dirname "${BASH_SOURCE[0]}")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel ||
   echo -n "$GOPATH/src/github.com/keybase/client")"
@@ -128,11 +133,21 @@ build_one_architecture() {
   (cd "$client_dir" && go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm)
 
-  # Write allowlists into the overlay. Note that we have to explicitly set USER
-  # here, because docker doesn't do it by default, and so otherwise the
-  # CGO-disabled i386 cross platform build will fail because it's unable to
-  # find the current user.
-  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
+
+  if is_arm64_host ; then
+    echo "is_arm64_host, building native kbnm for install"
+
+    (cd "$client_dir" && GOARCH=arm64 CC=gcc CXX=g++ go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
+    "$layout_dir/usr/bin/kbnm_arm64" github.com/keybase/client/go/kbnm)
+    USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm_arm64" install
+    rm "$layout_dir/usr/bin/kbnm_arm64"
+  else
+    # Write allowlists into the overlay. Note that we have to explicitly set USER
+    # here, because docker doesn't do it by default, and so otherwise the
+    # CGO-disabled i386 cross platform build will fail because it's unable to
+    # find the current user.
+    USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
+  fi
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
@@ -195,7 +210,13 @@ if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
 fi
 
 if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
-  echo "Keybase: Building for x86-64"
+  if is_arm64_host ; then
+    echo "Keybase: Building for x86-64 (arm64 host cross compile)"
+    export CC=x86_64-linux-gnu-gcc
+    export CXX=x86_64-linux-gnu-g++
+  else
+    echo "Keybase: Building for x86-64"
+  fi
   export GOARCH=amd64
   export debian_arch=amd64
   export electron_arch=x64

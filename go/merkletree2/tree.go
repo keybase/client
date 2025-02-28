@@ -143,11 +143,11 @@ type Node struct {
 var _ codec.Selfer = &Node{}
 
 func (n *Node) CodecEncodeSelf(e *codec.Encoder) {
-	if n.INodes != nil && n.LeafHashes != nil && len(n.INodes) > 0 && len(n.LeafHashes) > 0 {
+	if len(n.INodes) > 0 && len(n.LeafHashes) > 0 {
 		panic("Cannot Encode a node with both Inodes and LeafHashes")
 	}
 
-	if n.INodes != nil && len(n.INodes) > 0 {
+	if len(n.INodes) > 0 {
 		e.MustEncode(NodeTypeINode)
 		e.MustEncode(n.INodes)
 		return

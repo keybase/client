@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
-import Assertion from './assertion/container'
-import Bio from './bio/container'
+import Assertion from './assertion'
+import Bio from './bio'
 import type * as T from '@/constants/types'
 
 type Props = {

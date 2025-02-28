@@ -90,7 +90,7 @@ func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err 
 	if !status.IsNil() {
 		status.AtKey("desc").GetStringVoid(&desc, &err)
 		status.AtKey("code").GetIntVoid(&code, &err)
-		pe = NewProofError(keybase1.ProofStatus(code), desc)
+		pe = NewProofError(keybase1.ProofStatus(code), "%s", desc)
 	}
 	if err != nil {
 		return nil, err

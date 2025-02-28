@@ -29,7 +29,7 @@ func TestImpTeamWithPhoneNumber(t *testing.T) {
 	teamObj := ann.loadTeamByID(teamID, true /* admin */)
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 	var invite keybase1.TeamInvite
-	for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+	for _, invite = range teamObj.GetActiveAndObsoleteInvites() { // nolint
 		// Get first invite to local var
 	}
 	require.EqualValues(t, phone, invite.Name)
@@ -264,7 +264,7 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	teamObj := ann.loadTeamByID(teamID, true /* admin */)
 	require.Equal(t, 1, teamObj.NumActiveInvites())
 	var invite keybase1.TeamInvite
-	for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+	for _, invite = range teamObj.GetActiveAndObsoleteInvites() { // nolint
 		// Get first invite to local var
 	}
 	require.EqualValues(t, email, invite.Name)

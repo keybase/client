@@ -257,21 +257,25 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
   const you = C.useCurrentUserState(s => s.username)
   const isSelf = you === username
-  const onShow = React.useCallback(() => {
-    setShowing(true)
-  }, [])
+  const onShow = C.useDebouncedCallback(
+    React.useCallback(() => {
+      setShowing(true)
+    }, []),
+    200
+  )
   const onHide = React.useCallback(() => {
+    onShow.cancel()
     setShowing(false)
-  }, [])
+  }, [onShow])
   if (isSelf) {
     return children()
   }
   const popup = showing && (
-    <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
+    <DelayedMounting delay={Styles.isMobile ? 0 : 300}>
       <Kb.FloatingMenu
         attachTo={popupAnchor}
         closeOnSelect={true}
-        onHidden={() => setShowing(false)}
+        onHidden={onHide}
         position="top center"
         positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!Styles.isMobile}

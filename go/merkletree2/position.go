@@ -144,26 +144,26 @@ func (t *Config) getDeepestPositionForKey(k Key) (*Position, error) {
 // Returns the lexicographically first key which could be found at any children
 // of position p in the tree
 func (t *Config) getMinKey(p *Position) Key {
-	var min big.Int
-	min.Set((*big.Int)(p))
-	n := uint(t.KeysByteLength*8 + 1 - min.BitLen())
-	min.Lsh(&min, n)
-	return min.Bytes()[1:]
+	var minI big.Int
+	minI.Set((*big.Int)(p))
+	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen())
+	minI.Lsh(&minI, n)
+	return minI.Bytes()[1:]
 }
 
 func (t *Config) GetKeyIntervalUnderPosition(p *Position) (minKey, maxKey Key) {
-	var min, max big.Int
+	var minI, maxI big.Int
 
-	min.Set((*big.Int)(p))
-	n := uint(t.KeysByteLength*8 + 1 - min.BitLen())
-	min.Lsh(&min, n)
-	minKey = min.Bytes()[1:]
+	minI.Set((*big.Int)(p))
+	n := uint(t.KeysByteLength*8 + 1 - minI.BitLen())
+	minI.Lsh(&minI, n)
+	minKey = minI.Bytes()[1:]
 
 	one := big.NewInt(1)
-	max.Lsh(one, n)
-	max.Sub(&max, one)
-	max.Or(&max, &min)
-	maxKey = max.Bytes()[1:]
+	maxI.Lsh(one, n)
+	maxI.Sub(&maxI, one)
+	maxI.Or(&maxI, &minI)
+	maxKey = maxI.Bytes()[1:]
 
 	return minKey, maxKey
 }

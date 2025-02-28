@@ -92,7 +92,7 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 	return ret, nil
 }
 
-func (c *Cache) Put(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer, v interface{}) error {
+func (c *Cache) Put(_ context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer, v interface{}) error {
 	c.Lock()
 	defer c.Unlock()
 	var data string
@@ -116,12 +116,12 @@ func (c *Cache) Put(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 	return nil
 }
 
-func (c *Cache) OnLogout(mctx libkb.MetaContext) error {
+func (c *Cache) OnLogout(_ libkb.MetaContext) error {
 	c.ClearMemory()
 	return nil
 }
 
-func (c *Cache) OnDbNuke(mctx libkb.MetaContext) error {
+func (c *Cache) OnDbNuke(_ libkb.MetaContext) error {
 	c.ClearMemory()
 	return nil
 }

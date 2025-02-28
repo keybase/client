@@ -78,7 +78,7 @@ type gpgTestUIBadSign struct {
 	gpgtestui
 }
 
-func (g *gpgTestUIBadSign) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+func (g *gpgTestUIBadSign) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
 	return "", libkb.GpgError{M: "Artificial GPG failure for testing"}
 }
 

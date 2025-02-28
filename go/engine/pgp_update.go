@@ -95,9 +95,8 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 					"No key matching fingerprint %s found in the GPG keyring.",
 					fingerprint.String())
 				continue
-			} else {
-				return err
 			}
+			return err
 		}
 
 		bundle.InitGPGKey()

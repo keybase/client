@@ -71,7 +71,7 @@ func unpackChainLink(link *SCChainLink) (*ChainLinkUnpacked, error) {
 	var inner *SCChainLinkPayload
 	var innerLinkID libkb.LinkID
 	var innerTeamID keybase1.TeamID
-	if link.Payload == "" {
+	if link.Payload == "" { // nolint
 		// stubbed inner link
 	} else {
 		payload, err := link.UnmarshalPayload()

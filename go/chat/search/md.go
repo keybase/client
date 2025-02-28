@@ -45,8 +45,8 @@ func (m *indexMetadata) Size() int64 {
 }
 
 func (m *indexMetadata) MissingIDForConv(conv chat1.Conversation) (res []chat1.MessageID) {
-	min, max := MinMaxIDs(conv)
-	for i := min; i <= max; i++ {
+	minID, maxID := MinMaxIDs(conv)
+	for i := minID; i <= maxID; i++ {
 		if _, ok := m.SeenIDs[i]; !ok {
 			res = append(res, i)
 		}
@@ -54,8 +54,8 @@ func (m *indexMetadata) MissingIDForConv(conv chat1.Conversation) (res []chat1.M
 	return res
 }
 
-func (m *indexMetadata) numMissing(min, max chat1.MessageID) (numMissing int) {
-	for i := min; i <= max; i++ {
+func (m *indexMetadata) numMissing(minID, maxID chat1.MessageID) (numMissing int) {
+	for i := minID; i <= maxID; i++ {
 		if _, ok := m.SeenIDs[i]; !ok {
 			numMissing++
 		}
@@ -64,12 +64,12 @@ func (m *indexMetadata) numMissing(min, max chat1.MessageID) (numMissing int) {
 }
 
 func (m *indexMetadata) indexStatus(conv chat1.Conversation) indexStatus {
-	min, max := MinMaxIDs(conv)
-	numMsgs := int(max) - int(min) + 1
+	minID, maxID := MinMaxIDs(conv)
+	numMsgs := int(maxID) - int(minID) + 1
 	if numMsgs <= 1 {
 		return indexStatus{numMsgs: numMsgs}
 	}
-	numMissing := m.numMissing(min, max)
+	numMissing := m.numMissing(minID, maxID)
 	return indexStatus{numMissing: numMissing, numMsgs: numMsgs}
 }
 
@@ -82,11 +82,11 @@ func (m *indexMetadata) PercentIndexed(conv chat1.Conversation) int {
 }
 
 func (m *indexMetadata) FullyIndexed(conv chat1.Conversation) bool {
-	min, max := MinMaxIDs(conv)
-	if max <= min {
+	minID, maxID := MinMaxIDs(conv)
+	if maxID <= minID {
 		return true
 	}
-	return m.numMissing(min, max) == 0
+	return m.numMissing(minID, maxID) == 0
 }
 
 type indexStatus struct {

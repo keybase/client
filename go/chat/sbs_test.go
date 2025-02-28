@@ -320,17 +320,17 @@ func TestChatSrvSBSRooter(t *testing.T) {
 func TestChatSrvSBSPhone(t *testing.T) {
 	var phoneNumber keybase1.PhoneNumber
 	runChatSBSScenario(t, sbsTestCase{
-		getChatAssertion: func(user *kbtest.FakeUser) string {
+		getChatAssertion: func(_ *kbtest.FakeUser) string {
 			phone := kbtest.GenerateTestPhoneNumber()
 			phoneNumber = keybase1.PhoneNumber("+" + phone)
 			return fmt.Sprintf("%s@phone", phone)
 		},
-		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+		sbsVerify: func(_ *kbtest.FakeUser, g *libkb.GlobalContext) {
 			addAndVerifyPhone(t, g, phoneNumber)
 			err := phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
 			require.NoError(t, err)
 		},
-		sbsRevoke: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+		sbsRevoke: func(_ *kbtest.FakeUser, g *libkb.GlobalContext) {
 			err := phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PRIVATE)
 			require.NoError(t, err)
 		},

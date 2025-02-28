@@ -24,13 +24,6 @@ func NewPRNG(s Secret) *PRNG {
 	}
 }
 
-func min(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
-}
-
 func (p *PRNG) read(ret []byte) int {
 	n := min(len(p.buf), len(ret))
 	copy(ret[0:n], p.buf[0:n])

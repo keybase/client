@@ -21,7 +21,7 @@ import (
 
 var testLog = &logging.Logger{Module: "test"}
 
-var matchAll = func(p ps.Process) bool { return true }
+var matchAll = func(_ ps.Process) bool { return true }
 
 func cleanupProc(cmd *exec.Cmd, procPath string) {
 	if cmd != nil && cmd.Process != nil {
@@ -98,7 +98,7 @@ func TestTerminatePIDInvalid(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestTerminateAllFn(t *testing.T) {
+func TestTerminateAllFn(_ *testing.T) {
 	fn := func() ([]ps.Process, error) {
 		return nil, fmt.Errorf("Testing error")
 	}

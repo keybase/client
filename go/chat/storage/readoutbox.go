@@ -66,7 +66,7 @@ func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
 		found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
 		if ierr != nil {
 			if _, ok := ierr.(libkb.LoginRequiredError); !ok {
-				o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, ierr.Error()), o.dbKey())
+				o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, "%s", ierr.Error()), o.dbKey())
 			}
 			return diskReadOutbox{Version: readOutboxVersion}
 		}

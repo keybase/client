@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	errAuditOffline    = errors.New("Merkle audit failed to run due to the lack of connectivity.")
-	errAuditNoLastRoot = errors.New("Merkle audit failed to run due to not being able to get the last root.")
+	errAuditOffline    = errors.New("Merkle audit failed to run due to the lack of connectivity.")            // nolint
+	errAuditNoLastRoot = errors.New("Merkle audit failed to run due to not being able to get the last root.") // nolint
 )
 
 var MerkleAuditSettings = BackgroundTaskSettings{
