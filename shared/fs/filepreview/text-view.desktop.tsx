@@ -38,7 +38,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
-          padding: Kb.Styles.globalMargins.medium,
+          padding: Kb.Styles.globalMargins.small,
         },
         isElectron: {overflow: 'scroll'} as const,
       }),
@@ -47,17 +47,17 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
         color: Kb.Styles.globalColors.black,
         maxWidth: '100%',
-        paddingBottom: Kb.Styles.globalMargins.large,
-        paddingLeft: Kb.Styles.globalMargins.xlarge,
-        paddingRight: Kb.Styles.globalMargins.xlarge,
-        paddingTop: Kb.Styles.globalMargins.large,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
         width: 800,
       },
       text: Kb.Styles.platformStyles({
         isElectron: {
           color: Kb.Styles.globalColors.black_on_white,
-          overflow: 'hidden',
-          whiteSpace: 'pre-wrap',
+          overflow: 'scroll',
+          whiteSpace: 'pre',
         },
       }),
     }) as const
