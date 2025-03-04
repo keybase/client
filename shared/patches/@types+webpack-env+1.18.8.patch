@@ -1,0 +1,10 @@
+diff --git a/node_modules/@types/webpack-env/index.d.ts b/node_modules/@types/webpack-env/index.d.ts
+index a3f6aaa..98fc4b5 100644
+--- a/node_modules/@types/webpack-env/index.d.ts
++++ b/node_modules/@types/webpack-env/index.d.ts
+@@ -380,4 +380,4 @@ interface NodeRequire extends __WebpackModuleApi.__NodeGlobalInterfacePolyfill.R
+ 
+ declare var module: NodeJS.Module;
+ declare var process: NodeJS.Process;
+-declare var require: NodeJS.Require;
++//declare var require: NodeJS.Require;
