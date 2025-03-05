@@ -44,6 +44,7 @@ export type Props = {
   remeasureHint?: number
   textColor?: Styles.Color
   visible: boolean
+  offset?: number
   // mobile only
   safeProviderStyle?: Styles.StylesCrossPlatform
   snapPoints?: Array<string | number>
@@ -136,6 +137,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
       remeasureHint={props.remeasureHint}
       style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      offset={props.offset}
     >
       {contents}
     </Kb.Overlay>

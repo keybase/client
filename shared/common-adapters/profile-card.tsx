@@ -267,6 +267,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
     onShow.cancel()
     setShowing(false)
   }, [onShow])
+
   if (isSelf) {
     return children()
   }
@@ -277,6 +278,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
         closeOnSelect={true}
         onHidden={onHide}
         position="top center"
+        offset={Styles.isMobile ? 0 : 10}
         positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!Styles.isMobile}
         remeasureHint={remeasureHint}

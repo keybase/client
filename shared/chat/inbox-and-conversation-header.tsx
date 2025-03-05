@@ -124,7 +124,6 @@ const Header2 = () => {
       </Kb.Markdown>
     )
   }
-
   return (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <Kb.Box2 direction="horizontal" style={styles.left}>
