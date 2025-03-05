@@ -1441,7 +1441,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 )
 
                 if (m) {
-                  const message = {...m, conversationMessage: false}
+                  // conversationMessage is used to tell if its this gallery load or not but if we
+                  // load a message we already have we don't want to overwrite that it really belongs
+                  const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
                   set(s => {
                     const info = mapGetEnsureValue(
                       s.attachmentViewMap,
