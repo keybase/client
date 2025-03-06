@@ -29,6 +29,7 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
     'setDescription',
     'pin',
     'systemAddedToTeam',
+    'systemChangeAvatar',
     'systemChangeRetention',
     'systemGitPush',
     'systemInviteAccepted',

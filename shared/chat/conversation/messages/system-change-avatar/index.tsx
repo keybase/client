@@ -11,7 +11,7 @@ const SystemChangeAvatar = (props: Props) => {
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>
-        {props.message.user === you ? 'You ' : ''}changed the team's avatar.
+        {props.message.user === you ? "You changed the team's avatar." : "The team's avatar was changed."}
       </Kb.Text>
       <Kb.Avatar teamname={props.message.team} size={128} />
     </UserNotice>
