@@ -4,54 +4,53 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = C.useChatContext(
+    C.useShallow(s => {
+      const {meta, dispatch, id: conversationIDKey} = s
+      const teamname = meta.teamname
+      const pinnedMsg = meta.pinnedMsg
+      const {pinMessage, replyJump, ignorePinnedMessage: onIgnore} = dispatch
+      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamname}
+    })
+  )
   const you = C.useCurrentUserState(s => s.username)
-  const teamname = C.useChatContext(s => s.meta.teamname)
-  const pinnedMsg = C.useChatContext(s => s.meta.pinnedMsg)
-  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
-  const message = pinnedMsg?.message
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
   const unpinning = C.Waiting.useAnyWaiting(C.Chat.waitingKeyUnpin(conversationIDKey))
-  const messageID = message?.id
-  const onClick = React.useCallback(() => {
-    messageID && replyJump(messageID)
-  }, [replyJump, messageID])
-  const onIgnore = C.useChatContext(s => s.dispatch.ignorePinnedMessage)
-  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
-  const onUnpin = React.useCallback(() => {
-    pinMessage()
-  }, [pinMessage])
-
+  const {message, pinnerUsername} = pinnedMsg ?? {}
+  const {id: messageID, author, type} = message ?? {}
   const canAdminDelete = !!yourOperations.deleteOtherMessages
   const attachment: T.Chat.MessageAttachment | undefined =
     message?.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
-  const pinnerUsername = pinnedMsg?.pinnerUsername
-  const author = message?.author
-  const imageHeight = attachment ? attachment.previewHeight : undefined
-  const imageURL = attachment ? attachment.previewURL : undefined
-  const imageWidth = attachment ? attachment.previewWidth : undefined
+  const {previewHeight: imageHeight, previewURL: imageURL, previewWidth: imageWidth} = attachment ?? {}
   const text =
-    message?.type === 'text'
-      ? message.decoratedText
-        ? message.decoratedText.stringValue()
-        : ''
-      : message?.title || message?.fileName
+    type === 'text' ? (message?.decoratedText?.stringValue() ?? '') : message?.title || message?.fileName
 
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
-  const _onDismiss = dismissUnpins ? onUnpin : onIgnore
+
+  const onClick = React.useCallback(() => {
+    messageID && replyJump(messageID)
+  }, [replyJump, messageID])
+  const onUnpin = React.useCallback(() => {
+    pinMessage()
+  }, [pinMessage])
   const closeref = React.useRef<Kb.MeasureRef>(null)
   const [showPopup, setShowPopup] = React.useState(false)
+  const _onDismiss = dismissUnpins ? onUnpin : onIgnore
   const onDismiss = React.useCallback(() => {
     setShowPopup(false)
     _onDismiss()
   }, [_onDismiss])
 
   const onIconClick = React.useCallback(() => {
-    dismissUnpins ? () => setShowPopup(true) : onDismiss
+    if (dismissUnpins) {
+      setShowPopup(true)
+    } else {
+      onDismiss()
+    }
   }, [dismissUnpins, onDismiss])
 
-  if (!message || !(message.type === 'text' || message.type === 'attachment')) {
+  if (!(type === 'text' || type === 'attachment')) {
     return null
   }
   if (!text) {
