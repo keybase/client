@@ -55,8 +55,9 @@ const _isLoggedIn = (s: T.Immutable<NavState>) => {
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: T.Immutable<NavState>) => {
+export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
   const rs = navState || getRootState()
+  const inludeModals = _inludeModals ?? true
 
   const findVisibleRoute = (
     arr: T.Immutable<Array<Route>>,
@@ -77,7 +78,9 @@ export const getVisiblePath = (navState?: T.Immutable<NavState>) => {
     if (depth === 0) {
       childRoute = s.routes[0] as Route
       toAdd = [childRoute]
-      toAddModals = s.routes.slice(1) as Array<Route>
+      if (inludeModals) {
+        toAddModals = s.routes.slice(1) as Array<Route>
+      }
     } else {
       // include items in the stack
       if (s.type === 'stack') {
@@ -108,8 +111,8 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   return rs.routes?.slice(1) ?? []
 }
 
-export const getVisibleScreen = (navState?: T.Immutable<NavState>) => {
-  const visible = getVisiblePath(navState)
+export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
+  const visible = getVisiblePath(navState, _inludeModals ?? true)
   return visible.at(-1)
 }
 
