@@ -499,7 +499,11 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
     (ev: React.MouseEvent) => {
       const target = ev.target
       // allow focusing other inner inputs such as the reacji picker filter
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target as HTMLElement).closest('[data-search-filter="true"]')
+      ) {
         return
       }
 

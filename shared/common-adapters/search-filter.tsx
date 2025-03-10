@@ -64,7 +64,7 @@ export type SearchFilterRef = {
   blur: () => void
   focus: () => void
 }
-const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
+const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFilter(props, ref) {
   const {onChange, onBlur: _onBlur, onFocus: _onFocus, hotkey} = props
   const {onKeyDown: _onKeyDown, onCancel} = props
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
@@ -270,6 +270,7 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>((props, ref) => {
 
   const content = (
     <Kb.ClickableBox
+      data-search-filter={true}
       style={Styles.collapseStyles([
         styles.container,
         props.placeholderCentered && styles.containerCenter,
