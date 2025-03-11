@@ -173,7 +173,9 @@ const SectionList = React.forwardRef<any, any>(function SectionList<T extends Se
     if (!mountedRef.current) {
       return
     }
-    triggerOnSectionChangeIfNeeded()
+    setTimeout(() => {
+      triggerOnSectionChangeIfNeeded()
+    }, 1)
     _checkStickyThrottled()
   }, [mountedRef, triggerOnSectionChangeIfNeeded, _checkStickyThrottled])
 

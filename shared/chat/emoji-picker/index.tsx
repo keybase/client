@@ -237,15 +237,8 @@ const EmojiRow = React.memo(function EmojiRow(p: {
   )
 })
 
-const EmojiPicker = React.memo(function EmojiPicker(p: Props) {
+const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
-  const props = {...p, activeSectionKey, setActiveSectionKey}
-  return <EmojiPicker2 {...props} />
-})
-
-const EmojiPicker2 = (
-  props: Props & {activeSectionKey: string; setActiveSectionKey: (s: string) => void}
-) => {
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
@@ -276,8 +269,8 @@ const EmojiPicker2 = (
     const content = (
       <Kb.Box2 key="bookmark" direction="horizontal" fullWidth={true} style={styles.bookmarkContainer}>
         {bookmarks.map((bookmark, bookmarkIndex) => {
-          const isActive = props.activeSectionKey
-            ? bookmark.coveredSectionKeys.has(props.activeSectionKey)
+          const isActive = activeSectionKey
+            ? bookmark.coveredSectionKeys.has(activeSectionKey)
             : bookmarkIndex === 0
           return (
             <Kb.Box
@@ -289,13 +282,14 @@ const EmojiPicker2 = (
                 type={bookmark.iconType}
                 padding="tiny"
                 color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
-                onClick={() =>
+                onClick={() => {
+                  setActiveSectionKey(bookmark.coveredSectionKeys.values().next().value ?? '')
                   sectionListRef.current?.scrollToLocation({
                     animated: true,
                     itemIndex: 0,
                     sectionIndex: bookmark.sectionIndex,
                   })
-                }
+                }}
               />
             </Kb.Box>
           )
@@ -317,10 +311,7 @@ const EmojiPicker2 = (
     </Kb.Box2>
   )
 
-  const onSectionChange = C.useDebouncedCallback(
-    (section: Section) => props.setActiveSectionKey(section.key),
-    200
-  )
+  const onSectionChange = C.useDebouncedCallback((section: Section) => setActiveSectionKey(section.key), 100)
 
   const makeNotFound = () => (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
@@ -420,7 +411,7 @@ const EmojiPicker2 = (
       </Kb.Box2>
     </>
   )
-}
+})
 
 export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {
