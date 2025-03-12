@@ -8,10 +8,28 @@ import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 
 const emptyText = C.Chat.makeMessageText({})
 
+const messageAuthorIsBot = (
+  state: C.Teams.State,
+  metaTeamID: string,
+  metaTeamname: string,
+  metaTeamType: T.Chat.TeamType,
+  messageAuthor: string,
+  participantInfo: T.Chat.ParticipantInfo
+) => {
+  const teamID = metaTeamID
+  return metaTeamname
+    ? C.Teams.userIsRoleInTeam(state, teamID, messageAuthor, 'restrictedbot') ||
+        C.Teams.userIsRoleInTeam(state, teamID, messageAuthor, 'bot')
+    : metaTeamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !participantInfo.name.includes(messageAuthor) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
+}
+
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
-  const isAttach = m?.type === 'attachment'
-  const message = m || emptyText
+  const message = C.useChatContext(s => {
+    return s.messageMap.get(ordinal) ?? emptyText
+  })
+  const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname} = meta
@@ -36,7 +54,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }, [navigateAppend, ordinal])
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
-  const authorIsBot = C.useTeamsState(s => C.Chat.messageAuthorIsBot(s, meta, message, participantInfo))
+  const authorIsBot = C.useTeamsState(s =>
+    messageAuthorIsBot(s, meta.teamID, meta.teamname, meta.teamType, author, participantInfo)
+  )
   const _onInstallBot = React.useCallback(() => {
     navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
   }, [navigateAppend, author])
@@ -72,7 +92,13 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
 
-  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = C.useChatContext(
+    C.useShallow(s => {
+      const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = s.dispatch
+      return {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo}
+    })
+  )
+
   const onReply = React.useCallback(() => {
     setReplyTo(ordinal)
   }, [setReplyTo, ordinal])
@@ -80,7 +106,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     ? []
     : ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
 
-  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = React.useCallback(() => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
@@ -115,7 +140,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const isTeam = !!teamname
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
-  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const _onPinMessage = React.useCallback(() => {
     pinMessage(id)
   }, [pinMessage, id])
@@ -124,7 +148,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
 
-  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = React.useCallback(() => {
     setMarkAsUnread(id)
   }, [setMarkAsUnread, id])
@@ -132,7 +155,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'},
   ] as const
 
-  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onDelete = React.useCallback(() => {
     messageDelete(ordinal)
@@ -229,9 +251,10 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useHeader = (ordinal: T.Chat.Ordinal) => {
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => {
+    return s.messageMap.get(ordinal) ?? emptyText
+  })
   const you = C.useCurrentUserState(s => s.username)
-  const message = m || emptyText
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you
   const deviceRevokedAt = message.deviceRevokedAt || undefined
@@ -245,7 +268,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal) => {
       botUsername={botUsername}
       deviceName={deviceName ?? ''}
       deviceRevokedAt={deviceRevokedAt}
-      explodesAt={message.exploded ? 0 : explodingTime ?? 0}
+      explodesAt={message.exploded ? 0 : (explodingTime ?? 0)}
       timestamp={timestamp}
       yourMessage={yourMessage}
     />

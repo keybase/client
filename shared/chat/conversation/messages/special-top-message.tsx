@@ -109,26 +109,46 @@ const ErrorMessage = () => {
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const username = C.useCurrentUserState(s => s.username)
-  const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
-  const ordinals = C.useChatContext(s => s.messageOrdinals)
   const data = C.useChatContext(
     C.useShallow(s => {
+      const ordinals = s.messageOrdinals
       const hasLoadedEver = ordinals !== undefined
       const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
       const meta = s.meta
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+      const loadMoreType = s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'
+      const pendingState =
+        s.id === C.Chat.pendingWaitingConversationIDKey
+          ? 'waiting'
+          : s.id === C.Chat.pendingErrorConversationIDKey
+            ? 'error'
+            : 'done'
+
+      const partAll = s.participants.all
+      const partNum = partAll.length
+      const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
+      const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
+      const showTeamOffer =
+        hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
+      const hasOlderResetConversation = supersedes !== C.Chat.noConversationIDKey
+      // don't show default header in the case of the retention notice being visible
+      const showRetentionNotice =
+        retentionPolicy.type !== 'retain' &&
+        !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
       return {
-        hasLoadedEver,
+        hasOlderResetConversation,
+        isHelloBotConversation,
+        isSelfConversation,
+        loadMoreType,
         ordinal,
-        retentionPolicy,
-        supersedes,
-        teamRetentionPolicy,
-        teamType,
+        pendingState,
+        showRetentionNotice,
+        showTeamOffer,
       }
     })
   )
-  const {hasLoadedEver, ordinal, retentionPolicy} = data
-  const {supersedes, teamType, teamRetentionPolicy} = data
+  const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
+  const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
   const lastOrdinalRef = React.useRef(ordinal)
@@ -153,32 +173,6 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       }
     }
   }, [])
-
-  // could not expose this and just return an enum for the is*convos
-  const participantInfoAll = C.useChatContext(s => s.participants.all)
-
-  const pendingState = C.useChatContext(s => {
-    switch (s.id) {
-      case C.Chat.pendingWaitingConversationIDKey:
-        return 'waiting'
-      case C.Chat.pendingErrorConversationIDKey:
-        return 'error'
-      default:
-        return 'done'
-    }
-  })
-
-  const showTeamOffer =
-    hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
-  const hasOlderResetConversation = supersedes !== C.Chat.noConversationIDKey
-  // don't show default header in the case of the retention notice being visible
-  const showRetentionNotice =
-    retentionPolicy.type !== 'retain' &&
-    !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
-  const isHelloBotConversation =
-    teamType === 'adhoc' && participantInfoAll.length === 2 && participantInfoAll.includes('hellobot')
-  const isSelfConversation =
-    teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
     C.FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))

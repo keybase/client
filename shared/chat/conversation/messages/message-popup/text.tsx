@@ -19,20 +19,23 @@ const emptyMessage = C.Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    const message = m ?? emptyMessage
+    return message
+  })
   const you = C.useCurrentUserState(s => s.username)
-  const message = m || emptyMessage
   const {conversationIDKey, author} = message
   const text = React.useMemo(() => {
-    switch (m?.type) {
+    switch (message.type) {
       case 'text':
-        return m.text.stringValue()
+        return message.text.stringValue()
       case 'systemGitPush':
-        switch (m.pushType) {
+        switch (message.pushType) {
           case T.RPCGen.GitPushType.createrepo:
-            return `created a new team repository called ${m.repo}`
+            return `created a new team repository called ${message.repo}`
           case T.RPCGen.GitPushType.default:
-            return m.refs
+            return message.refs
               ?.map(ref => {
                 const commits =
                   ref.commits?.map(
@@ -42,7 +45,7 @@ const PopText = (ownProps: OwnProps) => {
 
                 const branchName = C.Chat.systemGitBranchName(ref)
                 const parts = [
-                  `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${m.repo}/${branchName}`,
+                  `pushed ${ref.commits?.length ?? 0} commit${(ref.commits?.length ?? 0) > 1 ? 's' : ''} to ${message.repo}/${branchName}`,
                   ...commits,
                 ]
                 return parts.join('\n')
@@ -54,24 +57,26 @@ const PopText = (ownProps: OwnProps) => {
       default:
         return undefined
     }
-  }, [m])
+  }, [message])
 
   const yourMessage = author === you
-  const meta = C.useChatContext(s => s.meta)
-  const {teamname} = meta
-  const isTeam = !!teamname
-  const participantInfo = C.useChatContext(s => s.participants)
+  const {isTeam, messageReplyPrivately, numPart, teamType} = C.useChatContext(
+    C.useShallow(s => {
+      const {teamType, teamname} = s.meta
+      const isTeam = !!teamname
+      const numPart = s.participants.all.length
+      const {messageReplyPrivately} = s.dispatch
+      return {isTeam, messageReplyPrivately, numPart, teamType}
+    })
+  )
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
-  const canReplyPrivately = ['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2
-  const _participants = participantInfo.all
-  const _teamname = meta.teamname
+  const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopy = React.useCallback(() => {
     text && copyToClipboard(text)
   }, [copyToClipboard, text])
 
-  const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = React.useCallback(() => {
     messageReplyPrivately(ordinal)
   }, [messageReplyPrivately, ordinal])
@@ -80,7 +85,7 @@ const PopText = (ownProps: OwnProps) => {
   // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
   const onViewMap =
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
-  const blockModalSingle = !_teamname && _participants.length === 2
+  const blockModalSingle = !isTeam && numPart === 2
 
   const _onUserReport = React.useCallback(() => {
     navigateAppend({

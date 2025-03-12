@@ -47,9 +47,9 @@ const missingMessage = C.Chat.makeMessageDeleted({})
 export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
 
-  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
   const {type, shouldShowPopup} = C.useChatContext(
     C.useShallow(s => {
+      const accountsInfoMap = s.accountsInfoMap
       const m = s.messageMap.get(ordinal)
       const type = m?.type
       const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
@@ -326,7 +326,7 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID, exploding} = C.useChatContext(
+  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID
@@ -336,18 +336,23 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
         ecrType === EditCancelRetryType.NOACTION
           ? reason
           : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-      return {exploding, failureDescription, outboxID}
+      const {messageDelete, messageRetry, setEditing} = s.dispatch
+      return {
+        exploding,
+        failureDescription,
+        messageDelete,
+        messageRetry,
+        outboxID,
+        setEditing,
+      }
     })
   )
-  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)
   }, [messageDelete, ordinal])
-  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
-  const messageRetry = C.useChatContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
     outboxID && messageRetry(outboxID)
   }, [messageRetry, outboxID])

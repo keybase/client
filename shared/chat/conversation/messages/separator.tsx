@@ -201,7 +201,6 @@ const missingMessage = C.Chat.makeMessageDeleted({})
 // TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
   const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
-  const previous = C.useChatContext(s => s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0))
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
@@ -209,6 +208,7 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
 
   const ret = C.useChatContext(
     C.useShallow(s => {
+      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)

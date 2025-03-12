@@ -16,34 +16,35 @@ const missingMessage = C.Chat.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
-  const isEditing = C.useChatContext(s => !!s.editing)
-  const conversationIDKey = C.useChatContext(s => s.id)
-
-  const {
-    fileType,
-    downloadPath,
-    transferState,
-    transferErrMsg,
-    fileName: _fileName,
-  } = C.useChatContext(
+  const data = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
+      const isEditing = !!s.editing
+      const conversationIDKey = s.id
       const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
-      return {downloadPath, fileName, fileType, transferErrMsg, transferState}
+      const title = m.decoratedText?.stringValue() || m.title || m.fileName
+      const progress = m.type === 'attachment' ? m.transferProgress : 0
+
+      const {dispatch} = s
+      const {attachmentDownload, messageAttachmentNativeShare} = dispatch
+      return {
+        attachmentDownload,
+        conversationIDKey,
+        downloadPath,
+        fileName,
+        fileType,
+        isEditing,
+        messageAttachmentNativeShare,
+        progress,
+        title,
+        transferErrMsg,
+        transferState,
+      }
     })
   )
 
-  const title = C.useChatContext(s => {
-    const _m = s.messageMap.get(ordinal)
-    const m = _m?.type === 'attachment' ? _m : missingMessage
-    return m.decoratedText?.stringValue() || m.title || m.fileName
-  })
-
-  const progress = C.useChatContext(s => {
-    const _m = s.messageMap.get(ordinal)
-    const m = _m?.type === 'attachment' ? _m : missingMessage
-    return m.transferProgress
-  })
+  const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
+  const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
 
   const saltpackOpenFile = C.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
@@ -62,8 +63,6 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal)
