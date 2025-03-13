@@ -81,16 +81,25 @@ const Reloadable = (props: ReloadableProps) => {
 }
 
 const Connected = () => {
-  const _teams = C.useTeamsState(s => s.teamMeta)
-  const activityLevels = C.useTeamsState(s => s.activityLevels)
-  const deletedTeams = C.useTeamsState(s => s.deletedTeams)
-  const filter = C.useTeamsState(s => s.teamListFilter)
+  const data = C.useTeamsState(
+    C.useShallow(s => {
+      const {deletedTeams, activityLevels, teamMeta, teamListFilter} = s
+      const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
+      return {
+        activityLevels,
+        deletedTeams,
+        newTeamRequests,
+        newTeams,
+        teamIDToResetUsers,
+        teamListFilter,
+        teamListSort,
+        teamMeta,
+      }
+    })
+  )
+  const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
+  const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
   const loaded = !C.Waiting.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
-  const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
-  const newTeams = C.useTeamsState(s => s.newTeams)
-  const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)
-  const sortOrder = C.useTeamsState(s => s.teamListSort)
-  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
 
   const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
@@ -109,19 +118,19 @@ const Connected = () => {
     [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
   )
 
-  const props = {
-    deletedTeams: deletedTeams,
-    loaded: loaded,
-    newTeamRequests: newTeamRequests,
-    newTeams: newTeams,
-    onHideChatBanner,
-    onOpenFolder,
-    onReadMore,
-    sawChatBanner,
-    teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
-    teams,
-  }
-  return <Reloadable {...props} />
+  return (
+    <Reloadable
+      deletedTeams={deletedTeams}
+      loaded={loaded}
+      newTeamRequests={newTeamRequests}
+      newTeams={newTeams}
+      onHideChatBanner={onHideChatBanner}
+      onOpenFolder={onOpenFolder}
+      onReadMore={onReadMore}
+      teams={teams}
+      teamresetusers={teamIDToResetUsers}
+    />
+  )
 }
 
 export default Connected
