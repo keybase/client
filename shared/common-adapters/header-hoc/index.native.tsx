@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import Box from '@/common-adapters/box'
+import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
@@ -10,7 +11,7 @@ import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Action, Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box, FloatingMenu, Icon, Text}
+const Kb = {BackButton, Box, BoxGrow, FloatingMenu, Icon, Text}
 const MAX_RIGHT_ACTIONS = 3
 
 export const HeaderHocHeader = (props: Props) => {
@@ -211,9 +212,7 @@ export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skip
     <Kb.Box style={styles.container}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
       {!skipHeader && <HeaderHocHeader {...props} />}
-      <Kb.Box style={styles.grow}>
-        <Kb.Box style={styles.innerWrapper}>{children}</Kb.Box>
-      </Kb.Box>
+      <Kb.BoxGrow>{children}</Kb.BoxGrow>
       {!!customSafeAreaBottomStyle && <SafeAreaView style={customSafeAreaBottomStyle} />}
     </Kb.Box>
   )

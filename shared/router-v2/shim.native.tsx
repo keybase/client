@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import {View} from 'react-native'
+import {View, useWindowDimensions} from 'react-native'
 import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet} from '@/constants/platform'
 
@@ -49,7 +49,9 @@ const platformShim = (
 
 const ModalWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p
-  return <View style={styles.modal}>{children}</View>
+  // adjust for being down, like the keyboard
+  const {height} = useWindowDimensions()
+  return <View style={[styles.modal, {maxHeight: height - 40}]}>{children}</View>
 }
 
 const styles = Kb.Styles.styleSheetCreate(

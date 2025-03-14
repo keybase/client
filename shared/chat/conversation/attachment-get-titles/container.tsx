@@ -206,7 +206,6 @@ const styles = Styles.styleSheetCreate(
     ({
       boxGrow: {
         margin: Styles.globalMargins.small,
-        overflow: 'hidden',
         width: '100%',
       },
       buttonContainer: Styles.platformStyles({
