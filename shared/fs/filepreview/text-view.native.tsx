@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type {Props} from './text-view'
+import {colors, darkColors} from '@/styles/colors'
 
 const TextView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
@@ -34,18 +35,27 @@ const styles = Kb.Styles.styleSheetCreate(
 // provides the top and bottom margin that blends with the rest of the app.
 const webviewCSS = `
 html{
-  background-color: ${Kb.Styles.globalColors.blueLighter3};
+  background-color: ${colors.blueLighter3};
   padding-top: ${Kb.Styles.globalMargins.mediumLarge};
   padding-bottom: ${Kb.Styles.globalMargins.mediumLarge};
   margin: 0;
 }
 body{
-  background-color: ${Kb.Styles.globalColors.white};
+  background-color: ${colors.white};
   padding: ${Kb.Styles.globalMargins.medium};
   margin: 0;
-  color: ${Kb.Styles.globalColors.black};
+  color: ${colors.black};
   font-size: 15;
   line-height: 1.6;
+}
+@media (prefers-color-scheme: dark) {
+  html{
+    background-color: ${darkColors.blueLighter3};
+  }
+  body{
+    background-color: ${darkColors.white};
+    color: ${darkColors.black};
+  }
 }
 pre{
   font-family: "${Kb.Styles.globalStyles.fontTerminal.fontFamily}", monospace;
