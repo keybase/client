@@ -23,6 +23,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
       },
       webview: {
+        backgroundColor: Kb.Styles.globalColors.white,
         height: '100%',
         width: '100%',
       },
@@ -33,6 +34,7 @@ const styles = Kb.Styles.styleSheetCreate(
 // the component's styles, to make it feel like the whole "view" is
 // scrollable".  The <body> element has the actual content, while <html>
 // provides the top and bottom margin that blends with the rest of the app.
+// need color/darkColor since this is css and not dynamicColors
 const webviewCSS = `
 html{
   background-color: ${colors.blueLighter3};
