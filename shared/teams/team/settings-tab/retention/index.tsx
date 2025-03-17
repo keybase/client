@@ -221,9 +221,7 @@ const RetentionPicker = (p: Props) => {
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
-      {showSaveIndicator && (
-        <SaveIndicator saving={saving} style={styles.saveState} minSavingTimeMs={300} savedTimeoutMs={2500} />
-      )}
+      {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
     </Kb.Box>
   )
 }

@@ -27,14 +27,14 @@ const Toast = (props: Props) => {
   }, [])
   const setShouldRenderFalseLater = useTimeout(() => {
     setShouldRender(false)
-  }, 100)
+  }, 1000)
   React.useEffect(() => {
     if (visible) {
       setShouldRender(true)
       return () => {
         opacity &&
           NativeAnimated.timing(opacity, {
-            duration: 100,
+            duration: 200,
             easing: NativeEasing.linear,
             toValue: 0,
             useNativeDriver: false,
@@ -47,7 +47,7 @@ const Toast = (props: Props) => {
   React.useEffect(() => {
     if (shouldRender && opacity) {
       const animation = NativeAnimated.timing(opacity, {
-        duration: 100,
+        duration: 200,
         easing: NativeEasing.linear,
         toValue: 1,
         useNativeDriver: false,
