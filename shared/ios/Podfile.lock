@@ -9,7 +9,7 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (52.0.38):
+  - Expo (52.0.39):
     - ExpoModulesCore
   - ExpoAsset (11.0.4):
     - ExpoModulesCore
@@ -37,7 +37,7 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.3):
     - ExpoModulesCore
-  - ExpoLocation (18.0.7):
+  - ExpoLocation (18.0.8):
     - ExpoModulesCore
   - ExpoMailComposer (14.0.2):
     - ExpoModulesCore
@@ -2307,7 +2307,7 @@ SPEC CHECKSUMS:
   EXAV: 4c41f0a6ae54a0b96597abc90e37962ab2ee0d85
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   EXImageLoader: e5da974e25b13585c196b658a440720c075482d5
-  Expo: a43b172755cb98c3ffe2a9485b16bba876d1b52f
+  Expo: dc113fa18a3212dfdab60fc543b052ef4299f8a9
   ExpoAsset: 4033893dfb333b444bf45e951351254137b658d5
   ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
   ExpoClipboard: 44fd1c8959ee8f6175d059dc011b154c9709a969
@@ -2318,7 +2318,7 @@ SPEC CHECKSUMS:
   ExpoImage: c6d1f54445f38766650052aedf5396a74bb96fff
   ExpoImagePicker: 24e5ba8da111f74519b1e6dc556e0b438b2b8464
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
-  ExpoLocation: ab3b9fc6d87d05a13e7a254f2c42609031fe18b7
+  ExpoLocation: e7dc025bde1bd3091ad7e616ea6145240672b2e4
   ExpoMailComposer: 05d7236221229740563ed12f008f8b2054ed0474
   ExpoMediaLibrary: 2709fc2e4fcf87d28767714abcc603c4bec228c6
   ExpoModulesCore: 5f742a35aa7861bb7d9cde9a2f64ef62032355f5

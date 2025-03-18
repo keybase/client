@@ -12,7 +12,7 @@ index 9e8e3ee..2a16d57 100644
     * Modal name to help identify the modal for later on.
     * @type string
 diff --git a/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/BottomSheetFlashList.d.ts b/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/BottomSheetFlashList.d.ts
-index e42b83e..4603deb 100644
+index e42b83e..ed8b20f 100644
 --- a/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/BottomSheetFlashList.d.ts
 +++ b/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/BottomSheetFlashList.d.ts
 @@ -1,4 +1,4 @@

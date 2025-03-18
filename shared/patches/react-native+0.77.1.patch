@@ -49,7 +49,7 @@ index 377e9aa..eafd491 100644
    }
  };
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
-index 4e7293b..3476fb1 100644
+index 2a80746..28b1c2d 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.mm
 @@ -6,11 +6,14 @@
@@ -301,7 +301,7 @@ index 0000000..da2038a
 +
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/types/index.d.ts b/node_modules/react-native/types/index.d.ts
-index 5aeec06..5ea7042 100644
+index 3df2d27..7b4f6ea 100644
 --- a/node_modules/react-native/types/index.d.ts
 +++ b/node_modules/react-native/types/index.d.ts
 @@ -68,7 +68,6 @@
