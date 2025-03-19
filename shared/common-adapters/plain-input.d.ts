@@ -59,7 +59,7 @@ export type Selection = {
 export type InputStyle = CustomStyles<'padding'>
 
 export type Props = {
-  onPasteImage?: (uri: string) => void // mobile only, if allowImagePaste is on
+  onPasteImage?: (uri: Array<string>) => void // mobile only, if allowImagePaste is on
   autoFocus?: boolean
   // Enable if you want this to always have focus (desktop only)
   globalCaptureKeypress?: boolean

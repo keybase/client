@@ -169,7 +169,7 @@ const PlainInput = React.memo(
     const onImageChange = (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
       if (onPasteImage) {
         const {uri, linkUri} = e.nativeEvent
-        uri && onPasteImage(linkUri || uri)
+        uri && onPasteImage([linkUri || uri])
       }
     }
 

@@ -1333,8 +1333,6 @@ PODS:
     - Yoga
   - react-native-hw-keyboard-event (0.0.4):
     - React
-  - react-native-image-keyboard (2.2.1):
-    - React
   - react-native-kb (0.1.1):
     - DoubleConversion
     - glog
@@ -1358,6 +1356,27 @@ PODS:
     - Yoga
   - react-native-netinfo (11.4.1):
     - React-Core
+  - react-native-paste-input (0.8.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-safe-area-context (5.3.0):
     - DoubleConversion
     - glog
@@ -2042,9 +2061,9 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-drop-view (from `../../rnmodules/react-native-drop-view`)
   - react-native-hw-keyboard-event (from `../node_modules/react-native-hw-keyboard-event`)
-  - react-native-image-keyboard (from `../node_modules/react-native-image-keyboard`)
   - react-native-kb (from `../../rnmodules/react-native-kb`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - "react-native-paste-input (from `../node_modules/@mattermost/react-native-paste-input`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
@@ -2216,12 +2235,12 @@ EXTERNAL SOURCES:
     :path: "../../rnmodules/react-native-drop-view"
   react-native-hw-keyboard-event:
     :path: "../node_modules/react-native-hw-keyboard-event"
-  react-native-image-keyboard:
-    :path: "../node_modules/react-native-image-keyboard"
   react-native-kb:
     :path: "../../rnmodules/react-native-kb"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-paste-input:
+    :path: "../node_modules/@mattermost/react-native-paste-input"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-webview:
@@ -2364,9 +2383,9 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: d03753688e2abf135edcd4160ab3ce7526da8b0d
   react-native-drop-view: a5800a04a677a8525468479c9eb7540bdec9584f
   react-native-hw-keyboard-event: 0821ba9b3613fac77a44b44927a301d3e5af4f12
-  react-native-image-keyboard: e851b53330b3b701c7e50b18c2e6fa3ca5fcae25
   react-native-kb: ea9ec7540a32062d5e341ff2e1f6460687f7b9c7
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
+  react-native-paste-input: dfc02fb49c66f1f67d01d806dc09999e48fb3d40
   react-native-safe-area-context: 0f14bce545abcdfbff79ce2e3c78c109f0be283e
   react-native-webview: 44edb564b5bee25f3cdb4bfa8b45d6ae9d3dedec
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564

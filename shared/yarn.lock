@@ -2294,6 +2294,13 @@
   dependencies:
     cross-spawn "^7.0.1"
 
+"@mattermost/react-native-paste-input@0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@mattermost/react-native-paste-input/-/react-native-paste-input-0.8.1.tgz#944ec69d0c49c3607265a02ad04103cc5b556caf"
+  integrity sha512-QHpwWORPALmX5FczCewRlJkVqtltD84mlpMpto5IGLKdHMAoHeXMiG4VJVh2XkRQvTyUhYegtrUrJzf8dkJokA==
+  dependencies:
+    semver "7.6.3"
+
 "@msgpack/msgpack@2.8.0":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-2.8.0.tgz#4210deb771ee3912964f14a15ddfb5ff877e70b9"
@@ -9844,11 +9851,6 @@ react-native-hw-keyboard-event@0.0.4:
   resolved "https://registry.yarnpkg.com/react-native-hw-keyboard-event/-/react-native-hw-keyboard-event-0.0.4.tgz#e8e7d3be78cf61bac0144066f734cdd48df88d2f"
   integrity sha512-G8qp0nm17PHigLb/axgdF9xg51BKCG2p1AGeq//J/luLp5zNczIcQJh+nm02R1MeEUE3e53wqO4LMe0MV3raZg==
 
-react-native-image-keyboard@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-image-keyboard/-/react-native-image-keyboard-2.2.1.tgz#301ecad7534256b0001e9cb7ca5775f430f76ce0"
-  integrity sha512-l2+hJ450wMRyZB3k5v1sIPKM9ioJ50eNPDQUI7HvSz6mSrXP2Il1Cv418LvpQvbPxbUYr3W7dROZ+MnDS8xafw==
-
 react-native-is-edge-to-edge@1.1.6:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.6.tgz#69ec13f70d76e9245e275eed4140d0873a78f902"
@@ -10513,6 +10515,11 @@ semver-compare@^1.0.0:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.2.tgz#48d55db737c3287cd4835e17fa13feace1c41ef8"
   integrity sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==
+
+semver@7.6.3:
+  version "7.6.3"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.3.tgz#980f7b5550bc175fb4dc09403085627f9eb33143"
+  integrity sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==
 
 semver@^6.2.0, semver@^6.3.0, semver@^6.3.1:
   version "6.3.1"

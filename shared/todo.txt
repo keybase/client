@@ -1,9 +1,3 @@
-update patches
-
-
-TEMP disabling new arch on android due to this
-maybe fixed? android can't click on stack header area in new arch: https://github.com/software-mansion/react-native-screens/pull/2466
-
 expo-av to expo-video / expo-audio (not ready yet can't get video size...)
 inbox scroll perf issues
 

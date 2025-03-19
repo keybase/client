@@ -4,12 +4,20 @@ import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getStyle as getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
+import PasteInput, {type PastedFile} from '@mattermost/react-native-paste-input'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
     const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
     const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
-    const {autoFocus: _autoFocus} = p
+    const {
+      autoFocus: _autoFocus,
+      autoCorrect,
+      autoCapitalize,
+      onBlur,
+      onFocus,
+      onSelectionChange: _onSelectionChange,
+    } = p
 
     const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
     const [value, setValue] = React.useState('')
@@ -32,8 +40,9 @@ export const Input2 = React.memo(
     const onSelectionChange = React.useCallback(
       (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         setSelection(e.nativeEvent.selection)
+        _onSelectionChange?.(e)
       },
-      []
+      [_onSelectionChange]
     )
 
     React.useImperativeHandle(ref, () => {
@@ -96,33 +105,61 @@ export const Input2 = React.memo(
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
     }, [_style, multiline, textType, padding, rowsMax, rowsMin])
 
-    const onImageChangeImpl = React.useCallback(
-      (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
+    const onPasteImageImpl = React.useCallback(
+      (error: string | null | undefined, files: Array<PastedFile>) => {
+        if (error) {
+          console.log('paste error', error)
+        }
         if (onPasteImage) {
-          const {uri, linkUri} = e.nativeEvent
-          uri && onPasteImage(linkUri || uri)
+          const uris = files.map(f => f.uri)
+          onPasteImage(uris)
         }
       },
       [onPasteImage]
     )
 
-    const onImageChange = onPasteImage ? onImageChangeImpl : undefined
+    const onPaste = onPasteImage ? onPasteImageImpl : undefined
+
+    if (onPaste) {
+      return (
+        <PasteInput
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
+          autoFocus={autoFocus}
+          blurOnSubmit={false}
+          multiline={multiline}
+          onBlur={onBlur}
+          onChangeText={onChangeText}
+          onFocus={onFocus}
+          onPaste={onPaste}
+          onSelectionChange={onSelectionChange}
+          placeholder={placeholder}
+          readOnly={disabled}
+          ref={setInputRef}
+          selection={selection}
+          style={style}
+          value={value}
+        />
+      )
+    }
 
     return (
       <TextInput
-        // @ts-ignore in our patched impl
-        onImageChange={onImageChange}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
         autoFocus={autoFocus}
-        placeholder={placeholder}
-        readOnly={disabled}
-        onSelectionChange={onSelectionChange}
-        ref={setInputRef}
-        onChangeText={onChangeText}
-        style={style}
         blurOnSubmit={false}
         multiline={multiline}
-        value={value}
+        onBlur={onBlur}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        onSelectionChange={onSelectionChange}
+        placeholder={placeholder}
+        readOnly={disabled}
+        ref={setInputRef}
         selection={selection}
+        style={style}
+        value={value}
       />
     )
   })

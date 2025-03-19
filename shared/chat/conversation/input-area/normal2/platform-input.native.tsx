@@ -10,7 +10,7 @@ import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
-import {Keyboard} from 'react-native'
+import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
@@ -27,8 +27,7 @@ import {
 import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
-import type {Props as PlainInputProps} from '@/common-adapters/plain-input'
-import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import type {RefType as Input2Ref, Props as Input2Props} from '@/common-adapters/input2'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -376,9 +375,9 @@ const PlatformInput = (p: Props) => {
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const onPasteImage = React.useCallback(
-    (uri: string) => {
+    (uri: Array<string>) => {
       try {
-        const pathAndOutboxIDs = [{path: uri}]
+        const pathAndOutboxIDs = uri.map(path => ({path}))
         navigateAppend(conversationIDKey => ({
           props: {conversationIDKey, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
@@ -423,6 +422,13 @@ const PlatformInput = (p: Props) => {
     }
   }, [isEditing])
 
+  const _onSelectionChange = React.useCallback(
+    (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+      onSelectionChange(e.nativeEvent.selection)
+    },
+    [onSelectionChange]
+  )
+
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
@@ -445,7 +451,7 @@ const PlatformInput = (p: Props) => {
               onBlur={onBlur}
               onFocus={onFocus}
               onChangeText={aiOnChangeText}
-              onSelectionChange={onSelectionChange}
+              onSelectionChange={_onSelectionChange}
               ref={onAnimatedInputRef}
               style={styles.input}
               textType="Body"
@@ -483,7 +489,7 @@ const PlatformInput = (p: Props) => {
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(
-      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, Input2Props & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const {expanded, ...rest} = p
         return (
           <Animated.View style={[p.style, rest.style]}>
@@ -494,7 +500,7 @@ const AnimatedInput = (() => {
     )
   } else {
     return React.memo(
-      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, Input2Props & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
         const lastExpandedRef = React.useRef(expanded)
