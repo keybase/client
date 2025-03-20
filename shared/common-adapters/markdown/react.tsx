@@ -134,7 +134,10 @@ const _markdownStyles = Styles.styleSheetCreate(
         },
       }),
       quoteStyleText: Styles.platformStyles({
-        common: {backgroundColor: 'transparent'},
+        common: {
+          backgroundColor: 'transparent',
+          color: Styles.globalColors.black,
+        },
       }),
       strikeStyle: Styles.platformStyles({
         isElectron: {
