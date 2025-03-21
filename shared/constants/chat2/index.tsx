@@ -359,7 +359,7 @@ export interface State extends Store {
     ) => void
     loadStaticConfig: () => void
     loadedUserEmoji: (results: T.RPCChat.UserEmojiRes) => void
-    maybeChangeSelectedConv: (force?: boolean) => void
+    maybeChangeSelectedConv: () => void
     messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
       metas: ReadonlyArray<T.Chat.ConversationMeta>,
@@ -897,18 +897,12 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         s.userEmojis = T.castDraft(results.emojis.emojis) ?? []
       })
     },
-    maybeChangeSelectedConv: force => {
+    maybeChangeSelectedConv: () => {
       const {inboxLayout} = get()
-      let newConvID = inboxLayout?.reselectInfo?.newConvID
-      let oldConvID = inboxLayout?.reselectInfo?.oldConvID
+      const newConvID = inboxLayout?.reselectInfo?.newConvID
+      const oldConvID = inboxLayout?.reselectInfo?.oldConvID
 
       const selectedConversation = C.Chat.getSelectedConversation()
-      if (force) {
-        if (!newConvID) {
-          newConvID = inboxLayout?.smallTeams?.[0]?.convID
-        }
-        oldConvID = selectedConversation
-      }
 
       if (!newConvID && !oldConvID) {
         return
@@ -945,9 +939,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         logger.info(
           `maybeChangeSelectedConv: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
         )
-        C.getConvoState(newConvID).dispatch.navigateToThread(
-          force ? 'findNewestConversationForce' : 'findNewestConversation'
-        )
+        C.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
       }
     },
     messageSendByUsername: (username, text, waitingKey) => {
@@ -1196,9 +1188,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.chat1NotifyChatChatInboxStale:
           get().dispatch.inboxRefresh('inboxStale')
-          break
-        case EngineGen.chat1NotifyChatChatLeftConversation:
-          get().dispatch.maybeChangeSelectedConv(true)
           break
         case EngineGen.chat1ChatUiChatInboxConversation:
           get().dispatch.onGetInboxConvsUnboxed(action)

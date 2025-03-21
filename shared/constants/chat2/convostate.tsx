@@ -48,7 +48,6 @@ type NavReason =
   | 'extension' // from a notification from iOS share extension
   | 'files' // from the Files tab
   | 'findNewestConversation' // find a new chat to select (from service)
-  | 'findNewestConversationForce' // find a new chat to select (from service), do it no matter what
   | 'findNewestConversationFromLayout' // find a small chat to select (from js)
   | 'inboxBig' // inbox row
   | 'inboxFilterArrow' // arrow keys in inbox filter
