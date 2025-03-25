@@ -60,9 +60,21 @@ const RetentionPicker = (p: Props) => {
   )
 
   const modalConfirmed = useConfirm(s => s.confirmed)
+  const modalOpen = useConfirm(s => s.modalOpen)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   const [lastConfirmed, setLastConfirmed] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  const [lastModalOpen, setLastModalOpen] = React.useState(modalOpen)
+
+  React.useEffect(() => {
+    if (lastModalOpen !== modalOpen) {
+      setLastModalOpen(modalOpen)
+      if (!modalOpen) {
+        setInitialSelected()
+      }
+    }
+  }, [lastModalOpen, modalOpen, setInitialSelected])
+
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
       setLastConfirmed(modalConfirmed)
