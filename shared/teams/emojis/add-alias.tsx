@@ -87,7 +87,7 @@ const AddAliasModal = (props: Props) => {
       title="Add an alias"
       desktopHeight={395}
       footerButtonLabel="Add an alias"
-      footerButtonOnClick={doAddAlias}
+      footerButtonOnClick={alias.length > 2 ? doAddAlias : undefined}
       footerButtonWaiting={addAliasWaiting}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>

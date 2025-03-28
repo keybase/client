@@ -15,11 +15,11 @@ type AliasInputProps = {
 export type AliasRef = {focus: () => void}
 export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
-  const [mounted, setMounted] = React.useState(true)
+  const isMounted = C.useIsMounted()
 
   const onFocus = () => {
     setTimeout(() => {
-      if (mounted && inputRef.current) {
+      if (isMounted() && inputRef.current) {
         inputRef.current.transformText(
           () => ({
             selection: {
@@ -40,13 +40,6 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, re
       onFocus()
     },
   }))
-
-  React.useEffect(() => {
-    setMounted(true)
-    return () => {
-      setMounted(false)
-    }
-  }, [])
 
   return (
     <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
