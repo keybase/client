@@ -250,7 +250,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }
 }
 
-export const useHeader = (ordinal: T.Chat.Ordinal) => {
+export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = C.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
@@ -263,6 +263,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal) => {
 
   return exploding ? (
     <ExplodingPopupHeader
+      onHidden={onHidden}
       author={author}
       hideTimer={message.submitState === 'pending' || message.submitState === 'failed'}
       botUsername={botUsername}
@@ -274,6 +275,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal) => {
     />
   ) : (
     <MessagePopupHeader
+      onHidden={onHidden}
       author={author}
       botUsername={botUsername}
       deviceName={deviceName ?? ''}

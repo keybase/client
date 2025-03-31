@@ -223,7 +223,7 @@ const PopText = (ownProps: OwnProps) => {
     ...itemReport,
     ...itemFlag,
   ]
-  const header = useHeader(ordinal)
+  const header = useHeader(ordinal, onHidden)
   const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (

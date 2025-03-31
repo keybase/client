@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
@@ -12,6 +13,7 @@ type Props = {
   hideTimer: boolean
   timestamp: number
   yourMessage: boolean
+  onHidden: () => void
 }
 
 const _secondsLeft = (explodesAt: number) => {
@@ -24,7 +26,7 @@ const _secondsLeft = (explodesAt: number) => {
 }
 
 const ExplodingPopupHeader = (props: Props) => {
-  const {explodesAt} = props
+  const {explodesAt, onHidden} = props
   const [secondsLeft, setSecondsLeft] = React.useState(_secondsLeft(explodesAt))
 
   React.useEffect(() => {
@@ -34,6 +36,15 @@ const ExplodingPopupHeader = (props: Props) => {
     }
   }, [explodesAt])
 
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onUsernameClicked = React.useCallback(
+    (user: string) => {
+      showUserProfile(user)
+      onHidden()
+    },
+    [showUserProfile, onHidden]
+  )
+
   const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
   const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
   const info = (
@@ -42,7 +53,7 @@ const ExplodingPopupHeader = (props: Props) => {
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
-            onUsernameClicked="profile"
+            onUsernameClicked={onUsernameClicked}
             colorFollowing={true}
             colorYou={true}
             usernames={author}
