@@ -127,7 +127,7 @@ const PopText = (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }, [conversationIDKey, blockModalSingle, navigateAppend, author])
-  const onUserBlock = author && !yourMessage ? () => _onUserBlock : undefined
+  const onUserBlock = author && !yourMessage ? _onUserBlock : undefined
 
   const _onUserFilter = React.useCallback(() => {
     navigateAppend({

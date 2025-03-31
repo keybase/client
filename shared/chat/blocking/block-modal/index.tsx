@@ -386,6 +386,7 @@ const BlockModal = React.memo((p: Props) => {
       noScrollView={true}
     >
       <Kb.List
+        keyboardDismissMode="none"
         items={items}
         renderItem={(idx: number, item: Item) =>
           item === 'topStuff'

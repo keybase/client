@@ -54,7 +54,7 @@ const List = <Item,>(props: Props<Item>) => {
           onScrollToIndexFailed={noop}
           bounces={props.bounces}
           contentContainerStyle={props.contentContainerStyle}
-          keyboardDismissMode="on-drag"
+          keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
           renderItem={_itemRender}
           data={props.items}
           getItemLayout={props.fixedHeight ? _getItemLayout : undefined}
