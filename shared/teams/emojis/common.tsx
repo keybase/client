@@ -15,29 +15,10 @@ type AliasInputProps = {
 export type AliasRef = {focus: () => void}
 export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
-  const isMounted = C.useIsMounted()
-
-  const onFocus = () => {
-    setTimeout(() => {
-      if (isMounted() && inputRef.current) {
-        inputRef.current.transformText(
-          () => ({
-            selection: {
-              end: props.alias.length + 1,
-              start: props.alias.length + 1,
-            },
-            text: `:${props.alias}:`,
-          }),
-          true
-        )
-      }
-    })
-  }
 
   React.useImperativeHandle(ref, () => ({
     focus: () => {
       inputRef.current?.focus()
-      onFocus()
     },
   }))
 
@@ -53,22 +34,8 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, re
             styles.aliasInput,
             !props.small && styles.aliasInputLarge,
           ])}
-          onChangeText={newText => {
-            const cleaned = newText.replace(/[^a-zA-Z0-9-_+]/g, '')
-            if (newText !== `:${cleaned}:`) {
-              // if the input currently contains invalid characters, overwrite with clean text and reset selection
-              inputRef.current?.transformText(
-                () => ({
-                  selection: {end: cleaned.length + 1, start: cleaned.length + 1},
-                  text: `:${cleaned}:`,
-                }),
-                true
-              )
-            }
-            props.onChangeAlias(cleaned)
-          }}
+          onChangeText={props.onChangeAlias}
           onEnterKeyDown={props.onEnterKeyDown}
-          onFocus={onFocus}
         />
         {props.onRemove && (
           <Kb.ClickableBox onClick={props.onRemove} style={styles.removeBox}>
