@@ -12,14 +12,8 @@ class DNSNSFetcher : ExternalDNSNSFetcher {
                 val value = method.invoke(null, name) as String?
                 if (value != null && "" != value && !servers.contains(value)) servers.add(value)
             }
-            var srvStr = ""
-            for (i in servers.indices) {
-                srvStr += servers[i]
-                if (i < servers.size - 1) {
-                    srvStr += ","
-                }
-            }
-            srvStr.toByteArray()
+            val srvStr = servers.joinToString(",")
+            srvStr.toByteArray(Charsets.UTF_8)
         } catch (e: Exception) {
             "".toByteArray()
         }

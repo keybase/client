@@ -59,23 +59,24 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     }
 
     private fun getKeybaseAvatar(avatarUri: String): IconCompat? {
-        if (avatarUri.isEmpty()) {
-            return null
+        if (avatarUri.isEmpty()) return null
+
+        return try {
+            URL(avatarUri).openConnection().run {
+                this as HttpURLConnection
+                try {
+                    BufferedInputStream(inputStream).use { input ->
+                        BitmapFactory.decodeStream(input)?.let { bitmap ->
+                            IconCompat.createWithBitmap(getCroppedBitmap(bitmap))
+                        }
+                    }
+                } finally {
+                    disconnect()
+                }
+            }
+        } catch (e: Exception) {
+            null
         }
-        var urlConnection: HttpURLConnection? = null
-        try {
-            val url = URL(avatarUri)
-            urlConnection = url.openConnection() as HttpURLConnection
-            val `in`: InputStream = BufferedInputStream(urlConnection.inputStream)
-            val bitmap = BitmapFactory.decodeStream(`in`)
-            val croppedBitmap = getCroppedBitmap(bitmap)
-            return IconCompat.createWithBitmap(croppedBitmap)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } finally {
-            urlConnection?.disconnect()
-        }
-        return null
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)

@@ -11,10 +11,8 @@ import com.facebook.imagepipeline.cache.MemoryCacheParams
  * Custom Bitmap cache config for Fresco based off of [DefaultBitmapMemoryCacheParamsSupplier]
  */
 class CustomBitmapMemoryCacheParamsSupplier(context: Context) : Supplier<MemoryCacheParams> {
-    private val mActivityManager: ActivityManager
-
-    init {
-        mActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    private val activityManager: ActivityManager by lazy {
+        context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     }
 
     override fun get(): MemoryCacheParams {
@@ -28,19 +26,13 @@ class CustomBitmapMemoryCacheParamsSupplier(context: Context) : Supplier<MemoryC
 
     private val maxCacheSize: Int
          get() {
-            val maxMemory = Math.min(mActivityManager.memoryClass * ByteConstants.MB, Int.MAX_VALUE)
+            val maxMemory = Math.min(activityManager.memoryClass * ByteConstants.MB, Int.MAX_VALUE)
             return if (maxMemory < 32 * ByteConstants.MB) {
                 4 * ByteConstants.MB
             } else if (maxMemory < 64 * ByteConstants.MB) {
                 6 * ByteConstants.MB
             } else {
-                // We don't want to use more ashmem on Gingerbread for now, since it doesn't respond well to
-                // native memory pressure (doesn't throw exceptions, crashes app, crashes phone)
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                    8 * ByteConstants.MB
-                } else {
-                    maxMemory / CACHE_DIVISION
-                }
+                maxMemory / CACHE_DIVISION
             }
         }
 
