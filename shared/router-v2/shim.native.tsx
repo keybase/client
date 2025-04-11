@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets} from 'react-native-safe-area-context'
 import {View, useWindowDimensions} from 'react-native'
-import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap, GetOptionsRet, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet} from '@/constants/platform'
 
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
@@ -41,21 +41,29 @@ const platformShim = (
     }
 
     if (isModal) {
-      wrap = <ModalWrapper>{wrap}</ModalWrapper>
+      wrap = <ModalWrapper navigationOptions={navigationOptions}>{wrap}</ModalWrapper>
     }
     return wrap
   })
 }
 
-const ModalWrapper = (p: {children: React.ReactNode}) => {
-  const {children} = p
+const ModalWrapper = (p: {children: React.ReactNode; navigationOptions: GetOptionsRet}) => {
+  const {children, navigationOptions} = p
+  const fullModal =
+    navigationOptions?.presentation === 'transparentModal' && navigationOptions.orientation === 'all'
 
   const {bottom} = useSafeAreaInsets()
   // adjust for being down, like the keyboard
   const {height} = useWindowDimensions()
-  return (
-    <View style={[styles.modal, {maxHeight: height - 40 - bottom, paddingBottom: bottom}]}>{children}</View>
-  )
+
+  const style = fullModal
+    ? undefined
+    : {
+        maxHeight: height - 40 - bottom,
+        paddingBottom: bottom,
+      }
+
+  return <View style={[styles.modal, style]}>{children}</View>
 }
 
 const styles = Kb.Styles.styleSheetCreate(

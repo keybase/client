@@ -223,22 +223,7 @@ const AvatarUpload = (props: Props & WrappedProps) => {
         </Kb.Banner>
       ) : null}
       <Kb.Box style={styles.container}>
-        <Kb.Box
-          style={
-            C.isIOS
-              ? null
-              : Kb.Styles.collapseStyles([
-                  styles.zoomContainer,
-                  {
-                    borderRadius: avatar_size(),
-                    height: avatar_size(),
-                    width: avatar_size(),
-                  },
-                ])
-          }
-        >
-          {renderImageZoomer()}
-        </Kb.Box>
+        <Kb.Box>{renderImageZoomer()}</Kb.Box>
         <Kb.ButtonBar direction="column">
           <Kb.WaitingButton
             fullWidth={true}
