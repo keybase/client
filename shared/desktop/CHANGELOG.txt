@@ -1,4 +1,1 @@
-macOS:
-
-• Fix the KBFS mount to work on Sequoia.
-• Prevent unnecessary permission dialogs on Sequoia.
+• Fix team delete not working
