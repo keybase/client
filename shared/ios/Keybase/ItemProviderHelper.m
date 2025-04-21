@@ -13,8 +13,6 @@
 #import <Contacts/CNContactFormatter.h>
 #import <Contacts/CNContactVCardSerialization.h>
 #import <Contacts/CNPostalAddressFormatter.h>
-#import <MobileCoreServices/UTCoreTypes.h>
-#import <MobileCoreServices/UTType.h>
 #import <UIKit/UIKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
@@ -447,8 +445,9 @@
     
     for (NSItemProvider *item in items) {
       for (NSString *stype in item.registeredTypeIdentifiers) {
+        UTType *type = [UTType typeWithIdentifier:stype];
         // Movies
-        if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeMovie)) {
+        if ([type conformsToType:UTTypeMovie]) {
           [self incrementUnprocessed];
           [item
            loadFileRepresentationForTypeIdentifier:stype
@@ -463,9 +462,7 @@
           }];
           break;
           // Images
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePNG) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeGIF) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeJPEG)) {
+        } else if ([type conformsToType: UTTypePNG] || [type conformsToType: UTTypeGIF] || [type conformsToType: UTTypeJPEG]) {
           [self incrementUnprocessed];
           [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
           break;
@@ -475,7 +472,7 @@
           [item loadFileRepresentationForTypeIdentifier:@"public.heic" completionHandler:fileHandlerSimple2];
           break;
           // Unknown images, ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
+        } else if ([type conformsToType: UTTypeImage]) {
           [self incrementUnprocessed];
           [item
            loadItemForTypeIdentifier:@"public.image"
@@ -499,7 +496,7 @@
           }];
           break;
           // Contact cards
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeVCard)) {
+        } else if ([type conformsToType:  UTTypeVCard]) {
           [self incrementUnprocessed];
           [item
            loadDataRepresentationForTypeIdentifier:@"public.vcard"
@@ -516,8 +513,7 @@
           }];
           break;
           // Text ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype,
-                                    kUTTypePlainText)) {
+        } else if ([type conformsToType: UTTypePlainText]) {
           // We run a coersed to NSString an a NSSecureCoding so we can handle
           // this better, sometimes we get an empty text otherwise sadly
           [self incrementUnprocessed];
@@ -555,14 +551,12 @@
           }];
           break;
           // local file urls, basically unknown, or known data files
-        } else if (
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePDF) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
+        } else if ([type conformsToType: UTTypePDF] || [type conformsToType: UTTypeFileURL]) {
           [self incrementUnprocessed];
           [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple2];
           break;
           // web urls ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeURL)) {
+        } else if ([type conformsToType: UTTypeURL]) {
           [self incrementUnprocessed];
           [item loadItemForTypeIdentifier:@"public.url"
                                   options:nil

@@ -26,6 +26,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push.native'
+import type {ImageInfo} from '@/util/expo-image-picker.native'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -131,7 +132,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-// TODO rewrite this, v slow
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {
@@ -273,19 +273,19 @@ const ensureBackgroundTask = () => {
   if (madeBackgroundTask) return
   madeBackgroundTask = true
 
-  ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
+  ExpoTaskManager.defineTask(locationTaskName, async ({data, error}) => {
     if (error) {
       // check `error.message` for more details.
-      return
+      return Promise.resolve()
     }
 
     if (!data) {
-      return
+      return Promise.resolve()
     }
     const d = data as {locations?: Array<ExpoLocation.LocationObject>}
     const locations = d.locations
     if (!locations?.length) {
-      return
+      return Promise.resolve()
     }
     const pos = locations.at(-1)
     const coord = {
@@ -295,6 +295,7 @@ const ensureBackgroundTask = () => {
     }
 
     C.useChatState.getState().dispatch.updateLastCoord(coord)
+    return Promise.resolve()
   })
 }
 
@@ -458,10 +459,16 @@ export const initPlatformListener = () => {
       const f = async () => {
         try {
           const result = await launchImageLibraryAsync('photo')
-          if (!result.canceled) {
+          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
+            if (!acc && (a.type === 'image' || a.type === 'video')) {
+              return a as ImageInfo
+            }
+            return acc
+          }, undefined)
+          if (!result.canceled && first) {
             C.useRouterState
               .getState()
-              .dispatch.navigateAppend({props: {image: result.assets[0]}, selected: 'profileEditAvatar'})
+              .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
           C.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))

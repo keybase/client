@@ -10,7 +10,7 @@ import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
-import {Keyboard, TextInput as TextInputRaw} from 'react-native'
+import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
@@ -27,8 +27,7 @@ import {
 import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
-import type {Props as PlainInputProps} from '@/common-adapters/plain-input'
-import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import type {RefType as Input2Ref, Props as Input2Props} from '@/common-adapters/input2'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -68,17 +67,18 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   }, [insertText])
 
   const pickKey = 'chatInput'
-  const {emojiStr} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
   const [lastEmoji, setLastEmoji] = React.useState('')
-  if (lastEmoji !== emojiStr) {
-    setTimeout(() => {
-      setLastEmoji(emojiStr)
-      emojiStr && insertText(emojiStr + ' ')
-      updatePickerMap(pickKey, undefined)
-    }, 1)
-  }
+  React.useEffect(() => {
+    if (lastEmoji === emojiStr) {
+      return
+    }
+    setLastEmoji(emojiStr)
+    emojiStr && insertText(emojiStr + ' ')
+    updatePickerMap(pickKey, undefined)
+  }, [emojiStr, insertText, lastEmoji, updatePickerMap])
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const openEmojiPicker = React.useCallback(() => {
@@ -259,7 +259,13 @@ const PlatformInput = (p: Props) => {
   const suggestionSpinnerStyle = React.useMemo(() => {
     return Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   }, [height])
-  const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
+  const {
+    popup: suggestorPopup,
+    onChangeText,
+    onBlur,
+    onSelectionChange,
+    onFocus,
+  } = useSuggestors({
     expanded,
     inputRef,
     onChangeText: p.onChangeText,
@@ -290,12 +296,7 @@ const PlatformInput = (p: Props) => {
     }
   }, [expanded, onSubmit, toggleExpandInput])
 
-  const dummyInputRef = React.useRef<TextInputRaw | null>(null)
-
   const onQueueSubmit = React.useCallback(() => {
-    // force ios to auto correct at the end
-    dummyInputRef.current?.focus()
-    inputRef.current?.focus()
     setTimeout(() => {
       reallySend()
     }, 60)
@@ -304,7 +305,6 @@ const PlatformInput = (p: Props) => {
   const insertText = React.useCallback(
     (toInsert: string) => {
       const i = inputRef.current
-      i?.focus()
       i?.transformText(({selection, text}) => {
         return standardTransformer(
           toInsert,
@@ -357,7 +357,7 @@ const PlatformInput = (p: Props) => {
     [setExplodingMode]
   )
 
-  const {popup: menu, showPopup} = Kb.usePopup2(makePopup)
+  const {popup: popupMenu, showPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
@@ -375,9 +375,9 @@ const PlatformInput = (p: Props) => {
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const onPasteImage = React.useCallback(
-    (uri: string) => {
+    (uri: Array<string>) => {
       try {
-        const pathAndOutboxIDs = [{path: uri}]
+        const pathAndOutboxIDs = uri.map(path => ({path}))
         navigateAppend(conversationIDKey => ({
           props: {conversationIDKey, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
@@ -422,12 +422,19 @@ const PlatformInput = (p: Props) => {
     }
   }, [isEditing])
 
+  const _onSelectionChange = React.useCallback(
+    (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+      onSelectionChange(e.nativeEvent.selection)
+    },
+    [onSelectionChange]
+  )
+
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
-        {popup}
-        {menu}
-        {!popup && <Typing />}
+        {suggestorPopup}
+        {popupMenu}
+        {!suggestorPopup && <Typing />}
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
@@ -444,14 +451,13 @@ const PlatformInput = (p: Props) => {
               onBlur={onBlur}
               onFocus={onFocus}
               onChangeText={aiOnChangeText}
-              onSelectionChange={onSelectionChange}
+              onSelectionChange={_onSelectionChange}
               ref={onAnimatedInputRef}
               style={styles.input}
               textType="Body"
               rowsMin={1}
               expanded={expanded}
             />
-            <TextInputRaw ref={dummyInputRef} style={styles.dummyInput} />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
@@ -483,7 +489,7 @@ const PlatformInput = (p: Props) => {
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(
-      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, Input2Props & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const {expanded, ...rest} = p
         return (
           <Animated.View style={[p.style, rest.style]}>
@@ -494,7 +500,7 @@ const AnimatedInput = (() => {
     )
   } else {
     return React.memo(
-      React.forwardRef<Input2Ref, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
+      React.forwardRef<Input2Ref, Input2Props & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
         const lastExpandedRef = React.useRef(expanded)
@@ -536,7 +542,6 @@ const styles = Kb.Styles.styleSheetCreate(
         overflow: 'hidden',
         ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
-      dummyInput: {height: 0, opacity: 0, position: 'absolute', width: 0},
       editingButton: {
         marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

@@ -19,7 +19,9 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
+  const containsLatestMessage = C.useChatContext(s => {
+    return s.isCaughtUp()
+  })
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
 

@@ -243,7 +243,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 		ID: parentID,
 	})
 	require.NoError(t, err, "load team")
-	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	t.Logf("%s", spew.Sdump(team.chain().inner.SubteamLog))
 	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 

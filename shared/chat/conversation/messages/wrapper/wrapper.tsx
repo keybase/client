@@ -2,12 +2,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
-import EmojiRow from '../emoji-row/container'
+import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
-import ExplodingMeta from './exploding-meta/container'
+import ExplodingMeta from './exploding-meta'
 import LongPressable from './long-pressable'
 import {useMessagePopup} from '../message-popup'
-import ReactionsRow from '../reactions-row'
+import ReactionsRow from '../reactions-rows'
 import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
@@ -29,6 +29,7 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
     'setDescription',
     'pin',
     'systemAddedToTeam',
+    'systemChangeAvatar',
     'systemChangeRetention',
     'systemGitPush',
     'systemInviteAccepted',
@@ -46,9 +47,9 @@ const missingMessage = C.Chat.makeMessageDeleted({})
 export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
 
-  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
   const {type, shouldShowPopup} = C.useChatContext(
     C.useShallow(s => {
+      const accountsInfoMap = s.accountsInfoMap
       const m = s.messageMap.get(ordinal)
       const type = m?.type
       const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
@@ -325,7 +326,7 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID, exploding} = C.useChatContext(
+  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const outboxID = m?.outboxID
@@ -335,18 +336,23 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
         ecrType === EditCancelRetryType.NOACTION
           ? reason
           : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-      return {exploding, failureDescription, outboxID}
+      const {messageDelete, messageRetry, setEditing} = s.dispatch
+      return {
+        exploding,
+        failureDescription,
+        messageDelete,
+        messageRetry,
+        outboxID,
+        setEditing,
+      }
     })
   )
-  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)
   }, [messageDelete, ordinal])
-  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
-  const messageRetry = C.useChatContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
     outboxID && messageRetry(outboxID)
   }, [messageRetry, outboxID])
@@ -415,7 +421,6 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         onShowingEmojiPicker={setShowingPicker}
-        tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
       />
     ) : null

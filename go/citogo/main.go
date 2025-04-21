@@ -374,7 +374,7 @@ func main2() error {
 func main() {
 	err := main2()
 	if err != nil {
-		logError(err.Error())
+		logError("%s", err.Error())
 		fmt.Printf("EXIT: 2\n")
 		os.Exit(2)
 	}

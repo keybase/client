@@ -188,7 +188,7 @@ func parseError(r io.Reader, fallback error) error {
 		if strings.HasPrefix(parts[2], "Not found") {
 			return errUserNotFound
 		}
-		lastErr = fmt.Errorf(parts[2])
+		lastErr = fmt.Errorf("%s", parts[2])
 	}
 
 	if lastErr != nil {

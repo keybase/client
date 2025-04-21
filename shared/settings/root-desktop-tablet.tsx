@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
@@ -32,11 +33,21 @@ function LeftTabNavigator({
     state
   )
 
+  const navRef = React.useRef((_s: string) => {})
+  React.useEffect(() => {
+    navRef.current = (s: string) => {
+      navigation.navigate(s)
+    }
+  }, [navigation])
+  const navigate = React.useCallback((s: string) => {
+    navRef.current(s)
+  }, [])
+
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
-          <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={s => navigation.navigate(s)} />
+          <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={navigate} />
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {

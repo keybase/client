@@ -2409,9 +2409,9 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Logf(strings.Repeat("*", 100))
+	t.Logf("%s", strings.Repeat("*", 100))
 	t.Logf("provisioned")
-	t.Logf(strings.Repeat("*", 100))
+	t.Logf("%s", strings.Repeat("*", 100))
 
 	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_alice")
 

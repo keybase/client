@@ -5,6 +5,7 @@ import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
+import {useColorScheme} from 'react-native'
 // import type {StylesCrossPlatform} from './css'
 
 type _Elem = object | null | false
@@ -136,7 +137,7 @@ export const collapseStyles = (
       return false
     }
     // has a value?
-    // eslint-disable-next-line no-unreachable-loop
+    // eslint-disable-next-line
     for (const _ in s) {
       return true
     }
@@ -200,3 +201,15 @@ export const urlEscapeFilePath = (path: string) => {
 
 export const castStyleDesktop = (style: CollapsibleStyle) => style
 export const castStyleNative = (style: CollapsibleStyle) => style
+
+export const useIsDarkMode = () => {
+  const s = useColorScheme()
+  switch (s) {
+    case 'light':
+      return false
+    case 'dark':
+      return true
+    default:
+      return false // TODO check this
+  }
+}

@@ -213,7 +213,7 @@ func (c *testConfig) SetUpdateAuto(b bool) error {
 	return c.err
 }
 
-func (c *testConfig) IsLastUpdateCheckTimeRecent(d time.Duration) bool {
+func (c *testConfig) IsLastUpdateCheckTimeRecent(_ time.Duration) bool {
 	return true
 }
 
@@ -257,7 +257,7 @@ func newDefaultTestUpdateOptions() UpdateOptions {
 }
 
 func testServerForUpdateFile(t *testing.T, path string) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		f, err := os.Open(path)
 		require.NoError(t, err)
 		w.Header().Set("Content-Type", "application/zip")

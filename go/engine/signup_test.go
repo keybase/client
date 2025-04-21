@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"encoding/base64"
+
 	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -253,7 +254,7 @@ func TestIssue280(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	err := arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIDs(tc.G)
 	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),

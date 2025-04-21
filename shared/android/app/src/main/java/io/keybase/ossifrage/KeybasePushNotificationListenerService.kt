@@ -248,27 +248,24 @@ internal class NotificationData @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB
     // Derived from go/gregord/chatpush/push.go
     init {
         displayPlaintext = "true" == bundle.getString("n")
-        membersType = bundle.getString("t")!!.toInt()
-        badgeCount = bundle.getString("b", "0").toInt()
+        membersType = bundle.getString("t")?.toIntOrNull() ?: 0
+        badgeCount = bundle.getString("b", "0").toIntOrNull() ?: 0
         soundName = bundle.getString("s", "")
         serverMessageBody = bundle.getString("message", "")
         sender = bundle.getString("u", "")
-        unixTime = bundle.getString("x", "0").toLong()
+        unixTime = bundle.getString("x", "0").toLongOrNull() ?: 0
         if (type == "chat.newmessage") {
-            messageId = bundle.getString("msgID", "0").toInt()
+            messageId = bundle.getString("msgID", "0").toIntOrNull() ?: 0
             convID = bundle.getString("convID")
             pushId = ""
         } else if (type == "chat.newmessageSilent_2") {
-            messageId = bundle.getString("d", "").toInt()
+            messageId = bundle.getString("d", "").toIntOrNull() ?: 0
             convID = bundle.getString("c")
-            var pushIdTmp = ""
-            try {
-                val pushes = JSONArray(bundle.getString("p"))
-                pushIdTmp = pushes.getString(0)
+            val pushId: String = try {
+                bundle.getString("p")?.let { JSONArray(it).getString(0) } ?: ""
             } catch (e: Exception) {
-                e.printStackTrace()
+                ""
             }
-            pushId = pushIdTmp
         } else {
             throw Error("Tried to parse notification of unhandled type: $type")
         }

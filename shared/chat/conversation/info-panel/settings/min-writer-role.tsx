@@ -102,12 +102,7 @@ const Dropdown = (p: DropdownProps) => {
         <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
       {popup}
-      <Kb.SaveIndicator
-        saving={saving}
-        style={styles.saveIndicator}
-        minSavingTimeMs={300}
-        savedTimeoutMs={2500}
-      />
+      <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />
     </>
   )
 }

@@ -132,52 +132,45 @@
 - (void)dropInteraction:(UIDropInteraction *)interaction
             performDrop:(id<UIDropSession>)session {
   __weak __typeof__(self) weakSelf = self;
-  NSMutableArray *items =
-      [NSMutableArray arrayWithCapacity:session.items.count];
+  NSMutableArray *items = [NSMutableArray arrayWithCapacity:session.items.count];
   [session.items
       enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         UIDragItem *i = obj;
         [items addObject:i.itemProvider];
       }];
-  self.iph = [[ItemProviderHelper alloc]
-           initForShare:false
-              withItems:@[items]
-      completionHandler:^{
-        NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
-        __typeof__(self) strongSelf = weakSelf;
-        [strongSelf application:[UIApplication sharedApplication]
-                      openURL:url
-                      options:@{}];
-        strongSelf.iph = nil;
-      }];
+  ItemProviderHelper *iph = [[ItemProviderHelper alloc] initForShare:false withItems:@[items] completionHandler:^{
+    __typeof__(self) strongSelf = weakSelf;
+    if (!strongSelf) {
+      return;
+    }
+    NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
+    [strongSelf application:[UIApplication sharedApplication] openURL:url options:@{}];
+    strongSelf.iph = nil;
+  }];
+  self.iph = iph;
   [self.iph startProcessing];
 }
 
 
 - (void)application:(UIApplication *)application
-    performFetchWithCompletionHandler:
-        (void (^)(UIBackgroundFetchResult))completionHandler {
-  NSLog(@"Background fetch started...");
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-                 ^(void) {
-                   KeybaseBackgroundSync();
-                   completionHandler(UIBackgroundFetchResultNewData);
-                   NSLog(@"Background fetch completed...");
-                 });
+    performFetchWithCompletionHandler: (void (^)(UIBackgroundFetchResult))completionHandler {
+     NSLog(@"Background fetch started...");
+     dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0),
+       ^(void) {
+         KeybaseBackgroundSync();
+         completionHandler(UIBackgroundFetchResultNewData);
+         NSLog(@"Background fetch completed...");
+     });
 }
 
 // Required for the register event.
-- (void)application:(UIApplication *)application
-    didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-  [RNCPushNotificationIOS
-      didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
 // Require for handling silent notifications
-- (void)application:(UIApplication *)application
-    didReceiveRemoteNotification:(NSDictionary *)notification
-          fetchCompletionHandler:
-              (void (^)(UIBackgroundFetchResult))completionHandler {
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
+          fetchCompletionHandler: (void (^)(UIBackgroundFetchResult))completionHandler {
   NSString *type = notification[@"type"];
   NSString *body = notification[@"m"];
   int badgeCount = [notification[@"b"] intValue];
@@ -187,7 +180,7 @@
   int membersType = [notification[@"t"] intValue];
   NSString *sender = notification[@"u"];
   PushNotifier *pusher = [[PushNotifier alloc] init];
-  if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
+  if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
           NSError *err = nil;
@@ -206,9 +199,6 @@
           completionHandler(UIBackgroundFetchResultNewData);
           NSLog(@"Remote notification handle finished...");
         });
-  } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
-    [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
-    completionHandler(UIBackgroundFetchResultNewData);
   } else {
     [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
@@ -216,10 +206,8 @@
 }
 
 // Required for the registrationError event.
-- (void)application:(UIApplication *)application
-    didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
-  [RNCPushNotificationIOS
-      didFailToRegisterForRemoteNotificationsWithError:error];
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
 }
 // Required for localNotification event
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
@@ -292,10 +280,11 @@
     // The service can tell us to end this task early, so if it does, then
     // shutdown
     dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+        dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^(void) {
           KeybaseAppBeginBackgroundTask([[PushNotifier alloc] init]);
           __typeof__(self) strongSelf = weakSelf;
-          if (strongSelf && strongSelf.shutdownTask &&
+          if (!strongSelf) return;
+          if (strongSelf.shutdownTask &&
               strongSelf.shutdownTask != UIBackgroundTaskInvalid) {
             [app endBackgroundTask:strongSelf.shutdownTask];
             strongSelf.shutdownTask = UIBackgroundTaskInvalid;
@@ -317,13 +306,8 @@
   [self hideCover];
 }
 
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-            options:
-                (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-  return [RCTLinkingManager application:application
-                                openURL:url
-                                options:options];
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options: (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+  return [RCTLinkingManager application:application openURL:url options:options];
 }
 
 - (BOOL)application:(UIApplication *)application
@@ -331,9 +315,7 @@
       restorationHandler:
           (nonnull void (^)(NSArray<id<UIUserActivityRestoring>> *_Nullable))
               restorationHandler {
-  return [RCTLinkingManager application:application
-                   continueUserActivity:userActivity
-                     restorationHandler:restorationHandler];
+  return [RCTLinkingManager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
@@ -347,13 +329,8 @@ RNHWKeyboardEvent *hwKeyEvent = nil;
     hwKeyEvent = [[RNHWKeyboardEvent alloc] init];
   }
   if ([hwKeyEvent isListening]) {
-    [keys addObject:[UIKeyCommand keyCommandWithInput:@"\r"
-                                        modifierFlags:0
-                                               action:@selector(sendEnter:)]];
-    [keys addObject:[UIKeyCommand
-                        keyCommandWithInput:@"\r"
-                              modifierFlags:UIKeyModifierShift
-                                     action:@selector(sendShiftEnter:)]];
+    [keys addObject:[UIKeyCommand keyCommandWithInput:@"\r" modifierFlags:0 action:@selector(sendEnter:)]];
+    [keys addObject:[UIKeyCommand keyCommandWithInput:@"\r" modifierFlags:UIKeyModifierShift action:@selector(sendShiftEnter:)]];
   }
   return keys;
 }

@@ -43,11 +43,11 @@ func newMockProvisioner(t *testing.T) *mockProvisioner {
 type nullLogOutput struct {
 }
 
-func (n *nullLogOutput) Error(s string, args ...interface{})   {}
-func (n *nullLogOutput) Warning(s string, args ...interface{}) {}
-func (n *nullLogOutput) Info(s string, args ...interface{})    {}
-func (n *nullLogOutput) Debug(s string, args ...interface{})   {}
-func (n *nullLogOutput) Profile(s string, args ...interface{}) {}
+func (n *nullLogOutput) Error(_ string, _ ...interface{})   {}
+func (n *nullLogOutput) Warning(_ string, _ ...interface{}) {}
+func (n *nullLogOutput) Info(_ string, _ ...interface{})    {}
+func (n *nullLogOutput) Debug(_ string, _ ...interface{})   {}
+func (n *nullLogOutput) Profile(_ string, _ ...interface{}) {}
 
 var _ rpc.LogOutput = (*nullLogOutput)(nil)
 
@@ -74,7 +74,7 @@ func genKeybase1DeviceID(t *testing.T) keybase1.DeviceID {
 	return keybase1.DeviceID(hex.EncodeToString(did))
 }
 
-func newMockProvisionee(t *testing.T, behavior int) *mockProvisionee {
+func newMockProvisionee(_ *testing.T, behavior int) *mockProvisionee {
 	return &mockProvisionee{behavior}
 }
 

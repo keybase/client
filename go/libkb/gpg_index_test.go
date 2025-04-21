@@ -105,8 +105,8 @@ func TestGPGRevokedID(t *testing.T) {
 	if len(keys) != 1 {
 		t.Fatal("expected to find one key")
 	}
-	if numIds := len(keys[0].identities); numIds != 1 {
-		t.Fatalf("expected to have one identity (got %v)", numIds)
+	if numIDs := len(keys[0].identities); numIDs != 1 {
+		t.Fatalf("expected to have one identity (got %v)", numIDs)
 	}
 	if keys[0].identities[0].Format() != "This One WIll be rev0ked" {
 		t.Fatalf("Invalid identity: %v", keys[0].identities[0])

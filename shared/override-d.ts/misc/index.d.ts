@@ -11,14 +11,16 @@ declare module 'react-test-renderer' {
 }
 
 declare module 'expo-manifests' {
-  type EASConfig = any
-  type ExpoGoConfig = any
-  type NewManifest = any
-  type BareManifest = any
-  type ManifestAsset = any
-  type ManifestExtra = any
-  type ClientScopingConfig = any
-  type ExpoGoPackagerOpts = any
+  export type EASConfig = any
+  export type ExpoGoConfig = any
+  export type NewManifest = any
+  export type BareManifest = any
+  export type EmbeddedManifest = any
+  export type ExpoUpdatesManifest = any
+  export type ManifestAsset = any
+  export type ManifestExtra = any
+  export type ClientScopingConfig = any
+  export type ExpoGoPackagerOpts = any
 }
 
 declare module 'qrcode-generator' {
@@ -111,4 +113,15 @@ declare module 'emoji-datasource-apple' {
   }
   const data: Array<EmojiData>
   export default data
+}
+
+// for expo
+declare module 'xcode' {
+  export type XcodeProject = any
+  export type XCBuildConfiguration = any
+  export type PBXNativeTarget = any
+  export type PBXGroup = any
+  export type PBXProject = any
+  export type XCConfigurationList = any
+  export type PBXFile = any
 }

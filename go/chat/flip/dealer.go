@@ -760,7 +760,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	return nil
 }
 
-func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped) error {
+func (d *Dealer) handleMessageOthers(_ context.Context, msg *GameMessageWrapped) error {
 	d.Lock()
 	defer d.Unlock()
 	md := msg.GameMetadata()

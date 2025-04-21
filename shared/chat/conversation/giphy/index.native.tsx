@@ -3,15 +3,13 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {colors, darkColors} from '@/styles/colors'
 import * as Styles from '@/styles'
-import type {Props} from '.'
 import {WebView} from 'react-native-webview'
 import noop from 'lodash/noop'
+import {useHooks} from './hooks'
 
-const GiphySearch = (p: Props) => {
-  const source = {
-    uri: p.galleryURL,
-  }
-
+const GiphySearch = () => {
+  const p = useHooks()
+  const source = {uri: p.galleryURL}
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
   const injectedJavaScript = React.useMemo(() => {
     return `

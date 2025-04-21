@@ -60,9 +60,21 @@ const RetentionPicker = (p: Props) => {
   )
 
   const modalConfirmed = useConfirm(s => s.confirmed)
+  const modalOpen = useConfirm(s => s.modalOpen)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   const [lastConfirmed, setLastConfirmed] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  const [lastModalOpen, setLastModalOpen] = React.useState(modalOpen)
+
+  React.useEffect(() => {
+    if (lastModalOpen !== modalOpen) {
+      setLastModalOpen(modalOpen)
+      if (!modalOpen) {
+        setInitialSelected()
+      }
+    }
+  }, [lastModalOpen, modalOpen, setInitialSelected])
+
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
       setLastConfirmed(modalConfirmed)
@@ -221,9 +233,7 @@ const RetentionPicker = (p: Props) => {
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
-      {showSaveIndicator && (
-        <SaveIndicator saving={saving} style={styles.saveState} minSavingTimeMs={300} savedTimeoutMs={2500} />
-      )}
+      {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
     </Kb.Box>
   )
 }

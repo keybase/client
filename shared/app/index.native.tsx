@@ -116,7 +116,7 @@ const useInit = () => {
   C.useConfigState.getState().dispatch.installerRan()
 }
 
-// react gesture handler has issues with this on currently. crashes out going into a thread
+// reanimated has issues updating shared values with this on seemingly w/ zoom toolkit
 const UseStrict = false as boolean
 const WRAP = UseStrict
   ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>

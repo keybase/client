@@ -30,7 +30,7 @@ type Program struct {
 
 // ArgsWith returns program args with passed in args
 func (p Program) ArgsWith(args []string) []string {
-	if p.Args == nil || len(p.Args) == 0 {
+	if len(p.Args) == 0 {
 		return args
 	}
 	if len(args) == 0 {

@@ -82,6 +82,8 @@ const _markdownStyles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.xtiny,
         },
       }),
       codeSnippetStyle: Styles.platformStyles({
@@ -131,6 +133,12 @@ const _markdownStyles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
+      quoteStyleText: Styles.platformStyles({
+        common: {
+          backgroundColor: 'transparent',
+          color: Styles.globalColors.black,
+        },
+      }),
       strikeStyle: Styles.platformStyles({
         isElectron: {
           ...electronWrapStyle,
@@ -173,7 +181,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box style={markdownStyles.codeSnippetBlockTextStyle}>
+    <Box>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -223,6 +231,7 @@ const reactComponentsForMarkdownType = {
     react: (node: Node, output: SM.ReactOutput, state: State) => {
       const oldInBlockQuote = state['inBlockQuote'] as boolean
       state['inBlockQuote'] = true
+
       const ret = (
         <Box key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
@@ -321,7 +330,11 @@ const reactComponentsForMarkdownType = {
           className={state.paragraphTextClassName}
           type="Body"
           key={state.key}
-          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride?.paragraph])}
+          style={Styles.collapseStyles([
+            markdownStyles.textBlockStyle,
+            state.styleOverride?.paragraph,
+            state['inBlockQuote'] && markdownStyles.quoteStyleText,
+          ])}
           allowFontScaling={state['allowFontScaling']}
         >
           {output(node['content'], state)}

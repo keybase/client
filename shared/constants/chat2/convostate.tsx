@@ -1441,7 +1441,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 )
 
                 if (m) {
-                  const message = {...m, conversationMessage: false}
+                  // conversationMessage is used to tell if its this gallery load or not but if we
+                  // load a message we already have we don't want to overwrite that it really belongs
+                  const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
                   set(s => {
                     const info = mapGetEnsureValue(
                       s.attachmentViewMap,
@@ -3227,7 +3229,11 @@ export function getConvoState_(id: T.Chat.ConversationIDKey) {
 const Context = React.createContext<MadeStore | null>(null)
 
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
-export function Provider_({canBeNull, children, ...props}: ConvoProviderProps) {
+export const ChatProvider_ = React.memo(function ChatProvider_({
+  canBeNull,
+  children,
+  ...props
+}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
     // let it not crash out but likely you'll get wrong answers in prod
     if (__DEV__) {
@@ -3236,7 +3242,7 @@ export function Provider_({canBeNull, children, ...props}: ConvoProviderProps) {
     }
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
-}
+})
 
 export function useHasContext() {
   const store = React.useContext(Context)
@@ -3263,27 +3269,27 @@ export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: str
 type RouteParams = {
   route: {params: {conversationIDKey?: string}}
 }
-export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) => {
+export const ProviderScreen = React.memo(function ProviderScreen(p: {
+  children: React.ReactNode
+  rp: RouteParams
+  canBeNull?: boolean
+}) {
   return (
     <React.Suspense>
-      <Provider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+      <ChatProvider_ id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
         {p.children}
-      </Provider_>
+      </ChatProvider_>
     </React.Suspense>
   )
-}
+})
 
 import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const cid = useContext_(s => s.id)
   return React.useCallback(
-    (
-      makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType,
-      replace?: boolean,
-      fromKey?: string
-    ) => {
-      navigateAppend(makePath(cid), replace, fromKey)
+    (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
+      navigateAppend(makePath(cid), replace)
     },
     [cid, navigateAppend]
   )

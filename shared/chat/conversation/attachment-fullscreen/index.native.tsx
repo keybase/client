@@ -123,6 +123,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       )
     }
   }
+
   if (!loaded && isVideo) {
     spinner = (
       <Kb.Box2

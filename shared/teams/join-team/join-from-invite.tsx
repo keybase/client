@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
-import {Success} from '.'
+import {Success} from './container'
 
 const JoinFromInvite = () => {
   const {inviteID: id, inviteKey: key, inviteDetails: details} = C.useTeamsState(s => s.teamInviteDetails)

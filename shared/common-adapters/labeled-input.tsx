@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PlainInput, {type PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '@/styles'
@@ -16,7 +16,7 @@ export type _Props = {
 
 export type Props = PropsWithInput<_Props>
 
-const LabeledInputImpl = React.forwardRef<PlainInput, Props>(function LabeledInputImple(props, ref) {
+const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function LabeledInputImple(props, ref) {
   const {containerStyle, error, placeholder, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
@@ -94,7 +94,7 @@ const LabeledInputImpl = React.forwardRef<PlainInput, Props>(function LabeledInp
   )
 })
 
-const LabeledInput = React.forwardRef<PlainInput, Props>(function LabeledInput(props, ref) {
+const LabeledInput = React.forwardRef<PlainInputRef, Props>(function LabeledInput(props, ref) {
   const flexable = props.flexable ?? true
   const keyboardType = props.keyboardType ?? 'default'
   const textType = props.textType ?? 'BodySemibold'

@@ -66,8 +66,9 @@ class KBInstallReferrerListener internal constructor(_context: Context) : Native
             Log.e("KBIR", "KBInstallReferrerListener#handleReferrerResponseOK got exception: $e")
             e.printStackTrace()
             callback!!.callbackWithString("")
+        } finally {
+            mReferrerClient!!.endConnection()
         }
-        mReferrerClient!!.endConnection()
     }
 
     // tries to reconnect up to max_retries times in case of errors

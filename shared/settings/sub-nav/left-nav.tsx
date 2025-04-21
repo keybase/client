@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as TabConstants from '@/constants/tabs'
 import WhatsNewIcon from '@/whats-new/icon/container'
@@ -13,8 +14,13 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
+  const {navigate} = props
   const badgeNumbers = C.useNotifState(s => s.navBadges)
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
+
+  const onSignout = React.useCallback(() => {
+    navigate(C.Settings.settingsLogOutTab)
+  }, [navigate])
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.ScrollView style={styles.container}>
@@ -23,30 +29,34 @@ const LeftNav = (props: Props) => {
             <SettingsItem
               icon="iconfont-nav-2-crypto"
               text="Crypto"
+              type={C.Settings.settingsCryptoTab}
               selected={props.selected === C.Settings.settingsCryptoTab}
-              onClick={() => props.onClick(C.Settings.settingsCryptoTab)}
+              onClick={props.onClick}
               badgeNumber={badgeNumbers.get(TabConstants.cryptoTab)}
             />
             <SettingsItem
               icon="iconfont-nav-2-git"
               text="Git"
+              type={C.Settings.settingsGitTab}
               selected={props.selected === C.Settings.settingsGitTab}
-              onClick={() => props.onClick(C.Settings.settingsGitTab)}
+              onClick={props.onClick}
               badgeNumber={badgeNumbers.get(TabConstants.gitTab)}
             />
             <SettingsItem
               text="Devices"
               icon="iconfont-nav-2-devices"
+              type={C.Settings.settingsDevicesTab}
               selected={props.selected === C.Settings.settingsDevicesTab}
-              onClick={() => props.onClick(C.Settings.settingsDevicesTab)}
+              onClick={props.onClick}
               badgeNumber={badgeNumbers.get(TabConstants.devicesTab)}
             />
 
             <SettingsItem
               text={keybaseFM}
               iconComponent={WhatsNewIcon}
+              type={C.Settings.settingsWhatsNewTab}
               selected={props.selected === C.Settings.settingsWhatsNewTab}
-              onClick={() => props.onClick(C.Settings.settingsWhatsNewTab)}
+              onClick={props.onClick}
             />
             <Kb.SectionDivider label="Settings" />
           </>
@@ -54,88 +64,95 @@ const LeftNav = (props: Props) => {
         <SettingsItem
           text="Your account"
           selected={props.selected === C.Settings.settingsAccountTab}
-          onClick={() => props.onClick(C.Settings.settingsAccountTab)}
+          type={C.Settings.settingsAccountTab}
+          onClick={props.onClick}
           badgeNumber={badgeNumbers.get(TabConstants.settingsTab)}
         />
         <SettingsItem
           text="Chat"
+          type={C.Settings.settingsChatTab}
           selected={props.selected === C.Settings.settingsChatTab}
-          onClick={() => props.onClick(C.Settings.settingsChatTab)}
+          onClick={props.onClick}
         />
         {Kb.Styles.isTablet && props.contactsLabel && (
           <SettingsItem
             text={props.contactsLabel}
+            type={C.Settings.settingsContactsTab}
             selected={props.selected === C.Settings.settingsContactsTab}
-            onClick={() => props.onClick(C.Settings.settingsContactsTab)}
+            onClick={props.onClick}
           />
         )}
         <SettingsItem
           text="Files"
+          type={C.Settings.settingsFsTab}
           selected={props.selected === C.Settings.settingsFsTab}
-          onClick={() => props.onClick(C.Settings.settingsFsTab)}
+          onClick={props.onClick}
         />
         <SettingsItem
           badgeNumber={badgeNotifications ? 1 : 0}
           text="Notifications"
+          type={C.Settings.settingsNotificationsTab}
           selected={props.selected === C.Settings.settingsNotificationsTab}
-          onClick={() => props.onClick(C.Settings.settingsNotificationsTab)}
+          onClick={props.onClick}
         />
         <SettingsItem
           text="Display"
+          type={C.Settings.settingsDisplayTab}
           selected={props.selected === C.Settings.settingsDisplayTab}
-          onClick={() => props.onClick(C.Settings.settingsDisplayTab)}
+          onClick={props.onClick}
         />
         <SettingsItem
           text="About"
+          type={C.Settings.settingsAboutTab}
           selected={props.selected === C.Settings.settingsAboutTab}
-          onClick={() => props.onClick(C.Settings.settingsAboutTab)}
+          onClick={props.onClick}
         />
 
         {!Kb.Styles.isTablet && (
           <SettingsItem
             text="Screen protector"
+            type={C.Settings.settingsScreenprotectorTab}
             selected={props.selected === C.Settings.settingsScreenprotectorTab}
-            onClick={() => props.onClick(C.Settings.settingsScreenprotectorTab)}
+            onClick={props.onClick}
           />
         )}
         <SettingsItem
           text="Feedback"
+          type={C.Settings.settingsFeedbackTab}
           selected={props.selected === C.Settings.settingsFeedbackTab}
-          onClick={() => props.onClick(C.Settings.settingsFeedbackTab)}
+          onClick={props.onClick}
         />
         {!Kb.Styles.isTablet && (
           <SettingsItem
             text="Invitations"
+            type={C.Settings.settingsInvitationsTab}
             selected={props.selected === C.Settings.settingsInvitationsTab}
-            onClick={() => props.onClick(C.Settings.settingsInvitationsTab)}
+            onClick={props.onClick}
           />
         )}
         <SettingsItem
           text="Advanced"
+          type={C.Settings.settingsAdvancedTab}
           selected={props.selected === C.Settings.settingsAdvancedTab}
-          onClick={() => props.onClick(C.Settings.settingsAdvancedTab)}
+          onClick={props.onClick}
         />
         {C.featureFlags.archive ? (
           <SettingsItem
             text="Archive"
+            type={C.Settings.settingsArchiveTab}
             selected={props.selected === C.Settings.settingsArchiveTab}
-            onClick={() => props.onClick(C.Settings.settingsArchiveTab)}
+            onClick={props.onClick}
           />
         ) : null}
         <SettingsItem
           text="Wallet"
+          type={C.Settings.settingsWalletsTab}
           selected={props.selected === C.Settings.settingsWalletsTab}
-          onClick={() => props.onClick(C.Settings.settingsWalletsTab)}
+          onClick={props.onClick}
         />
         {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
-        <SettingsItem
-          text="Sign out"
-          selected={false}
-          onClick={() => {
-            props.navigate(C.Settings.settingsLogOutTab)
-          }}
-        />
+        <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={onSignout} />
       </Kb.ScrollView>
     </Kb.Styles.CanFixOverdrawContext.Provider>
   )

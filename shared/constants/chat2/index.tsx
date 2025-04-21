@@ -240,21 +240,6 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
   }
 }
 
-export const messageAuthorIsBot = (
-  state: TeamConstants.State,
-  meta: T.Chat.ConversationMeta,
-  message: T.Chat.Message,
-  participantInfo: T.Chat.ParticipantInfo
-) => {
-  const teamID = meta.teamID
-  return meta.teamname
-    ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
-    : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-}
-
 export const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
 ): T.Chat.ParticipantInfo => {
@@ -916,10 +901,12 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       const {inboxLayout} = get()
       const newConvID = inboxLayout?.reselectInfo?.newConvID
       const oldConvID = inboxLayout?.reselectInfo?.oldConvID
+
+      const selectedConversation = C.Chat.getSelectedConversation()
+
       if (!newConvID && !oldConvID) {
         return
       }
-      const selectedConversation = C.Chat.getSelectedConversation()
 
       const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
       // no new id, just take the opportunity to resolve

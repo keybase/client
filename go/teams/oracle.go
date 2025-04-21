@@ -22,12 +22,12 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 
 	mctx.Debug("Loaded team %q, max key generation is %d", team.ID, team.Generation())
 
-	tryKeys := func(min keybase1.PerTeamKeyGeneration) (ret []byte, found bool, err error) {
-		if min == 0 {
+	tryKeys := func(minG keybase1.PerTeamKeyGeneration) (ret []byte, found bool, err error) {
+		if minG == 0 {
 			// per team keys start from generation 1.
-			min = 1
+			minG = 1
 		}
-		for gen := team.Generation(); gen >= min; gen-- {
+		for gen := team.Generation(); gen >= minG; gen-- {
 			key, err := team.encryptionKeyAtGen(mctx.Ctx(), gen)
 			if err != nil {
 				mctx.Debug("Failed to get key gen %d: %v", gen, err)

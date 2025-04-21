@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
 import type {TextType} from './text'
+import type {TextInputProps} from 'react-native'
 
 export type RefType = {
   blur: () => void
@@ -36,6 +37,11 @@ export type Props = {
   allowKeyboardEvents?: boolean
   disabled?: boolean
   autoFocus?: boolean
+  autoCorrect?: boolean
+  onBlur?: TextInputProps['onBlur']
+  onFocus?: TextInputProps['onFocus']
+  onSelectionChange?: TextInputProps['onSelectionChange']
+  autoCapitalize?: TextInputProps['autoCapitalize']
   onKeyDown?: (e: React.KeyboardEvent) => void
   onKeyUp?: (e: React.KeyboardEvent) => void
   onEnterKeyDown?: (e?: React.KeyboardEvent) => void
@@ -45,7 +51,7 @@ export type Props = {
   textType?: TextType
   style?: Styles.StylesCrossPlatform
   onChangeText?: (value: string) => void
-  onPasteImage?: (uri: string) => void // mobile only
+  onPasteImage?: (uris: Array<string>) => void // mobile only
   multiline?: boolean
   rowsMin?: number
   rowsMax?: number

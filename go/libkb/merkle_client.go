@@ -1665,7 +1665,7 @@ func (vp *VerificationPath) verifyUser(m MetaContext, uid keybase1.UID) (user *M
 		}
 	}
 
-	if err == nil {
+	if err == nil { //nolint
 		// noop
 	} else if _, ok := err.(MerklePathNotFoundError); ok {
 		m.VLogf(VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))
@@ -1693,7 +1693,7 @@ func (vp *VerificationPath) verifyTeam(m MetaContext, teamID keybase1.TeamID) (t
 		}
 	}
 
-	if err == nil {
+	if err == nil { // nolint
 		// noop
 	} else if _, ok := err.(MerklePathNotFoundError); ok {
 		m.VLogf(VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))

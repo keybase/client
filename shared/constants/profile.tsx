@@ -436,7 +436,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     },
     backToProfile: () => {
       C.useRouterState.getState().dispatch.clearModals()
-      get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
+      setTimeout(() => {
+        get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
+      }, 100)
     },
     checkProof: () => {
       set(s => {

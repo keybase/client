@@ -4,28 +4,45 @@ import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getStyle as getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
+import PasteInput, {type PastedFile} from '@mattermost/react-native-paste-input'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
     const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
-    const {textType = 'Body', rowsMax, rowsMin, padding, disabled, autoFocus, onPasteImage} = p
+    const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
+    const {
+      autoFocus: _autoFocus,
+      autoCorrect,
+      autoCapitalize,
+      onBlur,
+      onFocus,
+      onSelectionChange: _onSelectionChange,
+    } = p
 
-    const valueRef = React.useRef('')
-    const selectionRef = React.useRef<{start: number; end?: number | undefined} | undefined>(undefined)
-    const inputRef = React.useRef<TextInput>(null)
+    const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
+    const [value, setValue] = React.useState('')
+    const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
+      undefined
+    )
+    const inputRef = React.useRef<TextInput | null>(null)
+
+    const setInputRef = React.useCallback((ti: TextInput | null) => {
+      inputRef.current = ti
+    }, [])
 
     const onChangeText = React.useCallback(
       (s: string) => {
-        valueRef.current = s
+        setValue(s)
         _onChangeText?.(s)
       },
       [_onChangeText]
     )
     const onSelectionChange = React.useCallback(
       (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        selectionRef.current = e.nativeEvent.selection
+        setSelection(e.nativeEvent.selection)
+        _onSelectionChange?.(e)
       },
-      []
+      [_onSelectionChange]
     )
 
     React.useImperativeHandle(ref, () => {
@@ -35,39 +52,30 @@ export const Input2 = React.memo(
           i?.blur()
         },
         clear: () => {
-          i?.clear()
+          setValue('')
+          onChangeText('')
+          setAutoFocus(true)
         },
         focus: () => {
           i?.focus()
         },
         getSelection: () => {
-          return selectionRef.current
+          return selection
         },
         isFocused: () => !!inputRef.current?.isFocused(),
         transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-          const ti = fn({selection: selectionRef.current, text: valueRef.current})
+          const ti = fn({selection, text: value})
           if (!reflectChange) {
             return
           }
-          i?.setNativeProps({autocorrect: false})
-          i?.setNativeProps({text: ti.text})
-          setTimeout(() => {
-            i?.setNativeProps({autocorrect: true})
-            // ios handles selection itself fine somehow, but not android
-            if (!isIOS) {
-              i?.setNativeProps({selection: ti.selection})
-            }
-            onChangeText(ti.text)
-          }, 100)
-          // new arch? old needs to call set native
-          //setValue(ti.text)
-          //setSelection(ti.selection)
+          onChangeText(ti.text)
+          setSelection(ti.selection)
         },
         get value() {
-          return valueRef.current
+          return value
         },
       }
-    }, [onChangeText])
+    }, [onChangeText, selection, value])
 
     const style = React.useMemo(() => {
       const textStyle = getTextStyle(textType)
@@ -97,31 +105,61 @@ export const Input2 = React.memo(
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
     }, [_style, multiline, textType, padding, rowsMax, rowsMin])
 
-    const onImageChangeImpl = React.useCallback(
-      (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
+    const onPasteImageImpl = React.useCallback(
+      (error: string | null | undefined, files: Array<PastedFile>) => {
+        if (error) {
+          console.log('paste error', error)
+        }
         if (onPasteImage) {
-          const {uri, linkUri} = e.nativeEvent
-          uri && onPasteImage(linkUri || uri)
+          const uris = files.map(f => f.uri)
+          onPasteImage(uris)
         }
       },
       [onPasteImage]
     )
 
-    const onImageChange = onPasteImage ? onImageChangeImpl : undefined
+    const onPaste = onPasteImage ? onPasteImageImpl : undefined
+
+    if (onPaste) {
+      return (
+        <PasteInput
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
+          autoFocus={autoFocus}
+          blurOnSubmit={false}
+          multiline={multiline}
+          onBlur={onBlur}
+          onChangeText={onChangeText}
+          onFocus={onFocus}
+          onPaste={onPaste}
+          onSelectionChange={onSelectionChange}
+          placeholder={placeholder}
+          readOnly={disabled}
+          ref={setInputRef}
+          selection={selection}
+          style={style}
+          value={value}
+        />
+      )
+    }
 
     return (
       <TextInput
-        // @ts-ignore in our patched impl
-        onImageChange={onImageChange}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
         autoFocus={autoFocus}
-        placeholder={placeholder}
-        readOnly={disabled}
-        onSelectionChange={onSelectionChange}
-        ref={inputRef}
-        onChangeText={onChangeText}
-        style={style}
         blurOnSubmit={false}
         multiline={multiline}
+        onBlur={onBlur}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        onSelectionChange={onSelectionChange}
+        placeholder={placeholder}
+        readOnly={disabled}
+        ref={setInputRef}
+        selection={selection}
+        style={style}
+        value={value}
       />
     )
   })

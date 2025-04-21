@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -465,8 +464,8 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	defer idx.Trace(ctx, &err,
-		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
-			convID, len(msgs), force))()
+		"Indexer.Add conv: %v, msgs: %d, force: %v",
+		convID, len(msgs), force)()
 	idx.storageDispatch(storageAdd{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
@@ -505,8 +504,8 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	defer idx.Trace(ctx, &err,
-		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
-			convID, len(msgs), force))()
+		"Indexer.Remove conv: %v, msgs: %d, force: %v",
+		convID, len(msgs), force)()
 	idx.storageDispatch(storageRemove{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
@@ -536,8 +535,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	maxIdxID := missingIDs[len(missingIDs)-1]
 
 	defer idx.Trace(ctx, &err,
-		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
-			utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs)))()
+		"Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
+		utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -802,9 +801,9 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	defer func() {
 		res.ConvName = utils.GetRemoteConvDisplayName(conv)
 		if md != nil {
-			min, max := MinMaxIDs(conv.Conv)
-			res.MinConvID = min
-			res.MaxConvID = max
+			minID, maxID := MinMaxIDs(conv.Conv)
+			res.MinConvID = minID
+			res.MaxConvID = maxID
 			res.NumMissing = len(md.MissingIDForConv(conv.Conv))
 			res.NumMessages = len(md.SeenIDs)
 			res.PercentIndexed = md.PercentIndexed(conv.Conv)
@@ -858,7 +857,7 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 }
 
 func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	defer idx.Trace(ctx, &err, fmt.Sprintf("Indexer.Clear uid: %v convID: %v", uid, convID))()
+	defer idx.Trace(ctx, &err, "Indexer.Clear uid: %v convID: %v", uid, convID)()
 	idx.Lock()
 	defer idx.Unlock()
 	return idx.store.Clear(ctx, uid, convID)

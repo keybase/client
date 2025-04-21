@@ -1,5 +1,5 @@
-desktop search scroll mode not working well, new messages come in will add a gap. scroll down logic bad
-
+expo-av to expo-video / expo-audio (not ready yet can't get video size...)
+inbox scroll perf issues
 
 
 new unchecked kotlin code for 'val filePaths = if (uris != null)' in MainActivity.kt

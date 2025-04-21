@@ -30,7 +30,7 @@
   // directory accessible as long as the user has unlocked the phone once. The
   // files are still stored on the disk encrypted (note for the chat database,
   // it means we are encrypting it twice), and are inaccessible otherwise.
-  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
+  NSDictionary* noProt = @{NSFileProtectionKey: NSFileProtectionCompleteUntilFirstUserAuthentication};
   [fm createDirectoryAtPath:path withIntermediateDirectories:YES
                  attributes:noProt
                       error:nil];
@@ -50,7 +50,7 @@
     NSLog(@"Error listing directory contents: %@", error);
   } else {
     for (NSString* file in contents) {
-      NSString* filePath = [NSString stringWithFormat:@"%@/%@", path, file];
+      NSString* filePath = [path stringByAppendingPathComponent:file];
       if (![fm setAttributes:noProt ofItemAtPath:filePath error:&error]) {
         NSLog(@"Error setting file attributes on file: %@ error: %@", file, error);
       }
@@ -70,8 +70,8 @@
   } else {
     for (NSString* file in sourceContents) {
       BOOL isDirectory = NO;
-      NSString* path = [NSString stringWithFormat:@"%@/%@", source, file];
-      NSString* destPath = [NSString stringWithFormat:@"%@/%@", dest, file];
+      NSString* path = [source stringByAppendingPathComponent:file];
+      NSString* destPath = [dest stringByAppendingPathComponent:file];
       if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
         NSLog(@"skipping directory: %@", file);
         continue;
@@ -101,7 +101,7 @@
   NSURL* tempUrl = [[NSFileManager defaultManager] temporaryDirectory];
   // workaround a problem where iOS dyld3 loader crashes if accessing .closure files
   // with complete data protection on
-  NSString* dyldDir = [NSString stringWithFormat:@"%@/com.apple.dyld", [tempUrl path]];
+  NSString* dyldDir = [[tempUrl path] stringByAppendingPathComponent: @"com.apple.dyld"];
   // Setup all directories
   NSString* appKeybasePath = [FsHelper getAppKeybasePath];
   NSString* appEraseableKVPath = [FsHelper getEraseableKVPath];
@@ -115,7 +115,7 @@
 - (NSString*) setupSharedHome:(NSString*) home sharedHome:(NSString*)sharedHome {
   NSString* appKeybasePath = [FsHelper getAppKeybasePath];
   NSString* appEraseableKVPath = [FsHelper getEraseableKVPath];
-  NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
+  NSString* sharedKeybasePath = [sharedHome stringByAppendingPathComponent:@"Library/Application Support/Keybase"];
   NSString* sharedEraseableKVPath = [sharedKeybasePath stringByAppendingPathComponent:@"eraseablekvstore/device-eks"];
   [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];

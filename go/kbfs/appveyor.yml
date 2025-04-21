@@ -6,7 +6,7 @@ environment:
     GOARCH: amd64
     CC: c:\msys64\mingw64\bin\gcc
     CPATH: C:\msys64\include;C:\msys64\include\ddk
-    GOVERSION: 1.21.6
+    GOVERSION: 1.23.4
 
 install:
   - systeminfo | findstr /C:"OS"

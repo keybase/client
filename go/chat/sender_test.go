@@ -55,28 +55,28 @@ var _ libkb.NotifyListener = (*chatListener)(nil)
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
+func (n *chatListener) ChatInboxStale(_ keybase1.UID) {
 	select {
 	case n.inboxStale <- struct{}{}:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the inbox stale channel")
 	}
 }
-func (n *chatListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {
+func (n *chatListener) ChatConvUpdate(_ keybase1.UID, convID chat1.ConversationID) {
 	select {
 	case n.convUpdate <- convID:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
+func (n *chatListener) ChatThreadsStale(_ keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadsStale <- updates:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
 	}
 }
-func (n *chatListener) ChatInboxSynced(uid keybase1.UID, topicType chat1.TopicType,
+func (n *chatListener) ChatInboxSynced(_ keybase1.UID, topicType chat1.TopicType,
 	syncRes chat1.ChatSyncResult) {
 	switch topicType {
 	case chat1.TopicType_CHAT, chat1.TopicType_NONE:
@@ -95,7 +95,7 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	}
 }
 
-func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+func (n *chatListener) NewChatActivity(_ keybase1.UID, activity chat1.ChatActivity,
 	source chat1.ChatActivitySource) {
 	n.Lock()
 	defer n.Unlock()
@@ -222,7 +222,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatalf("%s", err.Error())
 		}
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)

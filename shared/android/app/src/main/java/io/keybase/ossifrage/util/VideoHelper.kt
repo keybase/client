@@ -7,17 +7,18 @@ import java.io.ByteArrayOutputStream
 
 class VideoHelper : NativeVideoHelper {
     override fun thumbnail(filename: String): ByteArray {
-        return try {
-            val retriever = MediaMetadataRetriever()
+        val retriever = MediaMetadataRetriever()
+        try {
             retriever.setDataSource(filename)
             val bmp = retriever.frameAtTime ?: return ByteArray(0)
-            val stream = ByteArrayOutputStream()
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-            val ret = stream.toByteArray()
-            retriever.release()
-            ret
+            ByteArrayOutputStream().use { stream ->
+                bmp.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                return stream.toByteArray()
+            }
         } catch (e: Exception) {
-            ByteArray(0)
+            return ByteArray(0)
+        } finally {
+            retriever.release()
         }
     }
 

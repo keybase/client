@@ -174,13 +174,12 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 
         // feature enabled and permission granted
         let mapped: T.RPCChat.Keybase1.Contact[]
-        let defaultCountryCode: string
+        let defaultCountryCode = ''
         try {
           const _contacts = await Contacts.getContactsAsync({
             fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
           })
 
-          let defaultCountryCode = ''
           try {
             defaultCountryCode = await getDefaultCountryCode()
             if (__DEV__ && !defaultCountryCode) {

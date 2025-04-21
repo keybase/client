@@ -3,26 +3,28 @@ import * as Kb from '@/common-adapters'
 import Rm, {type ContentRect} from 'react-measure'
 import type {Props} from '.'
 
-class Measure extends React.Component<Props, {width: number}> {
-  _width = 0
-  _onResize = (contentRect: ContentRect) => {
-    if (contentRect.bounds === undefined) return
-    if (this._width !== contentRect.bounds.width) {
-      this._width = contentRect.bounds.width
-      this.props.onMeasured(this._width)
-    }
-  }
+const Measure = (props: Props) => {
+  const {onMeasured} = props
+  const widthRef = React.useRef(0)
 
-  render() {
-    return (
-      <Rm bounds={true} onResize={this._onResize}>
-        {(
-          // eslint-disable-next-line
-          {measureRef}
-        ) => <div ref={measureRef} style={styles.container} />}
-      </Rm>
-    )
-  }
+  const onResize = React.useCallback(
+    (contentRect: ContentRect) => {
+      if (contentRect.bounds === undefined) return
+      if (widthRef.current !== contentRect.bounds.width) {
+        widthRef.current = contentRect.bounds.width
+        onMeasured(contentRect.bounds.width)
+      }
+    },
+    [onMeasured]
+  )
+
+  return (
+    <Rm bounds={true} onResize={onResize}>
+      {({measureRef}: {measureRef: (ref: Element | null) => void}) => (
+        <div ref={measureRef} style={styles.container} />
+      )}
+    </Rm>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

@@ -215,23 +215,13 @@ class MainActivity : ReactActivity() {
 
     private var jsIsListening = false
     private fun handleIntent() {
-        val intent = cachedIntent
-        var rc = reactContext
-        if (jsIsListening  == false) {
-            return
-        }
-        if (cachedIntent == null || intent == null) {
-            return
-        }
-        if (rc == null) {
-            return
-        }
+        val intent = cachedIntent ?: return
+        var rc = reactContext ?: return
+        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: return
 
-        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        if(emitter == null) {
+        if (jsIsListening == false) {
             return
         }
-
         cachedIntent = null
 
         // Here we are just reading from the notification bundle.
@@ -356,7 +346,7 @@ class MainActivity : ReactActivity() {
     }
 
     companion object {
-        private val TAG = "ossifrage"
+        private const val TAG = "ossifrage"
         private fun createDummyFile(context: Context) {
             val dummyFile = File(context.filesDir, "dummy.txt")
             try {

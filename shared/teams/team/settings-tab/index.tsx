@@ -7,6 +7,7 @@ import {FloatingRolePicker} from '@/teams/role-picker'
 import {pluralize} from '@/util/string'
 import RetentionPicker from './retention/container'
 import DefaultChannels from './default-channels'
+import isEqual from 'lodash/isEqual'
 
 type Props = {
   allowOpenTrigger: number
@@ -30,41 +31,12 @@ type Props = {
   teamname: string
 }
 
-type RolePickerProps = {
-  isRolePickerOpen: boolean
-  onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
-  onOpenRolePicker: () => void
-  newOpenTeamRole: T.Teams.TeamRoleType
-  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string}
-}
-
-type NewSettings = {
-  newIgnoreAccessRequests: boolean
-  newPublicityAnyMember: boolean
+const SetMemberShowcase = (props: {
+  yourOperationsJoinTeam: boolean
+  canShowcase: boolean
   newPublicityMember: boolean
-  newPublicityTeam: boolean
-  newOpenTeam: boolean
-  newOpenTeamRole: T.Teams.TeamRoleType
-}
-
-type State = {
-  publicitySettingsChanged: boolean
-  isRolePickerOpen: boolean
-} & NewSettings
-
-type SettingName =
-  | 'newPublicityMember'
-  | 'newPublicityAnyMember'
-  | 'newPublicityTeam'
-  | 'newOpenTeam'
-  | 'newIgnoreAccessRequests'
-type SettingProps = {
-  setBoolSettings: (key: SettingName) => (newSetting: boolean) => void
-} & Props &
-  State
-
-const SetMemberShowcase = (props: SettingProps) => (
+  setNewPublicityMember: (s: boolean) => void
+}) => (
   <Kb.Box2 direction="vertical" style={styles.memberShowcase} alignSelf="flex-start">
     <Kb.Checkbox
       checked={props.newPublicityMember}
@@ -77,20 +49,23 @@ const SetMemberShowcase = (props: SettingProps) => (
           <Kb.Text type="BodySmall">
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
-              : props.yourOperations.joinTeam
+              : props.yourOperationsJoinTeam
                 ? 'You must join this team to feature it on your profile.'
                 : "Admins aren't allowing members to feature this team on their profile."}
           </Kb.Text>
         </Kb.Box2>
       }
-      onCheck={props.setBoolSettings('newPublicityMember')}
+      onCheck={props.setNewPublicityMember}
       style={styles.paddingRight}
     />
   </Kb.Box2>
 )
 
-const PublicityAnyMember = (props: SettingProps) =>
-  props.yourOperations.setPublicityAny ? (
+const PublicityAnyMember = (props: {
+  newPublicityAnyMember: boolean
+  setNewPublicityAnyMember: (s: boolean) => void
+}) => {
+  return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newPublicityAnyMember}
@@ -100,15 +75,16 @@ const PublicityAnyMember = (props: SettingProps) =>
             <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
           </Kb.Box2>
         }
-        onCheck={props.setBoolSettings('newPublicityAnyMember')}
+        onCheck={props.setNewPublicityAnyMember}
       />
     </Kb.Box2>
-  ) : null
+  )
+}
 
 const teamsLink = 'keybase.io/popular-teams'
 
-const PublicityTeam = (props: SettingProps) =>
-  props.yourOperations.setTeamShowcase ? (
+const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (s: boolean) => void}) => {
+  return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newPublicityTeam}
@@ -123,14 +99,26 @@ const PublicityTeam = (props: SettingProps) =>
             <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
           </Kb.Box2>
         }
-        onCheck={props.setBoolSettings('newPublicityTeam')}
+        onCheck={props.setNewPublicityTeam}
       />
     </Kb.Box2>
-  ) : null
+  )
+}
 
-const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => void}) => {
-  if (!props.yourOperations.changeOpenTeam) {
-    return null
+const OpenTeam = (props: {
+  showWarning: () => void
+  newOpenTeam: boolean
+  isRolePickerOpen: boolean
+  onCancelRolePicker: () => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
+  onOpenRolePicker: () => void
+  newOpenTeamRole: T.Teams.TeamRoleType
+}) => {
+  const disabledReasonsForRolePicker = {
+    admin: `Users can't join open teams as admins.`,
+    owner: `Users can't join open teams as owners.`,
+    reader: '',
+    writer: '',
   }
 
   return (
@@ -154,7 +142,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
                 onCancel={props.onCancelRolePicker}
                 position="bottom center"
                 open={props.isRolePickerOpen}
-                disabledRoles={props.disabledReasonsForRolePicker}
+                disabledRoles={disabledReasonsForRolePicker}
                 presetRole={props.newOpenTeamRole}
                 plural={true}
               >
@@ -174,8 +162,11 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
   )
 }
 
-const IgnoreAccessRequests = (props: SettingProps) =>
-  !props.newOpenTeam && props.yourOperations.changeTarsDisabled ? (
+const IgnoreAccessRequests = (props: {
+  newIgnoreAccessRequests: boolean
+  setNewIgnoreAccessRequests: (s: boolean) => void
+}) => {
+  return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newIgnoreAccessRequests}
@@ -187,151 +178,126 @@ const IgnoreAccessRequests = (props: SettingProps) =>
             </Kb.Text>
           </Kb.Box2>
         }
-        onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
+        onCheck={props.setNewIgnoreAccessRequests}
       />
     </Kb.Box2>
-  ) : null
+  )
+}
 
-// TODO: break out some of these into individual components, simplify state
-export class Settings extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = this._getNewStateObject(props)
-  }
+export const Settings = (p: Props) => {
+  const {savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
+  const {canShowcase, error, allowOpenTrigger} = p
 
-  _getNewStateObject = (p: Props) => {
+  const [newPublicityAnyMember, setNewPublicityAnyMember] = React.useState(p.publicityAnyMember)
+  const [newPublicityTeam, setNewPublicityTeam] = React.useState(p.publicityTeam)
+  const [newIgnoreAccessRequests, setNewIgnoreAccessRequests] = React.useState(p.ignoreAccessRequests)
+  const [newPublicityMember, setNewPublicityMember] = React.useState(p.publicityMember)
+  const [isRolePickerOpen, setIsRolePickerOpen] = React.useState(false)
+  const [newOpenTeam, setNewOpenTeam] = React.useState(p.openTeam)
+  const [newOpenTeamRole, setNewOpenTeamRole] = React.useState<T.Teams.TeamRoleType>(p.openTeamRole)
+
+  const lastAllowOpenTriggerRef = React.useRef(allowOpenTrigger)
+
+  React.useEffect(() => {
+    if (lastAllowOpenTriggerRef.current !== allowOpenTrigger) {
+      lastAllowOpenTriggerRef.current = allowOpenTrigger
+      setNewOpenTeam(o => !o)
+    }
+  }, [allowOpenTrigger])
+
+  const getSavePayload = React.useCallback(() => {
     return {
-      isRolePickerOpen: false,
-      newIgnoreAccessRequests: p.ignoreAccessRequests,
-      newOpenTeam: p.openTeam,
-      newOpenTeamRole: p.openTeamRole,
-      newPublicityAnyMember: p.publicityAnyMember,
-      newPublicityMember: p.publicityMember,
-      newPublicityTeam: p.publicityTeam,
-      publicitySettingsChanged: false,
-      selectedOpenTeamRole: p.openTeamRole,
+      ignoreAccessRequests: newIgnoreAccessRequests,
+      openTeam: newOpenTeam,
+      openTeamRole: newOpenTeamRole,
+      publicityAnyMember: newPublicityAnyMember,
+      publicityMember: newPublicityMember,
+      publicityTeam: newPublicityTeam,
     }
-  }
+  }, [
+    newIgnoreAccessRequests,
+    newOpenTeam,
+    newOpenTeamRole,
+    newPublicityAnyMember,
+    newPublicityMember,
+    newPublicityTeam,
+  ])
 
-  componentDidUpdate(prevProps: Props) {
-    if (
-      this.props.ignoreAccessRequests !== prevProps.ignoreAccessRequests ||
-      this.props.openTeam !== prevProps.openTeam ||
-      this.props.openTeamRole !== prevProps.openTeamRole ||
-      this.props.publicityAnyMember !== prevProps.publicityAnyMember ||
-      this.props.publicityMember !== prevProps.publicityMember ||
-      this.props.publicityTeam !== prevProps.publicityTeam
-    ) {
-      this.setState(this._getNewStateObject(this.props))
-      return
+  const lastSave = React.useRef(getSavePayload())
+  React.useEffect(() => {
+    const next = getSavePayload()
+    if (!isEqual(next, lastSave.current)) {
+      lastSave.current = next
+      savePublicity(next)
     }
+  }, [savePublicity, getSavePayload])
 
-    this.setState((prevState: State) => {
-      const publicitySettingsChanged =
-        prevState.newIgnoreAccessRequests !== this.props.ignoreAccessRequests ||
-        prevState.newOpenTeam !== this.props.openTeam ||
-        (!prevState.isRolePickerOpen && prevState.newOpenTeamRole !== this.props.openTeamRole) ||
-        prevState.newPublicityAnyMember !== this.props.publicityAnyMember ||
-        prevState.newPublicityMember !== this.props.publicityMember ||
-        prevState.newPublicityTeam !== this.props.publicityTeam
-
-      if (publicitySettingsChanged !== prevState.publicitySettingsChanged) {
-        if (!prevState.isRolePickerOpen) {
-          this.onSaveSettings()
-        }
-        return {publicitySettingsChanged}
-      }
-
-      return null
-    })
-
-    if (this.props.allowOpenTrigger !== prevProps.allowOpenTrigger) {
-      this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam)
-    }
-  }
-
-  // TODO just use real keys/setState and not this abstraction
-  setBoolSettings =
-    (key: SettingName) =>
-    (newSetting: boolean): void => {
-      // eslint-disable-next-line
-      this.setState({[key]: newSetting} as any)
-    }
-
-  onSaveSettings = () => {
-    this.props.savePublicity({
-      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-      openTeam: this.state.newOpenTeam,
-      openTeamRole: this.state.newOpenTeamRole,
-      publicityAnyMember: this.state.newPublicityAnyMember,
-      publicityMember: this.state.newPublicityMember,
-      publicityTeam: this.state.newPublicityTeam,
-    })
-  }
-
-  _showOpenTeamWarning = () => {
-    this.props.showOpenTeamWarning(!this.state.newOpenTeam, this.props.teamname)
-  }
-
-  render() {
-    const rolePickerProps = (() => ({
-      disabledReasonsForRolePicker: {
-        admin: `Users can't join open teams as admins.`,
-        owner: `Users can't join open teams as owners.`,
-        reader: '',
-        writer: '',
-      },
-      isRolePickerOpen: this.state.isRolePickerOpen,
-      newOpenTeamRole: this.state.newOpenTeamRole,
-      onCancelRolePicker: () => this.setState({isRolePickerOpen: false}),
-      onConfirmRolePicker: (role: State['newOpenTeamRole']) =>
-        this.setState({isRolePickerOpen: false, newOpenTeamRole: role}),
-      onOpenRolePicker: () => this.setState({isRolePickerOpen: true}),
-    }))()
-
-    const submenuProps: SettingProps = {
-      ...this.props,
-      ...this.state,
-      setBoolSettings: this.setBoolSettings,
-    }
-
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.main}>
-          {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
-          <SetMemberShowcase {...submenuProps} />
-          {(this.props.yourOperations.changeOpenTeam ||
-            this.props.yourOperations.setTeamShowcase ||
-            this.props.yourOperations.setPublicityAny) && (
-            <>
-              <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.teamPadding}>
-                <Kb.Text type="Header">Team</Kb.Text>
-              </Kb.Box2>
-              <PublicityAnyMember {...submenuProps} />
-              <PublicityTeam {...submenuProps} />
-              <OpenTeam {...submenuProps} {...rolePickerProps} showWarning={this._showOpenTeamWarning} />
-              <IgnoreAccessRequests {...submenuProps} />
-            </>
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.main}>
+        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        <SetMemberShowcase
+          yourOperationsJoinTeam={yourOperations.joinTeam}
+          canShowcase={canShowcase}
+          newPublicityMember={newPublicityMember}
+          setNewPublicityMember={setNewPublicityMember}
+        />
+        {(yourOperations.changeOpenTeam ||
+          yourOperations.setTeamShowcase ||
+          yourOperations.setPublicityAny) && (
+          <>
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.teamPadding}>
+              <Kb.Text type="Header">Team</Kb.Text>
+            </Kb.Box2>
+            {yourOperations.setPublicityAny ? (
+              <PublicityAnyMember
+                newPublicityAnyMember={newPublicityAnyMember}
+                setNewPublicityAnyMember={setNewPublicityAnyMember}
+              />
+            ) : null}
+            {yourOperations.setTeamShowcase ? (
+              <PublicityTeam newPublicityTeam={newPublicityTeam} setNewPublicityTeam={setNewPublicityTeam} />
+            ) : null}
+            {yourOperations.changeOpenTeam ? (
+              <OpenTeam
+                newOpenTeam={newOpenTeam}
+                showWarning={() => showOpenTeamWarning(!newOpenTeam, teamname)}
+                isRolePickerOpen={isRolePickerOpen}
+                newOpenTeamRole={newOpenTeamRole}
+                onCancelRolePicker={() => setIsRolePickerOpen(false)}
+                onConfirmRolePicker={(role: T.Teams.TeamRoleType) => {
+                  setIsRolePickerOpen(false)
+                  setNewOpenTeamRole(role)
+                }}
+                onOpenRolePicker={() => setIsRolePickerOpen(true)}
+              />
+            ) : null}
+            {!newOpenTeam && yourOperations.changeTarsDisabled ? (
+              <IgnoreAccessRequests
+                newIgnoreAccessRequests={newIgnoreAccessRequests}
+                setNewIgnoreAccessRequests={setNewIgnoreAccessRequests}
+              />
+            ) : null}
+          </>
+        )}
+        {yourOperations.chat && (
+          <RetentionPicker
+            containerStyle={{marginTop: Kb.Styles.globalMargins.small}}
+            showSaveIndicator={false}
+            teamID={teamID}
+            entityType={isBigTeam ? 'big team' : 'small team'}
+          />
+        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" gapStart={true}>
+          {isBigTeam && (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <DefaultChannels teamID={teamID} />
+            </Kb.Box2>
           )}
-          {this.props.yourOperations.chat && (
-            <RetentionPicker
-              containerStyle={{marginTop: Kb.Styles.globalMargins.small}}
-              showSaveIndicator={false}
-              teamID={this.props.teamID}
-              entityType={this.props.isBigTeam ? 'big team' : 'small team'}
-            />
-          )}
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" gapStart={true}>
-            {this.props.isBigTeam && (
-              <Kb.Box2 direction="vertical" fullWidth={true}>
-                <DefaultChannels teamID={this.props.teamID} />
-              </Kb.Box2>
-            )}
-          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    )
-  }
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

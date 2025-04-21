@@ -23,9 +23,6 @@ import (
 // TestUnzipOtherUser checks to make sure that a zip file created from a
 // different uid has the current uid after unpacking.
 func TestUnzipOtherUser(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Unsupported on windows")
-	}
 	_, filename, _, _ := runtime.Caller(0)
 	testZipOtherUserPath := filepath.Join(filepath.Dir(filename), "../test/test-uid-503.zip")
 	destinationPath := TempPath("", "TestUnzipOtherUser.")

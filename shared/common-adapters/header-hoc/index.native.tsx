@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import Box from '@/common-adapters/box'
+import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
@@ -10,108 +11,94 @@ import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Action, Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box, FloatingMenu, Icon, Text}
-
+const Kb = {BackButton, Box, BoxGrow, FloatingMenu, Icon, Text}
 const MAX_RIGHT_ACTIONS = 3
 
-type State = {
-  floatingMenuVisible: boolean
-}
+export const HeaderHocHeader = (props: Props) => {
+  const [floatingMenuVisible, setFloatingMenuVisible] = React.useState(false)
+  const _hideFloatingMenu = () => setFloatingMenuVisible(false)
+  const _showFloatingMenu = () => setFloatingMenuVisible(true)
+  // TODO: remove these after updates are fully integrated
+  const onLeftAction = props.onLeftAction || props.onBack || props.onCancel
+  const leftAction = props.leftAction || (props.onCancel ? 'cancel' : props.onBack ? 'back' : undefined)
+  const rightActions = props.rightActions
+    ? props.rightActions.filter(Boolean)
+    : props.onRightAction && props.rightActionLabel
+      ? [
+          {
+            label: props.rightActionLabel,
+            onPress: props.onRightAction,
+          },
+        ]
+      : []
 
-export class HeaderHocHeader extends React.Component<Props, State> {
-  state = {
-    floatingMenuVisible: false,
-  }
-  _hideFloatingMenu = () => this.setState({floatingMenuVisible: false})
-  _showFloatingMenu = () => this.setState({floatingMenuVisible: true})
-  render() {
-    // TODO: remove these after updates are fully integrated
-    const onLeftAction = this.props.onLeftAction || this.props.onBack || this.props.onCancel
-    const leftAction =
-      this.props.leftAction || (this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : undefined)
-    const rightActions = this.props.rightActions
-      ? this.props.rightActions.filter(Boolean)
-      : this.props.onRightAction && this.props.rightActionLabel
-        ? [
-            {
-              label: this.props.rightActionLabel,
-              onPress: this.props.onRightAction,
+  // This is used to center the title. The magic numbers were calculated from the inspector.
+  const actionWidth = Styles.isIOS ? 38 : 54
+  const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (props.badgeNumber ? 23 : 0)
+  const titlePadding = rightActions.length
+    ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
+    : titlePaddingLeft
+
+  const hasTextTitle = !!props.title && !props.titleComponent
+
+  const header = (
+    <Kb.Box
+      style={Styles.collapseStyles([styles.header, props.borderless && styles.borderless, props.headerStyle])}
+    >
+      {props.customComponent}
+      {hasTextTitle && (
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.titleContainer,
+            styles.titleTextContainer,
+            Styles.isIOS && {
+              paddingLeft: titlePadding,
+              paddingRight: titlePadding,
             },
-          ]
-        : []
+            Styles.isAndroid && {
+              paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
+              paddingRight: titlePadding,
+            },
+          ])}
+        >
+          <Text type="BodyBig" style={styles.title} lineClamp={1}>
+            {props.title}
+          </Text>
+        </Kb.Box>
+      )}
+      <LeftAction
+        badgeNumber={props.badgeNumber}
+        customCancelText={props.customCancelText}
+        disabled={false}
+        hasTextTitle={hasTextTitle}
+        hideBackLabel={props.hideBackLabel}
+        leftAction={leftAction}
+        leftActionText={props.leftActionText}
+        onLeftAction={onLeftAction}
+        theme={props.theme}
+      />
+      {props.titleComponent && (
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.titleContainer,
+            onLeftAction && styles.titleContainerRightPadding,
+            rightActions.length && styles.titleContainerLeftPadding,
+          ] as const)}
+        >
+          {props.titleComponent}
+        </Kb.Box>
+      )}
+      <RightActions
+        floatingMenuVisible={floatingMenuVisible}
+        hasTextTitle={hasTextTitle}
+        hideFloatingMenu={_hideFloatingMenu}
+        rightActions={rightActions}
+        showFloatingMenu={_showFloatingMenu}
+      />
+    </Kb.Box>
+  )
 
-    // This is used to center the title. The magic numbers were calculated from the inspector.
-    const actionWidth = Styles.isIOS ? 38 : 54
-    const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (this.props.badgeNumber ? 23 : 0)
-    const titlePadding = rightActions.length
-      ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
-      : titlePaddingLeft
-
-    const hasTextTitle = !!this.props.title && !this.props.titleComponent
-
-    const header = (
-      <Kb.Box
-        style={Styles.collapseStyles([
-          styles.header,
-          this.props.borderless && styles.borderless,
-          this.props.headerStyle,
-        ])}
-      >
-        {this.props.customComponent}
-        {hasTextTitle && (
-          <Kb.Box
-            style={Styles.collapseStyles([
-              styles.titleContainer,
-              styles.titleTextContainer,
-              Styles.isIOS && {
-                paddingLeft: titlePadding,
-                paddingRight: titlePadding,
-              },
-              Styles.isAndroid && {
-                paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
-                paddingRight: titlePadding,
-              },
-            ])}
-          >
-            <Text type="BodyBig" style={styles.title} lineClamp={1}>
-              {this.props.title}
-            </Text>
-          </Kb.Box>
-        )}
-        <LeftAction
-          badgeNumber={this.props.badgeNumber}
-          customCancelText={this.props.customCancelText}
-          disabled={false}
-          hasTextTitle={hasTextTitle}
-          hideBackLabel={this.props.hideBackLabel}
-          leftAction={leftAction}
-          leftActionText={this.props.leftActionText}
-          onLeftAction={onLeftAction}
-          theme={this.props.theme}
-        />
-        {this.props.titleComponent && (
-          <Kb.Box
-            style={Styles.collapseStyles([
-              styles.titleContainer,
-              onLeftAction && styles.titleContainerRightPadding,
-              rightActions.length && styles.titleContainerLeftPadding,
-            ] as const)}
-          >
-            {this.props.titleComponent}
-          </Kb.Box>
-        )}
-        <RightActions
-          floatingMenuVisible={this.state.floatingMenuVisible}
-          hasTextTitle={hasTextTitle}
-          hideFloatingMenu={this._hideFloatingMenu}
-          rightActions={rightActions}
-          showFloatingMenu={this._showFloatingMenu}
-        />
-      </Kb.Box>
-    )
-
-    return header
-  }
+  return header
 }
 
 export const LeftAction = (p: LeftActionProps): React.ReactElement => {
@@ -225,9 +212,7 @@ export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skip
     <Kb.Box style={styles.container}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
       {!skipHeader && <HeaderHocHeader {...props} />}
-      <Kb.Box style={styles.grow}>
-        <Kb.Box style={styles.innerWrapper}>{children}</Kb.Box>
-      </Kb.Box>
+      <Kb.BoxGrow>{children}</Kb.BoxGrow>
       {!!customSafeAreaBottomStyle && <SafeAreaView style={customSafeAreaBottomStyle} />}
     </Kb.Box>
   )

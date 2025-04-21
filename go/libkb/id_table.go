@@ -392,9 +392,8 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 		return TrackDiffNew{}
 	} else if expected := list[len(list)-1]; !Cicmp(expected, v) {
 		return TrackDiffClash{observed: v, expected: expected}
-	} else {
-		return TrackDiffNone{}
 	}
+	return TrackDiffNone{}
 }
 
 func (s *SocialProofChainLink) DisplayCheck(m MetaContext, ui IdentifyUI, lcr LinkCheckResult) error {
@@ -1015,12 +1014,12 @@ type DeviceChainLink struct {
 }
 
 func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) {
-	var dobj *Device
-	if dobj, err = ParseDevice(b.UnmarshalPayloadJSON().AtPath("body.device"), b.GetCTime()); err != nil {
-	} else {
-		ret = &DeviceChainLink{b, dobj}
+	dobj, err := ParseDevice(b.UnmarshalPayloadJSON().AtPath("body.device"), b.GetCTime())
+	if err != nil {
+		return nil, err
 	}
-	return
+	ret = &DeviceChainLink{b, dobj}
+	return ret, nil
 }
 
 func (s *DeviceChainLink) GetDevice() *Device { return s.device }

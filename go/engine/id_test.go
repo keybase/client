@@ -65,7 +65,7 @@ func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.Us
 	checkKeyedProfile(tb, idUI, user, "doug", nil)
 }
 
-func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, expectedProofs map[string]string) {
+func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, _ string, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
 	} else {
