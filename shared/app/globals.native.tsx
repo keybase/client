@@ -1,4 +1,3 @@
-/* eslint-disable no-global-assign */
 // >>>>>>>>>>>>>>>>>>>>>>>      DO NOT REORDER ANYTHING in this file      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 // This is supposed to bootstrap / polyfill / fixup the app. Do NOT add things here or change things unless you really know
 // what's happening
@@ -27,6 +26,19 @@ if (!Array.prototype.at) {
         index = this.length + index
       }
       return this[index]
+    },
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  })
+}
+
+// Needs jsc 5.4+
+// @ts-ignore
+if (!String.prototype.replaceAll) {
+  Object.defineProperty(String.prototype, 'replaceAll', {
+    value: function (this: string, search: string, replace: string): string {
+      return this.replace(new RegExp(search, 'g'), replace)
     },
     writable: true,
     enumerable: false,

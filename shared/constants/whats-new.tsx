@@ -91,9 +91,11 @@ const _getSeenVersions = (lastSeenVersion: string): SeenVersionsMap => {
 
 type Store = T.Immutable<{
   lastSeenVersion: string
+  seenVersions: SeenVersionsMap
 }>
 const initialStore: Store = {
   lastSeenVersion: '',
+  seenVersions: _getSeenVersions(''),
 }
 interface State extends Store {
   dispatch: {
@@ -101,9 +103,8 @@ interface State extends Store {
     updateLastSeen: (lastSeenItem?: {md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}) => void
   }
   anyVersionsUnseen: () => boolean
-  getSeenVersions: () => SeenVersionsMap
 }
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     updateLastSeen: lastSeenItem => {
@@ -114,10 +115,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // Default to 0.0.0 (noVersion) if user has never marked a version as seen
         set(s => {
           s.lastSeenVersion = lastSeenVersion
+          s.seenVersions = _getSeenVersions(lastSeenVersion)
         })
       } else {
         set(s => {
           s.lastSeenVersion = noVersion
+          s.seenVersions = _getSeenVersions(noVersion)
         })
       }
     },
@@ -130,8 +133,5 @@ export const _useState = Z.createZustand<State>((set, get) => {
       return ver !== '' && ver === noVersion ? true : Object.values(_getSeenVersions(ver)).some(seen => !seen)
     },
     dispatch,
-    getSeenVersions: () => {
-      return _getSeenVersions(get().lastSeenVersion)
-    },
   }
 })

@@ -53,12 +53,20 @@ function startHot() {
 
   // Find extensions
 
-  const devToolRoots = !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
+  const devToolRoots: undefined | string =
+    !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
   const devToolExtensions = devToolRoots
     ? {
         KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots
           .split(',')
-          .map(root => path.join(root, fs.readdirSync(root)[0] ?? ''))
+          .map(root => {
+            const ver = fs.readdirSync(root).reduce((acc, p) => {
+              if (acc) return acc
+              if (p.startsWith('.')) return ''
+              return p
+            }, '')
+            return path.join(root, ver)
+          })
           .join(','),
       }
     : null

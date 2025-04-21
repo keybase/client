@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import AccountPayment from '.'
+import MarkdownMemo from '@/wallets/markdown-memo'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -11,17 +11,12 @@ const loadingProps = {
   approxWorth: '',
   balanceChange: '',
   balanceChangeColor: undefined,
-  cancelButtonInfo: '',
-  cancelButtonLabel: '',
   canceled: false,
-  claimButtonLabel: '',
   icon: 'iconfont-stellar-send',
   loading: true,
   memo: '',
   pending: false,
-  sendButtonLabel: '',
   showCoinsIcon: false,
-  sourceAmount: '',
 } as const
 
 const failedProps = {
@@ -83,8 +78,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
         const canceled = paymentInfo.status === 'canceled'
         const completed = paymentInfo.status === 'completed'
         const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
-        const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
-
         const amountDescription = paymentInfo.sourceAmount
           ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
           : paymentInfo.amountDescription
@@ -96,17 +89,12 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           approxWorth: paymentInfo.worthAtSendTime,
           balanceChange: '',
           balanceChangeColor: Kb.Styles.globalColors.black,
-          cancelButtonInfo: '',
-          cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
           canceled,
-          claimButtonLabel: '',
           icon: pending ? ('iconfont-clock' as const) : undefined,
           loading: false,
           memo: paymentInfo.note.stringValue(),
           pending: pending || canceled,
-          sendButtonLabel: '',
           showCoinsIcon: completed,
-          sourceAmount: paymentInfo.sourceAmount.length ? sourceAmountDesc : '',
         }
       }
       case 'requestPayment': {
@@ -116,7 +104,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           // waiting for service to load it
           return loadingProps
         }
-        const {amountDescription, asset, canceled, done} = requestInfo
+        const {amountDescription, asset, canceled} = requestInfo
         return {
           _paymentID: undefined,
           action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
@@ -124,18 +112,11 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           approxWorth: requestInfo.worthAtRequestTime,
           balanceChange: '',
           balanceChangeColor: undefined,
-          cancelButtonInfo: '',
-          cancelButtonLabel: '',
           canceled,
-          claimButtonLabel: '',
           icon: 'iconfont-stellar-request' as const,
           loading: false,
           memo: message.note.stringValue(),
           pending: false,
-          sendButtonLabel:
-            youAreSender || canceled || done
-              ? ''
-              : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
           showCoinsIcon: false,
         }
       }
@@ -144,24 +125,136 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     }
   })()
 
-  const props = {
-    action: stateProps.action,
-    amount: stateProps.amount,
-    approxWorth: stateProps.approxWorth,
-    balanceChange: stateProps.balanceChange,
-    balanceChangeColor: stateProps.balanceChangeColor,
-    cancelButtonInfo: stateProps.cancelButtonInfo,
-    cancelButtonLabel: stateProps.cancelButtonLabel,
-    canceled: stateProps.canceled,
-    claimButtonLabel: stateProps.claimButtonLabel,
-    icon: stateProps.icon,
-    loading: stateProps.loading,
-    memo: stateProps.memo,
-    pending: stateProps.pending,
-    sendButtonLabel: stateProps.sendButtonLabel || '',
-    showCoinsIcon: stateProps.showCoinsIcon,
-    sourceAmount: stateProps.sourceAmount,
-  }
-  return <AccountPayment {...props} />
+  const {action, amount, approxWorth, balanceChange, balanceChangeColor} = stateProps
+  const {canceled, icon, loading, memo, pending, showCoinsIcon} = stateProps
+  const balanceChangeBox = (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={Kb.Styles.isMobile}
+      style={styles.amountContainer}
+      gap={Kb.Styles.isMobile ? 'tiny' : 'small'}
+    >
+      {!!balanceChange && (
+        <Kb.Text type="BodyExtrabold" selectable={true} style={{color: balanceChangeColor}}>
+          {balanceChange}
+        </Kb.Text>
+      )}
+      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+    </Kb.Box2>
+  )
+  const contents = loading ? (
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
+      <Kb.ProgressIndicator style={styles.progressIndicator} />
+      <Kb.Text type="BodySmall">loading...</Kb.Text>
+    </Kb.Box2>
+  ) : (
+    <>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([
+          styles.alignItemsCenter,
+          styles.flexWrap,
+          {marginBottom: Kb.Styles.globalMargins.xtiny},
+        ])}
+      >
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
+          {!!icon && (
+            <Kb.Icon
+              type={icon}
+              color={pending ? Kb.Styles.globalColors.purpleOrWhite : Kb.Styles.globalColors.purple}
+              fontSize={12}
+            />
+          )}
+          <Kb.Text
+            type="BodySmall"
+            style={Kb.Styles.collapseStyles([
+              {flexShrink: 1},
+              styles.purple,
+              pending && styles.purpleOrWhite,
+              canceled && styles.lineThrough,
+            ])}
+          >
+            {action}{' '}
+            <Kb.Text
+              type="BodySmallExtrabold"
+              selectable={true}
+              style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
+            >
+              {amount}
+            </Kb.Text>
+            {approxWorth && (
+              <Kb.Text
+                type="BodySmall"
+                style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
+              >
+                {' '}
+                (approximately{' '}
+                <Kb.Text
+                  type="BodySmallExtrabold"
+                  selectable={true}
+                  style={Kb.Styles.collapseStyles([styles.purple, pending && styles.purpleOrWhite])}
+                >
+                  {approxWorth}
+                </Kb.Text>
+                )
+              </Kb.Text>
+            )}
+            {pending ? '...' : '.'}
+          </Kb.Text>
+        </Kb.Box2>
+        {canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
+        {!Kb.Styles.isMobile && balanceChangeBox}
+      </Kb.Box2>
+      <MarkdownMemo memo={memo} style={styles.memo} />
+      {Kb.Styles.isMobile && balanceChangeBox}
+    </>
+  )
+  return (
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      {contents}
+    </Kb.Box2>
+  )
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {alignItems: 'center'},
+      amountContainer: Kb.Styles.platformStyles({
+        isElectron: {
+          alignItems: 'center',
+          marginLeft: 'auto',
+        },
+        isMobile: {justifyContent: 'space-between'},
+      }),
+      button: {
+        alignSelf: 'flex-start',
+        marginTop: Kb.Styles.globalMargins.xtiny,
+      },
+      buttonText: {color: Kb.Styles.globalColors.white},
+      flexWrap: {flexWrap: 'wrap'},
+      lineThrough: {textDecorationLine: 'line-through'},
+      memo: Kb.Styles.platformStyles({
+        isMobile: {paddingRight: Kb.Styles.globalMargins.small},
+      }),
+      progressIndicator: Kb.Styles.platformStyles({
+        // Match height of a line of text
+        isElectron: {
+          height: 17,
+          width: 17,
+        },
+        isMobile: {
+          height: 22,
+          width: 22,
+        },
+      }),
+      purple: {color: Kb.Styles.globalColors.purpleDark},
+      purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
+      tooltipText: Kb.Styles.platformStyles({
+        isElectron: {wordBreak: 'normal'},
+      }),
+    }) as const
+)
+
 export default ConnectedAccountPayment

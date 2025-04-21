@@ -69,7 +69,6 @@ type Props = {
 
 const AudioPlayer = (props: Props) => {
   const {duration, big, maxWidth, url, visAmps} = props
-  const seekRef = React.useRef<null | ((n: number) => void)>(null)
   const [playedRatio, setPlayedRatio] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
@@ -111,13 +110,7 @@ const AudioPlayer = (props: Props) => {
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
       {url.length > 0 && (
-        <AudioVideo
-          seekRef={seekRef}
-          url={url}
-          paused={paused}
-          onPositionUpdated={onPositionUpdated}
-          onEnded={onEnded}
-        />
+        <AudioVideo url={url} paused={paused} onPositionUpdated={onPositionUpdated} onEnded={onEnded} />
       )}
     </Kb.Box2>
   )

@@ -2,51 +2,49 @@ import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './download-wrapper'
 
-type State = {
-  opacity: NativeAnimated.AnimatedValue
-}
+const DownloadNativeWrapper: React.FC<Props> = props => {
+  const [opacity] = React.useState(new NativeAnimated.Value(1))
+  const started = React.useRef(false)
 
-export default class DownloadNativeWrapper extends React.PureComponent<Props, State> {
-  _opacity = new NativeAnimated.Value(1)
-  _opacityAnimation = NativeAnimated.timing(this._opacity, {
-    duration: 3000,
-    easing: NativeEasing.linear,
-    toValue: 0,
-    useNativeDriver: false,
-  })
+  const opacityAnimation = React.useRef(
+    NativeAnimated.timing(opacity, {
+      duration: 3000,
+      easing: NativeEasing.linear,
+      toValue: 0,
+      useNativeDriver: false,
+    })
+  ).current
 
-  _started = false
-  _ensureStarted = () => {
-    if (this._started) {
+  const ensureStarted = React.useCallback(() => {
+    if (started.current) {
       return
     }
-    this._started = true
-    this._opacityAnimation.start(({finished}) => finished && this.props.dismiss())
-  }
-  _ensureStopped = () => {
-    if (!this._started) {
+    started.current = true
+    opacityAnimation.start(({finished}) => finished && props.dismiss())
+  }, [opacityAnimation, props])
+
+  const ensureStopped = React.useCallback(() => {
+    if (!started.current) {
       return
     }
-    this._opacityAnimation.stop()
-    this._opacity.setValue(1)
-    this._started = false
-  }
+    opacityAnimation.stop()
+    opacity.setValue(1)
+    started.current = false
+  }, [opacityAnimation, opacity])
 
-  _update = () => {
-    this.props.isFirst && this.props.done ? this._ensureStarted() : this._ensureStopped()
-  }
+  React.useEffect(() => {
+    const update = () => {
+      props.isFirst && props.done ? ensureStarted() : ensureStopped()
+    }
 
-  componentDidMount() {
-    this._update()
-  }
-  componentDidUpdate() {
-    this._update()
-  }
-  componentWillUnmount() {
-    this._ensureStopped()
-  }
+    update()
 
-  render() {
-    return <NativeAnimated.View style={{opacity: this._opacity}}>{this.props.children}</NativeAnimated.View>
-  }
+    return () => {
+      ensureStopped()
+    }
+  }, [props.isFirst, props.done, ensureStarted, ensureStopped])
+
+  return <NativeAnimated.View style={{opacity}}>{props.children}</NativeAnimated.View>
 }
+
+export default DownloadNativeWrapper

@@ -257,22 +257,28 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
   const you = C.useCurrentUserState(s => s.username)
   const isSelf = you === username
-  const onShow = React.useCallback(() => {
-    setShowing(true)
-  }, [])
+  const onShow = C.useDebouncedCallback(
+    React.useCallback(() => {
+      setShowing(true)
+    }, []),
+    200
+  )
   const onHide = React.useCallback(() => {
+    onShow.cancel()
     setShowing(false)
-  }, [])
+  }, [onShow])
+
   if (isSelf) {
     return children()
   }
   const popup = showing && (
-    <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
+    <DelayedMounting delay={Styles.isMobile ? 0 : 300}>
       <Kb.FloatingMenu
         attachTo={popupAnchor}
         closeOnSelect={true}
-        onHidden={() => setShowing(false)}
+        onHidden={onHide}
         position="top center"
+        offset={Styles.isMobile ? 0 : 10}
         positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!Styles.isMobile}
         remeasureHint={remeasureHint}
@@ -313,71 +319,79 @@ _setWithProfileCardPopup(WithProfileCardPopup)
 
 export default ProfileCard
 
-const styles = Styles.styleSheetCreate(() => ({
-  brokenBadge: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.white,
-      borderStyle: 'solid',
-      borderWidth: Styles.globalMargins.xxtiny,
-      bottom: -Styles.globalMargins.xxtiny,
-      position: 'absolute',
-      right: -Styles.globalMargins.xxtiny,
-    },
-    isElectron: {
-      borderRadius: '50%',
-    },
-    isMobile: {
-      borderRadius: 8,
-    },
-  }),
-  button: {
-    marginTop: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
-  },
-  close: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  connectedNameWithIconMetaStyle: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      marginTop: (Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny) / 2,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny
-      ),
-      position: 'relative',
-    },
-    isElectron: {
-      width: 170,
-    },
-  }),
-  expand: {
-    marginTop: -Styles.globalMargins.xxtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  iconContainer: {
-    position: 'relative',
-  },
-  popupTextContainer: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  profileCardPopup: Styles.platformStyles({
-    isMobile: Styles.padding(Styles.globalMargins.large, undefined, Styles.globalMargins.small, undefined),
-  }),
-  serviceIcons: {
-    flexWrap: 'wrap',
-    padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      brokenBadge: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.white,
+          borderStyle: 'solid',
+          borderWidth: Styles.globalMargins.xxtiny,
+          bottom: -Styles.globalMargins.xxtiny,
+          position: 'absolute',
+          right: -Styles.globalMargins.xxtiny,
+        },
+        isElectron: {
+          borderRadius: '50%',
+        },
+        isMobile: {
+          borderRadius: 8,
+        },
+      }),
+      button: {
+        marginTop: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
+      },
+      close: {
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      connectedNameWithIconMetaStyle: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          marginTop: (Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny) / 2,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          ...Styles.padding(
+            Styles.globalMargins.small,
+            Styles.globalMargins.tiny,
+            Styles.globalMargins.small,
+            Styles.globalMargins.tiny
+          ),
+          position: 'relative',
+        },
+        isElectron: {
+          width: 170,
+        },
+      }),
+      expand: {
+        marginTop: -Styles.globalMargins.xxtiny,
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      iconContainer: {
+        position: 'relative',
+      },
+      popupTextContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      profileCardPopup: Styles.platformStyles({
+        isMobile: Styles.padding(
+          Styles.globalMargins.large,
+          undefined,
+          Styles.globalMargins.small,
+          undefined
+        ),
+      }),
+      serviceIcons: {
+        flexWrap: 'wrap',
+        padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
+      },
+    }) as const
+)

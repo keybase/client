@@ -3,12 +3,11 @@ import * as Constants from '@/constants/router2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import {shim, getOptions} from './shim'
 import * as Tabs from '@/constants/tabs'
-import * as Container from '@/util/container'
-import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
-import {StatusBar, View} from 'react-native'
+import {shim, getOptions} from './shim'
+import logger from '@/logger'
+import {StatusBar, View, useWindowDimensions, Linking} from 'react-native'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -52,6 +51,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
         getComponent={val.getScreen}
         options={({route, navigation}: {route: unknown; navigation: unknown}) => {
           const no = getOptions(val)
+          // eslint-disable-next-line
           const opt = typeof no === 'function' ? no({navigation, route} as any) : no
           return {
             ...opt,
@@ -74,10 +74,10 @@ const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boo
     // notifications gets badged on native if there's no push, special case
     onSettings && !hasPermissions ? 1 : 0
   )
-
+  const {width: screenWidth} = useWindowDimensions()
   const data = tabToData.get(routeName)
   return data ? (
-    <View style={styles.container}>
+    <View style={[styles.tabContainer, {minHeight: 40, minWidth: screenWidth / tabs.length}]}>
       <Kb.Icon
         type={data.icon}
         fontSize={32}
@@ -99,19 +99,10 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       badge: Kb.Styles.platformStyles({
         common: {
+          left: 36,
           position: 'absolute',
-          right: 8,
+          // new arch? right: 8,
           top: 3,
-        },
-      }),
-      container: Kb.Styles.platformStyles({
-        common: {
-          flex: 1,
-          justifyContent: 'center',
-        },
-        isTablet: {
-          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-          minWidth: Kb.Styles.globalMargins.xlarge,
         },
       }),
       keyboard: {
@@ -123,6 +114,7 @@ const styles = Kb.Styles.styleSheetCreate(
       labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
       labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
       labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      loading: Kb.Styles.globalStyles.fillAbsolute,
       tab: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
@@ -132,6 +124,16 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 6,
         },
         isTablet: {width: '100%'},
+      }),
+      tabContainer: Kb.Styles.platformStyles({
+        common: {
+          flex: 1,
+          justifyContent: 'center',
+        },
+        isTablet: {
+          // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
+          minWidth: Kb.Styles.globalMargins.xlarge,
+        },
       }),
     }) as const
 )
@@ -263,54 +265,6 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const useInitialStateChangeAfterLinking = (
-  goodLinking: unknown,
-  onStateChange: () => void,
-  loggedIn: boolean
-) => {
-  // When we load an initial state we use goodLinking. When an initial state is loaded we need to
-  //manually call onStateChange as the framework itself won't call in this case. This is only valid
-  // *after* we get a onReady callback so we need to keep track of 1. a valid goodLinking, 2. onReady called
-  const goodLinkingState = React.useRef<GoodLinkingState>(
-    goodLinking ? GoodLinkingState.GoodLinkingExists : GoodLinkingState.GoodLinkingHandled
-  )
-  React.useEffect(() => {
-    if (goodLinking) {
-      if (goodLinkingState.current === GoodLinkingState.GoodLinkingHandled) {
-        goodLinkingState.current = GoodLinkingState.GoodLinkingExists
-      }
-    }
-  }, [goodLinking])
-
-  const onReady = React.useCallback(() => {
-    if (goodLinkingState.current === GoodLinkingState.GoodLinkingExists) {
-      goodLinkingState.current = GoodLinkingState.GoodLinkingHandled
-      onStateChange()
-    }
-  }, [onStateChange])
-
-  // When we do a quick user switch let's go back to the last tab we were on
-  const lastLoggedInTab = React.useRef<Tabs.Tab | undefined>(undefined)
-  const lastLoggedIn = Container.usePrevious(loggedIn)
-  if (!loggedIn && lastLoggedIn) {
-    lastLoggedInTab.current = Constants.getTab()
-  }
-
-  React.useEffect(() => {
-    if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      const navRef = Constants.navigationRef_
-      navRef.navigate(lastLoggedInTab.current)
-    }
-  }, [loggedIn, lastLoggedIn])
-
-  return onReady
-}
-
-enum GoodLinkingState {
-  GoodLinkingExists,
-  GoodLinkingHandled,
-}
-
 const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 
@@ -324,48 +278,248 @@ const useBarStyle = () => {
   return isDarkMode ? 'light-content' : 'dark-content'
 }
 
+type InitialStateState = 'init' | 'loading' | 'loaded'
+
+const argArrayGood = (arr: Array<string>, len: number) => {
+  return arr.length === len && arr.every(p => !!p.length)
+}
+const isValidLink = (link: string) => {
+  const urlPrefix = 'https://keybase.io/'
+  if (link.startsWith(urlPrefix)) {
+    if (link.substring(urlPrefix.length).split('/').length === 1) {
+      return true
+    }
+  }
+  const prefix = 'keybase://'
+  if (!link.startsWith(prefix)) {
+    return false
+  }
+  const path = link.substring(prefix.length)
+  const [root, ...parts] = path.split('/')
+
+  switch (root) {
+    case 'profile':
+      switch (parts[0]) {
+        case 'new-proof':
+          return argArrayGood(parts, 2) || argArrayGood(parts, 3)
+        case 'show':
+          return argArrayGood(parts, 2)
+        default:
+      }
+      return false
+    case 'private':
+      return true
+    case 'public':
+      return true
+    case 'team':
+      return true
+    case 'convid':
+      return argArrayGood(parts, 1)
+    case 'chat':
+      return argArrayGood(parts, 1) || argArrayGood(parts, 2)
+    case 'team-page':
+      return argArrayGood(parts, 3)
+    case 'incoming-share':
+      return true
+    case 'team-invite-link':
+      return argArrayGood(parts, 1)
+    case 'settingsPushPrompt':
+      return true
+    default:
+      return false
+  }
+}
+
+const useInitialState = () => {
+  const startup = C.useConfigState(s => s.startup)
+  const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
+  let {conversation: startupConversation} = startup
+
+  if (!C.Chat.isValidConversationIDKey(startupConversation)) {
+    startupConversation = ''
+  }
+
+  const showMonster = C.usePushState(s => {
+    const {hasPermissions, justSignedUp, showPushPrompt} = s
+    return loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
+  })
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const androidShare = C.useConfigState(s => s.androidShare)
+
+  const [initialState, setInitialState] = React.useState<undefined | object>(undefined)
+  const [initialStateState, setInitialStateState] = React.useState<InitialStateState>('init')
+
+  React.useEffect(() => {
+    if (!startupLoaded) return
+    if (initialStateState !== 'init') {
+      return
+    }
+    setInitialStateState('loading')
+    const loadInitialURL = async () => {
+      let url = await Linking.getInitialURL()
+
+      // don't try and resume or follow links if we're signed out
+      if (!loggedIn) return
+
+      if (!url && showMonster) {
+        url = 'keybase://settingsPushPrompt'
+      }
+      if (!url && androidShare) {
+        url = `keybase://incoming-share`
+      }
+
+      if (url && isValidLink(url)) {
+        setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
+      } else if (startupFollowUser && !startupConversation) {
+        url = `keybase://profile/show/${startupFollowUser}`
+        if (isValidLink(url)) {
+          const initialTabState = {
+            state: {
+              index: 1,
+              routes: [{name: 'peopleRoot'}, {name: 'profile', params: {username: startupFollowUser}}],
+            },
+          }
+          setInitialState({
+            index: 0,
+            routes: [
+              {
+                name: 'loggedIn',
+                state: {
+                  index: 0,
+                  routeNames: [Tabs.peopleTab],
+                  routes: [{name: Tabs.peopleTab, ...initialTabState}],
+                },
+              },
+            ],
+          })
+        }
+      } else if (startupTab || startupConversation) {
+        try {
+          const tab = startupConversation ? Tabs.chatTab : startupTab
+          C.Chat.useState_.getState().dispatch.unboxRows([startupConversation])
+          C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
+            reason: 'savedLastState',
+          })
+
+          const initialTabState = startupConversation
+            ? {
+                state: {
+                  index: 1,
+                  routes: [
+                    {name: 'chatRoot'},
+                    {name: 'chatConversation', params: {conversationIDKey: startupConversation}},
+                  ],
+                },
+              }
+            : {}
+
+          setInitialState({
+            index: 0,
+            routes: [
+              {
+                name: 'loggedIn',
+                state: {
+                  index: 0,
+                  routeNames: [tab],
+                  routes: [{name: tab, ...initialTabState}],
+                },
+              },
+            ],
+          })
+        } catch {}
+      }
+    }
+
+    const f = async () => {
+      await loadInitialURL()
+      setInitialStateState('loaded')
+    }
+
+    C.ignorePromise(f())
+  }, [
+    loggedIn,
+    startupLoaded,
+    initialState,
+    initialStateState,
+    androidShare,
+    showMonster,
+    startupConversation,
+    startupFollowUser,
+    startupTab,
+  ])
+
+  return {initialState, initialStateState}
+}
+
+// on android we rerender everything on dark mode changes
+const useRootKey = () => {
+  const [rootKey, setRootKey] = React.useState('')
+  const isDarkMode = Kb.Styles.useIsDarkMode()
+  React.useEffect(() => {
+    if (!C.isAndroid) return
+    setRootKey(isDarkMode ? 'android-dark' : 'android-light')
+  }, [isDarkMode])
+
+  return rootKey
+}
+
 const RNApp = React.memo(function RNApp() {
-  const s = Shared.useShared()
-  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
-  const {navKey, initialState, onUnhandledAction} = s
-  const goodLinking = RouterLinking.useStateToLinking(appState.current)
-  // we only send certain params to the container depending on the state so we can remount w/ the right data
-  // instead of using useEffect and flashing all the time
-  // we use linking and force a key change if we're in NEEDS_INIT
-  // while inited we can use initialStateRef when dark mode changes, we never want both at the same time
+  const everLoadedRef = React.useRef(false)
+  const loggedInLoaded = C.useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
 
-  Shared.useSharedAfter(appState)
+  const {initialState, initialStateState} = useInitialState()
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
+  const onStateChange = React.useCallback(() => {
+    const ns = C.Router2.getRootState()
+    setNavState(ns)
+  }, [setNavState])
 
-  const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
+  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+    logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+  }, [])
 
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
-      appState,
-      goodLinking,
       initialState,
+      initialStateState,
       loggedIn,
       loggedInLoaded,
-      navKey,
       onStateChange,
     })
   }
   const barStyle = useBarStyle()
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
 
+  const rootKey = useRootKey()
+
+  if (initialStateState !== 'loaded' || !loggedInLoaded) {
+    return (
+      <Kb.Box2 direction="vertical" style={styles.loading}>
+        <Shared.SimpleLoading />
+      </Kb.Box2>
+    )
+  }
+
   return (
-    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
       <NavigationContainer
+        navigationInChildEnabled={true}
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        linking={goodLinking as any}
-        ref={Constants.navigationRef_ as any}
-        key={String(navKey)}
+        ref={
+          // eslint-disable-next-line
+          Constants.navigationRef_ as any
+        }
         theme={Shared.theme}
-        initialState={initialState}
+        initialState={initialState as any}
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
-        onReady={onReady}
       >
         <RootStack.Navigator
           key="root"
@@ -373,25 +527,21 @@ const RNApp = React.memo(function RNApp() {
             headerShown: false, // eventually do this after we pull apart modal2 etc
           }}
         >
-          {!loggedInLoaded && (
-            <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
-          )}
-          {loggedInLoaded && loggedIn && (
+          {loggedIn ? (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
               <RootStack.Group
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel2 />,
-                  // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Kb.Styles.isAndroid ? undefined : 'modal',
-                  title: '',
+                  presentation: 'modal',
                 }}
               >
                 {ModalScreens}
               </RootStack.Group>
             </>
+          ) : (
+            <RootStack.Screen name="loggedOut" component={LoggedOut} />
           )}
-          {loggedInLoaded && !loggedIn && <RootStack.Screen name="loggedOut" component={LoggedOut} />}
         </RootStack.Navigator>
       </NavigationContainer>
     </Kb.Box2>

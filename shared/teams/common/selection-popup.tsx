@@ -128,8 +128,8 @@ const TeamSelectionPopup = (props: TeamProps) => {
 
   const selectedCount = C.useTeamsState(s =>
     selectedTab === 'teamChannels'
-      ? s.teamSelectedChannels.get(teamID)?.size ?? 0
-      : s.teamSelectedMembers.get(teamID)?.size ?? 0
+      ? (s.teamSelectedChannels.get(teamID)?.size ?? 0)
+      : (s.teamSelectedMembers.get(teamID)?.size ?? 0)
   )
 
   const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
@@ -165,6 +165,7 @@ const ChannelSelectionPopup = (props: ChannelProps) => {
   const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const onCancel = () => {
     switch (selectedTab) {
+      // eslint-disable-next-line
       case 'channelMembers':
         channelSetMemberSelected(conversationIDKey, '', false, true)
         return

@@ -60,9 +60,21 @@ const RetentionPicker = (p: Props) => {
   )
 
   const modalConfirmed = useConfirm(s => s.confirmed)
+  const modalOpen = useConfirm(s => s.modalOpen)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   const [lastConfirmed, setLastConfirmed] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  const [lastModalOpen, setLastModalOpen] = React.useState(modalOpen)
+
+  React.useEffect(() => {
+    if (lastModalOpen !== modalOpen) {
+      setLastModalOpen(modalOpen)
+      if (!modalOpen) {
+        setInitialSelected()
+      }
+    }
+  }, [lastModalOpen, modalOpen, setInitialSelected])
+
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
       setLastConfirmed(modalConfirmed)
@@ -107,15 +119,17 @@ const RetentionPicker = (p: Props) => {
   const lastPolicy = React.useRef(policy)
   const lastTeamPolicy = React.useRef(teamPolicy)
 
-  if (!policyEquals(policy, lastPolicy.current) || !policyEquals(teamPolicy, lastTeamPolicy.current)) {
-    if (policyEquals(policy, selected)) {
-      // we just got updated retention policy matching the selected one
-      setSaving(false)
-    } // we could show a notice that we received a new value in an else block
-    setInitialSelected(policy)
-  }
-  lastPolicy.current = policy
-  lastTeamPolicy.current = teamPolicy
+  React.useEffect(() => {
+    if (!policyEquals(policy, lastPolicy.current) || !policyEquals(teamPolicy, lastTeamPolicy.current)) {
+      if (policyEquals(policy, selected)) {
+        // we just got updated retention policy matching the selected one
+        setSaving(false)
+      } // we could show a notice that we received a new value in an else block
+      setInitialSelected(policy)
+    }
+    lastPolicy.current = policy
+    lastTeamPolicy.current = teamPolicy
+  }, [policy, teamPolicy, selected, setInitialSelected])
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -219,9 +233,7 @@ const RetentionPicker = (p: Props) => {
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
-      {showSaveIndicator && (
-        <SaveIndicator saving={saving} style={styles.saveState} minSavingTimeMs={300} savedTimeoutMs={2500} />
-      )}
+      {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
     </Kb.Box>
   )
 }
@@ -256,54 +268,57 @@ const RetentionDisplay = (
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  displayHeading: {
-    marginBottom: 2,
-  },
-  heading: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: Kb.Styles.globalMargins.tiny,
-  },
-  label: {
-    justifyContent: 'flex-start',
-    minHeight: Kb.Styles.isMobile ? 40 : 32,
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-  },
-  progressIndicator: {
-    height: 30,
-    marginTop: Kb.Styles.globalMargins.small,
-    width: 30,
-  },
-  retentionDropdown: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      borderColor: Kb.Styles.globalColors.grey,
-      borderRadius: Kb.Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginBottom: Kb.Styles.globalMargins.tiny,
-      minWidth: 220,
-      paddingRight: Kb.Styles.globalMargins.small,
-    },
-    isElectron: {
-      width: 220,
-    },
-  }),
-  saveState: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      height: 17,
-      justifyContent: 'center',
-      marginTop: Kb.Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      height: Kb.Styles.globalMargins.medium,
-    },
-  }),
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      displayHeading: {
+        marginBottom: 2,
+      },
+      heading: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: Kb.Styles.globalMargins.tiny,
+      },
+      label: {
+        justifyContent: 'flex-start',
+        minHeight: Kb.Styles.isMobile ? 40 : 32,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+      },
+      progressIndicator: {
+        height: 30,
+        marginTop: Kb.Styles.globalMargins.small,
+        width: 30,
+      },
+      retentionDropdown: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          borderColor: Kb.Styles.globalColors.grey,
+          borderRadius: Kb.Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          marginBottom: Kb.Styles.globalMargins.tiny,
+          minWidth: 220,
+          paddingRight: Kb.Styles.globalMargins.small,
+        },
+        isElectron: {
+          width: 220,
+        },
+      }),
+      saveState: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          height: 17,
+          justifyContent: 'center',
+          marginTop: Kb.Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          height: Kb.Styles.globalMargins.medium,
+        },
+      }),
+    }) as const
+)
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.RetentionPolicy) => {

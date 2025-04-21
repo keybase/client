@@ -94,7 +94,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const selectText = (item: TextResult, index: number) => {
+  const selectText = (item: {conversationIDKey: string; query: string}, index: number) => {
     onSelectConversation(item.conversationIDKey, index, item.query)
   }
 
@@ -210,14 +210,14 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     index: number
   ) => String(index)
 
-  const renderHit = (h: {
-    item: unknown // TextResult | NameResult
+  function renderHit<T extends NameResult | TextResult>(h: {
+    item: T
     section: {
       indexOffset: number
-      onSelect: (item: NameResult | TextResult, index: number) => void
+      onSelect: (item: T, index: number) => void
     }
     index: number
-  }) => {
+  }) {
     if (h.item === emptyUnreadPlaceholder) {
       return (
         <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
@@ -227,7 +227,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     }
 
     const {item: _item, section, index} = h
-    const item = _item as TextResult | NameResult
+    const item = _item
     const numHits = item.numHits || undefined
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
@@ -252,6 +252,23 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       </C.ChatProvider>
     )
   }
+
+  const renderHitText = (h: {
+    item: TextResult
+    section: {
+      indexOffset: number
+      onSelect: (item: TextResult, index: number) => void
+    }
+    index: number
+  }) => renderHit(h)
+  const renderHitName = (h: {
+    item: NameResult
+    section: {
+      indexOffset: number
+      onSelect: (item: NameResult, index: number) => void
+    }
+    index: number
+  }) => renderHit(h)
 
   const selectName = (item: NameResult, index: number) => {
     onSelectConversation(item.conversationIDKey, index, '')
@@ -296,8 +313,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseName,
     onSelect: selectName,
     renderHeader: renderNameHeader,
-    // TODO fix types
-    renderItem: renderHit as any,
+    renderItem: renderHitName,
     status: nameStatus,
     title: nameResultsUnread ? 'Unread' : 'Chats',
   }
@@ -306,8 +322,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     indexOffset: nameResults.length,
     isCollapsed: openTeamsCollapsed,
     onCollapse: toggleCollapseOpenTeams,
-    // TODO fix types
-    onSelect: selectText as any,
+    onSelect: () => {}, // ignored
     renderHeader: renderTeamHeader,
     renderItem: renderOpenTeams,
     status: openTeamsStatus,
@@ -331,8 +346,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseText,
     onSelect: selectText,
     renderHeader: renderTextHeader,
-    // TODO better types
-    renderItem: renderHit as any,
+    renderItem: renderHitText,
     status: textStatus,
     title: 'Messages',
   }
@@ -349,7 +363,10 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       <Kb.SectionList
         ListHeaderComponent={header}
         stickySectionHeadersEnabled={true}
-        renderSectionHeader={({section}) => section.renderHeader(section as any)}
+        renderSectionHeader={
+          // eslint-disable-next-line
+          ({section}) => section.renderHeader(section as any)
+        }
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
         sections={sections}

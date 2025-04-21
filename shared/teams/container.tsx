@@ -3,20 +3,10 @@ import * as React from 'react'
 import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import Teams, {type OwnProps as MainOwnProps} from './main'
+import Teams from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
-
-// share some between headerRightActions on desktop and component on mobile
-const useHeaderActions = () => {
-  const nav = Container.useSafeNavigation()
-  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  return {
-    onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
-  }
-}
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -53,44 +43,32 @@ const orderTeams = (
   })
 }
 
-type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
-
-const Reloadable = (props: ReloadableProps) => {
-  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
-  const loadTeams = getTeams
-
-  // subscribe to teams changes
-  useTeamsSubscribe()
-  // reload activity levels
-  useActivityLevels(true)
-
-  const headerActions = useHeaderActions()
-
-  const nav = Container.useSafeNavigation()
-  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
-  const otherActions = {
-    onManageChat: (teamID: T.Teams.TeamID) => manageChatChannels(teamID),
-    onViewTeam: (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
-  }
-
-  return (
-    <Kb.Reloadable waitingKeys={C.Teams.teamsLoadedWaitingKey} onReload={loadTeams}>
-      <Teams {...props} {...headerActions} {...otherActions} />
-    </Kb.Reloadable>
-  )
-}
-
 const Connected = () => {
-  const _teams = C.useTeamsState(s => s.teamMeta)
-  const activityLevels = C.useTeamsState(s => s.activityLevels)
-  const deletedTeams = C.useTeamsState(s => s.deletedTeams)
-  const filter = C.useTeamsState(s => s.teamListFilter)
+  const data = C.useTeamsState(
+    C.useShallow(s => {
+      const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
+      const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
+      const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = dispatch
+      return {
+        activityLevels,
+        deletedTeams,
+        getTeams,
+        launchNewTeamWizardOrModal,
+        manageChatChannels,
+        newTeamRequests,
+        newTeams,
+        teamIDToResetUsers,
+        teamListFilter,
+        teamListSort,
+        teamMeta,
+      }
+    })
+  )
+  const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
+  const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
+  const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = data
+
   const loaded = !C.Waiting.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
-  const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
-  const newTeams = C.useTeamsState(s => s.newTeams)
-  const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)
-  const sortOrder = C.useTeamsState(s => s.teamListSort)
-  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
 
   const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
@@ -109,19 +87,39 @@ const Connected = () => {
     [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
   )
 
-  const props = {
-    deletedTeams: deletedTeams,
-    loaded: loaded,
-    newTeamRequests: newTeamRequests,
-    newTeams: newTeams,
-    onHideChatBanner,
-    onOpenFolder,
-    onReadMore,
-    sawChatBanner,
-    teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
-    teams,
-  }
-  return <Reloadable {...props} />
+  const loadTeams = getTeams
+
+  // subscribe to teams changes
+  useTeamsSubscribe()
+  // reload activity levels
+  useActivityLevels(true)
+
+  const nav = Container.useSafeNavigation()
+  const onCreateTeam = () => launchNewTeamWizardOrModal()
+  const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
+
+  const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
+  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+
+  return (
+    <Kb.Reloadable waitingKeys={C.Teams.teamsLoadedWaitingKey} onReload={loadTeams}>
+      <Teams
+        onCreateTeam={onCreateTeam}
+        onJoinTeam={onJoinTeam}
+        onManageChat={onManageChat}
+        onViewTeam={onViewTeam}
+        deletedTeams={deletedTeams}
+        loaded={loaded}
+        newTeamRequests={newTeamRequests}
+        newTeams={newTeams}
+        onHideChatBanner={onHideChatBanner}
+        onOpenFolder={onOpenFolder}
+        onReadMore={onReadMore}
+        teams={teams}
+        teamresetusers={teamIDToResetUsers}
+      />
+    </Kb.Reloadable>
+  )
 }
 
 export default Connected

@@ -14,12 +14,14 @@ const Spoiler = (p: Props) => {
   const {children, content, context} = p
   const key = `${context ?? ''}:${content}`
   const [shown, setShown] = React.useState(spoilerState.get(key))
-
   const lastKey = React.useRef(key)
-  if (lastKey.current !== key) {
-    lastKey.current = key
-    setShown(false)
-  }
+
+  React.useEffect(() => {
+    if (lastKey.current !== key) {
+      lastKey.current = key
+      setShown(false)
+    }
+  }, [key])
 
   const onClick = React.useCallback(
     (e: React.BaseSyntheticEvent) => {

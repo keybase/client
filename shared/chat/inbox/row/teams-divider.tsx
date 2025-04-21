@@ -13,30 +13,16 @@ type Props = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const getRowCounts = (badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
-  let badgeCount = 0
-  let hiddenCount = 0
-
-  rows.forEach(row => {
-    if (row.type === 'small') {
-      badgeCount -= badges.get(row.conversationIDKey) || 0
-      hiddenCount -= 1
-    }
-  })
-
-  return {badgeCount, hiddenCount}
-}
-
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   const smallTeamBadgeCount = C.useChatState(s => s.smallTeamBadgeCount)
   const totalSmallTeams = C.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
-  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
-  const badges = React.useMemo(() => {
-    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
-  }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = React.useMemo(() => getRowCounts(badges, rows), [badges, rows])
+  let {badgeCount, hiddenCount} = C.useChatState(
+    C.useShallow(s =>
+      s.getBadgeHiddenCount(new Set(rows.filter(r => r.type === 'small').map(r => r.conversationIDKey)))
+    )
+  )
   badgeCount += smallTeamBadgeCount
   hiddenCount += totalSmallTeams
   if (!Kb.Styles.isMobile) {

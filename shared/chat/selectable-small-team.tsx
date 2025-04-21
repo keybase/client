@@ -23,88 +23,76 @@ type Props = {
   usernameColor: string
 }
 
-type State = {
-  isHovered: boolean
-}
+const SelectableSmallTeam = (props: Props) => {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const _onMouseLeave = React.useCallback(() => setIsHovered(false), [])
+  const _onMouseOver = React.useCallback(() => setIsHovered(true), [])
 
-class SelectableSmallTeam extends React.PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
-  render() {
-    const props = this.props
-    if (!props.teamname && props.participants.length === 0) {
-      return (
-        <Kb.ClickableBox onClick={props.onSelectConversation}>
-          <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
-            <Kb.ProgressIndicator style={styles.spinner} type="Small" />
-          </Kb.Box2>
-        </Kb.ClickableBox>
-      )
-    }
+  if (!props.teamname && props.participants.length === 0) {
     return (
-      <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
-        <Kb.Box2
-          alignItems="center"
-          direction="horizontal"
-          fullWidth={true}
-          fullHeight={true}
-          className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
-            background_color_blue: props.isSelected,
-          })}
-          style={Kb.Styles.collapseStyles([
-            styles.rowContainer,
-            {
-              backgroundColor: this.props.isSelected
-                ? Kb.Styles.globalColors.blue
-                : Kb.Styles.globalColors.white,
-            },
-          ])}
-          onMouseLeave={this._onMouseLeave}
-          onMouseOver={this._onMouseOver}
-        >
-          {props.teamname ? (
-            <TeamAvatar
-              teamname={props.teamname}
-              isHovered={this.state.isHovered}
-              isMuted={this.props.isMuted}
-              isSelected={this.props.isSelected}
-            />
-          ) : (
-            <Avatars
-              backgroundColor={props.backgroundColor}
-              isHovered={this.state.isHovered}
-              isMuted={props.isMuted}
-              isSelected={props.isSelected}
-              isLocked={props.isLocked}
-              participantOne={props.participants[0]}
-              participantTwo={props.participants[1]}
-            />
-          )}
-          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-            <FilteredTopLine
-              isSelected={props.isSelected}
-              numSearchHits={props.numSearchHits}
-              maxSearchHits={props.maxSearchHits}
-              participants={props.teamname ? [props.teamname] : props.participants}
-              showBold={props.showBold}
-              usernameColor={props.usernameColor}
-            />
-            {!props.numSearchHits && (
-              <SnippetContext.Provider value={props.snippet ?? ''}>
-                <BottomLine isSelected={props.isSelected} allowBold={false} />
-              </SnippetContext.Provider>
-            )}
-          </Kb.Box2>
-          {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+      <Kb.ClickableBox onClick={props.onSelectConversation}>
+        <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
+          <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         </Kb.Box2>
       </Kb.ClickableBox>
     )
   }
+  return (
+    <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
+      <Kb.Box2
+        alignItems="center"
+        direction="horizontal"
+        fullWidth={true}
+        fullHeight={true}
+        className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
+          background_color_blue: props.isSelected,
+        })}
+        style={Kb.Styles.collapseStyles([
+          styles.rowContainer,
+          {
+            backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+          },
+        ])}
+        onMouseLeave={_onMouseLeave}
+        onMouseOver={_onMouseOver}
+      >
+        {props.teamname ? (
+          <TeamAvatar
+            teamname={props.teamname}
+            isHovered={isHovered}
+            isMuted={props.isMuted}
+            isSelected={props.isSelected}
+          />
+        ) : (
+          <Avatars
+            backgroundColor={props.backgroundColor}
+            isHovered={isHovered}
+            isMuted={props.isMuted}
+            isSelected={props.isSelected}
+            isLocked={props.isLocked}
+            participantOne={props.participants[0]}
+            participantTwo={props.participants[1]}
+          />
+        )}
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+          <FilteredTopLine
+            isSelected={props.isSelected}
+            numSearchHits={props.numSearchHits}
+            maxSearchHits={props.maxSearchHits}
+            participants={props.teamname ? [props.teamname] : props.participants}
+            showBold={props.showBold}
+            usernameColor={props.usernameColor}
+          />
+          {!props.numSearchHits && (
+            <SnippetContext.Provider value={props.snippet ?? ''}>
+              <BottomLine isSelected={props.isSelected} allowBold={false} />
+            </SnippetContext.Provider>
+          )}
+        </Kb.Box2>
+        {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 const rowHeight = Kb.Styles.isMobile ? 64 : 56

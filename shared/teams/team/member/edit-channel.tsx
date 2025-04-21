@@ -32,6 +32,8 @@ const EditChannel = (props: Props) => {
   const updateChannelName = C.useTeamsState(s => s.dispatch.updateChannelName)
   const updateTopic = C.useTeamsState(s => s.dispatch.updateTopic)
 
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+
   const onSave = () => {
     const ps = [
       ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
@@ -40,6 +42,8 @@ const EditChannel = (props: Props) => {
     Promise.all(ps)
       .then(() => {
         nav.safeNavigateUp()
+
+        loadTeamChannelList(teamID)
       })
       .catch(() => {})
   }

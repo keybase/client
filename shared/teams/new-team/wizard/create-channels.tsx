@@ -22,17 +22,16 @@ const CreateChannel = (props: Props) => {
   const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
-  const setChannel = (i: number) => (value: string) => {
-    channels[i] = value
-    setChannels([...channels])
+  const setChannel = (i: number, value: string) => {
+    setChannels(prev => prev.map((channel, idx) => (idx === i ? value : channel)))
   }
+
   const onClear = (i: number) => {
-    channels.splice(i, 1)
-    setChannels([...channels])
+    setChannels(prev => prev.filter((_, idx) => idx !== i))
   }
+
   const onAdd = () => {
-    channels.push('')
-    setChannels([...channels])
+    setChannels(prev => [...prev, ''])
   }
 
   const filteredChannels = channels.filter(c => c.trim())
@@ -45,8 +44,8 @@ const CreateChannel = (props: Props) => {
   const continueLabel = onSubmitChannels
     ? `Create ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
     : numChannels
-    ? `Continue with ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
-    : 'Continue without channels'
+      ? `Continue with ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
+      : 'Continue without channels'
   const submitButton = (
     <Kb.Button
       fullWidth={true}
@@ -81,7 +80,12 @@ const CreateChannel = (props: Props) => {
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
         {channels.map((value, idx) => (
-          <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
+          <ChannelInput
+            key={idx}
+            onChange={value => setChannel(idx, value)}
+            value={value}
+            onClear={() => onClear(idx)}
+          />
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && !props.onSubmitChannels && (
@@ -121,24 +125,27 @@ const ChannelInput = (props: ChannelInputProps) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  addButton: Kb.Styles.platformStyles({
-    isElectron: {width: 42},
-    isMobile: {width: 47},
-    isTablet: {alignSelf: 'flex-start'},
-  }),
-  background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-  banner: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
-    isElectron: {overflowX: 'hidden'},
-  }),
-  body: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-    flex: 1,
-  },
-  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
-  inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
-  noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      addButton: Kb.Styles.platformStyles({
+        isElectron: {width: 42},
+        isMobile: {width: 47},
+        isTablet: {alignSelf: 'flex-start'},
+      }),
+      background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+      banner: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
+        isElectron: {overflowX: 'hidden'},
+      }),
+      body: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+        flex: 1,
+      },
+      input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+      inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
+      noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
+    }) as const
+)
 
 export default CreateChannel

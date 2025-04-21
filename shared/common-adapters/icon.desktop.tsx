@@ -37,18 +37,14 @@ const Icon = React.memo<Props>(
     const divRef = React.useRef<HTMLDivElement>(null)
     const imgRef = React.useRef<HTMLImageElement>(null)
 
-    React.useImperativeHandle(
-      ref,
-      () => {
-        return {
-          divRef,
-          measure() {
-            return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
-          },
-        }
-      },
-      []
-    )
+    React.useImperativeHandle(ref, () => {
+      return {
+        divRef,
+        measure() {
+          return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
+        },
+      }
+    }, [])
 
     if (inheritColor) {
       color = 'inherit'
@@ -73,7 +69,7 @@ const Icon = React.memo<Props>(
     }
     const hasContainer = !noContainer && ((onClick && style) || isFontIcon)
 
-    let iconElement: React.ReactNode = null
+    let iconElement: React.ReactNode
 
     if (isFontIcon) {
       // handled by a class below
@@ -119,6 +115,11 @@ const Icon = React.memo<Props>(
         if (colorName) {
           colorStyleName = `color_${colorName}`
         }
+      }
+
+      if (props.skipColor) {
+        hoverStyleName = undefined
+        colorStyleName = ''
       }
 
       const mergedStyle = Styles.collapseStyles([

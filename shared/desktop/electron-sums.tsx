@@ -1,10 +1,10 @@
 // Generated with: ./extract-electron-shasums.sh {ver}
 // prettier-ignore
 export const electronChecksums = {
-  'electron-v28.3.1-darwin-arm64.zip': '53fc040cd09e955e013254f784cf51712029ded4a574559cf5fa19c9a911d75d',
-  'electron-v28.3.1-darwin-x64.zip': 'bd8a220fd906625ad4a8edf92e80e8eff89d51f40c22168e05090daa7c12bd66',
-  'electron-v28.3.1-linux-arm64.zip': '3e46c3076041386213f7b9ebc12335889fbad5822ffc306cf7514abb88de8512',
-  'electron-v28.3.1-linux-x64.zip': 'e3be93e1a15d61f72e074aee021e12f20465b81f51b8c1170bd9072d7d695c3a',
-  'electron-v28.3.1-win32-x64.zip': '5469cb831c8a206df527fa6da7747045108b024421996412cdd80905cbd05b8d',
-  'hunspell_dictionaries.zip': 'e0089cce0575b65127cdc4286c3ec70a8434f0a5e427a9d1c95f79469f23903c',
+  'electron-v34.0.1-darwin-arm64.zip': 'eec4a6ed82ceb87fa242286971fd921c5d1e824a7b88f93ccfc54ae792f38ab8',
+  'electron-v34.0.1-darwin-x64.zip': '16caca276b8a4f6f36677827136fc7d7884f01889fe2a644da3856f10b623f26',
+  'electron-v34.0.1-linux-arm64.zip': 'db16bcca04ee7082f044d75e5410cb450725cb55c5498fac15c6f92079e856d0',
+  'electron-v34.0.1-linux-x64.zip': 'a80804d6469feeb71f8853cdc699a64dc07b07085c4a4c56eedfb24a3049f221',
+  'electron-v34.0.1-win32-x64.zip': '12a428d144546053725d810e96a15bb3ddeae4580cd1919d9b3a149afefdaa03',
+  'hunspell_dictionaries.zip': 'e5f994c250281939d1adddfb568099977b4acbf566a7bdb73980e345be210c62',
 }

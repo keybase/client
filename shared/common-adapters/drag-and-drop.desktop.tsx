@@ -8,29 +8,27 @@ import logger from '@/logger'
 import type {Props} from './drag-and-drop'
 import KB2 from '@/util/electron.desktop'
 
-const {isDirectory} = KB2.functions
+const {isDirectory, getPathForFile} = KB2.functions
 
-type State = {
-  showDropOverlay: boolean
-}
+const DragAndDrop = (props: Props) => {
+  const [showDropOverlay, setShowDropOverlay] = React.useState(false)
 
-class DragAndDrop extends React.PureComponent<Props, State> {
-  state = {showDropOverlay: false}
-
-  _onDrop = (e: React.DragEvent) => {
+  const _onDrop = (e: React.DragEvent) => {
     const f = async () => {
-      if (!this._validDrag(e)) return
+      if (!_validDrag(e)) return
       const fileList = e.dataTransfer.files
-      const paths: Array<string> = fileList.length ? Array.from(fileList).map(f => f.path) : []
+      const paths: Array<string> = fileList.length
+        ? Array.from(fileList).map(f => getPathForFile?.(f) ?? '')
+        : []
       if (paths.length) {
-        if (!this.props.allowFolders) {
+        if (!props.allowFolders) {
           for (const path of paths) {
             // Check if any file is a directory and bail out if not
             try {
               const isDir = await (isDirectory?.(path) ?? Promise.resolve(false))
               if (isDir) {
                 // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
-                this.setState({showDropOverlay: false})
+                setShowDropOverlay(false)
                 return
               }
               // delegate to handler for any errors
@@ -39,65 +37,64 @@ class DragAndDrop extends React.PureComponent<Props, State> {
             }
           }
         }
-        this.props.onAttach && this.props.onAttach(paths)
+        props.onAttach && props.onAttach(paths)
       }
-      this.setState({showDropOverlay: false})
+      setShowDropOverlay(false)
     }
     C.ignorePromise(f())
   }
 
-  _validDrag = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && !this.props.disabled
+  const _validDrag = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && !props.disabled
 
-  _onDragOver = (e: React.DragEvent) => {
-    if (this._validDrag(e)) {
+  const _onDragOver = (e: React.DragEvent) => {
+    if (_validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
-      this.setState({showDropOverlay: true})
+      setShowDropOverlay(true)
     } else {
       e.dataTransfer.dropEffect = 'none'
     }
   }
 
-  _onDragLeave = () => {
-    this.setState({showDropOverlay: false})
+  const _onDragLeave = () => {
+    setShowDropOverlay(false)
   }
 
-  _dropOverlay = () => (
+  const _dropOverlay = () => (
     <Box2
+      alignSelf="stretch"
       centerChildren={true}
       direction="horizontal"
-      onDragLeave={this._onDragLeave}
-      onDrop={this._onDrop}
+      onDragLeave={_onDragLeave}
+      onDrop={_onDrop}
       style={styles.dropOverlay}
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
-        {this.props.rejectReason ? (
+        {props.rejectReason ? (
           <Icon type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
         ) : (
           <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
         )}
-        {this.props.rejectReason ? (
-          <Text type="Header">{this.props.rejectReason}</Text>
+        {props.rejectReason ? (
+          <Text type="Header">{props.rejectReason}</Text>
         ) : (
-          <Text type="Header">{this.props.prompt || 'Drop files to upload'}</Text>
+          <Text type="Header">{props.prompt || 'Drop files to upload'}</Text>
         )}
       </Box2>
     </Box2>
   )
 
-  render() {
-    return (
-      <Box2
-        direction="vertical"
-        fullHeight={this.props.fullHeight}
-        fullWidth={this.props.fullWidth}
-        onDragOver={this._onDragOver}
-        style={Styles.collapseStyles([styles.containerStyle, this.props.containerStyle])}
-      >
-        {this.props.children}
-        {this.state.showDropOverlay && this._dropOverlay()}
-      </Box2>
-    )
-  }
+  return (
+    <Box2
+      direction="vertical"
+      fullHeight={props.fullHeight}
+      fullWidth={props.fullWidth}
+      onDragOver={_onDragOver}
+      style={Styles.collapseStyles([styles.containerStyle, props.containerStyle])}
+    >
+      {props.children}
+      {showDropOverlay && _dropOverlay()}
+    </Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(

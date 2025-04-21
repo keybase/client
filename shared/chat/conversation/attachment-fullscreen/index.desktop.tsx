@@ -4,6 +4,7 @@ import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '@/styles'
 import type {Props} from '.'
 import {useData, usePreviewFallback} from './hooks'
+import type {StyleOverride} from '@/common-adapters/markdown'
 
 type ArrowProps = {
   left: boolean
@@ -66,11 +67,12 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
 
   const titleOverride = React.useMemo(
-    () => ({
-      paragraph: Styles.platformStyles({
-        isElectron: {whiteSpace: 'nowrap'},
-      }),
-    }),
+    () =>
+      ({
+        paragraph: Styles.platformStyles({
+          isElectron: {whiteSpace: 'nowrap'},
+        }),
+      }) as StyleOverride,
     []
   )
 
@@ -79,7 +81,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       <Kb.Box style={styles.container}>
         <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKey} />
         <Kb.Box style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride as any}>
+          <Kb.Markdown lineClamp={2} style={Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
           <Kb.Icon

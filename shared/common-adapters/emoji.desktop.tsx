@@ -47,6 +47,7 @@ const EmojiWrapper = (props: Props) => {
       title={name}
       style={Styles.castStyleDesktop(
         Styles.platformStyles({
+          common: {...style},
           isElectron: {
             backgroundImage,
             backgroundPosition,
@@ -54,7 +55,6 @@ const EmojiWrapper = (props: Props) => {
             display: 'inline-block',
             height: size,
             width: size,
-            ...style,
           },
         })
       )}

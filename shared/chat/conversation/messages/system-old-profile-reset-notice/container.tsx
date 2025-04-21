@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import OldProfileResetNotice from '.'
+import {Text} from '@/common-adapters'
+import UserNotice from '../user-notice'
 
 const Container = () => {
   const participantInfo = C.useChatContext(s => s.participants)
@@ -15,12 +16,23 @@ const Container = () => {
   const startConversation = (participants: ReadonlyArray<string>) => {
     previewConversation({participants, reason: 'fromAReset'})
   }
-  const props = {
-    onOpenNewerConversation: nextConversationIDKey
-      ? () => onOpenConversation(nextConversationIDKey)
-      : () => startConversation(_participants),
-    username,
-  }
-  return <OldProfileResetNotice {...props} />
+  const onOpenNewerConversation = nextConversationIDKey
+    ? () => onOpenConversation(nextConversationIDKey)
+    : () => startConversation(_participants)
+
+  return (
+    <UserNotice>
+      <Text type="BodySmallSemibold" negative={true}>
+        {username} reset their profile
+      </Text>
+      <Text type="BodySmall" negative={true}>
+        Their encryption keys were replaced with new ones.
+      </Text>
+      <Text type="BodySmallPrimaryLink" negative={true} onClick={onOpenNewerConversation}>
+        Jump to new conversation
+      </Text>
+    </UserNotice>
+  )
 }
+
 export default Container

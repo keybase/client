@@ -11,7 +11,7 @@ export type DisallowedStyles = {
   hoverColor?: never
   fontSize?: never
 }
-export type IconStyle = CustomStyles<'color' | 'hoverColor' | 'fontSize', {}>
+export type IconStyle = CustomStyles<'color' | 'hoverColor' | 'fontSize'>
 
 export type Props = {
   type: IconType
@@ -40,6 +40,7 @@ export type Props = {
   padding?: keyof typeof globalMargins
   allowLazy?: boolean // desktop only
   tooltip?: never // doesn't play well with icon since it uses before also
+  skipColor?: boolean // only used in one place, todo make an Icon2
 }
 
 export declare const Icon: ReturnType<typeof React.forwardRef<MeasureRef, Props>>

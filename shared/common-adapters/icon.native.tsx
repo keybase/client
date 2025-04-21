@@ -119,6 +119,12 @@ const Icon = React.memo<Props>(
     const iconType = p.type
     const isDarkMode = React.useContext(Styles.DarkModeContext)
 
+    React.useImperativeHandle(ref, () => {
+      return {
+        divRef: {current: null},
+      }
+    }, [])
+
     if (!Shared.isValidIconType(iconType)) {
       logger.warn(`Invalid icon type passed in: ${String(iconType)}`)
       return null
@@ -140,7 +146,6 @@ const Icon = React.memo<Props>(
           style={hasContainer ? null : p.style}
           color={color}
           type={p.type}
-          ref={wrap ? undefined : (ref as any)}
           fontSize={p.fontSize}
           sizeType={sizeType}
           onClick={p.onClick}
@@ -154,16 +159,13 @@ const Icon = React.memo<Props>(
       if (typeof source !== 'number') {
         source = undefined
       }
-      icon = (
-        <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : (ref as any)} />
-      )
+      icon = <Image source={source} style={hasContainer ? null : p.style} />
     }
 
     return wrap ? (
       <TouchableOpacity
         onPress={p.onClick || undefined}
         activeOpacity={0.8}
-        ref={ref as any}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}

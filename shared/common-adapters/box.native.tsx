@@ -8,7 +8,7 @@ import Reanimated from 'react-native-reanimated'
 export const Box = View
 
 type Margins = keyof typeof Styles.globalMargins
-const marginKeys: Array<Margins> = Object.keys(Styles.globalMargins) as any
+const marginKeys = Object.keys(Styles.globalMargins) as Array<Margins>
 
 const hgapStyles = new Map(marginKeys.map(gap => [gap, {columnGap: Styles.globalMargins[gap]}]))
 const vgapStyles = new Map(marginKeys.map(gap => [gap, {rowGap: Styles.globalMargins[gap]}]))
@@ -120,16 +120,12 @@ export const Box2Animated = React.forwardRef<View, Box2Props>(function Box2Anima
 })
 
 export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
-  React.useImperativeHandle(
-    _ref,
-    () => {
-      // we don't use this in mobile for now, and likely never
-      return {
-        divRef: {current: null},
-      }
-    },
-    []
-  )
+  React.useImperativeHandle(_ref, () => {
+    // we don't use this in mobile for now, and likely never
+    return {
+      divRef: {current: null},
+    }
+  }, [])
 
   const props = useBox2Shared(p)
   return <View {...props} />

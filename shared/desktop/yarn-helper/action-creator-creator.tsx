@@ -113,8 +113,13 @@ function printPayload(p: ActionDesc) {
     : 'undefined'
 }
 
-function compileActionPayloads(_: ActionNS, actionName: ActionName) {
-  return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
+function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
+  const allowCreate = ns !== 'engine-gen'
+  if (allowCreate) {
+    return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
+  } else {
+    return `export type ${capitalize(actionName)}Payload = ReturnType<create${capitalize(actionName)}>`
+  }
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: ActionDesc | undefined) {
@@ -132,9 +137,15 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
   const payload = hasPayload
     ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
     : 'payload?: undefined'
-  return `${comment}${allowCreate ? 'export ' : ''}const create${capitalize(actionName)} = (${payload}) => (
+  if (allowCreate) {
+    return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
   {payload, type: ${actionName}} as const
 )`
+  } else {
+    return `${comment}type create${capitalize(actionName)} = (${payload}) => (
+  {payload: typeof payload; type: typeof ${actionName}}
+)`
+  }
 }
 
 function compileStateTypeConstant(ns: ActionNS, actionName: ActionName) {
