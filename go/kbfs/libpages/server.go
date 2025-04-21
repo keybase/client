@@ -68,7 +68,7 @@ type ErrDomainBlockedInBlacklist struct{}
 
 // Error implements the error interface.
 func (ErrDomainBlockedInBlacklist) Error() string {
-	return "a blacklist is configured and the given domain is in the list"
+	return "we cannot serve this site"
 }
 
 // ErrDomainNotAllowedInWhitelist is returned when the server is configured
