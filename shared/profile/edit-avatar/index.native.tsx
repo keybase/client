@@ -103,7 +103,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string}>((p, ref) => {
     >
       {src && resolution ? (
         <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
-          <Kb.Image2 src={src} style={{height: '100%', width: '100%'}} />
+          <Kb.Image2 src={src} style={cropSize} />
         </CropZoom>
       ) : null}
     </Kb.Box2>

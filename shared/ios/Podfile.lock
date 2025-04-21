@@ -1818,7 +1818,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.17.3):
+  - RNReanimated (3.17.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1840,10 +1840,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.17.3)
-    - RNReanimated/worklets (= 3.17.3)
+    - RNReanimated/reanimated (= 3.17.4)
+    - RNReanimated/worklets (= 3.17.4)
     - Yoga
-  - RNReanimated/reanimated (3.17.3):
+  - RNReanimated/reanimated (3.17.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1865,9 +1865,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 3.17.3)
+    - RNReanimated/reanimated/apple (= 3.17.4)
     - Yoga
-  - RNReanimated/reanimated/apple (3.17.3):
+  - RNReanimated/reanimated/apple (3.17.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1890,7 +1890,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.17.3):
+  - RNReanimated/worklets (3.17.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1912,9 +1912,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/worklets/apple (= 3.17.3)
+    - RNReanimated/worklets/apple (= 3.17.4)
     - Yoga
-  - RNReanimated/worklets/apple (3.17.3):
+  - RNReanimated/worklets/apple (3.17.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2421,7 +2421,7 @@ SPEC CHECKSUMS:
   RNCPicker: cfb51a08c6e10357d9a65832e791825b0747b483
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNGestureHandler: dcb1b1db024f3744b03af56d132f4f72c4c27195
-  RNReanimated: 55d324091cbf5067a9c22b6ade0075e626a3f0cb
+  RNReanimated: ff2d357b213ca4a2adc48c1548686da18cd32da8
   RNScreens: 790123c4a28783d80a342ce42e8c7381bed62db1
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
