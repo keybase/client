@@ -5,7 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import * as Container from '@/util/container'
-import {CropZoom, useImageResolution, type CropZoomType} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomType} from 'react-native-zoom-toolkit'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -66,49 +66,53 @@ type AvatarZoomRef = {
   getRect: () => {width: number; height: number; x: number; y: number} | undefined
 }
 
-const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string}>((p, ref) => {
-  const {src} = p
-  const {resolution} = useImageResolution({uri: src ?? ''})
+const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number; height: number}>(
+  (p, ref) => {
+    const {src, width, height} = p
+    const resolution = React.useMemo(() => {
+      return {height, width}
+    }, [width, height])
 
-  React.useImperativeHandle(ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {
-      getRect: () => {
-        const c = czref.current?.crop(avatarSize)
-        if (c && resolution) {
-          const rescale = resolution.width / (c.resize?.width ?? 1)
-          const {originX: x, originY: y, width, height} = c.crop
-          return {
-            height: height * rescale,
-            width: width * rescale,
-            x: x * rescale,
-            y: y * rescale,
+    React.useImperativeHandle(ref, () => {
+      // we don't use this in mobile for now, and likely never
+      return {
+        getRect: () => {
+          const c = czref.current?.crop(avatarSize)
+          if (c) {
+            const rescale = resolution.width / (c.resize?.width ?? 1)
+            const {originX: x, originY: y, width, height} = c.crop
+            return {
+              height: height * rescale,
+              width: width * rescale,
+              x: x * rescale,
+              y: y * rescale,
+            }
           }
-        }
-        return
-      },
-    }
-  }, [resolution])
-  const czref = React.useRef<CropZoomType>(null)
+          return
+        },
+      }
+    }, [resolution])
+    const czref = React.useRef<CropZoomType>(null)
 
-  return (
-    <Kb.Box2
-      direction="vertical"
-      style={{
-        borderRadius: avatarSize / 2,
-        height: avatarSize,
-        overflow: 'hidden',
-        width: avatarSize,
-      }}
-    >
-      {src && resolution ? (
-        <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
-          <Kb.Image2 src={src} style={cropSize} />
-        </CropZoom>
-      ) : null}
-    </Kb.Box2>
-  )
-})
+    return (
+      <Kb.Box2
+        direction="vertical"
+        style={{
+          borderRadius: avatarSize / 2,
+          height: avatarSize,
+          overflow: 'hidden',
+          width: avatarSize,
+        }}
+      >
+        {src ? (
+          <CropZoom cropSize={cropSize} resolution={resolution} ref={czref}>
+            <Kb.Image2 src={src} style={cropSize} />
+          </CropZoom>
+        ) : null}
+      </Kb.Box2>
+    )
+  }
+)
 
 const AvatarUpload = (props: Props & WrappedProps) => {
   const {onSave: _onSave, image, type, onChooseNewAvatar, error} = props
@@ -163,7 +167,9 @@ const AvatarUpload = (props: Props & WrappedProps) => {
         </Kb.ClickableBox>
       )
     }
-    return <AvatarZoom src={image?.uri} ref={_zoomRef} />
+    return image ? (
+      <AvatarZoom src={image.uri} width={image.width} height={image.height} ref={_zoomRef} />
+    ) : null
   }, [type, image, onChooseNewAvatar, getImageStyle])
 
   if (type === 'team') {
