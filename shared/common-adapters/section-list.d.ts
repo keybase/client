@@ -154,10 +154,6 @@ export type SectionListRef = {
   scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
 }
 
-type SectionListComponent<T extends Section<any, any>> = React.ForwardRefExoticComponent<
-  Props<T> & React.RefAttributes<SectionListRef>
->
-
 declare const SectionList: <T extends Section<any, any>>(
   props: Props<T> & React.RefAttributes<SectionListRef>
 ) => React.ReactElement | null

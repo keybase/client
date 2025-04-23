@@ -22,7 +22,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
     Keyboard.dismiss()
     navigateUp()
   }, [navigateUp])
-  const onBack = props.disabled ? noop : props.onClick ?? onNavUp
+  const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
     <TouchableWithoutFeedback
       onPress={(event: React.BaseSyntheticEvent) => {
