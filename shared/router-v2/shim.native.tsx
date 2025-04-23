@@ -4,12 +4,14 @@ import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets} from 'react-native-safe-area-context'
 import {View, useWindowDimensions} from 'react-native'
 import type {RouteMap, GetOptionsRet, GetOptions, GetOptionsParams} from '@/constants/types/router2'
-import {isTablet} from '@/constants/platform'
+import {isTablet, isIOS} from '@/constants/platform'
 
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
   Shared._shim(routes, platformShim, isModal, isLoggedOut)
 
 export const getOptions = Shared._getOptions
+
+const modalOffset = isIOS ? 40 : 0
 
 const platformShim = (
   Original: React.JSXElementConstructor<GetOptionsParams>,
@@ -28,7 +30,7 @@ const platformShim = (
 
     if (isModal || isLoggedOut) {
       wrap = (
-        <Kb.KeyboardAvoidingView2 extraOffset={40} compensateNotBeingOnBottom={isModal && isTablet}>
+        <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
           <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
             <Kb.SafeAreaView
               style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
@@ -59,7 +61,7 @@ const ModalWrapper = (p: {children: React.ReactNode; navigationOptions: GetOptio
   const style = fullModal
     ? undefined
     : {
-        maxHeight: height - 40 - bottom,
+        maxHeight: height - modalOffset - bottom,
         paddingBottom: bottom,
       }
 
