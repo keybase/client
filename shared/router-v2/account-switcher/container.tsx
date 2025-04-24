@@ -62,7 +62,9 @@ const Container = () => {
       onCancel={props.onCancel}
       // else right isn't pushed over, will address in nav5
       title=" "
-      rightActions={[{color: 'red', label: 'Sign out', onPress: props.onSignOut}]}
+      rightActionLabel="Sign out"
+      onRightAction={props.onSignOut}
+      rightActionColor="red"
     >
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>

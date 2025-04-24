@@ -17,7 +17,7 @@ export type Props = {
   type: IconType
   hint?: string
   noContainer?: boolean
-  onClick?: (event: React.BaseSyntheticEvent) => void
+  onClick?: () => void
   onPress?: never // Use onClick, not onPress.,,
   onLongPress?: () => void // mobile only, rarely used just for debug currently
   onMouseEnter?: () => void

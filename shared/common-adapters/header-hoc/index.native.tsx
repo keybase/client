@@ -1,43 +1,39 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import Box from '@/common-adapters/box'
 import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
-import Icon from '@/common-adapters/icon'
+import Icon, {type IconType} from '@/common-adapters/icon'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
-import type {Action, Props, LeftActionProps} from '.'
+import type {Props, LeftActionProps} from '.'
 
 const Kb = {BackButton, Box, BoxGrow, FloatingMenu, Icon, Text}
-const MAX_RIGHT_ACTIONS = 3
+
+type RightAction = {
+  label?: string
+  icon?: IconType
+  color?: string
+  onPress: () => void
+}
 
 export const HeaderHocHeader = (props: Props) => {
-  const [floatingMenuVisible, setFloatingMenuVisible] = React.useState(false)
-  const _hideFloatingMenu = () => setFloatingMenuVisible(false)
-  const _showFloatingMenu = () => setFloatingMenuVisible(true)
   // TODO: remove these after updates are fully integrated
   const onLeftAction = props.onLeftAction || props.onBack || props.onCancel
   const leftAction = props.leftAction || (props.onCancel ? 'cancel' : props.onBack ? 'back' : undefined)
-  const rightActions = props.rightActions
-    ? props.rightActions.filter(Boolean)
-    : props.onRightAction && props.rightActionLabel
-      ? [
-          {
-            label: props.rightActionLabel,
-            onPress: props.onRightAction,
-          },
-        ]
-      : []
+  const rightAction = props.onRightAction
+    ? ({
+        label: props.rightActionLabel,
+        onPress: props.onRightAction,
+      } as RightAction)
+    : undefined
 
   // This is used to center the title. The magic numbers were calculated from the inspector.
   const actionWidth = Styles.isIOS ? 38 : 54
   const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (props.badgeNumber ? 23 : 0)
-  const titlePadding = rightActions.length
-    ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
-    : titlePaddingLeft
+  const titlePadding = rightAction ? actionWidth : titlePaddingLeft
 
   const hasTextTitle = !!props.title && !props.titleComponent
 
@@ -82,19 +78,13 @@ export const HeaderHocHeader = (props: Props) => {
           style={Styles.collapseStyles([
             styles.titleContainer,
             onLeftAction && styles.titleContainerRightPadding,
-            rightActions.length && styles.titleContainerLeftPadding,
+            rightAction && styles.titleContainerLeftPadding,
           ] as const)}
         >
           {props.titleComponent}
         </Kb.Box>
       )}
-      <RightActions
-        floatingMenuVisible={floatingMenuVisible}
-        hasTextTitle={hasTextTitle}
-        hideFloatingMenu={_hideFloatingMenu}
-        rightActions={rightActions}
-        showFloatingMenu={_showFloatingMenu}
-      />
+      {rightAction && <RightActions hasTextTitle={hasTextTitle} rightAction={rightAction} />}
     </Kb.Box>
   )
 
@@ -132,68 +122,18 @@ export const LeftAction = (p: LeftActionProps): React.ReactElement => {
   )
 }
 
-const RightActions = (p: {
-  floatingMenuVisible: boolean
-  hasTextTitle: boolean
-  hideFloatingMenu: () => void
-  rightActions: Props['rightActions']
-  showFloatingMenu: () => void
-}) => {
-  const {floatingMenuVisible, hasTextTitle, hideFloatingMenu, rightActions, showFloatingMenu} = p
+const RightActions = (p: {hasTextTitle: boolean; rightAction: RightAction}) => {
+  const {hasTextTitle, rightAction} = p
   return (
     <Kb.Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-      <Kb.Box style={styles.rightActionsWrapper}>
-        {rightActions
-          ?.slice(0, rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1)
-          .map((action, index) => (action ? renderAction(action, index) : null))}
-        <RightActionsOverflow
-          floatingMenuVisible={floatingMenuVisible}
-          hideFloatingMenu={hideFloatingMenu}
-          rightActions={rightActions}
-          showFloatingMenu={showFloatingMenu}
-        />
-      </Kb.Box>
+      <Kb.Box style={styles.rightActionsWrapper}>{renderAction(rightAction, 0)}</Kb.Box>
     </Kb.Box>
   )
 }
 
-const RightActionsOverflow = (p: {
-  floatingMenuVisible: boolean
-  hideFloatingMenu: () => void
-  rightActions: Props['rightActions']
-  showFloatingMenu: () => void
-}) => {
-  const {floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu} = p
-  return rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
-    <>
-      <Kb.Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
-      <Kb.FloatingMenu
-        visible={floatingMenuVisible}
-        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
-          onClick: action?.onPress,
-          title: action?.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
-        }))}
-        onHidden={hideFloatingMenu}
-        position="bottom left"
-        closeOnSelect={true}
-      />
-    </>
-  ) : null
-}
-
-const renderAction = (action: Action, index: number): React.ReactNode =>
-  action.custom ? (
-    <Kb.Box key={action.label || index} style={styles.action}>
-      {action.custom}
-    </Kb.Box>
-  ) : action.icon ? (
-    <Kb.Icon
-      color={action.iconColor || undefined}
-      key={action.label || index}
-      onClick={action.onPress}
-      style={styles.action}
-      type={action.icon}
-    />
+const renderAction = (action: RightAction, index: number): React.ReactNode =>
+  action.icon ? (
+    <Kb.Icon key={action.label || index} onClick={action.onPress} style={styles.action} type={action.icon} />
   ) : (
     <Text
       key={action.label}
@@ -321,11 +261,12 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   onPress?: () => void
   tintColor?: string
 }) {
+  const nav = useNavigation()
   return (hp.canGoBack ?? true) ? (
     <LeftAction
       badgeNumber={hp.badgeNumber ?? 0}
       leftAction="back"
-      onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+      onLeftAction={nav.goBack}
       customIconColor={hp.tintColor}
     />
   ) : null
@@ -347,11 +288,12 @@ export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
   onPress: () => void
   tintColor: string
 }) {
+  const nav = useNavigation()
   return (hp.canGoBack ?? true) ? (
     <LeftAction
       badgeNumber={0}
       leftAction="cancel"
-      onLeftAction={hp.onPress} // react navigation makes sure this onPress can only happen once
+      onLeftAction={nav.goBack}
       customIconColor={hp.tintColor}
     />
   ) : null
@@ -362,11 +304,13 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
   badgeNumber?: number
   tintColor: string
 }) {
-  const {pop} = C.useNav()
-  const onBack = React.useCallback(() => {
-    pop?.()
-  }, [pop])
+  const nav = useNavigation()
   return (hp.canGoBack ?? true) ? (
-    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
+    <LeftAction
+      badgeNumber={0}
+      leftAction="cancel"
+      customIconColor={hp.tintColor}
+      onLeftAction={nav.goBack}
+    />
   ) : null
 })

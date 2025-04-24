@@ -332,14 +332,6 @@
     "@babel/helper-skip-transparent-expression-wrappers" "^7.20.0"
     "@babel/plugin-syntax-optional-chaining" "^7.8.3"
 
-"@babel/plugin-proposal-private-methods@^7.18.6":
-  version "7.18.6"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-private-methods/-/plugin-proposal-private-methods-7.18.6.tgz#5209de7d213457548a98436fa2882f52f4be6bea"
-  integrity sha512-nutsvktDItsNn4rpGItSNV2sz1XwS+nfU0Rg8aCx3W3NOKVzdMjJRu0O5OkgDp3ZGICSTbgRpxZoWsxoKRvbeA==
-  dependencies:
-    "@babel/helper-create-class-features-plugin" "^7.18.6"
-    "@babel/helper-plugin-utils" "^7.18.6"
-
 "@babel/plugin-proposal-private-property-in-object@7.21.0-placeholder-for-preset-env.2":
   version "7.21.0-placeholder-for-preset-env.2"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-private-property-in-object/-/plugin-proposal-private-property-in-object-7.21.0-placeholder-for-preset-env.2.tgz#7844f9289546efa9febac2de4cfe358a050bd703"
@@ -788,7 +780,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.9"
 
-"@babel/plugin-transform-private-methods@^7.24.7", "@babel/plugin-transform-private-methods@^7.25.9":
+"@babel/plugin-transform-private-methods@^7.24.4", "@babel/plugin-transform-private-methods@^7.24.7", "@babel/plugin-transform-private-methods@^7.25.9":
   version "7.25.9"
   resolved "https://registry.yarnpkg.com/@babel/plugin-transform-private-methods/-/plugin-transform-private-methods-7.25.9.tgz#847f4139263577526455d7d3223cd8bda51e3b57"
   integrity sha512-D/JUozNpQLAPUVusvqMxyvjzllRaF8/nSrP1s2YGQT/W4LHK4xxsMcHjhOGTS01mp9Hda8nswb+FblLdJornQw==
@@ -5673,22 +5665,17 @@ eslint-plugin-promise@7.2.1:
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
 
-eslint-plugin-react-compiler@19.1.0-rc.1:
-  version "19.1.0-rc.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-react-compiler/-/eslint-plugin-react-compiler-19.1.0-rc.1.tgz#e974ba9541c9a4464d77723e0505b5742bc22e56"
-  integrity sha512-3umw5eqZXapBl7aQGmvcjheKhUbsElb9jTETxRZg371e1LG4EPs/zCHt2JzP+wNcdaZWzjU/R730zPUJblY2zw==
+eslint-plugin-react-hooks@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-6.0.0.tgz#8677408c9a21251a776ce6da6369e072080a87fb"
+  integrity sha512-NyC3yIC9fazLitYiN8eHykV5wLp/SMuUZMh+sdPSHIeN4ReXIc7if40jtGjDplAgVL/4OkN1d9gneWe9lFZgag==
   dependencies:
     "@babel/core" "^7.24.4"
     "@babel/parser" "^7.24.4"
-    "@babel/plugin-proposal-private-methods" "^7.18.6"
+    "@babel/plugin-transform-private-methods" "^7.24.4"
     hermes-parser "^0.25.1"
     zod "^3.22.4"
     zod-validation-error "^3.0.3"
-
-eslint-plugin-react-hooks@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-5.2.0.tgz#1be0080901e6ac31ce7971beed3d3ec0a423d9e3"
-  integrity sha512-+f15FfK64YQwZdJNELETdn5ibXEUQmW1DZL6KXhNnc2heoy/sg9VJJeT7n8TlMWouzWqSWavFkIhHyIbIAEapg==
 
 eslint-plugin-react-hooks@^4.6.0:
   version "4.6.2"

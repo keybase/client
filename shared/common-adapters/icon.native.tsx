@@ -3,9 +3,10 @@ import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
-import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
+import {Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
 import type {MeasureRef} from './measure-ref'
+import {Pressable} from 'react-native-gesture-handler'
 
 type TextProps = {
   children: React.ReactNode
@@ -163,13 +164,13 @@ const Icon = React.memo<Props>(
     }
 
     return wrap ? (
-      <TouchableOpacity
+      <Pressable
         onPress={p.onClick || undefined}
-        activeOpacity={0.8}
+        //activeOpacity={0.8}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}
-      </TouchableOpacity>
+      </Pressable>
     ) : (
       icon
     )

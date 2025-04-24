@@ -27,7 +27,7 @@ const Icon = React.memo<Props>(
     const onClick = props.onClick
       ? (e: React.BaseSyntheticEvent) => {
           e.stopPropagation()
-          props.onClick?.(e)
+          props.onClick?.()
         }
       : undefined
 

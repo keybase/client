@@ -37,8 +37,8 @@ export const defaultNavigationOptions = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({onPress, tintColor}: HeaderLeftProps) => {
-    return <HeaderLeftArrowCanGoBack onPress={onPress} tintColor={tintColor} />
+  headerLeft: ({tintColor}: HeaderLeftProps) => {
+    return <HeaderLeftArrowCanGoBack tintColor={tintColor} />
   },
   headerLeftContainerStyle: {
     flexGrow: 0,

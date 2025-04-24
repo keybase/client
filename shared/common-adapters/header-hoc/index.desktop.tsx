@@ -16,7 +16,6 @@ export const HeaderHocHeader = ({
   title,
   titleComponent,
   onCancel,
-  rightActions,
   theme = 'light',
 }: Props) => (
   <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
@@ -34,7 +33,6 @@ export const HeaderHocHeader = ({
       </Kb.Box>
     )}
     {titleComponent}
-    {(rightActions || []).map(a => (a ? a.custom : null))}
   </Kb.Box>
 )
 
