@@ -243,13 +243,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const useCollapseAction = () => {
   const ordinal = React.useContext(OrdinalContext)
   const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
-  const onCollapse = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.stopPropagation()
-      toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
-    },
-    [toggleMessageCollapse, ordinal]
-  )
+  const onCollapse = React.useCallback(() => {
+    toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
+  }, [toggleMessageCollapse, ordinal])
   return onCollapse
 }
 
