@@ -1,9 +1,10 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import Box from './box'
-import {View, Pressable, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
+import {View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'
 import type {MeasureRef} from './measure-ref'
+import {Pressable} from 'react-native-gesture-handler'
 
 const Kb = {
   Box,
@@ -14,16 +15,12 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
   const {style, activeOpacity, children} = props
 
-  React.useImperativeHandle(
-    ref,
-    () => {
-      // we don't use this in mobile for now, and likely never
-      return {
-        divRef: {current: null},
-      }
-    },
-    []
-  )
+  React.useImperativeHandle(ref, () => {
+    // we don't use this in mobile for now, and likely never
+    return {
+      divRef: {current: null},
+    }
+  }, [])
 
   if (onClick) {
     const clickStyle = Kb.Styles.collapseStyles([styles.box, style])

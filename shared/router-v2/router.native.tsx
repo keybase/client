@@ -181,7 +181,10 @@ const AppTabsImpl = React.memo(function AppTabsImpl() {
           name={tab}
           component={makeTabStack(tab)}
           options={({route}) => {
-            const routeName = getFocusedRouteNameFromRoute(route)
+            let routeName
+            try {
+              routeName = getFocusedRouteNameFromRoute(route)
+            } catch {}
             return {
               tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
             }

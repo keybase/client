@@ -268,35 +268,52 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
     }
   }
 
-  const content = (
+  const inside = (
+    <Kb.Box2Measure
+      ref={props.measureRef}
+      direction="horizontal"
+      style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
+      pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
+    >
+      {keyHandler()}
+      {leftIcon()}
+      {input()}
+      {waiting()}
+      {rightCancelIcon()}
+    </Kb.Box2Measure>
+  )
+
+  const content = Styles.isMobile ? (
+    <Kb.ClickableBox2
+      data-search-filter={true}
+      style={Styles.collapseStyles([
+        styles.container,
+        props.placeholderCentered && styles.containerCenter,
+        styles.containerNonSmall,
+        focused || hover ? styles.light : styles.dark,
+      ])}
+      onClick={props.onClick || focus}
+    >
+      {inside}
+    </Kb.ClickableBox2>
+  ) : (
     <Kb.ClickableBox
       data-search-filter={true}
       style={Styles.collapseStyles([
         styles.container,
         props.placeholderCentered && styles.containerCenter,
-        !Styles.isMobile && props.size === 'small' && styles.containerSmall,
-        (Styles.isMobile || props.size === 'full-width') && styles.containerNonSmall,
+        props.size === 'small' && styles.containerSmall,
+        props.size === 'full-width' && styles.containerNonSmall,
         focused || hover ? styles.light : styles.dark,
-        !Styles.isMobile && props.style,
+        props.style,
       ])}
       onMouseOver={mouseOver}
       onMouseLeave={mouseLeave}
-      onClick={props.onClick || (Styles.isMobile || !focused ? focus : undefined)}
+      onClick={props.onClick || (!focused ? focus : undefined)}
       underlayColor={Styles.globalColors.transparent}
       hoverColor={Styles.globalColors.transparent}
     >
-      <Kb.Box2Measure
-        ref={props.measureRef}
-        direction="horizontal"
-        style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
-        pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
-      >
-        {keyHandler()}
-        {leftIcon()}
-        {input()}
-        {waiting()}
-        {rightCancelIcon()}
-      </Kb.Box2Measure>
+      {inside}
     </Kb.ClickableBox>
   )
 
