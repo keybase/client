@@ -5,12 +5,13 @@ import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
 type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
-const Row = React.memo(function Row<T>(p: {data: RowData<T>; index: number; style: React.CSSProperties}) {
+type RowProps<T> = {data: RowData<T>; index: number; style: React.CSSProperties}
+const Row = React.memo(function Row<T>(p: RowProps<T>) {
   const {index, style, data} = p
   const {items, renderItem} = data
   const item = items[index]
   return item ? <div style={style}>{renderItem(index, item)}</div> : null
-})
+}) as <T>(p: RowProps<T>) => React.ReactElement | null
 
 const List2 = <T,>(props: Props<T>) => {
   const {items, indexAsKey, keyProperty, renderItem, estimatedItemHeight} = props
@@ -36,8 +37,9 @@ const List2 = <T,>(props: Props<T>) => {
     if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
       return _getItemDataCached.current
     }
-    _getItemDataCached.current = {items, renderItem}
-    return _getItemDataCached.current
+    const ret = {items, renderItem}
+    _getItemDataCached.current = ret
+    return ret
   }, [items, renderItem])
 
   // Need to pass in itemData to make items re-render on prop changes.
@@ -45,12 +47,12 @@ const List2 = <T,>(props: Props<T>) => {
     (p: {height: number; width: number; itemHeight: number}) => {
       const {height, width, itemHeight} = p
       return (
-        <FixedSizeList
+        <FixedSizeList<RowData<T>>
           style={style as React.CSSProperties}
           height={height}
           width={width}
           itemCount={items.length}
-          itemData={_getItemData() as any}
+          itemData={_getItemData()}
           itemKey={_keyExtractor}
           itemSize={itemHeight}
         >
@@ -71,13 +73,13 @@ const List2 = <T,>(props: Props<T>) => {
     (p: {height: number; width: number}) => {
       const {height, width} = p
       return (
-        <VariableSizeList
+        <VariableSizeList<RowData<T>>
           ref={variableSizeListRef}
           style={style as React.CSSProperties}
           height={height}
           width={width}
           itemCount={items.length}
-          itemData={_getItemData() as any}
+          itemData={_getItemData()}
           itemKey={_keyExtractor}
           itemSize={_variableItemSize}
           estimatedItemSize={estimatedItemHeight}

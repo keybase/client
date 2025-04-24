@@ -496,7 +496,6 @@ export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.re
       },
     })
   }
-  // eslint-disable-next-line
 }, {} as Color)
 
 if (__DEV__) {
