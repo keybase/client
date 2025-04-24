@@ -69,8 +69,11 @@ export default ClickableBox
 
 export const ClickableBox2 = (p: Props2) => {
   const {onLongPress, onClick, children, hitSlop, style} = p
+  const onPress = React.useCallback(() => {
+    onClick?.()
+  }, [onClick])
   return (
-    <Pressable onLongPress={onLongPress} onPress={onClick} style={style} hitSlop={hitSlop}>
+    <Pressable onLongPress={onLongPress} onPress={onPress} style={style} hitSlop={hitSlop}>
       {children}
     </Pressable>
   )
