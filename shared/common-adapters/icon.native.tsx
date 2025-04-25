@@ -149,7 +149,7 @@ const Icon = React.memo<Props>(
           type={p.type}
           fontSize={p.fontSize}
           sizeType={sizeType}
-          onClick={p.onClick}
+          onClick={wrap ? undefined : p.onClick}
           onLongPress={p.onLongPress}
         >
           {code}
