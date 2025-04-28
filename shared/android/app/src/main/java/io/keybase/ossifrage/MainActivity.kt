@@ -1,6 +1,5 @@
 package io.keybase.ossifrage
 
-import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -18,14 +17,12 @@ import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactInstanceManager
+import com.facebook.react.ReactInstanceEventListener
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.modules.core.PermissionListener
 import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule
 import com.reactnativekb.DarkModePreference
@@ -49,14 +46,6 @@ class MainActivity : ReactActivity() {
     override fun invokeDefaultOnBackPressed() {
         moveTaskToBack(true)
     }
-
-    private val reactContext: ReactContext?
-         get() {
-        val reactHost = (application as ReactApplication).reactNativeHost
-        val reactInstanceManager = reactHost.reactInstanceManager
-            val currentContext = reactInstanceManager.currentReactContext
-            return currentContext
-        }
 
     private fun colorSchemeForCurrentConfiguration(): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -91,19 +80,20 @@ class MainActivity : ReactActivity() {
         val reactHost = (application as ReactApplication).reactNativeHost
         val reactInstanceManager = reactHost.reactInstanceManager
         if (reactInstanceManager.hasStartedCreatingInitialContext()) {
-            val currentContext = reactInstanceManager.currentReactContext
-            if (currentContext != null) {
-        handleIntent()
+            val reactContext = reactActivityDelegate?.getCurrentReactContext()
+            if (reactContext != null) {
+                handleIntent()
                 return
             }
         }
-        val listener = object : ReactInstanceManager.ReactInstanceEventListener {
+
+        val listener = object : ReactInstanceEventListener {
             override fun onReactContextInitialized(c: ReactContext) {
-        handleIntent()
+                handleIntent()
                 reactInstanceManager.removeReactInstanceEventListener(this)
             }
         }
-        reactInstanceManager.addReactInstanceEventListener(listener)
+        reactActivityDelegate?.reactHost?.addReactInstanceEventListener(listener)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
@@ -216,7 +206,7 @@ class MainActivity : ReactActivity() {
     private var jsIsListening = false
     private fun handleIntent() {
         val intent = cachedIntent ?: return
-        var rc = reactContext ?: return
+        val rc = reactActivityDelegate?.getCurrentReactContext() ?: return
         val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: return
 
         if (jsIsListening == false) {
