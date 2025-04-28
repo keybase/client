@@ -20,7 +20,7 @@ echo "Plist: $plist"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 
 echo "Archiving"
-xcodebuild archive -scheme "$scheme" -project "$dir/Updater.xcodeproj" -configuration "$xcode_configuration" -archivePath "$archive_path" | xcpretty -c
+xcodebuild archive -scheme "$scheme" -project "$dir/Updater.xcodeproj" -configuration "$xcode_configuration" -archivePath "$archive_path" ARCHS="x86_64 arm64" ONLY_ACTIVE_ARCH=NO | xcpretty -c
 
 echo "Exporting"
 tmp_dir="/tmp"
