@@ -10,11 +10,6 @@ import type {Props} from '.'
 
 const LoginRender = (props: Props) => {
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
-
-  const _selectedUserChange = (selectedUser: string) => {
-    props.selectedUserChange(selectedUser)
-  }
-
   const inputProps: InputProps = {
     autoFocus: true,
     error: !!props.error,
@@ -45,7 +40,7 @@ const LoginRender = (props: Props) => {
             <Dropdown
               type="Username"
               value={props.selectedUser}
-              onClick={_selectedUserChange}
+              onClick={props.selectedUserChange}
               onOther={props.onSomeoneElse}
               options={props.users}
             />

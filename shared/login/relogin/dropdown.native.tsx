@@ -1,4 +1,3 @@
-import logger from '@/logger'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -14,76 +13,52 @@ import {TouchableWithoutFeedback, Modal} from 'react-native'
 type Props = {
   type: 'Username'
   options: Array<T.Config.ConfiguredAccount>
-  onClick: (option: string, index: number) => void
-  onPress?: () => void
-  onOther?: () => void
-  value?: string
-  style?: object
+  onClick: (option: string) => void
+  onOther: () => void
+  value: string
 }
 
 const otherItemValue = 'otherItemValue'
 const pickItemValue = 'pickItemValue'
 
+const label = (value: string): string => {
+  if (!value) {
+    return ''
+  }
+  return (
+    {
+      [otherItemValue]: 'Someone else...',
+      [pickItemValue]: 'Pick an option',
+    }[value] || value
+  )
+}
+
 const Dropdown = (props: Props) => {
-  const {value: _value} = props
+  const {value: _value, onOther, onClick} = props
   const [modalVisible, setModalVisible] = React.useState(false)
   const [value, setValue] = React.useState(_value || pickItemValue)
-  const showingPick = !_value
+  const showingPick = !value
 
-  const lastPropValue = React.useRef(_value)
-  React.useEffect(() => {
-    if (_value !== lastPropValue.current) {
-      lastPropValue.current = _value
-      setValue(_value || pickItemValue)
-    }
-  }, [_value, value])
-
-  const selected = () => {
-    if (value === pickItemValue) {
-      props.onClick('', -1)
-    } else if (value === otherItemValue) {
-      if (props.onOther) {
-        props.onOther()
+  const selected = React.useCallback(
+    (v: string) => {
+      if (v === _value) return
+      if (v === otherItemValue) {
+        onOther()
       } else {
-        logger.warn('otherValue selected, yet no onOther handler')
+        onClick(v)
       }
-      setValue((props.options[0] || {username: ''}).username)
-    } else {
-      props.onClick(
-        value || '',
-        props.options.findIndex(u => u.username === value)
-      )
-    }
-  }
+    },
+    [onOther, onClick, _value]
+  )
 
   const showModal = (show: boolean) => {
     setModalVisible(show)
-    if (show) {
-      ensureSelected()
-    } else {
-      selected()
+    if (!show) {
+      selected(value)
     }
   }
 
-  const ensureSelected = () => {
-    if (!value && props.options.length) {
-      setValue((props.options[0] || {username: ''}).username)
-    }
-  }
-
-  const label = (value: string): string => {
-    if (!value) {
-      return ''
-    }
-    return (
-      {
-        [otherItemValue]: 'Someone else...',
-        [pickItemValue]: 'Pick an option',
-      }[value] || value
-    )
-  }
-
-  const renderLabelAndCaret = () => (
+  const labelAndCaret = (
     <>
       <Kb.Text key="text" type="Header" style={styles.orangeText}>
         {label(value)}
@@ -94,73 +69,62 @@ const Dropdown = (props: Props) => {
     </>
   )
 
-  const renderPicker = (style: object, selectOnChange: boolean) => {
-    const pickItem = showingPick
-      ? [{key: pickItemValue, label: label(pickItemValue), value: pickItemValue}]
-      : []
+  const pickItem = showingPick
+    ? [{key: pickItemValue, label: label(pickItemValue), value: pickItemValue}]
+    : []
 
-    const actualItems = props.options.map(o => ({
-      key: o.username,
-      label: o.hasStoredSecret ? `${o.username} (Signed in)` : o.username,
-      value: o.username,
-    }))
-    const otherItem = props.onOther
-      ? {key: otherItemValue, label: label(otherItemValue), value: otherItemValue}
-      : []
-    const items = pickItem.concat(actualItems).concat(otherItem)
+  const actualItems = props.options.map(o => ({
+    key: o.username,
+    label: o.hasStoredSecret ? `${o.username} (Signed in)` : o.username,
+    value: o.username,
+  }))
+  const otherItem = {key: otherItemValue, label: label(otherItemValue), value: otherItemValue}
+  const items = pickItem.concat(actualItems).concat(otherItem)
 
-    const onValueChange = (v: string) => {
-      if (v === value) {
-        return
-      }
-      setValue(v)
-      if (selectOnChange) {
-        selected()
-      }
+  // on android we immediately choose, on ios you have to close the modal to choose
+  React.useEffect(() => {
+    if (Kb.Styles.isAndroid) {
+      selected(value)
     }
+  }, [value, selected])
 
+  const picker = (
+    <Picker style={styles.picker} selectedValue={value} onValueChange={setValue} itemStyle={styles.item}>
+      {items.map(i => (
+        <Picker.Item {...i} key={i.label} />
+      ))}
+    </Picker>
+  )
+
+  if (Kb.Styles.isIOS) {
     return (
-      <Picker style={style} selectedValue={value} onValueChange={onValueChange} itemStyle={styles.item}>
-        {items.map(i => (
-          <Picker.Item {...i} key={i.label} />
-        ))}
-      </Picker>
+      <TouchableWithoutFeedback onPress={() => showModal(true)}>
+        <Kb.Box style={styles.container}>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => showModal(false)}
+          >
+            <Kb.Box style={styles.pickerContainer}>
+              <TouchableWithoutFeedback onPress={() => showModal(false)}>
+                <Kb.Box style={{flex: 1}} />
+              </TouchableWithoutFeedback>
+              {picker}
+            </Kb.Box>
+          </Modal>
+          {labelAndCaret}
+        </Kb.Box>
+      </TouchableWithoutFeedback>
+    )
+  } else {
+    return (
+      <Kb.Box style={styles.container}>
+        {labelAndCaret}
+        {picker}
+      </Kb.Box>
     )
   }
-
-  const renderAndroid = () => (
-    // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
-    // the native picker. We need to make sure it's the last thing drawn so it lies on top of
-    // everything else.
-    // TODO: Clean this up to be less tricky
-    <Kb.Box style={{...styles.container, ...props.style}}>
-      {renderLabelAndCaret()}
-      {renderPicker(styles.pickerAndroid, true)}
-    </Kb.Box>
-  )
-
-  const renderIOS = () => (
-    <TouchableWithoutFeedback onPress={() => showModal(true)}>
-      <Kb.Box style={{...styles.container, ...props.style}}>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => showModal(false)}
-        >
-          <Kb.Box style={styles.pickerContainer}>
-            <TouchableWithoutFeedback onPress={() => showModal(false)}>
-              <Kb.Box style={{flex: 1}} />
-            </TouchableWithoutFeedback>
-            {renderPicker(styles.pickerIOS, false)}
-          </Kb.Box>
-        </Modal>
-        {renderLabelAndCaret()}
-      </Kb.Box>
-    </TouchableWithoutFeedback>
-  )
-
-  return Kb.Styles.isIOS ? renderIOS() : renderAndroid()
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -184,21 +148,23 @@ const styles = Kb.Styles.styleSheetCreate(
         flex: 1,
         lineHeight: 28,
       },
-      pickerAndroid: {
-        backgroundColor: Kb.Styles.globalColors.transparent,
-        bottom: 0,
-        color: Kb.Styles.globalColors.transparent,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
+      picker: Kb.Styles.platformStyles({
+        isAndroid: {
+          backgroundColor: Kb.Styles.globalColors.transparent,
+          bottom: 0,
+          color: Kb.Styles.globalColors.transparent,
+          left: 0,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+        },
+        isIOS: {backgroundColor: Kb.Styles.globalColors.white},
+      }),
       pickerContainer: {
         backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
         flex: 1,
         justifyContent: 'flex-end',
       },
-      pickerIOS: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )
 

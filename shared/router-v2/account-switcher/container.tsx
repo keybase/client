@@ -19,7 +19,7 @@ const Container = () => {
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = C.Waiting.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
-  const onAddAccount = C.useProvisionState(s => s.dispatch.startProvision)
+  const onLoginAsAnotherUser = C.useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
@@ -33,27 +33,28 @@ const Container = () => {
   }
   const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => {
+  const onSignOut = React.useCallback(() => {
     navigateAppend(C.Settings.settingsLogOutTab)
-  }
+  }, [navigateAppend])
+
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {
     accountRows: accountRows.map(account => ({
       account: account,
       fullName: (_fullnames.get(account.username) || {fullname: ''}).fullname || '',
     })),
-    fullname: fullname,
-    onAddAccount: onAddAccount,
-    onCancel: onCancel,
+    fullname,
+    onCancel,
+    onLoginAsAnotherUser,
     onProfileClick: () => _onProfileClick(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
       return loggedIn ? onSelectAccountLoggedIn(username) : onSelectAccountLoggedOut(username)
     },
-    onSignOut: onSignOut,
+    onSignOut,
     username: you,
-    waiting: waiting,
+    waiting,
   }
 
   return (
@@ -92,7 +93,7 @@ type AccountRowItem = {
 type Props = {
   accountRows: Array<AccountRowItem>
   fullname: string
-  onAddAccount: () => void
+  onLoginAsAnotherUser: () => void
   onCancel: () => void
   onProfileClick: () => void
   onSelectAccount: (username: string) => void
@@ -125,7 +126,7 @@ const MobileHeader = (props: Props) => (
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
       <Kb.WaitingButton
-        onClick={props.onAddAccount}
+        onClick={props.onLoginAsAnotherUser}
         label="Log in as another user"
         mode="Primary"
         fullWidth={true}
