@@ -56,6 +56,13 @@ func (to *PGPKeyBundle) MergeKey(from *PGPKeyBundle) {
 	for _, subkey := range from.Subkeys {
 		if i, ok := existingSubkeys[subkey.PublicKey.Fingerprint]; ok {
 			if subkey.Sig.CreationTime.After(to.Subkeys[i].Sig.CreationTime) {
+				if subkey.Sig.FlagsValid && to.Subkeys[i].Sig.FlagsValid {
+					// If the key previously had a Sign flag, make sure we
+					// don't lose it when merging. This prevents a later key
+					// bundle making the subkey unable to verify signatures
+					// that it has already made in the past to the sigchain.
+					subkey.Sig.FlagSign = subkey.Sig.FlagSign || to.Subkeys[i].Sig.FlagSign
+				}
 				to.Subkeys[i].Sig = subkey.Sig
 				if subkey.Revocation != nil {
 					to.Subkeys[i].Revocation = subkey.Revocation
