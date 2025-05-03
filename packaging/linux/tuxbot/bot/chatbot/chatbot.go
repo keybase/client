@@ -168,7 +168,7 @@ func Exec(bot Bot, dir string, timeout time.Duration, name string, arg ...string
 	cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=%s", os.Getenv("HOME")))
 
 	// Fail immediately on git username/password request
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GIT_TERMINAL_PROMPT=0"))
+	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0")
 
 	cmd.Dir = dir
 
