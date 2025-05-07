@@ -137,7 +137,7 @@
     "url-parse": "1.5.10",
     "use-debounce": "10.0.4",
     "util": "0.12.5",
-    "zustand": "5.0.3"
+    "zustand": "5.0.4"
   },
   "devDependencies": {
     "@babel/core": "7.26.10",
@@ -146,7 +146,7 @@
     "@babel/preset-react": "7.26.3",
     "@babel/preset-typescript": "7.27.0",
     "@electron/packager": "18.3.6",
-    "@eslint/compat": "1.2.8",
+    "@eslint/compat": "1.2.9",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.16",
     "@react-native-community/cli": "16.0.0",
     "@react-native-community/cli-platform-android": "16.0.0",
@@ -172,7 +172,7 @@
     "cross-env": "7.0.3",
     "css-loader": "7.1.2",
     "electron": "35.1.5",
-    "eslint": "9.25.1",
+    "eslint": "9.26.0",
     "eslint-plugin-deprecation": "3.0.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-promise": "7.2.1",
@@ -191,8 +191,8 @@
     "style-loader": "4.0.0",
     "terser-webpack-plugin": "5.3.14",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.31.0",
-    "webpack": "5.99.5",
+    "typescript-eslint": "8.32.0",
+    "webpack": "5.99.8",
     "webpack-cli": "6.0.1",
     "webpack-dev-server": "5.2.0",
     "webpack-merge": "6.0.1"
