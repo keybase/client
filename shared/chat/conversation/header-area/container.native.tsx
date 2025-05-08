@@ -46,9 +46,13 @@ export const HeaderAreaRight = () => {
       toggleThreadSearch()
     }, 100)
   }, [toggleThreadSearch])
-  return pendingWaiting ? null : (
-    <Kb.Box2 direction="horizontal" gap="small">
-      {/* {dumpIcon} */}
+
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      gap="small"
+      style={Kb.Styles.collapseStyles([styles.headerRight, {opacity: pendingWaiting ? 0 : 1}])}
+    >
       <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
       <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
     </Kb.Box2>
@@ -296,6 +300,11 @@ const styles = Styles.styleSheetCreate(
       },
       channelName: {color: Styles.globalColors.black},
       channelNameLight: {color: Styles.globalColors.black_50},
+      headerRight: {
+        flexShrink: 0,
+        width: 56,
+        height: 22,
+      },
       lessMargins: {marginBottom: -5},
       nameMutedContainer: {
         alignItems: 'center',
