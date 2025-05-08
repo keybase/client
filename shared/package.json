@@ -171,7 +171,7 @@
     "circular-dependency-plugin": "5.2.2",
     "cross-env": "7.0.3",
     "css-loader": "7.1.2",
-    "electron": "35.1.5",
+    "electron": "36.1.0",
     "eslint": "9.26.0",
     "eslint-plugin-deprecation": "3.0.0",
     "eslint-plugin-import": "2.31.0",
