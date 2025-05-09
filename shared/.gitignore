@@ -49,6 +49,7 @@ ios/.xcode.env.local
 main.jsbundle
 .eslintcache
 .metro-health-check*
+.expo
 
 coverage-ts
 temp.log
