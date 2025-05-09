@@ -43,7 +43,7 @@ module.exports = function (api /*: any */) {
     // console.error('KB babel.config.js for Electron')
     return {
       presets: [
-        isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
+        isTest ? ['@babel/preset-env', { targets: { node: 'current' } }] : '@babel/preset-env',
         '@babel/preset-typescript',
       ],
     }
@@ -62,21 +62,23 @@ module.exports = function (api /*: any */) {
           },
         ],
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
-        '@babel/plugin-proposal-numeric-separator',
+        // '@babel/plugin-proposal-numeric-separator',
         '@babel/plugin-transform-export-namespace-from',
-        isDev
-          ? [
-              '@babel/plugin-transform-react-jsx-development',
-              {
-                runtime: 'automatic',
-                ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
-              },
-            ]
-          : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],
+        ...(isDev
+          ? [[
+            '@babel/plugin-transform-react-jsx-development',
+            {
+              runtime: 'automatic',
+              ...(enableWDYR ? { importSource: '@welldone-software/why-did-you-render' } : {}),
+            },
+          ]]
+          : [[
+            '@babel/plugin-transform-react-jsx', { runtime: 'automatic' }
+          ]]),
       ],
       presets: [
         // lets us set our own jsx above
-        ['module:metro-react-native-babel-preset', {useTransformReactJSXExperimental: true}],
+        ['module:@react-native/babel-preset', { useTransformReactJSXExperimental: true }],
       ],
       sourceMaps: true,
     }

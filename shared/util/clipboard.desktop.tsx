@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import KB2 from './electron.desktop'
 const {clipboardAvailableFormats} = KB2.functions
 

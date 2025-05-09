@@ -11,11 +11,17 @@ const ChatPDF = (props: Props) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
   const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
-  const onShare = () => showShareActionSheet?.(url ?? '', '', 'application/pdf')
-  const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]
+  const onShare = () => {
+    showShareActionSheet?.(url ?? '', '', 'application/pdf')
+  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader title={title} onBack={onBack} rightActions={rightActions} />
+      <Kb.HeaderHocHeader
+        title={title}
+        onBack={onBack}
+        rightActionIcon="iconfont-share"
+        onRightAction={onShare}
+      />
       {url && !error ? (
         <Kb.WebView
           originWhitelist={['*']}

@@ -23,6 +23,8 @@ export type GetOptionsRet =
       headerShown?: boolean
       gesturesEnabled?: boolean
       title?: string
+      orientation?: 'all' | 'portrait'
+      presentation?: 'modal' | 'transparentModal' | 'card'
     }
   | undefined
 export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)

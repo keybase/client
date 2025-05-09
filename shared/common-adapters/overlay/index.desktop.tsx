@@ -16,6 +16,7 @@ const Overlay = (props: Props) => {
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      offset={props.offset}
     >
       <Box2 direction="vertical" style={Styles.collapseStyles([styles.innerContainer, props.style])}>
         {props.children}

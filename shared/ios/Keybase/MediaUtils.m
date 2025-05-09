@@ -22,12 +22,22 @@
 
 + (NSError *) _scaleDownCGImageSourceRef:(CGImageSourceRef)img dstURL:(NSURL *)dstURL options:(CFDictionaryRef)options {
   NSLog(@"dstURL: %@", dstURL);
+  NSError * err = [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error writing scaled down image"}];
+  if (img == NULL) {
+    return err;
+  }
   CGImageRef scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options);
+  if (scaledRef == NULL) {
+    return err;
+  }
   NSData * scaled = UIImageJPEGRepresentation([UIImage imageWithCGImage:scaledRef], 0.85);
   CGImageRelease(scaledRef);
+  if (scaled == nil) {
+    return err;
+  }
   BOOL OK = [scaled writeToURL:dstURL atomically:true];
   if (!OK) {
-    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{NSLocalizedDescriptionKey:@"error writing scaled down image"}];
+    return err;
   }
   return nil;
 }
@@ -39,7 +49,6 @@
   size_t count = CGImageSourceGetCount(cgSource);
   NSURL * tmpDstURL = [url URLByAppendingPathExtension:@"tmp"];
   CGImageDestinationRef cgDestination = CGImageDestinationCreateWithURL((__bridge CFURLRef)tmpDstURL, type, count, NULL);
-  
   NSDictionary *removeExifProperties = @{(id)kCGImagePropertyExifDictionary: (id)kCFNull,
                                          (id)kCGImagePropertyGPSDictionary : (id)kCFNull};
   
@@ -47,17 +56,15 @@
     CGImageDestinationAddImageFromSource(cgDestination, cgSource, index, (__bridge CFDictionaryRef)removeExifProperties);
   }
   
-  if (!CGImageDestinationFinalize(cgDestination)) {
-    CFRelease(cgDestination);
-    CFRelease(cgSource);
-    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{@"message":@"CGImageDestinationFinalize failed"}];
-  }
-  
+  BOOL success = CGImageDestinationFinalize(cgDestination);
   CFRelease(cgDestination);
   CFRelease(cgSource);
   
-  [[NSFileManager defaultManager] replaceItemAtURL:url withItemAtURL:tmpDstURL backupItemName:nil options:0 resultingItemURL:nil error:&error];
+  if (!success) {
+    return [NSError errorWithDomain:@"MediaUtils" code:1 userInfo:@{@"message":@"CGImageDestinationFinalize failed"}];
+  }
   
+  [[NSFileManager defaultManager] replaceItemAtURL:url withItemAtURL:tmpDstURL backupItemName:nil options:0 resultingItemURL:nil error:&error];
   return error;
 }
 
@@ -74,14 +81,13 @@
   CGImageSourceRef cgSource = CGImageSourceCreateWithURL((__bridge CFURLRef)url, nil);
   
   error = [MediaUtils _scaleDownCGImageSourceRef:cgSource dstURL:scaledURL options:[MediaUtils _scaledImageOptions]];
-  if (error != nil) {
-    CFRelease(cgSource);
-    completion(error, nil);
-    return;
-  }
-  
   CFRelease(cgSource);
-  completion(nil, scaledURL);
+  
+  if (error != nil) {
+    completion(error, nil);
+  } else {
+    completion(nil, scaledURL);
+  }
 }
 
 + (BOOL) _needScaleDownAsset:(AVURLAsset *) asset { 
@@ -126,8 +132,8 @@
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
   [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+  CFRelease(cgOriginal);
   if (error != nil) {
-    CFRelease(cgOriginal);
     completion(error, nil);
     return;
   }

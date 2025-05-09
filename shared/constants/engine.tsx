@@ -2,7 +2,7 @@ import * as Z from '@/util/zustand'
 import * as C from '.'
 import type * as EngineGen from '../actions/engine-gen-gen'
 
-type Store = {}
+type Store = object
 const initialStore: Store = {}
 
 interface State extends Store {
@@ -14,7 +14,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>(set => {
+export const useState_ = Z.createZustand<State>(set => {
   let incomingTimeout: NodeJS.Timeout
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {

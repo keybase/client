@@ -26,7 +26,7 @@ const Header = (props: Props) => (
   </>
 )
 
-const _ReallyLeaveTeam = (props: Props) => {
+const ReallyLeaveTeam = (props: Props) => {
   const {name} = props
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(
@@ -67,47 +67,50 @@ const _ReallyLeaveTeam = (props: Props) => {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  checkBox: Kb.Styles.platformStyles({
-    common: {
-      marginBottom: Kb.Styles.globalMargins.small,
-    },
-    isElectron: {
-      marginLeft: 48,
-      marginRight: 48,
-    },
-    isMobile: {
-      marginLeft: Kb.Styles.globalMargins.small,
-      marginRight: Kb.Styles.globalMargins.small,
-      marginTop: 12,
-    },
-  }),
-  headerIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  iconContainer: {
-    backgroundColor: Kb.Styles.globalColors.red,
-    borderColor: Kb.Styles.globalColors.white,
-    borderRadius: 12,
-    borderStyle: 'solid',
-    borderWidth: 3,
-    height: 24,
-    marginRight: -46,
-    marginTop: -20,
-    overflow: 'hidden',
-    width: 24,
-    zIndex: 1,
-  },
-  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-  spinnerContainer: {
-    alignItems: 'center',
-    flex: 1,
-    padding: Kb.Styles.globalMargins.xlarge,
-  },
-  spinnerProgressIndicator: {
-    width: Kb.Styles.globalMargins.medium,
-  },
-}))
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      checkBox: Kb.Styles.platformStyles({
+        common: {
+          marginBottom: Kb.Styles.globalMargins.small,
+        },
+        isElectron: {
+          marginLeft: 48,
+          marginRight: 48,
+        },
+        isMobile: {
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
+          marginTop: 12,
+        },
+      }),
+      headerIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      iconContainer: {
+        backgroundColor: Kb.Styles.globalColors.red,
+        borderColor: Kb.Styles.globalColors.white,
+        borderRadius: 12,
+        borderStyle: 'solid',
+        borderWidth: 3,
+        height: 24,
+        marginRight: -46,
+        marginTop: -20,
+        overflow: 'hidden',
+        width: 24,
+        zIndex: 1,
+      },
+      prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
+      spinnerContainer: {
+        alignItems: 'center',
+        flex: 1,
+        padding: Kb.Styles.globalMargins.xlarge,
+      },
+      spinnerProgressIndicator: {
+        width: Kb.Styles.globalMargins.medium,
+      },
+    }) as const
+)
 
-export default _ReallyLeaveTeam
+export default ReallyLeaveTeam

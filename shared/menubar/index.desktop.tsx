@@ -320,16 +320,18 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
 }
 
 const MenubarRender = (p: Props) => {
-  const {loggedIn, daemonHandshakeState} = p
-
+  const {loggedIn, daemonHandshakeState, darkMode: _darkMode} = p
   const [lastDM, setLastDM] = React.useState(p.darkMode)
-  if (p.darkMode !== lastDM) {
-    setLastDM(p.darkMode)
-    C.useDarkModeState.getState().dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
-  }
+
+  const setDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
+  React.useEffect(() => {
+    if (_darkMode !== lastDM) {
+      setLastDM(_darkMode)
+      setDarkModePreference(_darkMode ? 'alwaysDark' : 'alwaysLight')
+    }
+  }, [_darkMode, lastDM, setDarkModePreference])
 
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
-
   let content: React.ReactNode
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />

@@ -16,6 +16,7 @@ type TextProps = CommonProps & {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
   value: string
+  setBlurCB?: (cb: () => void) => void
 }
 
 type FileProps = CommonProps & {
@@ -31,6 +32,7 @@ type DragAndDropProps = CommonProps & {
 
 type RunOperationProps = CommonProps & {
   children?: React.ReactNode
+  blurCBRef?: React.MutableRefObject<() => void>
 }
 
 // Tese magic numbers set the width of the single line `textarea` such that the
@@ -72,17 +74,26 @@ const inputPlaceholder = new Map([
  *  - Clear button
  */
 const TextInput = (props: TextProps) => {
-  const {value, operation, onChangeText, onSetFile} = props
+  const {value, operation, onChangeText, onSetFile, setBlurCB} = props
   const textType = inputTextType.get(operation)
   const placeholder = inputPlaceholder.get(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
-  const inputRef = React.useRef<Kb.PlainInput>(null)
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
   const onFocusInput = () => {
     inputRef.current?.focus()
   }
+
+  React.useEffect(() => {
+    setBlurCB?.(() => {
+      inputRef.current?.blur()
+    })
+    return () => {
+      setBlurCB?.(() => {})
+    }
+  }, [setBlurCB])
 
   const onOpenFile = () => {
     const f = async () => {
@@ -205,8 +216,8 @@ const FileInput = (props: FileProps) => {
   )
 }
 
-export const Input = (props: CommonProps) => {
-  const {operation} = props
+export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void}) => {
+  const {operation, setBlurCB} = props
 
   const {input: _input, inputType} = C.useCryptoState(
     C.useShallow(s => {
@@ -240,6 +251,7 @@ export const Input = (props: CommonProps) => {
     />
   ) : (
     <TextInput
+      setBlurCB={setBlurCB}
       operation={operation}
       value={inputValue}
       onSetFile={path => {
@@ -327,12 +339,15 @@ export const OperationBanner = (props: CommonProps) => {
 
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
-  const {operation, children} = props
+  const {operation, children, blurCBRef} = props
   const waitingKey = Constants.waitingKey
   const operationTitle = capitalize(operation)
   const runTextOperation = C.useCryptoState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
-    runTextOperation(operation)
+    blurCBRef?.current()
+    setTimeout(() => {
+      runTextOperation(operation)
+    }, 100)
   }
 
   return Kb.Styles.isMobile ? (

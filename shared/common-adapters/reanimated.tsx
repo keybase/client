@@ -4,11 +4,10 @@ import type * as R from 'react-native-reanimated'
 
 let useSharedValue: typeof R.useSharedValue
 let withRepeat: typeof R.withRepeat
-let useAnimatedStyle: typeof R.useAnimatedStyle
+let useAnimatedStyle: <T extends () => Record<string, any>>(arg: T) => ReturnType<T>
 let withTiming: typeof R.withTiming
 let withDelay: typeof R.withDelay
 let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
-// eslint-disable-next-line deprecation/deprecation
 let createAnimatedComponent: typeof R.default.createAnimatedComponent
 let Animated: typeof R.default
 let interpolate: typeof R.interpolate
@@ -19,9 +18,8 @@ let useReducedMotion: typeof R.useReducedMotion
 if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated') as typeof R
   Animated = rnr.default
-  // eslint-disable-next-line deprecation/deprecation
   createAnimatedComponent = rnr.default.createAnimatedComponent
-  useAnimatedStyle = rnr.useAnimatedStyle
+  useAnimatedStyle = rnr.useAnimatedStyle as typeof useAnimatedStyle
   useSharedValue = rnr.useSharedValue
   withRepeat = rnr.withRepeat
   withTiming = rnr.withTiming
@@ -43,13 +41,15 @@ if (isMobile && !skipAnimations) {
   useSharedValue = function <Value>(a: Value, _oneWayReadsOnly?: boolean) {
     return {
       addListener: () => {},
+      get: () => a,
       modify: () => {},
       removeListener: () => {},
+      set: () => {},
       value: a,
     }
   } as typeof useSharedValue
   withRepeat = ((a: unknown) => a) as typeof withRepeat
-  useAnimatedStyle = ((f: () => Object): unknown => f()) as typeof useAnimatedStyle
+  useAnimatedStyle = ((f: () => object): unknown => f()) as typeof useAnimatedStyle
   withTiming = ((a: unknown) => a) as typeof withTiming
   withDelay = ((a: unknown) => a) as typeof withDelay
   useAnimatedScrollHandler = () => () => {}

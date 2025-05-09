@@ -45,7 +45,10 @@ export const useInterval = (func: () => any, interval?: number) => {
     if (typeof interval !== 'number') {
       return noop
     }
-    const id = setInterval(() => cb.current(), interval)
+    const tick = () => {
+      cb.current()
+    }
+    const id = setInterval(tick, interval)
     return () => clearInterval(id)
   }, [interval])
 }

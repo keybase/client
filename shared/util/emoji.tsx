@@ -15,7 +15,6 @@ categorized['Smileys & People'] = [
 ]
 delete categorized['Smileys & Emotion']
 delete categorized['People & Body']
-// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
 delete categorized['Component']
 
 const sorted: typeof categorized = {}
@@ -57,7 +56,7 @@ export const categories = categoryOrder.map(category => ({
 
 export const emojiSearch = (filter: string, maxResults: number) => {
   const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
-  const vals: Array<EmojiData> = Object.values(emojidata as any)
+  const vals: Array<EmojiData> = Object.values(emojidata)
   type ResType = Array<{emoji: EmojiData; score: number}>
   const res = vals.reduce<ResType>((arr, emoji: EmojiData) => {
     let score = 0
@@ -179,7 +178,7 @@ export const emojiDataToRenderableEmoji = (
     emoji.unified &&
     String.fromCodePoint(
       ...(skinToneModifier && skinToneKey
-        ? emoji.skin_variations?.[skinToneKey]?.unified ?? ''
+        ? (emoji.skin_variations?.[skinToneKey]?.unified ?? '')
         : emoji.unified
       )
         .split('-')

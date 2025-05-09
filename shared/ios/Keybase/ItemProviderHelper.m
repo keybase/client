@@ -13,8 +13,6 @@
 #import <Contacts/CNContactFormatter.h>
 #import <Contacts/CNContactVCardSerialization.h>
 #import <Contacts/CNPostalAddressFormatter.h>
-#import <MobileCoreServices/UTCoreTypes.h>
-#import <MobileCoreServices/UTType.h>
 #import <UIKit/UIKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
@@ -34,11 +32,13 @@
 
 - (void)completeProcessingItemAlreadyInMainThread {
   // more to process
-  if (--self.unprocessed > 0) {
-    return;
+  @synchronized (self) {
+    if (--self.unprocessed > 0) {
+      return;
+    }
   }
   // done
-  else if (!self.done) {
+  if (!self.done) {
     self.done = YES;
     [self writeManifest];
     self.completionHandler();
@@ -114,66 +114,71 @@
 
 - (void)completeItemAndAppendManifestType:(NSString *)type
                           originalFileURL:(NSURL *)originalFileURL {
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSMutableArray *arr = [self ensureArrayOfType:type];
+    NSMutableArray *arr = [weakSelf ensureArrayOfType:type];
     [arr addObject:@{
       @"type" : type,
       @"originalPath" : [originalFileURL absoluteURL].path,
     }];
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 
 // No path; this is chatOnly.
 - (void)completeItemAndAppendManifestType:(NSString *)type
                                   content:(NSString *)content {
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSMutableArray *arr = [self ensureArrayOfType:type];
+    NSMutableArray *arr = [weakSelf ensureArrayOfType:type];
     [arr addObject:@{
       @"type" : type,
       @"content" : content,
     }];
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 
 - (void)completeItemAndAppendManifestType:(NSString *)type
                           originalFileURL:(NSURL *)originalFileURL
                                   content:(NSString *)content {
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSMutableArray *arr = [self ensureArrayOfType:type];
+    NSMutableArray *arr = [weakSelf ensureArrayOfType:type];
     [arr addObject:@{
       @"type" : type,
       @"originalPath" : [originalFileURL absoluteURL].path,
       @"content" : content,
     }];
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 
 - (void)completeItemAndAppendManifestType:(NSString *)type
                           originalFileURL:(NSURL *)originalFileURL
                             scaledFileURL:(NSURL *)scaledFileURL {
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSMutableArray *arr = [self ensureArrayOfType:type];
+    NSMutableArray *arr = [weakSelf ensureArrayOfType:type];
     [arr addObject:@{
       @"type" : type,
       @"originalPath" : [originalFileURL absoluteURL].path,
       @"scaledPath" : [scaledFileURL absoluteURL].path,
     }];
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 
 - (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString *)text
                                                    error:(NSError *)error {
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    NSMutableArray *arr = [self ensureArrayOfType:@"error"];
+    NSMutableArray *arr = [weakSelf ensureArrayOfType:@"error"];
     [arr addObject:@{
       @"error" : [NSString
                   stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
     }];
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 
@@ -413,6 +418,12 @@
   [self completeItemAndAppendManifestAndLogErrorWithText: @"coerceImageHandlerSimple2: unable to decode share" error:nil];
 }
 
+- (void)incrementUnprocessed {
+    @synchronized (self) {
+        self.unprocessed++;
+    }
+}
+
 - (void)startProcessing {
   NSItemProviderCompletionHandler fileHandlerSimple2 =
   ^(id<NSSecureCoding> item, NSError *error) {
@@ -426,15 +437,18 @@
   
   for (NSArray *items in self.itemArrs) {
     // only handle one from itemArrs
-    if (self.unprocessed > 0) {
-      break;
+    @synchronized (self) {
+      if (self.unprocessed > 0) {
+        break;
+      }
     }
     
     for (NSItemProvider *item in items) {
       for (NSString *stype in item.registeredTypeIdentifiers) {
+        UTType *type = [UTType typeWithIdentifier:stype];
         // Movies
-        if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeMovie)) {
-          self.unprocessed++;
+        if ([type conformsToType:UTTypeMovie]) {
+          [self incrementUnprocessed];
           [item
            loadFileRepresentationForTypeIdentifier:stype
            completionHandler:^(id<NSSecureCoding> item, NSError *error) {
@@ -448,20 +462,18 @@
           }];
           break;
           // Images
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePNG) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeGIF) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeJPEG)) {
-          self.unprocessed++;
+        } else if ([type conformsToType: UTTypePNG] || [type conformsToType: UTTypeGIF] || [type conformsToType: UTTypeJPEG]) {
+          [self incrementUnprocessed];
           [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
           break;
           // HEIC Images
         } else if ([stype isEqual:@"public.heic"]) {
-          self.unprocessed++;
+          [self incrementUnprocessed];
           [item loadFileRepresentationForTypeIdentifier:@"public.heic" completionHandler:fileHandlerSimple2];
           break;
           // Unknown images, ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
-          self.unprocessed++;
+        } else if ([type conformsToType: UTTypeImage]) {
+          [self incrementUnprocessed];
           [item
            loadItemForTypeIdentifier:@"public.image"
            options:nil
@@ -484,8 +496,8 @@
           }];
           break;
           // Contact cards
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeVCard)) {
-          self.unprocessed++;
+        } else if ([type conformsToType:  UTTypeVCard]) {
+          [self incrementUnprocessed];
           [item
            loadDataRepresentationForTypeIdentifier:@"public.vcard"
            completionHandler:^(id<NSSecureCoding> item, NSError *error) {
@@ -501,16 +513,15 @@
           }];
           break;
           // Text ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype,
-                                    kUTTypePlainText)) {
+        } else if ([type conformsToType: UTTypePlainText]) {
           // We run a coersed to NSString an a NSSecureCoding so we can handle
           // this better, sometimes we get an empty text otherwise sadly
-          self.unprocessed++;
+          [self incrementUnprocessed];
           [item loadItemForTypeIdentifier:@"public.plain-text" options:nil
                         completionHandler:^(NSString *text, NSError *error) {
             [self sendText:text];
           }];
-          self.unprocessed++;
+          [self incrementUnprocessed];
           [item loadItemForTypeIdentifier:@"public.plain-text" options:nil
                         completionHandler:^(id<NSSecureCoding> item,
                                             NSError *error) {
@@ -540,15 +551,13 @@
           }];
           break;
           // local file urls, basically unknown, or known data files
-        } else if (
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePDF) ||
-                   UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
-          self.unprocessed++;
+        } else if ([type conformsToType: UTTypePDF] || [type conformsToType: UTTypeFileURL]) {
+          [self incrementUnprocessed];
           [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple2];
           break;
           // web urls ⚠️ coerce
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeURL)) {
-          self.unprocessed++;
+        } else if ([type conformsToType: UTTypeURL]) {
+          [self incrementUnprocessed];
           [item loadItemForTypeIdentifier:@"public.url"
                                   options:nil
                         completionHandler:^(NSURL *url, NSError *error) {
@@ -561,10 +570,11 @@
     }
   }
   
-  self.unprocessed++;
+  [self incrementUnprocessed];
   // in case we didn't find anything clean up
+  __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self completeProcessingItemAlreadyInMainThread];
+    [weakSelf completeProcessingItemAlreadyInMainThread];
   });
 }
 

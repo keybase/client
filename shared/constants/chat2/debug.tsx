@@ -21,7 +21,7 @@ const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
       const cs = C.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
-      logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
+      // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
       const m = cs.meta
       logger.error('[CHATDEBUG] meta: ', {
         inboxLocalVersion: m.inboxLocalVersion,

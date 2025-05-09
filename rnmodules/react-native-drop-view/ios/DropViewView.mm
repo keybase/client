@@ -23,18 +23,14 @@ using namespace facebook::react;
     return concreteComponentDescriptorProvider<DropViewViewComponentDescriptor>();
 }
 
-- (instancetype)initWithFrame:(CGRect)frame
+- (instancetype)init
 {
-  if (self = [super initWithFrame:frame]) {
+  if (self = [super init]) {
+#ifdef RCT_NEW_ARCH_ENABLED
     static const auto defaultProps = std::make_shared<const DropViewViewProps>();
     _props = defaultProps;
-
-      DropView *dv = [[DropView alloc] init];
-      _view = dv;
-
-    self.contentView = _view;
+#endif
   }
-
   return self;
 }
 
@@ -46,6 +42,21 @@ using namespace facebook::react;
 Class<RCTComponentViewProtocol> DropViewViewCls(void)
 {
     return DropViewView.class;
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+}
+
+- (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
+{
+    [super mountChildComponentView:childComponentView index:index];
+}
+
+- (UIView *)view
+{
+  return [[DropView alloc] init];
 }
 
 @end

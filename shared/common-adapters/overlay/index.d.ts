@@ -27,6 +27,7 @@ export type Props = {
   remeasureHint?: number
   style?: StylesCrossPlatform
   visible?: boolean
+  offset?: number
 }
 
 declare const Overlay: (p: Props) => React.ReactNode

@@ -9,6 +9,7 @@
 
 #import "AppDelegate+KB.h"
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 @implementation AppDelegate
 
@@ -17,6 +18,7 @@
   [self didLaunchSetupBefore:application];
 
   self.moduleName = @"Keybase";
+  self.dependencyProvider = [RCTAppDependencyProvider new];
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -29,10 +31,10 @@
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [self getBundleURL];
+  return [self bundleURL];
 }
 
-- (NSURL *)getBundleURL {
+- (NSURL *)bundleURL {
 #if DEBUG
   [[RCTBundleURLProvider sharedSettings] setEnableDev:true];
   // uncomment to get a prod bundle.
@@ -46,3 +48,5 @@
 }
 
 @end
+
+

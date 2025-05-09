@@ -14,46 +14,35 @@ type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-type State = {
-  rolePickerOpen: boolean
-  sendNotification: boolean
-}
-
 type ExtraProps = {
   _notifLabel: string
   letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType) => void
 }
 
-class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
-  state = {
-    rolePickerOpen: false,
-    sendNotification: true,
-  }
-  _setRef = false
+const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
+  const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
+  const [sendNotification, setSendNotification] = React.useState(true)
 
-  render() {
-    const {_notifLabel, letIn, ...rest} = this.props
-    return (
-      <TeamRequestRow
-        {...rest}
-        onAccept={() => this.setState({rolePickerOpen: true})}
-        isRolePickerOpen={this.state.rolePickerOpen}
-        onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
-        onEditMembership={() => this.setState({rolePickerOpen: true})}
-        footerComponent={
-          this.props.reset
-            ? undefined
-            : sendNotificationFooter(_notifLabel, this.state.sendNotification, nextVal =>
-                this.setState({sendNotification: nextVal})
-              )
-        }
-        onConfirmRolePicker={role => {
-          this.setState({rolePickerOpen: false})
-          letIn(!this.props.reset && this.state.sendNotification, role)
-        }}
-      />
-    )
-  }
+  const {_notifLabel, letIn, ...rest} = props
+
+  return (
+    <TeamRequestRow
+      {...rest}
+      onAccept={() => setRolePickerOpen(true)}
+      isRolePickerOpen={rolePickerOpen}
+      onCancelRolePicker={() => setRolePickerOpen(false)}
+      onEditMembership={() => setRolePickerOpen(true)}
+      footerComponent={
+        props.reset
+          ? undefined
+          : sendNotificationFooter(_notifLabel, sendNotification, nextVal => setSendNotification(nextVal))
+      }
+      onConfirmRolePicker={role => {
+        setRolePickerOpen(false)
+        letIn(!props.reset && sendNotification, role)
+      }}
+    />
+  )
 }
 
 const Container = (ownProps: OwnProps) => {

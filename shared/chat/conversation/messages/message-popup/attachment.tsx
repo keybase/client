@@ -18,33 +18,55 @@ const emptyMessage = C.Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
-  const m = C.useChatContext(s => s.messageMap.get(ordinal))
-  const message = m?.type === 'attachment' ? m : emptyMessage
-  const {downloadPath, attachmentType} = message
+  const message = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    const message = m?.type === 'attachment' ? m : emptyMessage
+    return message
+  })
+  const {downloadPath, attachmentType, id} = message
   const pending = !!message.transferState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
 
-  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
+  const {
+    attachmentDownload,
+    loadMessagesCentered,
+    messageAttachmentNativeSave,
+    messageAttachmentNativeShare,
+    showInfoPanel,
+  } = C.useChatContext(
+    C.useShallow(s => {
+      const {
+        attachmentDownload,
+        loadMessagesCentered,
+        messageAttachmentNativeSave,
+        messageAttachmentNativeShare,
+        showInfoPanel,
+      } = s.dispatch
+      return {
+        attachmentDownload,
+        loadMessagesCentered,
+        messageAttachmentNativeSave,
+        messageAttachmentNativeShare,
+        showInfoPanel,
+      }
+    })
+  )
 
   const onJump = React.useCallback(() => {
-    m && loadMessagesCentered(m.id, 'always')
+    loadMessagesCentered(id, 'always')
     showInfoPanel(false, 'attachments')
     clearModals()
-  }, [m, loadMessagesCentered, showInfoPanel, clearModals])
+  }, [id, loadMessagesCentered, showInfoPanel, clearModals])
 
   const onAllMedia = () => {
     clearModals()
     showInfoPanel(true, 'attachments')
   }
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const _onDownload = React.useCallback(() => {
     attachmentDownload(ordinal)
   }, [attachmentDownload, ordinal])
   const onDownload = !C.isMobile && !message.downloadPath ? _onDownload : undefined
 
-  const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
-  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = React.useCallback(() => {
     messageAttachmentNativeSave(ordinal)
   }, [messageAttachmentNativeSave, ordinal])
@@ -57,7 +79,7 @@ const PopAttach = (ownProps: OwnProps) => {
   const _onShareAttachment = React.useCallback(() => {
     messageAttachmentNativeShare(ordinal)
   }, [messageAttachmentNativeShare, ordinal])
-  const onShareAttachment = C.isIOS ? _onShareAttachment : undefined
+  const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
@@ -115,7 +137,7 @@ const PopAttach = (ownProps: OwnProps) => {
     ...itemPin,
   ]
 
-  const header = useHeader(ordinal)
+  const header = useHeader(ordinal, onHidden)
   const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (

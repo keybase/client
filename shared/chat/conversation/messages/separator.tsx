@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
-import {useChatDebugDump} from '@/constants/chat2/debug'
+// import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -201,20 +201,21 @@ const missingMessage = C.Chat.makeMessageDeleted({})
 // TODO check flashlist if that ever gets turned back on
 const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
   const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
-  const previous = C.useChatContext(s => s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0))
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
-  const TEMP = React.useRef({})
+  // const TEMP = React.useRef({})
 
   const ret = C.useChatContext(
     C.useShallow(s => {
+      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
       // we don't show the label if its been too recent (2hrs)
       const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-      const orangeLineAbove = orangeOrdinal === ordinal
+      const orangeLineAbove =
+        orangeOrdinal === ordinal || (orangeOrdinal && orangeOrdinal < ordinal && orangeOrdinal > previous)
       const isJoinLeave = m.type === 'systemJoined'
 
       const orangeTime =
@@ -222,34 +223,32 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
           ? formatTimeForConversationList(m.timestamp)
           : ''
 
-      /* eslint-disable sort-keys */
-      TEMP.current = {
-        orangeOrdinal,
-        ordinal,
-        previous,
-        showUsername,
-        mauthor: m.author,
-        mbot: m.botUsername,
-        mtype: m.type,
-        mtime: m.timestamp,
-        pauthor: pmessage?.author,
-        pbot: pmessage?.botUsername,
-        ptype: pmessage?.type,
-        ptime: pmessage?.timestamp,
-        msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
-        pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
-      }
-      /* eslint-enable sort-keys */
+      // TEMP.current = {
+      //   orangeOrdinal,
+      //   ordinal,
+      //   previous,
+      //   showUsername,
+      //   mauthor: m.author,
+      //   mbot: m.botUsername,
+      //   mtype: m.type,
+      //   mtime: m.timestamp,
+      //   pauthor: pmessage?.author,
+      //   pbot: pmessage?.botUsername,
+      //   ptype: pmessage?.type,
+      //   ptime: pmessage?.timestamp,
+      //   msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
+      //   pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
+      // }
       return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
 
-  useChatDebugDump(
-    `CHATDEBUGSep${ordinal}:`,
-    C.useEvent(() => {
-      return JSON.stringify(TEMP.current, null, 2)
-    })
-  )
+  // useChatDebugDump(
+  //   `CHATDEBUGSep${ordinal}:`,
+  //   C.useEvent(() => {
+  //     return JSON.stringify(TEMP.current, null, 2)
+  //   })
+  // )
 
   return ret
 }

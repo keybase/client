@@ -12,6 +12,7 @@ import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '@/styles'
 import {
   BottomSheetModal,
+  BottomSheetView,
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
 } from '@/common-adapters/bottom-sheet'
@@ -43,6 +44,7 @@ export type Props = {
   remeasureHint?: number
   textColor?: Styles.Color
   visible: boolean
+  offset?: number
   // mobile only
   safeProviderStyle?: Styles.StylesCrossPlatform
   snapPoints?: Array<string | number>
@@ -56,12 +58,19 @@ const FullWindow = ({children}: {children?: React.ReactNode}) => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
+const defaultSnapPoints = ['75%']
+
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible} = props
   const isModal = React.useContext(FloatingModalContext)
-  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
+  const shownRef = React.useRef(false)
+
+  const bottomRef = React.useRef<BottomSheetModal | null>(null)
+
   React.useEffect(() => {
-    bottomSheetModalRef.current?.present()
+    return () => {
+      bottomRef.current?.forceClose()
+    }
   }, [])
 
   if (!visible && isModal === false) {
@@ -90,17 +99,30 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   if (Styles.isMobile && isModal === 'bottomsheet') {
     return (
       <BottomSheetModal
+        backgroundStyle={styles.modalBackground}
         containerComponent={FullWindow}
-        snapPoints={snapPoints}
+        snapPoints={snapPoints ?? defaultSnapPoints}
         enableDynamicSizing={true}
-        ref={bottomSheetModalRef}
+        ref={s => {
+          if (bottomRef.current && bottomRef.current !== s) {
+            // need to workaround this unmounting but not closing the portal
+            bottomRef.current.forceClose()
+          }
+          bottomRef.current = s
+          if (s && !shownRef.current) {
+            shownRef.current = true
+            setTimeout(() => {
+              s.present()
+            }, 100)
+          }
+        }}
         handleStyle={styles.handleStyle}
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}
         backdropComponent={Backdrop}
         onDismiss={props.onHidden}
       >
-        {contents}
+        <BottomSheetView style={undefined}>{contents}</BottomSheetView>
       </BottomSheetModal>
     )
   }
@@ -115,6 +137,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
       remeasureHint={props.remeasureHint}
       style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      offset={props.offset}
     >
       {contents}
     </Kb.Overlay>
@@ -125,7 +148,8 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
-      handleStyle: {backgroundColor: Styles.globalColors.black_05OrBlack},
+      handleStyle: {backgroundColor: Styles.globalColors.black_05_on_white},
+      modalBackground: {backgroundColor: Styles.globalColors.black_05_on_white},
       modalStyle: Styles.platformStyles({
         isAndroid: {
           elevation: 17,

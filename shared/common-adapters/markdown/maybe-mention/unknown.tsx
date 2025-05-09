@@ -49,68 +49,57 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-type State = {
-  showPopup: boolean
-}
+const UnknownMention = (props: Props) => {
+  const [showPopup, setShowPopup] = React.useState(false)
+  const mentionRef = React.useRef<MeasureRef>(null)
 
-class UnknownMention extends React.Component<Props, State> {
-  _mentionRef = React.createRef<MeasureRef>()
-  state = {showPopup: false}
-  _onMouseOver = () => {
-    this.setState({showPopup: true})
+  const handleMouseOver = () => setShowPopup(true)
+  const handleMouseLeave = () => setShowPopup(false)
+
+  let text = `@${props.name}`
+  if (props.channel.length > 0) {
+    text += `#${props.channel}`
   }
-  _onMouseLeave = () => {
-    this.setState({showPopup: false})
-  }
-  render() {
-    let text = `@${this.props.name}`
-    if (this.props.channel.length > 0) {
-      text += `#${this.props.channel}`
-    }
-    const content = (
-      <Kb.Text
-        textRef={this._mentionRef}
-        type="BodySemibold"
-        className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
-        allowFontScaling={this.props.allowFontScaling}
-        style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
-        onClick={this._onMouseOver}
-      >
-        <Kb.Text
-          type="BodySemibold"
-          allowFontScaling={this.props.allowFontScaling}
-          style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
-        >
-          {text}
-        </Kb.Text>
-      </Kb.Text>
-    )
-    const popups = (
-      <UnknownMentionPopup
-        attachTo={this._mentionRef}
-        onHidden={this._onMouseLeave}
-        onResolve={this.props.onResolve}
-        text={text}
-        visible={this.state.showPopup}
-      />
-    )
-    return Kb.Styles.isMobile ? (
-      <>
-        {content}
-        {popups}
-      </>
-    ) : (
-      <Kb.Box2
-        direction="horizontal"
-        style={styles.container}
-        onMouseOver={this._onMouseOver}
-        onMouseLeave={this._onMouseLeave}
-      >
-        {content}
-        {popups}
-      </Kb.Box2>
-    )
-  }
+
+  const content = (
+    <Kb.Text
+      textRef={mentionRef}
+      type="BodySemibold"
+      className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      allowFontScaling={props.allowFontScaling}
+      style={Kb.Styles.collapseStyles([props.style, styles.text])}
+      onClick={handleMouseOver}
+    >
+      {text}
+    </Kb.Text>
+  )
+
+  const popups = (
+    <UnknownMentionPopup
+      attachTo={mentionRef}
+      onHidden={handleMouseLeave}
+      onResolve={props.onResolve}
+      text={text}
+      visible={showPopup}
+    />
+  )
+
+  return Kb.Styles.isMobile ? (
+    <>
+      {content}
+      {popups}
+    </>
+  ) : (
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.container}
+      onMouseOver={handleMouseOver}
+      onMouseLeave={handleMouseLeave}
+    >
+      {content}
+      {popups}
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
