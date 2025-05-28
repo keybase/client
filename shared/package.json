@@ -75,7 +75,6 @@
     "@gorhom/bottom-sheet": "5.1.2",
     "@gorhom/portal": "1.0.14",
     "@khanacademy/simple-markdown": "0.14.0",
-    "@mattermost/react-native-paste-input": "0.8.1",
     "@msgpack/msgpack": "2.8.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-community/push-notification-ios": "1.11.0",

@@ -9,7 +9,8 @@
 #import "ShareViewController.h"
 #import "keybase/keybase.h"
 #import <MobileCoreServices/MobileCoreServices.h>
-#import "ItemProviderHelper.h"
+#import "KeybaseShare-Swift.h"
+#import <KBCommon/KBCommon-Swift.h>
 
 #if TARGET_OS_SIMULATOR
 const BOOL isSimulator = YES;
