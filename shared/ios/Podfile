@@ -47,7 +47,7 @@ target 'Keybase' do
 end
 
 target 'KeybaseShare' do
-  pod 'KBCommon', :path => '../../rnmodules/kb-common', :modular_headers => true
+  pod 'KBCommon', :path => '../../rnmodules/kb-common'
   use_frameworks! :linkage => :static
 end
 
