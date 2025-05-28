@@ -1,7 +1,6 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "DropViewView.h"
 #import "DropView.h"
-#import "../../../shared/ios/Keybase/ItemProviderHelper.h"
 #import <react/renderer/components/RNDropViewViewSpec/ComponentDescriptors.h>
 #import <react/renderer/components/RNDropViewViewSpec/EventEmitters.h>
 #import <react/renderer/components/RNDropViewViewSpec/Props.h>

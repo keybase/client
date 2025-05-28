@@ -4,7 +4,10 @@ import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getStyle as getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
-import PasteInput, {type PastedFile} from '@mattermost/react-native-paste-input'
+//import PasteInput, {type PastedFile} from '@mattermost/react-native-paste-input'
+
+// TEMP
+const PasteInput = () => null
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {

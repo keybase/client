@@ -16,6 +16,11 @@
 #import <React/RCTLinkingManager.h>
 #import <UserNotifications/UserNotifications.h>
 #import "Kb.h"
+#import <KBCommon/KBCommon-Swift.h>
+
+@interface AppDelegate()
+  @property(nonatomic, strong) ItemProviderHelper *iph;
+@end
 
 @implementation AppDelegate(KB)
 
