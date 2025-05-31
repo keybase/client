@@ -127,7 +127,9 @@ const MenuBar = () => {
             action.payload.desktopAppBadgeCount > 0
               ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
               : null
-          overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
+          overlay 
+            ? mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
+            : mw?.setOverlayIcon(null, 'no recent activity');
         }
 
         break
