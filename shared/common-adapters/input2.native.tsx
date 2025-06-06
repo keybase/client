@@ -4,12 +4,11 @@ import type {Props, TextInfo, RefType} from './input2'
 import {isIOS} from '@/constants/platform'
 import {getStyle as getTextStyle} from './text'
 import {TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
-import PasteInput, {type PastedFile} from '@mattermost/react-native-paste-input'
 
 export const Input2 = React.memo(
   React.forwardRef<RefType, Props>(function Input2(p, ref) {
     const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
-    const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
+    const {textType = 'Body', rowsMax, rowsMin, padding, disabled /*, onPasteImage*/} = p
     const {
       autoFocus: _autoFocus,
       autoCorrect,
@@ -105,43 +104,44 @@ export const Input2 = React.memo(
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
     }, [_style, multiline, textType, padding, rowsMax, rowsMin])
 
-    const onPasteImageImpl = React.useCallback(
-      (error: string | null | undefined, files: Array<PastedFile>) => {
-        if (error) {
-          console.log('paste error', error)
-        }
-        if (onPasteImage) {
-          const uris = files.map(f => f.uri)
-          onPasteImage(uris)
-        }
-      },
-      [onPasteImage]
-    )
+    // const onPasteImageImpl = React.useCallback(
+    //   (error: string | null | undefined, files: Array<PastedFile>) => {
+    //     if (error) {
+    //       console.log('paste error', error)
+    //     }
+    //     if (onPasteImage) {
+    //       const uris = files.map(f => f.uri)
+    //       onPasteImage(uris)
+    //     }
+    //   },
+    //   [onPasteImage]
+    // )
 
-    const onPaste = onPasteImage ? onPasteImageImpl : undefined
-
-    if (onPaste) {
-      return (
-        <PasteInput
-          autoCapitalize={autoCapitalize}
-          autoCorrect={autoCorrect}
-          autoFocus={autoFocus}
-          blurOnSubmit={false}
-          multiline={multiline}
-          onBlur={onBlur}
-          onChangeText={onChangeText}
-          onFocus={onFocus}
-          onPaste={onPaste}
-          onSelectionChange={onSelectionChange}
-          placeholder={placeholder}
-          readOnly={disabled}
-          ref={setInputRef}
-          selection={selection}
-          style={style}
-          value={value}
-        />
-      )
-    }
+    // disabling this feature for now. Seems hard to get this to work
+    //const onPaste = onPasteImage ? onPasteImageImpl : undefined
+    // if (onPaste) {
+    //   return (
+    //     <ImagePasteView
+    //       autoCapitalize={autoCapitalize}
+    //       autoCorrect={autoCorrect}
+    //       autoFocus={autoFocus}
+    //       blurOnSubmit={false}
+    //       multiline={multiline}
+    //       onBlur={onBlur}
+    //       onChangeText={onChangeText}
+    //       onFocus={onFocus}
+    //       // @ts-ignore added by react-native-image-keyboard
+    //       onImageChange={onPaste}
+    //       onSelectionChange={onSelectionChange}
+    //       placeholder={placeholder}
+    //       readOnly={disabled}
+    //       ref={setInputRef}
+    //       selection={selection}
+    //       style={style}
+    //       value={value}
+    //     />
+    //   )
+    // }
 
     return (
       <TextInput
