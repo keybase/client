@@ -7,7 +7,6 @@
 //
 
 #import "AppDelegate+KB.h"
-#import "Fs.h"
 #import <keybase/keybase.h>
 #import "Pusher.h"
 #import <AVFoundation/AVFoundation.h>
@@ -16,6 +15,8 @@
 #import <React/RCTLinkingManager.h>
 #import <UserNotifications/UserNotifications.h>
 #import "Kb.h"
+#import "ExpoModulesCore-Swift.h"
+#import "Keybase-Swift.h"
 
 
 @interface AppDelegate()
