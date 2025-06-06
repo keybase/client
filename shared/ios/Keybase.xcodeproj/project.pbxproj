@@ -131,16 +131,6 @@
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		DBF8C51B2DD28EB9004C6B58 /* KeybaseShared */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			path = KeybaseShared;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -232,7 +222,6 @@
 				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
 				279FB59D2139AB6A005E4864 /* KeybaseShare */,
-				DBF8C51B2DD28EB9004C6B58 /* KeybaseShared */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
 				DB090F7F1F719A2F007E4E1B /* Recovered References */,

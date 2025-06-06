@@ -1,3 +1,7 @@
+input paste view removed
+
+
+
 expo-av to expo-video / expo-audio (not ready yet can't get video size...)
 using "react-native-gesture-handler": "2.24.0", as 25 clicking search in chat on inbox ios doesn't work (https://github.com/software-mansion/react-native-gesture-handler/issues/3476)
 

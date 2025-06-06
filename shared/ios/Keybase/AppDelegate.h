@@ -10,6 +10,7 @@
 #import <UserNotifications/UNUserNotificationCenter.h>
 #import <UIKit/UIKit.h>
 #import <Expo/Expo.h>
+#import <KBCommon/KBCommon-Swift.h>
 
 @class Engine;
 
@@ -19,5 +20,6 @@
 @property(nonatomic, strong) NSDictionary *fsPaths;
 @property UIBackgroundTaskIdentifier backgroundTask;
 @property UIBackgroundTaskIdentifier shutdownTask;
+@property(nonatomic, strong) ItemProviderHelper *iph;
 
 @end
