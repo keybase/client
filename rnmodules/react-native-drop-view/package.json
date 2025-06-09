@@ -2,9 +2,9 @@
   "name": "react-native-drop-view",
   "version": "0.1.0",
   "description": "drop view",
-  "main": "lib/commonjs/index",
+  "main": "lib/module/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/index.d.ts",
+  "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
@@ -36,7 +36,7 @@
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
     "typescript": "file:../../shared/node_modules/typescript",
-    "react-native-builder-bob": "^0.20.4"
+    "react-native-builder-bob": "0.40.11"
   },
   "resolutions": {
     "@types/react": "18.2.12"
@@ -57,7 +57,7 @@
   },
   "codegenConfig": {
     "name": "RNDropViewViewSpec",
-    "type": "components",
+    "type": "all",
     "jsSrcsDir": "src"
   }
 }

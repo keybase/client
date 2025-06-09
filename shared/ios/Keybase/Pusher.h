@@ -8,7 +8,7 @@
 
 #ifndef Pusher_h
 #define Pusher_h
-#import <Keybase/Keybase.h>
+#import <Keybasego/Keybasego.h>
 
 @interface PushNotifier : NSObject<KeybasePushNotifier> {
 }
