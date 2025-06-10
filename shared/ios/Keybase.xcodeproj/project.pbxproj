@@ -18,8 +18,6 @@
 		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
-		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
-		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */; };
 		37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */; };
 		37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */; };
@@ -39,6 +37,7 @@
 		DBBE59452DF394F700A74A2D /* keybasego.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBE59442DF394F700A74A2D /* keybasego.xcframework */; };
 		DBD252982DF32D5C008A43FF /* Fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD252972DF32D5C008A43FF /* Fs.swift */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
+		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,8 +83,6 @@
 		279FB6F121403A2A005E4864 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		279FB6F321403A49005E4864 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
-		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
-		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
 		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
@@ -115,6 +112,7 @@
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
+		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
 		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -268,8 +266,7 @@
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
 				DBD252972DF32D5C008A43FF /* Fs.swift */,
-				27EE26A920A1466300F92CD1 /* Pusher.h */,
-				27EE26A720A140EF00F92CD1 /* Pusher.m */,
+				DBDF89F52DF7779900EA18C2 /* Pusher.swift */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */,
 			);
@@ -608,7 +605,7 @@
 			files = (
 				DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
-				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
+				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
 				DBD252982DF32D5C008A43FF /* Fs.swift in Sources */,
 				9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */,
 			);
@@ -618,7 +615,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
 				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
