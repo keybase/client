@@ -170,7 +170,7 @@
     "circular-dependency-plugin": "5.2.2",
     "cross-env": "7.0.3",
     "css-loader": "7.1.2",
-    "electron": "36.1.0",
+    "electron": "36.4.0",
     "eslint": "9.28.0",
     "eslint-plugin-deprecation": "3.0.0",
     "eslint-plugin-import": "2.31.0",
@@ -193,7 +193,7 @@
     "typescript-eslint": "8.33.1",
     "webpack": "5.99.9",
     "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.0",
+    "webpack-dev-server": "5.2.2",
     "webpack-merge": "6.0.1"
   },
   "resolutions": {
