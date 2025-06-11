@@ -24,6 +24,7 @@ project.logger.lifecycle('Version code: ' + getVersionCode().toString())
  */
 
 react {
+    enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
 

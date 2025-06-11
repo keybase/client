@@ -1,5 +1,6 @@
 input paste view removed
 
+android:
 
 
 expo-av to expo-video / expo-audio (not ready yet can't get video size...)
