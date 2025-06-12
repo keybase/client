@@ -175,13 +175,13 @@ const getMsgPack = () => {
 const patchIosKBLib = () => {
   if (process.platform === 'darwin') {
     const prefixes = [
-      'ios/keybase.xcframework/ios-arm64',
-      'ios/keybase.xcframework/ios-arm64_x86_64-simulator',
+      'ios/keybasego.xcframework/ios-arm64',
+      'ios/keybasego.xcframework/ios-arm64_x86_64-simulator',
     ]
     const files = ['Keybase.objc.h', 'Universe.objc.h']
     for (const prefix of prefixes) {
       for (const file of files) {
-        const path = `${prefix}/Keybase.framework/Versions/Current/Headers/${file}`
+        const path = `${prefix}/Keybasego.framework/Headers/${file}`
         try {
           console.log('Patching go libs', path)
           exec(`sed -i -e 's/@import Foundation;/#include <Foundation\\/Foundation.h>/' ${path}`)

@@ -20,10 +20,7 @@
 @end
 
 // Singleton to get the paths
-@interface FsPathsHolder : NSObject {
-  NSDictionary *fsPaths;
-}
+@interface FsPathsHolder : NSObject
 @property(nonatomic, retain) NSDictionary *fsPaths;
-+ (id)sharedFsPathsHolder;
-
++ (instancetype)sharedFsPathsHolder;
 @end
