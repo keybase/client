@@ -41,7 +41,7 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 const dragKey = 'application/keybase_inbox'
 
 const DragLine = (p: {
-  scrollDiv: React.RefObject<HTMLDivElement>
+  scrollDiv: React.RefObject<HTMLDivElement | null>
   inboxNumSmallRows: number
   showButton: boolean
   smallTeamsExpanded: boolean
@@ -178,7 +178,7 @@ type InboxRowData = {
   inboxNumSmallRows: number
   navKey: string
   rows: T.Chat.ChatInboxRowItem[]
-  scrollDiv: React.RefObject<HTMLDivElement>
+  scrollDiv: React.RefObject<HTMLDivElement | null>
   selectedConversationIDKey: string
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
@@ -254,7 +254,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
 
   const listRef = React.useRef<VariableSizeList>(null)
   const dragListRef = React.useRef<HTMLDivElement>(null)
-  const scrollDiv = React.useRef<HTMLDivElement>(null)
+  const scrollDiv = React.useRef<HTMLDivElement | null>(null)
 
   // stuff for UnreadShortcut
   const firstOffscreenIdx = React.useRef(-1)

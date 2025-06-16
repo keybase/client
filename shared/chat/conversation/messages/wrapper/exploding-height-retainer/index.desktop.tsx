@@ -8,7 +8,7 @@ export const animationDuration = 2000
 
 const ExplodingHeightRetainer = (p: Props) => {
   const {retainHeight, explodedBy, style, children, messageKey} = p
-  const boxRef = React.useRef<Kb.MeasureRef>(null)
+  const boxRef = React.useRef<Kb.MeasureRef | null>(null)
   const [animating, setAnimating] = React.useState(false)
   const [height, setHeight] = React.useState(17)
 

@@ -51,7 +51,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
 
   const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
-  const forceUpdateIDRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
+  const forceUpdateIDRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = React.useContext(HighlightedContext)
 

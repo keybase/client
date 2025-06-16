@@ -32,7 +32,7 @@ const List2 = <T,>(props: Props<T>) => {
     [items, indexAsKey, keyProperty]
   )
 
-  const _getItemDataCached = React.useRef<RowData<T>>()
+  const _getItemDataCached = React.useRef<RowData<T>>(undefined)
   const _getItemData = React.useCallback(() => {
     if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
       return _getItemDataCached.current

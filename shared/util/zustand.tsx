@@ -76,7 +76,7 @@ export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {
-  const prev = React.useRef<U>()
+  const prev = React.useRef<U>(undefined)
 
   return state => {
     const next = selector(state)

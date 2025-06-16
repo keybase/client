@@ -234,7 +234,7 @@ type ModalPositionRelativeProps = {
 
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const [popupNode, setPopupNode] = React.useState<HTMLDivElement | null>(null)
-  const downRef = React.useRef<undefined | {x: number; y: number}>()
+  const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
   const [style, setStyle] = React.useState<Styles.StylesCrossPlatform>({opacity: 0, pointerEvents: 'none'})
   const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props

@@ -32,7 +32,7 @@ type DropdownButtonProps = {
   selected?: React.ReactNode
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
-  popupAnchor?: React.MutableRefObject<MeasureRef | null>
+  popupAnchor?: React.RefObject<MeasureRef | null>
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
   loading?: boolean

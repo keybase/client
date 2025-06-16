@@ -29,7 +29,7 @@ const Kb = {
 export type MenuItems = _MenuItems
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",

@@ -296,7 +296,7 @@ const PlainInput = React.memo(
           }, 1)
 
           if (reflectChange) {
-            onChange({target: inputRef.current})
+            onChange({target: inputRef.current ?? {value: ''}})
           }
 
           autoResize()

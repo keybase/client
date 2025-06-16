@@ -34,7 +34,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const onUnpin = React.useCallback(() => {
     pinMessage()
   }, [pinMessage])
-  const closeref = React.useRef<Kb.MeasureRef>(null)
+  const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore
   const onDismiss = React.useCallback(() => {
@@ -115,7 +115,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
 })
 
 type UnpinProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   onUnpin: () => void
   visible: boolean

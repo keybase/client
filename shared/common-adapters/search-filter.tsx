@@ -57,7 +57,7 @@ type Props = {
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
   onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
-  measureRef?: React.RefObject<MeasureRef>
+  measureRef?: React.RefObject<MeasureRef | null>
 }
 
 export type SearchFilterRef = {

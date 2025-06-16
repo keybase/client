@@ -27,7 +27,7 @@ const SearchHintText = () => (
 
 const TeamAlphabetIndex = (
   props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: React.RefObject<Kb.SectionListRef>
+    sectionListRef: React.RefObject<Kb.SectionListRef | null>
   }
 ) => {
   const {recommendations, teamSoFar, sectionListRef} = props

@@ -31,7 +31,7 @@ type Props<DeserializeProps, SerializeProps> = {
 }
 
 function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
-  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>()
+  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>(undefined)
   const {deserialize, name, params, showOnProps} = p
   React.useEffect(() => {
     if (!storeRef.current) {

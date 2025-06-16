@@ -15,7 +15,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const o = T.Chat.ordinalToNumber(ordinal)
   const code = o * 16807
   const width = baseWidth + (code % 20) * mult // pseudo randomize the length
-  const noAnchor = React.useRef<Kb.MeasureRef>(null)
+  const noAnchor = React.useRef<Kb.MeasureRef | null>(null)
 
   const forceListRedraw = React.useContext(ForceListRedrawContext)
 

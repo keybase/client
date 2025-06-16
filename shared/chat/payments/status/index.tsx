@@ -57,7 +57,7 @@ const statusColor = (s: Status) => {
 }
 
 const PaymentStatus = (props: Props) => {
-  const statusRef = React.useRef<MeasureRef>(null)
+  const statusRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _showPopup = () => {
     if (props.allowPopup) {

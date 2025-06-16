@@ -2,9 +2,9 @@
   "name": "react-native-kb",
   "version": "0.1.1",
   "description": "misc kb",
-  "main": "lib/commonjs/index",
+  "main": "lib/module/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/src/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
@@ -33,8 +33,14 @@
     "react": "file:../../shared/node_modules/react",
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
-    "react-native-builder-bob": "^0.20.4",
-    "typescript": "file:../../shared/node_modules/typescript"
+    "typescript": "file:../../shared/node_modules/typescript",
+    "react-native-builder-bob": "0.40.11"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "@welldone-software/why-did-you-render": "*",
+    "@types/react": "*"
   },
   "react-native-builder-bob": {
     "source": "src",

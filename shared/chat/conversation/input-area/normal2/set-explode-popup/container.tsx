@@ -16,7 +16,7 @@ const makeItems = (meta: T.Chat.ConversationMeta) => {
 }
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onAfterSelect?: (s: number) => void
   onHidden: () => void
   visible: boolean

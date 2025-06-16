@@ -425,7 +425,7 @@ export type FloatingProps<T extends boolean> = {
 export function FloatingRolePicker<IncludeSetIndividually extends boolean = false>(
   props: FloatingProps<IncludeSetIndividually>
 ) {
-  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const {position, children, open, floatingContainerStyle, onCancel, ...rest} = props
   const picker = (
     <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />

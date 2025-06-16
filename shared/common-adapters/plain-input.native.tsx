@@ -36,8 +36,8 @@ const PlainInput = React.memo(
 
     const inputRef = React.useRef<NativeTextInput>(null)
 
-    const lastNativeTextRef = React.useRef<string | undefined>()
-    const lastNativeSelectionRef = React.useRef<Selection | undefined>()
+    const lastNativeTextRef = React.useRef<string | undefined>(undefined)
+    const lastNativeSelectionRef = React.useRef<Selection | undefined>(undefined)
 
     // This is controlled if a value prop is passed
     const controlled = typeof value === 'string'
@@ -150,7 +150,7 @@ const PlainInput = React.memo(
       }
     }, [dummyInput, onFocus, _setSelection, controlled, transformText])
 
-    const afterTransformRef = React.useRef<(() => void) | undefined>()
+    const afterTransformRef = React.useRef<(() => void) | undefined>(undefined)
 
     // Validate that this selection makes sense with current value
     const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {

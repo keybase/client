@@ -160,7 +160,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
       ? Kb.Styles.globalColors.black_10
       : Kb.Styles.globalColors.transparent
 
-  const popupAnchor = React.createRef<Kb.MeasureRef>()
+  const popupAnchor = React.createRef<Kb.MeasureRef | null>()
 
   return (
     <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
