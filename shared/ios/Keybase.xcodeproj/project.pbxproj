@@ -289,7 +289,6 @@
 				DB3914B2232C384400DC4CDC /* Bundle React Native Code And Images */,
 				279FB5D82139AB6A005E4864 /* Embed Foundation Extensions */,
 				84EE85CB003D1A22493F22FE /* [CP] Copy Pods Resources */,
-				DB3A5F8F29A5686A002BF5A5 /* Strip hermes */,
 				3232344352F509933A94D6CD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -578,24 +577,6 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 			showEnvVarsInLog = 0;
-		};
-		DB3A5F8F29A5686A002BF5A5 /* Strip hermes */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Strip hermes";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\n#FRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\n#\n#if [ -f \"$FRAMEWORK\" ]; then\n#    echo \"stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#    \"${BITCODE_STRIP}\" -keep_cs -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n#    echo \"done stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#else \n#    echo \"hermes not found, skipping strip\"\n#    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n#fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

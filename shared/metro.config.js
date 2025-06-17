@@ -38,7 +38,7 @@ const defaultConfigExpo = getDefaultConfigExpo(__dirname)
 
 const nullModule = path.join(root, 'null-module.js')
 
-module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
+const config = mergeConfig(defaultConfig, defaultConfigExpo, {
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
   resolver: {
@@ -65,6 +65,7 @@ module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
         return acc
       }, {})
     ),
+    unstable_enablePackageExports: false,
   },
   transformer: {
     ...defaultConfigExpo.transformer,
@@ -84,3 +85,5 @@ module.exports = mergeConfig(defaultConfig, defaultConfigExpo, {
     },
   },
 })
+
+module.exports = config

@@ -131,6 +131,10 @@ android {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
+            // TEMP
+            //debuggable false
+            //minifyEnabled false
+            //shrinkResources false
         }
     }
 

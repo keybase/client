@@ -22,7 +22,6 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "postinstall": "yarn patch-package",
     "prepare": "bob build"
   },
   "keywords": [],
@@ -31,7 +30,6 @@
   "homepage": "https://github.com/keybase/client/react-native-drop-view#readme",
   "private": true,
   "devDependencies": {
-    "patch-package": "file:../../shared/node_modules/patch-package",
     "react": "file:../../shared/node_modules/react",
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
@@ -41,7 +39,6 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "@welldone-software/why-did-you-render": "*",
     "@types/react": "*"
   },
   "react-native-builder-bob": {

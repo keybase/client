@@ -38,8 +38,6 @@ PODS:
     - Yoga
   - ExpoAsset (11.1.5):
     - ExpoModulesCore
-  - ExpoAudio (0.4.6):
-    - ExpoModulesCore
   - ExpoCamera (16.1.8):
     - ExpoModulesCore
     - ZXingObjC/OneD
@@ -54,7 +52,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (14.1.4):
     - ExpoModulesCore
-  - ExpoImage (2.2.1):
+  - ExpoImage (2.3.0):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -98,8 +96,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - ExpoSMS (13.1.4):
-    - ExpoModulesCore
-  - ExpoVideo (2.2.1):
     - ExpoModulesCore
   - EXTaskManager (13.1.5):
     - ExpoModulesCore
@@ -2003,7 +1999,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.25.0):
+  - RNGestureHandler (2.26.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2231,7 +2227,6 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
-  - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoContacts (from `../node_modules/expo-contacts/ios`)
@@ -2246,7 +2241,6 @@ DEPENDENCIES:
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSMS (from `../node_modules/expo-sms/ios`)
-  - ExpoVideo (from `../node_modules/expo-video/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -2362,8 +2356,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
-  ExpoAudio:
-    :path: "../node_modules/expo-audio/ios"
   ExpoCamera:
     :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
@@ -2392,8 +2384,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSMS:
     :path: "../node_modules/expo-sms/ios"
-  ExpoVideo:
-    :path: "../node_modules/expo-video/ios"
   EXTaskManager:
     :path: "../node_modules/expo-task-manager/ios"
   fast_float:
@@ -2572,14 +2562,13 @@ SPEC CHECKSUMS:
   EXImageLoader: 4d3d3284141f1a45006cc4d0844061c182daf7ee
   Expo: b6709ec3e6b2f69e59d596d2472c591885014cb2
   ExpoAsset: 3bc9adb7dbbf27ae82c18ca97eb988a3ae7e73b1
-  ExpoAudio: 916232b7c7ade4cfc5406580d702ac308f69b279
   ExpoCamera: 1667b34b8ba4b8015561808e38dd0a281a29da1b
   ExpoClipboard: c9771e7aa5f1316183e4a6f40a5755a0b98a6b8d
   ExpoContacts: 43f426162ce3c16c3f993dbac8d120b0ffd3bb87
   ExpoFileSystem: c36eb8155eb2381c83dda7dc210e3eec332368b6
   ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
   ExpoHaptics: 0ff6e0d83cd891178a306e548da1450249d54500
-  ExpoImage: a050311cad66f0e7f4dfe5cd1fc773e510cc25e4
+  ExpoImage: 6aa234344f378d78c0d50dc6c4d946546b8742bf
   ExpoImagePicker: 0963da31800c906e01c03e25d7c849f16ebf02a2
   ExpoKeepAwake: bf0811570c8da182bfb879169437d4de298376e7
   ExpoLocation: a319a1b2c00b82c29e8a24227e0f00d1e19662c5
@@ -2587,7 +2576,6 @@ SPEC CHECKSUMS:
   ExpoMediaLibrary: 0daf5e811e00daa47690f5da2989e71ff7de56e0
   ExpoModulesCore: a77bac5c35f8d246e72d719856091d7e84fe797e
   ExpoSMS: 770f0b60a777f5d3f65fd7fc369ff62ff97e09a9
-  ExpoVideo: 5c0715bbf3bab5760b59902e4fe4b7c4c7d11646
   EXTaskManager: a7a2d34c0fa6a459dcd9f50844ecbec886bd2da8
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: a62a7a5760929b6265e27bc01ab7598dde93ebd3
@@ -2671,7 +2659,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: d72fac1c6517be910e8be1370ac324059bcbe677
   RNCPicker: c4e9fdf00bbd0d37c6c4f1df6eae3d4d7d32f1e3
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: 381f81c675883fec9f8f10976aa278babc48d8eb
+  RNGestureHandler: 9aefee4dffdfa4a32d401a771b8a513ecb507d08
   RNReanimated: 0df48dab58b5ee37fd1d1341caba79f59a1187ec
   RNScreens: 90b905d545a5ebbe976985702b8a39e3475727b2
   SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868

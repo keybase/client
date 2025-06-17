@@ -116,11 +116,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
   
   @objc func didLaunchSetupAfter(_ rootView: UIView) {
-    if #available(iOS 13.0, *) {
-      rootView.backgroundColor = .systemBackground
-    } else {
-      rootView.backgroundColor = .white
-    }
+    rootView.backgroundColor = .systemBackground
     
     // Snapshot resizing workaround for iPad
     var dim = UIScreen.main.bounds.width
