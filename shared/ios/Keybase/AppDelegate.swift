@@ -7,6 +7,7 @@ import UserNotifications
 import AVFoundation
 import RNCPushNotificationIOS
 import ExpoModulesCore
+import Keybasego
 
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
@@ -94,17 +95,17 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 #endif
     
     var err: NSError?
-    KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+    Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
   }
   
   func notifyAppState(_ application: UIApplication) {
     let state = application.applicationState
     NSLog("notifyAppState: notifying service with new appState: \(state.rawValue)")
     switch state {
-    case .active: KeybaseSetAppStateForeground()
-    case .background: KeybaseSetAppStateBackground()
-    case .inactive: KeybaseSetAppStateInactive()
-    default: KeybaseSetAppStateForeground()
+    case .active: Keybasego.KeybaseSetAppStateForeground()
+    case .background: Keybasego.KeybaseSetAppStateBackground()
+    case .inactive: Keybasego.KeybaseSetAppStateInactive()
+    default: Keybasego.KeybaseSetAppStateForeground()
     }
   }
   
@@ -164,7 +165,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
     NSLog("Background fetch started...")
     DispatchQueue.global(qos: .default).async {
-      KeybaseBackgroundSync()
+      Keybasego.KeybaseBackgroundSync()
       completionHandler(.newData)
       NSLog("Background fetch completed...")
     }
@@ -191,7 +192,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         let pusher = PushNotifier()
         
         var err: NSError?
-        KeybaseHandleBackgroundNotification(convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, pusher, false, &err)
+        Keybasego.KeybaseHandleBackgroundNotification(convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, pusher, false, &err)
         if let err { NSLog("Failed to handle in engine: \(err)") }
         completionHandler(.newData)
         NSLog("Remote notification handle finished...")
@@ -212,7 +213,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   public override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
-    KeybaseAppWillExit(PushNotifier())
+    Keybasego.KeybaseAppWillExit(PushNotifier())
   }
   
   func hideCover() {
@@ -231,7 +232,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     } completion: { finished in
       NSLog("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
-    KeybaseSetAppStateInactive()
+    Keybasego.KeybaseSetAppStateInactive()
   }
   
   public override func applicationDidEnterBackground(_ application: UIApplication) {
@@ -242,14 +243,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.alpha = 1
     
     NSLog("applicationDidEnterBackground: notifying go.")
-    let requestTime = KeybaseAppDidEnterBackground()
+    let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     NSLog("applicationDidEnterBackground: after notifying go.")
     
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
       self.shutdownTask = app.beginBackgroundTask {
         NSLog("applicationDidEnterBackground: shutdown task run.")
-        KeybaseAppWillExit(PushNotifier())
+        Keybasego.KeybaseAppWillExit(PushNotifier())
         let task = self.shutdownTask
         if task != .invalid {
           app.endBackgroundTask(task)
@@ -258,7 +259,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       }
       
       DispatchQueue.global(qos: .default).async {
-        KeybaseAppBeginBackgroundTask(PushNotifier())
+        Keybasego.KeybaseAppBeginBackgroundTask(PushNotifier())
         let task = self.shutdownTask
         if task != .invalid {
           app.endBackgroundTask(task)
@@ -283,7 +284,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   
   func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
-    KeybaseForceGC()
+    Keybasego.KeybaseForceGC()
   }
   
   func keyCommands() -> [UIKeyCommand]? {

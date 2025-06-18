@@ -1,8 +1,9 @@
 import Foundation
 import UserNotifications
+import Keybasego
 
-@objc class PushNotifier: Keybasego.KeybasePushNotifier {
-  override func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
+class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
+   func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
     let content = UNMutableNotificationContent()
     if let soundName = soundName {
       content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
@@ -18,7 +19,7 @@ import UserNotifications
     }
   }
   
-  override func display(_ n: KeybaseChatNotification?) {
+  func display(_ n: KeybaseChatNotification?) {
     guard let notification = n else { return }
     guard let message = notification.message else { return }
     
