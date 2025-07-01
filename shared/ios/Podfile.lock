@@ -1,7 +1,7 @@
 PODS:
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXAV (15.1.6):
+  - EXAV (15.1.7):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXConstants (17.1.6):
@@ -9,7 +9,7 @@ PODS:
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (53.0.13):
+  - Expo (53.0.15):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -36,23 +36,23 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - ExpoAsset (11.1.5):
+  - ExpoAsset (11.1.6):
     - ExpoModulesCore
-  - ExpoCamera (16.1.9):
+  - ExpoCamera (16.1.10):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
-  - ExpoClipboard (7.1.4):
+  - ExpoClipboard (7.1.5):
     - ExpoModulesCore
   - ExpoContacts (14.2.5):
     - ExpoModulesCore
-  - ExpoFileSystem (18.1.10):
+  - ExpoFileSystem (18.1.11):
     - ExpoModulesCore
-  - ExpoFont (13.3.1):
+  - ExpoFont (13.3.2):
     - ExpoModulesCore
   - ExpoHaptics (14.1.4):
     - ExpoModulesCore
-  - ExpoImage (2.3.0):
+  - ExpoImage (2.3.1):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -63,14 +63,14 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (14.1.4):
     - ExpoModulesCore
-  - ExpoLocation (18.1.5):
+  - ExpoLocation (18.1.6):
     - ExpoModulesCore
   - ExpoMailComposer (14.1.5):
     - ExpoModulesCore
   - ExpoMediaLibrary (17.1.7):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (2.4.0):
+  - ExpoModulesCore (2.4.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -97,7 +97,7 @@ PODS:
     - Yoga
   - ExpoSMS (13.1.4):
     - ExpoModulesCore
-  - EXTaskManager (13.1.5):
+  - EXTaskManager (13.1.6):
     - ExpoModulesCore
     - UMAppLoader
   - fast_float (6.1.4)
@@ -1999,7 +1999,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.26.0):
+  - RNGestureHandler (2.27.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2557,26 +2557,26 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXAV: 3fff236999a5a5c0f9b251d1a902908e4c844199
+  EXAV: ae28256069c4cdde93d185c007d8f68d92902c2e
   EXConstants: 9f310f44bfedba09087042756802040e464323c0
   EXImageLoader: 4d3d3284141f1a45006cc4d0844061c182daf7ee
-  Expo: b90b87f6f73f25a59240df40d5b71cef883c925e
-  ExpoAsset: 3bc9adb7dbbf27ae82c18ca97eb988a3ae7e73b1
-  ExpoCamera: 308cf0a75d73b6d1f3f8dda4212ba8e2752a6b03
-  ExpoClipboard: c9771e7aa5f1316183e4a6f40a5755a0b98a6b8d
+  Expo: 0aeab0657bab6eaea52c2b1624afe3e30b309067
+  ExpoAsset: 5dede4a6226fe287c95e38c46c86ad39bc8ca630
+  ExpoCamera: 7edf99216d92e40b991d4e7ed69eba9527c94cda
+  ExpoClipboard: 436f6de6971f14eb75ae160e076d9cb3b19eb795
   ExpoContacts: 43f426162ce3c16c3f993dbac8d120b0ffd3bb87
-  ExpoFileSystem: c36eb8155eb2381c83dda7dc210e3eec332368b6
-  ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
+  ExpoFileSystem: 7f92f7be2f5c5ed40a7c9efc8fa30821181d9d63
+  ExpoFont: cf508bc2e6b70871e05386d71cab927c8524cc8e
   ExpoHaptics: 0ff6e0d83cd891178a306e548da1450249d54500
-  ExpoImage: 6aa234344f378d78c0d50dc6c4d946546b8742bf
+  ExpoImage: a2637f5bbea6c13ff3b78f558f339837207559a1
   ExpoImagePicker: 0963da31800c906e01c03e25d7c849f16ebf02a2
   ExpoKeepAwake: bf0811570c8da182bfb879169437d4de298376e7
-  ExpoLocation: a319a1b2c00b82c29e8a24227e0f00d1e19662c5
+  ExpoLocation: a43df2ff15f2fae9504b23a77060e7cd16b3e326
   ExpoMailComposer: 93d95af509c6dfcfc18aec02cad047b7bc5bfc55
   ExpoMediaLibrary: 0daf5e811e00daa47690f5da2989e71ff7de56e0
-  ExpoModulesCore: a77bac5c35f8d246e72d719856091d7e84fe797e
+  ExpoModulesCore: 88e6fd5a60ca685eea812c6b713fb52e62555206
   ExpoSMS: 770f0b60a777f5d3f65fd7fc369ff62ff97e09a9
-  EXTaskManager: a7a2d34c0fa6a459dcd9f50844ecbec886bd2da8
+  EXTaskManager: 280143f6d8e596f28739d74bf34910300dcbd4ea
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: a62a7a5760929b6265e27bc01ab7598dde93ebd3
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
@@ -2659,7 +2659,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: d72fac1c6517be910e8be1370ac324059bcbe677
   RNCPicker: c424533f7747c9463b35d294328e7b2b4d2baf31
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: 9aefee4dffdfa4a32d401a771b8a513ecb507d08
+  RNGestureHandler: 6b48571964d1b4302f531bb07f8360399a02200a
   RNReanimated: 0df48dab58b5ee37fd1d1341caba79f59a1187ec
   RNScreens: 90b905d545a5ebbe976985702b8a39e3475727b2
   SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
