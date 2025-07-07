@@ -1,8 +1,7 @@
-ios:
-
-input paste view removed
-
 android:
+
+ios:
+input paste view removed <<<<<<<<<<<<
 
 
 expo-av to expo-video / expo-audio (not ready yet can't get video size...), missing stuff we need like on full screen change
