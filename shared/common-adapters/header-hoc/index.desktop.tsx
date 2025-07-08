@@ -72,7 +72,7 @@ const LeftAction = ({
   </Kb.Box>
 )
 
-export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
+export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}): React.ReactNode => {
   return props.children
 }
 

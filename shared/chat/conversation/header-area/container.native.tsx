@@ -302,8 +302,8 @@ const styles = Styles.styleSheetCreate(
       channelNameLight: {color: Styles.globalColors.black_50},
       headerRight: {
         flexShrink: 0,
-        width: 56,
         height: 22,
+        width: 56,
       },
       lessMargins: {marginBottom: -5},
       nameMutedContainer: {

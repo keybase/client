@@ -15,7 +15,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     <Divider style={index === 0 ? styles.dividerFirst : styles.divider} key={index} />
   )
 
-  const renderMenuItem = (item: MenuItem, index: number) => {
+  const renderMenuItem = (item: MenuItem, index: number): React.ReactNode => {
     let hoverClassName: string | undefined
     let styleDisabled: Styles.StylesCrossPlatform = {}
     if (!item.disabled) {
@@ -108,8 +108,9 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {/* Display menu items */}
         {items.some(item => item !== 'Divider') && (
           <Box style={Styles.collapseStyles([styles.menuItemList, props.listStyle])}>
-            {items.map((item, index) =>
-              item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
+            {items.map(
+              (item, index): React.ReactNode =>
+                item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
             )}
           </Box>
         )}

@@ -54,7 +54,7 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 })
 
-const FullWindow = ({children}: {children?: React.ReactNode}) => {
+const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
