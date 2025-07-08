@@ -5,5 +5,5 @@ export type FloatingMenuProps = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
   hide: () => void
   visible: boolean
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
 }

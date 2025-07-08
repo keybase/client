@@ -7,7 +7,7 @@ import type {SizeType} from '@/common-adapters/icon'
 
 export type ClickableProps = {
   onClick: () => void
-  mref: React.RefObject<Kb.MeasureRef>
+  mref: React.RefObject<Kb.MeasureRef | null>
 }
 
 type ClickableComponent = {
@@ -31,7 +31,7 @@ export type Props = {
 }
 
 type ICProps = {
-  measureRef: React.RefObject<Kb.MeasureRef>
+  measureRef: React.RefObject<Kb.MeasureRef | null>
   onClick: () => void
   sizeType: SizeType
   actionIconWhite?: boolean | undefined

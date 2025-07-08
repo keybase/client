@@ -32,7 +32,7 @@ const initialGlueTTL = 2
 
 export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
   const {endEstimate, files, fileName, isOnline, totalSyncingBytes, debugToggleShow, smallMode} = p
-  const tickerID = React.useRef<ReturnType<typeof setInterval>>()
+  const tickerID = React.useRef<ReturnType<typeof setInterval>>(undefined)
 
   const [displayDuration, setDisplayDuration] = React.useState(0)
   const [glueTTL, setGlueTTL] = React.useState(0)

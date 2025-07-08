@@ -3,9 +3,10 @@ import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
-import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
+import {Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
 import type {MeasureRef} from './measure-ref'
+import {Pressable} from 'react-native-gesture-handler'
 
 type TextProps = {
   children: React.ReactNode
@@ -119,6 +120,12 @@ const Icon = React.memo<Props>(
     const iconType = p.type
     const isDarkMode = React.useContext(Styles.DarkModeContext)
 
+    React.useImperativeHandle(ref, () => {
+      return {
+        divRef: {current: null},
+      }
+    }, [])
+
     if (!Shared.isValidIconType(iconType)) {
       logger.warn(`Invalid icon type passed in: ${String(iconType)}`)
       return null
@@ -140,10 +147,9 @@ const Icon = React.memo<Props>(
           style={hasContainer ? null : p.style}
           color={color}
           type={p.type}
-          ref={wrap ? undefined : (ref as any)}
           fontSize={p.fontSize}
           sizeType={sizeType}
-          onClick={p.onClick}
+          onClick={wrap ? undefined : p.onClick}
           onLongPress={p.onLongPress}
         >
           {code}
@@ -154,20 +160,17 @@ const Icon = React.memo<Props>(
       if (typeof source !== 'number') {
         source = undefined
       }
-      icon = (
-        <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : (ref as any)} />
-      )
+      icon = <Image source={source} style={hasContainer ? null : p.style} />
     }
 
     return wrap ? (
-      <TouchableOpacity
+      <Pressable
         onPress={p.onClick || undefined}
-        activeOpacity={0.8}
-        ref={ref as any}
+        //activeOpacity={0.8}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}
-      </TouchableOpacity>
+      </Pressable>
     ) : (
       icon
     )

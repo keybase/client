@@ -8,7 +8,7 @@ const Container = () => {
   const you = C.useCurrentUserState(s => s.username)
   const teamMeta = C.useTeamsState(s => s.teamMeta)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = (you: string) => {
+  const onCancel = () => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
       C.useTrackerState.getState().dispatch.load({
@@ -22,23 +22,17 @@ const Container = () => {
     navigateUp()
   }
 
-  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
-  const onPromote = setMemberPublicity
-  const props = {
-    onCancel: () => onCancel(you),
-    onPromote,
-    teams: C.Teams.sortTeamsByName(teamMeta),
-    waiting,
-  }
+  const onPromote = C.useTeamsState(s => s.dispatch.setMemberPublicity)
+  const teams = C.Teams.sortTeamsByName(teamMeta)
 
   useTeamsSubscribe()
   return (
-    <Kb.PopupWrapper onCancel={props.onCancel} title="Feature your teams" customCancelText="Close">
+    <Kb.PopupWrapper onCancel={onCancel} title="Feature your teams" customCancelText="Close">
       <Kb.Box2 direction="vertical" style={styles.container}>
         {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>
           {Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
-          {props.teams.map(teamMeta => (
+          {teams.map(teamMeta => (
             <TeamRow
               key={teamMeta.id}
               canShowcase={
@@ -48,9 +42,9 @@ const Container = () => {
               name={teamMeta.teamname}
               isOpen={teamMeta.isOpen}
               membercount={teamMeta.memberCount}
-              onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
+              onPromote={promoted => onPromote(teamMeta.id, promoted)}
               showcased={teamMeta.showcasing}
-              waiting={!!props.waiting.get(C.Teams.teamWaitingKey(teamMeta.id))}
+              waiting={!!waiting.get(C.Teams.teamWaitingKey(teamMeta.id))}
             />
           ))}
         </Kb.ScrollView>

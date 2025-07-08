@@ -83,21 +83,23 @@ const LogStats = (props: {num?: number}) => {
   const {num} = props
   const maxBuckets = num ?? 5
 
-  const bucketsRef = React.useRef<Array<{count: number; label: string; labelFull: string; updated: boolean}>>(
-    []
-  )
+  const [buckets, setBuckets] = React.useState<
+    Array<{count: number; label: string; labelFull: string; updated: boolean}>
+  >([])
   const [, setDoRender] = React.useState(0)
   const events = C.useConfigState(s => s.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<ReadonlyArray<T.RPCGen.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<T.RPCGen.PerfEvent>>([])
-  if (events) {
-    // only if unprocessed
-    if (!lastEventsRef.current.has(events)) {
-      lastEventsRef.current.add(events)
-      eventsRef.current.push(...events)
+  React.useEffect(() => {
+    if (events) {
+      // only if unprocessed
+      if (!lastEventsRef.current.has(events)) {
+        lastEventsRef.current.add(events)
+        eventsRef.current.push(...events)
+      }
     }
-  }
+  }, [events])
 
   Kb.useInterval(() => {
     const events = eventsRef.current
@@ -128,7 +130,7 @@ const LogStats = (props: {num?: number}) => {
     })
 
     // copy existing buckets
-    let newBuckets = bucketsRef.current.map(b => ({...b, updated: false}))
+    let newBuckets = buckets.map(b => ({...b, updated: false}))
 
     // find existing or add new ones
     incoming.forEach((i, idx) => {
@@ -172,7 +174,7 @@ const LogStats = (props: {num?: number}) => {
     // sort remainder by alpha so things don't move around a lot
     newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
 
-    bucketsRef.current = newBuckets
+    setBuckets(newBuckets)
     setDoRender(r => r + 1)
   }, 2000)
 
@@ -190,7 +192,7 @@ const LogStats = (props: {num?: number}) => {
           Logs
         </Kb.Text>
       )}
-      {bucketsRef.current.map((b, i) => (
+      {buckets.map((b, i) => (
         <Kb.Text
           key={i}
           type={b.updated ? 'BodyTinyBold' : 'BodyTiny'}
@@ -406,76 +408,79 @@ const RuntimeStats = () => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  boxGrow: Styles.platformStyles({
-    isElectron: {
-      overflow: 'auto',
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blackOrBlack},
-    isElectron: {
-      overflow: 'auto',
-      padding: Styles.globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {
-      bottom: isIPhoneX ? 15 : 0,
-      position: 'absolute',
-      right: isIPhoneX ? 10 : 0,
-    },
-  }),
-  logStat: Styles.platformStyles({
-    common: {color: Styles.globalColors.whiteOrWhite},
-    isElectron: {wordBreak: 'break-all'},
-    isMobile: {
-      fontFamily: 'Courier',
-      fontSize: 12,
-      lineHeight: 16,
-    },
-  }),
-  modalLogStats: {
-    position: 'absolute',
-    right: 0,
-    top: 20,
-    width: 130,
-  },
-  modalLogStatsHidden: {
-    backgroundColor: 'yellow',
-    position: 'absolute',
-    right: 0,
-    top: 20,
-    width: 20,
-  },
-  // radarContainer: Styles.platformStyles({
-  //   isElectron: {
-  //     backgroundColor: Styles.globalColors.white_20,
-  //     borderRadius: '50%',
-  //     height: radarSize,
-  //     position: 'absolute',
-  //     right: Styles.globalMargins.tiny,
-  //     top: Styles.globalMargins.tiny,
-  //     width: radarSize,
-  //   },
-  // }),
-  stat: Styles.platformStyles({
-    common: {color: Styles.globalColors.whiteOrGreenDark},
-    isElectron: {wordBreak: 'break-all'},
-    isMobile: {
-      fontFamily: 'Courier',
-      fontSize: 10,
-      lineHeight: 14,
-    },
-  }),
-  statNormal: {
-    color: Styles.globalColors.whiteOrGreenDark,
-  },
-  statSevere: {
-    color: Styles.globalColors.red,
-  },
-  statWarning: {
-    color: Styles.globalColors.yellowOrYellowAlt,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      boxGrow: Styles.platformStyles({
+        isElectron: {
+          overflow: 'auto',
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {backgroundColor: Styles.globalColors.blackOrBlack},
+        isElectron: {
+          overflow: 'auto',
+          padding: Styles.globalMargins.tiny,
+          position: 'relative',
+        },
+        isMobile: {
+          bottom: isIPhoneX ? 15 : 0,
+          position: 'absolute',
+          right: isIPhoneX ? 10 : 0,
+        },
+      }),
+      logStat: Styles.platformStyles({
+        common: {color: Styles.globalColors.whiteOrWhite},
+        isElectron: {wordBreak: 'break-all'},
+        isMobile: {
+          fontFamily: 'Courier',
+          fontSize: 12,
+          lineHeight: 16,
+        },
+      }),
+      modalLogStats: {
+        position: 'absolute',
+        right: 0,
+        top: 20,
+        width: 130,
+      },
+      modalLogStatsHidden: {
+        backgroundColor: 'yellow',
+        position: 'absolute',
+        right: 0,
+        top: 20,
+        width: 20,
+      },
+      // radarContainer: Styles.platformStyles({
+      //   isElectron: {
+      //     backgroundColor: Styles.globalColors.white_20,
+      //     borderRadius: '50%',
+      //     height: radarSize,
+      //     position: 'absolute',
+      //     right: Styles.globalMargins.tiny,
+      //     top: Styles.globalMargins.tiny,
+      //     width: radarSize,
+      //   },
+      // }),
+      stat: Styles.platformStyles({
+        common: {color: Styles.globalColors.whiteOrGreenDark},
+        isElectron: {wordBreak: 'break-all'},
+        isMobile: {
+          fontFamily: 'Courier',
+          fontSize: 10,
+          lineHeight: 14,
+        },
+      }),
+      statNormal: {
+        color: Styles.globalColors.whiteOrGreenDark,
+      },
+      statSevere: {
+        color: Styles.globalColors.red,
+      },
+      statWarning: {
+        color: Styles.globalColors.yellowOrYellowAlt,
+      },
+    }) as const
+)
 
 export default RuntimeStats

@@ -211,7 +211,7 @@ const TextOrComponent = (props: {
   val: string | React.ReactNode
   textType: TextType
   style?: StylesTextCrossPlatform
-}) => {
+}): React.ReactNode => {
   if (typeof props.val === 'string') {
     return (
       <Text style={props.style} lineClamp={1} type={props.textType}>

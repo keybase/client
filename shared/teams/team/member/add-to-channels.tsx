@@ -98,9 +98,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   }
   const onSelectAll = () => setSelected(new Set(convIDKeysAvailable))
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
-
   const onCancel = () => nav.safeNavigateUp()
-  const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
 
   const submit = C.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
@@ -149,7 +147,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
           <HeaderRow
             key="{header}"
             mode={mode}
-            onCreate={onCreate}
+            teamID={teamID}
             onSelectAll={allSelected ? undefined : onSelectAll}
             onSelectNone={allSelected ? onSelectNone : undefined}
           />
@@ -273,12 +271,16 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
 })
 
 const HeaderRow = React.memo(function HeaderRow(p: {
+  teamID: T.Teams.TeamID
   mode: 'others' | 'self'
-  onCreate: () => void
   onSelectAll?: () => void
   onSelectNone?: () => void
 }) {
-  const {mode, onCreate, onSelectAll, onSelectNone} = p
+  const {mode, teamID, onSelectAll, onSelectNone} = p
+  const nav = Container.useSafeNavigation()
+  const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
+  const canCreate = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).createChannel)
+
   return (
     <Kb.Box2
       direction="horizontal"
@@ -289,6 +291,7 @@ const HeaderRow = React.memo(function HeaderRow(p: {
     >
       <Kb.BoxGrow2 />
       <Kb.Button
+        disabled={!canCreate}
         label="Create channel"
         small={true}
         mode="Secondary"

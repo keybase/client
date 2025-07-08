@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type AudioAttachmentType from './audio'
-import type FileAttachmentType from './file/container'
+import type FileAttachmentType from './file'
 import type ImageAttachmentType from './image2'
 import type VideoAttachmentType from './video'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
@@ -20,7 +20,7 @@ export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p
   const common = useCommon(ordinal)
   const {showPopup} = common
 
-  const {default: FileAttachment} = require('./file/container') as {default: typeof FileAttachmentType}
+  const {default: FileAttachment} = require('./file') as {default: typeof FileAttachmentType}
 
   return (
     <WrapperMessage {...p} {...common}>

@@ -10,7 +10,7 @@ import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
-import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -26,7 +26,7 @@ const Container = (ownProps: OwnProps) => {
     writable: _pathItem.writable,
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
       <Kbfs.Errs />
       <BrowserContent {...props} />
       <Footer path={props.path} />

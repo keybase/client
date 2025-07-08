@@ -6,14 +6,14 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   teamID: T.Teams.TeamID
   visible: boolean
 }
 
 type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   items: Kb.MenuItems
   teamname: string
   memberCount: number

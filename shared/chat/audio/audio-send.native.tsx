@@ -28,9 +28,8 @@ const AudioSend = (props: Props) => {
   const {cancelRecording, sendRecording, duration, ampTracker, path} = props
 
   // render
-  let player = <Kb.Text type="Body">No recording available</Kb.Text>
   const audioUrl = `file://${path}`
-  player = (
+  const player = (
     <AudioPlayer
       big={false}
       duration={duration}

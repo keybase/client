@@ -2,7 +2,7 @@ import type {TurboModule} from 'react-native'
 export interface Spec extends TurboModule {
   addListener: (eventType: string) => void
   removeListeners: (count: number) => void
-  getConstants(): {
+  getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
     appVersionCode: string
@@ -29,7 +29,7 @@ export interface Spec extends TurboModule {
   androidSetSecureFlagSetting(s: boolean): Promise<boolean>
   androidGetSecureFlagSetting(): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
-  androidShare(text: string, mimeType: string): Promise<boolean>
+  androidShare(filename: string, mimeType: string): Promise<boolean>
   androidCheckPushPermissions(): Promise<boolean>
   androidRequestPushPermissions(): Promise<boolean>
   androidGetRegistrationToken(): Promise<string>
@@ -43,13 +43,9 @@ export interface Spec extends TurboModule {
   }): Promise<void>
   androidAppColorSchemeChanged(mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void
   androidSetApplicationIconBadgeNumber(n: number): void
-  androidGetInitialBundleFromNotification(): Promise<any>
-  androidGetInitialShareFileUrls(): Promise<Array<string>>
-  androidGetInitialShareText(): Promise<string>
   engineReset(): void
   engineStart(): void
 }
 declare const _default: Spec
 export default _default
 //# sourceMappingURL=NativeKb.d.ts.map
-

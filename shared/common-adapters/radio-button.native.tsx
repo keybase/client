@@ -12,46 +12,52 @@ const Kb = {
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8
 
-const RadioOuterCircle = (p: {disabled: boolean; selected: boolean; children: React.ReactNode}) => (
-  <Kb.ClickableBox
-    style={Styles.collapseStyles([
-      styles.outer,
-      {
-        borderColor: p.selected ? Styles.globalColors.blue : Styles.globalColors.black_20,
-        opacity: p.disabled ? 0.4 : 1,
-      },
-    ])}
-  >
-    {p.children}
-  </Kb.ClickableBox>
-)
+const RadioOuterCircle = (p: {disabled: boolean; selected: boolean; children: React.ReactNode}) => {
+  return (
+    <Kb.ClickableBox
+      style={Styles.collapseStyles([
+        styles.outer,
+        {
+          borderColor: p.selected ? Styles.globalColors.blue : Styles.globalColors.black_20,
+          opacity: p.disabled ? 0.4 : 1,
+        },
+      ])}
+    >
+      {p.children}
+    </Kb.ClickableBox>
+  )
+}
 
-const RadioInnerCircle = (p: {selected: boolean}) => (
-  <Kb.ClickableBox
-    style={Styles.collapseStyles([
-      styles.inner,
-      {borderColor: p.selected ? Styles.globalColors.blue : Styles.globalColors.white},
-    ])}
-  />
-)
+const RadioInnerCircle = (p: {selected: boolean}) => {
+  return (
+    <Kb.ClickableBox
+      style={Styles.collapseStyles([
+        styles.inner,
+        {borderColor: p.selected ? Styles.globalColors.blue : Styles.globalColors.transparent},
+      ])}
+    />
+  )
+}
 
-const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
-  <Kb.ClickableBox
-    style={{...styles.container, ...style}}
-    onClick={disabled ? undefined : () => onSelect(!selected)}
-  >
-    <RadioOuterCircle disabled={disabled ?? false} selected={selected}>
-      <RadioInnerCircle selected={selected} />
-    </RadioOuterCircle>
-    {typeof label === 'string' ? (
-      <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
-        {label}
-      </Kb.Text>
-    ) : (
-      label
-    )}
-  </Kb.ClickableBox>
-)
+const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
+  return (
+    <Kb.ClickableBox
+      style={{...styles.container, ...style}}
+      onClick={disabled ? undefined : () => onSelect(!selected)}
+    >
+      <RadioOuterCircle disabled={disabled ?? false} selected={selected}>
+        <RadioInnerCircle selected={selected} />
+      </RadioOuterCircle>
+      {typeof label === 'string' ? (
+        <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
+          {label}
+        </Kb.Text>
+      ) : (
+        label
+      )}
+    </Kb.ClickableBox>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -79,7 +85,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative' as const,
         width: RADIOBUTTON_SIZE,
       },
-    } as const)
+    }) as const
 )
 
 export default RadioButton

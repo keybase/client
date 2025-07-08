@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   canManageBots: boolean
   onEdit: () => void
   onRemove: () => void

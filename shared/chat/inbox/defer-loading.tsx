@@ -6,10 +6,27 @@ import {useIsFocused, useNavigationState} from '@react-navigation/core'
 let _everFocused = false
 
 const Deferred = React.memo(function Deferred() {
+  const [visible, setVisible] = React.useState(_everFocused)
   const isFocused = useIsFocused()
   const navKey = useNavigationState(state => state.key)
-  _everFocused = _everFocused || isFocused
-  return _everFocused ? <Inbox navKey={navKey} /> : null
+  React.useEffect(() => {
+    _everFocused = _everFocused || isFocused
+  }, [isFocused])
+
+  // work around a bug in gesture handler if we show too quickly when going back from a convo on startup
+  React.useEffect(() => {
+    if (!isFocused || visible) {
+      return
+    }
+    const id = setTimeout(() => {
+      setVisible(true)
+    }, 100)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [isFocused, visible])
+
+  return visible ? <Inbox navKey={navKey} /> : null
 })
 
 const DeferredOuter = () => {

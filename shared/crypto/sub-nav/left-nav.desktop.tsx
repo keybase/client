@@ -14,19 +14,19 @@ type Props = {
   children?: React.ReactNode
 }
 
-class SubNav extends React.PureComponent<Props> {
-  private getRows = () =>
+const SubNav = (props: Props) => {
+  const getRows = () =>
     Constants.Tabs.map(t => ({
       ...t,
-      isSelected: this.props.selected === t.tab,
+      isSelected: props.selected === t.tab,
       key: t.tab,
     }))
 
-  private _onClick = (tab: string) => {
-    this.props.onClick(tab)
+  const _onClick = (tab: string) => {
+    props.onClick(tab)
   }
 
-  private renderItem = (_: number, row: Row) => {
+  const renderItem = (_: number, row: Row) => {
     return (
       <NavRow
         key={row.tab}
@@ -34,28 +34,21 @@ class SubNav extends React.PureComponent<Props> {
         title={row.title}
         tab={row.tab}
         icon={row.icon}
-        onClick={() => this._onClick(row.tab)}
+        onClick={() => _onClick(row.tab)}
       />
     )
   }
 
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
-          <Kb.BoxGrow>
-            <Kb.List
-              items={this.getRows()}
-              renderItem={this.renderItem}
-              keyProperty="key"
-              style={styles.list}
-            />
-          </Kb.BoxGrow>
-        </Kb.Box2>
-        {this.props.children}
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
+        <Kb.BoxGrow>
+          <Kb.List items={getRows()} renderItem={renderItem} keyProperty="key" style={styles.list} />
+        </Kb.BoxGrow>
       </Kb.Box2>
-    )
-  }
+      {props.children}
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

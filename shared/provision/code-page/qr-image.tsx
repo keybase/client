@@ -17,8 +17,7 @@ const QrImage = React.memo(function QrImage(p: Props) {
   qr.addData(code)
   qr.make()
   const size = qr.getModuleCount() * (cellSize / 2) // retina
-  // Keybase blue
-  const url = qr.createDataURL(cellSize, 0, [0x4c, 0x8e, 0xff])
+  const url = qr.createDataURL(cellSize)
   return <Kb.Image2 src={url} style={{height: size, width: size}} />
 })
 

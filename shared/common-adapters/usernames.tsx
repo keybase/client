@@ -262,9 +262,7 @@ const Usernames = React.memo(
     const you = C.useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-    const containerStyle2: Styles.StylesCrossPlatform = inline
-      ? (styles.inlineStyle as any)
-      : (styles.nonInlineStyle as any)
+    const containerStyle2: Styles.StylesCrossPlatform = inline ? styles.inlineStyle : styles.nonInlineStyle
     const bgMode = backgroundMode
     const isNegative = backgroundModeIsNegative(bgMode)
 
@@ -283,7 +281,7 @@ const Usernames = React.memo(
         className={className}
         type={type}
         negative={isNegative}
-        fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : fixOverdraw ?? false}
+        fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : (fixOverdraw ?? false)}
         style={Styles.collapseStyles([containerStyle2, containerStyle])}
         title={title}
         ellipsizeMode="tail"

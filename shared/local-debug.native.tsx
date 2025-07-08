@@ -101,7 +101,7 @@ if (serverConfig) {
         }
       }
     }
-  } catch (e) {}
+  } catch {}
 }
 
 export const {

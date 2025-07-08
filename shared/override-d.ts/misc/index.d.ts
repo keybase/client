@@ -2,8 +2,25 @@ declare module 'electron-positioner' {
   type ignore = unknown
   export default ignore
 }
-declare module 'react-native/Libraries/Image/AssetRegistry' {
+declare module '@react-native/assets-registry/registry' {
   type PackagerAsset = {[key: string]: unknown}
+}
+
+declare module 'react-test-renderer' {
+  type ReactTestInstance = any
+}
+
+declare module 'expo-manifests' {
+  export type EASConfig = any
+  export type ExpoGoConfig = any
+  export type NewManifest = any
+  export type BareManifest = any
+  export type EmbeddedManifest = any
+  export type ExpoUpdatesManifest = any
+  export type ManifestAsset = any
+  export type ManifestExtra = any
+  export type ClientScopingConfig = any
+  export type ExpoGoPackagerOpts = any
 }
 
 declare module 'qrcode-generator' {
@@ -14,7 +31,7 @@ declare module 'qrcode-generator' {
     addData: (s: string) => void
     make: () => void
     getModuleCount: () => number
-    createDataURL: (n: number, z: number, rgb: [number, number, number]) => string
+    createDataURL: (n: number) => string
   }
   export default gen
 }
@@ -96,4 +113,15 @@ declare module 'emoji-datasource-apple' {
   }
   const data: Array<EmojiData>
   export default data
+}
+
+// for expo
+declare module 'xcode' {
+  export type XcodeProject = any
+  export type XCBuildConfiguration = any
+  export type PBXNativeTarget = any
+  export type PBXGroup = any
+  export type PBXProject = any
+  export type XCConfigurationList = any
+  export type PBXFile = any
 }

@@ -10,9 +10,10 @@ type Props = {
 }
 
 const ConfirmKickOut = (props: Props) => {
-  const members = props.members
-  const teamID = props.teamID
+  const {members, teamID} = props
   const [subteamsToo, setSubteamsToo] = React.useState(false)
+
+  const [kickedVisible, setKickedVisible] = React.useState(false)
 
   const _subteamIDs = C.useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
   const subteamIDs = Array.from(_subteamIDs)
@@ -30,6 +31,7 @@ const ConfirmKickOut = (props: Props) => {
 
   const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
     setMemberSelected(teamID, '', false, true)
@@ -38,15 +40,23 @@ const ConfirmKickOut = (props: Props) => {
     if (subteamsToo) {
       subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))
     }
+    loadTeam(teamID)
   }
 
-  const wasWaiting = Container.usePrevious(waiting)
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const wasWaitingRef = React.useRef(waiting)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      navUpToScreen('team')
+    console.log('aaaaa useeffect', wasWaitingRef.current, waiting)
+    if (wasWaitingRef.current && !waiting) {
+      setKickedVisible(true)
+      setTimeout(() => {
+        navigateUp()
+      }, 1000)
     }
-  }, [navUpToScreen, waiting, wasWaiting])
+    if (wasWaitingRef.current !== waiting) {
+      wasWaitingRef.current = waiting
+    }
+  }, [navigateUp, waiting])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
@@ -95,10 +105,11 @@ const ConfirmKickOut = (props: Props) => {
               style={Kb.Styles.globalStyles.fullWidth}
             />
           )}
+          <Kb.SimpleToast visible={kickedVisible} text="Kicked" iconType="iconfont-check" />
         </Kb.Box2>
       }
       onCancel={onCancel}
-      onConfirm={onRemove}
+      onConfirm={kickedVisible ? undefined : onRemove}
       confirmText="Kick out"
       waitingKey={waitingKeys}
     />
