@@ -14,10 +14,7 @@
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": [
-      "ESNext",
-      "dom"
-    ],
+    "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "noErrorTruncation": true,
     "noEmit": true,
@@ -32,15 +29,9 @@
     "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "paths": {
-      "react-native-kb": [
-        "override-d.ts/react-native-kb/index.d.ts"
-      ],
-      "react-native-drop-view": [
-        "override-d.ts/react-native-drop-view/index.d.ts"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
+      "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"],
+      "@/*": ["./*"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -49,10 +40,7 @@
     "target": "esnext",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
-  "include": [
-    "./**/*.ts",
-    "./**/*.tsx"
-  ],
+  "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": [
     "**/node_modules",
     "./desktop/dist",
@@ -66,11 +54,6 @@
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
-    "excludeDirectories": [
-      "**/node_modules",
-      "./desktop/dist",
-      "./desktop/build"
-    ]
-  },
-  "extends": "expo/tsconfig.base"
+    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
+  }
 }
