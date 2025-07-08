@@ -99,8 +99,8 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
 
 type UseDataSourceProps = {
   filter: string
-  inputRef: React.MutableRefObject<Input2Ref | null>
-  lastTextRef: React.MutableRefObject<string>
+  inputRef: React.RefObject<Input2Ref | null>
+  lastTextRef: React.RefObject<string>
 }
 
 const useDataSource = (p: UseDataSourceProps) => {
@@ -169,8 +169,8 @@ type ListProps = Pick<
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 } & {
-  inputRef: React.MutableRefObject<Input2Ref | null>
-  lastTextRef: React.MutableRefObject<string>
+  inputRef: React.RefObject<Input2Ref | null>
+  lastTextRef: React.RefObject<string>
 }
 export const List = (p: ListProps) => {
   const {filter, inputRef, lastTextRef, ...rest} = p

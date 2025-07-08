@@ -39,7 +39,7 @@ const Connected = (ownProps: OwnProps) => {
   const [sending, setSending] = React.useState(false)
   const [sendError, setSendError] = React.useState('')
   const mountedRef = React.useRef(true)
-  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const status = React.useMemo(() => {
     return {..._status, deviceID, uid, username}

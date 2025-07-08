@@ -18,8 +18,8 @@ import KB2 from '@/util/electron.desktop'
 
 const {getPathForFile} = KB2.functions
 
-type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
-type InputRefType = React.MutableRefObject<Input2Ref | null>
+type HtmlInputRefType = React.RefObject<HTMLInputElement | null>
+type InputRefType = React.RefObject<Input2Ref | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void

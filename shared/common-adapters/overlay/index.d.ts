@@ -16,7 +16,7 @@ import type {StylesCrossPlatform} from '@/styles/css'
  */
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   children: React.ReactNode
   color?: string
   matchDimension?: boolean

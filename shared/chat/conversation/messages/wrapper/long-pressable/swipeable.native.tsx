@@ -70,7 +70,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
     })
   }, [onSwiped, pan, resetPosition])
 
-  const action = React.useMemo(() => {
+  const action = React.useMemo((): React.ReactNode => {
     return hasSwiped ? makeAction() : null
   }, [makeAction, hasSwiped])
 

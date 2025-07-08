@@ -13,7 +13,7 @@ type OwnProps = {
 }
 
 type PopupOwnProps = OwnProps & {
-  attachToRef: React.RefObject<Kb.MeasureRef>
+  attachToRef: React.RefObject<Kb.MeasureRef | null>
 }
 
 // Just Whats New Icon connected for badge state

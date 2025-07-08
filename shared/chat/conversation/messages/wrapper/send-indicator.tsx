@@ -69,7 +69,7 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
     sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'
   )
   const [visible, setVisible] = React.useState(!sent)
-  const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
+  const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
   React.useEffect(() => {
     if (status === 'encrypting' && !timeoutRef.current) {

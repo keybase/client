@@ -24,6 +24,7 @@ project.logger.lifecycle('Version code: ' + getVersionCode().toString())
  */
 
 react {
+    enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
 
@@ -83,14 +84,14 @@ def enableProguardInReleaseBuilds = false
  * The preferred build flavor of JavaScriptCore (JSC)
  *
  * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
  *
  * The international variant includes ICU i18n library and necessary data
  * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
  * give correct results when using with locales other than en-US. Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -170,7 +171,7 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:24.0.1"
-    implementation "com.facebook.fresco:animated-gif:${reactAndroidLibs.versions.fresco.get()}"
+    implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
     implementation 'org.msgpack:msgpack-core:0.9.0'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'

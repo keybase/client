@@ -191,7 +191,7 @@ const AnimatedExpand = (() => {
 })()
 
 type ChatFilePickerProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   showingPopup: boolean
   hidePopup: () => void
 }
@@ -278,7 +278,7 @@ const PlatformInput = (p: Props) => {
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
 
   const lastText = React.useRef('')
-  const whichMenu = React.useRef<MenuType | undefined>()
+  const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
   const toggleExpandInput = React.useCallback(() => {

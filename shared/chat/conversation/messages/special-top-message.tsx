@@ -153,7 +153,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const [allowDigging, setAllowDigging] = React.useState(false)
   const lastOrdinalRef = React.useRef(ordinal)
 
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
+  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   React.useEffect(() => {
     if (ordinal !== lastOrdinalRef.current) {
       setAllowDigging(false)

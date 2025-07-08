@@ -5,7 +5,7 @@ import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {ModalTitle} from '@/teams/common'
 import * as Container from '@/util/container'
-import {CropZoom, type CropZoomType} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 
 type WrappedProps = {
   onChooseNewAvatar: () => void
@@ -92,7 +92,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
         },
       }
     }, [resolution])
-    const czref = React.useRef<CropZoomType>(null)
+    const czref = React.useRef<CropZoomRefType>(null)
 
     return (
       <Kb.Box2

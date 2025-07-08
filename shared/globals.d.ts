@@ -31,6 +31,7 @@ declare global {
   var DEBUGError: (s: unknown) => void
   var _fromPreload: unknown
   var __HOT__: boolean
+  var __DEV__: boolean
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean

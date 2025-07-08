@@ -32,7 +32,7 @@ let markedInitiallyLoaded = false
 const useScrolling = (p: {
   containsLatestMessage: boolean
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  listRef: React.MutableRefObject<HTMLDivElement | null>
+  listRef: React.RefObject<HTMLDivElement | null>
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
@@ -47,7 +47,7 @@ const useScrolling = (p: {
     200
   )
   // if we scroll up try and keep the position
-  const scrollBottomOffsetRef = React.useRef<number | undefined>()
+  const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
   const loadOlderMessages = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -137,7 +137,7 @@ const useScrolling = (p: {
       })
   }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
 
-  const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   React.useEffect(() => {
     return () => {
       clearTimeout(scrollCheckRef.current)
@@ -657,7 +657,7 @@ const Content = React.memo(
     // Apply data-key to the dom node so we can search for editing messages
     return (
       <div data-key={id} ref={ref}>
-        {ordinals.map(o => rowRenderer(o))}
+        {ordinals.map((o): React.ReactNode => rowRenderer(o))}
       </div>
     )
   })

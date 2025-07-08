@@ -32,7 +32,7 @@ type DragAndDropProps = CommonProps & {
 
 type RunOperationProps = CommonProps & {
   children?: React.ReactNode
-  blurCBRef?: React.MutableRefObject<() => void>
+  blurCBRef?: React.RefObject<() => void>
 }
 
 // Tese magic numbers set the width of the single line `textarea` such that the

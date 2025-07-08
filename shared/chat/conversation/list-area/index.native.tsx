@@ -32,7 +32,7 @@ const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: Array<T.Chat.Ordinal>
   conversationIDKey: T.Chat.ConversationIDKey
-  listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
+  listRef: React.RefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length

@@ -25,7 +25,7 @@ export type Props = {
 
 const TeamMention = (props: Props) => {
   const [showPopup, setShowPopup] = React.useState(false)
-  const mentionRef = React.useRef<MeasureRef>(null)
+  const mentionRef = React.useRef<MeasureRef | null>(null)
 
   const handleClick = () => {
     if (props.onChat) {

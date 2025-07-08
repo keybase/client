@@ -118,7 +118,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       <ResentEmailVerificationBanner />
       {props.newItems
         .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-        .map(item => itemToComponent(item, props))}
+        .map((item): React.ReactNode => itemToComponent(item, props))}
       {/*Array.from(props.wotUpdates, ([key, item]) => (
         <WotTask
           key={key}
@@ -130,7 +130,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       ))*/}
 
       <FollowSuggestions suggestions={props.followSuggestions} />
-      {props.oldItems.map(item => itemToComponent(item, props))}
+      {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
     </Kb.Box>
   )
 })

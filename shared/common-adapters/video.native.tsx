@@ -11,7 +11,7 @@ const Kb = {Box}
 // There seems to be a race between navigation animation and the measurement stuff
 // here that causes stuff to be rendered off-screen. So delay mounting to avoid
 // the race.
-const DelayMount = ({children}: {children: React.ReactNode}) => {
+const DelayMount = ({children}: {children: React.ReactNode}): React.ReactNode => {
   const [mount, setMount] = React.useState(false)
   React.useEffect(() => {
     const id = setTimeout(() => setMount(true), 500)

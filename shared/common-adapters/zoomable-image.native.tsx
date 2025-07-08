@@ -15,43 +15,32 @@ import {
 const ZoomableImage = React.memo(function (p: Props) {
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
   const {isFetching, resolution} = useImageResolution({uri: src})
-  const [containerSize, setContainerSize] = React.useState({height: 0, width: 0})
   const currentZoomSV = useSharedValue(1)
-
-  const onLayout = React.useCallback((event: LayoutChangeEvent) => {
-    const {width, height} = event.nativeEvent.layout
-    setContainerSize(old => {
-      if (old.width === width && old.height === height) {
-        return old
-      }
-      return {height, width}
-    })
-  }, [])
 
   const onUpdate = React.useCallback(
     (s: CommonZoomState<number>) => {
       'worklet'
       currentZoomSV.set(s.scale)
       if (onZoom && resolution?.width) {
-        const actualScale = (s.scale * s.width) / resolution.width
-        const {width} = s
+        const actualScale = (s.scale * s.childSize.width) / resolution.width
+        const {width} = s.childSize
         const scale = width / resolution.width
-        const scaledContainerWidth = containerSize.width / scale
-        const scaledContainerHeight = containerSize.height / scale
+        const scaledContainerWidth = s.containerSize.width / scale
+        const scaledContainerHeight = s.containerSize.height / scale
 
-        const left = scaledContainerWidth / 2 - s.translateX - containerSize.width / 2
-        const top = s.translateY - scaledContainerHeight / 2 + containerSize.height / 2
+        const left = scaledContainerWidth / 2 - s.translateX - s.containerSize.width / 2
+        const top = s.translateY - scaledContainerHeight / 2 + s.containerSize.height / 2
         const z = {
-          height: s.height * s.scale,
+          height: s.childSize.height * s.scale,
           scale: actualScale,
-          width: s.width * s.scale,
+          width: s.childSize.width * s.scale,
           x: left,
           y: top,
         }
         runOnJS(onZoom)(z)
       }
     },
-    [currentZoomSV, onZoom, resolution, containerSize]
+    [currentZoomSV, onZoom, resolution]
   )
 
   const onSwipe = React.useCallback(
@@ -72,6 +61,17 @@ const ZoomableImage = React.memo(function (p: Props) {
   )
 
   let content: React.ReactNode
+
+  const [containerSize, setContainerSize] = React.useState({height: 0, width: 0})
+  const onLayout = React.useCallback((event: LayoutChangeEvent) => {
+    const {width, height} = event.nativeEvent.layout
+    setContainerSize(old => {
+      if (old.width === width && old.height === height) {
+        return old
+      }
+      return {height, width}
+    })
+  }, [])
 
   if (isFetching || !resolution) {
     content = <></>

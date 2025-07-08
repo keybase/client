@@ -11,7 +11,9 @@ target 'Keybase' do
   use_expo_modules!
   config = use_native_modules!
 
-  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+  use_frameworks! :linkage => :static
+
+  pod 'KBCommon', :path => '../../rnmodules/kb-common'
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -45,10 +47,7 @@ target 'Keybase' do
 end
 
 target 'KeybaseShare' do
-  # Uncomment the next line if you're using Swift or would like to use dynamic frameworks
-  # use_frameworks!
-
-  # Pods for KeybaseShare
-  inherit! :search_paths
+  pod 'KBCommon', :path => '../../rnmodules/kb-common'
+  use_frameworks! :linkage => :static
 end
 

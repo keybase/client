@@ -34,6 +34,7 @@
       "@/*": ["./*"]
     },
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "sourceMap": false,
     "strict": true,
     "target": "esnext",

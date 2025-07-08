@@ -18,7 +18,7 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
     savedCallback.current = func
   }, [func])
 
-  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const timerCB = React.useCallback(() => {
     savedCallback.current()

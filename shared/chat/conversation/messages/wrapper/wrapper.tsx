@@ -75,7 +75,7 @@ type WMProps = {
   showPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
-  popupAnchor: React.RefObject<Kb.MeasureRef>
+  popupAnchor: React.RefObject<Kb.MeasureRef | null>
 } & Props
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
@@ -204,7 +204,7 @@ type TSProps = {
   exploding: boolean
   hasReactions: boolean
   isHighlighted: boolean
-  popupAnchor: React.RefObject<Kb.MeasureRef>
+  popupAnchor: React.RefObject<Kb.MeasureRef | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
@@ -447,7 +447,7 @@ type RProps = {
   showCoinsIcon: boolean
   botname: string
   shouldShowPopup: boolean
-  popupAnchor: React.RefObject<Kb.MeasureRef>
+  popupAnchor: React.RefObject<Kb.MeasureRef | null>
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p

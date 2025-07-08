@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import type * as Kb from '@/common-adapters'
 
 export type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   visible: boolean
   onHidden: () => void
   selected: number

@@ -7,7 +7,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
 
 export type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean

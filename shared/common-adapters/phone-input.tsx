@@ -154,7 +154,7 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 )
 
 type CountrySelectorProps = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   onSelect: (s?: string) => void
   onHidden: () => void
   selected?: string
@@ -205,8 +205,8 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
 
   const desktopItemsRef = React.useRef<
     Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}> | undefined
-  >()
-  const mobileItemsRef = React.useRef<Array<{label: string; value: string}> | undefined>()
+  >(undefined)
+  const mobileItemsRef = React.useRef<Array<{label: string; value: string}> | undefined>(undefined)
 
   const onSelectFirst = () => {
     if (Styles.isMobile && mobileItemsRef.current?.[0]) {

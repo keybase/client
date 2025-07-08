@@ -1,4 +1,10 @@
-expo-av to expo-video / expo-audio (not ready yet can't get video size...)
+android:
+
+ios:
+input paste view removed <<<<<<<<<<<<
+
+
+expo-av to expo-video / expo-audio (not ready yet can't get video size...), missing stuff we need like on full screen change
 using "react-native-gesture-handler": "2.24.0", as 25 clicking search in chat on inbox ios doesn't work (https://github.com/software-mansion/react-native-gesture-handler/issues/3476)
 
 
@@ -14,6 +20,3 @@ strict mode with gestures fails
 
 
 run electron hash update
--------------------------
-Some short term todos:
-mem leak

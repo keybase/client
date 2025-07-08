@@ -52,7 +52,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
-  inputRef: React.MutableRefObject<Input2Ref | null>
+  inputRef: React.RefObject<Input2Ref | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
@@ -63,11 +63,11 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  inputRef: React.MutableRefObject<Input2Ref | null>
+  inputRef: React.RefObject<Input2Ref | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
-  selectedItemRef: React.MutableRefObject<undefined | SelectedType>
-  lastTextRef: React.MutableRefObject<string>
+  selectedItemRef: React.RefObject<undefined | SelectedType>
+  lastTextRef: React.RefObject<string>
   setLastText: (text: string) => void
 }
 
@@ -116,7 +116,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     return null
   }, [inputRef, active, lastTextRef])
 
-  const triggerIDRef = React.useRef<NodeJS.Timeout>()
+  const triggerIDRef = React.useRef<NodeJS.Timeout>(undefined)
   const checkTrigger = React.useCallback(() => {
     if (triggerIDRef.current) {
       clearTimeout(triggerIDRef.current)
@@ -225,8 +225,8 @@ type UseHandleKeyEventsProps = {
   active: string
   checkTrigger: () => void
   filterEmpty: boolean
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  onMoveRef: React.RefObject<((up: boolean) => void) | undefined>
+  onSubmitRef: React.RefObject<(() => boolean) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
   const {onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef} = p
@@ -284,7 +284,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 }
 
 export const useSuggestors = (p: UseSuggestorsProps) => {
-  const selectedItemRef = React.useRef<undefined | SelectedType>()
+  const selectedItemRef = React.useRef<undefined | SelectedType>(undefined)
   const lastTextRef = React.useRef('')
   const setLastText = React.useCallback((text: string) => {
     lastTextRef.current = text
@@ -305,12 +305,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   })
 
   // tell list to move the selection
-  const onMoveRef = React.useRef<(up: boolean) => void>()
+  const onMoveRef = React.useRef<(up: boolean) => void>(undefined)
   const setOnMoveRef = React.useCallback((r: (up: boolean) => void) => {
     onMoveRef.current = r
   }, [])
   // tell list we want to submit the selection, true if it selected anything
-  const onSubmitRef = React.useRef<() => boolean>()
+  const onSubmitRef = React.useRef<() => boolean>(undefined)
   const setOnSubmitRef = React.useCallback((r: () => boolean) => {
     onSubmitRef.current = r
   }, [])
@@ -403,7 +403,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.MutableRefObject<Input2Ref | null>
+  inputRef: React.RefObject<Input2Ref | null>
   children: React.ReactNode
 }
 const Popup = (p: PopupProps) => {

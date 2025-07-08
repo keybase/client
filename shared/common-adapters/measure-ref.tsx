@@ -19,5 +19,5 @@ export type MeasureNative = {
 export type MeasureRef = {
   // desktop
   measure?: () => MeasureDesktop | undefined
-  divRef: React.RefObject<HTMLDivElement>
+  divRef: React.RefObject<HTMLDivElement | null>
 }

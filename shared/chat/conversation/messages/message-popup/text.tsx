@@ -7,7 +7,7 @@ import {useItems, useHeader} from './hooks'
 import openURL from '@/util/open-url'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position

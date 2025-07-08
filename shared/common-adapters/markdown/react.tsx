@@ -400,7 +400,7 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
     obj[k] = reactComponentsForMarkdownType[k]
   } else {
     obj[k] = {
-      react: (node: Node, output: SM.ReactOutput, state: State) =>
+      react: (node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
         typeof node['content'] !== 'object'
           ? SimpleMarkdown.defaultRules.text.react(
               {content: node['content'] as Array<Node>, type: 'text'},
@@ -560,7 +560,7 @@ export const serviceOnlyNoWrapOutput: SM.Output<React.ReactNode> = SimpleMarkdow
         reactComponentsForMarkdownType.emoji.react(node, output, state),
     },
     paragraph: {
-      react: (node: Node, output: SM.ReactOutput) => output(node['content']),
+      react: (node: Node, output: SM.ReactOutput): React.ReactNode => output(node['content']),
     },
     serviceDecoration: {
       react: (node: Node, _output: SM.ReactOutput, state: State) => (

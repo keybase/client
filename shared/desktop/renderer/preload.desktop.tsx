@@ -303,10 +303,9 @@ if (isRenderer) {
     })
 } else {
   const {default: kb2consts} = require('../app/kb2-impl.desktop') as {default: KB2['constants']}
-  const getMainWindow = (): Electron.BrowserWindow | undefined => {
-    const w = require('electron')
-      .BrowserWindow.getAllWindows()
-      .find(w => w.webContents.getURL().includes('/main.'))
+  const getMainWindow = () => {
+    const e = require('electron') as typeof Electron
+    const w = e.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
     return w
   }
 

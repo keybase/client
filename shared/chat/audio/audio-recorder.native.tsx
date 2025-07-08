@@ -341,7 +341,7 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
 // Hook for interfacing with the native recorder
 const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
   const {ampSV, setShowAudioSend, showAudioSend} = p
-  const recordingRef = React.useRef<Audio.Recording | undefined>()
+  const recordingRef = React.useRef<Audio.Recording | undefined>(undefined)
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)

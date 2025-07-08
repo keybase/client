@@ -7,7 +7,7 @@ import {sharedStyles} from '../shared-styles'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
-  toastTargetRef?: React.RefObject<Kb.MeasureRef>
+  toastTargetRef?: React.RefObject<Kb.MeasureRef | null>
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -19,7 +19,7 @@ export const missingMessage = C.Chat.makeMessageAttachment()
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const lastTransferStateRef = React.useRef(transferState)
-  const timerRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   React.useEffect(() => {
     if (transferState !== lastTransferStateRef.current) {

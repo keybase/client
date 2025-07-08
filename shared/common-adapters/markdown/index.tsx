@@ -472,7 +472,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
     return <ErrorComponent>{children}</ErrorComponent>
   }
 
-  const inner = (() => {
+  const inner = ((): React.ReactNode => {
     switch (true) {
       case serviceOnlyNoWrap:
         return output

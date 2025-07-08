@@ -21,7 +21,7 @@ const Kb = {
 }
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   description: string
   inTeam: boolean
   isOpen: boolean

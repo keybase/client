@@ -10,7 +10,7 @@ import * as Styles from '@/styles'
 const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 
 type PopupProps = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   onHidden: () => void
   onResolve: () => void
   text: string
@@ -51,7 +51,7 @@ type Props = {
 
 const UnknownMention = (props: Props) => {
   const [showPopup, setShowPopup] = React.useState(false)
-  const mentionRef = React.useRef<MeasureRef>(null)
+  const mentionRef = React.useRef<MeasureRef | null>(null)
 
   const handleMouseOver = () => setShowPopup(true)
   const handleMouseLeave = () => setShowPopup(false)

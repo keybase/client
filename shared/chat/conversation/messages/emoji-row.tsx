@@ -52,7 +52,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
-  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const _setShowingPicker = (showingPicker: boolean) => {
     onShowingEmojiPicker?.(showingPicker)
     setShowingPicker(showingPicker)

@@ -29,7 +29,7 @@ const Kb = {
 export type MenuItems = _MenuItems
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
@@ -54,7 +54,7 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 })
 
-const FullWindow = ({children}: {children?: React.ReactNode}) => {
+const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 

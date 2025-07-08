@@ -30,7 +30,7 @@ type KeyEventHandlerRef = {
   onKeyDown?: (ev: KeyboardEvent) => void
   onKeyPress?: (ev: KeyboardEvent) => void
 }
-const KeyEventHandler = (props: Props & HandlerProps) => {
+const KeyEventHandler = (props: Props & HandlerProps): React.ReactNode => {
   const {add, remove, onKeyDown, onKeyPress} = props
 
   const keyEventHandlerRef = React.useMemo(() => {

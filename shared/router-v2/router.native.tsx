@@ -8,10 +8,11 @@ import * as Common from './common.native'
 import {shim, getOptions} from './shim'
 import logger from '@/logger'
 import {StatusBar, View, useWindowDimensions, Linking} from 'react-native'
+import {PlatformPressable} from '@react-navigation/elements'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
@@ -230,6 +231,7 @@ const AppTabsImpl = React.memo(function AppTabsImpl() {
           ...Common.defaultNavigationOptions,
           headerShown: false,
           tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
+          tabBarButton,
           tabBarHideOnKeyboard: true,
           tabBarIcon: makeTabBarIcon(route.name),
           tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
@@ -243,6 +245,13 @@ const AppTabsImpl = React.memo(function AppTabsImpl() {
     </Tab.Navigator>
   )
 })
+
+const android_rippleFix = {color: 'transparent'}
+const tabBarButton = (p: BottomTabBarButtonProps) => (
+  <PlatformPressable {...p} android_ripple={android_rippleFix}>
+    {p.children}
+  </PlatformPressable>
+)
 
 const AppTabs = () => <AppTabsImpl />
 
