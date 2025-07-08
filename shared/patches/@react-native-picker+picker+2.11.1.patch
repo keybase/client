@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-picker/picker/typings/Picker.d.ts b/node_modules/@react-native-picker/picker/typings/Picker.d.ts
-index 0e21756..4e57c5c 100644
+index 0e21756..a51c567 100644
 --- a/node_modules/@react-native-picker/picker/typings/Picker.d.ts
 +++ b/node_modules/@react-native-picker/picker/typings/Picker.d.ts
 @@ -132,7 +132,7 @@ declare class Picker<T> extends React.Component<PickerProps<T>, {}> {
