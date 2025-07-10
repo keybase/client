@@ -19,6 +19,11 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
+import android.view.View;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.graphics.Insets;
 
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
@@ -186,6 +191,24 @@ public class MainActivity extends ReactActivity {
 
         KeybasePushNotificationListenerService.createNotificationChannel(this);
         updateIsUsingHardwareKeyboard();
+
+        // fix for keyboard avoiding not working on 35
+        if (Build.VERSION.SDK_INT >= 35) {
+            View rootView = findViewById(android.R.id.content);
+            ViewCompat.setOnApplyWindowInsetsListener(rootView, new OnApplyWindowInsetsListener() {
+                @Override
+                public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                    Insets innerPadding = insets.getInsets(WindowInsetsCompat.Type.ime());
+                    rootView.setPadding(
+                        innerPadding.left,
+                        innerPadding.top,
+                        innerPadding.right,
+                        innerPadding.bottom
+                    );
+                    return insets;
+                }
+            });
+        }
     }
 
     @Override
