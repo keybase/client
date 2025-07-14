@@ -181,12 +181,17 @@ const patchIosKBLib = () => {
     const files = ['Keybase.objc.h', 'Universe.objc.h']
     for (const prefix of prefixes) {
       for (const file of files) {
-        const path = `${prefix}/Keybase.framework/Versions/Current/Headers/${file}`
-        try {
-          console.log('Patching go libs', path)
-          exec(`sed -i -e 's/@import Foundation;/#include <Foundation\\/Foundation.h>/' ${path}`)
-        } catch {
-          console.log('Patching skipped')
+        const paths = [
+          `${prefix}/Keybase.framework/Versions/Current/Headers/${file}`,
+          `${prefix}/Keybase.framework/Headers/${file}`,
+        ]
+        for (const path of paths) {
+          try {
+            console.log('Patching go libs', path)
+            exec(`sed -i -e 's/@import Foundation;/#include <Foundation\\/Foundation.h>/' ${path}`)
+          } catch {
+            console.log('Patching skipped')
+          }
         }
       }
     }
