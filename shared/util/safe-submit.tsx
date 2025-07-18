@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
+export function useSafeSubmit<F extends (...a: Array<any>) => void>(f: F, shouldReset: boolean) {
   const safeToCallRef = React.useRef(true)
 
   React.useEffect(() => {
@@ -10,7 +10,7 @@ export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
   }, [shouldReset])
 
   const safeWrapped = React.useCallback(
-    (...args: Array<any>) => {
+    (...args: Array<unknown>) => {
       if (safeToCallRef.current) {
         safeToCallRef.current = false
         f(...args)
@@ -20,5 +20,5 @@ export function useSafeSubmit<F extends Function>(f: F, shouldReset: boolean) {
     [f]
   )
 
-  return safeWrapped as any as F
+  return safeWrapped
 }

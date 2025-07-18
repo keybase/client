@@ -50,12 +50,12 @@ class IncomingRequest extends Request {
     this.updateWaiting(true) // We just responded to the server so now we're waiting
   }
 
-  result(...args: Array<any>) {
+  result(...args: Array<unknown>) {
     this._response?.result(...args)
     this._cleanup()
   }
 
-  error(...args: Array<any>) {
+  error(...args: Array<unknown>) {
     this._response?.error(...args)
     this._cleanup()
   }

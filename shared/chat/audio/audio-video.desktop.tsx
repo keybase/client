@@ -2,21 +2,9 @@ import * as React from 'react'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
-  const {url, seekRef, paused, onPositionUpdated, onEnded} = props
+  const {url, paused, onPositionUpdated, onEnded} = props
   const vidRef = React.useRef<HTMLVideoElement | null>(null)
-  const seek = React.useCallback(
-    (seconds: number) => {
-      if (vidRef.current) {
-        vidRef.current.currentTime = seconds
-      }
-      if (paused) {
-        vidRef.current?.pause()
-      }
-    },
-    [vidRef, paused]
-  )
 
-  seekRef.current = seek
   const onTimeUpdate = React.useCallback(
     (e: React.SyntheticEvent<HTMLVideoElement>) => {
       const ct = e.currentTarget.currentTime
@@ -33,9 +21,12 @@ const AudioVideo = (props: Props) => {
     onEnded()
   }, [onEnded])
 
-  const [lastPaused, setLastPaused] = React.useState(paused)
-  if (lastPaused !== paused) {
-    setLastPaused(paused)
+  const lastPausedRef = React.useRef(paused)
+  React.useEffect(() => {
+    if (lastPausedRef.current === paused) {
+      return
+    }
+    lastPausedRef.current = paused
     if (paused) {
       vidRef.current?.pause()
     } else {
@@ -44,7 +35,7 @@ const AudioVideo = (props: Props) => {
         .then(() => {})
         .catch(() => {})
     }
-  }
+  }, [paused])
 
   return (
     <video

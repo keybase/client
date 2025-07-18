@@ -59,7 +59,7 @@ const EnterDevicename = (props: Props) => {
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
 
-  const inputRef = React.useRef<Kb.PlainInput>(null)
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
   C.useOnMountOnce(() => {
     inputRef.current?.transformText(i => {
       if (!props.initialDevicename) return i
@@ -73,17 +73,19 @@ const EnterDevicename = (props: Props) => {
     })
   })
 
-  if (cleanDeviceName !== deviceName) {
-    inputRef.current?.transformText(() => {
-      return {
-        selection: {
-          end: cleanDeviceName.length,
-          start: cleanDeviceName.length,
-        },
-        text: cleanDeviceName,
-      }
-    })
-  }
+  React.useEffect(() => {
+    if (cleanDeviceName !== deviceName) {
+      inputRef.current?.transformText(() => {
+        return {
+          selection: {
+            end: cleanDeviceName.length,
+            start: cleanDeviceName.length,
+          },
+          text: cleanDeviceName,
+        }
+      })
+    }
+  }, [deviceName, cleanDeviceName])
 
   return (
     <SignupScreen

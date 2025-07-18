@@ -1,4 +1,9 @@
 #import "DropView.h"
+#import <KBCommon/KBCommon-Swift.h>
+
+@interface DropView ()
+  @property(nonatomic, strong) ItemProviderHelper *iph;
+@end
 
 @implementation DropView
 

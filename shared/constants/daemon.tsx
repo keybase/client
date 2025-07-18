@@ -50,7 +50,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
@@ -103,36 +103,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
-      const checkNav = (version: number) => {
-        // have one
-        if (C.Router2._getNavigator()) return
-        const name = 'nav'
-        const {wait} = get().dispatch
-        wait(name, version, true)
-        logger.info('Waiting on nav')
-        C.useConfigState.setState(s => {
-          s.dispatch.dynamic.setNavigatorExistsNative = C.wrapErrors(() => {
-            if (C.Router2._getNavigator()) {
-              C.useConfigState.setState(s => {
-                s.dispatch.dynamic.setNavigatorExistsNative = undefined
-              })
-              wait(name, version, false)
-            } else {
-              logger.info('Waiting on nav, got setNavigator but nothing in constants?')
-            }
-          })
-        })
-      }
-      checkNav(version)
-
       const f = async () => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
-        await get().dispatch.loadDaemonBootstrapStatus()
-        C.useDarkModeState.getState().dispatch.loadDarkPrefs()
-        C.useChatState.getState().dispatch.loadStaticConfig()
-        wait(name, version, false)
+        try {
+          await get().dispatch.loadDaemonBootstrapStatus()
+          C.useDarkModeState.getState().dispatch.loadDarkPrefs()
+          C.useChatState.getState().dispatch.loadStaticConfig()
+        } finally {
+          wait(name, version, false)
+        }
       }
       C.ignorePromise(f())
       get().dispatch.loadDaemonAccounts()
@@ -149,9 +130,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         let handshakeWait = false
-        let handshakeVersion = 0
+        const handshakeVersion = version
 
-        handshakeVersion = version
         // did we beat getBootstrapStatus?
         if (!C.useConfigState.getState().loggedIn) {
           handshakeWait = true

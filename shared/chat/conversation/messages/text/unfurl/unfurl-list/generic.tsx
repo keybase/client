@@ -71,7 +71,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
           ) : null}
         </Kb.Text>
       </Kb.BoxGrow>
-      {!!onClose && (
+      {onClose ? (
         <Kb.Icon
           type="iconfont-close"
           onClick={onClose}
@@ -80,7 +80,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
           className="unfurl-closebox"
           fontSize={12}
         />
-      )}
+      ) : null}
     </Kb.Box2>
   )
 
@@ -149,9 +149,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {alignSelf: 'center'},
       }),
       closeBox: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
-        },
+        common: {backgroundColor: Kb.Styles.globalColors.fastBlank},
         isElectron: {
           alignSelf: 'flex-start',
           marginLeft: 'auto',

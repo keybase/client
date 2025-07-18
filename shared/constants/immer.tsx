@@ -22,7 +22,7 @@ export function updateImmerVal<T, K extends keyof T>(existing: T, propName: K, n
   }
 }
 
-export function updateImmer<T extends {}>(existing: T, next: T): void {
+export function updateImmer<T extends object>(existing: T, next: T): void {
   const props = Object.keys(next) as Array<keyof T>
   const leftovers = new Set<keyof T>(Object.keys(existing) as Array<keyof T>)
   for (const prop of props) {

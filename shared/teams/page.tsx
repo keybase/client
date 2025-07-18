@@ -45,7 +45,7 @@ const filterStyles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const ConnectedHeaderRightActions = (_: {}) => {
+const ConnectedHeaderRightActions = () => {
   const actions = useHeaderActions()
   return <HeaderRightActions {...actions} />
 }

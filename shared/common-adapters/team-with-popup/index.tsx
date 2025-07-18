@@ -32,7 +32,7 @@ export const TeamWithPopup = (props: Props) => {
   const {onJoinTeam, onViewTeam} = props
   const {description, isMember, isOpen, memberCount} = props
   const {prefix, teamName, type, inline} = props
-  const popupRef = React.useRef<MeasureRef>(null)
+  const popupRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const onHidePopup = () => setShowPopup(false)
   const onShowPopup = () => setShowPopup(true)

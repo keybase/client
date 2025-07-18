@@ -109,12 +109,12 @@ const MenuBar = () => {
 
   Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
     switch (action.type) {
+      // eslint-disable-next-line
       case 'showTray': {
         badgeType = action.payload.badgeType
         badges = action.payload.desktopAppBadgeCount
         updateIcon()
-        const _dock = Electron.app.dock
-        const dock = _dock as typeof _dock | undefined
+        const dock = Electron.app.dock
         if (dock?.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }

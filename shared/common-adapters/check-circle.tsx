@@ -23,11 +23,9 @@ type Props = {
 }
 
 const CheckCircle = (props: Props) => {
-  const onClick = (evt: React.BaseSyntheticEvent) => {
+  const onClick = () => {
     if (props.onCheck) {
       !props.disabled && props.onCheck(!props.checked)
-      evt.preventDefault()
-      evt.stopPropagation()
     }
   }
 
@@ -40,15 +38,15 @@ const CheckCircle = (props: Props) => {
         props.disabled
           ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
           : props.checked
-          ? props.checkedColor || Styles.globalColors.blue
-          : props.color || Styles.globalColors.black_20OrWhite_20
+            ? props.checkedColor || Styles.globalColors.blue
+            : props.color || Styles.globalColors.black_20OrWhite_20
       }
       hoverColor={
         props.disabled
           ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
           : props.checked
-          ? props.checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
-          : props.hoverColor || Styles.globalColors.blue
+            ? props.checkedHoverColor || Styles.globalColors.blueDarkOrBlueLight
+            : props.hoverColor || Styles.globalColors.blue
       }
       className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
       style={props.style}

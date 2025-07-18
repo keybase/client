@@ -54,7 +54,7 @@ const handleKeyDown = (
 }
 
 const Input = (props: Props) => {
-  const ref = React.useRef<Kb.SearchFilter>(null)
+  const ref = React.useRef<Kb.SearchFilterRef>(null)
   const {focusCounter, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown} = props
   const prevFocusCounter = Container.usePrevious(focusCounter)
   React.useEffect(() => {

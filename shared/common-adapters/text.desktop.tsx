@@ -1,18 +1,19 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
-// TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
-import shallowEqual from 'shallowequal'
 import type {Props, TextType, _StylesTextCrossPlatform} from './text'
 import KB2 from '@/util/electron.desktop'
 const {showContextMenu} = KB2.functions
 
-class Text extends React.Component<Props> {
-  _spanRef = React.createRef<HTMLSpanElement>()
+const Text = React.memo((p: Props) => {
+  const {onClickURL, allowHighlightText, textRef, className: _className} = p
+  const {type, onClick, negative, underlineNever, lineClamp, selectable} = p
+  const {center, tooltip, virtualText, underline, title, style, children} = p
+  const spanRef = React.useRef<HTMLSpanElement | null>(null)
 
-  highlightText() {
-    const el = this._spanRef.current
+  const highlightText = React.useCallback(() => {
+    const el = spanRef.current
     if (!el) {
       return
     }
@@ -24,95 +25,91 @@ class Text extends React.Component<Props> {
       sel.removeAllRanges()
       sel.addRange(range)
     }
-  }
+  }, [])
 
-  shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps, (obj: unknown, oth: unknown, key) => {
-      if (key === 'style') {
-        return shallowEqual(obj, oth)
-      } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
-        // child will be plain text
-        return shallowEqual(obj, oth)
+  const setRef = React.useCallback(
+    (r: HTMLSpanElement | null) => {
+      if (allowHighlightText) {
+        spanRef.current = r
       }
-      return undefined
-    })
-  }
 
-  _className(props: Props) {
-    const meta = metaData()[props.type]
-    return Styles.classNames(`text_${props.type}`, props.className, {
-      clickable: !!props.onClick,
-      color_white_important: props.negative,
-      underline: props.underline || (meta.isLink && props.negative),
-      'underline-never': props.underlineNever,
+      if (textRef) {
+        // outer type isn't writable due to class components
+        const writeRef = textRef as React.RefObject<typeof textRef.current>
+        // eslint-disable-next-line
+        writeRef.current = {
+          divRef: {current: null},
+          highlightText: () => {
+            allowHighlightText && highlightText()
+          },
+          measure: () => {
+            return r?.getBoundingClientRect()
+          },
+        }
+      }
+    },
+    [allowHighlightText, highlightText, textRef]
+  )
+
+  const className = (() => {
+    const meta = metaData()[type]
+    return Styles.classNames(`text_${type}`, _className, {
+      clickable: !!onClick,
+      color_white_important: negative,
+      underline: underline || (meta.isLink && negative),
+      'underline-never': underlineNever,
       // eslint-disable-next-line sort-keys
-      'hover-underline': meta.isLink && !props.negative,
-      lineClamp1: props.lineClamp === 1,
-      lineClamp2: props.lineClamp === 2,
-      lineClamp3: props.lineClamp === 3,
-      lineClamp4: props.lineClamp === 4,
-      lineClamp5: props.lineClamp === 5,
-      selectable: props.selectable,
-      text_center: props.center,
-      tooltip: props.tooltip,
-      virtualText: props.virtualText,
+      'hover-underline': meta.isLink && !negative,
+      lineClamp1: lineClamp === 1,
+      lineClamp2: lineClamp === 2,
+      lineClamp3: lineClamp === 3,
+      lineClamp4: lineClamp === 4,
+      lineClamp5: lineClamp === 5,
+      selectable: selectable,
+      text_center: center,
+      tooltip: tooltip,
+      virtualText: virtualText,
     })
-  }
+  })()
 
-  _urlClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    if (!this.props.onClickURL) {
-      return
-    }
-    e.stopPropagation()
-    openURL(this.props.onClickURL)
-  }
-
-  private onContextMenu = (event: React.SyntheticEvent<HTMLSpanElement>) => {
-    const url = this.props.onClickURL
-    if (!url) {
-      return
-    }
-    event.stopPropagation()
-    showContextMenu?.(url)
-  }
-
-  private setRef = (r: HTMLSpanElement | null) => {
-    if (this.props.allowHighlightText) {
-      this._spanRef = {current: r}
-    }
-
-    if (this.props.textRef) {
-      // outer type isn't writable due to class components
-      const writeRef = this.props.textRef as React.MutableRefObject<typeof this.props.textRef.current>
-      writeRef.current = {
-        divRef: {current: null},
-        highlightText: () => {
-          this.props.allowHighlightText && this.highlightText()
-        },
-        measure: () => {
-          return r?.getBoundingClientRect()
-        },
+  const onContextMenu = React.useCallback(
+    (event: React.SyntheticEvent<HTMLSpanElement>) => {
+      const url = onClickURL
+      if (!url) {
+        return
       }
-    }
-  }
+      event.stopPropagation()
+      showContextMenu?.(url)
+    },
+    [onClickURL]
+  )
 
-  render() {
-    return (
-      <span
-        title={this.props.title || undefined}
-        ref={this.setRef}
-        className={this._className(this.props)}
-        onClick={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined) || undefined}
-        onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}
-        style={Styles.collapseStyles([this.props.style]) as React.CSSProperties}
-        data-virtual-text={this.props.virtualText ? this.props.children : undefined}
-        data-tooltip={this.props.tooltip}
-      >
-        {this.props.virtualText ? null : this.props.children}
-      </span>
-    )
-  }
-}
+  const urlClick = React.useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      if (!onClickURL) {
+        return
+      }
+      e.stopPropagation()
+      openURL(onClickURL)
+    },
+    [onClickURL]
+  )
+
+  return (
+    <span
+      title={title || undefined}
+      ref={setRef}
+      className={className}
+      onClick={onClick || (onClickURL ? urlClick : undefined) || undefined}
+      onContextMenuCapture={onClickURL ? onContextMenu : undefined}
+      style={Styles.collapseStyles([style]) as React.CSSProperties}
+      data-virtual-text={virtualText ? children : undefined}
+      data-tooltip={tooltip}
+    >
+      {virtualText ? null : children}
+    </span>
+  )
+})
 
 // Only used by external components
 function externalGetStyle(

@@ -17,10 +17,6 @@ const Kb = {
 
 type Status = 'error' | 'pending' | 'completed' | 'claimable'
 
-type State = {
-  showPopup: boolean
-}
-
 export type Props = {
   allowFontScaling?: boolean
   allowPopup: boolean
@@ -60,66 +56,60 @@ const statusColor = (s: Status) => {
   }
 }
 
-class PaymentStatus extends React.Component<Props, State> {
-  statusRef = React.createRef<MeasureRef>()
-  state = {showPopup: false}
-  _showPopup = () => {
-    if (this.props.allowPopup) {
-      this.setState({showPopup: true})
+const PaymentStatus = (props: Props) => {
+  const statusRef = React.useRef<MeasureRef | null>(null)
+  const [showPopup, setShowPopup] = React.useState(false)
+  const _showPopup = () => {
+    if (props.allowPopup) {
+      setShowPopup(true)
     }
   }
-  _hidePopup = () => {
-    this.setState({showPopup: false})
+  const _hidePopup = () => {
+    setShowPopup(false)
   }
-  render() {
-    const text = (
-      <Kb.Text
-        textRef={this.statusRef}
-        type="BodyExtrabold"
-        allowFontScaling={!!this.props.allowFontScaling}
-        onClick={this._showPopup}
-      >
-        {' '}
-        <Kb.Text
-          type="BodyExtrabold"
-          allowFontScaling={!!this.props.allowFontScaling}
-          style={styles[this.props.status]}
-        >
-          {this.props.text}{' '}
-          <Kb.Icon
-            type={getIcon(this.props.status)}
-            fontSize={12}
-            boxStyle={styles.iconBoxStyle}
-            color={statusColor(this.props.status)}
-          />
-        </Kb.Text>{' '}
-      </Kb.Text>
-    )
-    const popups = this.props.isSendError ? (
-      <PaymentStatusError
-        attachTo={this.statusRef}
-        error={this.props.errorDetail || ''}
-        onHidden={this._hidePopup}
-        visible={this.state.showPopup}
-      />
-    ) : null
-    return Kb.Styles.isMobile ? (
-      <>
-        {text}
-        {popups}
-      </>
-    ) : (
-      <Kb.Box2
-        style={styles.container}
-        direction="horizontal"
-        onMouseOver={this._showPopup}
-        onMouseLeave={this._hidePopup}
-      >
-        {text}
-        {popups}
-      </Kb.Box2>
-    )
-  }
+  const text = (
+    <Kb.Text
+      textRef={statusRef}
+      type="BodyExtrabold"
+      allowFontScaling={!!props.allowFontScaling}
+      onClick={_showPopup}
+    >
+      {' '}
+      <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
+        {props.text}{' '}
+        <Kb.Icon
+          type={getIcon(props.status)}
+          fontSize={12}
+          boxStyle={styles.iconBoxStyle}
+          color={statusColor(props.status)}
+        />
+      </Kb.Text>{' '}
+    </Kb.Text>
+  )
+  const popups = props.isSendError ? (
+    <PaymentStatusError
+      attachTo={statusRef}
+      error={props.errorDetail || ''}
+      onHidden={_hidePopup}
+      visible={showPopup}
+    />
+  ) : null
+  return Kb.Styles.isMobile ? (
+    <>
+      {text}
+      {popups}
+    </>
+  ) : (
+    <Kb.Box2
+      style={styles.container}
+      direction="horizontal"
+      onMouseOver={_showPopup}
+      onMouseLeave={_hidePopup}
+    >
+      {text}
+      {popups}
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

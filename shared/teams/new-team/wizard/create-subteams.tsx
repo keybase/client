@@ -15,18 +15,19 @@ const CreateSubteams = () => {
   const initialSubteams = C.useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 
   const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
+
   const setSubteam = (i: number, value: string) => {
-    subteams[i] = value
-    setSubteams([...subteams])
+    setSubteams(prev => prev.map((s, idx) => (idx === i ? value : s)))
   }
+
   const onClear = (i: number) => {
-    subteams.splice(i, 1)
-    setSubteams([...subteams])
+    setSubteams(prev => prev.filter((_, idx) => idx !== i))
   }
+
   const onAdd = () => {
-    subteams.push('')
-    setSubteams([...subteams])
+    setSubteams(prev => [...prev, ''])
   }
+
   const setTeamWizardSubteams = C.useTeamsState(s => s.dispatch.setTeamWizardSubteams)
   const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
   const onBack = () => nav.safeNavigateUp()

@@ -27,11 +27,18 @@ const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
     [divRef]
   )
 
+  const onScroll_ = React.useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      onScroll?.({currentTarget: e.currentTarget})
+    },
+    [onScroll]
+  )
+
   return (
     <div
       className={cn}
       style={Styles.collapseStylesDesktop([styles.overflowAuto, style])}
-      onScroll={onScroll as any /* TODO FIX */}
+      onScroll={onScroll_}
       ref={divRef}
     >
       <div style={Styles.castStyleDesktop(contentContainerStyle)}>{children}</div>

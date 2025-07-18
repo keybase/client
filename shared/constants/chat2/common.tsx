@@ -72,8 +72,8 @@ export const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => 
   }
 }
 
-export const getSelectedConversation = (): T.Chat.ConversationIDKey => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
+export const getSelectedConversation = (allowUnderModal: boolean = false): T.Chat.ConversationIDKey => {
+  const maybeVisibleScreen = Router2.getVisibleScreen(undefined, allowUnderModal)
   if (maybeVisibleScreen?.name === threadRouteName) {
     const mParams = maybeVisibleScreen.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
     return mParams?.conversationIDKey ?? T.Chat.noConversationIDKey
