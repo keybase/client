@@ -305,7 +305,13 @@ const ThreadSearchMobile = (props: SearchProps) => {
         <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
             <Kb.PlainInput
-              autoFocus={true}
+              ref={r => {
+                // setting autofocus on android fails sometimes, this workaround seems to work
+                setTimeout(() => {
+                  r?.focus()
+                }, 100)
+              }}
+              autoFocus={false}
               flexable={true}
               onChangeText={onChangedText}
               onEnterKeyDown={onEnter}
