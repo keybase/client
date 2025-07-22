@@ -46,7 +46,6 @@ const ConfirmKickOut = (props: Props) => {
   const wasWaitingRef = React.useRef(waiting)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
-    console.log('aaaaa useeffect', wasWaitingRef.current, waiting)
     if (wasWaitingRef.current && !waiting) {
       setKickedVisible(true)
       setTimeout(() => {
