@@ -153,8 +153,6 @@ export type PlainInputRef = {
    *  calling this.
    **/
   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
-
-  //_input: React.RefObject<{getBoundingClientRect?: () => MeasureDesktop}>
 }
 
 declare const PlainInput: React.ForwardRefExoticComponent<Props & React.RefAttributes<PlainInputRef>>

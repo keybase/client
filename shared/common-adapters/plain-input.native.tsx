@@ -112,8 +112,6 @@ const PlainInput = React.memo(
     )
 
     React.useImperativeHandle(ref, () => {
-      // TODO
-      //
       return {
         blur: () => {
           inputRef.current?.blur()

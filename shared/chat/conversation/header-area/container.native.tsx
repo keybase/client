@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-//import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, useBackBadge} from './index.native'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'

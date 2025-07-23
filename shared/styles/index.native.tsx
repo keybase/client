@@ -6,7 +6,6 @@ import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
-// import type {StylesCrossPlatform} from './css'
 
 type _Elem = object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -63,71 +62,8 @@ export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (f: () => MapToStyles): unknown =>
   styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
 // used to find specific styles to help debug perf
-// export const styleSheetCreate = (obj: any) => {
-//   return styleSheetCreateProxy(obj, o => {
-//     Object.keys(o).forEach(name => {
-//       const style = o[name]
-//       Object.keys(style).forEach(sname => {
-//         if (sname === 'borderRadius') {
-//           console.log('found style', style, sname)
-//         }
-//       })
-//     })
-
-//     return StyleSheet.create(o as any)
-//   })
-// }
 export {isDarkMode}
 
-// we don't need this at all on mobile
-// export const useCollapseStyles = (
-//   styles: StylesCrossPlatform,
-//   _memo: boolean = false
-// ): undefined | StylesCrossPlatform => {
-//   return styles
-// const old = React.useRef<undefined | StylesCrossPlatform>(undefined)
-
-// if (!isArray(styles)) {
-//   const ret = styles || undefined
-//   if (memo) {
-//     if (shallowEqual(old.current, ret)) return old.current
-//     old.current = ret
-//   }
-//   return ret
-// }
-// // if we have no / singular values we pass those on in the hopes they're consts
-// const nonNull = styles.reduce<Array<_StylesCrossPlatform>>((arr, s) => {
-//   // has a value?
-//   if (s && !isEmpty(s)) {
-//     arr.push(s)
-//   }
-//   return arr
-// }, [])
-// if (!nonNull.length) {
-//   old.current = undefined
-//   return undefined
-// }
-// if (nonNull.length === 1) {
-//   const ret = nonNull[0]
-//   if (memo) {
-//     if (shallowEqual(old.current, ret)) return old.current
-//     old.current = ret
-//   }
-//   return ret
-// }
-
-// // take advantage of memo by collapsing
-// if (memo) {
-//   const collapsed = Object.assign({}, ...nonNull) as _StylesCrossPlatform
-//   const ret = Object.keys(collapsed).length ? collapsed : undefined
-//   if (shallowEqual(old.current, ret)) return old.current
-//   old.current = ret
-//   return ret
-// }
-// // rn allows falsy values so let memoized values through
-// return styles
-// }
-// export const useCollapseStylesDesktop = useCollapseStyles
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): undefined | CollapsibleStyle | ReadonlyArray<object | null | false> => {

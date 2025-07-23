@@ -456,22 +456,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
 
-  // find ordinal or return the incoming message id (it'll resolve later)
-  // const findOrdinalFromMessageIDOrMID = (messageID: T.Chat.MessageID) => {
-  //   // find ordinal
-  //   const mm = get().messageMap
-  //   const nid = T.Chat.messageIDToNumber(messageID)
-  //   const quick = mm.get(T.Chat.numberToOrdinal(nid))
-  //   if (quick) return quick.ordinal
-  //   // search
-  //   for (const m of mm.values()) {
-  //     if (m.id === messageID) {
-  //       return m.ordinal
-  //     }
-  //   }
-  //   return T.Chat.numberToOrdinal(nid)
-  // }
-
   const desktopNotification = (author: string, body: string) => {
     if (C.isMobile) return
 

@@ -91,16 +91,6 @@ export declare function collapseStylesDesktop(styles: ReadonlyArray<CollapsibleS
 export declare function castStyleDesktop(style: CollapsibleStyle): React.CSSProperties
 export declare function castStyleNative(style: CollapsibleStyle): ViewStyle
 
-// new style, used in the common-adapters, not the components, can memo for you
-// export declare function useCollapseStyles<
-//   IsMobile = false,
-//   Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform,
-// >(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
-// export declare function useCollapseStylesDesktop(
-//   styles: CSS.StylesCrossPlatform,
-//   memo?: boolean
-// ): React.CSSProperties
-
 export declare const windowStyle: {
   minWidth: number
   minHeight: number

@@ -47,7 +47,7 @@ const ButtonBar = (props: Props) => {
     {
       alignItems: (props.fullWidth ?? false) ? 'stretch' : 'center',
       width: '100%',
-      // ...(isTablet ? {maxWidth: 460} : {}),
+      ...(Styles.isTablet ? {maxWidth: 460} : {}),
       ...((props.direction ?? 'row') === 'column'
         ? {...Styles.globalStyles.flexBoxColumn}
         : {
