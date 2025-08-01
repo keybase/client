@@ -78,7 +78,12 @@ const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boo
   const {width: screenWidth} = useWindowDimensions()
   const data = tabToData.get(routeName)
   return data ? (
-    <View style={[styles.tabContainer, {minHeight: 40, minWidth: screenWidth / tabs.length}]}>
+    <View
+      style={[
+        styles.tabContainer,
+        C.isTablet ? {minHeight: 50} : {minHeight: 40, minWidth: screenWidth / tabs.length},
+      ]}
+    >
       <Kb.Icon
         type={data.icon}
         fontSize={32}
@@ -247,11 +252,13 @@ const AppTabsImpl = React.memo(function AppTabsImpl() {
 })
 
 const android_rippleFix = {color: 'transparent'}
-const tabBarButton = (p: BottomTabBarButtonProps) => (
-  <PlatformPressable {...p} android_ripple={android_rippleFix}>
-    {p.children}
-  </PlatformPressable>
-)
+const tabBarButton = (p: BottomTabBarButtonProps) => {
+  return (
+    <PlatformPressable {...p} android_ripple={android_rippleFix}>
+      {p.children}
+    </PlatformPressable>
+  )
+}
 
 const AppTabs = () => <AppTabsImpl />
 
