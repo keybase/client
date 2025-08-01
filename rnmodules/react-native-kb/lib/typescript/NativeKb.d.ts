@@ -1,9 +1,9 @@
-import type { TurboModule } from 'react-native';
+import { type TurboModule } from 'react-native';
 export interface Spec extends TurboModule {
-    install: () => void;
+    install: () => boolean;
     addListener: (eventType: string) => void;
     removeListeners: (count: number) => void;
-    getConstants(): {
+    getTypedConstants(): {
         androidIsDeviceSecure: boolean;
         androidIsTestDevice: boolean;
         appVersionCode: string;
@@ -37,11 +37,9 @@ export interface Spec extends TurboModule {
     }): Promise<void>;
     androidAppColorSchemeChanged(mode: string): void;
     androidSetApplicationIconBadgeNumber(n: number): void;
-    androidGetInitialBundleFromNotification(): Promise<any>;
-    androidGetInitialShareFileUrls(): Promise<Array<string>>;
-    androidGetInitialShareText(): Promise<string>;
     engineReset(): void;
     engineStart(): void;
+    shareListenersRegistered(): void;
 }
 declare const _default: Spec;
 export default _default;

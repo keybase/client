@@ -61,23 +61,8 @@ module.exports = function (api /*: any */) {
             },
           },
         ],
-        ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
-        '@babel/plugin-proposal-numeric-separator',
-        '@babel/plugin-transform-export-namespace-from',
-        isDev
-          ? [
-              '@babel/plugin-transform-react-jsx-development',
-              {
-                runtime: 'automatic',
-                ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
-              },
-            ]
-          : ['@babel/plugin-transform-react-jsx', {runtime: 'automatic'}],
       ],
-      presets: [
-        // lets us set our own jsx above
-        ['module:metro-react-native-babel-preset', {useTransformReactJSXExperimental: true}],
-      ],
+      presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
       sourceMaps: true,
     }
   }

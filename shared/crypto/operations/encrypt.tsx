@@ -126,8 +126,13 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export const EncryptInput = () => {
+  const blurCBRef = React.useRef(() => {})
+  const setBlurCB = React.useCallback((cb: () => void) => {
+    blurCBRef.current = cb
+  }, [])
+
   const options = C.isMobile ? (
-    <InputActionsBar operation={operation}>
+    <InputActionsBar operation={operation} blurCBRef={blurCBRef}>
       <EncryptOptions />
     </InputActionsBar>
   ) : (
@@ -137,7 +142,7 @@ export const EncryptInput = () => {
     <>
       <OperationBanner operation={operation} />
       <Recipients />
-      <Input operation={operation} />
+      <Input operation={operation} setBlurCB={setBlurCB} />
       {options}
     </>
   )

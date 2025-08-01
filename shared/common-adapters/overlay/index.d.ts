@@ -16,7 +16,7 @@ import type {StylesCrossPlatform} from '@/styles/css'
  */
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   children: React.ReactNode
   color?: string
   matchDimension?: boolean
@@ -27,6 +27,7 @@ export type Props = {
   remeasureHint?: number
   style?: StylesCrossPlatform
   visible?: boolean
+  offset?: number
 }
 
 declare const Overlay: (p: Props) => React.ReactNode

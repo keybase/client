@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PlainInput, {type PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import * as Styles from '@/styles'
@@ -15,11 +15,9 @@ export type _Props = {
 }
 
 export type Props = PropsWithInput<_Props>
-type RefProps = {
-  forwardedRef?: React.MutableRefObject<PlainInput | null>
-}
 
-const ReflessLabeledInput = (props: Props & RefProps) => {
+const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function LabeledInputImple(props, ref) {
+  const {containerStyle, error, placeholder, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
   const _onFocus = React.useCallback(() => {
@@ -45,12 +43,8 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
     [value, onChangeText]
   )
 
-  // If we're uncontrolled its possible its been injected into unbeknownst to us
-  // this is VERY hacky and we shouldn't leak out the ref directly, but thats a larger change
-  // and this component is old and we should likely just rewrite it
-  const maybeInjectedValue = props.forwardedRef?.current?.value
   // Style is supposed to switch when there's any input or its focused
-  const actualValue = value !== undefined ? value : uncontrolledValue || maybeInjectedValue
+  const actualValue = value !== undefined ? value : uncontrolledValue
   const populated = !!actualValue && actualValue.length > 0
   const multiline = props.multiline
   const collapsed = focused || populated || multiline
@@ -60,7 +54,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   const computedContainerSize =
     textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
 
-  const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
     <Box2
       direction="vertical"
@@ -89,7 +82,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         onFocus={_onFocus}
         onBlur={_onBlur}
         placeholder={collapsed ? props.hoverPlaceholder : undefined}
-        ref={props.forwardedRef}
+        ref={ref}
         style={Styles.collapseStyles([
           styles.input,
           props.style,
@@ -99,17 +92,17 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       />
     </Box2>
   )
-}
+})
 
-const LabeledInput = React.forwardRef<PlainInput, Props>(function LabeledInput(props, ref) {
+const LabeledInput = React.forwardRef<PlainInputRef, Props>(function LabeledInput(props, ref) {
   const flexable = props.flexable ?? true
   const keyboardType = props.keyboardType ?? 'default'
   const textType = props.textType ?? 'BodySemibold'
 
   return (
-    <ReflessLabeledInput
+    <LabeledInputImpl
       {...props}
-      forwardedRef={ref as any}
+      ref={ref}
       flexable={flexable}
       keyboardType={keyboardType}
       textType={textType}

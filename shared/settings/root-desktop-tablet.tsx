@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
@@ -26,13 +27,27 @@ function LeftTabNavigator({
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
-  const onSelectTab = Common.useSubnavTabAction(navigation as any, state)
+  const onSelectTab = Common.useSubnavTabAction(
+    // eslint-disable-next-line
+    navigation as any,
+    state
+  )
+
+  const navRef = React.useRef((_s: string) => {})
+  React.useEffect(() => {
+    navRef.current = (s: string) => {
+      navigation.navigate(s)
+    }
+  }, [navigation])
+  const navigate = React.useCallback((s: string) => {
+    navRef.current(s)
+  }, [])
 
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
-          <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={s => navigation.navigate(s)} />
+          <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={navigate} />
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
@@ -54,6 +69,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
+// eslint-disable-next-line
 const TabNavigator = createLeftTabNavigator()
 
 const shimmed = shim(settingsSubRoutes, false, false)
@@ -68,12 +84,19 @@ const SettingsSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={settingsSubRoutes[name].getScreen as any}
-        options={({route, navigation}) => {
-          const no = getOptions(settingsSubRoutes[name])
-          const opt = typeof no === 'function' ? no({navigation, route}) : no
-          return {...opt}
-        }}
+        getComponent={
+          // eslint-disable-next-line
+          settingsSubRoutes[name].getScreen as any
+        }
+        options={
+          // @ts-ignore
+          ({route, navigation}) => {
+            const no = getOptions(settingsSubRoutes[name])
+            // eslint-disable-next-line
+            const opt = typeof no === 'function' ? no({navigation, route}) : no
+            return {...opt}
+          }
+        }
       />
     ))}
   </TabNavigator.Navigator>

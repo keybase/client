@@ -12,7 +12,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const waiting = C.Waiting.useAnyWaiting(Constants.loadAccountsWaitingKey)
   const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
-  const attachmentRef = React.useRef<Kb.MeasureRef>(null)
+  const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)

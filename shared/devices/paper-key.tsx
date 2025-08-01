@@ -25,7 +25,7 @@ const PaperKey = () => {
     })
       .then(() => {})
       .catch(() => {})
-  })
+  }, 500)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 

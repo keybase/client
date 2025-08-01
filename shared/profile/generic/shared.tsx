@@ -28,8 +28,8 @@ export const SiteIcon = (props: SiteIconProps) => {
       style={Kb.Styles.collapseStyles([
         style,
         props.style,
-        {backgroundImage: siteIconToSrcSet(props.set)},
-      ] as any)}
+        Kb.Styles.platformStyles({isElectron: {backgroundImage: siteIconToSrcSet(props.set)}}),
+      ])}
     />
   )
 }

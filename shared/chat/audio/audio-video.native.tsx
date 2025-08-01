@@ -3,7 +3,7 @@ import {Audio, type AVPlaybackStatus} from 'expo-av'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
-  const {url, seekRef, paused, onPositionUpdated, onEnded} = props
+  const {url, paused, onPositionUpdated, onEnded} = props
   const [sound, setSound] = React.useState<Audio.Sound | undefined>()
 
   React.useEffect(() => {
@@ -14,22 +14,6 @@ const AudioVideo = (props: Props) => {
         .catch(() => {})
     }
   }, [sound])
-
-  const seek = React.useCallback(
-    (seconds: number) => {
-      sound
-        ?.setPositionAsync(seconds * 1000)
-        .then(() => {})
-        .catch(() => {})
-      if (paused) {
-        sound
-          ?.pauseAsync()
-          .then(() => {})
-          .catch(() => {})
-      }
-    },
-    [sound, paused]
-  )
 
   const onPlaybackStatusUpdate = React.useCallback(
     (e: AVPlaybackStatus) => {
@@ -55,8 +39,6 @@ const AudioVideo = (props: Props) => {
   React.useEffect(() => {
     sound?.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate)
   }, [sound, onPlaybackStatusUpdate])
-
-  seekRef.current = seek
 
   const [lastPaused, setLastPaused] = React.useState(paused)
 

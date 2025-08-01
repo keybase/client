@@ -12,7 +12,7 @@ export type Props = {
   onHidden?: () => void
   // Desktop only - the node that we should aim for
   // optional because desktop only, return val nullable because refs always are
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   // Desktop only - allow clicks outside the floating box to propagate. On
   disableEscapeKey?: boolean // if true, ignore keys
   // mobile you can control this by setting a margin in `containerStyle`.
@@ -23,6 +23,7 @@ export type Props = {
   position?: Position
   positionFallbacks?: ReadonlyArray<Position>
   hideKeyboard?: boolean // if true, hide the keyboard on mount
+  offset?: number
 }
 export declare const FloatingBox: (p: Props) => React.ReactNode
 export default FloatingBox

@@ -1,38 +1,57 @@
 /// <reference types="@welldone-software/why-did-you-render" />
 import enabled from './why-did-you-render-enabled'
-import * as React from 'react'
 if (enabled && __DEV__) {
-  console.log('\n\n\nDEBUG: WHY DID YOU RENDER try to load')
-  const whyDidYouRender = require('@welldone-software/why-did-you-render') as
-    | undefined
-    | ((r: unknown, o: unknown) => void)
-  console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
-  if (whyDidYouRender && typeof whyDidYouRender === 'function') {
-    whyDidYouRender(React, {
-      // TODO reduce these
-      exclude: [
-        /^Pressable$/,
-        /^Portal$/,
-        /^RNSScreen$/,
-        /^Screen$/,
-        /^Group$/,
-        /^View$/,
-        /^AnimatedComponentWrapper$/,
-        /^CardContainer$/,
-        /^StaticContainer$/,
-        /^PressabilityDebugView$/,
-        /^PreventRemoveProvider$/,
-        /^NativeStackViewInner$/,
-        /^LeftTabNavigator/,
-        /^RouteBox/,
-      ],
-      include: [
-        // uncomment to watch everything, realllllly slows things down
-        // /.*/,
-      ],
-      // logOnDifferentValues: false,
-      trackAllPureComponents: true,
-    })
+  const Platform = (require('react-native') as {Platform: {OS: string}}).Platform
+  // react-scan doesnt work on RN yet
+  if (Platform.OS === 'web') {
+    console.log('\n\n\nDEBUG: react-scan try to load')
+    const scan = (
+      require('react-scan') as
+        | {scan: (o: {enabled: boolean; log: boolean; renderCountThreshold: number}) => void}
+        | undefined
+    )?.scan
+    if (scan && typeof scan === 'function') {
+      try {
+        scan({enabled: true, log: true, renderCountThreshold: 1})
+        console.log('\n\n\nDEBUG: react-scan enabled')
+      } catch {}
+    }
+  } else {
+    console.log('\n\n\nDEBUG: WHY DID YOU RENDER try to load')
+    const whyDidYouRender = require('@welldone-software/why-did-you-render') as
+      | undefined
+      | ((r: unknown, o: unknown) => void)
+    if (whyDidYouRender && typeof whyDidYouRender === 'function') {
+      try {
+        whyDidYouRender(require('react'), {
+          // TODO reduce these
+          exclude: [
+            /^Pressable$/,
+            /^Portal$/,
+            /^RNSScreen$/,
+            /^Screen$/,
+            /^Group$/,
+            /^View$/,
+            /^AnimatedComponentWrapper$/,
+            /^CardContainer$/,
+            /^StaticContainer$/,
+            /^PressabilityDebugView$/,
+            /^PreventRemoveProvider$/,
+            /^NativeStackViewInner$/,
+            /^OrdinalWaypoint/, // ignore useIntersection hook for now
+            /^LeftTabNavigator/,
+            /^RouteBox/,
+          ],
+          include: [
+            // uncomment to watch everything, realllllly slows things down
+            // /.*/,
+          ],
+          // logOnDifferentValues: false,
+          trackAllPureComponents: true,
+        })
+        console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
+      } catch {}
+    }
   }
 }
 

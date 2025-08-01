@@ -71,7 +71,7 @@ const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedCo
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {
@@ -174,13 +174,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
         // feature enabled and permission granted
         let mapped: T.RPCChat.Keybase1.Contact[]
-        let defaultCountryCode: string
+        let defaultCountryCode = ''
         try {
           const _contacts = await Contacts.getContactsAsync({
             fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
           })
 
-          let defaultCountryCode = ''
           try {
             defaultCountryCode = await getDefaultCountryCode()
             if (__DEV__ && !defaultCountryCode) {

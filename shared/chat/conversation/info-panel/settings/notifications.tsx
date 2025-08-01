@@ -166,7 +166,7 @@ const Notifications = () => {
           }}
         />
       )}
-      <Kb.SaveIndicator saving={saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
+      <Kb.SaveIndicator saving={saving} />
     </Kb.Box2>
   )
 }

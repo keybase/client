@@ -1,8 +1,6 @@
 import * as Kb from '@/common-adapters'
 
-type Props = {}
-
-const HelloBot = (_: Props) => (
+const HelloBot = () => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
     <Kb.Icon type="icon-fancy-hellobot-hi-96" style={styles.image} />
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>

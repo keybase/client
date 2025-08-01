@@ -16,7 +16,7 @@ export const Box = (p: Props) => {
   )
 }
 
-const useBox2Shared = (p: Box2Props) => {
+const getProps = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
   const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
@@ -73,12 +73,12 @@ const useBox2Shared = (p: Box2Props) => {
 }
 
 export const Box2 = (p: Box2Props) => {
-  const props = useBox2Shared(p)
+  const props = getProps(p)
   return <div {...props} />
 }
 
 export const Box2Div = React.forwardRef<HTMLDivElement, Box2Props>(function Box2Animated(p, ref) {
-  const props = useBox2Shared(p)
+  const props = getProps(p)
   return <div {...props} ref={ref} />
 })
 export const Box2Animated = Box2Div
@@ -88,20 +88,16 @@ export const Box2View = () => {
 }
 
 export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, ref) {
-  const props = useBox2Shared(p)
+  const props = getProps(p)
   const divRef = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(
-    ref,
-    () => {
-      return {
-        divRef,
-        measure() {
-          return divRef.current?.getBoundingClientRect()
-        },
-      }
-    },
-    []
-  )
+  React.useImperativeHandle(ref, () => {
+    return {
+      divRef,
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  }, [])
 
   return <div ref={divRef} {...props} />
 })

@@ -7,8 +7,19 @@ type SentProps = {
 export const Sent = React.memo(function Sent(p: SentProps) {
   const {children} = p
   const [done, setDone] = React.useState(false)
-  const translateY = React.useRef(new Animated.Value(999)).current
-  const opacity = React.useRef(new Animated.Value(0)).current
+  const translateYRef = React.useRef(new Animated.Value(999))
+  const [translateY, setTranslateY] = React.useState<null | Animated.Value>(null)
+
+  React.useEffect(() => {
+    setTranslateY(translateYRef.current)
+  }, [])
+
+  const opacityRef = React.useRef(new Animated.Value(0))
+  const [opacity, setOpacity] = React.useState<null | Animated.Value>(null)
+
+  React.useEffect(() => {
+    setOpacity(opacityRef.current)
+  }, [])
   // only animate up once
   const onceRef = React.useRef(false)
 
@@ -18,25 +29,26 @@ export const Sent = React.memo(function Sent(p: SentProps) {
 
   return (
     <Animated.View
-      style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
+      style={{
+        opacity: opacity ?? 0,
+        overflow: 'hidden',
+        transform: [{translateY: translateY ?? 999}],
+        width: '100%',
+      }}
       onLayout={e => {
         if (onceRef.current) {
           return
         }
         const {height} = e.nativeEvent.layout
         onceRef.current = true
-        translateY.setValue(height + 10)
+        if (translateY) {
+          translateY.setValue(height + 10)
+        }
         Animated.parallel([
-          Animated.timing(opacity, {
-            duration: 200,
-            toValue: 1,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            duration: 200,
-            toValue: 0,
-            useNativeDriver: true,
-          }),
+          ...(opacity ? [Animated.timing(opacity, {duration: 200, toValue: 1, useNativeDriver: true})] : []),
+          ...(translateY
+            ? [Animated.timing(translateY, {duration: 200, toValue: 0, useNativeDriver: true})]
+            : []),
         ]).start(() => {
           setDone(true)
         })

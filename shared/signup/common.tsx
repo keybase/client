@@ -44,10 +44,10 @@ export const InfoIcon = (props: InfoIconProps) => {
         onClick={props.invisible ? undefined : showPopup}
         ref={popupAnchor}
         style={Kb.Styles.collapseStyles([
-          Kb.Styles.desktopStyles.windowDraggingClickable,
+          Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}}),
           props.invisible && styles.opacityNone,
           props.style,
-        ] as any)}
+        ])}
       />
       {popup}
     </>

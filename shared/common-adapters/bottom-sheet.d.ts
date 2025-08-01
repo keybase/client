@@ -1,4 +1,5 @@
 export {
+  BottomSheetView,
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetScrollView,

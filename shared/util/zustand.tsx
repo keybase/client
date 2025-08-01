@@ -39,7 +39,7 @@ export const createZustand = <T extends HasReset>(
     if (typeof orig === 'function') {
       unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
-      Object.assign(unsafeISD[d] as {}, orig)
+      Object.assign(unsafeISD[d] as object, orig)
     }
   }
 
@@ -47,7 +47,8 @@ export const createZustand = <T extends HasReset>(
   let resetFunc: () => void
   if (reset === 'default') {
     resetFunc = () => {
-      store.setState(initialState, true)
+      // eslint-disable-next-line
+      store.setState(initialState as any, true)
     }
   } else {
     resetFunc = reset
@@ -75,7 +76,7 @@ export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {
-  const prev = React.useRef<U>()
+  const prev = React.useRef<U>(undefined)
 
   return state => {
     const next = selector(state)

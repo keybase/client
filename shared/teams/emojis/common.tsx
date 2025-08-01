@@ -12,78 +12,45 @@ type AliasInputProps = {
   small: boolean
 }
 
-export class AliasInput extends React.PureComponent<AliasInputProps> {
-  focus() {
-    this.inputRef.current?.focus()
-    this.onFocus()
-  }
-  private inputRef = React.createRef<Kb.PlainInput>()
-  private mounted = true
-  componentWillUnmount() {
-    this.mounted = false
-  }
-  private onFocus = () => {
-    setTimeout(
-      () =>
-        this.mounted &&
-        this.inputRef.current?.transformText(
-          () => ({
-            selection: {
-              end: this.props.alias.length + 1,
-              start: this.props.alias.length + 1,
-            },
-            text: `:${this.props.alias}:`,
-          }),
-          true
-        )
-    )
-  }
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-          <Kb.NewInput
-            ref={this.inputRef}
-            error={!!this.props.error}
-            disabled={this.props.disabled}
-            textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
-            containerStyle={Kb.Styles.collapseStyles([
-              styles.aliasInput,
-              !this.props.small && styles.aliasInputLarge,
-            ])}
-            onChangeText={newText => {
-              // Remove both colon and special characters.
-              const cleaned = newText.replace(/[^a-zA-Z0-9-_+]/g, '')
-              if (newText !== `:${cleaned}:`) {
-                // if the input currently contains invalid characters, overwrite with clean text and reset selection
-                this.inputRef.current?.transformText(
-                  () => ({
-                    selection: {end: cleaned.length + 1, start: cleaned.length + 1},
-                    text: `:${cleaned}:`,
-                  }),
-                  true
-                )
-              }
-              this.props.onChangeAlias(cleaned)
-            }}
-            onEnterKeyDown={this.props.onEnterKeyDown}
-            onFocus={this.onFocus}
-          />
-          {this.props.onRemove && (
-            <Kb.ClickableBox onClick={this.props.onRemove} style={styles.removeBox}>
-              <Kb.Icon type="iconfont-remove" />
-            </Kb.ClickableBox>
-          )}
-        </Kb.Box2>
-        {!!this.props.error && (
-          <Kb.Text type="BodySmallError" lineClamp={1}>
-            {this.props.error}
-          </Kb.Text>
+export type AliasRef = {focus: () => void}
+export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus()
+    },
+  }))
+
+  return (
+    <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
+        <Kb.NewInput
+          ref={inputRef}
+          error={!!props.error}
+          disabled={props.disabled}
+          textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
+          containerStyle={Kb.Styles.collapseStyles([
+            styles.aliasInput,
+            !props.small && styles.aliasInputLarge,
+          ])}
+          onChangeText={props.onChangeAlias}
+          onEnterKeyDown={props.onEnterKeyDown}
+        />
+        {props.onRemove && (
+          <Kb.ClickableBox onClick={props.onRemove} style={styles.removeBox}>
+            <Kb.Icon type="iconfont-remove" />
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
-    )
-  }
-}
+      {!!props.error && (
+        <Kb.Text type="BodySmallError" lineClamp={1}>
+          {props.error}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+})
 
 type ModalProps = {
   backButtonOnClick?: () => void

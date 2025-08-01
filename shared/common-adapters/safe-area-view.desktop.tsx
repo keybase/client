@@ -1,6 +1,6 @@
 import type {Props} from './safe-area-view'
 
-const RenderChildren = (props: Props) => props.children || null
+const RenderChildren = (props: Props): React.ReactNode => props.children || null
 export const useSafeAreaInsets = () => ({
   bottom: 0,
   left: 0,

@@ -8,7 +8,7 @@ import type * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   position: Kb.Styles.Position
   style?: Kb.Styles.StylesCrossPlatform
@@ -122,7 +122,7 @@ export const useMessagePopup = (p: {
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      return shouldShow?.() ?? true ? (
+      return (shouldShow?.() ?? true) ? (
         <C.ChatProvider id={conversationIDKey}>
           <Kb.FloatingModalContext.Provider value="bottomsheet">
             <MessagePopup

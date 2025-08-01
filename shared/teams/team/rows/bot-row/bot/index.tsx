@@ -25,7 +25,7 @@ export type Props = {
 
 export const TeamBotRow = (props: Props) => {
   let descriptionLabel: React.ReactNode = null
-  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showMenu, setShowMenu] = React.useState(false)
 
   const _onShowMenu = () => setShowMenu(true)

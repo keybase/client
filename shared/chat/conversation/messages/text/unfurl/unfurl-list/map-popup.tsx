@@ -25,10 +25,10 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
+  const sendMessage = C.useChatContext(s => s.dispatch.sendMessage)
   const onStopSharing = () => {
     onClose()
-    messageSend('/location stop')
+    sendMessage('/location stop')
   }
 
   const width = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionWidth) : 300

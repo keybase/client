@@ -7,18 +7,23 @@ type SettingsItemProps = {
   iconComponent?: React.ComponentType
   inProgress?: boolean
   largerBadgeMinWidthFix?: boolean
-  onClick: () => void
+  onClick: (t: string) => void
   text: string
+  type: string
   subText?: string
   textColor?: Kb.Styles.Color
-  selected?: boolean
+  selected: boolean
 }
 
-export default function SettingsItem(props: SettingsItemProps) {
+const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) {
+  const {onClick: _onClick, type, selected} = props
+  const onClick = React.useCallback(() => {
+    _onClick(type)
+  }, [_onClick, type])
   return (
     <Kb.ClickableBox
-      onClick={props.onClick}
-      style={Kb.Styles.collapseStyles([styles.item, props.selected && styles.selected] as const)}
+      onClick={onClick}
+      style={Kb.Styles.collapseStyles([styles.item, selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
         <props.iconComponent />
@@ -36,7 +41,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         <Kb.Text2
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([
-            props.selected ? styles.selectedText : styles.itemText,
+            selected ? styles.selectedText : styles.itemText,
             props.textColor ? {color: props.textColor} : {},
           ])}
         >
@@ -50,7 +55,8 @@ export default function SettingsItem(props: SettingsItemProps) {
       )}
     </Kb.ClickableBox>
   )
-}
+})
+export default SettingsItem
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {

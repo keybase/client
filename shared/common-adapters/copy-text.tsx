@@ -59,8 +59,8 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const popupAnchor = React.useRef<MeasureRef>(null)
-  const textRef = React.useRef<TextMeasureRef>(null)
+  const popupAnchor = React.useRef<MeasureRef | null>(null)
+  const textRef = React.useRef<TextMeasureRef | null>(null)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const copy = React.useCallback(() => {
@@ -114,8 +114,8 @@ const CopyText = (props: Props) => {
       ? props.multiline
       : undefined
     : isRevealed
-    ? 1
-    : undefined
+      ? 1
+      : undefined
 
   return (
     <Kb.Box2Measure
