@@ -4,7 +4,7 @@
   "description": "drop view",
   "main": "lib/module/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/src/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
@@ -25,9 +25,9 @@
     "prepare": "bob build"
   },
   "keywords": [],
-  "repository": "https://github.com/keybase/client/react-native-drop-view",
+  "repository": "https://github.com/keybase/client",
   "author": "keybase (https://github.com/keybase/client)",
-  "homepage": "https://github.com/keybase/client/react-native-drop-view#readme",
+  "homepage": "https://github.com/keybase/client",
   "private": true,
   "devDependencies": {
     "react": "file:../../shared/node_modules/react",
