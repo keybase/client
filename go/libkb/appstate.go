@@ -2,9 +2,9 @@ package libkb
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
-	"runtime"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
