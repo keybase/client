@@ -15,17 +15,17 @@ const TestRootCert = `Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            df:57:8e:02:e8:e3:a2:04:e4:3f:ab:a4:3c:50:42:53
+            57:ee:1b:d8:5f:af:c8:29:70:39:3d:36:a5:50:37:1b:d9:40:14:8f
         Signature Algorithm: sha256WithRSAEncryption
-        Issuer: O=Keybase, Inc. **TEST CA**
+        Issuer: C=US, ST=Some-State, O=Keybase, Inc. **TEST CA**
         Validity
-            Not Before: Aug  4 03:36:58 2015 GMT
-            Not After : Aug  1 03:36:58 2025 GMT
-        Subject: O=Keybase, Inc. **TEST CA**
+            Not Before: Aug  5 16:22:18 2025 GMT
+            Not After : Dec  6 16:22:18 3024 GMT
+        Subject: C=US, ST=Some-State, O=Keybase, Inc. **TEST CA**
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
-            RSA Public Key: (2048 bit)
-                Modulus (2048 bit):
+                Public-Key: (2048 bit)
+                Modulus:
                     00:dc:aa:08:3a:f9:03:11:58:aa:d0:81:e4:ca:11:
                     97:ef:42:fb:c6:83:e2:de:df:c0:63:ae:0e:79:f6:
                     be:eb:70:8d:f0:1b:73:fb:f2:99:af:04:56:ff:f2:
@@ -46,48 +46,51 @@ const TestRootCert = `Certificate:
                     f8:63
                 Exponent: 65537 (0x10001)
         X509v3 extensions:
-            X509v3 Key Usage: critical
-                Digital Signature, Key Encipherment, Certificate Sign
-            X509v3 Extended Key Usage: 
-                TLS Web Server Authentication
+            X509v3 Subject Key Identifier:
+                C6:0B:C3:7E:8C:0A:0F:F5:66:5D:22:2B:68:83:8A:9D:E3:AC:26:AF
+            X509v3 Authority Key Identifier:
+                C6:0B:C3:7E:8C:0A:0F:F5:66:5D:22:2B:68:83:8A:9D:E3:AC:26:AF
             X509v3 Basic Constraints: critical
                 CA:TRUE
-            X509v3 Subject Alternative Name: 
+            X509v3 Subject Alternative Name:
                 IP Address:127.0.0.1
     Signature Algorithm: sha256WithRSAEncryption
-        03:72:7e:8f:b8:72:e1:ce:1e:67:92:71:e8:f7:9d:cd:ce:cc:
-        e1:6f:29:69:3d:17:59:66:95:11:23:6a:eb:82:76:c9:b4:83:
-        c2:50:e5:5a:55:2b:fd:c4:92:56:db:91:42:2a:29:56:30:5f:
-        ae:6b:ae:69:a6:61:98:51:c2:c4:88:d6:58:11:4b:e5:05:ae:
-        5d:29:74:0f:1f:05:5e:f9:33:3a:3a:98:dc:a1:0f:71:b2:8b:
-        74:fd:fb:f2:c7:38:93:0b:22:80:ac:08:d1:3f:8f:bf:32:93:
-        8a:a0:85:9a:e7:1d:d9:af:fa:94:e0:9f:6f:b4:e6:e6:98:91:
-        b8:a1:b2:f4:6d:9c:29:8b:3e:fc:f5:61:7b:e1:6d:ad:2f:fd:
-        8e:1e:ad:6d:f7:6c:75:29:48:b5:5b:01:cc:4a:a1:06:b9:03:
-        19:7f:a9:b6:7f:86:94:32:4c:5f:59:3c:b8:74:b6:aa:63:80:
-        44:59:3d:d9:61:35:01:75:52:0a:2c:ff:f5:fe:df:13:e5:d9:
-        79:3a:77:d9:d9:11:b4:40:e0:8a:b1:df:a4:19:52:1f:f1:bb:
-        3b:ac:35:96:17:de:78:dc:ed:b8:79:a1:2f:f9:9d:31:1b:9e:
-        6c:93:17:b7:fe:f1:fe:a4:00:45:eb:85:f8:82:85:6f:0d:93:
-        93:f0:d3:8c
+    Signature Value:
+        29:1e:82:49:53:2e:e6:a2:9a:e9:a0:fb:83:49:cf:31:8b:5d:
+        f1:90:2b:12:86:a0:97:61:69:b9:4a:38:f8:66:21:84:1a:ea:
+        ea:de:1b:28:a1:72:5e:73:92:b8:be:31:51:39:d7:d7:3d:89:
+        e3:36:40:96:5b:9a:e8:ac:5a:27:58:6e:dd:64:3c:e8:e4:f3:
+        89:ef:b5:99:23:1d:7f:57:08:72:c6:94:f0:89:af:de:09:45:
+        4a:0d:6e:e6:aa:f0:98:ad:f2:89:17:29:36:30:08:65:3c:f2:
+        d0:ce:6e:06:d2:02:54:f9:39:0f:73:03:a1:5e:16:2e:db:41:
+        9c:c5:84:fe:70:e2:c5:e7:59:db:df:60:bc:c2:4e:a1:59:b7:
+        fb:13:32:80:3c:6b:d0:44:90:ba:a3:a0:3b:db:a0:da:af:52:
+        9f:79:43:12:b6:d9:0c:ee:a0:cf:7d:d5:87:35:d6:f7:2b:d7:
+        0c:67:1e:fa:6a:b9:1c:57:97:0a:1c:6f:29:6e:ef:9a:ee:99:
+        db:ed:ac:cd:b5:79:f2:f7:98:13:b1:6b:31:c5:a1:a7:cb:50:
+        3a:f1:ad:87:64:1b:9c:21:b4:aa:63:d1:4f:f6:6f:79:60:f7:
+        d4:f3:9b:d2:f7:45:7f:51:71:91:8e:b5:1e:41:6d:6e:95:e0:
+        03:50:39:61
 -----BEGIN CERTIFICATE-----
-MIIDGDCCAgKgAwIBAgIRAN9XjgLo46IE5D+rpDxQQlMwCwYJKoZIhvcNAQELMCQx
-IjAgBgNVBAoTGUtleWJhc2UsIEluYy4gKipURVNUIENBKiowHhcNMTUwODA0MDMz
-NjU4WhcNMjUwODAxMDMzNjU4WjAkMSIwIAYDVQQKExlLZXliYXNlLCBJbmMuICoq
-VEVTVCBDQSoqMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3KoIOvkD
-EViq0IHkyhGX70L7xoPi3t/AY64Oefa+63CN8Btz+/KZrwRW//LDJnz76/z8/SM+
-neXCZ95ZKUJxJPg/6JGCTWSBkKQwRu3EJXY9uk5wBrHueKxIlfHolH30m7cezZ2c
-/UhZUOvxKR+2NOTn0YURZ7sI+jvEKaGnEIoORIW+iJ/o4K+HMyHqptEkxLKPWfUC
-T7JZZ+Otvn7uO+5xI+FuZnwYFsMY9WgdQvkyLmfkCGaKLtL1JphwS8QU73culUv8
-CzID8V/XugbpccTco2rRTPVqzXyWgt+tsp0UJtHd3UBZH92GNEUOkVEsQnZXQmGC
-wgLxx7BHBvj4YwIDAQABo0kwRzAOBgNVHQ8BAf8EBAMCAKQwEwYDVR0lBAwwCgYI
-KwYBBQUHAwEwDwYDVR0TAQH/BAUwAwEB/zAPBgNVHREECDAGhwR/AAABMAsGCSqG
-SIb3DQEBCwOCAQEAA3J+j7hy4c4eZ5Jx6Pedzc7M4W8paT0XWWaVESNq64J2ybSD
-wlDlWlUr/cSSVtuRQiopVjBfrmuuaaZhmFHCxIjWWBFL5QWuXSl0Dx8FXvkzOjqY
-3KEPcbKLdP378sc4kwsigKwI0T+PvzKTiqCFmucd2a/6lOCfb7Tm5piRuKGy9G2c
-KYs+/PVhe+FtrS/9jh6tbfdsdSlItVsBzEqhBrkDGX+ptn+GlDJMX1k8uHS2qmOA
-RFk92WE1AXVSCiz/9f7fE+XZeTp32dkRtEDgirHfpBlSH/G7O6w1lhfeeNztuHmh
-L/mdMRuebJMXt/7x/qQAReuF+IKFbw2Tk/DTjA==
+MIIDgDCCAmigAwIBAgIUV+4b2F+vyClwOT02pVA3G9lAFI8wDQYJKoZIhvcNAQEL
+BQAwRjELMAkGA1UEBhMCVVMxEzARBgNVBAgMClNvbWUtU3RhdGUxIjAgBgNVBAoM
+GUtleWJhc2UsIEluYy4gKipURVNUIENBKiowIBcNMjUwODA1MTYyMjE4WhgPMzAy
+NDEyMDYxNjIyMThaMEYxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRl
+MSIwIAYDVQQKDBlLZXliYXNlLCBJbmMuICoqVEVTVCBDQSoqMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3KoIOvkDEViq0IHkyhGX70L7xoPi3t/AY64O
+efa+63CN8Btz+/KZrwRW//LDJnz76/z8/SM+neXCZ95ZKUJxJPg/6JGCTWSBkKQw
+Ru3EJXY9uk5wBrHueKxIlfHolH30m7cezZ2c/UhZUOvxKR+2NOTn0YURZ7sI+jvE
+KaGnEIoORIW+iJ/o4K+HMyHqptEkxLKPWfUCT7JZZ+Otvn7uO+5xI+FuZnwYFsMY
+9WgdQvkyLmfkCGaKLtL1JphwS8QU73culUv8CzID8V/XugbpccTco2rRTPVqzXyW
+gt+tsp0UJtHd3UBZH92GNEUOkVEsQnZXQmGCwgLxx7BHBvj4YwIDAQABo2QwYjAd
+BgNVHQ4EFgQUxgvDfowKD/VmXSIraIOKneOsJq8wHwYDVR0jBBgwFoAUxgvDfowK
+D/VmXSIraIOKneOsJq8wDwYDVR0TAQH/BAUwAwEB/zAPBgNVHREECDAGhwR/AAAB
+MA0GCSqGSIb3DQEBCwUAA4IBAQApHoJJUy7moprpoPuDSc8xi13xkCsShqCXYWm5
+Sjj4ZiGEGurq3hsooXJec5K4vjFROdfXPYnjNkCWW5rorFonWG7dZDzo5POJ77WZ
+Ix1/VwhyxpTwia/eCUVKDW7mqvCYrfKJFyk2MAhlPPLQzm4G0gJU+TkPcwOhXhYu
+20GcxYT+cOLF51nb32C8wk6hWbf7EzKAPGvQRJC6o6A726Dar1KfeUMSttkM7qDP
+fdWHNdb3K9cMZx76arkcV5cKHG8pbu+a7pnb7azNtXny95gTsWsxxaGny1A68a2H
+ZBucIbSqY9FP9m95YPfU85vS90V/UXGRjrUeQW1uleADUDlh
 -----END CERTIFICATE-----`
 
 // TestRootKey can be used with the above cert+public key to test TLS support.
