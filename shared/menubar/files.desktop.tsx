@@ -46,26 +46,6 @@ export const FileUpdate = (props: FileUpdateProps) => (
   </Kb.ClickableBox>
 )
 
-type FileUpdatesState = {
-  isShowingAll: boolean
-}
-
-const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
-    state = {
-      isShowingAll: false,
-    }
-    render() {
-      return (
-        <ComposedComponent
-          {...this.props}
-          onShowAll={() => this.setState(s => ({isShowingAll: !s.isShowingAll}))}
-          isShowingAll={this.state.isShowingAll}
-        />
-      )
-    }
-  }
-
 type FileUpdatesHocProps = {
   onShowAll: () => void
   isShowingAll: boolean
@@ -103,7 +83,11 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   </Kb.Box2>
 )
 
-const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
+const ComposedFileUpdates = (props: FileUpdatesProps) => {
+  const [isShowingAll, setIsShowingAll] = React.useState(false)
+  const onShowAll = () => setIsShowingAll(prev => !prev)
+  return <FileUpdates {...props} onShowAll={onShowAll} isShowingAll={isShowingAll} />
+}
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>

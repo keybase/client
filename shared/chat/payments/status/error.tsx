@@ -16,7 +16,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   onHidden: () => void
   error: string
   visible: boolean

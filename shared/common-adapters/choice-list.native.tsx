@@ -6,61 +6,48 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 
-type State = {
-  activeIndex?: number
-}
+const Kb = {Box, ClickableBox, Icon, Text}
 
-const Kb = {
-  Box,
-  ClickableBox,
-  Icon,
-  Text,
-}
+const ChoiceList = (props: Props) => {
+  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(undefined)
 
-class ChoiceList extends React.Component<Props, State> {
-  state: State = {activeIndex: undefined}
+  const {options} = props
+  React.useEffect(() => {
+    setActiveIndex(undefined)
+  }, [options])
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps !== this.props) {
-      this.setState({activeIndex: undefined})
-    }
-  }
-
-  render() {
-    const {options} = this.props
-    return (
-      <Kb.Box>
-        {options.map((op, idx) => {
-          const iconType = op.icon
-          return (
-            <Kb.ClickableBox
-              key={idx}
-              underlayColor={Styles.globalColors.blueLighter2}
-              onClick={op.onClick}
-              onPressIn={() => this.setState({activeIndex: idx})}
-              onPressOut={() => this.setState({activeIndex: undefined})}
-            >
-              <Kb.Box style={styleEntry}>
-                <Kb.Box style={styleIconContainer(this.state.activeIndex === idx)}>
-                  {typeof op.icon === 'string' ? (
-                    <Icon style={styleIcon} type={iconType} />
-                  ) : (
-                    <Kb.Box style={styleIcon}>{op.icon}</Kb.Box>
-                  )}
-                </Kb.Box>
-                <Kb.Box style={styleInfoContainer}>
-                  <Kb.Text style={styleInfoTitle} type="Header">
-                    {op.title}
-                  </Kb.Text>
-                  <Kb.Text type="Body">{op.description}</Kb.Text>
-                </Kb.Box>
+  return (
+    <Kb.Box>
+      {options.map((op, idx) => {
+        const iconType = op.icon
+        return (
+          <Kb.ClickableBox
+            key={idx}
+            underlayColor={Styles.globalColors.blueLighter2}
+            onClick={op.onClick}
+            onPressIn={() => setActiveIndex(idx)}
+            onPressOut={() => setActiveIndex(undefined)}
+          >
+            <Kb.Box style={styleEntry}>
+              <Kb.Box style={styleIconContainer(activeIndex === idx)}>
+                {typeof op.icon === 'string' ? (
+                  <Icon style={styleIcon} type={iconType} />
+                ) : (
+                  <Kb.Box style={styleIcon}>{op.icon}</Kb.Box>
+                )}
               </Kb.Box>
-            </Kb.ClickableBox>
-          )
-        })}
-      </Kb.Box>
-    )
-  }
+              <Kb.Box style={styleInfoContainer}>
+                <Kb.Text style={styleInfoTitle} type="Header">
+                  {op.title}
+                </Kb.Text>
+                <Kb.Text type="Body">{op.description}</Kb.Text>
+              </Kb.Box>
+            </Kb.Box>
+          </Kb.ClickableBox>
+        )
+      })}
+    </Kb.Box>
+  )
 }
 
 const styleEntry = {

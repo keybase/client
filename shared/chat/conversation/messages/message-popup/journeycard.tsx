@@ -5,7 +5,7 @@ import * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   ordinal: T.Chat.Ordinal
   position: Position

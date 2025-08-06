@@ -1,16 +1,15 @@
 /**
  * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * https://reactnative.dev/docs/metro
  * @format
  */
 /* eslint-disable */
 
 const {getDefaultConfig} = require('@expo/metro-config')
-const {mergeConfig} = require('@react-native/metro-config')
-const {resolve} = require('metro-resolver')
 const path = require('path')
 const fs = require('fs')
 const exclusionList = require('metro-config/src/defaults/exclusionList')
+const ignoredModules = require('./ignored-modules')
 
 const root = path.resolve(__dirname, '.')
 const packages = path.resolve(root, '../rnmodules')
@@ -33,50 +32,38 @@ const modules = []
   )
   .sort()
 
-const defaultConfig = getDefaultConfig(__dirname)
+const defaultConfigExpo = getDefaultConfig(__dirname)
 
-const blacklistRE = exclusionList(
-  []
-    // ignore desktop
-    .concat([new RegExp(`${path.join('desktop')}\\/.*$`)])
-    // We need to exclude the peerDependencies we've collected in packages' node_modules
-    .concat(
+const nullModule = path.join(root, 'null-module.js')
+
+const config = defaultConfigExpo
+// watch our rnmodules
+config.watchFolders = [...defaultConfigExpo.watchFolders, root, path.resolve(__dirname, '../rnmodules')]
+config.resolver = {
+  ...defaultConfigExpo.resolver,
+  assetExts: [...defaultConfigExpo.resolver.assetExts, 'css'],
+  sourceExts: [...defaultConfigExpo.resolver.sourceExts, 'cjs', 'css'],
+  // We need to exclude the peerDependencies we've collected in packages' node_modules
+  blacklistRE: exclusionList(
+    [].concat(
       ...workspaces.map(it =>
         modules.map(m => new RegExp(`^${escape(path.join(it, 'node_modules', m))}\\/.*$`))
       )
     )
-)
-
-module.exports = mergeConfig(defaultConfig, {
-  // watch our rnmodules
-  watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
-  resolver: {
-    ...defaultConfig.resolver,
-    assetExts: [...defaultConfig.resolver.assetExts, 'css'],
-    sourceExts: [...defaultConfig.resolver.sourceExts, 'cjs', 'css'],
-    blacklistRE,
-    // When we import a package from the monorepo, metro won't be able to find their deps
-    // We need to specify them in `extraNodeModules` to tell metro where to find them
-    extraNodeModules: modules.reduce((acc, name) => {
+  ),
+  // When we import a package from the monorepo, metro won't be able to find their deps
+  // We need to specify them in `extraNodeModules` to tell metro where to find them
+  extraNodeModules: modules.reduce(
+    (acc, name) => {
       acc[name] = path.join(root, 'node_modules', name)
       return acc
-    }, {}),
-  },
-  transformer: {
-    ...defaultConfig.transformer,
-    babelTransformerPath: require.resolve('./rn-transformer.js'),
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-    minifierConfig: {
-      mangle: {keep_fnames: true},
-      compress: {
-        keep_fnames: true,
-        keep_classnames: true,
-      },
     },
-  },
-})
+    ignoredModules.reduce((acc, name) => {
+      acc[name] = nullModule
+      return acc
+    }, {})
+  ),
+  unstable_enablePackageExports: false,
+}
+
+module.exports = config

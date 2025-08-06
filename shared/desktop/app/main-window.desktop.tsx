@@ -91,8 +91,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 }
 
 const changeDock = (show: boolean) => {
-  const _dock = Electron.app.dock
-  const dock = _dock as typeof _dock | undefined
+  const dock = Electron.app.dock
   if (!dock) return
   if (show) {
     dock

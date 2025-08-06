@@ -10,6 +10,7 @@
     "checkJs": false,
     "declaration": true,
     "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": false,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -33,6 +34,7 @@
       "@/*": ["./*"]
     },
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "sourceMap": false,
     "strict": true,
     "target": "esnext",

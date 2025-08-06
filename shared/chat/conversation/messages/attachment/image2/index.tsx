@@ -31,7 +31,7 @@ const Image2 = React.memo(function Image2(p: Props) {
     )
   }, [collapseIcon, fileName])
 
-  const toastTargetRef = React.useRef<Kb.MeasureRef>(null)
+  const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
 
   const content = React.useMemo(() => {
     return (

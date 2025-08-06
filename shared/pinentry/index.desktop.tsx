@@ -15,100 +15,89 @@ export type Props = {
   submitLabel?: string
 }
 
-type State = {
-  password: string
-  showTyping: boolean
-}
+const Pinentry = (props: Props) => {
+  const {showTyping: _showTyping, onSubmit} = props
+  const [password, setPassword] = React.useState('')
+  const [showTyping, setShowTyping] = React.useState(_showTyping?.defaultValue ?? false)
 
-class Pinentry extends React.Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      password: '',
-      showTyping: this.props.showTyping?.defaultValue ?? false,
-    }
-  }
-
-  componentDidMount() {
+  React.useEffect(() => {
     C.useDarkModeState
       .getState()
-      .dispatch.setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
-  }
+      .dispatch.setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  }, [props.darkMode])
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.showTyping !== this.props.showTyping) {
-      this.setState({showTyping: this.props.showTyping?.defaultValue ?? false})
+  const lastShowTyping = React.useRef(_showTyping)
+  React.useEffect(() => {
+    if (_showTyping !== lastShowTyping.current) {
+      lastShowTyping.current = _showTyping
+      setShowTyping(_showTyping?.defaultValue ?? false)
     }
-  }
+  }, [_showTyping])
 
-  _onCheck = (showTyping: boolean) => {
-    this.setState({showTyping})
-  }
+  const handleCheck = React.useCallback((showTyping: boolean) => {
+    setShowTyping(showTyping)
+  }, [])
 
-  _onSubmit = () => {
-    this.props.onSubmit(this.state.password)
-    this.setState({password: ''})
-  }
+  const handleSubmit = React.useCallback(() => {
+    onSubmit(password)
+    setPassword('')
+  }, [password, onSubmit])
 
-  render() {
-    const isPaperKey = this.props.type === T.RPCGen.PassphraseType.paperKey
-    return (
-      <Kb.Box
-        style={styles.container}
-        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
-        key={this.props.darkMode ? 'darkMode' : 'light'}
-      >
-        <DragHeader icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
-        <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Kb.Text type="Body" center={true}>
-            {this.props.prompt}
-          </Kb.Text>
-          {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
-          <Kb.Box2
-            alignSelf="center"
-            direction="vertical"
-            fullWidth={true}
-            gap="tiny"
-            gapEnd={true}
-            gapStart={true}
-            style={styles.inputContainer}
-          >
-            <Kb.LabeledInput
-              autoFocus={true}
-              error={!!this.props.retryLabel}
-              onChangeText={password => this.setState({password})}
-              onEnterKeyDown={this._onSubmit}
-              placeholder="Password"
-              type={this.state.showTyping ? 'passwordVisible' : 'password'}
-              value={this.state.password}
-            />
-            {this.props.retryLabel ? (
-              <Kb.Text style={styles.alignment} type="BodySmallError">
-                {this.props.retryLabel}
-              </Kb.Text>
-            ) : null}
-            {this.props.showTyping && this.props.showTyping.allow && (
-              <Kb.Checkbox
-                checked={this.state.showTyping}
-                label={this.props.showTyping.label}
-                onCheck={this._onCheck}
-                style={styles.alignment}
-              />
-            )}
-          </Kb.Box2>
-          <Kb.Button
-            style={{alignSelf: 'center'}}
-            label={this.props.submitLabel ?? 'Continue'}
-            onClick={this._onSubmit}
-            disabled={!this.state.password}
+  const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
+
+  return (
+    <Kb.Box
+      style={styles.container}
+      className={props.darkMode ? 'darkMode' : 'lightMode'}
+      key={props.darkMode ? 'darkMode' : 'light'}
+    >
+      <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+        <Kb.Text type="Body" center={true}>
+          {props.prompt}
+        </Kb.Text>
+        {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+        <Kb.Box2
+          alignSelf="center"
+          direction="vertical"
+          fullWidth={true}
+          gap="tiny"
+          gapEnd={true}
+          gapStart={true}
+          style={styles.inputContainer}
+        >
+          <Kb.LabeledInput
+            autoFocus={true}
+            error={!!props.retryLabel}
+            onChangeText={setPassword}
+            onEnterKeyDown={handleSubmit}
+            placeholder="Password"
+            type={showTyping ? 'passwordVisible' : 'password'}
+            value={password}
           />
-        </Kb.Box>
+          {props.retryLabel ? (
+            <Kb.Text style={styles.alignment} type="BodySmallError">
+              {props.retryLabel}
+            </Kb.Text>
+          ) : null}
+          {props.showTyping && props.showTyping.allow && (
+            <Kb.Checkbox
+              checked={showTyping}
+              label={props.showTyping.label}
+              onCheck={handleCheck}
+              style={styles.alignment}
+            />
+          )}
+        </Kb.Box2>
+        <Kb.Button
+          style={{alignSelf: 'center'}}
+          label={props.submitLabel ?? 'Continue'}
+          onClick={handleSubmit}
+          disabled={!password}
+        />
       </Kb.Box>
-    )
-  }
+    </Kb.Box>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

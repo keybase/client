@@ -15,14 +15,8 @@ type OwnProps = {
 const hotKeys = ['mod+n']
 
 const ConversationFilterInput = React.memo(function ConversationFilterInput(ownProps: OwnProps) {
-  const {
-    onEnsureSelection,
-    onSelectDown,
-    onSelectUp,
-    onQueryChanged: onSetFilter,
-    query: filter,
-    showSearch,
-  } = ownProps
+  const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
+  const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
   const isSearching = C.useChatState(s => !!s.inboxSearch)
 
@@ -35,7 +29,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     toggleInboxSearch(false)
   }, [toggleInboxSearch])
 
-  const inputRef = React.useRef<Kb.SearchFilter>(null)
+  const inputRef = React.useRef<Kb.SearchFilterRef>(null)
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -81,13 +75,11 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     appendNewChatBuilder()
   }, [appendNewChatBuilder])
 
-  const [lastSearching, setLastSearching] = React.useState(isSearching)
-  if (lastSearching !== isSearching) {
-    setLastSearching(isSearching)
+  React.useEffect(() => {
     if (isSearching) {
       inputRef.current?.focus()
     }
-  }
+  }, [isSearching])
 
   const searchInput = (
     <Kb.SearchFilter
@@ -116,14 +108,14 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     <Kb.Box2
       direction="horizontal"
       centerChildren={!Kb.Styles.isTablet}
-      gap={Kb.Styles.isMobile ? 'small' : 'xtiny'}
+      gap={Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
         Kb.Styles.isPhone ? null : Kb.Styles.isTablet && showSearch ? null : styles.whiteBg,
         !Kb.Styles.isMobile && styles.whiteBg,
       ])}
       gapStart={showSearch}
-      gapEnd={true}
+      gapEnd={showSearch}
     >
       {!Kb.Styles.isMobile && <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKeys} />}
       {showSearch && searchInput}

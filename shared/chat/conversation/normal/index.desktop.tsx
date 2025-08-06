@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import Banner from '../bottom-banner/container'
+import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
-import PinnedMessage from '../pinned-message/container'
+import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import ThreadSearch from '../search/container'
+import ThreadSearch from '../search'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
 import {indefiniteArticle} from '@/util/string'
@@ -70,7 +70,7 @@ const Conversation = React.memo(function Conversation() {
   }, [toggleThreadSearch])
 
   return (
-    <div className="conversation" style={styles.container} onPaste={onPaste}>
+    <div className="conversation" style={styles.container} onPaste={onPaste} key={conversationIDKey}>
       <Kb.HotKey hotKeys={hotKeys} onHotKey={onToggleThreadSearch} />
       <Kb.DragAndDrop
         onAttach={cannotWrite ? undefined : onAttach}
@@ -80,7 +80,7 @@ const Conversation = React.memo(function Conversation() {
       >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-          <ListArea key={conversationIDKey} />
+          <ListArea />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
             {!showThreadSearch && <PinnedMessage />}

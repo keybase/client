@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
-import isEqual from 'lodash/isEqual'
 
 type OwnProps = {
   navKey: string
@@ -144,10 +143,6 @@ const Connected = (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
   const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
-  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
-  const _badgeMap = React.useMemo(() => {
-    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
-  }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
   const selectedConversationIDKey = conversationIDKey ?? C.Chat.noConversationIDKey
   const isSearching = C.useChatState(s => !!s.inboxSearch)
@@ -175,66 +170,52 @@ const Connected = (ownProps: OwnProps) => {
   const hasAllSmallTeamConvs =
     (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
   const divider: Array<T.Chat.ChatInboxRowItemDivider | T.Chat.ChatInboxRowItemTeamBuilder> =
-    bigRows.length !== 0 || !hasAllSmallTeamConvs
-      ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
-      : []
+    React.useMemo(() => {
+      return bigRows.length !== 0 || !hasAllSmallTeamConvs
+        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
+        : []
+    }, [bigRows.length, hasAllSmallTeamConvs, smallTeamsBelowTheFold])
 
-  const builderAfterSmall = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-  const builderAfterDivider = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-  const builderAfterBig = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
-  const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
-  if (smallRows.length !== 0) {
-    if (bigRows.length === 0) {
-      if (divider.length !== 0) {
-        builderAfterDivider.push(teamBuilder)
+  const rows: Array<T.Chat.ChatInboxRowItem> = React.useMemo(() => {
+    const builderAfterSmall = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+    const builderAfterDivider = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+    const builderAfterBig = new Array<T.Chat.ChatInboxRowItemTeamBuilder>()
+    const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
+    if (smallRows.length !== 0) {
+      if (bigRows.length === 0) {
+        if (divider.length !== 0) {
+          builderAfterDivider.push(teamBuilder)
+        } else {
+          builderAfterSmall.push(teamBuilder)
+        }
       } else {
-        builderAfterSmall.push(teamBuilder)
-      }
-    } else {
-      builderAfterBig.push(teamBuilder)
-    }
-  }
-  const nextRows: Array<T.Chat.ChatInboxRowItem> = [
-    ...smallRows,
-    ...builderAfterSmall,
-    ...divider,
-    ...builderAfterDivider,
-    ...bigRows,
-    ...builderAfterBig,
-  ]
-  let rows = nextRows
-
-  const cachedRowsRef = React.useRef<Array<T.Chat.ChatInboxRowItem>>([])
-
-  // TODO better fix later
-  if (isEqual(rows, cachedRowsRef.current)) {
-    rows = cachedRowsRef.current
-  }
-  cachedRowsRef.current = rows
-
-  const _unreadIndices: Map<number, number> = new Map()
-  let unreadTotal: number = 0
-  for (let i = rows.length - 1; i >= 0; i--) {
-    const row = rows[i]!
-    if (row.type === 'big') {
-      if (
-        row.conversationIDKey &&
-        _badgeMap.get(row.conversationIDKey) &&
-        row.conversationIDKey !== selectedConversationIDKey
-      ) {
-        // on mobile include all convos, on desktop only not currently selected convo
-        const unreadCount = _badgeMap.get(row.conversationIDKey) || 0
-        _unreadIndices.set(i, unreadCount)
-        unreadTotal += unreadCount
+        builderAfterBig.push(teamBuilder)
       }
     }
-  }
+    return [
+      ...smallRows,
+      ...builderAfterSmall,
+      ...divider,
+      ...builderAfterDivider,
+      ...bigRows,
+      ...builderAfterBig,
+    ]
+  }, [bigRows, smallRows, divider])
 
-  const unreadIndiciesRef = React.useRef(_unreadIndices)
-  if (!isEqual(unreadIndiciesRef.current, _unreadIndices)) {
-    unreadIndiciesRef.current = _unreadIndices
-  }
-  const unreadIndices = unreadIndiciesRef.current
+  const unreadIndices = C.useChatState(
+    C.useShallow(s =>
+      s.getUnreadIndicies(
+        rows.map(row => {
+          if (row.type === 'big' && row.conversationIDKey !== selectedConversationIDKey) {
+            return row.conversationIDKey
+          }
+          return ''
+        })
+      )
+    )
+  )
+
+  const unreadTotal = Array.from(unreadIndices.values()).reduce((acc, val) => acc + val, 0)
 
   const props = {
     isSearching,

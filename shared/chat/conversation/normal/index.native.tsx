@@ -4,14 +4,14 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '@/common-adapters/drop-view.native'
-import Banner from '../bottom-banner/container'
+import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
-import PinnedMessage from '../pinned-message/container'
+import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
-import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {MaxInputAreaContext} from '../input-area/normal2/max-input-area-context'
 import {useWindowDimensions} from 'react-native'
 import logger from '@/logger'
 
@@ -121,7 +121,13 @@ const Conversation = React.memo(function Conversation() {
   const threadLoadedOffline = C.useChatContext(s => s.meta.offline)
 
   const content = (
-    <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
+    <Kb.Box2
+      direction="vertical"
+      style={styles.innerContainer}
+      fullWidth={true}
+      fullHeight={true}
+      key={conversationIDKey}
+    >
       <DropView style={styles.dropView} onDropped={onDropped}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           {threadLoadedOffline && <Offline />}

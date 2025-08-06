@@ -1,38 +1,73 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import EnterPhoneNumber, {type Props} from '.'
+import * as Kb from '@/common-adapters'
+import {SignupScreen, errorBanner} from '../common'
 
-type WatcherProps = Props & {
-  onClear: () => void
-  onGoToVerify: () => void
-  pendingVerification: string
+type BodyProps = {
+  autoFocus?: boolean
+  defaultCountry?: string
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
+  onContinue: () => void
+  searchable: boolean
+  onChangeSearchable?: (allow: boolean) => void
+  iconType: Kb.IconType
 }
-// Watches for `pendingVerification` to change and routes to the verification screen
-export class WatchForGoToVerify extends React.Component<WatcherProps> {
-  componentDidUpdate(prevProps: WatcherProps) {
-    if (
-      !this.props.error &&
-      !!this.props.pendingVerification &&
-      this.props.pendingVerification !== prevProps.pendingVerification
-    ) {
-      this.props.onGoToVerify()
-    }
-  }
-  componentWillUnmount() {
-    this.props.onClear()
-  }
-  render() {
-    return (
-      <EnterPhoneNumber
-        defaultCountry={this.props.defaultCountry}
-        error={this.props.error}
-        onContinue={this.props.onContinue}
-        onSkip={this.props.onSkip}
-        waiting={this.props.waiting}
-      />
-    )
-  }
+
+export const EnterPhoneNumberBody = (props: BodyProps) => {
+  const showCheckbox = !!props.onChangeSearchable
+  return (
+    <Kb.Box2
+      alignItems="center"
+      direction="vertical"
+      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+      fullWidth={true}
+      style={styles.container}
+    >
+      <Kb.Icon type={props.iconType} />
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
+        <Kb.PhoneInput
+          autoFocus={props.autoFocus ?? true}
+          defaultCountry={props.defaultCountry}
+          style={styles.input}
+          onChangeNumber={props.onChangeNumber}
+          onEnterKeyDown={props.onContinue}
+        />
+        {showCheckbox ? (
+          <Kb.Checkbox
+            label="Allow friends to find you by this phone number"
+            checked={props.searchable}
+            onCheck={props.onChangeSearchable}
+            style={styles.checkbox}
+          />
+        ) : (
+          <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
+        )}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkbox: {width: '100%'},
+  container: Kb.Styles.platformStyles({
+    common: Kb.Styles.globalStyles.flexOne,
+    isTablet: {maxWidth: 386},
+  }),
+  input: Kb.Styles.platformStyles({
+    isElectron: {
+      height: 38,
+      width: 368,
+    },
+    isMobile: {
+      height: 48,
+      width: '100%',
+    },
+  }),
+  inputBox: Kb.Styles.platformStyles({
+    // need to set width so subtext will wrap
+    isElectron: {width: 368},
+  }),
+}))
 
 const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
@@ -43,26 +78,70 @@ const ConnectedEnterPhoneNumber = () => {
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const onClear = clearPhoneNumberErrors
   const addPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
-  const onContinue = addPhoneNumber
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onGoToVerify = () => {
+  const onGoToVerify = React.useCallback(() => {
     navigateAppend('signupVerifyPhoneNumber')
-  }
-  const onSkip = () => {
+  }, [navigateAppend])
+  const onSkip = React.useCallback(() => {
     clearPhoneNumberAdd()
     navigateAppend('signupEnterEmail', true)
+  }, [clearPhoneNumberAdd, navigateAppend])
+
+  React.useEffect(() => {
+    return () => {
+      onClear()
+    }
+  }, [onClear])
+
+  const lastPendingVerificationRef = React.useRef(pendingVerification)
+  React.useEffect(() => {
+    if (!error && pendingVerification && lastPendingVerificationRef.current !== pendingVerification) {
+      onGoToVerify()
+    }
+    lastPendingVerificationRef.current = pendingVerification
+  }, [pendingVerification, error, onGoToVerify])
+
+  // trigger a default phone number country rpc if it's not already loaded
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  React.useEffect(() => {
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
+
+  const [phoneNumber, onChangePhoneNumber] = React.useState('')
+  const [valid, onChangeValidity] = React.useState(false)
+  const disabled = !valid
+  const onContinue = () => (disabled || waiting ? {} : addPhoneNumber(phoneNumber, true /* searchable */))
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    onChangePhoneNumber(phoneNumber)
+    onChangeValidity(validity)
   }
-  const props = {
-    defaultCountry,
-    error,
-    onClear,
-    onContinue,
-    onGoToVerify,
-    onSkip,
-    pendingVerification,
-    waiting,
-  }
-  return <WatchForGoToVerify {...props} />
+  return (
+    <SignupScreen
+      buttons={[
+        {
+          disabled,
+          label: 'Continue',
+          onClick: onContinue,
+          type: 'Success' as const,
+          waiting: waiting,
+        },
+      ]}
+      banners={errorBanner(error)}
+      rightActionLabel="Skip"
+      onRightAction={onSkip}
+      title="Your phone number"
+      showHeaderInfoicon={true}
+    >
+      <EnterPhoneNumberBody
+        autoFocus={!Kb.Styles.isMobile}
+        defaultCountry={defaultCountry}
+        onChangeNumber={onChangeNumberCb}
+        onContinue={onContinue}
+        searchable={true}
+        iconType={C.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
+      />
+    </SignupScreen>
+  )
 }
 
 export default ConnectedEnterPhoneNumber

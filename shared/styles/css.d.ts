@@ -6,6 +6,7 @@ export type DimensionValue = number | 'auto' | `${number}%`
 export type Color = undefined | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
+  lineHeight?: `${number}px` | number | 'inherit' | 'unset'
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
   overflowX?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
   overflowY?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible'
@@ -123,7 +124,7 @@ type _StylesMobileOverride = {
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign' /* | 'transform'*/> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -134,6 +135,8 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
+  lineHeight: _StylesMobile['lineHeight']
+  transform: _StylesMobile['transform']
 }
 
 export type _StylesCrossPlatform = {
@@ -147,6 +150,8 @@ export type _StylesCrossPlatform = {
 type _StylesCrossPlatformFalsy = _StylesCrossPlatform | undefined | null | false
 export type StylesCrossPlatform = _StylesCrossPlatformFalsy | Array<_StylesCrossPlatformFalsy>
 
-export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & C
-export type _CustomStylesFalsy<K extends string, C> = _CustomStyles<K, C> | undefined | null | false
-export type CustomStyles<K extends string, C> = _CustomStylesFalsy<K, C> | Array<_CustomStylesFalsy<K, C>>
+export type _CustomStyles<K extends string, C = unknown> = Omit<_StylesCrossPlatform, K> & C
+export type _CustomStylesFalsy<K extends string, C = unknown> = _CustomStyles<K, C> | undefined | null | false
+export type CustomStyles<K extends string, C = unknown> =
+  | _CustomStylesFalsy<K, C>
+  | Array<_CustomStylesFalsy<K, C>>

@@ -216,7 +216,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     }
   }
 
-  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)

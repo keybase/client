@@ -19,6 +19,7 @@ export type Props<Item> = {
   onEndReachedThreshold?: number // mobile only
   onScroll?: (e: unknown) => void // mobile only
   reAnimated?: boolean // mobile only, make list animated
+  keyboardDismissMode?: 'none' | 'interactive' | 'on-drag' // mobile only
 }
 
 /**

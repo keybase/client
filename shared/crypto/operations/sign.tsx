@@ -28,6 +28,11 @@ const SignOutputBanner = () => {
 }
 
 export const SignInput = () => {
+  const blurCBRef = React.useRef(() => {})
+  const setBlurCB = React.useCallback((cb: () => void) => {
+    blurCBRef.current = cb
+  }, [])
+
   const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
@@ -40,8 +45,8 @@ export const SignInput = () => {
   const content = (
     <>
       <OperationBanner operation={operation} />
-      <Input operation={operation} />
-      {C.isMobile ? <InputActionsBar operation={operation} /> : null}
+      <Input operation={operation} setBlurCB={setBlurCB} />
+      {C.isMobile ? <InputActionsBar operation={operation} blurCBRef={blurCBRef} /> : null}
     </>
   )
 

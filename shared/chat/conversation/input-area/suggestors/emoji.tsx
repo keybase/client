@@ -46,13 +46,9 @@ const empty = new Array<EmojiData>()
 const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
-  C.Chat.useCIDChanged(
-    conversationIDKey,
-    () => {
-      fetchUserEmoji(conversationIDKey)
-    },
-    true
-  )
+  React.useEffect(() => {
+    fetchUserEmoji(conversationIDKey)
+  }, [conversationIDKey, fetchUserEmoji])
 
   const userEmojisLoading = C.Waiting.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
@@ -86,8 +82,8 @@ type ListProps = Pick<
 > & {
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
-  onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
+  setOnMoveRef: (r: (up: boolean) => void) => void
+  setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p

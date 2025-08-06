@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {useSettingsState} from '../use-settings'
+import {useSettingsTabState} from '../use-settings'
 
 type Props = {
   isOpenTeam: boolean
@@ -23,7 +23,7 @@ const OpenTeamWarning = (props: Props) => {
   const isOpenTeam = props.isOpenTeam
   const teamname = props.teamname
   const [enabled, setEnabled] = React.useState(false)
-  const onConfirmCallback = useSettingsState(s => s.dispatch.triggerAllowOpen)
+  const onConfirmCallback = useSettingsTabState(s => s.dispatch.triggerAllowOpen)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onConfirm = () => {

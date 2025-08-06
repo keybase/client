@@ -9,7 +9,6 @@ import {intersect} from '@/util/set'
 import {mapFilterByKey} from '@/util/map'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar-zus'
-import shallowEqual from 'shallowequal'
 import type * as NotifConstants from '@/constants/notifications'
 
 const {showTray} = KB2.functions
@@ -73,21 +72,31 @@ const convoDiff = (a: C.Chat.ConvoState, b: C.Chat.ConvoState) => {
   return false
 }
 
+const usernamesCache = new Map<string, Set<string>>()
 // TODO could make this render less
 const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const following = C.useFollowerState(s => s.following)
-  const followers = C.useFollowerState(s => s.followers)
+  const followerState = C.useFollowerState(
+    C.useShallow(s => {
+      const {followers, following} = s
+      return {followers, following}
+    })
+  )
+  const {following, followers} = followerState
   const username = C.useCurrentUserState(s => s.username)
-  const httpSrv = C.useConfigState(s => s.httpSrv)
-  const windowShownCount = C.useConfigState(s => s.windowShownCount)
-  const outOfDate = C.useConfigState(s => s.outOfDate)
-  const loggedIn = C.useConfigState(s => s.loggedIn)
-  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
-  const pathItems = C.useFSState(s => s.pathItems)
-  const sfmi = C.useFSState(s => s.sfmi)
-  const tlfUpdates = C.useFSState(s => s.tlfUpdates)
-  const uploads = C.useFSState(s => s.uploads)
+  const configState = C.useConfigState(
+    C.useShallow(s => {
+      const {httpSrv, loggedIn, outOfDate, windowShownCount} = s
+      return {httpSrv, loggedIn, outOfDate, windowShownCount}
+    })
+  )
+  const {httpSrv, loggedIn, outOfDate, windowShownCount} = configState
+  const fsState = C.useFSState(
+    C.useShallow(s => {
+      const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = s
+      return {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads}
+    })
+  )
+  const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = fsState
   const {desktopAppBadgeCount, navBadges, widgetBadge} = C.useNotifState(
     C.useShallow(s => {
       const {desktopAppBadgeCount, navBadges, widgetBadge} = s
@@ -148,22 +157,26 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   )
 
   // filter some data based on visible users
-  const _usernames = new Set<string>()
-  tlfUpdates.forEach(update => _usernames.add(update.writer))
-  conversationsToSend.forEach(c => {
-    if (c.teamType === 'adhoc') {
-      c.participants?.forEach(p => _usernames.add(p))
-    } else {
-      c.tlfname && _usernames.add(c.tlfname)
-    }
-  })
+  const usernames = React.useMemo(() => {
+    const _usernames = new Set<string>()
+    tlfUpdates.forEach(update => _usernames.add(update.writer))
+    conversationsToSend.forEach(c => {
+      if (c.teamType === 'adhoc') {
+        c.participants?.forEach(p => _usernames.add(p))
+      } else {
+        c.tlfname && _usernames.add(c.tlfname)
+      }
+    })
 
-  // memoize so useMemos work below
-  const usernamesRef = React.useRef(_usernames)
-  if (!shallowEqual(Array.from(usernamesRef.current), Array.from(_usernames))) {
-    usernamesRef.current = _usernames
-  }
-  const usernames = usernamesRef.current
+    const usernames = (() => {
+      const key = Array.from(_usernames).join(',')
+      const existing = usernamesCache.get(key)
+      if (existing) return existing
+      usernamesCache.set(key, _usernames)
+      return _usernames
+    })()
+    return usernames
+  }, [conversationsToSend, tlfUpdates])
 
   const avatarRefreshCounter = useAvatarState(s => s.counts)
 

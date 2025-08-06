@@ -38,31 +38,33 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 
   const navigateAppend = C.Chat.useChatNavigateAppend()
-  const onShowClearConversationDialog = () => {
+  const onShowClearConversationDialog = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
-  }
+  }, [navigateAppend])
 
   const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = () => hideConversation(true)
-  const onUnhideConv = () => hideConversation(false)
-  const onShowBlockConversationDialog = membersForBlock.length
-    ? () => {
-        navigateAppend(conversationIDKey => ({
-          props: {
-            blockUserByDefault: true,
-            conversationIDKey,
-            others: membersForBlock,
-            team: teamname,
-          },
-          selected: 'chatBlockingModal',
-        }))
-      }
-    : onHideConv
+  const onHideConv = React.useCallback(() => hideConversation(true), [hideConversation])
+  const onUnhideConv = React.useCallback(() => hideConversation(false), [hideConversation])
+  const onShowBlockConversationDialog = React.useCallback(() => {
+    if (membersForBlock.length) {
+      navigateAppend(conversationIDKey => ({
+        props: {
+          blockUserByDefault: true,
+          conversationIDKey,
+          others: membersForBlock,
+          team: teamname,
+        },
+        selected: 'chatBlockingModal',
+      }))
+    } else {
+      onHideConv()
+    }
+  }, [membersForBlock, onHideConv, teamname, navigateAppend])
 
   const leaveConversation = C.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveConversation = () => {
+  const onLeaveConversation = React.useCallback(() => {
     leaveConversation()
-  }
+  }, [leaveConversation])
 
   const onArchive = () => {
     C.featureFlags.archive &&

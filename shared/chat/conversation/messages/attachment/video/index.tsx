@@ -32,7 +32,7 @@ const Video = React.memo(function Video(p: Props) {
     )
   }, [collapseIcon, fileName])
 
-  const toastTargetRef = React.useRef<Kb.MeasureRef>(null)
+  const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
 
   const content = React.useMemo(() => {
     return (

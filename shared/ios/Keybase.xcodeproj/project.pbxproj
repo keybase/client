@@ -8,19 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
-		07C3A80B23FF2F5F00A75BA0 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */; };
 		07C3A80C23FF336200A75BA0 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
 		07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
+		0C0438873E1F6630593C183F /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA28E7771F0B2C0F5E8DEB81 /* Pods_Keybase.framework */; };
+		1790BEACF59E3689E320E5CB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
-		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
 		279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 279FB5A12139AB6A005E4864 /* MainInterface.storyboard */; };
-		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		279FB66921402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
-		279FB66A21402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
+		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
-		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
-		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */; };
 		37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */; };
 		37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */; };
@@ -32,19 +28,16 @@
 		37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88622A5C7FB008CA4ED /* kb.ttf */; };
 		37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */; };
 		37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D89222A5C83B008CA4ED /* keybasemessage.wav */; };
+		6D30CA5F1EA172E82B44B913 /* Pods_KeybaseShare.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */; };
 		9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2585B4B360D5D792D408D511 /* ExpoModulesProvider.swift */; };
-		C5CE209C108A9F433F8D6B76 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37130D74F2276F9E6B0B8274 /* libPods-Keybase.a */; };
-		DB05E98E28EE243000FBD6B4 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */; };
 		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
-		DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60B93983273F902C00A226FF /* keybase.xcframework */; };
-		DB4FA4AA29100922005E46B3 /* AppDelegate+KB.mm in Sources */ = {isa = PBXBuildFile; fileRef = DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */; };
+		DB33CB6B2DFB02E9000472AA /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB33CB6A2DFB02E9000472AA /* ShareViewController.swift */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
-		DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
-		DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */; };
-		DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */; };
-		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
+		DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB8CC202DF336C200D43215 /* AppDelegate.swift */; };
+		DBBE59452DF394F700A74A2D /* keybasego.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBE59442DF394F700A74A2D /* keybasego.xcframework */; };
+		DBD252982DF32D5C008A43FF /* Fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD252972DF32D5C008A43FF /* Fs.swift */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		E971493431D48C546E26D327 /* libPods-KeybaseShare.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F59DB443D9717F8E2B386233 /* libPods-KeybaseShare.a */; };
+		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,15 +51,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		279FB5D82139AB6A005E4864 /* Embed App Extensions */ = {
+		279FB5D82139AB6A005E4864 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */,
+				279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -75,8 +68,6 @@
 		0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		005BF9961BB9C6B000BD8953 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
 		038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaUtils.h; sourceTree = "<group>"; };
-		07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaUtils.m; sourceTree = "<group>"; };
 		0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		1038071745692610070A34DC /* Pods-Keybase For Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -84,19 +75,12 @@
 		2585B4B360D5D792D408D511 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Keybase/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		279FB59C2139AB6A005E4864 /* KeybaseShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeybaseShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		279FB59E2139AB6A005E4864 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
-		279FB59F2139AB6A005E4864 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		279FB5A22139AB6A005E4864 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		279FB5A42139AB6A005E4864 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		279FB66821402D68005E4864 /* Fs.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Fs.m; sourceTree = "<group>"; };
-		279FB69821402D82005E4864 /* Fs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fs.h; sourceTree = "<group>"; };
 		279FB6EE214039DA005E4864 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		279FB6F121403A2A005E4864 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		279FB6F321403A49005E4864 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
-		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
-		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
-		37130D74F2276F9E6B0B8274 /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
 		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
@@ -116,20 +100,20 @@
 		BC9A5DEFC49AB353E670A84C /* Pods-Keybase For Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase For Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
-		DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		CA28E7771F0B2C0F5E8DEB81 /* Pods_Keybase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keybase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ../PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DB07050422E21B8B002F273D /* KeepThisFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepThisFile.swift; sourceTree = "<group>"; };
-		DB190422275A8B4B00E85B2E /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
-		DB4FA4A629100909005E46B3 /* AppDelegate+KB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppDelegate+KB.h"; sourceTree = "<group>"; };
-		DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "AppDelegate+KB.mm"; sourceTree = "<group>"; };
+		DB33CB692DFB02E8000472AA /* KeybaseShare-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KeybaseShare-Bridging-Header.h"; sourceTree = "<group>"; };
+		DB33CB6A2DFB02E9000472AA /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItemProviderHelper.h; sourceTree = "<group>"; };
-		DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ItemProviderHelper.m; sourceTree = "<group>"; };
-		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		DBB8CC202DF336C200D43215 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		DBBE59442DF394F700A74A2D /* keybasego.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybasego.xcframework; sourceTree = "<group>"; };
+		DBD252972DF32D5C008A43FF /* Fs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fs.swift; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
-		F59DB443D9717F8E2B386233 /* libPods-KeybaseShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KeybaseShare.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
+		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,9 +122,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */,
+				DBBE59452DF394F700A74A2D /* keybasego.xcframework in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
-				DB190420275A898B00E85B2E /* keybase.xcframework in Frameworks */,
-				C5CE209C108A9F433F8D6B76 /* libPods-Keybase.a in Frameworks */,
+				0C0438873E1F6630593C183F /* Pods_Keybase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -152,7 +136,7 @@
 				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
 				07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */,
-				E971493431D48C546E26D327 /* libPods-KeybaseShare.a in Frameworks */,
+				6D30CA5F1EA172E82B44B913 /* Pods_KeybaseShare.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,9 +156,9 @@
 			children = (
 				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
 				279FB5A42139AB6A005E4864 /* Info.plist */,
-				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
-				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
+				DB33CB6A2DFB02E9000472AA /* ShareViewController.swift */,
 				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
+				DB33CB692DFB02E8000472AA /* KeybaseShare-Bridging-Header.h */,
 			);
 			path = KeybaseShare;
 			sourceTree = "<group>";
@@ -249,7 +233,7 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				DB190422275A8B4B00E85B2E /* keybase.xcframework */,
+				DBBE59442DF394F700A74A2D /* keybasego.xcframework */,
 				DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */,
 				279FB6F321403A49005E4864 /* MobileCoreServices.framework */,
 				279FB6F121403A2A005E4864 /* CoreMedia.framework */,
@@ -258,8 +242,8 @@
 				274AFB721E972F5300615A64 /* libresolv.tbd */,
 				97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */,
 				038BCB1F7ED871986D74D02D /* libPods-Keybase-KeybaseShare.a */,
-				37130D74F2276F9E6B0B8274 /* libPods-Keybase.a */,
-				F59DB443D9717F8E2B386233 /* libPods-KeybaseShare.a */,
+				CA28E7771F0B2C0F5E8DEB81 /* Pods_Keybase.framework */,
+				F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -275,25 +259,16 @@
 			isa = PBXGroup;
 			children = (
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
-				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
-				DB05E98D28EE242F00FBD6B4 /* AppDelegate.mm */,
+				DBB8CC202DF336C200D43215 /* AppDelegate.swift */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
-				DB4FA4A629100909005E46B3 /* AppDelegate+KB.h */,
-				DB4FA4A929100922005E46B3 /* AppDelegate+KB.mm */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
-				DBBCC6171D9C5C6A00312652 /* main.m */,
-				DBB17C7428D11A41001F3E25 /* ItemProviderHelper.h */,
-				DBB17C7528D11A41001F3E25 /* ItemProviderHelper.m */,
-				07C3A80923FF2F5F00A75BA0 /* MediaUtils.h */,
-				07C3A80A23FF2F5F00A75BA0 /* MediaUtils.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
-				27EE26A920A1466300F92CD1 /* Pusher.h */,
-				27EE26A720A140EF00F92CD1 /* Pusher.m */,
-				279FB69821402D82005E4864 /* Fs.h */,
-				279FB66821402D68005E4864 /* Fs.m */,
+				DBD252972DF32D5C008A43FF /* Fs.swift */,
+				DBDF89F52DF7779900EA18C2 /* Pusher.swift */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Keybase;
 			sourceTree = "<group>";
@@ -312,9 +287,9 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				DB229EE81BF697160081901A /* Start Packager */,
 				DB3914B2232C384400DC4CDC /* Bundle React Native Code And Images */,
-				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
+				279FB5D82139AB6A005E4864 /* Embed Foundation Extensions */,
 				84EE85CB003D1A22493F22FE /* [CP] Copy Pods Resources */,
-				DB3A5F8F29A5686A002BF5A5 /* Strip hermes */,
+				3232344352F509933A94D6CD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -350,8 +325,9 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 700;
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 1640;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
@@ -380,6 +356,7 @@
 					};
 					279FB59B2139AB6A005E4864 = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1640;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -400,10 +377,9 @@
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Keybase" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -436,6 +412,7 @@
 				37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
+				1790BEACF59E3689E320E5CB /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -469,6 +446,24 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Keybase/expo-configure-project.sh\"\n";
 		};
+		3232344352F509933A94D6CD /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		56262AC05B7D338505B39A58 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -495,14 +490,34 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Keybase/Pods-Keybase-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXTaskManager/ExpoTaskManager_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoMediaLibrary/ExpoMediaLibrary_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RCT-Folly/RCT-Folly_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-ios/LottiePrivacyInfo.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-react-native/Lottie_React_Native_Privacy.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoTaskManager_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoMediaLibrary_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCT-Folly_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/LottiePrivacyInfo.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Lottie_React_Native_Privacy.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -560,26 +575,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n# export SKIP_BUNDLING=\"1\"\nexport SOURCEMAP_FILE=\"$(pwd)/build/main.jsbundle.map\";\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
+			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 			showEnvVarsInLog = 0;
-		};
-		DB3A5F8F29A5686A002BF5A5 /* Strip hermes */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Strip hermes";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\n#FRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\n#\n#if [ -f \"$FRAMEWORK\" ]; then\n#    echo \"stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#    \"${BITCODE_STRIP}\" -keep_cs -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n#    echo \"done stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#else \n#    echo \"hermes not found, skipping strip\"\n#    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n#fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -588,14 +585,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
-				279FB66921402D68005E4864 /* Fs.m in Sources */,
-				DB05E98E28EE243000FBD6B4 /* AppDelegate.mm in Sources */,
-				DB4FA4AA29100922005E46B3 /* AppDelegate+KB.mm in Sources */,
-				DBB17C7628D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
-				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
-				DBB17C7828D12237001F3E25 /* MediaUtils.m in Sources */,
-				27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */,
+				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
+				DBD252982DF32D5C008A43FF /* Fs.swift in Sources */,
 				9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -604,11 +597,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				07C3A80B23FF2F5F00A75BA0 /* MediaUtils.m in Sources */,
-				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
-				279FB66A21402D68005E4864 /* Fs.m in Sources */,
-				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
-				DBB17C7728D11A41001F3E25 /* ItemProviderHelper.m in Sources */,
+				DB33CB6B2DFB02E9000472AA /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -645,7 +634,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -661,7 +649,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -699,7 +687,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -715,7 +702,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -748,6 +735,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_COMMA = YES;
@@ -764,7 +752,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -777,7 +764,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -787,6 +774,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "KeybaseShare/KeybaseShare-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -798,6 +788,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_COMMA = YES;
@@ -815,7 +806,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -828,7 +818,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -838,6 +828,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "KeybaseShare/KeybaseShare-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -846,8 +838,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CC = "";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -873,8 +866,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				CXX = "";
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -916,8 +912,13 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD = "";
+				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -929,20 +930,18 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				"OTHER_SWIFT_FLAGS[sdk=iphonesimulator*]" = "-DDEBUG -DSIMULATOR";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				STRIP_BITCODE_FROM_COPIED_FILES = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_VERSION = 5.0;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -950,8 +949,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CC = "";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -977,8 +977,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				CXX = "";
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1012,8 +1015,13 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
+					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx",
+					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD = "";
+				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1024,20 +1032,17 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				STRIP_BITCODE_FROM_COPIED_FILES = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

@@ -5,6 +5,7 @@ import * as React from 'react'
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace
   const common = {
+    headerLeft: undefined,
     modal2: true,
     modal2AvoidTabs: false,
     modal2ClearCover: false,

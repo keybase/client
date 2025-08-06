@@ -20,8 +20,8 @@ const BoxGrow = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      inner: {...Styles.globalStyles.fillAbsolute},
-      inner2: {...Styles.globalStyles.fillAbsolute, display: 'flex'},
+      inner: {...Styles.globalStyles.fillAbsolute, height: '100%', width: '100%'},
+      inner2: {...Styles.globalStyles.fillAbsolute, display: 'flex', height: '100%', width: '100%'},
       outer: {
         flexGrow: 1,
         position: 'relative',

@@ -6,153 +6,133 @@ import {NativeAnimated, NativeEasing} from '@/common-adapters/native-wrappers.na
 const lightPatternImage = require('../../images/upload-pattern-80.png') as number
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
 
-type UploadState = {
-  backgroundTop: NativeAnimated.AnimatedValue
-  uploadTop: NativeAnimated.AnimatedValue
-  showing: boolean
-}
-
 const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
 
-class Upload extends React.PureComponent<UploadProps, UploadState> {
-  state = {
-    backgroundTop: new NativeAnimated.Value(0),
-    showing: false,
-    uploadTop: new NativeAnimated.Value(48),
-  }
+const Upload = (props: UploadProps) => {
+  const {showing: _showing, files, totalSyncingBytes, timeLeft, debugToggleShow} = props
+  const [backgroundTop] = React.useState(new NativeAnimated.Value(0))
+  const [uploadTop] = React.useState(new NativeAnimated.Value(48))
+  const [showing, setShowing] = React.useState(false)
+  const animationsRef = React.useRef({
+    in: undefined as NativeAnimated.CompositeAnimation | undefined,
+    loop: undefined as NativeAnimated.CompositeAnimation | undefined,
+    out: undefined as NativeAnimated.CompositeAnimation | undefined,
+  })
+  const mountedRef = React.useRef(false)
 
-  _mounted = false
-
-  _animations: {
-    in: NativeAnimated.CompositeAnimation | undefined
-    loop: NativeAnimated.CompositeAnimation | undefined
-    out: NativeAnimated.CompositeAnimation | undefined
-  } = {
-    in: undefined,
-    loop: undefined,
-    out: undefined,
-  }
-
-  _startAnimationLoop() {
+  const startAnimationLoop = React.useCallback(() => {
     const loop = NativeAnimated.loop(
-      NativeAnimated.timing(this.state.backgroundTop, {
+      NativeAnimated.timing(backgroundTop, {
         duration: 2000,
         easing: NativeEasing.linear,
-        toValue: -80, // pattern loops on multiples of 80
+        toValue: -80,
         useNativeDriver: false,
       })
     )
+    animationsRef.current.loop = loop
     loop.start()
-  }
-  _startAnimationIn() {
-    const ain = NativeAnimated.timing(this.state.uploadTop, {
+  }, [backgroundTop])
+
+  const startAnimationIn = React.useCallback(() => {
+    const ain = NativeAnimated.timing(uploadTop, {
       duration: 300,
       easing,
       toValue: 0,
       useNativeDriver: false,
     })
-    this._animations.in = ain
+    animationsRef.current.in = ain
     ain.start()
-  }
-  _startAnimationOut(cbIfFinish: () => void) {
-    const out = NativeAnimated.timing(this.state.uploadTop, {
-      duration: 300,
-      easing,
-      toValue: 48,
-      useNativeDriver: false,
-    })
-    this._animations.out = out
-    out.start(({finished}) => finished && cbIfFinish())
-  }
-  _stopAnimation(animation: keyof typeof this._animations) {
-    const a = this._animations[animation]
-    if (!a) {
-      return
-    }
+  }, [uploadTop])
+
+  const startAnimationOut = React.useCallback(
+    (cbIfFinish: () => void) => {
+      const out = NativeAnimated.timing(uploadTop, {
+        duration: 300,
+        easing,
+        toValue: 48,
+        useNativeDriver: false,
+      })
+      animationsRef.current.out = out
+      out.start(({finished}) => finished && cbIfFinish())
+    },
+    [uploadTop]
+  )
+
+  const stopAnimation = React.useCallback((animation: keyof typeof animationsRef.current) => {
+    const a = animationsRef.current[animation]
+    if (!a) return
     a.stop()
-    this._animations[animation] = undefined
-  }
-  _stopAllAnimations() {
-    this._stopAnimation('out')
-    this._stopAnimation('loop')
-    this._stopAnimation('in')
-  }
+    animationsRef.current[animation] = undefined
+  }, [])
 
-  _enter() {
-    this._stopAllAnimations()
-    this.setState({showing: true})
-    this._startAnimationIn()
-    this._startAnimationLoop()
-  }
+  const stopAllAnimations = React.useCallback(() => {
+    stopAnimation('out')
+    stopAnimation('loop')
+    stopAnimation('in')
+  }, [stopAnimation])
 
-  _exit() {
-    this._stopAnimation('in')
-    this._startAnimationOut(() => {
-      this._stopAnimation('loop')
-      this._mounted && this.setState({showing: false})
+  const enter = React.useCallback(() => {
+    stopAllAnimations()
+    setShowing(true)
+    startAnimationIn()
+    startAnimationLoop()
+  }, [startAnimationIn, startAnimationLoop, stopAllAnimations])
+
+  const exit = React.useCallback(() => {
+    stopAnimation('in')
+    startAnimationOut(() => {
+      stopAnimation('loop')
+      if (mountedRef.current) setShowing(false)
     })
-  }
+  }, [startAnimationOut, stopAnimation])
 
-  componentDidMount() {
-    this._mounted = true
-    if (this.props.showing) {
-      // Need this to make sure we are showing the animation if upload started
-      // before we are mounted. This could happen when we already have the bar
-      // present, and user goes into next level folder which isn't mounted. So
-      // that component will never get a componentDidUpdate where prevProps is
-      // not showing but current is, thus never calls _enter(). So just call it
-      // here to make sure we do show the bar.
-      this._enter()
+  React.useEffect(() => {
+    mountedRef.current = true
+    if (_showing) {
+      enter()
     }
-  }
-
-  componentDidUpdate(prevProps: UploadProps) {
-    if (!prevProps.showing && this.props.showing) {
-      this._enter()
-      return
+    return () => {
+      stopAllAnimations()
+      mountedRef.current = false
     }
+  }, [enter, _showing, stopAllAnimations])
 
-    if (prevProps.showing && !this.props.showing) {
-      this._exit()
+  React.useEffect(() => {
+    if (_showing) {
+      enter()
+    } else {
+      exit()
     }
-  }
+  }, [enter, exit, _showing])
 
-  componentWillUnmount() {
-    this._stopAllAnimations()
-    this._mounted = false
-  }
-
-  render() {
-    const {files, totalSyncingBytes, timeLeft, debugToggleShow} = this.props
-    return (
-      <>
-        {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
-        {this.state.showing && (
-          <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
-            <Kb.Box style={styles.backgroundBox}>
-              <NativeAnimated.Image
-                resizeMode="repeat"
-                source={Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
-                style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
-              />
-            </Kb.Box>
-            <Kb.Box style={styles.box}>
-              <Kb.Text key="files" type="BodySmallSemibold" style={styles.text}>
-                {files
-                  ? `Encrypting and uploading ${files} files...`
-                  : totalSyncingBytes
-                    ? 'Encrypting and uploading...'
-                    : 'Done!'}
-              </Kb.Text>
-              {!!timeLeft.length && (
-                <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
-              )}
-            </Kb.Box>
-          </NativeAnimated.View>
-        )}
-      </>
-    )
-  }
+  return (
+    <>
+      {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
+      {showing && (
+        <NativeAnimated.View style={{position: 'relative', top: uploadTop}}>
+          <Kb.Box style={styles.backgroundBox}>
+            <NativeAnimated.Image
+              resizeMode="repeat"
+              source={Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
+              style={{...styles.backgroundImage, marginTop: backgroundTop}}
+            />
+          </Kb.Box>
+          <Kb.Box style={styles.box}>
+            <Kb.Text key="files" type="BodySmallSemibold" style={styles.text}>
+              {files
+                ? `Encrypting and uploading ${files} files...`
+                : totalSyncingBytes
+                  ? 'Encrypting and uploading...'
+                  : 'Done!'}
+            </Kb.Text>
+            {!!timeLeft.length && (
+              <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
+            )}
+          </Kb.Box>
+        </NativeAnimated.View>
+      )}
+    </>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

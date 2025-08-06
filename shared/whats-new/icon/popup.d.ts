@@ -3,7 +3,7 @@ import type {Position} from '@/styles'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<MeasureRef | null>
   onHidden: () => void
   position: Position
   positionFallbacks?: ReadonlyArray<Position>

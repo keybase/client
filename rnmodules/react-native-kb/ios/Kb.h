@@ -6,8 +6,9 @@
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTEventEmitter.h>
 #import <foundation/Foundation.h>
+#import <React/RCTCallInvokerModule.h>
 
-@interface Kb : RCTEventEmitter <NativeKbSpec>
+@interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
 #else
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
@@ -19,10 +20,7 @@
 @end
 
 // Singleton to get the paths
-@interface FsPathsHolder : NSObject {
-  NSDictionary *fsPaths;
-}
+@interface FsPathsHolder : NSObject
 @property(nonatomic, retain) NSDictionary *fsPaths;
-+ (id)sharedFsPathsHolder;
-
++ (instancetype)sharedFsPathsHolder;
 @end

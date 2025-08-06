@@ -40,26 +40,26 @@ const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
-class UserBubbleCollection extends React.PureComponent<{
-  teamSoFar: Props['teamSoFar']
-  onRemove: Props['onRemove']
-}> {
-  render() {
-    return this.props.teamSoFar.map(u => (
-      <UserBubble
-        key={u.userId}
-        onRemove={() => this.props.onRemove(u.userId)}
-        username={u.username}
-        service={u.service}
-        tooltip={formatNameForUserBubble(u)}
-      />
-    ))
-  }
-}
+const UserBubbleCollection = React.memo((p: {teamSoFar: Props['teamSoFar']; onRemove: Props['onRemove']}) => {
+  const {teamSoFar, onRemove} = p
+  return (
+    <>
+      {teamSoFar.map(u => (
+        <UserBubble
+          key={u.userId}
+          onRemove={() => onRemove(u.userId)}
+          username={u.username}
+          service={u.service}
+          tooltip={formatNameForUserBubble(u)}
+        />
+      ))}
+    </>
+  )
+})
 
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.
-  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const scrollViewRef = React.useRef<Kb.ScrollViewRef>(null)
   const last = !!props.teamSoFar.length && props.teamSoFar.at(-1)?.userId
   const prevLast = Container.usePrevious(last)
   React.useEffect(() => {

@@ -47,7 +47,7 @@ export type LineClampType = 1 | 2 | 3 | 4 | 5
 type Props = {
   ref?: never
   // TODO could make this ref if we make this a function component
-  textRef?: React.RefObject<TextMeasureRef | MeasureRef>
+  textRef?: React.RefObject<TextMeasureRef | MeasureRef | null>
   allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
   center?: boolean

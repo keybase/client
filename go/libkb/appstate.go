@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -23,6 +24,14 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
+	if runtime.GOOS == "android" {
+		// start as background
+		return &MobileAppState{
+			Contextified: NewContextified(g),
+			state:        keybase1.MobileAppState_BACKGROUND,
+			mtime:        nil,
+		}
+	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
 		state:        keybase1.MobileAppState_FOREGROUND,

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import PlainInput, {type PropsWithInput} from './plain-input'
+import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType} from './icon'
 import Text, {getStyle as getTextStyle} from './text'
@@ -16,89 +16,59 @@ export type _Props = {
 }
 
 type Props = PropsWithInput<_Props>
-type RefProps = {
-  forwardedRef: React.Ref<PlainInput>
-}
 
-type State = {
-  focused: boolean
-}
+const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(props, ref) {
+  const {textType = 'BodySemibold', onFocus: _onFocus, disabled, onBlur: _onBlur} = props
+  const [focused, setFocused] = React.useState(false)
 
-class ReflessNewInput extends React.Component<Props & RefProps, State> {
-  state: State = {
-    focused: false,
-  }
-
-  _onFocus = () => {
-    if (this.props.disabled) {
+  const onFocus = React.useCallback(() => {
+    if (disabled) {
       return
     }
-    this.setState({focused: true})
-    this.props.onFocus && this.props.onFocus()
-  }
+    setFocused(true)
+    _onFocus?.()
+  }, [disabled, _onFocus])
 
-  _onBlur = () => {
-    this.setState({focused: false})
-    this.props.onBlur && this.props.onBlur()
-  }
+  const onBlur = React.useCallback(() => {
+    setFocused(false)
+    _onBlur?.()
+  }, [_onBlur])
 
-  render() {
-    const textStyle = getTextStyle(this.props.textType ?? 'BodySemibold')
-    // prettier-ignore
-    const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, prefix, ...plainInputProps} = this.props
-    const plainInputStyle = prefix
-      ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
-      : plainInputProps.style
-    return (
-      <Box2
-        direction="horizontal"
-        style={Styles.collapseStyles([
-          styles.container,
-          this.state.focused && styles.focused,
-          this.props.error && styles.error,
-          this.props.hideBorder && styles.hideBorder,
-          this.props.containerStyle,
-        ])}
-      >
-        {!!this.props.icon && (
-          <Box style={styles.icon}>
-            <Icon
-              color={Styles.globalColors.black_20} // not sure how to make this dynamic
-              type={this.props.icon}
-              fontSize={textStyle.fontSize}
-              style={styles.displayFlex}
-            />
-          </Box>
-        )}
-        {!!prefix && (
-          <Text type={plainInputProps.textType ?? 'Body'} style={styles.prefix}>
-            {prefix}
-          </Text>
-        )}
-        <PlainInput
-          {...plainInputProps}
-          onFocus={this._onFocus}
-          onBlur={this._onBlur}
-          ref={this.props.forwardedRef}
-          style={plainInputStyle}
-        />
-        {this.props.decoration}
-      </Box2>
-    )
-  }
-}
-const NewInput = React.forwardRef<PlainInput, Props>(function NewInputInner(props, ref) {
-  const flexable = props.flexable ?? true
-  const keyboardType = props.keyboardType ?? 'default'
-  const textType = props.textType ?? 'BodySemibold'
+  const textStyle = getTextStyle(textType)
+  const {containerStyle, decoration, error, hideBorder, icon, prefix, ...plainInputProps} = props
+  const plainInputStyle = prefix
+    ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
+    : plainInputProps.style
+
   return (
-    <ReflessNewInput
-      {...props}
-      forwardedRef={ref}
-      flexable={flexable}
-      keyboardType={keyboardType}
-      textType={textType}
-    />
+    <Box2
+      direction="horizontal"
+      style={Styles.collapseStyles([
+        styles.container,
+        focused && styles.focused,
+        props.error && styles.error,
+        props.hideBorder && styles.hideBorder,
+        props.containerStyle,
+      ])}
+    >
+      {!!props.icon && (
+        <Box style={styles.icon}>
+          <Icon
+            color={Styles.globalColors.black_20} // not sure how to make this dynamic
+            type={props.icon}
+            fontSize={textStyle.fontSize}
+            style={styles.displayFlex}
+          />
+        </Box>
+      )}
+      {!!prefix && (
+        <Text type={textType} style={styles.prefix}>
+          {prefix}
+        </Text>
+      )}
+      <PlainInput {...plainInputProps} onFocus={onFocus} onBlur={onBlur} ref={ref} style={plainInputStyle} />
+      {props.decoration}
+    </Box2>
   )
 })
 
@@ -118,21 +88,11 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {width: '100%'},
       }),
-      displayFlex: {
-        display: 'flex',
-      },
-      error: {
-        borderColor: Styles.globalColors.red,
-      },
-      focused: {
-        borderColor: Styles.globalColors.blue,
-      },
-      hideBorder: {
-        borderWidth: 0,
-      },
-      icon: {
-        marginRight: Styles.globalMargins.xtiny,
-      },
+      displayFlex: {display: 'flex'},
+      error: {borderColor: Styles.globalColors.red},
+      focused: {borderColor: Styles.globalColors.blue},
+      hideBorder: {borderWidth: 0},
+      icon: {marginRight: Styles.globalMargins.xtiny},
       prefix: Styles.platformStyles({isMobile: {alignSelf: 'flex-end'}}),
       prefixInput: {padding: 0},
     }) as const

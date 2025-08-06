@@ -6,9 +6,6 @@ import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
-  androidGetInitialBundleFromNotification,
-  androidGetInitialShareFileUrls,
-  androidGetInitialShareText,
   getNativeEmitter,
 } from 'react-native-kb'
 
@@ -149,21 +146,8 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
 // 1. KeybasePushNotificationListenerService.java is our listening service. (https://firebase.google.com/docs/cloud-messaging/android/receive)
 // 2. When a notification comes in it is handled only on Go/Java side (native only)
 // That's it.
+// If the intent is available and react isn't inited we'll stash it and emit when react is alive
 
-// If you want to pass data along to JS, you do so with an Intent.
-// The notification is built with a pending intent (a description of how to build a real Intent obj).
-// When you click the notification you fire the Intent, which starts the MainActivity and calls `onNewIntent`.
-// Take a look at MainActivity's onNewIntent, onResume, and emitIntent methods.
-//
-// High level:
-// 1. we read the intent that started the MainActivity (in onNewIntent)
-// 2. in `onResume` we check if we have an intent, if we do call `emitIntent`
-// 3. `emitIntent` eventually calls `RCTDeviceEventEmitter` with a couple different event names for various events
-// 4. We subscribe to those events below (e.g. `RNEmitter.addListener('initialIntentFromNotification', evt => {`)
-
-// At startup the flow above can be racy, since we may not have registered the
-// event listener before the event is emitted. In that case you can always use
-// `getInitialPushAndroid`.
 const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
@@ -171,7 +155,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
   C.usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('initialIntentFromNotification', (evt?: {}) => {
+  RNEmitter.addListener('initialIntentFromNotification', (evt?: object) => {
     const notification = evt && normalizePush(evt)
     if (notification) {
       C.usePushState.getState().dispatch.handlePush(notification)
@@ -214,21 +198,8 @@ const iosListenForPushNotificationsFromJS = () => {
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-const getStartupDetailsFromInitialShare = async () => {
-  if (isAndroid) {
-    const fileUrls = await androidGetInitialShareFileUrls()
-    const text = await androidGetInitialShareText()
-    return {fileUrls, text}
-  } else {
-    return Promise.resolve(undefined)
-  }
-}
-
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([
-    isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
-    C.timeoutPromise(10),
-  ])
+  const notification = await Promise.race([isAndroid ? null : getInitialPushiOS(), C.timeoutPromise(10)])
   if (!notification) {
     return
   }
@@ -247,11 +218,6 @@ const getStartupDetailsFromInitialPush = async () => {
   }
 
   return
-}
-
-const getInitialPushAndroid = async () => {
-  const n = (await androidGetInitialBundleFromNotification()) as undefined | {}
-  return n ? normalizePush(n) : undefined
 }
 
 const getInitialPushiOS = async () => {
@@ -298,19 +264,16 @@ export const initPushListener = () => {
 
   C.usePushState.getState().dispatch.initialPermissionsCheck()
 
-  C.useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-    const f = async () => {
-      if (isAndroid) {
-        try {
-          await listenForNativeAndroidIntentNotifications()
-        } catch {}
-      } else {
-        iosListenForPushNotificationsFromJS()
-      }
+  const listenNative = async () => {
+    if (isAndroid) {
+      try {
+        await listenForNativeAndroidIntentNotifications()
+      } catch {}
+    } else {
+      iosListenForPushNotificationsFromJS()
     }
-    C.ignorePromise(f())
-  })
+  }
+  C.ignorePromise(listenNative())
 }
 
-export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}
+export {getStartupDetailsFromInitialPush}

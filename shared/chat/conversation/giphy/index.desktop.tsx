@@ -3,11 +3,12 @@ import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import UnfurlImage from '../messages/text/unfurl/unfurl-list/image'
 import {getMargins, scaledWidth} from './width'
-import type {Props} from '.'
+import {useHooks} from './hooks'
 
 const gridHeight = 100
 
-const GiphySearch = (props: Props) => {
+const GiphySearch = () => {
+  const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
   const divRef = React.useRef<HTMLDivElement>(null)
 

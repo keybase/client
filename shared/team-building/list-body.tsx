@@ -172,7 +172,7 @@ const sortAndSplitRecommendations = (
               shortcut: true,
             }
           }
-          sections[sectionIdx]?.data.push(rec)
+          sections[sectionIdx].data.push(rec)
         } else {
           if (!sections[numSectionIdx]) {
             sections[numSectionIdx] = {
@@ -181,7 +181,7 @@ const sortAndSplitRecommendations = (
               shortcut: true,
             }
           }
-          sections[numSectionIdx]?.data.push(rec)
+          sections[numSectionIdx].data.push(rec)
         }
       }
     }

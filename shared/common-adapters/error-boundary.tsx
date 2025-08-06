@@ -1,17 +1,10 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
-
-// Although not mentioned in
-// https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
-// the info parameter to componentDidCatch looks like this.
-type ErrorInfo = {
-  componentStack: string
-}
 
 type AllErrorInfo = {
   name: string
@@ -26,94 +19,63 @@ type FallbackProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-const detailHeaderStyle = {
-  marginBottom: 10,
-  marginTop: 20,
-}
-
 const detailContainerStyle = {
   maxHeight: 100,
   minWidth: '75%',
   padding: 10,
 } as const
 
-const detailStyle = Styles.platformStyles({
-  isElectron: {
-    whiteSpace: 'pre',
-  },
-})
-
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, style}: FallbackProps) => {
   return (
-    <ScrollView
-      style={Styles.collapseStyles([
-        {
-          height: '100%',
-          padding: Styles.globalMargins.medium,
-          position: 'relative',
-          width: '100%',
-        },
-        style,
-      ])}
-    >
-      <Box
-        style={{
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          flex: 1,
-          justifyContent: 'center',
-        }}
-      >
-        <Text type="Header">Something went wrong...</Text>
-        <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
-          Please submit a bug report by
-          {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
-        </Text>
-        {!Styles.isMobile && (
-          <Box
-            style={{
-              ...Styles.globalStyles.flexBoxColumn,
-              backgroundColor: Styles.globalColors.blueDarker2,
-              borderRadius: 4,
-              minWidth: 100,
-              padding: 10,
-            }}
-          >
-            <Text type="Terminal" negative={true} selectable={true}>
-              keybase log send
+    <Box2 direction="vertical" style={Styles.collapseStyles([styles.container, style])}>
+      <ScrollView style={styles.scroll}>
+        <Box2 direction="vertical" gap="small" fullWidth={true}>
+          <Text type="Header">Something went wrong...</Text>
+          <Text type="Body">
+            Please submit a bug report by
+            {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
+          </Text>
+          {!Styles.isMobile && (
+            <Box2
+              direction="vertical"
+              style={{
+                backgroundColor: Styles.globalColors.blueDarker2,
+                borderRadius: 4,
+                minWidth: 100,
+                padding: 10,
+              }}
+            >
+              <Text type="Terminal" negative={true} selectable={true}>
+                keybase log send
+              </Text>
+            </Box2>
+          )}
+          <Text type="BodySmall">Error details</Text>
+          <Text type="BodySmall" selectable={true} style={{margin: 10}}>{`${name}: ${message}`}</Text>
+          <Text type="BodySmall" style={{marginTop: 20}}>
+            Stack trace
+          </Text>
+          <ScrollView style={detailContainerStyle}>
+            <Text type="BodySmall" selectable={true} style={styles.detailStyle}>
+              {stack}
             </Text>
-          </Box>
+          </ScrollView>
+          <Text type="BodySmall">Component stack trace</Text>
+          <ScrollView style={detailContainerStyle}>
+            <Text type="BodySmall" selectable={true} style={styles.detailStyle}>
+              {componentStack}
+            </Text>
+          </ScrollView>
+        </Box2>
+        {closeOnClick && (
+          <Icon
+            type="iconfont-close"
+            style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
+            onClick={closeOnClick}
+          />
         )}
-        <Text type="BodySmall" style={detailHeaderStyle}>
-          Error details
-        </Text>
-        <Text type="BodySmall" selectable={true} style={{margin: 10}}>{`${name}: ${message}`}</Text>
-        <Text type="BodySmall" style={{marginTop: 20}}>
-          Stack trace
-        </Text>
-        <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" selectable={true} style={detailStyle}>
-            {stack}
-          </Text>
-        </ScrollView>
-
-        <Text type="BodySmall" style={detailHeaderStyle}>
-          Component stack trace
-        </Text>
-        <ScrollView style={detailContainerStyle}>
-          <Text type="BodySmall" selectable={true} style={detailStyle}>
-            {componentStack}
-          </Text>
-        </ScrollView>
-      </Box>
-      {closeOnClick && (
-        <Icon
-          type="iconfont-close"
-          style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
-          onClick={closeOnClick}
-        />
-      )}
-    </ScrollView>
+      </ScrollView>
+    </Box2>
   )
 }
 
@@ -123,37 +85,49 @@ type Props = {
   fallbackStyle?: Styles.StylesCrossPlatform
 }
 
-type State = {
-  info: AllErrorInfo | undefined
+import {ErrorBoundary} from 'react-error-boundary'
+
+const EB = (p: Props) => {
+  const {children, fallbackStyle, closeOnClick} = p
+  const [componentStack, setComponentStack] = React.useState('')
+
+  const onError = React.useCallback((_error: Error, info: React.ErrorInfo) => {
+    setComponentStack(info.componentStack ?? '')
+  }, [])
+
+  const fallbackRender = React.useCallback(
+    (fp: {error: Error; resetErrorBoundary: (...args: any[]) => void}) => {
+      const allInfo: AllErrorInfo = {
+        componentStack,
+        message: fp.error.message,
+        name: fp.error.name,
+        stack: fp.error.stack || '',
+      }
+      logger.error('Got boundary error:', allInfo)
+      return <Fallback info={allInfo} closeOnClick={closeOnClick} style={fallbackStyle} />
+    },
+    [componentStack, fallbackStyle, closeOnClick]
+  )
+
+  return (
+    <ErrorBoundary fallbackRender={fallbackRender} onError={onError}>
+      {children}
+    </ErrorBoundary>
+  )
 }
 
-class ErrorBoundary extends React.PureComponent<Props, State> {
-  state: State = {info: undefined}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        height: '100%',
+        padding: Styles.globalMargins.medium,
+        position: 'relative',
+        width: '100%',
+      },
+      detailStyle: Styles.platformStyles({isElectron: {whiteSpace: 'pre'}}),
+      scroll: {bottom: 24, left: 24, position: 'absolute', right: 24, top: 24},
+    }) as const
+)
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.children !== prevProps.children && this.state.info) {
-      this.setState(p => (p.info ? {info: undefined} : null))
-    }
-  }
-
-  componentDidCatch(error: Error, info: ErrorInfo): void {
-    const allInfo: AllErrorInfo = {
-      componentStack: info.componentStack,
-      message: error.message,
-      name: error.name,
-      stack: error.stack || '',
-    }
-    logger.error('Got boundary error:', allInfo)
-    this.setState({info: allInfo})
-  }
-
-  render() {
-    const info = this.state.info
-    if (info) {
-      return <Fallback info={info} closeOnClick={this.props.closeOnClick} style={this.props.fallbackStyle} />
-    }
-    return this.props.children
-  }
-}
-
-export default ErrorBoundary
+export default EB

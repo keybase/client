@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import openURL from '@/util/open-url'
 import {currentVersion} from '@/constants/whats-new'
@@ -10,7 +11,7 @@ type OwnProps = {
   onBack?: () => void
 }
 
-const WhatsNewContainer = (ownProps: OwnProps) => {
+const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnProps) {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
@@ -23,7 +24,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
     updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }
-  const seenVersions = C.useWNState(s => s.getSeenVersions())
+  const seenVersions = C.useWNState(s => s.seenVersions)
   const newRelease = C.useWNState(s => s.anyVersionsUnseen())
   const onBack = () => {
     if (newRelease) {
@@ -49,6 +50,6 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     seenVersions,
   }
   return <WhatsNew {...props} />
-}
+})
 
 export default WhatsNewContainer

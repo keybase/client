@@ -369,7 +369,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dismissAnnouncement: id => {
       const f = async () => {
@@ -420,7 +420,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 t: avdlType,
                 verifyAllEmail: 'user@example.com',
                 verifyAllPhoneNumber: '+1555000111',
-              } as any)
+              })
               let metadata: T.People.TodoMetaEmail | T.People.TodoMetaPhone | undefined
               if (
                 avdlType === T.RPCGen.HomeScreenTodoType.verifyAllEmail ||

@@ -6,6 +6,9 @@ import {AliasInput, Modal} from './common'
 import {pickImages} from '@/util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 import {useEmojiState} from './use-emoji'
+import KB2 from '@/util/electron'
+
+const {getPathForFile} = KB2.functions
 
 const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
 
@@ -212,8 +215,9 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
       return
     }
     const filesToAdd = Array.from(e.dataTransfer.files)
-      .filter(file => file.type.startsWith('image/') && typeof file.path === 'string')
-      .map(file => file.path)
+      .filter(file => file.type.startsWith('image/'))
+      .map(file => getPathForFile?.(file) ?? '')
+      .filter(Boolean)
     filesToAdd.length && addFiles(filesToAdd)
     setDragOver(false)
   }

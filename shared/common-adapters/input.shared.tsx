@@ -1,6 +1,14 @@
-// TODO: PlainInput depends on this file, so migrate it over if/when Input is deprecated.
-import type {TextInfo} from './input'
 import './input.css'
+
+type Selection = {
+  start: number | null
+  end: number | null
+}
+
+type TextInfo = {
+  text: string
+  selection: Selection
+}
 
 const checkTextInfo = ({text, selection}: TextInfo) => {
   const {start, end} = selection

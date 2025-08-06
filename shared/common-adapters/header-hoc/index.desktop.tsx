@@ -5,6 +5,7 @@ import BackButton from '../back-button'
 import Box from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
+import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
 const Kb = {BackButton, Box, Icon, Text}
@@ -15,7 +16,6 @@ export const HeaderHocHeader = ({
   title,
   titleComponent,
   onCancel,
-  rightActions,
   theme = 'light',
 }: Props) => (
   <Kb.Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
@@ -33,7 +33,6 @@ export const HeaderHocHeader = ({
       </Kb.Box>
     )}
     {titleComponent}
-    {(rightActions || []).map(a => (a ? a.custom : null))}
   </Kb.Box>
 )
 
@@ -73,7 +72,7 @@ const LeftAction = ({
   </Kb.Box>
 )
 
-export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}) => {
+export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}): React.ReactNode => {
   return props.children
 }
 
@@ -174,6 +173,16 @@ export const HeaderLeftArrow = (hp: {
     />
   ) : null
 
+export const HeaderLeftArrowCanGoBack = (hp: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+  badgeNumber?: number
+}) => {
+  const canGoBack = useNavigation().canGoBack()
+  return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
+}
+
 export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
   hp.canGoBack ? (
     <LeftAction
@@ -186,7 +195,7 @@ export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor?: string; o
 
 export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor?: string}) => {
   const {pop} = C.useNav()
-  return hp.canGoBack ?? true ? (
+  return (hp.canGoBack ?? true) ? (
     <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
   ) : null
 }

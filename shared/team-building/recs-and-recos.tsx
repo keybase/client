@@ -27,7 +27,7 @@ const SearchHintText = () => (
 
 const TeamAlphabetIndex = (
   props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: React.RefObject<Kb.SectionList<SectionType<Types.ResultData, Types.SearchRecSection>>>
+    sectionListRef: React.RefObject<Kb.SectionListRef | null>
   }
 ) => {
   const {recommendations, teamSoFar, sectionListRef} = props
@@ -111,8 +111,7 @@ export const RecsAndRecos = (
   const {highlightedIndex, recommendations, onScroll, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
 
-  const sectionListRef =
-    React.useRef<Kb.SectionList<SectionType<Types.ResultData, Types.SearchRecSection>>>(null)
+  const sectionListRef = React.useRef<Kb.SectionListRef>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
   const _getRecLayout = (
@@ -161,6 +160,7 @@ export const RecsAndRecos = (
     <Kb.BoxGrow>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
         <SectionList
+          // @ts-ignore
           ref={Kb.Styles.isMobile ? sectionListRef : undefined}
           contentContainerStyle={{minHeight: '133%'}}
           keyboardDismissMode="on-drag"

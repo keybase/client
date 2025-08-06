@@ -120,7 +120,7 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     dynamic: {
-      cancel?: (dueToReset?: boolean) => void
+      cancel?: (ignoreWarning?: boolean) => void
       setDeviceName?: (name: string) => void
       setPassphrase?: (passphrase: string) => void
       setUsername?: (username: string) => void
@@ -135,10 +135,10 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
-  const _cancel = C.wrapErrors((dueToReset?: boolean) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
+  const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
     C.useWaitingState.getState().dispatch.clear(waitingKey)
-    if (!dueToReset) {
+    if (!ignoreWarning) {
       console.log('Provision: cancel called while not overloaded')
     }
   })
@@ -252,7 +252,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     })
                     resetErrorAndCancel()
                     const good = code.replace(/\W+/g, ' ').trim()
-                    response.result({phrase: good, secret: null as any})
+                    response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
                 C.useRouterState.getState().dispatch.navigateAppend('codePage')
@@ -412,7 +412,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     })
                     resetErrorAndCancel()
                     const good = code.replace(/\W+/g, ' ').trim()
-                    response.result({phrase: good, secret: null as any})
+                    response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
 
@@ -560,7 +560,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     startProvision: (name = '', fromReset = false) => {
-      get().dispatch.dynamic.cancel?.()
+      get().dispatch.dynamic.cancel?.(true)
       C.useConfigState.getState().dispatch.loginError()
       C.useConfigState.getState().dispatch.resetRevokedSelf()
 
