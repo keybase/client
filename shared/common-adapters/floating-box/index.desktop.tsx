@@ -16,17 +16,18 @@ const FloatingBox = (props: Props) => {
 
   React.useEffect(() => {
     const tr = getTargetRect()
+
     setTargetRect(t => {
       if (t === tr) {
-        return
+        return t
       }
       if (!t || !tr) {
-        return tr
+        return t || tr
       }
-      if (!shallowEqual(t, tr)) {
-        return tr
+      if (shallowEqual(t, tr)) {
+        return t
       }
-      return
+      return tr
     })
   }, [getTargetRect])
 

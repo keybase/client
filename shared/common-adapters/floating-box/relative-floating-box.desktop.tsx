@@ -301,10 +301,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>
           {disableEscapeKey ? (
-            <Kb.Box className="fade-in-generic"> {children} </Kb.Box>
+            <Kb.Box className="fade-in-generic">{children}</Kb.Box>
           ) : (
             <EscapeHandler onESC={onClosePopup}>
-              <Kb.Box className="fade-in-generic"> {children} </Kb.Box>
+              <Kb.Box className="fade-in-generic">{children}</Kb.Box>
             </EscapeHandler>
           )}
         </div>,

@@ -168,11 +168,7 @@ const config = (_, {mode}) => {
       }
     )
 
-    if (isDev) {
-    } else {
-      if (isProfile) {
-        alias['react-dom$'] = 'react-dom/profiling'
-      }
+    if (!isDev) {
       alias['@welldone-software/why-did-you-render'] = false
     }
 
