@@ -7,7 +7,7 @@ import {sharedStyles} from '../shared-styles'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
-  toastTargetRef?: React.RefObject<Kb.MeasureRef>
+  toastTargetRef?: React.RefObject<Kb.MeasureRef | null>
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -19,22 +19,24 @@ export const missingMessage = C.Chat.makeMessageAttachment()
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const lastTransferStateRef = React.useRef(transferState)
-  const timerRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  if (transferState !== lastTransferStateRef.current) {
-    // was downloading and now not
-    if (
-      (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
-      !transferState
-    ) {
-      setShowingToast(true)
-      clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(() => {
-        setShowingToast(false)
-      }, 2000)
+  React.useEffect(() => {
+    if (transferState !== lastTransferStateRef.current) {
+      // was downloading and now not
+      if (
+        (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+        !transferState
+      ) {
+        setShowingToast(true)
+        clearTimeout(timerRef.current)
+        timerRef.current = setTimeout(() => {
+          setShowingToast(false)
+        }, 2000)
+      }
+      lastTransferStateRef.current = transferState
     }
-    lastTransferStateRef.current = transferState
-  }
+  }, [transferState])
 
   React.useEffect(() => {
     return () => {
@@ -178,7 +180,7 @@ export const Title = () => {
   const ordinal = React.useContext(OrdinalContext)
   const title = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title : ''
+    return m?.type === 'attachment' ? (m.decoratedText?.stringValue() ?? m.title) : ''
   })
 
   const styleOverride = React.useMemo(
@@ -214,7 +216,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   return (
     <Kb.Icon
       hint="Collapse"
-      style={isWhite ? (styles.collapseLabelWhite as any) : (styles.collapseLabel as any) /* TODO FIX */}
+      style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : (styles.collapseLabel as Kb.IconStyle)}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
     />
@@ -241,13 +243,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const useCollapseAction = () => {
   const ordinal = React.useContext(OrdinalContext)
   const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
-  const onCollapse = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.stopPropagation()
-      toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
-    },
-    [toggleMessageCollapse, ordinal]
-  )
+  const onCollapse = React.useCallback(() => {
+    toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
+  }, [toggleMessageCollapse, ordinal])
   return onCollapse
 }
 

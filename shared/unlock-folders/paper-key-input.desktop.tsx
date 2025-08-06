@@ -8,37 +8,30 @@ export type Props = {
   waiting: boolean
 }
 
-type State = {
-  paperkey: string
-}
+const PaperKeyInput = (props: Props) => {
+  const [paperkey, setPaperkey] = React.useState('')
+  const errorText = props.paperkeyError
 
-class PaperKeyInput extends React.Component<Props, State> {
-  state: State = {paperkey: ''}
-
-  render() {
-    const errorText = this.props.paperkeyError
-
-    return (
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-        <Kb.BackButton onClick={this.props.onBack} style={styles.back} />
-        <Kb.Icon style={styles.icon} type="icon-paper-key-48" />
-        <Kb.LabeledInput
-          multiline={true}
-          rowsMax={3}
-          onChangeText={paperkey => this.setState({paperkey})}
-          error={!!errorText}
-          placeholder="Enter your paper key"
-        />
-        {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
-        <Kb.Button
-          label="Continue"
-          style={styles.button}
-          waiting={this.props.waiting}
-          onClick={() => this.props.onContinue(this.state.paperkey)}
-        />
-      </Kb.Box2>
-    )
-  }
+  return (
+    <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+      <Kb.BackButton onClick={props.onBack} style={styles.back} />
+      <Kb.Icon style={styles.icon} type="icon-paper-key-48" />
+      <Kb.LabeledInput
+        multiline={true}
+        rowsMax={3}
+        onChangeText={setPaperkey}
+        error={!!errorText}
+        placeholder="Enter your paper key"
+      />
+      {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
+      <Kb.Button
+        label="Continue"
+        style={styles.button}
+        waiting={props.waiting}
+        onClick={() => props.onContinue(paperkey)}
+      />
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

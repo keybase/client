@@ -3,51 +3,43 @@ import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import * as Styles from '@/styles'
 import type {Props} from './switch-toggle'
 
-class SwitchToggle extends React.PureComponent<Props> {
-  _offset = new NativeAnimated.Value(this._getOffset())
-  _animation: NativeAnimated.CompositeAnimation | undefined
+const SwitchToggle = (props: Props) => {
+  const {on: _on} = props
+  const getOffset = React.useCallback(() => (_on ? enabledOffset : disabledOffset), [_on])
+  const [offset] = React.useState(new NativeAnimated.Value(getOffset()))
+  const animationRef = React.useRef<NativeAnimated.CompositeAnimation | undefined>(undefined)
 
-  _getOffset() {
-    return this.props.on ? enabledOffset : disabledOffset
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.on === this.props.on) {
-      return
-    }
-    this._animation?.stop()
-    this._animation = NativeAnimated.timing(this._offset, {
+  React.useEffect(() => {
+    animationRef.current?.stop()
+    animationRef.current = NativeAnimated.timing(offset, {
       duration: 100,
       easing: NativeEasing.linear,
-      toValue: this._getOffset(),
+      toValue: getOffset(),
       useNativeDriver: false,
     })
-    this._animation.start()
-  }
-  render() {
-    return (
-      <NativeAnimated.View
-        style={[
-          styles.outer,
-          {
-            backgroundColor: this._offset.interpolate({
-              inputRange: [disabledOffset, enabledOffset],
-              outputRange: [
-                Styles.undynamicColor(Styles.globalColors.greyDark),
-                Styles.undynamicColor(Styles.globalColors[this.props.color]),
-              ],
-            }),
-          },
-          this.props.style,
-        ]}
-      >
-        <NativeAnimated.View style={[styles.inner, {marginLeft: this._offset}]} />
-      </NativeAnimated.View>
-    )
-  }
-}
+    animationRef.current.start()
+  }, [getOffset, offset])
 
-export default SwitchToggle
+  return (
+    <NativeAnimated.View
+      style={[
+        styles.outer,
+        {
+          backgroundColor: offset.interpolate({
+            inputRange: [disabledOffset, enabledOffset],
+            outputRange: [
+              Styles.undynamicColor(Styles.globalColors.greyDark),
+              Styles.undynamicColor(Styles.globalColors[props.color]),
+            ],
+          }),
+        },
+        props.style,
+      ]}
+    >
+      <NativeAnimated.View style={[styles.inner, {marginLeft: offset}]} />
+    </NativeAnimated.View>
+  )
+}
 
 const disabledOffset = 2
 const enabledOffset = 22
@@ -68,3 +60,5 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 48,
   },
 }))
+
+export default SwitchToggle

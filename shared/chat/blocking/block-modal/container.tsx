@@ -16,15 +16,12 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {context, conversationIDKey} = ownProps
-  const teamname = ownProps.team
-  const blockUserByDefault = ownProps.blockUserByDefault ?? false
-  const filterUserByDefault = ownProps.filterUserByDefault ?? false
-  const flagUserByDefault = ownProps.flagUserByDefault ?? false
-  const reportsUserByDefault = ownProps.reportsUserByDefault ?? false
-  let others = ownProps.others
-  let adderUsername = ownProps.username
-  const waitingForLeave = C.Waiting.useAnyWaiting(teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined)
+  const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
+  const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
+  let {username: adderUsername, others} = ownProps
+  const waitingForLeave = C.Waiting.useAnyWaiting(
+    teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined
+  )
   const waitingForBlocking = C.Waiting.useAnyWaiting(Constants.setUserBlocksWaitingKey)
   const waitingForReport = C.Waiting.useAnyWaiting(Constants.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {
@@ -34,23 +31,8 @@ const Container = (ownProps: OwnProps) => {
 
   const _allKnownBlocks = C.useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(Constants.getUserBlocksWaitingKey)
-  const stateProps = {
-    _allKnownBlocks,
-    adderUsername,
-    blockUserByDefault,
-    context,
-    conversationIDKey,
-    filterUserByDefault,
-    finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
-    flagUserByDefault,
-    loadingWaiting,
-    otherUsernames: others && others.length > 0 ? others : undefined,
-    reportsUserByDefault,
-    teamname,
-  }
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onClose = navigateUp
+  const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = React.useCallback(
     (teamname: string) => {
@@ -94,21 +76,28 @@ const Container = (ownProps: OwnProps) => {
     [_setUserBlocks]
   )
 
+  const otherUsernames = others && others.length > 0 ? others : undefined
   const props = {
-    ...stateProps,
+    adderUsername,
+    blockUserByDefault,
+    context,
+    conversationIDKey,
+    filterUserByDefault,
+    finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
+    flagUserByDefault,
     isBlocked: (username: string, which: BlockType) => {
-      const blockObj = stateProps._allKnownBlocks.get(username)
+      const blockObj = _allKnownBlocks.get(username)
       return blockObj ? blockObj[which] : false
     },
+    loadingWaiting,
     onClose,
     onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => {
       let takingAction = false
       if (blockTeam) {
-        const {teamname} = stateProps
         if (teamname) {
           takingAction = true
           leaveTeamAndBlock(teamname)
-        } else if (stateProps.conversationIDKey) {
+        } else if (conversationIDKey) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v.report !== undefined)
           setConversationStatus(anyReported)
@@ -118,22 +107,20 @@ const Container = (ownProps: OwnProps) => {
         takingAction = true
         setUserBlocks(newBlocks)
       }
-      newBlocks.forEach(
-        ({report}, username) => report && reportUser(username, stateProps.conversationIDKey, report)
-      )
+      newBlocks.forEach(({report}, username) => report && reportUser(username, conversationIDKey, report))
       if (!takingAction) {
         onClose()
       }
     },
+    otherUsernames,
     refreshBlocks: () => {
-      const usernames = [
-        ...(stateProps.adderUsername ? [stateProps.adderUsername] : []),
-        ...(stateProps.otherUsernames || []),
-      ]
+      const usernames = [...(adderUsername ? [adderUsername] : []), ...(otherUsernames || [])]
       if (usernames.length) {
         refreshBlocksFor(usernames)
       }
     },
+    reportsUserByDefault,
+    teamname,
   }
 
   return <BlockModal {...props} />

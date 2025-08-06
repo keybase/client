@@ -282,13 +282,15 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         switch (namespace) {
           case 'people': {
             get().dispatch.cancelTeamBuilding()
-            // we want the first item
-            // eslint-disable-next-line no-unreachable-loop
-            for (const user of teamSoFar) {
-              const username = user.serviceMap.keybase || user.id
-              C.useProfileState.getState().dispatch.showUserProfile(username)
-              break
-            }
+            setTimeout(() => {
+              // we want the first item
+              // eslint-disable-next-line no-unreachable-loop
+              for (const user of teamSoFar) {
+                const username = user.serviceMap.keybase || user.id
+                C.useProfileState.getState().dispatch.showUserProfile(username)
+                break
+              }
+            }, 100)
             break
           }
           default:
@@ -475,33 +477,29 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<State>>
-export const _stores = new Map<T.TB.AllowedNamespace, MadeStore>()
+export const stores_ = new Map<T.TB.AllowedNamespace, MadeStore>()
 
 registerDebugClear(() => {
-  _stores.clear()
+  stores_.clear()
 })
 
 const createTBStore = (namespace: T.TB.AllowedNamespace) => {
-  const existing = _stores.get(namespace)
+  const existing = stores_.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)
   next.setState({namespace})
-  _stores.set(namespace, next)
+  stores_.set(namespace, next)
   return next
 }
 
 const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
-export function _Provider({children, ...props}: TBProviderProps) {
-  const storeRef = React.useRef<MadeStore>()
-  if (!storeRef.current) {
-    storeRef.current = createTBStore(props.namespace)
-  }
-  return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
+export function TBProvider_({children, ...props}: TBProviderProps) {
+  return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
 }
 
-export function _useContext<T>(selector: (state: State) => T): T {
+export function useContext_<T>(selector: (state: State) => T): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
   return useStore(store, selector)

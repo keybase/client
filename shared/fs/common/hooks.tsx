@@ -44,7 +44,7 @@ export const useFsPathMetadata = (path: T.FS.Path) => {
 
 export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
-  const {folderListLoad} = C.useFSState.getState().dispatch
+  const folderListLoad = C.useFSState(s => s.dispatch.folderListLoad)
   React.useEffect(() => {
     isPathItem(path) && folderListLoad(path, initialLoadRecursive || false)
   }, [folderListLoad, path, initialLoadRecursive])

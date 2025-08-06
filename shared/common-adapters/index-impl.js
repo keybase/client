@@ -80,7 +80,7 @@ module.exports = {
     return require('./clickable-box').ClickableBox2
   },
   get ConfirmModal() {
-    return require('./confirm-modal/index').default
+    return require('./confirm-modal').default
   },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
@@ -165,8 +165,8 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input() {
-    return require('./input').default
+  get Input2() {
+    return require('./input2').Input2
   },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
@@ -352,7 +352,7 @@ module.exports = {
     return require('./use-timers').useInterval
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal/index').useModalHeaderTitleAndCancel
+    return require('./modal').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
     return require('./use-popup').usePopup2

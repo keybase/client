@@ -10,12 +10,12 @@ import ProgressIndicator from '@/common-adapters/progress-indicator'
 import * as Styles from '@/styles'
 import './menu-layout.css'
 
-class MenuLayout extends React.Component<MenuLayoutProps> {
-  private renderDivider = (index: number) => (
+const MenuLayout = (props: MenuLayoutProps) => {
+  const renderDivider = (index: number) => (
     <Divider style={index === 0 ? styles.dividerFirst : styles.divider} key={index} />
   )
 
-  private renderMenuItem = (item: MenuItem, index: number) => {
+  const renderMenuItem = (item: MenuItem, index: number): React.ReactNode => {
     let hoverClassName: string | undefined
     let styleDisabled: Styles.StylesCrossPlatform = {}
     if (!item.disabled) {
@@ -35,8 +35,8 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
         onClick={() => {
           item.onClick?.()
-          if (this.props.closeOnClick) {
-            this.props.onHidden()
+          if (props.closeOnClick) {
+            props.onHidden()
           }
         }}
       >
@@ -87,37 +87,36 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     )
   }
 
-  render() {
-    const items = this.props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
-      if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
-        return arr
-      }
-      item && arr.push(item)
+  const items = props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
+    if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
       return arr
-    }, [])
+    }
+    item && arr.push(item)
+    return arr
+  }, [])
 
-    return (
-      <Box
-        onClick={event => {
-          // never allow a click to go through
-          event.stopPropagation()
-        }}
-      >
-        <Box style={Styles.collapseStyles([styles.menuContainer, this.props.style])}>
-          {/* Display header if there is one */}
-          {this.props.header}
-          {/* Display menu items */}
-          {items.some(item => item !== 'Divider') && (
-            <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>
-              {items.map((item, index) =>
-                item === 'Divider' ? this.renderDivider(index) : this.renderMenuItem(item, index)
-              )}
-            </Box>
-          )}
-        </Box>
+  return (
+    <Box
+      onClick={event => {
+        // never allow a click to go through
+        event.stopPropagation()
+      }}
+    >
+      <Box style={Styles.collapseStyles([styles.menuContainer, props.style])}>
+        {/* Display header if there is one */}
+        {props.header}
+        {/* Display menu items */}
+        {items.some(item => item !== 'Divider') && (
+          <Box style={Styles.collapseStyles([styles.menuItemList, props.listStyle])}>
+            {items.map(
+              (item, index): React.ReactNode =>
+                item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
+            )}
+          </Box>
+        )}
       </Box>
-    )
-  }
+    </Box>
+  )
 }
 
 const styles = Styles.styleSheetCreate(

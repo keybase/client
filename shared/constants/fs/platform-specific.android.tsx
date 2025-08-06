@@ -22,6 +22,8 @@ export default function initPlatformSpecific() {
       }
       C.ignorePromise(f())
     })
+    // needs to be called, TODO could make this better
+    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged()
 
     s.dispatch.dynamic.finishedRegularDownloadMobile = C.wrapErrors(
       (downloadID: string, mimeType: string) => {

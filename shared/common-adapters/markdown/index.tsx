@@ -21,6 +21,10 @@ import {ErrorBoundary} from 'react-error-boundary'
 
 const SimpleMarkdown = SM.default
 
+type State = SM.State & {
+  blockQuoteRecursionLevel?: number
+}
+
 type MarkdownComponentType =
   | 'inline-code'
   | 'code-block'
@@ -138,7 +142,7 @@ const makeTextRegexp = () => {
 // Only allow a small set of characters before a url
 const textMatch = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
 
-const wrapInParagraph = (parse: SM.Parser, content: string, state: SM.State): Array<SM.SingleASTNode> => {
+const wrapInParagraph = (parse: SM.Parser, content: string, state: State): Array<SM.SingleASTNode> => {
   const oldInParagraph = state['inParagraph'] as boolean
   state['inParagraph'] = true
   const ret = [{content: SimpleMarkdown.parseInline(parse, content, state), type: 'paragraph'}]
@@ -150,7 +154,7 @@ const wordBoundaryLookBehind = /\B$/
 // Wraps the match to also check that the behind is not a text, but a boundary (like a space)
 // i.e. "foo" fails but "foo " passes.
 const wordBoundryLookBehindMatch =
-  (matchFn: SM.MatchFunction) => (source: string, state: SM.State, prevCapture: string) => {
+  (matchFn: SM.MatchFunction) => (source: string, state: State, prevCapture: string) => {
     if (wordBoundaryLookBehind.test(prevCapture)) {
       return matchFn(source, state, prevCapture)
     }
@@ -167,8 +171,8 @@ const rules: {[type: string]: SM.ParserRule} = {
     // ours: Everything in the quote has to be preceded by >
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
-    match: (source: string, state: SM.State, prevCapture: string): SM.Capture | null => {
-      if (state['blockQuoteRecursionLevel'] > 6) {
+    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
+      if ((state['blockQuoteRecursionLevel'] ?? 0) > 6) {
         return null
       }
       const regex = /^( *>(?:[^\n](?!```))+\n?)+/
@@ -181,9 +185,9 @@ const rules: {[type: string]: SM.ParserRule} = {
       }
       return null
     },
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
       const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
-      const oldBlockQuoteRecursionLevel: number = state['blockQuoteRecursionLevel'] || 0
+      const oldBlockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
       state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel + 1
       const ret = {content: nestedParse(content, state)}
       state['blockQuoteRecursionLevel'] = oldBlockQuoteRecursionLevel
@@ -206,7 +210,7 @@ const rules: {[type: string]: SM.ParserRule} = {
   emoji: {
     match: SimpleMarkdown.inlineRegex(emojiRegex),
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
-    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: SM.State) => {
+    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => {
       // If it's a unicode emoji, let's get it's shortname
       const shortName = emojiIndexByChar[capture[0] ?? '']
       return {content: shortName || capture[0]}
@@ -222,10 +226,10 @@ const rules: {[type: string]: SM.ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: SM.State, _prevCapture: string) =>
+    match: (source: string, state: State, _prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? [source] : null,
     order: 10000,
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) =>
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) =>
       wrapInParagraph(nestedParse, capture[0] ?? '', state),
   },
   fence: {
@@ -236,7 +240,7 @@ const rules: {[type: string]: SM.ParserRule} = {
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function (capture: SM.Capture, _nestedParse: SM.Parser, _state: SM.State) {
+    parse: function (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) {
       return {
         content: capture[1],
         lang: undefined,
@@ -265,9 +269,9 @@ const rules: {[type: string]: SM.ParserRule} = {
     // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
     // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
     match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-      const content = Styles.isMobile ? capture[1]?.replace(/\n$/, '') ?? '' : capture[1] ?? ''
+      const content = Styles.isMobile ? (capture[1]?.replace(/\n$/, '') ?? '') : (capture[1] ?? '')
       const oldInParagraph = state['inParagraph'] as boolean
       state['inParagraph'] = true
       const ret = {content: SimpleMarkdown.parseInline(nestedParse, content, state)}
@@ -286,7 +290,7 @@ const rules: {[type: string]: SM.ParserRule} = {
     match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
     // Example: https://regex101.com/r/ZiDBsO/6
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
       const preContent: Array<SM.SingleASTNode> =
         Styles.isMobile && !!capture[1]
           ? wrapInParagraph(nestedParse, capture[1], state)
@@ -298,11 +302,11 @@ const rules: {[type: string]: SM.ParserRule} = {
     },
   },
   serviceDecoration: {
-    match: (source: string, state: SM.State, prevCapture: string) => {
+    match: (source: string, state: State, prevCapture: string) => {
       return serviceDecorationMatcher(source, state, prevCapture)
     },
     order: 1,
-    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: SM.State) => ({
+    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => ({
       content: capture[1],
       type: 'serviceDecoration',
     }),
@@ -310,7 +314,7 @@ const rules: {[type: string]: SM.ParserRule} = {
   spoiler: {
     match: SimpleMarkdown.inlineRegex(/^!>(.*?)<!/),
     order: 2,
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => ({
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => ({
       content: nestedParse(capture[1] || '', state),
       raw: capture[1],
       type: 'spoiler',
@@ -329,7 +333,7 @@ const rules: {[type: string]: SM.ParserRule} = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: (source: string, state: SM.State, prevCapture: string) =>
+    match: (source: string, state: State, prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? null : textMatch(source, state, prevCapture),
   },
 }
@@ -343,10 +347,10 @@ const noRules: {[type: string]: SM.ParserRule} = {
   // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
   // it won't match.
   fallbackParagraph: {
-    match: (source: string, state: SM.State, _prevCapture: string) =>
+    match: (source: string, state: State, _prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? [source] : null,
     order: 10000,
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) =>
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) =>
       wrapInParagraph(nestedParse, capture[0] ?? '', state),
   },
   paragraph: {
@@ -355,7 +359,7 @@ const noRules: {[type: string]: SM.ParserRule} = {
     // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
     // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
     match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
-    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: SM.State) => {
+    parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = (Styles.isMobile ? capture[1]?.replace(/\n$/, '') : capture[1]) ?? ''
       const oldInParagraph = state['inParagraph'] as boolean
@@ -371,7 +375,7 @@ const noRules: {[type: string]: SM.ParserRule} = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: (source: string, state: SM.State, _prevCapture: string) =>
+    match: (source: string, state: State, _prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? null : [source],
   },
 }
@@ -448,7 +452,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
       virtualText,
     }
 
-    output = (() => {
+    output = ((): React.ReactNode => {
       switch (true) {
         case serviceOnlyNoWrap:
           return serviceOnlyNoWrapOutput(parseTree, state)
@@ -468,7 +472,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
     return <ErrorComponent>{children}</ErrorComponent>
   }
 
-  const inner = (() => {
+  const inner = ((): React.ReactNode => {
     switch (true) {
       case serviceOnlyNoWrap:
         return output

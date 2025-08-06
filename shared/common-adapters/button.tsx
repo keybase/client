@@ -112,7 +112,7 @@ type ModeAndBGColor =
 
 const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   props: Props,
-  ref: React.Ref<MeasureRef>
+  ref: React.Ref<MeasureRef | null>
 ) {
   const {mode = 'Primary', type = 'Default'} = props
   const modeAndType = (mode + type) as ModeAndType

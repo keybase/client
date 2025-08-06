@@ -17,7 +17,7 @@ const Kb = {
 const WithTooltip = React.memo(function WithTooltip(p: Props) {
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
-  const popupAnchor = React.useRef<MeasureRef>(null)
+  const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [visible, setVisible] = React.useState(false)
 
   const onMouseEnter = React.useCallback(() => {

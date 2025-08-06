@@ -5,13 +5,14 @@ import type {WebViewProps} from './web-view'
 // not properly exposed in electron yet
 type WebviewTag = ReturnType<Document['createElement']>
 
-class WebView extends React.PureComponent<WebViewProps> {
-  _webviewRef = React.createRef<WebviewTag>()
+const WebView = (props: WebViewProps) => {
+  const {onError, injections} = props
+  const _webviewRef = React.useRef<WebviewTag>(null)
 
-  componentDidMount() {
-    const css = this.props.injections?.css || ''
-    const javaScript = this.props.injections?.javaScript || ''
-    const ref = this._webviewRef.current
+  React.useEffect(() => {
+    const css = injections?.css || ''
+    const javaScript = injections?.javaScript || ''
+    const ref = _webviewRef.current
 
     const onDomReady = () => {
       if (!ref) return
@@ -29,7 +30,6 @@ class WebView extends React.PureComponent<WebViewProps> {
       ref.removeEventListener('dom-ready', onDomReady)
     }
     ref?.addEventListener('dom-ready', onDomReady)
-    const {onError} = this.props
     if (onError) {
       const handleError = ({errorDescription}: {errorDescription: string}) => {
         onError(errorDescription)
@@ -37,10 +37,8 @@ class WebView extends React.PureComponent<WebViewProps> {
       }
       ref?.addEventListener('did-fail-load', handleError)
     }
-  }
-  render() {
-    return <webview ref={this._webviewRef} style={this.props.style} src={this.props.url} />
-  }
+  }, [injections, onError])
+  return <webview ref={_webviewRef} style={props.style} src={props.url} />
 }
 
 export default WebView

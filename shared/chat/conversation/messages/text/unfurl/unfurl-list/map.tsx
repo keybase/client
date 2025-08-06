@@ -110,7 +110,7 @@ const UpdateAge = (props: AgeProps) => {
       clearInterval(timer)
     }
   }, [time])
-  let durationText = ''
+  let durationText: string
   if (duration < 60000) {
     durationText = 'updated just now'
   } else if (duration > 14400000) {

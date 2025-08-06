@@ -1,5 +1,5 @@
 import {pathSep} from '@/constants/platform'
-import {_useState as useCurrentUserState} from '@/constants/current-user'
+import {useState_ as useCurrentUserState} from '@/constants/current-user'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {parseFolderNameToUsers} from '@/util/kbfs'
@@ -153,22 +153,21 @@ export function kbfsNotification(
     onClose?: () => void
   ) => void
 ) {
-  const action = (
-    {
-      // For now, disable file notifications because they're really annoying and
-      // we now have the syncing indicator.
-      // [FSNotificationType.encrypting]: 'Encrypting and uploading',
-      // [FSNotificationType.decrypting]: 'Decrypting',
-      // [FSNotificationType.signing]: 'Signing and uploading',
-      // [FSNotificationType.verifying]: 'Verifying and downloading',
-      [T.RPCGen.FSNotificationType.rekeying]: 'Rekeying',
-      // The following notifications just need to be enabled, they get handled
-      // independently.
-      [T.RPCGen.FSNotificationType.initialized]: '',
-      [T.RPCGen.FSNotificationType.connection]: '',
-      // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
-    } as any
-  )[notification.notificationType] as string | undefined
+  const actionSrc: Partial<Record<T.RPCGen.FSNotificationType, string>> = {
+    // For now, disable file notifications because they're really annoying and
+    // we now have the syncing indicator.
+    // [FSNotificationType.encrypting]: 'Encrypting and uploading',
+    // [FSNotificationType.decrypting]: 'Decrypting',
+    // [FSNotificationType.signing]: 'Signing and uploading',
+    // [FSNotificationType.verifying]: 'Verifying and downloading',
+    [T.RPCGen.FSNotificationType.rekeying]: 'Rekeying',
+    // The following notifications just need to be enabled, they get handled
+    // independently.
+    [T.RPCGen.FSNotificationType.initialized]: '',
+    [T.RPCGen.FSNotificationType.connection]: '',
+    // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
+  }
+  const action = actionSrc[notification.notificationType]
 
   if (action === undefined && notification.statusCode !== T.RPCGen.FSStatusCode.error) {
     // Ignore notification types we don't care about.

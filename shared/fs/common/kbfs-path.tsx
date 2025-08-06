@@ -12,7 +12,7 @@ type Props = {
 }
 
 type PopupProps = Props & {
-  attachRef: React.RefObject<Kb.MeasureRef>
+  attachRef: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
   visible: boolean
 }
@@ -65,7 +65,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
-  const textRef = React.useRef<Kb.MeasureRef>(null)
+  const textRef = React.useRef<Kb.MeasureRef | null>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
     <Kb.Text

@@ -1,4 +1,6 @@
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import * as C from '@/constants'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 
@@ -44,12 +46,23 @@ type Props = {
   isLocation: boolean
   timestamp: number
   yourMessage: boolean
+  onHidden: () => void
 }
 const MessagePopupHeader = (props: Props) => {
   const {author, botUsername, deviceName, deviceRevokedAt, deviceType} = props
-  const {isLast, isLocation, timestamp, yourMessage} = props
+  const {isLast, isLocation, timestamp, yourMessage, onHidden} = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
+
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onUsernameClicked = React.useCallback(
+    (user: string) => {
+      showUserProfile(user)
+      onHidden()
+    },
+    [showUserProfile, onHidden]
+  )
+
   return (
     <Kb.Box style={styles.headerContainer}>
       {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
@@ -69,7 +82,7 @@ const MessagePopupHeader = (props: Props) => {
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
-            onUsernameClicked="profile"
+            onUsernameClicked={onUsernameClicked}
             colorFollowing={true}
             colorYou={true}
             usernames={author}

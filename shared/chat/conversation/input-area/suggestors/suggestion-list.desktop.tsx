@@ -4,58 +4,52 @@ import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
 import SafeReactList from '@/common-adapters/safe-react-list'
 import type RL from 'react-list'
-import {BotCommandUpdateStatus} from '../normal/shared'
+import {BotCommandUpdateStatus} from './shared'
 
-class SuggestionList<I> extends React.Component<Props<I>> {
-  private listRef = React.createRef<RL>()
+const SuggestionList = <I,>(props: Props<I>) => {
+  const listRef = React.useRef<RL>(null)
+  const {selectedIndex} = props
 
-  componentDidMount() {
-    // hack to get `ReactList` to render more than one item on initial mount
-    this.forceUpdate()
-  }
-
-  componentDidUpdate(prevProps: Props<I>) {
-    if (prevProps.selectedIndex !== this.props.selectedIndex && this.listRef.current) {
-      this.listRef.current.scrollAround(this.props.selectedIndex)
+  const lastIndexRef = React.useRef(selectedIndex)
+  React.useEffect(() => {
+    if (lastIndexRef.current !== selectedIndex) {
+      if (listRef.current) {
+        listRef.current.scrollAround(selectedIndex)
+      }
     }
+    lastIndexRef.current = selectedIndex
+  }, [selectedIndex])
+
+  const itemRenderer = (index: number) => {
+    const i = props.items[index]
+    return i ? (props.renderItem(index, i) as React.JSX.Element) : <></>
   }
 
-  private itemRenderer = (index: number) => {
-    const i = this.props.items[index]
-    return i ? (this.props.renderItem(index, i) as React.JSX.Element) : <></>
+  if (
+    !props.items.length &&
+    (!props.suggestBotCommandsUpdateStatus ||
+      props.suggestBotCommandsUpdateStatus === T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
+  ) {
+    return null
   }
 
-  render() {
-    if (
-      !this.props.items.length &&
-      (!this.props.suggestBotCommandsUpdateStatus ||
-        this.props.suggestBotCommandsUpdateStatus === T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
-    ) {
-      return null
-    }
-    return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Kb.Styles.collapseStyles([styles.listContainer, this.props.style])}
-      >
-        <Kb.ScrollView style={styles.fullHeight}>
-          <SafeReactList
-            ref={this.listRef}
-            itemRenderer={this.itemRenderer}
-            length={this.props.items.length}
-            type="uniform"
-          />
-        </Kb.ScrollView>
-        {this.props.suggestBotCommandsUpdateStatus &&
-        this.props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
-          <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
-            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
-          </Kb.Box2>
-        ) : null}
-      </Kb.Box2>
-    )
-  }
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
+    >
+      <Kb.ScrollView style={styles.fullHeight}>
+        <SafeReactList ref={listRef} itemRenderer={itemRenderer} length={props.items.length} type="uniform" />
+      </Kb.ScrollView>
+      {props.suggestBotCommandsUpdateStatus &&
+      props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+        <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+          <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
+        </Kb.Box2>
+      ) : null}
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

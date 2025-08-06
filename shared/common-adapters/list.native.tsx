@@ -7,63 +7,69 @@ import noop from 'lodash/noop'
 
 const AnimatedFlatList = ReAnimated.FlatList
 
-class List<Item> extends React.PureComponent<Props<Item>> {
-  _itemRender = ({item, index}: {item: Item; index: number}) => {
-    return this.props.renderItem(index, item)
-  }
+const List = <Item,>(props: Props<Item>) => {
+  const {renderItem, fixedHeight, indexAsKey, keyProperty} = props
+  const _itemRender = React.useCallback(
+    ({item, index}: {item: Item; index: number}) => {
+      return renderItem(index, item)
+    },
+    [renderItem]
+  )
 
-  _getItemLayout = (_: unknown, index: number) => ({
-    index,
-    length: this.props.fixedHeight || 0,
-    offset: (this.props.fixedHeight || 0) * index,
-  })
+  const _getItemLayout = React.useCallback(
+    (_: unknown, index: number) => ({
+      index,
+      length: fixedHeight || 0,
+      offset: (fixedHeight || 0) * index,
+    }),
+    [fixedHeight]
+  )
 
-  _keyExtractor = (item: Item, index: number) => {
-    if (this.props.indexAsKey || !item) {
-      return String(index)
-    }
+  const _keyExtractor = React.useCallback(
+    (item: Item, index: number) => {
+      if (indexAsKey || !item) {
+        return String(index)
+      }
 
-    const keyProp = this.props.keyProperty || 'key'
-    const i = item as {[key: string]: string}
-    return i[keyProp] ?? String(index)
-  }
+      const keyProp = keyProperty || 'key'
+      const i = item as {[key: string]: string}
+      return i[keyProp] ?? String(index)
+    },
+    [indexAsKey, keyProperty]
+  )
 
-  render() {
-    const List = this.props.reAnimated ? AnimatedFlatList : FlatList
-    return (
-      <View style={Styles.collapseStyles([styles.outerView, this.props.style])}>
-        {/* need windowSize so iphone 6 doesn't have OOM issues */}
-        {/* We can use
-            initialScrollIndex={this.props.fixedHeight ? this.props.selectedIndex : undefined}
-          in FlatList below to pass through selectedIndex. However, it
-          has undesirable behavior when the selectedIndex is near the end of
-          the list, as it'll then put that index in the center, adding gray
-          rows below, and a touch will cause it to 'snap back' so that the
-          end of the list is at the bottom.
-       */}
-        <View style={Styles.globalStyles.fillAbsolute}>
-          <List
-            overScrollMode="never"
-            onScrollToIndexFailed={noop}
-            bounces={this.props.bounces}
-            contentContainerStyle={this.props.contentContainerStyle}
-            keyboardDismissMode="on-drag"
-            renderItem={this._itemRender}
-            data={this.props.items}
-            getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
-            keyExtractor={this._keyExtractor}
-            keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps ?? 'handled'}
-            ListHeaderComponent={this.props.ListHeaderComponent}
-            onEndReached={this.props.onEndReached}
-            onEndReachedThreshold={this.props.onEndReachedThreshold}
-            windowSize={this.props.windowSize || 10}
-            debug={false /* set to true to debug the list */}
-            onScroll={this.props.onScroll}
-          />
-        </View>
+  const ListComponent = props.reAnimated ? AnimatedFlatList : FlatList
+
+  return (
+    <View style={Styles.collapseStyles([styles.outerView, props.style])}>
+      {/* need windowSize so iphone 6 doesn't have OOM issues */}
+      {/* We can use initialScrollIndex={this.props.fixedHeight ? this.props.selectedIndex : undefined}                                                                                   ..
+        in FlatList below to pass through selectedIndex. However, it has undesirable behavior when the
+        selectedIndex is near the end of the list, as it'll then put that index in the center, adding gray
+        rows below, and a touch will cause it to 'snap back' so that the end of the list is at the bottom. */}
+
+      <View style={Styles.globalStyles.fillAbsolute}>
+        <ListComponent
+          overScrollMode="never"
+          onScrollToIndexFailed={noop}
+          bounces={props.bounces}
+          contentContainerStyle={props.contentContainerStyle}
+          keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
+          renderItem={_itemRender}
+          data={props.items}
+          getItemLayout={props.fixedHeight ? _getItemLayout : undefined}
+          keyExtractor={_keyExtractor}
+          keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+          ListHeaderComponent={props.ListHeaderComponent}
+          onEndReached={props.onEndReached}
+          onEndReachedThreshold={props.onEndReachedThreshold}
+          windowSize={props.windowSize || 10}
+          debug={false /* set to true to debug the list */}
+          onScroll={props.onScroll}
+        />
       </View>
-    )
-  }
+    </View>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({

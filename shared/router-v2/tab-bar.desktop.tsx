@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import './tab-bar.css'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
@@ -13,6 +12,7 @@ import RuntimeStats from '../app/runtime-stats'
 import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
+import './tab-bar.css'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -297,7 +297,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 style={styles.iconBox} direction="horizontal">
-          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
+          <Kb.Icon
+            className="tab-icon"
+            type={Tabs.desktopTabMeta[tab].icon}
+            sizeType="Big"
+            skipColor={true}
+          />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text className="tab-label" type="BodySmallSemibold">

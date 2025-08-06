@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import OldProfileReset from './system-old-profile-reset-notice/container'
-import ResetUser from './reset-user/container'
+import ResetUser from './reset-user'
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer() {
   const {showSuperseded, showResetParticipants} = C.useChatContext(

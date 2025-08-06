@@ -13,10 +13,12 @@ export type Props = {
 const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {showPopup: () => void}) => {
   const {showPopup, waiting, disableSync} = props
   const wasWaiting = React.useRef(waiting)
-  if (wasWaiting.current !== waiting) {
-    wasWaiting.current = waiting
-    showPopup()
-  }
+  React.useEffect(() => {
+    if (wasWaiting.current !== waiting) {
+      wasWaiting.current = waiting
+      showPopup()
+    }
+  }, [waiting, showPopup])
   return (
     <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
       <Kb.Text key="title" type="BodyBig">
