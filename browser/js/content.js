@@ -6,8 +6,6 @@ const bel = bundle.bel;
 const morphdom = bundle.morphdom;
 const asset = chrome.runtime.getURL;
 
-let spaMonitorTrailer = false;
-
 function init() {
   chrome.storage.sync.get(function(options) {
     if (options === undefined) {
@@ -15,29 +13,76 @@ function init() {
       options = {};
     }
     if (location.hostname.endsWith('twitter.com') || location.hostname.endsWith('facebook.com')) {
-      // SPA hack: Monitor location for changes and re-init. Twitter and Facebook
-      // are single-page-apps that don't often don't refresh when navigating
-      // so that makes it difficult to hook into.
-      // The hack is to poll every second and if the location changed
-      // re-scan to place the button.
-      // Facebook is so slow to load after the location change that for each
-      // location we re-init when noticed and 1s later.
-      // FIXME: This is sad. An alternative would be very desirable.
-      //        Subscribing to `popstate` does not work.
-      let loc = window.location.pathname;
-      function spaMonitor() {
-        if (spaMonitorTrailer || window.location.pathname != loc) {
-          // Path changed (or trailer), force fresh init
-          spaMonitorTrailer = !spaMonitorTrailer;
-          init();
-          return
+      // Monitor SPAs for navigation changes using MutationObserver instead of polling
+      let currentPath = window.location.pathname;
+      
+      // Watch for URL changes using MutationObserver on document.body
+      const observer = new MutationObserver(() => {
+        if (window.location.pathname !== currentPath) {
+          currentPath = window.location.pathname;
+          // Debounce the re-initialization to avoid multiple triggers
+          clearTimeout(observer.reinitTimeout);
+          observer.reinitTimeout = setTimeout(() => {
+            init();
+            // For Facebook's slow loading, trigger again after a delay
+            if (location.hostname.endsWith('facebook.com')) {
+              setTimeout(init, 1000);
+            }
+          }, 100);
         }
-        // We use RAF to avoid spamming checks when the tab is not active.
-        requestAnimationFrame(function() {
-          setTimeout(spaMonitor, 1000);
+      });
+      
+      // Start observing when body is available
+      if (document.body) {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: false,
+          characterData: false
         });
+      } else {
+        // Wait for body to be available
+        const bodyWatcher = new MutationObserver(() => {
+          if (document.body) {
+            bodyWatcher.disconnect();
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              attributes: false,
+              characterData: false
+            });
+          }
+        });
+        bodyWatcher.observe(document.documentElement, {childList: true});
       }
-      setTimeout(spaMonitor, 1000);
+      
+      // Also listen to popstate and pushstate events as backup
+      window.addEventListener('popstate', () => {
+        if (window.location.pathname !== currentPath) {
+          currentPath = window.location.pathname;
+          init();
+        }
+      });
+      
+      // Intercept pushState and replaceState
+      const originalPushState = history.pushState;
+      const originalReplaceState = history.replaceState;
+      
+      history.pushState = function() {
+        originalPushState.apply(history, arguments);
+        if (window.location.pathname !== currentPath) {
+          currentPath = window.location.pathname;
+          setTimeout(init, 100);
+        }
+      };
+      
+      history.replaceState = function() {
+        originalReplaceState.apply(history, arguments);
+        if (window.location.pathname !== currentPath) {
+          currentPath = window.location.pathname;
+          setTimeout(init, 100);
+        }
+      };
     }
 
     const user = matchService(window.location, document);

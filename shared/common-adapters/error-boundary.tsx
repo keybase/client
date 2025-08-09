@@ -64,7 +64,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
           justifyContent: 'center',
         }}
       >
-        <Text type="Header">Something went wrong...</Text>
+        <Text type="Header">An unexpected error occurred</Text>
         <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
           Please submit a bug report by
           {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}

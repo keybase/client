@@ -45,6 +45,8 @@ class Engine {
   _hasConnected: boolean = isMobile // mobile is always connected
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
+  // Debug interval for tracking outstanding RPCs
+  _debugIntervalID: NodeJS.Timeout | null = null
 
   _emitWaiting: (changes: BatchParams) => void
 
@@ -90,11 +92,18 @@ class Engine {
 
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
-      setInterval(() => {
+      this._debugIntervalID = setInterval(() => {
         if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k]?.getDangling()).length) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
+    }
+  }
+
+  _cleanupDebugging() {
+    if (this._debugIntervalID) {
+      clearInterval(this._debugIntervalID)
+      this._debugIntervalID = null
     }
   }
 
@@ -270,6 +279,7 @@ class Engine {
     if (isMobile) {
       return
     }
+    this._cleanupDebugging()
     resetClient(this._rpcClient)
   }
 }

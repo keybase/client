@@ -4,7 +4,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -33,36 +32,6 @@ func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-func NewCmdBTC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
-		Name: "btc",
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdBTCRunner(g), "btc", c)
-		},
-	}
-}
-
-type CmdBTC struct {
-	libkb.Contextified
-}
-
-func NewCmdBTCRunner(g *libkb.GlobalContext) *CmdBTC {
-	return &CmdBTC{
-		Contextified: libkb.NewContextified(g),
-	}
-}
-
-func (c *CmdBTC) Run() (err error) {
-	return errors.New("this command is deprecated; use `keybase currency add` instead")
-}
-
-func (c *CmdBTC) GetUsage() libkb.Usage {
-	return libkb.Usage{}
-}
-
-func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
-	return nil
-}
 
 func (c *CmdCurrencyAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
@@ -72,7 +41,7 @@ func (c *CmdCurrencyAdd) ParseArgv(ctx *cli.Context) error {
 	c.force = ctx.Bool("force")
 	w := ctx.String("type")
 	if !(w == "bitcoin" || w == "zcash" || w == "") {
-		return fmt.Errorf("Bad address type; can only handle 'zcash' or 'bitcoin")
+		return fmt.Errorf("Bad address type; can only handle 'zcash' or 'bitcoin'")
 	}
 	c.wanted = w
 	return nil

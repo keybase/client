@@ -54,28 +54,6 @@ const dbTypeString = (s: T.RPCGen.DbType) => {
   }
 }
 
-// let destroyRadar: (() => void) | undefined
-// let radarNode: HTMLDivElement | undefined
-// const radarSize = 30
-
-// const makeRadar = (show: boolean) => {
-//   if (destroyRadar) {
-//     destroyRadar()
-//     destroyRadar = undefined
-//   }
-//   if (!radarNode || !show) {
-//     return
-//   }
-
-//   destroyRadar = lagRadar({
-//     frames: 5,
-//     inset: 1,
-//     parent: radarNode,
-//     size: radarSize,
-//     speed: 0.0017 * 0.7,
-//   })
-// }
-
 // simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
 // and choose a max to show. We use refs a lot since we only want to figure stuff out based on an interval
 // TODO mobile
@@ -206,20 +184,6 @@ const LogStats = (props: {num?: number}) => {
 }
 
 const RuntimeStatsDesktop = ({stats}: Props) => {
-  // const [showRadar, setShowRadar] = React.useState(false)
-  // const refContainer = React.useCallback(
-  //   node => {
-  //     radarNode = node
-  //     makeRadar(showRadar)
-  //   },
-  //   [showRadar]
-  // )
-  // const toggleRadar = () => {
-  //   const show = !showRadar
-  //   setShowRadar(show)
-  //   makeRadar(show)
-  // }
-
   const [moreLogs, setMoreLogs] = React.useState(false)
 
   return (
