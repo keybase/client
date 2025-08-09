@@ -3,6 +3,7 @@ import * as Constants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import logger from '@/logger'
 
 type OwnProps = {deviceID: string}
 
@@ -78,7 +79,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
-    console.error(e)
+    logger.error('Failed to get revoke warning:', e)
   }
   return []
 }

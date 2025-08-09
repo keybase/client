@@ -19,7 +19,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdBase62(cl, g),
 		NewCmdBlocks(cl, g),
 		NewCmdBot(cl, g),
-		NewCmdBTC(cl, g),
 		NewCmdCA(cl, g),
 		NewCmdChat(cl, g),
 		NewCmdCompatDir(cl, g),

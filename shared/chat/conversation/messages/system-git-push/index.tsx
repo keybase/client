@@ -33,6 +33,30 @@ const GitPushCreate = (props: CreateProps) => {
   )
 }
 
+type RenameProps = {
+  pusher: string
+  repo: string
+  previousRepoName: string
+  repoID: string
+  team: string
+  onViewGitRepo: Props['onViewGitRepo']
+  you: Props['you']
+}
+const GitPushRename = (props: RenameProps) => {
+  const {you, pusher, repo, previousRepoName, repoID, team, onViewGitRepo} = props
+  return (
+    <Kb.Text type="BodySmall">
+      {pusher === you ? 'You ' : ''}renamed the team repository from{` `}
+      <Kb.Text type="BodySmallSemibold">{previousRepoName}</Kb.Text>
+      {` to `}
+      <Kb.Text type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
+        {repo}
+      </Kb.Text>
+      .
+    </Kb.Text>
+  )
+}
+
 type PushDefaultProps = {
   pusher: string
   commitRef: T.RPCGen.GitRefMetadata
@@ -96,7 +120,7 @@ type PushCommonProps = {
 const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</UserNotice>
 
 const GitPush = React.memo(function GitPush(p: Props) {
-  const {repo, repoID, refs, pushType, pusher, team} = p.message
+  const {repo, repoID, refs, pushType, pusher, team, previousRepoName} = p.message
   const gitType = T.RPCGen.GitPushType[pushType]
 
   switch (gitType) {
@@ -136,7 +160,20 @@ const GitPush = React.memo(function GitPush(p: Props) {
           />
         </GitPushCommon>
       )
-    // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
+    case 'renamerepo':
+      return (
+        <GitPushCommon>
+          <GitPushRename
+            pusher={pusher}
+            repo={repo}
+            previousRepoName={previousRepoName}
+            repoID={repoID}
+            team={team}
+            onViewGitRepo={p.onViewGitRepo}
+            you={p.you}
+          />
+        </GitPushCommon>
+      )
     default:
       return null
   }
