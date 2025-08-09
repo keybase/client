@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import {SelectOtherDevice} from '@/provision/select-other-device'
+import logger from '@/logger'
 
 const ConnectedDeviceSelector = () => {
   const devices = C.useRecoverState(s => s.devices)
@@ -15,7 +16,7 @@ const ConnectedDeviceSelector = () => {
     if (submitDeviceSelect) {
       submitDeviceSelect(name)
     } else {
-      console.log('Missing device select?')
+      logger.error('submitDeviceSelect handler is missing')
     }
   }
   const props = {

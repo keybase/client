@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
+import logger from '@/logger'
 
 const AddContacts = () => {
   const nav = Container.useSafeNavigation()
@@ -52,7 +53,7 @@ const AddContacts = () => {
         }
       },
       err => {
-        console.warn(err)
+        logger.warn('Failed to select contacts:', err)
       }
     )
   }

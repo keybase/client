@@ -55,7 +55,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
     <Icon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Text type="Header" style={styles.header}>
-      Oops, something went wrong.
+      An error occurred during setup
     </Text>
     <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}

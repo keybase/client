@@ -6,11 +6,11 @@ const ConnectedSignupError = () => {
   const error = C.useSignupState(s => s.signupError)
   const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const onBack = goBackAndClearErrors
-  let header = 'Ah Shoot! Something went wrong, try again?'
-  let body = error ? error.desc : ''
+  let header = 'Sign up failed'
+  let body = error ? error.desc : 'Please try again.'
   if (!!error && C.isNetworkErr(error.code)) {
-    header = 'Hit an unexpected error; try again?'
-    body = 'This might be due to a bad connection.'
+    header = 'Connection error'
+    body = 'Unable to reach the server. Please check your internet connection and try again.'
   }
   const props = {
     body,

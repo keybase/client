@@ -17,7 +17,7 @@ const DropViewWrapper = (p: Props) => {
         }, new Array<DropItems[0]>())
         onDropped(cleanedUp)
       } catch (e) {
-        console.log('drop view error', e)
+        // Silently handle drop errors - items will be empty
       }
     },
     [onDropped]
