@@ -76,17 +76,27 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 }
 
 func (m *memberSet) recipientUids() []keybase1.UID {
-	uids := make([]keybase1.UID, 0, len(m.recipients))
+	if len(m.recipients) == 0 {
+		return nil
+	}
+	uids := make([]keybase1.UID, len(m.recipients))
+	i := 0
 	for uv := range m.recipients {
-		uids = append(uids, uv.Uid)
+		uids[i] = uv.Uid
+		i++
 	}
 	return uids
 }
 
 func (m *memberSet) restrictedBotRecipientUids() []keybase1.UID {
-	uids := make([]keybase1.UID, 0, len(m.restrictedBotRecipients))
+	if len(m.restrictedBotRecipients) == 0 {
+		return nil
+	}
+	uids := make([]keybase1.UID, len(m.restrictedBotRecipients))
+	i := 0
 	for uv := range m.restrictedBotRecipients {
-		uids = append(uids, uv.Uid)
+		uids[i] = uv.Uid
+		i++
 	}
 	return uids
 }
