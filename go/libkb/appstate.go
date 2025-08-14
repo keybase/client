@@ -28,7 +28,7 @@ func NewMobileAppState(g *GlobalContext) *MobileAppState {
 		// we need this so cold notifications work on android
 		return &MobileAppState{
 			Contextified: NewContextified(g),
-			state:        keybase1.MobileAppState_BACKGROUND,
+			state:        keybase1.MobileAppState_BACKGROUNDACTIVE,
 			mtime:        nil,
 		}
 	}
