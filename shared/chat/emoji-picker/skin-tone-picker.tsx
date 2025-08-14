@@ -33,7 +33,7 @@ const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
   return [currentSkinTone, ...rest]
 }
 
-const SkinTonePicker = (props: Props) => {
+const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
   const [expanded, _setExpanded] = React.useState(false)
   const setExpanded = (toSet: boolean) => {
     _setExpanded(toSet)
@@ -86,7 +86,7 @@ const SkinTonePicker = (props: Props) => {
       <Kb.Box style={styles.dotPlaceholder} />
     </Kb.Box>
   )
-}
+})
 
 export default SkinTonePicker
 

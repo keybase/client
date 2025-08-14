@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
-import type {HeaderBackButtonProps} from '@react-navigation/elements'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import type {HeaderOptions} from '@react-navigation/elements'
+import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
 import type {NavState} from '@/constants/router2'
 
 export const headerDefaultStyle = {
@@ -27,6 +27,8 @@ export const tabBarStyleHidden = {
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
 
+type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
+
 // Options used by default on all navigators
 export const defaultNavigationOptions = {
   headerBackTitle: '',
@@ -35,9 +37,9 @@ export const defaultNavigationOptions = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({canGoBack, onPress, tintColor}: HeaderBackButtonProps) => (
-    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-  ),
+  headerLeft: ({tintColor}: HeaderLeftProps) => {
+    return <HeaderLeftArrowCanGoBack tintColor={tintColor} />
+  },
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
@@ -57,6 +59,7 @@ export const defaultNavigationOptions = {
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
   },
   headerStyle: headerDefaultStyle,
+  headerTintColor: Kb.Styles.globalColors.black_50,
   headerTitle: (hp: {children: React.ReactNode}) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
@@ -82,7 +85,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: NavigationContainerRef<{}>, state: NavState) =>
+export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) =>
   React.useCallback(
     (tab: string) => {
       const route = state?.routes?.find(r => r.name === tab)
@@ -90,8 +93,9 @@ export const useSubnavTabAction = (navigation: NavigationContainerRef<{}>, state
         ? navigation.emit({
             canPreventDefault: true,
             target: route.key,
+            // @ts-ignore
             type: 'tabPress',
-          } as any)
+          })
         : {defaultPrevented: false}
 
       if (!event.defaultPrevented) {

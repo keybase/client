@@ -3,28 +3,33 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
+let disableScreenshotInitialValue: boolean | undefined
+
 const Screenprotector = () => {
   const [disableScreenshot, setDisableScreenshot] = React.useState<boolean | undefined>(undefined)
-  const initialDisableScreenshot = React.useRef<boolean | undefined>(undefined)
   const loadDisableScreenshot = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
-  // load it
-  if (disableScreenshot === undefined) {
-    setTimeout(() => {
+  React.useEffect(() => {
+    // load it
+    if (disableScreenshot === undefined) {
       loadDisableScreenshot(
         [{path: 'ui.disableScreenshot'}],
         result => {
           const res = result.b ?? false
-          initialDisableScreenshot.current = res
           setDisableScreenshot(res)
+          if (disableScreenshotInitialValue === undefined) {
+            disableScreenshotInitialValue = res
+          }
         },
         () => {
-          initialDisableScreenshot.current = false
           setDisableScreenshot(false)
+          if (disableScreenshotInitialValue === undefined) {
+            disableScreenshotInitialValue = false
+          }
         }
       )
-    }, 1)
-  }
+    }
+  }, [disableScreenshot, loadDisableScreenshot])
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   const onToggleDisableScreenshot = () => {
@@ -51,7 +56,10 @@ const Screenprotector = () => {
         <Kb.Checkbox
           label={
             'Disable screenshots' +
-            (initialDisableScreenshot.current === disableScreenshot ? '' : ' (restart required)')
+            (disableScreenshotInitialValue !== undefined &&
+            disableScreenshotInitialValue !== disableScreenshot
+              ? ' (restart required)'
+              : '')
           }
           disabled={disableScreenshot === undefined}
           checked={!!disableScreenshot}

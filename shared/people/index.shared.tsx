@@ -2,12 +2,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import Announcement from './announcement/container'
+import Announcement from './announcement'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {noEmail} from '@/constants/signup'
 import type {Props} from '.'
-import Todo from './todo/container'
+import Todo from './todo'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -118,7 +118,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       <ResentEmailVerificationBanner />
       {props.newItems
         .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-        .map(item => itemToComponent(item, props))}
+        .map((item): React.ReactNode => itemToComponent(item, props))}
       {/*Array.from(props.wotUpdates, ([key, item]) => (
         <WotTask
           key={key}
@@ -130,7 +130,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       ))*/}
 
       <FollowSuggestions suggestions={props.followSuggestions} />
-      {props.oldItems.map(item => itemToComponent(item, props))}
+      {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
     </Kb.Box>
   )
 })

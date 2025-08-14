@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import * as Platform from '@/constants/platform'
-import {EnterEmailBody} from '@/signup/email'
-import {EnterPhoneNumberBody} from '@/signup/phone-number'
+import {EnterEmailBody} from '@/signup/email/container'
+import {EnterPhoneNumberBody} from '@/signup/phone-number/container'
 import {VerifyBody} from '@/signup/phone-number/verify'
 import {e164ToDisplay} from '@/util/phone-numbers'
 
@@ -233,7 +233,10 @@ export const VerifyPhone = () => {
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
   const error = C.useSettingsPhoneState(s => s.error)
   const verificationState = C.useSettingsPhoneState(s => s.verificationState)
-  const resendWaiting = C.Waiting.useAnyWaiting([C.SettingsPhone.addPhoneNumberWaitingKey, C.SettingsPhone.resendVerificationForPhoneWaitingKey])
+  const resendWaiting = C.Waiting.useAnyWaiting([
+    C.SettingsPhone.addPhoneNumberWaitingKey,
+    C.SettingsPhone.resendVerificationForPhoneWaitingKey,
+  ])
   const verifyWaiting = C.Waiting.useAnyWaiting(C.SettingsPhone.verifyPhoneNumberWaitingKey)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 

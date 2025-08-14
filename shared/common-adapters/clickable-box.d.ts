@@ -35,7 +35,7 @@ export type Props2 = {
   // desktop only
   onMouseOver?: (event: React.MouseEvent) => void
 
-  onClick?: (event: React.BaseSyntheticEvent) => void
+  onClick?: () => void
   children: React.ReactNode
   className?: string
   style?: Styles.StylesCrossPlatform

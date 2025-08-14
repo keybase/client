@@ -1,21 +1,17 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import type {HeaderBackButtonProps} from '@react-navigation/elements'
-export type Action = {
-  custom?: React.ReactNode
-  label?: string // TODO: make this required after updates are fully integrated,
-  color?: string // TODO: narrow this type
-  icon?: IconType
-  iconColor?: string
-  onPress?: () => void
-}
+import type {HeaderOptions} from '@react-navigation/elements'
+type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
+
 export type Props = {
   // TODO: remove these after updates are fully integrated
   onBack?: () => void
   onCancel?: () => void
   customCancelText?: string
   rightActionLabel?: string
+  rightActionIcon?: IconType
+  rightActionColor?: string
   onRightAction?: () => void
   // keep these
   badgeNumber?: number
@@ -31,7 +27,6 @@ export type Props = {
   customSafeAreaTopStyle?: StylesCrossPlatform // mobile only; use with `underNotch` route tag,
   headerStyle?: StylesCrossPlatform
   theme?: 'light' | 'dark' // defaults to 'light',
-  rightActions?: Array<Action | undefined>
   // for nav2. if you use the actual header, its already safe so you can opt out of another safe
   underNotch?: boolean
 }
@@ -63,6 +58,9 @@ export declare const LeftAction: (p: LeftActionProps) => React.ReactNode
 
 // used in navigationOptions
 export declare const HeaderLeftArrow: (p: HeaderBackButtonProps & {badgeNumber?: number}) => React.ReactNode
+export declare const HeaderLeftArrowCanGoBack: (
+  p: Omit<HeaderBackButtonProps, 'canGoBack'> & {badgeNumber?: number}
+) => React.ReactNode
 export declare const HeaderLeftBlank: () => React.ReactNode
 export declare const HeaderLeftCancel: (p: HeaderBackButtonProps) => React.ReactNode
 export declare const HeaderLeftCancel2: (p: HeaderBackButtonProps) => React.ReactNode

@@ -18,7 +18,7 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
     savedCallback.current = func
   }, [func])
 
-  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const timerCB = React.useCallback(() => {
     savedCallback.current()
@@ -45,7 +45,10 @@ export const useInterval = (func: () => any, interval?: number) => {
     if (typeof interval !== 'number') {
       return noop
     }
-    const id = setInterval(() => cb.current(), interval)
+    const tick = () => {
+      cb.current()
+    }
+    const id = setInterval(tick, interval)
     return () => clearInterval(id)
   }, [interval])
 }

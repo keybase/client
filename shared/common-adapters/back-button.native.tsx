@@ -1,12 +1,14 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {TouchableWithoutFeedback, Keyboard} from 'react-native'
+import {Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './back-button'
 import noop from 'lodash/noop'
+// workaround taps in header not working on android devices
+import {Pressable} from 'react-native-gesture-handler'
 
 const Kb = {
   Badge,
@@ -22,15 +24,9 @@ const BackButton = React.memo(function BackButton(props: Props) {
     Keyboard.dismiss()
     navigateUp()
   }, [navigateUp])
-  const onBack = props.disabled ? noop : props.onClick ?? onNavUp
+  const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
-    <TouchableWithoutFeedback
-      onPress={(event: React.BaseSyntheticEvent) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onBack()
-      }}
-    >
+    <Pressable onPress={onBack}>
       <Kb.Box style={Styles.collapseStyles([styles.container, props.style])}>
         <Kb.Icon
           fixOverdraw={canFixOverdraw}
@@ -40,7 +36,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
         />
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} />}
       </Kb.Box>
-    </TouchableWithoutFeedback>
+    </Pressable>
   )
 })
 

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as Styles from '@/styles'
 import type * as ReactNative from 'react-native'
 
@@ -19,16 +19,15 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
  * items, and ExtraT is for any extra stuff that is in the section, e.g. a title
  * used by renderSectionHeader
  */
-export type Section<ItemT, ExtraT = {}> = {
+export type Section<ItemT, ExtraT = object> = {
   data: ReadonlyArray<ItemT>
   key?: string | undefined
   renderItem?: SectionListRenderItem<ItemT, ExtraT>
   ItemSeparatorComponent?: React.ComponentType<any> | null | undefined
 } & ExtraT
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ItemTFromSectionT<SectionT> = SectionT extends Section<infer ItemT, infer _ExtraT> ? ItemT : SectionT
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type ItemTFromSectionT<SectionT> =
+  SectionT extends Section<infer ItemT, infer _ExtraT> ? ItemT : SectionT
 type ExtraTFromSectionT<SectionT> = SectionT extends Section<infer _ItemT, infer ExtraT> ? ExtraT : SectionT
 
 // This type is missing a lot of features from the native sectionlist on purpose
@@ -151,6 +150,11 @@ export type Props<SectionT extends Section<any, any>> = {
   desktopItemSizeEstimatorOverride?: () => number
 }
 
-export default class SectionList<T extends Section<any, any>> extends React.Component<Props<T>> {
+export type SectionListRef = {
   scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
 }
+
+declare const SectionList: <T extends Section<any, any>>(
+  props: Props<T> & React.RefAttributes<SectionListRef>
+) => React.ReactElement | null
+export default SectionList

@@ -36,12 +36,27 @@ const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function
       onScrollToIndexFailed={noop}
       keyboardDismissMode="on-drag"
       ref={forwardedRef}
-      renderItem={renderItem as any}
-      renderSectionHeader={renderSectionHeader as any}
-      sections={sections as any}
+      renderItem={
+        // eslint-disable-next-line
+        renderItem as any
+      }
+      renderSectionHeader={
+        // eslint-disable-next-line
+        renderSectionHeader as any
+      }
+      sections={
+        // eslint-disable-next-line
+        sections as any
+      }
       {...rest}
-      getItemLayout={getItemLayout as any}
-      onViewableItemsChanged={onViewableItemsChanged as any}
+      getItemLayout={
+        // eslint-disable-next-line
+        getItemLayout as any
+      }
+      onViewableItemsChanged={
+        // eslint-disable-next-line
+        onViewableItemsChanged as any
+      }
     />
   )
 })

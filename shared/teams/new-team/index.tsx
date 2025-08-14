@@ -13,6 +13,7 @@ type Props = {
   onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
+// used in chat too
 const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)

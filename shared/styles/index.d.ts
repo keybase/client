@@ -67,7 +67,7 @@ export declare const desktopStyles: {
   windowDraggingClickable: {WebkitAppRegion: 'no-drag'}
 }
 
-export declare const mobileStyles: {}
+export declare const mobileStyles: object
 export declare const fileUIName: string
 export declare const borderRadius: number
 export declare const hairlineWidth: number
@@ -79,23 +79,17 @@ export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O)
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type RemovedStyle = false | '' | 0 | null | undefined
-type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
+
+export type CollapsibleStyle =
+  | CSS.StylesCrossPlatform
+  | RemovedStyle
+  | {lineHeight: CSS._StylesDesktop['lineHeight']}
 
 // TODO better styles that aren't slow
 export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform
 export declare function collapseStylesDesktop(styles: ReadonlyArray<CollapsibleStyle>): React.CSSProperties
 export declare function castStyleDesktop(style: CollapsibleStyle): React.CSSProperties
 export declare function castStyleNative(style: CollapsibleStyle): ViewStyle
-
-// new style, used in the common-adapters, not the components, can memo for you
-export declare function useCollapseStyles<
-  IsMobile = false,
-  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform,
->(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
-export declare function useCollapseStylesDesktop(
-  styles: CSS.StylesCrossPlatform,
-  memo?: boolean
-): React.CSSProperties
 
 export declare const windowStyle: {
   minWidth: number
@@ -158,3 +152,4 @@ export declare const normalizePath: (p: string) => string
 export declare const unnormalizePath: (p: string) => string
 // fixup file:// with spaces etc
 export declare const urlEscapeFilePath: (path: string) => string
+export declare const useIsDarkMode: () => boolean

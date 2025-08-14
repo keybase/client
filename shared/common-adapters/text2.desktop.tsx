@@ -37,6 +37,7 @@ export const Text2 = /*TEMP_SWITCH
       children = ['⚠', children]
     }
     if (virtTextProps) {
+      // eslint-disable-next-line
       virtTextProps[virtualKey] = '⚠' + virtTextProps[virtualKey]
     }
   }

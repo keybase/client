@@ -1,12 +1,11 @@
-import * as C from '@/constants'
 import * as Constants from '@/constants/tracker2'
 import type {Section as _Section} from '@/common-adapters/section-list'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Actions from './actions/container'
-import Assertion from '@/tracker2/assertion/container'
-import Bio from '@/tracker2/bio/container'
-import Friend from './friend/container'
+import Assertion from '@/tracker2/assertion'
+import Bio from '@/tracker2/bio'
+import Friend from './friend'
 import Measure from './measure'
 import Teams from './teams'
 import chunk from 'lodash/chunk'
@@ -34,21 +33,17 @@ export type Props = {
   onBack: () => void
   onReload: () => void
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
-  // onIKnowThem?: () => void
   reason: string
   sbsAvatarUrl?: string
   state: T.Tracker.DetailsState
   suggestionKeys?: ReadonlyArray<string>
   userIsYou: boolean
   username: string
-  name: string // assertion value
-  service: string // assertion key (if SBS)
+  name: string
+  service: string
   serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
-  fullName?: string // full name from external profile
+  fullName?: string
   title: string
-  // vouchShowButton: boolean
-  // vouchDisableButton: boolean
-  // webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry>
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -159,48 +154,42 @@ type TabsProps = {
   selectedTab: string
   numFollowers: number | undefined
   numFollowing: number | undefined
-  // numWebOfTrust: number | undefined
 }
 
-class Tabs extends React.Component<TabsProps> {
-  _onClickFollowing = () => this.props.onSelectTab('following')
-  _onClickFollowers = () => this.props.onSelectTab('followers')
-  _tab = (tab: Tab) => (
+const Tabs = (p: TabsProps) => {
+  const onClickFollowing = () => p.onSelectTab('following')
+  const onClickFollowers = () => p.onSelectTab('followers')
+  const tab = (tab: Tab) => (
     <Kb.ClickableBox
-      onClick={tab === 'following' ? this._onClickFollowing : this._onClickFollowers}
-      style={Kb.Styles.collapseStyles([
-        styles.followTab,
-        tab === this.props.selectedTab && styles.followTabSelected,
-      ])}
+      onClick={tab === 'following' ? onClickFollowing : onClickFollowers}
+      style={Kb.Styles.collapseStyles([styles.followTab, tab === p.selectedTab && styles.followTabSelected])}
     >
       <Kb.Box2 direction="horizontal" gap="xtiny">
         <Kb.Text
           type="BodySmallSemibold"
-          style={tab === this.props.selectedTab ? styles.followTabTextSelected : styles.followTabText}
+          style={tab === p.selectedTab ? styles.followTabTextSelected : styles.followTabText}
         >
           {tab === 'following'
-            ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
-            : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
+            ? `Following${!p.loadingFollowing ? ` (${p.numFollowing || 0})` : ''}`
+            : `Followers${!p.loadingFollowers ? ` (${p.numFollowers || 0})` : ''}`}
         </Kb.Text>
-        {((tab === 'following' && this.props.loadingFollowing) || this.props.loadingFollowers) && (
+        {((tab === 'following' && p.loadingFollowing) || p.loadingFollowers) && (
           <Kb.ProgressIndicator style={styles.progress} />
         )}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
-        {this._tab('followers')}
-        {this._tab('following')}
-      </Kb.Box2>
-    )
-  }
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
+      {tab('followers')}
+      {tab('following')}
+    </Kb.Box2>
+  )
 }
 
 const widthToDimensions = (width: number) => {
-  const singleItemWidth = Kb.Styles.isMobile ? 130 : 120
+  const singleItemWidth = Kb.Styles.isMobile ? 134 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
@@ -211,24 +200,13 @@ type FriendRowProps = {
   itemWidth: number
 }
 
-class FriendRow extends React.Component<FriendRowProps> {
-  shouldComponentUpdate(nextProps: FriendRowProps) {
-    return (
-      this.props.itemWidth !== nextProps.itemWidth ||
-      !C.shallowEqual(this.props.usernames, nextProps.usernames)
-    )
-  }
-
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
-        {this.props.usernames.map(u => (
-          <Friend key={u} username={u} width={this.props.itemWidth} />
-        ))}
-      </Kb.Box2>
-    )
-  }
-}
+const FriendRow = React.memo((p: FriendRowProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
+    {p.usernames.map(u => (
+      <Friend key={u} username={u} width={p.itemWidth} />
+    ))}
+  </Kb.Box2>
+))
 
 export type BioTeamProofsProps = {
   onAddIdentity?: () => void
@@ -312,16 +290,10 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
   )
 }
 
-type State = {
-  selectedTab: string
-  width: number
-}
-
 type Tab = 'followers' | 'following'
 
 type ChunkType = Array<Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}>
 
-// TODO move container and get rid of this simple wrapper
 const UserWrap = (p: Props) => {
   const insets = Kb.useSafeAreaInsets()
   return <User {...p} insetTop={insets.top} />
@@ -329,47 +301,71 @@ const UserWrap = (p: Props) => {
 
 type Props2 = Props & {insetTop: number}
 
-class User extends React.Component<Props2, State> {
-  constructor(props: Props2) {
-    super(props)
-    this.state = {
-      selectedTab: usernameSelectedTab.get(props.username) ?? 'followers',
-      width: Kb.Styles.dimensionWidth,
+const User = (p: Props2) => {
+  const {username, onReload} = p
+  const [selectedTab, setSelectedTab] = React.useState<Tab>(
+    usernameSelectedTab.get(p.username) ?? 'followers'
+  )
+  const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
+
+  const changeTab = (tab: Tab) => {
+    setSelectedTab(tab)
+    usernameSelectedTab.set(p.username, tab)
+  }
+
+  const onMeasured = (width: number) => setWidth(width)
+
+  const lastUsernameRef = React.useRef(p.username)
+  React.useEffect(() => {
+    if (username !== lastUsernameRef.current) {
+      lastUsernameRef.current = username
+      onReload()
+    }
+  }, [username, onReload])
+
+  const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
+
+  const friends = selectedTab === 'following' ? p.following : p.followers
+  const {itemsInARow, itemWidth} = widthToDimensions(width)
+  const chunks: ChunkType = width ? chunk(friends, itemsInARow) : []
+  if (chunks.length === 0) {
+    if (p.following && p.followers) {
+      chunks.push({
+        text:
+          selectedTab === 'following'
+            ? `${p.userIsYou ? 'You are' : `${p.username} is`} not following anyone.`
+            : `${p.userIsYou ? 'You have' : `${p.username} has`} no followers.`,
+        type: 'noFriends',
+      })
+    } else {
+      chunks.push({text: 'Loading...', type: 'loading'})
     }
   }
 
-  _changeTab = (tab: Tab) => {
-    this.setState(p => {
-      if (p.selectedTab === tab) {
-        return null
-      }
-      const selectedTab = tab
-      usernameSelectedTab.set(this.props.username, selectedTab)
-      return {selectedTab}
-    })
+  const containerStyle = {
+    paddingTop: (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) + p.insetTop,
   }
 
-  _renderSectionHeader = ({section}: {section: Section}) => {
-    if (section === this._bioTeamProofsSection) return null
-    if (this.props.notAUser) return null
+  const renderSectionHeader = ({section}: {section: Section}) => {
+    if (section === bioTeamProofsSection) return null
+    if (p.notAUser) return null
 
-    const loadingFollowing = this.props.following === undefined
-    const loadingFollowers = this.props.followers === undefined
+    const loadingFollowing = p.following === undefined
+    const loadingFollowers = p.followers === undefined
     return (
       <Tabs
         key="tabs"
         loadingFollowing={loadingFollowing}
         loadingFollowers={loadingFollowers}
-        numFollowers={this.props.followersCount}
-        numFollowing={this.props.followingCount}
-        // numWebOfTrust={this.props.webOfTrustEntries.length}
-        onSelectTab={this._changeTab}
-        selectedTab={this.state.selectedTab}
+        numFollowers={p.followersCount}
+        numFollowing={p.followingCount}
+        onSelectTab={changeTab}
+        selectedTab={selectedTab}
       />
     )
   }
 
-  _renderOtherUsers = ({
+  const renderOtherUsers = ({
     item,
     section,
     index,
@@ -382,125 +378,82 @@ class User extends React.Component<Props2, State> {
     if (Array.isArray(item)) {
       return <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
     }
-    return this.props.notAUser ? null : (
+    return p.notAUser ? null : (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
     )
   }
 
-  _bioTeamProofsSection = {
+  const bioTeamProofsSection = {
     data: ['bioTeamProofs'],
     renderItem: () => (
       <BioTeamProofs
-        onAddIdentity={this.props.onAddIdentity}
-        assertionKeys={this.props.assertionKeys}
-        backgroundColorType={this.props.backgroundColorType}
-        username={this.props.username}
-        name={this.props.name}
-        service={this.props.service}
-        serviceIcon={this.props.serviceIcon}
-        reason={this.props.reason}
-        sbsAvatarUrl={this.props.sbsAvatarUrl}
-        suggestionKeys={this.props.suggestionKeys}
-        onEditAvatar={this.props.onEditAvatar}
-        notAUser={this.props.notAUser}
-        fullName={this.props.fullName}
-        title={this.props.title}
+        onAddIdentity={p.onAddIdentity}
+        assertionKeys={p.assertionKeys}
+        backgroundColorType={p.backgroundColorType}
+        username={p.username}
+        name={p.name}
+        service={p.service}
+        serviceIcon={p.serviceIcon}
+        reason={p.reason}
+        sbsAvatarUrl={p.sbsAvatarUrl}
+        suggestionKeys={p.suggestionKeys}
+        onEditAvatar={p.onEditAvatar}
+        notAUser={p.notAUser}
+        fullName={p.fullName}
+        title={p.title}
       />
     ),
   } as const
 
-  _onMeasured = (width: number) => this.setState(p => (p.width !== width ? {width} : null))
-  _keyExtractor = (_: unknown, index: number) => String(index)
+  const keyExtractor = (_: unknown, index: number) => String(index)
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.username !== prevProps.username) {
-      this.props.onReload()
-    }
-  }
-
-  _errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
-
-  render() {
-    const friends =
-      this.state.selectedTab === 'following'
-        ? this.props.following
-        : this.state.selectedTab === 'followers'
-          ? this.props.followers
-          : null
-    const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
-    const chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
-    if (chunks.length === 0) {
-      if (this.props.following && this.props.followers) {
-        chunks.push({
-          text:
-            this.state.selectedTab === 'following'
-              ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
-              : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
-          type: 'noFriends',
-        })
-      } else {
-        chunks.push({
-          text: 'Loading...',
-          type: 'loading',
-        })
-      }
-    }
-
-    const containerStyle = {
-      paddingTop:
-        (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) +
-        this.props.insetTop,
-    }
-
-    return (
-      <Kb.Reloadable
-        reloadOnMount={true}
-        onReload={this.props.onReload}
-        waitingKeys={[Constants.profileLoadWaitingKey]}
-        errorFilter={this._errorFilter}
-        style={styles.reloadable}
+  return (
+    <Kb.Reloadable
+      reloadOnMount={true}
+      onReload={p.onReload}
+      waitingKeys={[Constants.profileLoadWaitingKey]}
+      errorFilter={errorFilter}
+      style={styles.reloadable}
+    >
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          fullHeight={true}
-          style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(this.props.backgroundColorType)])}
-        >
-          <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-            {!Kb.Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
-            {!!this.state.width && (
-              <Kb.SectionList<Section>
-                key={this.props.username + this.state.width /* force render on user change or width change */}
-                desktopReactListTypeOverride="variable"
-                desktopItemSizeEstimatorOverride={() => 113}
-                getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
-                stickySectionHeadersEnabled={true}
-                renderSectionHeader={this._renderSectionHeader}
-                keyExtractor={this._keyExtractor}
-                sections={
-                  [
-                    this._bioTeamProofsSection,
-                    {
-                      data: chunks,
-                      itemWidth,
-                      renderItem: this._renderOtherUsers,
-                    },
-                  ] as const
-                }
-                style={styles.sectionList}
-                contentContainerStyle={styles.sectionListContentStyle}
-              />
-            )}
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.innerContainer}>
+          {!Kb.Styles.isMobile && <Measure onMeasured={onMeasured} />}
+          {!!width && (
+            <Kb.SectionList<Section>
+              key={p.username + width /* force render on user change or width change */}
+              desktopReactListTypeOverride="variable"
+              desktopItemSizeEstimatorOverride={() => 113}
+              getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
+              stickySectionHeadersEnabled={true}
+              renderSectionHeader={renderSectionHeader}
+              keyExtractor={keyExtractor}
+              sections={
+                [
+                  bioTeamProofsSection,
+                  {
+                    data: chunks,
+                    itemWidth,
+                    renderItem: renderOtherUsers,
+                  },
+                ] as const
+              }
+              style={styles.sectionList}
+              contentContainerStyle={styles.sectionListContentStyle}
+            />
+          )}
         </Kb.Box2>
-      </Kb.Reloadable>
-    )
-  }
+      </Kb.Box2>
+    </Kb.Reloadable>
+  )
 }
 
-// don't bother to keep this in the store
 const usernameSelectedTab = new Map<string, Tab>()
 
 const avatarSize = 128

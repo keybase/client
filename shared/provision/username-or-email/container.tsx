@@ -3,8 +3,10 @@ import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as SignupConstants from '@/constants/signup'
-import Username from '.'
 import type {RPCError} from '@/util/errors'
+import * as Kb from '@/common-adapters'
+import UserCard from '@/login/user-card'
+import {SignupScreen, errorBanner} from '@/signup/common'
 
 type OwnProps = {fromReset?: boolean}
 
@@ -38,37 +40,139 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
-  const username = C.useProvisionState(s => s.username)
+  const _username = C.useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.Provision.waitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const _onBack = navigateUp
-  const onBack = Container.useSafeSubmit(_onBack, hasError)
+  const onBack = Container.useSafeSubmit(navigateUp, hasError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
   const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
-  const onGoToSignup = requestAutoInvite
-  const setUsername = C.useProvisionState(s => s.dispatch.dynamic.setUsername)
-  const onSubmit = React.useCallback(
+  const _onGoToSignup = requestAutoInvite
+  const _setUsername = C.useProvisionState(s => s.dispatch.dynamic.setUsername)
+  const _onSubmit = React.useCallback(
     (username: string) => {
-      !waiting && setUsername?.(username)
+      !waiting && _setUsername?.(username)
     },
-    [setUsername, waiting]
+    [_setUsername, waiting]
   )
+  const [username, setUsername] = React.useState(_username)
+  const onSubmit = React.useCallback(() => {
+    _onSubmit(username)
+  }, [_onSubmit, username])
+  const onGoToSignup = React.useCallback(() => {
+    _onGoToSignup(username)
+  }, [_onGoToSignup, username])
+
   return (
-    <Username
-      error={error}
-      initialUsername={username}
-      inlineError={inlineError}
-      inlineSignUpLink={inlineSignUpLink}
+    <SignupScreen
+      onRightAction={onGoToSignup}
+      rightActionLabel="Create account"
+      banners={
+        <>
+          {resetBannerUser ? (
+            <Kb.Banner color="green" key="resetBanner">
+              <Kb.BannerParagraph
+                bannerColor="green"
+                content={`You have successfully reset your account, ${resetBannerUser}. You can now log in as usual.`}
+              />
+            </Kb.Banner>
+          ) : null}
+          {errorBanner(error)}
+          {inlineSignUpLink ? (
+            <Kb.Banner key="usernameTaken" color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[
+                  "This username doesn't exist. Did you mean to ",
+                  {
+                    onClick: onGoToSignup,
+                    text: 'create a new account',
+                  },
+                  '?',
+                ]}
+              />
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
+      buttons={[
+        {
+          disabled: !username,
+          label: 'Log in',
+          onClick: onSubmit,
+          type: 'Default',
+          waiting: waiting,
+        },
+      ]}
       onBack={onBack}
-      onForgotUsername={onForgotUsername}
-      onGoToSignup={onGoToSignup}
-      onSubmit={onSubmit}
-      resetBannerUser={resetBannerUser}
-      waiting={waiting}
-    />
+      title="Log in"
+      contentContainerStyle={styles.contentContainer}
+    >
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.fill}
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        <UserCard
+          style={styles.card}
+          avatarBackgroundStyle={styles.outerCardAvatar}
+          outerStyle={styles.outerCard}
+          lighterPlaceholders={true}
+          avatarSize={96}
+        >
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
+            <Kb.LabeledInput
+              autoFocus={true}
+              placeholder="Username"
+              maxLength={C.Signup.maxUsernameLength}
+              onEnterKeyDown={onSubmit}
+              onChangeText={setUsername}
+              value={username}
+              textType="BodySemibold"
+            />
+            <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
+              Forgot username?
+            </Kb.Text>
+          </Kb.Box2>
+        </UserCard>
+      </Kb.ScrollView>
+    </SignupScreen>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      card: Kb.Styles.platformStyles({
+        common: {
+          alignItems: 'stretch',
+          backgroundColor: Kb.Styles.globalColors.transparent,
+        },
+        isMobile: {
+          paddingLeft: 0,
+          paddingRight: 0,
+        },
+        isTablet: {alignItems: 'center'},
+      }),
+      contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
+      fill: Kb.Styles.platformStyles({
+        isMobile: {height: '100%', width: '100%'},
+        isTablet: {width: 410},
+      }),
+      forgotUsername: {alignSelf: 'flex-end'},
+      outerCard: Kb.Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: {height: 'unset'},
+      }),
+      outerCardAvatar: {backgroundColor: Kb.Styles.globalColors.transparent},
+      scrollContentContainer: Kb.Styles.platformStyles({
+        isElectron: {margin: 'auto'},
+        isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
+      }),
+      wrapper: {width: Kb.Styles.globalStyles.mediumWidth},
+    }) as const
+)
+
 export default UsernameOrEmailContainer

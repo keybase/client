@@ -12,7 +12,6 @@ import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
-import logger from '@/logger'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {registerDebugClear} from '@/util/debug'
 export type PathParam = NavigateAppendType
@@ -56,8 +55,9 @@ const _isLoggedIn = (s: T.Immutable<NavState>) => {
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: T.Immutable<NavState>) => {
+export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
   const rs = navState || getRootState()
+  const inludeModals = _inludeModals ?? true
 
   const findVisibleRoute = (
     arr: T.Immutable<Array<Route>>,
@@ -78,7 +78,9 @@ export const getVisiblePath = (navState?: T.Immutable<NavState>) => {
     if (depth === 0) {
       childRoute = s.routes[0] as Route
       toAdd = [childRoute]
-      toAddModals = s.routes.slice(1) as Array<Route>
+      if (inludeModals) {
+        toAddModals = s.routes.slice(1) as Array<Route>
+      }
     } else {
       // include items in the stack
       if (s.type === 'stack') {
@@ -109,8 +111,8 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   return rs.routes?.slice(1) ?? []
 }
 
-export const getVisibleScreen = (navState?: T.Immutable<NavState>) => {
-  const visible = getVisiblePath(navState)
+export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
+  const visible = getVisiblePath(navState, _inludeModals ?? true)
   return visible.at(-1)
 }
 
@@ -249,7 +251,11 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   })
 
   if (!isEqual(rs, nextState)) {
-    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState as any), target: rs.key})
+    rs.key &&
+      _getNavigator()?.dispatch({
+        ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
+        target: rs.key,
+      })
   }
 }
 
@@ -265,6 +271,7 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
 // maybe other places also
 export const useSafeFocusEffect = (fn: () => void) => {
   try {
+    // eslint-disable-next-line
     useFocusEffect(fn)
   } catch {}
 }
@@ -284,7 +291,7 @@ export interface State extends Store {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
-    navigateAppend: (path: PathParam, replace?: boolean, fromKey?: string) => void
+    navigateAppend: (path: PathParam, replace?: boolean) => void
     navigateUp: () => void
     navUpToScreen: (name: RouteKeys) => void
     popStack: () => void
@@ -298,7 +305,7 @@ export interface State extends Store {
   appendPeopleBuilder: () => void
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       DEBUG_NAV && console.log('[Nav] clearModals')
@@ -330,9 +337,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
       })
-      n.dispatch(CommonActions.reset(nextState as any))
+      n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
     },
-    navigateAppend: (path, replace, fromKey) => {
+    navigateAppend: (path, replace) => {
       DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
       const n = _getNavigator()
       if (!n) {
@@ -362,21 +369,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      if (fromKey) {
-        if (fromKey !== visible?.key) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
+
       if (replace) {
         if (visible?.name === routeName) {
-          n.dispatch(CommonActions.setParams(params as object))
+          params && n.dispatch(CommonActions.setParams(params))
           return
         } else {
           n.dispatch(StackActions.replace(routeName, params))
           return
         }
       }
+
       n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {

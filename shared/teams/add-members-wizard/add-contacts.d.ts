@@ -1,4 +1,3 @@
 import type * as React from 'react'
-type Props = {}
-declare const AddContact: (p: Props) => React.ReactNode
+declare const AddContact: () => React.ReactNode
 export default AddContact

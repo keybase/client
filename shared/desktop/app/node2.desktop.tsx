@@ -151,8 +151,8 @@ const handleCrashes = () => {
   }
 
   Electron.app.on('browser-window-created', (_, win) => {
-    win.on('unresponsive', (e: Electron.Event) => {
-      console.log('Browser window unresponsive: ', e)
+    win.on('unresponsive', () => {
+      console.log('Browser window unresponsive')
       win.reload()
     })
 
@@ -211,8 +211,7 @@ const getStartupProcessArgs = () => {
 
 const handleActivate = () => {
   mainWindow?.show()
-  const _dock = Electron.app.dock
-  const dock = _dock as typeof _dock | undefined
+  const dock = Electron.app.dock
   dock
     ?.show()
     .then(() => {})
@@ -288,7 +287,7 @@ const showOpenDialog = async (opts: OpenDialogOptions) => {
     // Can't have both openFile and openDirectory on Windows/Linux
     // Source: https://www.electronjs.org/docs/api/dialog#dialogshowopendialogbrowserwindow-options
     const windowsOrLinux = isWindows || isLinux
-    const canAllowFiles = allowDirectories && windowsOrLinux ? false : allowFiles ?? true
+    const canAllowFiles = allowDirectories && windowsOrLinux ? false : (allowFiles ?? true)
     const allowedProperties = [
       ...(canAllowFiles ? ['openFile' as const] : []),
       ...(allowDirectories ? ['openDirectory' as const] : []),

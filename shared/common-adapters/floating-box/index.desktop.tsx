@@ -2,65 +2,51 @@ import * as React from 'react'
 import type {Props} from '.'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import type {MeasureDesktop} from '@/common-adapters/measure-ref'
+import noop from 'lodash/noop'
+import shallowEqual from 'shallowequal'
 
-type State = {
-  targetRect?: MeasureDesktop
-}
+const FloatingBox = (props: Props) => {
+  const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
+  const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
 
-class FloatingBox extends React.PureComponent<Props, State> {
-  state: State
+  const getTargetRect = React.useCallback(() => {
+    return attachTo?.current?.measure?.()
+  }, [attachTo])
+  const [targetRect, setTargetRect] = React.useState<MeasureDesktop | undefined>(getTargetRect())
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {targetRect: this._getTargetRect()}
-  }
+  React.useEffect(() => {
+    const tr = getTargetRect()
 
-  _getTargetRect = () => {
-    return this.props.attachTo?.current?.measure?.()
-  }
-
-  _onHidden = () => {
-    this.props.onHidden && this.props.onHidden()
-  }
-
-  componentDidUpdate() {
-    const targetRect = this._getTargetRect()
-    this.setState(p => {
-      if (p.targetRect === targetRect) {
-        return null
+    setTargetRect(t => {
+      if (t === tr) {
+        return t
       }
-      if (!p.targetRect || !targetRect) {
-        return {targetRect}
+      if (!t || !tr) {
+        return t || tr
       }
-      if (
-        p.targetRect.left !== targetRect.left ||
-        p.targetRect.top !== targetRect.top ||
-        p.targetRect.width !== targetRect.width ||
-        p.targetRect.height !== targetRect.height
-      ) {
-        return {targetRect}
+      if (shallowEqual(t, tr)) {
+        return t
       }
-      return null
+      return tr
     })
-  }
+  }, [getTargetRect])
 
-  render() {
-    return (
-      <RelativeFloatingBox
-        disableEscapeKey={this.props.disableEscapeKey}
-        position={this.props.position || 'bottom center'}
-        positionFallbacks={this.props.positionFallbacks}
-        targetRect={this.state.targetRect}
-        matchDimension={!!this.props.matchDimension}
-        onClosePopup={this._onHidden}
-        remeasureHint={this.props.remeasureHint}
-        propagateOutsideClicks={this.props.propagateOutsideClicks}
-        style={this.props.containerStyle}
-      >
-        {this.props.children}
-      </RelativeFloatingBox>
-    )
-  }
+  return (
+    <RelativeFloatingBox
+      disableEscapeKey={disableEscapeKey}
+      position={position || 'bottom center'}
+      positionFallbacks={positionFallbacks}
+      targetRect={targetRect}
+      matchDimension={!!matchDimension}
+      onClosePopup={onHidden || noop}
+      remeasureHint={remeasureHint}
+      propagateOutsideClicks={propagateOutsideClicks}
+      style={containerStyle}
+      offset={offset}
+    >
+      {children}
+    </RelativeFloatingBox>
+  )
 }
 
 export default FloatingBox

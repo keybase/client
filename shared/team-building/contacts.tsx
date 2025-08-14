@@ -29,8 +29,8 @@ const useContactsProps = () => {
     contactsPermissionStatus === 'denied'
       ? undefined
       : contactsPermissionStatus === 'granted'
-      ? onImportContactsPermissionsGranted
-      : onImportContactsPermissionsNotGranted
+        ? onImportContactsPermissionsGranted
+        : onImportContactsPermissionsNotGranted
 
   return {
     contactsImported,

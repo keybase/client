@@ -31,56 +31,55 @@ type Props = {
   waiting: boolean
 }
 
-export class PaperKey extends React.Component<Props, {paperKey: string}> {
-  state = {paperKey: ''}
-  _onSubmit = () => this.props.onSubmit(this.state.paperKey)
+export const PaperKey = (props: Props) => {
+  const [paperKey, setPaperKey] = React.useState('')
 
-  render() {
-    const props = this.props
-
-    return (
-      <SignupScreen
-        banners={errorBanner(props.error)}
-        buttons={[
-          {
-            disabled: !this.state.paperKey,
-            label: 'Continue',
-            onClick: this._onSubmit,
-            type: 'Success',
-            waiting: props.waiting,
-          },
-        ]}
-        noBackground={true}
-        onBack={this.props.onBack}
-        title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
-      >
-        <Kb.Box2
-          direction="vertical"
-          style={styles.contents}
-          centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-          gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
-        >
-          <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.Icon type="icon-paper-key-64" />
-            <Kb.Text type="Header">{props.hint}</Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={styles.inputContainer}>
-            <Kb.PlainInput
-              autoFocus={true}
-              multiline={true}
-              rowsMax={3}
-              placeholder="Type in your entire paper key"
-              textType="Body"
-              style={styles.input}
-              onEnterKeyDown={this._onSubmit}
-              onChangeText={paperKey => this.setState({paperKey})}
-              value={this.state.paperKey}
-            />
-          </Kb.Box2>
-        </Kb.Box2>
-      </SignupScreen>
-    )
+  const _onSubmit = () => {
+    props.onSubmit(paperKey)
   }
+
+  return (
+    <SignupScreen
+      banners={errorBanner(props.error)}
+      buttons={[
+        {
+          disabled: !paperKey,
+          label: 'Continue',
+          onClick: _onSubmit,
+          type: 'Success',
+          waiting: props.waiting,
+        },
+      ]}
+      noBackground={true}
+      onBack={props.onBack}
+      title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
+    >
+      <Kb.Box2
+        direction="vertical"
+        style={styles.contents}
+        centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
+      >
+        <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
+          <Kb.Icon type="icon-paper-key-64" />
+          <Kb.Text type="Header">{props.hint}</Kb.Text>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.inputContainer}>
+          <Kb.PlainInput
+            autoFocus={true}
+            multiline={true}
+            rowsMax={3}
+            placeholder="Type in your entire paper key"
+            textType="Body"
+            style={styles.input}
+            onEnterKeyDown={_onSubmit}
+            onChangeText={setPaperKey}
+            value={paperKey}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </SignupScreen>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

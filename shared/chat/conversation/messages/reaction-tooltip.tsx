@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import ReactButton from './react-button/container'
+import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from './ids-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
 export type Props = {
-  attachmentRef?: React.RefObject<Kb.MeasureRef>
+  attachmentRef?: React.RefObject<Kb.MeasureRef | null>
   onAddReaction: () => void
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
@@ -25,7 +25,7 @@ export type Props = {
 }
 
 type OwnProps = {
-  attachmentRef?: React.RefObject<Kb.MeasureRef>
+  attachmentRef?: React.RefObject<Kb.MeasureRef | null>
   emoji?: string
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void

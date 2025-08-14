@@ -1,6 +1,3 @@
 import type * as React from 'react'
-
-export type Props = {}
-
-declare const ScreenProtector: (p: Props) => React.ReactNode
+declare const ScreenProtector: () => React.ReactNode
 export default ScreenProtector

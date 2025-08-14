@@ -6,28 +6,26 @@ import * as T from '@/constants/types'
 
 type OwnProps = {deviceID: string}
 
-class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
-  _renderTLFEntry = (index: number, tlf: string) => (
-    <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
-      <Kb.Text type="BodySemibold">•</Kb.Text>
-      <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
-        {tlf}
+const _renderTLFEntry = (index: number, tlf: string) => (
+  <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
+    <Kb.Text type="BodySemibold">•</Kb.Text>
+    <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
+      {tlf}
+    </Kb.Text>
+  </Kb.Box2>
+)
+const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
+  if (!props.endangeredTLFs.length) return null
+  return (
+    <>
+      <Kb.Text center={true} type="Body">
+        You may lose access to these folders forever:
       </Kb.Text>
-    </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.listContainer}>
+        <Kb.List items={props.endangeredTLFs} renderItem={_renderTLFEntry} indexAsKey={true} />
+      </Kb.Box2>
+    </>
   )
-  render() {
-    if (!this.props.endangeredTLFs.length) return null
-    return (
-      <>
-        <Kb.Text center={true} type="Body">
-          You may lose access to these folders forever:
-        </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.listContainer}>
-          <Kb.List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} indexAsKey={true} />
-        </Kb.Box2>
-      </>
-    )
-  }
 }
 
 const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (

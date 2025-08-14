@@ -12,17 +12,16 @@ type Props = {
 }
 
 export const useBottom = (ordinal: T.Chat.Ordinal) => {
-  const {id, hasCoinFlip, hasUnfurlList} = C.useChatContext(
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
       const hasUnfurlList = (message?.unfurls?.size ?? 0) > 0
       const id = message?.id
-      return {hasCoinFlip, hasUnfurlList, id}
+      const hasUnfurlPrompts = !!id && !!s.unfurlPrompt.get(id)?.size
+      return {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts}
     })
   )
-
-  const hasUnfurlPrompts = C.useChatContext(s => !!id && !!s.unfurlPrompt.get(id)?.size)
 
   return React.useMemo(
     () => (

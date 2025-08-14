@@ -14,7 +14,6 @@ type Store = T.Immutable<{
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
-const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
 const isTeamPageAction = (a?: string): a is TeamPageAction => {
   switch (a) {
     case 'add_or_invite':
@@ -26,7 +25,7 @@ const isTeamPageAction = (a?: string): a is TeamPageAction => {
   }
 }
 
-type TeamPageAction = (typeof teamPageActions)[number]
+type TeamPageAction = 'add_or_invite' | 'manage_settings' | 'join'
 
 // This logic is copied from go/protocol/keybase1/extras.go.
 const validTeamnamePart = (s: string): boolean => {
@@ -54,7 +53,7 @@ interface State extends Store {
   }
 }
 
-export const _useState = Z.createZustand<State>((set, get) => {
+export const useState_ = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
     C.useProfileState.getState().dispatch.showUserProfile(username)
@@ -155,6 +154,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     handleKeybaseLink: link => {
+      if (!link) return
       const error =
         "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and needs to be updated."
       const parts = link.split('/')
@@ -191,7 +191,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            C.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
+            const conversationIDKey = parts[1]
+            if (conversationIDKey) {
+              C.getConvoState(conversationIDKey).dispatch.navigateToThread('navChanged')
+            }
             return
           }
           break
@@ -258,6 +261,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         case 'settingsPushPrompt':
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          return
+        case Tabs.teamsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
+          return
+        case Tabs.fsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
+          return
+        case Tabs.chatTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+          return
+        case Tabs.peopleTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          return
+        case Tabs.settingsTab:
+          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
           return
         default:
         // Fall through to the error return below.

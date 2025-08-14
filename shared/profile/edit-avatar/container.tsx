@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type * as ImagePicker from 'expo-image-picker'
+import type {ImageInfo} from '@/util/expo-image-picker.native'
 import EditAvatar from '.'
 
 type OwnProps = {
-  image?: ImagePicker.ImagePickerAsset
+  image?: ImageInfo
   sendChatNotification?: boolean
   showBack?: boolean
   teamID?: string
