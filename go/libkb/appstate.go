@@ -25,7 +25,7 @@ type MobileAppState struct {
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
 	if runtime.GOOS == "android" {
-		// start as background
+		// on android we init earlier so we're in this state and then we transition to foreground later
 		return &MobileAppState{
 			Contextified: NewContextified(g),
 			state:        keybase1.MobileAppState_BACKGROUND,
