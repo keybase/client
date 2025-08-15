@@ -60,14 +60,7 @@ declare module 'react-is' {
   export function isValidElementType(value: unknown): value is React.ElementType
 }
 
-declare module 'fs-extra' {
-  import type {StatSyncFn} from 'fs'
-  export const copy: (src: string, dst: string) => Promise<void>
-  export const copySync: (src: string, dst: string, options?: {dereference?: boolean}) => void
-  export const removeSync: (src: string) => void
-  export const statSync: StatSyncFn
-  export const writeJsonSync: (dst: string, o: {}) => void
-}
+// fs-extra declarations no longer needed; using Node's fs
 
 declare module 'mousetrap' {
   export const bind: (

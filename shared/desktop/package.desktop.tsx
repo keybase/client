@@ -1,5 +1,5 @@
 import {rimrafSync} from 'rimraf'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import os from 'os'
 import packager, {type Options} from '@electron/packager'
 import path from 'path'
@@ -32,16 +32,39 @@ async function walk(dir: string, onlyExts: Array<string>): Promise<Array<string>
 const copySyncFolder = async (src: string, target: string, onlyExts: Array<string>) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
-  const files = await walk(srcRoot, onlyExts)
+  const allPaths = await walk(srcRoot, onlyExts)
 
-  const relSrcs = files.map(f => f.substring(srcRoot.length))
-  const dsts = relSrcs.map(f => path.join(dstRoot, f))
+  // Filter to files matching the allowed extensions
+  const files = allPaths.filter(p => onlyExts.includes(path.extname(p)))
 
-  relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx] ?? ''))
+  files.forEach(srcAbs => {
+    const rel = srcAbs.substring(srcRoot.length)
+    const dstAbs = path.join(dstRoot, rel)
+    const dstDir = path.dirname(dstAbs)
+    if (!fs.existsSync(dstDir)) {
+      fs.mkdirSync(dstDir, {recursive: true})
+    }
+    // Use Node's cpSync with dereference similar to fs-extra's default in this script
+    if (typeof (fs as any).cpSync === 'function') {
+      ;(fs as any).cpSync(srcAbs, dstAbs, {dereference: true})
+    } else {
+      fs.copyFileSync(srcAbs, dstAbs)
+    }
+  })
 }
 
-const copySync = (src: string, target: string, options?: object) => {
-  fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
+const copySync = (src: string, target: string, _options?: object) => {
+  const srcAbs = desktopPath(src)
+  const dstAbs = desktopPath(target)
+  const dstDir = path.dirname(dstAbs)
+  if (!fs.existsSync(dstDir)) {
+    fs.mkdirSync(dstDir, {recursive: true})
+  }
+  if (typeof (fs as any).cpSync === 'function') {
+    ;(fs as any).cpSync(srcAbs, dstAbs, {dereference: true})
+  } else {
+    fs.copyFileSync(srcAbs, dstAbs)
+  }
 }
 
 const getArgs = () => {
@@ -162,17 +185,25 @@ async function main() {
   await copySyncFolder('../images', 'build/images', ['.gif', '.png'])
   if (TEMP_SKIP_BUILD) {
   } else {
-    fs.removeSync(desktopPath('build/images/folders'))
-    fs.removeSync(desktopPath('build/images/iconfont'))
-    fs.removeSync(desktopPath('build/images/mock'))
-    fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
+    fs.rmSync(desktopPath('build/images/folders'), {recursive: true, force: true})
+    fs.rmSync(desktopPath('build/images/iconfont'), {recursive: true, force: true})
+    fs.rmSync(desktopPath('build/images/mock'), {recursive: true, force: true})
+    fs.rmSync(desktopPath('build/desktop/renderer/fonts'), {recursive: true, force: true})
   }
 
-  fs.writeJsonSync(desktopPath('build/package.json'), {
-    main: 'desktop/dist/node.bundle.js',
-    name: appName,
-    version: appVersion,
-  })
+  fs.writeFileSync(
+    desktopPath('build/package.json'),
+    JSON.stringify(
+      {
+        main: 'desktop/dist/node.bundle.js',
+        name: appName,
+        version: appVersion,
+      },
+      null,
+      2
+    ),
+    {encoding: 'utf8'}
+  )
 
   try {
     await startPack()
@@ -207,7 +238,7 @@ async function startPack() {
 
     await copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
     await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
-    fs.removeSync(desktopPath('build/desktop/dist/fonts'))
+    fs.rmSync(desktopPath('build/desktop/dist/fonts'), {recursive: true, force: true})
 
     rimrafSync(desktopPath('release'))
 

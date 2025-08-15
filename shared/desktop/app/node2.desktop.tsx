@@ -9,7 +9,7 @@ import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
-import fse from 'fs-extra'
+import {copyFile} from 'node:fs/promises'
 import {spawn, execFile, exec} from 'child_process'
 import * as RemoteGen from '@/actions/remote-gen'
 import startWinService from './start-win-service.desktop'
@@ -339,12 +339,12 @@ const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
-  await fse.copy(options.originalFilePath, dst)
+  await copyFile(options.originalFilePath, dst)
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
-  await fse.copy(options.originalFilePath, options.dst)
+  await copyFile(options.originalFilePath, options.dst)
   return true
 }
 
