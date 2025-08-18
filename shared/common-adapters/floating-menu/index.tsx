@@ -14,9 +14,10 @@ import {
   BottomSheetModal,
   BottomSheetView,
   BottomSheetBackdrop,
+  BottomSheetHandle,
+  type BottomSheetHandleProps,
   type BottomSheetBackdropProps,
 } from '@/common-adapters/bottom-sheet'
-import {BottomSheetHandle, type BottomSheetHandleProps} from '@gorhom/bottom-sheet'
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
