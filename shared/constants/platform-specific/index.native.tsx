@@ -150,7 +150,7 @@ const loadStartupDetails = async () => {
     C.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails guiconfig', {initialUrl, push, routestate})
+  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails guiconfig', {initialUrl, push, routeState})
 
   // Clear last value to be extra safe bad things don't hose us forever
   try {
