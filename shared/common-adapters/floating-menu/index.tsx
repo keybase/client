@@ -16,6 +16,7 @@ import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
 } from '@/common-adapters/bottom-sheet'
+import {BottomSheetHandle, type BottomSheetHandleProps} from '@gorhom/bottom-sheet'
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
@@ -52,6 +53,10 @@ export type Props = {
 
 const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
+})
+
+const Handle = React.memo(function Handle(p: BottomSheetHandleProps) {
+  return <BottomSheetHandle {...p} style={styles.customHandleStyle} />
 })
 
 const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
@@ -120,6 +125,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}
         backdropComponent={Backdrop}
+        handleComponent={Handle}
         onDismiss={props.onHidden}
       >
         <BottomSheetView style={undefined}>{contents}</BottomSheetView>
@@ -147,6 +153,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      customHandleStyle: {},
       handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
       handleStyle: {backgroundColor: Styles.globalColors.black_05_on_white},
       modalBackground: {backgroundColor: Styles.globalColors.black_05_on_white},
