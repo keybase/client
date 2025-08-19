@@ -235,7 +235,12 @@ export const initPlatformListener = () => {
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
-    C.useConfigState.getState().dispatch.setStartupDetailsLoaded()
+    C.useConfigState.getState().dispatch.setStartupDetails({
+      conversation: C.Chat.noConversationIDKey,
+      followUser: '',
+      link: '',
+      tab: undefined,
+    })
   })
 
   if (isLinux) {

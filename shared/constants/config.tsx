@@ -223,7 +223,6 @@ interface State extends Store {
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
-    setStartupDetailsLoaded: () => void
     setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
@@ -1160,11 +1159,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           ...st,
           loaded: true,
         }
-      })
-    },
-    setStartupDetailsLoaded: () => {
-      set(s => {
-        s.startup.loaded = true
       })
     },
     setUseNativeFrame: use => {
