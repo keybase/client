@@ -349,8 +349,12 @@ const isValidLink = (link: string) => {
   }
 }
 
+const TEMP_STARTUP_DEBUGGING = true as boolean
+const TEMP_STARTUP_DEBUGGING_ID = Math.random()
+
 const useInitialState = () => {
   const startup = C.useConfigState(s => s.startup)
+  TEMP_STARTUP_DEBUGGING && logger.error('aaa useInitialState ', TEMP_STARTUP_DEBUGGING_ID, startup)
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
   let {conversation: startupConversation} = startup
 
@@ -467,6 +471,8 @@ const useInitialState = () => {
     startupTab,
   ])
 
+  TEMP_STARTUP_DEBUGGING &&
+    logger.error('aaa useInitialState ret', TEMP_STARTUP_DEBUGGING_ID, initialState, initialStateState)
   return {initialState, initialStateState}
 }
 
