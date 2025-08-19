@@ -133,9 +133,10 @@ export const showShareActionSheet = async (options: {
 }
 
 const TEMP_STARTUP_DEBUGGING = true as boolean
+const TEMP_STARTUP_DEBUGGING_ID = Math.random()
 
 const loadStartupDetails = async () => {
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails ')
+  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails ', TEMP_STARTUP_DEBUGGING_ID)
 
   const [routeState, initialUrl, push] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {
