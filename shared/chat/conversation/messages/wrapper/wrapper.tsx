@@ -416,7 +416,8 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
-  const reactionsPopup =
+  // this exists and is shown using css to avoid thrashing
+  const desktopReactionsPopup =
     !C.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
@@ -433,7 +434,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       {bottomChildren ?? null}
       {ecrType !== EditCancelRetryType.NONE ? <EditCancelRetry ecrType={ecrType} /> : null}
       {reactionsRow}
-      {reactionsPopup}
+      {desktopReactionsPopup}
     </>
   )
 })
@@ -603,7 +604,6 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           border: `1px solid ${Kb.Styles.globalColors.black_10}`,
           borderRadius: Kb.Styles.borderRadius,
-          bottom: -Kb.Styles.globalMargins.medium + 3,
           paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
