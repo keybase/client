@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as C from '@/constants'
 import Header from './inbox-and-conversation-header'
-import {useWindowDimensions} from 'react-native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
 const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
 type OwnProps = C.ViewPropsToPagePropsMaybe<typeof Split>
@@ -25,7 +25,7 @@ const getOptions = Kb.Styles.isTablet
     }
 
 const TabletHeader = React.memo(function TabletHeader() {
-  const {width} = useWindowDimensions()
+  const {width} = useSafeAreaFrame()
   return (
     <Kb.Box2
       direction="horizontal"
