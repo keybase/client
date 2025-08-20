@@ -4,6 +4,7 @@ import type {StylesCrossPlatform} from '@/styles'
 import {OrdinalContext} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
+import {colors, darkColors} from '@/styles/colors'
 
 export type OwnProps = {
   className?: string
@@ -17,6 +18,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const ordinal = React.useContext(OrdinalContext)
   const {onLongPress, style, emoji, className} = p
   const me = C.useCurrentUserState(s => s.username)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode)
   const {active, count, decorated} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
@@ -48,7 +50,13 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
       onClick={onClick}
-      style={Kb.Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
+      style={Kb.Styles.collapseStyles([
+        styles.borderBase,
+        {borderColor: isDarkMode() ? darkColors.black_10 : colors.black_10},
+        styles.buttonBox,
+        active && styles.active,
+        style,
+      ])}
     >
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny">
         <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
@@ -116,7 +124,8 @@ const styles = Kb.Styles.styleSheetCreate(
         borderColor: Kb.Styles.globalColors.blue,
       },
       borderBase: {
-        borderColor: Kb.Styles.globalColors.black_10,
+        // dynamicColorIOS seems to fail here in the new arch
+        //borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
       },
