@@ -130,7 +130,7 @@ const Keybase = () => {
   const {unmountAll, show} = useUnmountAll()
 
   return show ? (
-    <KeyboardProvider>
+    <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
       <WRAP>
         <ReducedMotionConfig mode={ReduceMotion.Never} />
         <GestureHandlerRootView style={styles.gesture}>
