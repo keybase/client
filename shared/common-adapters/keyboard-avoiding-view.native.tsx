@@ -18,6 +18,7 @@ export const KeyboardAvoidingView2 = (p: Props) => {
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
   return (
     <KeyboardAvoidingView
+      //behavior={Styles.isIOS ? 'padding' : 'height'}
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
