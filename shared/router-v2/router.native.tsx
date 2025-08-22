@@ -353,7 +353,7 @@ const isValidLink = (link: string) => {
 const TEMP_STARTUP_DEBUGGING = true as boolean
 const TEMP_STARTUP_DEBUGGING_ID = Math.random()
 
-const useInitialState = () => {
+const useInitialState = (loggedInLoaded: boolean) => {
   const startup = C.useConfigState(s => s.startup)
   TEMP_STARTUP_DEBUGGING && logger.error('aaa useInitialState ', TEMP_STARTUP_DEBUGGING_ID, startup)
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
@@ -375,6 +375,12 @@ const useInitialState = () => {
 
   React.useEffect(() => {
     if (!startupLoaded) return
+
+    if (!loggedInLoaded) {
+      TEMP_STARTUP_DEBUGGING &&
+        logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'bail notlogged in loaded')
+      return
+    }
     if (initialStateState !== 'init') {
       return
     }
@@ -516,7 +522,7 @@ const RNApp = React.memo(function RNApp() {
     return loaded
   })
 
-  const {initialState, initialStateState} = useInitialState()
+  const {initialState, initialStateState} = useInitialState(loggedInLoaded)
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
