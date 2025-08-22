@@ -486,14 +486,15 @@ const useInitialState = (loggedInLoaded: boolean) => {
 
     C.ignorePromise(f())
   }, [
-    loggedIn,
-    startupLoaded,
+    androidShare,
     initialState,
     initialStateState,
-    androidShare,
+    loggedIn,
+    loggedInLoaded,
     showMonster,
     startupConversation,
     startupFollowUser,
+    startupLoaded,
     startupTab,
   ])
 
