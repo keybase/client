@@ -216,8 +216,6 @@ const loadStartupDetails = async () => {
     link,
     tab: tab as Tabs.Tab,
   })
-
-  afterStartupDetails(false)
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
@@ -344,9 +342,6 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
   }
 }
 
-// if we are making the daemon wait then run this to cleanup
-let afterStartupDetails = (_done: boolean) => {}
-
 export const initPlatformListener = () => {
   let _lastPersist = ''
   C.useConfigState.setState(s => {
@@ -427,20 +422,6 @@ export const initPlatformListener = () => {
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
-
-    // loadStartupDetails finished already
-    if (C.useConfigState.getState().startup.loaded) {
-      afterStartupDetails = (_inc: boolean) => {}
-    } else {
-      // Else we have to wait for the loadStartupDetails to finish
-      const {wait} = C.useDaemonState.getState().dispatch
-      const version = s.handshakeVersion
-      const startupDetailsWaiting = 'platform.native-waitStartupDetails'
-      afterStartupDetails = (inc: boolean) => {
-        wait(startupDetailsWaiting, version, inc)
-      }
-      afterStartupDetails(true)
-    }
 
     if (isAndroid) {
       C.ignorePromise(
