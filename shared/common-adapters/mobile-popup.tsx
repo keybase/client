@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-import {useWindowDimensions} from 'react-native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
 const Kb = {
   Box2,
@@ -17,7 +17,7 @@ type Props = {
 }
 
 const MobilePopup = (props: Props) => {
-  const {height} = useWindowDimensions()
+  const {height} = useSafeAreaFrame()
   return (
     <Kb.FloatingBox>
       <Kb.KeyboardAvoidingView2>

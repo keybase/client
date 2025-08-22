@@ -8,7 +8,7 @@ import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 // import {DebugChatDumpContext} from '@/constants/chat2/debug'
 import * as Styles from '@/styles'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import {useWindowDimensions} from 'react-native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -150,7 +150,7 @@ const ShhIcon = React.memo(function ShhIcon() {
 })
 
 const useMaxWidthStyle = () => {
-  const {width} = useWindowDimensions()
+  const {width} = useSafeAreaFrame()
   const hasBadge = useBackBadge() > 0
   const w = width - 140 - (hasBadge ? 40 : 0)
   return React.useMemo(() => ({maxWidth: w, minWidth: w}), [w])
