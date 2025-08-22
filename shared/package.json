@@ -123,7 +123,6 @@
     "react-native": "0.79.3",
     "react-native-gesture-handler": "2.27.2",
     "react-native-hw-keyboard-event": "0.0.4",
-    "react-native-keyboard-controller": "1.18.5",
     "react-native-reanimated": "3.19.0",
     "react-native-safe-area-context": "5.5.2",
     "react-native-screens": "4.12.0",
