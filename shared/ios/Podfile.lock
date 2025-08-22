@@ -2619,7 +2619,7 @@ SPEC CHECKSUMS:
   React-logger: 514fac028fee60c84591f951c7c04ba1c5023334
   React-Mapbuffer: 02f95b72f631228befdfb7e71ad8e2e12b6dae0d
   React-microtasksnativemodule: 953b922f9473c100dd153cc51739e0d210bfd617
-  react-native-drop-view: c9947590f2147a670a65f37f327f8f9bd500df1b
+  react-native-drop-view: c98c94afe3b486bdc74b4a325f51b448f4f0c7fc
   react-native-hw-keyboard-event: 0821ba9b3613fac77a44b44927a301d3e5af4f12
   react-native-kb: c8be99b694b6f1c7e338aaa624ddb1556c910365
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
