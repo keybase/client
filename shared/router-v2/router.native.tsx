@@ -7,8 +7,7 @@ import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
 import {shim, getOptions} from './shim'
 import logger from '@/logger'
-import {StatusBar, View, Linking} from 'react-native'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {StatusBar, View, useWindowDimensions, Linking} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
@@ -76,7 +75,7 @@ const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boo
     // notifications gets badged on native if there's no push, special case
     onSettings && !hasPermissions ? 1 : 0
   )
-  const {width: screenWidth} = useSafeAreaFrame()
+  const {width: screenWidth} = useWindowDimensions()
   const data = tabToData.get(routeName)
   return data ? (
     <View

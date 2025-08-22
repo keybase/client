@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '@/common-adapters/drop-view.native'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
@@ -12,6 +12,7 @@ import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal2/max-input-area-context'
+import {useWindowDimensions} from 'react-native'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -101,7 +102,7 @@ const Conversation = React.memo(function Conversation() {
 
   const insets = useSafeAreaInsets()
   const headerHeight = Kb.Styles.isTablet ? 115 : 44
-  const windowHeight = useSafeAreaFrame().height
+  const windowHeight = useWindowDimensions().height
   const height = windowHeight - insets.top - headerHeight
 
   const safeStyle = React.useMemo(

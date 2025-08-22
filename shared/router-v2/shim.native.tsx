@@ -1,13 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './shim.shared'
-import {
-  SafeAreaProvider,
-  initialWindowMetrics,
-  useSafeAreaInsets,
-  useSafeAreaFrame,
-} from 'react-native-safe-area-context'
-import {View} from 'react-native'
+import {SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets} from 'react-native-safe-area-context'
+import {View, useWindowDimensions} from 'react-native'
 import type {RouteMap, GetOptionsRet, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 
@@ -61,7 +56,7 @@ const ModalWrapper = (p: {children: React.ReactNode; navigationOptions: GetOptio
 
   const {bottom} = useSafeAreaInsets()
   // adjust for being down, like the keyboard
-  const {height} = useSafeAreaFrame()
+  const {height} = useWindowDimensions()
 
   const style = fullModal
     ? undefined

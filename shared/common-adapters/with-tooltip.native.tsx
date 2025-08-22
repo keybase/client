@@ -7,8 +7,7 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
 import type {Props} from './with-tooltip'
-import {View} from 'react-native'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {View, useWindowDimensions} from 'react-native'
 
 // This uses a similar mechanism to relative-popup-hoc.desktop.js. It's only
 // ever used for tooltips on mobile for now. If we end up needing relative
@@ -53,7 +52,7 @@ const WithTooltip = (props: Props) => {
     setVisible(false)
   }, 3000)
   const isMounted = C.useIsMounted()
-  const {width: screenWidth, height: screenHeight} = useSafeAreaFrame()
+  const {width: screenWidth, height: screenHeight} = useWindowDimensions()
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
   C.Router2.useSafeFocusEffect(

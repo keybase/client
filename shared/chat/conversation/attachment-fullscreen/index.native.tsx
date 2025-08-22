@@ -7,8 +7,7 @@ import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 import {useData, usePreviewFallback} from './hooks'
-import {type GestureResponderEvent, Animated, View} from 'react-native'
-import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {type GestureResponderEvent, Animated, View, useWindowDimensions} from 'react-native'
 import {Image} from 'expo-image'
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
@@ -59,7 +58,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
 
-  const {width: windowWidth} = useSafeAreaFrame()
+  const {width: windowWidth} = useWindowDimensions()
   const needDiff = windowWidth / 3
   const initialTouch = React.useRef(-1)
   const maxTouchesRef = React.useRef(0)
