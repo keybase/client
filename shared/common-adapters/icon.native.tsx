@@ -3,10 +3,9 @@ import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
-import {Image as RNImage, Text as RNText} from 'react-native'
+import {Pressable, Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
 import type {MeasureRef} from './measure-ref'
-import {Pressable} from 'react-native-gesture-handler'
 
 type TextProps = {
   children: React.ReactNode
