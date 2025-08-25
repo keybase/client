@@ -162,6 +162,11 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) (err error) {
+
+	// better crash logging
+    os.Setenv("GOTRACEBACK", "crash")
+    debug.SetTraceback("all")
+
 	defer func() {
 		err = flattenError(err)
 		if err == nil {

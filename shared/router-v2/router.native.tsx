@@ -350,12 +350,8 @@ const isValidLink = (link: string) => {
   }
 }
 
-const TEMP_STARTUP_DEBUGGING = true as boolean
-const TEMP_STARTUP_DEBUGGING_ID = Math.random()
-
 const useInitialState = (loggedInLoaded: boolean) => {
   const startup = C.useConfigState(s => s.startup)
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa useInitialState ', TEMP_STARTUP_DEBUGGING_ID, startup)
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
   let {conversation: startupConversation} = startup
 
@@ -377,8 +373,6 @@ const useInitialState = (loggedInLoaded: boolean) => {
     if (!startupLoaded) return
 
     if (!loggedInLoaded) {
-      TEMP_STARTUP_DEBUGGING &&
-        logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'bail notlogged in loaded')
       return
     }
     if (initialStateState !== 'init') {
@@ -388,35 +382,23 @@ const useInitialState = (loggedInLoaded: boolean) => {
     const loadInitialURL = async () => {
       let url = await Linking.getInitialURL()
 
-      TEMP_STARTUP_DEBUGGING && logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, url)
-
       // don't try and resume or follow links if we're signed out
       if (!loggedIn) {
-        TEMP_STARTUP_DEBUGGING &&
-          logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'login bail')
         return
       }
 
       if (!url && showMonster) {
         url = 'keybase://settingsPushPrompt'
-        TEMP_STARTUP_DEBUGGING &&
-          logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'monster')
       }
       if (!url && androidShare) {
         url = `keybase://incoming-share`
-        TEMP_STARTUP_DEBUGGING &&
-          logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'androidshare')
       }
 
       if (url && isValidLink(url)) {
-        TEMP_STARTUP_DEBUGGING &&
-          logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'url valid use timeout')
         setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
       } else if (startupFollowUser && !startupConversation) {
         url = `keybase://profile/show/${startupFollowUser}`
 
-        TEMP_STARTUP_DEBUGGING &&
-          logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'follow link')
         if (isValidLink(url)) {
           const initialTabState = {
             state: {
@@ -440,8 +422,6 @@ const useInitialState = (loggedInLoaded: boolean) => {
         }
       } else if (startupTab || startupConversation) {
         try {
-          TEMP_STARTUP_DEBUGGING &&
-            logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'tab or chat')
           const tab = startupConversation ? Tabs.chatTab : startupTab
           C.Chat.useState_.getState().dispatch.unboxRows([startupConversation])
           C.Chat.getConvoState_(startupConversation).dispatch.loadMoreMessages({
@@ -460,8 +440,6 @@ const useInitialState = (loggedInLoaded: boolean) => {
               }
             : {}
 
-          TEMP_STARTUP_DEBUGGING &&
-            logger.error('aaa useInitialState effect', TEMP_STARTUP_DEBUGGING_ID, 'setinitialstate')
           setInitialState({
             index: 0,
             routes: [
@@ -498,8 +476,6 @@ const useInitialState = (loggedInLoaded: boolean) => {
     startupTab,
   ])
 
-  TEMP_STARTUP_DEBUGGING &&
-    logger.error('aaa useInitialState ret', TEMP_STARTUP_DEBUGGING_ID, initialState, initialStateState)
   return {initialState, initialStateState}
 }
 
