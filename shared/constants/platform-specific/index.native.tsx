@@ -132,12 +132,7 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-const TEMP_STARTUP_DEBUGGING = true as boolean
-const TEMP_STARTUP_DEBUGGING_ID = Math.random()
-
 const loadStartupDetails = async () => {
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails ', TEMP_STARTUP_DEBUGGING_ID)
-
   const [routeState, initialUrl, push] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {
       try {
@@ -150,8 +145,6 @@ const loadStartupDetails = async () => {
     C.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     C.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
-
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails guiconfig', {initialUrl, push, routeState})
 
   // Clear last value to be extra safe bad things don't hose us forever
   try {
@@ -168,14 +161,10 @@ const loadStartupDetails = async () => {
 
   // Top priority, push
   if (push) {
-    TEMP_STARTUP_DEBUGGING &&
-      logger.error('aaa loadStartupDetails push', push.startupConversation, push.startupFollowUser)
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     conversation = push.startupConversation
     followUser = push.startupFollowUser ?? ''
   } else if (initialUrl) {
-    TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails link', link)
-    logger.info('initialState: link', link)
     // Second priority, deep link
     link = initialUrl
   } else if (routeState) {
@@ -185,7 +174,6 @@ const loadStartupDetails = async () => {
         | undefined
         | {param?: {selectedConversationIDKey?: unknown}; routeName?: string}
       if (item) {
-        TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails routestate', item)
         const _convo = item.param?.selectedConversationIDKey || undefined
         if (typeof _convo === 'string') {
           conversation = _convo
@@ -197,7 +185,6 @@ const loadStartupDetails = async () => {
         }
       }
     } catch {
-      TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails routestate parsefail')
       logger.info('initialState: routeState parseFail')
       conversation = undefined
       tab = ''
@@ -209,7 +196,6 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
-  TEMP_STARTUP_DEBUGGING && logger.error('aaa loadStartupDetails setstartupdetails')
   C.useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? C.Chat.noConversationIDKey,
     followUser,
