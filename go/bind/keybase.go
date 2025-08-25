@@ -164,8 +164,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) (err error) {
 
 	// better crash logging
-    os.Setenv("GOTRACEBACK", "crash")
-    debug.SetTraceback("all")
+	os.Setenv("GOTRACEBACK", "crash")
+	debug.SetTraceback("all")
 
 	defer func() {
 		err = flattenError(err)
