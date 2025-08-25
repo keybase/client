@@ -37,7 +37,7 @@ const DragAndDrop = (props: Props) => {
             }
           }
         }
-        props.onAttach && props.onAttach(paths)
+        props.onAttach?.(paths)
       }
       setShowDropOverlay(false)
     }

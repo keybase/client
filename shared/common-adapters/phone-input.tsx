@@ -631,7 +631,7 @@ const PhoneInput = (p: Props) => {
               }}
               maxLength={3}
               onEnterKeyDown={() => {
-                phoneInputRef.current && phoneInputRef.current.focus()
+                phoneInputRef.current?.focus()
               }}
               returnKeyType="next"
               value={prefix}

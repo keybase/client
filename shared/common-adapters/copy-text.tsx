@@ -78,7 +78,7 @@ const CopyText = (props: Props) => {
         textRef.current?.highlightText()
         copyToClipboard(text)
       }
-      onCopy && onCopy()
+      onCopy?.()
       if (hideOnCopy) {
         setRevealed(false)
       }
@@ -104,7 +104,7 @@ const CopyText = (props: Props) => {
       // if we don't have text to copy we should load it
       props.loadText()
     }
-    props.onReveal && props.onReveal()
+    props.onReveal?.()
     setRevealed(true)
   }
 

@@ -47,12 +47,7 @@ const PeopleItem = (props: Props) => (
                 {b}
               </Kb.Box>
             ) : (
-              <Kb.Button
-                key={(b as NonReactTaskButton).label}
-                small={true}
-                style={styles.button}
-                {...(b as NonReactTaskButton)}
-              />
+              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
             )
           )}
       </Kb.Box2>

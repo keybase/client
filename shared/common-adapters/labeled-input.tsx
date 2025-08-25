@@ -25,11 +25,11 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
       return
     }
     setFocused(true)
-    onFocus && onFocus()
+    onFocus?.()
   }, [onFocus, props.disabled])
   const _onBlur = React.useCallback(() => {
     setFocused(false)
-    onBlur && onBlur()
+    onBlur?.()
   }, [onBlur])
 
   // If we're uncontrolled, monitor the changes instead
@@ -38,7 +38,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const _onChangeText = React.useCallback(
     (newValue: string) => {
       value === undefined && setUncontrolledValue(newValue)
-      onChangeText && onChangeText(newValue)
+      onChangeText?.(newValue)
     },
     [value, onChangeText]
   )

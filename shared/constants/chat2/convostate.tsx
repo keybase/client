@@ -421,7 +421,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
     if (goodOrdinal) {
       const message = mm.get(goodOrdinal)
-      clientPrev = message && message.id
+      clientPrev = message?.id
     }
     return clientPrev || T.Chat.numberToMessageID(0)
   }

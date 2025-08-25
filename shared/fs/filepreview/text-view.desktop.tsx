@@ -13,7 +13,7 @@ const TextView = (props: Props) => {
           setContent(req.responseText)
         }
       } catch {
-        onUrlError && onUrlError('http request failed')
+        onUrlError?.('http request failed')
       }
     }
     try {

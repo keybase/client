@@ -44,7 +44,7 @@ const Video = (props: Props) => {
             isMuted={muted}
             source={source}
             onError={e => {
-              onUrlError && onUrlError(JSON.stringify(e))
+              onUrlError?.(JSON.stringify(e))
             }}
             useNativeControls={true}
             shouldPlay={autoPlay ?? true}
