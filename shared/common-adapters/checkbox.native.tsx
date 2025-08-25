@@ -10,7 +10,7 @@ const Checkbox = (props: Props) => (
     label={props.labelComponent || props.label || ''}
     on={props.checked}
     onClick={() => {
-      props.onCheck && props.onCheck(!props.checked)
+      props.onCheck?.(!props.checked)
     }}
     style={Styles.collapseStyles([styles.container, props.style])}
     labelSubtitle={props.labelSubtitle}

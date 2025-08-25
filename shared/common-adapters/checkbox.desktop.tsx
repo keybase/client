@@ -22,7 +22,7 @@ const Checkbox = (props: Props) => {
       onClick={e =>
         // If something in labelComponent needs to catch a click without calling this, use
         // event.preventDefault()
-        props.disabled || e.defaultPrevented ? undefined : props.onCheck && props.onCheck(!props.checked)
+        props.disabled || e.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
       }
     >
       <Kb.Icon

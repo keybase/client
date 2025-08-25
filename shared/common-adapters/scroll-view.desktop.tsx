@@ -18,10 +18,9 @@ const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
     ref,
     () => ({
       scrollToEnd: () => {
-        divRef.current &&
-          divRef.current.scrollTo({
-            left: divRef.current.scrollWidth,
-          })
+        divRef.current?.scrollTo({
+          left: divRef.current.scrollWidth,
+        })
       },
     }),
     [divRef]

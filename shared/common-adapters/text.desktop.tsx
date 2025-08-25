@@ -35,7 +35,7 @@ const Text = React.memo((p: Props) => {
 
       if (textRef) {
         // outer type isn't writable due to class components
-        const writeRef = textRef as React.RefObject<typeof textRef.current>
+        const writeRef = textRef
         // eslint-disable-next-line
         writeRef.current = {
           divRef: {current: null},
