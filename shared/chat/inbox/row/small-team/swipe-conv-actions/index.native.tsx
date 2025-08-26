@@ -7,6 +7,7 @@ import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {View} from 'react-native'
+import {useOpenedRowState} from '../../opened-row-state'
 
 const actionWidth = 64
 
@@ -45,15 +46,16 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const {children, setCloseOpenedRow, closeOpenedRow} = p
+  const openedRow = useOpenedRowState(s => s.openedRow)
   const conversationIDKey = C.useChatContext(s => s.id)
-  const lastCIDRef = React.useRef(conversationIDKey)
-  React.useEffect(() => {
-    if (lastCIDRef.current !== conversationIDKey) {
-      lastCIDRef.current = conversationIDKey
-      closeOpenedRow()
+  const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+  const swipeableRef = React.useRef<SwipeableMethods | null>(null)
+  const closeOpenedRow = React.useCallback(() => {
+    if (conversationIDKey === openedRow) {
+      setOpenedRow(C.Chat.noConversationIDKey)
     }
-  }, [conversationIDKey, closeOpenedRow])
+  }, [conversationIDKey, openedRow, setOpenedRow])
+  const {children} = p
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = C.useEvent(() => {
@@ -87,13 +89,15 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     closeOpenedRow()
   })
 
-  const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const onSwipeableWillOpen = React.useCallback(() => {
-    closeOpenedRow()
-    setCloseOpenedRow(() => {
+    setOpenedRow(conversationIDKey)
+  }, [setOpenedRow, conversationIDKey])
+
+  React.useEffect(() => {
+    if (openedRow !== conversationIDKey) {
       swipeableRef.current?.close()
-    })
-  }, [closeOpenedRow, setCloseOpenedRow])
+    }
+  }, [conversationIDKey, openedRow, closeOpenedRow])
 
   const renderRightActions = React.useCallback(
     (progress: Reanimated.SharedValue<number>) => {

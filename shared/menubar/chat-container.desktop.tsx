@@ -17,8 +17,6 @@ const RemoteSmallTeam = (props: RowProps) => {
   const onSelectConversation = () => {
     R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
   }
-  const closeOpenedRow = React.useCallback(() => {}, [])
-  const setCloseOpenedRow = React.useCallback(() => {}, [])
 
   return (
     <SmallTeam
@@ -29,8 +27,6 @@ const RemoteSmallTeam = (props: RowProps) => {
       layoutIsTeam={conversation?.teamType !== 'adhoc'}
       layoutName={conversation?.tlfname}
       layoutSnippet={conversation?.snippetDecorated}
-      setCloseOpenedRow={setCloseOpenedRow}
-      closeOpenedRow={closeOpenedRow}
     />
   )
 }

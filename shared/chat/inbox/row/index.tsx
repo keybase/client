@@ -6,13 +6,7 @@ import {SmallTeam} from './small-team'
 import {BigTeamsLabel} from './big-teams-label'
 import type * as T from '@/constants/types'
 
-const makeRow = (
-  item: T.Chat.ChatInboxRowItem,
-  navKey: string,
-  selected: boolean,
-  setCloseOpenedRow: (fn: () => void) => void,
-  closeOpenedRow: () => void
-) => {
+const makeRow = (item: T.Chat.ChatInboxRowItem, navKey: string, selected: boolean) => {
   if (item.type === 'bigTeamsLabel') {
     return <BigTeamsLabel />
   }
@@ -40,8 +34,6 @@ const makeRow = (
           layoutTime={item.time}
           layoutSnippet={item.snippet}
           layoutSnippetDecoration={item.snippetDecoration}
-          setCloseOpenedRow={setCloseOpenedRow}
-          closeOpenedRow={closeOpenedRow}
         />
       )
     default:
