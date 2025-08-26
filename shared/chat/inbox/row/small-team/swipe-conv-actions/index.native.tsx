@@ -46,15 +46,16 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const openedRow = useOpenedRowState(s => s.openedRow)
   const conversationIDKey = C.useChatContext(s => s.id)
+  const isOpened = useOpenedRowState(s => s.openedRow === conversationIDKey)
+  const wasOpenRef = React.useRef(isOpened)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const closeOpenedRow = React.useCallback(() => {
-    if (conversationIDKey === openedRow) {
+    if (isOpened) {
       setOpenedRow(C.Chat.noConversationIDKey)
     }
-  }, [conversationIDKey, openedRow, setOpenedRow])
+  }, [isOpened, setOpenedRow])
   const {children} = p
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
@@ -89,15 +90,19 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     closeOpenedRow()
   })
 
-  const onSwipeableWillOpen = React.useCallback(() => {
+  const onSwipeableOpenStartDrag = React.useCallback(() => {
     setOpenedRow(conversationIDKey)
   }, [setOpenedRow, conversationIDKey])
 
   React.useEffect(() => {
-    if (openedRow !== conversationIDKey) {
+    if (!isOpened && wasOpenRef.current) {
       swipeableRef.current?.close()
     }
-  }, [conversationIDKey, openedRow, closeOpenedRow])
+  }, [isOpened])
+
+  React.useEffect(() => {
+    wasOpenRef.current = isOpened
+  }, [isOpened])
 
   const renderRightActions = React.useCallback(
     (progress: Reanimated.SharedValue<number>) => {
@@ -136,7 +141,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   return (
     <Swipeable
       ref={swipeableRef}
-      onSwipeableWillOpen={onSwipeableWillOpen}
+      onSwipeableOpenStartDrag={onSwipeableOpenStartDrag}
       renderRightActions={renderRightActions}
       containerStyle={styles.row}
     >
