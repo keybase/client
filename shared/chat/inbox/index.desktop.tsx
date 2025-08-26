@@ -190,12 +190,7 @@ const InboxRow = React.memo(
     const {index, style, data} = p
     const {rows, scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = data
     const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = data
-
     const row = rows[index]
-
-    const closeOpenedRow = React.useCallback(() => {}, [])
-    const setCloseOpenedRow = React.useCallback(() => {}, [])
-
     if (!row) {
       // likely small teams were just collapsed
       return null
@@ -228,13 +223,7 @@ const InboxRow = React.memo(
     // pointer events on so you can click even right after a scroll
     return (
       <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-        {makeRow(
-          row,
-          navKey,
-          selectedConversationIDKey === row.conversationIDKey,
-          setCloseOpenedRow,
-          closeOpenedRow
-        )}
+        {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
       </div>
     )
   },

@@ -15,6 +15,7 @@ import {
   SnippetContext,
   SnippetDecorationContext,
 } from './contexts'
+import {useOpenedRowState} from '../opened-row-state'
 
 export type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -26,8 +27,6 @@ export type Props = {
   layoutTime?: number
   layoutSnippetDecoration?: T.RPCChat.SnippetDecoration
   onSelectConversation?: () => void
-  setCloseOpenedRow: (fn: () => void) => void
-  closeOpenedRow: () => void
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
@@ -40,7 +39,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
 const SmallTeamImpl = (p: Props) => {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
-  const {isInWidget, setCloseOpenedRow, closeOpenedRow} = p
+  const {isInWidget} = p
 
   const {snippet, snippetDecoration} = C.useChatContext(
     C.useShallow(s => {
@@ -95,10 +94,12 @@ const SmallTeamImpl = (p: Props) => {
     })
   )
 
+  const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+
   const _onSelectConversation = React.useCallback(() => {
-    closeOpenedRow()
+    setOpenedRow(C.Chat.noConversationIDKey)
     navigateToThread('inboxSmall')
-  }, [navigateToThread, closeOpenedRow])
+  }, [navigateToThread, setOpenedRow])
 
   const onSelectConversation = isSelected ? undefined : (p.onSelectConversation ?? _onSelectConversation)
 
@@ -112,7 +113,7 @@ const SmallTeamImpl = (p: Props) => {
 
   const children = React.useMemo(() => {
     return (
-      <SwipeConvActions setCloseOpenedRow={setCloseOpenedRow} closeOpenedRow={closeOpenedRow}>
+      <SwipeConvActions>
         <Kb.ClickableBox
           onClick={onSelectConversation}
           className={Kb.Styles.classNames('small-row', {selected: isSelected})}
@@ -139,15 +140,7 @@ const SmallTeamImpl = (p: Props) => {
         </Kb.ClickableBox>
       </SwipeConvActions>
     )
-  }, [
-    backgroundColor,
-    isInWidget,
-    isSelected,
-    onSelectConversation,
-    setCloseOpenedRow,
-    closeOpenedRow,
-    layoutSnippet,
-  ])
+  }, [backgroundColor, isInWidget, isSelected, onSelectConversation, layoutSnippet])
 
   return (
     <IsTeamContext.Provider value={!!layoutIsTeam}>

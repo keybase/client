@@ -14,6 +14,7 @@ import {type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
+import {useOpenedRowState} from './row/opened-row-state'
 
 type RowItem = T.Chat.ChatInboxRowItem
 
@@ -59,18 +60,6 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, navKey, selectedConversationIDKey} = p
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = p
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = p
-
-  // used to close other rows
-  const swipeCloseRef = React.useRef<null | (() => void)>(null)
-  const closeOpenedRow = React.useCallback(() => {
-    if (swipeCloseRef.current) {
-      swipeCloseRef.current()
-      swipeCloseRef.current = null
-    }
-  }, [])
-  const setCloseOpenedRow = React.useCallback((close: () => void) => {
-    swipeCloseRef.current = close
-  }, [])
 
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
@@ -201,26 +190,12 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
       } else if (row.type === 'teamBuilder') {
         element = <BuildTeam />
       } else {
-        element = makeRow(
-          row,
-          navKey,
-          selectedConversationIDKey === row.conversationIDKey,
-          setCloseOpenedRow,
-          closeOpenedRow
-        )
+        element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)
       }
 
       return element
     },
-    [
-      navKey,
-      rows,
-      selectedConversationIDKey,
-      smallTeamsExpanded,
-      toggleSmallTeamsExpanded,
-      setCloseOpenedRow,
-      closeOpenedRow,
-    ]
+    [navKey, rows, selectedConversationIDKey, smallTeamsExpanded, toggleSmallTeamsExpanded]
   )
 
   const keyExtractor = React.useCallback((item: RowItem, idx: number) => {
@@ -286,10 +261,13 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
     return {index, length, offset}
   }, [])
 
-  React.useEffect(() => {
-    swipeCloseRef.current?.()
-    swipeCloseRef.current = null
-  }, [])
+  const setOpenRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      setOpenRow(C.Chat.noConversationIDKey)
+    }, [setOpenRow])
+  )
 
   const rowLength = rows.length
   const lastUnreadIndicesRef = React.useRef(unreadIndices)
