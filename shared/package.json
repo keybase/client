@@ -199,7 +199,8 @@
   "resolutions": {
     "**/purepack": "keybase/nullModule",
     "**/@khanacademy/perseus-core": "keybase/nullModule",
-    "**/@types/react": "19.1.11"
+    "**/@types/react": "19.1.11",
+    "**/tmp": ">=0.2.4"
   },
   "typecoverage": {
     "detail": true,
