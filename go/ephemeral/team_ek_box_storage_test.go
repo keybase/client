@@ -175,7 +175,7 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 	defer tc.Cleanup()
 
 	s := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
-	uv, err := tc.G.GetMeUV(context.TODO())
+	uv, err := tc.G.GetMeUV(context.Background())
 	require.NoError(t, err)
 
 	teamID := createTeam(tc)

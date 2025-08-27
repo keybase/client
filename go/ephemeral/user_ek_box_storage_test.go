@@ -136,7 +136,7 @@ func TestUserEKStorageKeyFormat(t *testing.T) {
 	defer tc.Cleanup()
 
 	s := NewUserEKBoxStorage()
-	uv, err := tc.G.GetMeUV(context.TODO())
+	uv, err := tc.G.GetMeUV(context.Background())
 	require.NoError(t, err)
 
 	key, err := s.dbKey(mctx)
