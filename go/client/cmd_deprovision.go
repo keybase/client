@@ -58,7 +58,7 @@ func (c *CmdDeprovision) Run() (err error) {
 		return err
 	}
 	// XXX: This RPC deletes secret keys!
-	return loginCli.Deprovision(context.TODO(), keybase1.DeprovisionArg{
+	return loginCli.Deprovision(context.Background(), keybase1.DeprovisionArg{
 		SessionID: 0,
 		Username:  username,
 		DoRevoke:  c.loggedIn,
@@ -82,7 +82,7 @@ func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	currentStatus, err := configCli.GetCurrentStatus(context.TODO(), 0)
+	currentStatus, err := configCli.GetCurrentStatus(context.Background(), 0)
 	if err != nil {
 		return "", err
 	}
@@ -137,7 +137,7 @@ this device's keys. To do that from another device, use 'keybase device remove'.
 	}
 
 	// If the user has PGP secret keys in the SKBKeyring, print an additional warning.
-	mctx := libkb.NewMetaContextTODO(c.G())
+	mctx := libkb.NewMetaContext(context.Background(), c.G())
 	keyring, err := libkb.LoadSKBKeyring(mctx, libkb.NewNormalizedUsername(username))
 	if err != nil {
 		return "", err
@@ -150,14 +150,30 @@ Also, the secret keyring you're about to delete contains PGP keys. To list them
 or copy them, use %s.`, "`keybase pgp export`")
 	}
 
-	// TODO: Print a list of the other devices on the user's account.
+	// List other devices if the user is logged in
+	deviceList := ""
+	if c.loggedIn {
+		deviceCli, err := GetDeviceClient(c.G())
+		if err == nil {
+			devices, err := deviceCli.DeviceList(context.Background(), 0)
+			if err == nil && len(devices) > 1 {
+				deviceList = "\n\nYour other devices:\n"
+				for _, device := range devices {
+					if !device.IsCurrent {
+						deviceList += fmt.Sprintf("  - %s (%s)\n", device.Name, device.Type)
+					}
+				}
+			}
+		}
+	}
+	
 	return fmt.Sprintf(`
 %s, BE CAREFUL!  \('o')/
 
 You are about to delete this device from your account, including its secret
 keys. You will not be able to reuse the device name for a new device.
 If you don't have any other devices, you'll lose access to your account
-and all your data!%s%s
+and all your data!%s%s%s
 
-Proceed?`, username, loggedOutWarning, pgpWarning), nil
+Proceed?`, username, deviceList, loggedOutWarning, pgpWarning), nil
 }

@@ -223,7 +223,15 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   // Force focus the chat textarea (should already be done by autofocus)
   f["keybase-chat"].focus();
 
-  // TODO: Also add an onbeforeunload check if chat has text written in it.
+  // Add onbeforeunload check if chat has text written in it
+  window.addEventListener('beforeunload', function(e) {
+    if (f["keybase-chat"] && f["keybase-chat"].value !== "") {
+      const confirmationMessage = 'You have unsaved changes in your Keybase message. Are you sure you want to leave?';
+      e.returnValue = confirmationMessage;
+      return confirmationMessage;
+    }
+  });
+  
   return f;
 }
 
@@ -252,7 +260,15 @@ function submitChat(successCallback, e) {
   const nudgeDo = f["keybase-nudgecheck"]!==undefined && f["keybase-nudgecheck"].checked;
   const nudgeText = f["keybase-nudgetext"]!==undefined && f["keybase-nudgetext"].value;
 
-  // TODO: Check that to/body are not empty.
+  // Check that to/body are not empty
+  if (!to || to.trim() === "") {
+    renderError(f, null, "Recipient cannot be empty");
+    return;
+  }
+  if (!body || body.trim() === "") {
+    renderError(f, null, "Message cannot be empty");
+    return;
+  }
 
   // We need this for when the chat widget gets detached from the DOM.
   const originalParent = f.parentNode;
