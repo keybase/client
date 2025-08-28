@@ -85,6 +85,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       onClick={onOpenEmojiPicker}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
+        {borderColor: isDarkMode() ? darkColors.black_10 : colors.black_10},
         styles.newReactionButtonBox,
         styles.buttonBox,
         style,
