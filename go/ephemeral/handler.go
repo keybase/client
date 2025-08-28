@@ -1,7 +1,7 @@
 package ephemeral
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -12,7 +12,7 @@ func HandleNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation 
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
-		return fmt.Errorf("ekLib not found")
+		return errors.New("ekLib not found")
 	}
 	ekLib.PurgeTeamEKCachesForTeamIDAndGeneration(mctx, teamID, generation)
 	mctx.G().NotifyRouter.HandleNewTeamEK(mctx.Ctx(), teamID, generation)
@@ -24,7 +24,7 @@ func HandleNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generati
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
-		return fmt.Errorf("ekLib not found")
+		return errors.New("ekLib not found")
 	}
 	ekLib.PurgeTeambotEKCachesForTeamIDAndGeneration(mctx, teamID, generation)
 	mctx.G().NotifyRouter.HandleNewTeambotEK(mctx.Ctx(), teamID, generation)
@@ -43,7 +43,7 @@ func HandleTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, botUI
 
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
-		return fmt.Errorf("ekLib not found")
+		return errors.New("ekLib not found")
 	}
 
 	// Bot user needs the latest key
