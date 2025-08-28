@@ -420,7 +420,7 @@ func (h *Home) updateUI(ctx context.Context) (err error) {
 		h.G().Log.CDebugf(ctx, "no registered HomeUI, swallowing update")
 		return nil
 	}
-	err = ui.HomeUIRefresh(context.Background())
+	err = ui.HomeUIRefresh(ctx)
 	return err
 }
 

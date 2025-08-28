@@ -56,7 +56,7 @@ func (r *Runner) Start(ctx context.Context) {
 	r.stopCh = make(chan struct{})
 	r.started = true
 
-	r.eg.Go(func() error { return r.statsLoop(r.stopCh) })
+	r.eg.Go(func() error { return r.statsLoop(ctx, r.stopCh) })
 }
 
 func (r *Runner) Stop(ctx context.Context) chan struct{} {
@@ -80,8 +80,7 @@ func (r *Runner) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (r *Runner) statsLoop(stopCh chan struct{}) error {
-	ctx := context.Background()
+func (r *Runner) statsLoop(ctx context.Context, stopCh chan struct{}) error {
 	r.updateStats(ctx)
 	for {
 		select {
