@@ -1043,7 +1043,7 @@ type WalletStellarChainLink struct {
 func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLink, err error) {
 	ret = &WalletStellarChainLink{GenericChainLink: b}
 	mkErr := func(format string, args ...interface{}) error {
-		return ChainLinkError{fmt.Sprintf(format, args...) + fmt.Sprintf(" @%s", b.ToDebugString())}
+		return ChainLinkError{fmt.Sprintf("%s @%s", fmt.Sprintf(format, args...), b.ToDebugString())}
 	}
 	bodyW := b.UnmarshalPayloadJSON()
 	walletSection := bodyW.AtPath("body.wallet")
