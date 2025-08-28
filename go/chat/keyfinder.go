@@ -189,18 +189,18 @@ func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 
 func (k *KeyFinderMock) EphemeralKeyForEncryption(_ libkb.MetaContext, _ string, _ chat1.TLFID,
 	_ chat1.ConversationMembersType, _ bool, _ *gregor1.UID) (types.EphemeralCryptKey, error) {
-	panic("unimplemented")
+	return types.EphemeralCryptKey{}, errors.New("KeyFinderMock: ephemeral key for encryption not implemented")
 }
 
 func (k *KeyFinderMock) EphemeralKeyForDecryption(_ libkb.MetaContext, _ string, _ chat1.TLFID,
 	_ chat1.ConversationMembersType, _ bool, _ *gregor1.UID,
 	_ keybase1.EkGeneration, _ *gregor1.Time) (types.EphemeralCryptKey, error) {
-	panic("unimplemented")
+	return types.EphemeralCryptKey{}, errors.New("KeyFinderMock: ephemeral key for decryption not implemented")
 }
 
 func (k *KeyFinderMock) ShouldPairwiseMAC(_ context.Context, _ string, _ chat1.TLFID,
 	_ chat1.ConversationMembersType, _ bool) (bool, []keybase1.KID, error) {
-	panic("unimplemented")
+	return false, nil, errors.New("KeyFinderMock: pairwise MAC check not implemented")
 }
 
 func (k *KeyFinderMock) SetNameInfoSourceOverride(_ types.NameInfoSource) {}

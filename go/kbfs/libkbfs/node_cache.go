@@ -108,8 +108,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	}()
 
 	if !ptr.IsValid() {
-		// Temporary code to track down bad block
-		// pointers. Remove when not needed anymore.
+		// Defensive check for invalid block pointers
 		panic(InvalidBlockRefError{ptr.Ref()})
 	}
 
@@ -159,8 +158,7 @@ func (ncs *nodeCacheStandard) Get(ref data.BlockRef) (n Node) {
 		return nil
 	}
 
-	// Temporary code to track down bad block pointers. Remove (or
-	// return an error) when not needed anymore.
+	// Defensive check for invalid block pointers
 	if !ref.IsValid() {
 		panic(InvalidBlockRefError{ref})
 	}
@@ -226,8 +224,7 @@ func (ncs *nodeCacheStandard) Move(
 		return nil, nil
 	}
 
-	// Temporary code to track down bad block pointers. Remove (or
-	// return an error) when not needed anymore.
+	// Defensive check for invalid block pointers
 	if !ref.IsValid() {
 		panic(InvalidBlockRefError{ref})
 	}
@@ -267,8 +264,7 @@ func (ncs *nodeCacheStandard) Unlink(
 		return nil
 	}
 
-	// Temporary code to track down bad block pointers. Remove (or
-	// return an error) when not needed anymore.
+	// Defensive check for invalid block pointers
 	if !ref.IsValid() {
 		panic(InvalidBlockRefError{ref})
 	}
