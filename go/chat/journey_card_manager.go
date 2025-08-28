@@ -538,7 +538,7 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 		&chat1.GetInboxQuery{
 			TlfID:            &conv.TlfID,
 			TopicType:        &topicType,
-			MemberStatus:     append(append([]chat1.ConversationMemberStatus{}, joinableStatuses...), everJoinedStatuses...),
+			MemberStatus:     append(joinableStatuses, everJoinedStatuses...),
 			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,

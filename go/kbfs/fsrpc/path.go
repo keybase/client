@@ -150,7 +150,8 @@ func (p Path) String() string {
 		}
 	}
 	if p.PathType == TLFPathType {
-		components = append(append(components, p.TLFName), p.TLFComponents...)
+		components = append(components, p.TLFName)
+		components = append(components, p.TLFComponents...)
 	}
 	return "/" + strings.Join(components, "/")
 }
