@@ -221,8 +221,6 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
 const autoRegName = `Keybase.Keybase.GUI`
 
-// TODO Remove this in 2022.
-const autoRegDeprecatedName = `electron.app.keybase`
 
 func autostartStatus() (enabled bool, err error) {
 	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
@@ -244,8 +242,6 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	defer k.Close()
 
 	// Delete old key if it exists.
-	// TODO Remove this in 2022.
-	k.DeleteValue(autoRegDeprecatedName)
 
 	if !on {
 		// it might not exists, don't propagate error.
@@ -266,27 +262,6 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 }
 
 // This is the old startup info logging. Retain it for now, but it is soon useless.
-// TODO Remove in 2021.
-func deprecatedStartupInfo(logFile *os.File) {
-	// This function is deprecated and will be removed
-	if appDataDir, err := libkb.AppDataDir(); err != nil {
-		logFile.WriteString("Error getting AppDataDir\n")
-	} else {
-		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
-			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else if err != nil {
-			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
-			if err != nil {
-				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
-			} else {
-				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
-				if err == nil && len(val) > 0 && val[0] != 2 {
-					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
-				}
-			}
-		}
-	}
-}
 
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
@@ -309,8 +284,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	}
 	logFile.WriteString("\n")
 
-	// Check whether the service shortcut is still present and not disabled
-	// deprecatedStartupInfo(logFile) - removed deprecated call
+	// Check whether the service is set to autostart
 	status, err := autostartStatus()
 	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 

@@ -396,11 +396,9 @@ func fetchTeamEKStatement(mctx libkb.MetaContext, teamID keybase1.TeamID) (
 
 	statement, latestGeneration, wrongKID, err = verifySigWithLatestPTK(mctx, teamID, *parsedResponse.Sig)
 	// Check the wrongKID condition before checking the error, since an error
-	// is still returned in this case. TODO: Turn this warning into an error
-	// after EK support is sufficiently widespread.
+	// is still returned in this case.
 	if wrongKID {
-		mctx.Debug("It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
-		return nil, latestGeneration, true, nil
+		return nil, latestGeneration, true, fmt.Errorf("ephemeral key signed with wrong KID - PTK may have been rolled without generating new ephemeral keys")
 	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}

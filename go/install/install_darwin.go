@@ -273,14 +273,13 @@ func DefaultUpdaterLabel(runMode libkb.RunMode) string {
 const defaultPlistComment = "It's not advisable to edit this plist, it may be overwritten"
 
 func keybasePlist(context Context, binPath string, label string, log Log) (launchd.Plist, error) {
-	// TODO: Remove -d when doing real release
 	logFile := filepath.Join(context.GetLogDir(), libkb.ServiceLogFileName)
 	startLogFile := filepath.Join(context.GetLogDir(), libkb.StartLogFileName)
 	err := libkb.MakeParentDirs(log, startLogFile)
 	if err != nil {
 		return launchd.Plist{}, err
 	}
-	plistArgs := []string{"-d", fmt.Sprintf("--log-file=%s", logFile), "service"}
+	plistArgs := []string{fmt.Sprintf("--log-file=%s", logFile), "service"}
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
 	return launchd.NewPlist(label, binPath, plistArgs, envVars, startLogFile, defaultPlistComment), nil
@@ -312,9 +311,7 @@ func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir strin
 	if err := libkb.MakeParentDirs(log, startLogFile); err != nil {
 		return launchd.Plist{}, err
 	}
-	// TODO: Remove debug flag when doing real release
 	plistArgs := []string{
-		"-debug",
 		fmt.Sprintf("-log-file=%s", logFile),
 		fmt.Sprintf("-runtime-dir=%s", context.GetRuntimeDir()),
 	}

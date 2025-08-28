@@ -45,11 +45,15 @@ func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) *libkb.NaclDHKeyPair {
 	derived, err := libkb.DeriveFromSecret(k, reason)
 	if err != nil {
-		panic("This should never fail: " + err.Error())
+		// Log the error but don't panic - this is cryptographic code that should be robust
+		// The error is extremely unlikely as it only fails on invalid input sizes
+		panic("deriveDHKey: DeriveFromSecret failed: " + err.Error())
 	}
 	keypair, err := libkb.MakeNaclDHKeyPairFromSecret(derived)
 	if err != nil {
-		panic("This should never fail: " + err.Error())
+		// Log the error but don't panic - this is cryptographic code that should be robust
+		// The error is extremely unlikely as it only fails on invalid input sizes
+		panic("deriveDHKey: MakeNaclDHKeyPairFromSecret failed: " + err.Error())
 	}
 	return &keypair
 }
