@@ -97,6 +97,7 @@ type ConvoStore = T.Immutable<{
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
+  loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   maxMsgIDSeen: T.Chat.MessageID // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -104,7 +105,7 @@ type ConvoStore = T.Immutable<{
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoad: boolean
+  moreToLoadBack: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -134,6 +135,7 @@ const initialConvoStore: ConvoStore = {
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
+  loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
   maxMsgIDSeen: T.Chat.numberToMessageID(-1),
   messageCenterOrdinal: undefined,
@@ -141,7 +143,7 @@ const initialConvoStore: ConvoStore = {
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
-  moreToLoad: false,
+  moreToLoadBack: false,
   mutualTeams: [],
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
@@ -1553,6 +1555,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
 
+          set(s => {
+            s.loaded = true
+          })
+
           const username = C.useCurrentUserState.getState().username
           const devicename = C.useCurrentUserState.getState().deviceName
           const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
@@ -1570,11 +1576,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
           // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
-          const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+          const moreToLoadBack = uiMessages.pagination ? !uiMessages.pagination.last : true
           set(s => {
-            // moreToLoad is only about going back so ignore updating this if we're not going in that direction
+            // moreToLoadBack is only about going back so ignore updating this if we're not going in that direction
             if (sd !== 'forward') {
-              s.moreToLoad = moreToLoad
+              s.moreToLoadBack = moreToLoadBack
             }
           })
 
@@ -1707,7 +1713,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       return f()
     },
     loadOlderMessagesDueToScroll: numOrdinals => {
-      if (!get().moreToLoad) {
+      if (!get().moreToLoadBack) {
         logger.info('bail: scrolling back and at the end')
         return
       }
@@ -1995,6 +2001,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     messagesClear: () => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
+        s.loaded = false
         s.messageMap.clear()
         s.maxMsgIDSeen = T.Chat.numberToMessageID(-1)
         syncMessageDerived(s)

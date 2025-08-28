@@ -33,11 +33,19 @@ const useScrolling = (p: {
   containsLatestMessage: boolean
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   listRef: React.RefObject<HTMLDivElement | null>
+  loaded: boolean
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {listRef, setListRef: _setListRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
+  const {
+    listRef,
+    setListRef: _setListRef,
+    containsLatestMessage,
+    messageOrdinals,
+    centeredOrdinal,
+    loaded,
+  } = p
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
@@ -92,24 +100,22 @@ const useScrolling = (p: {
     }
   }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, numOrdinals])
 
-  const scrollToBottom = React.useCallback(() => {
+  const scrollToBottomSync = React.useCallback(() => {
     lockedToBottomRef.current = true
-    const actuallyScroll = () => {
-      if (!isMounted()) {
-        return
-      }
-      const list = listRef.current
-      if (list) {
-        adjustScrollAndIgnoreOnScroll(() => {
-          list.scrollTop = list.scrollHeight - list.clientHeight
-        })
-      }
+    const list = listRef.current
+    if (list) {
+      adjustScrollAndIgnoreOnScroll(() => {
+        list.scrollTop = list.scrollHeight - list.clientHeight
+      })
     }
-    actuallyScroll()
+  }, [adjustScrollAndIgnoreOnScroll, listRef])
+
+  const scrollToBottom = React.useCallback(() => {
+    scrollToBottomSync()
     setTimeout(() => {
-      requestAnimationFrame(actuallyScroll)
+      requestAnimationFrame(scrollToBottomSync)
     }, 1)
-  }, [listRef, adjustScrollAndIgnoreOnScroll, isMounted])
+  }, [scrollToBottomSync])
 
   const scrollToCentered = React.useCallback(() => {
     // grab the waypoint we made for the centered ordinal and scroll to it
@@ -224,13 +230,16 @@ const useScrolling = (p: {
 
   const initScrollRef = React.useRef(false)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
+
   React.useLayoutEffect(() => {
+    if (!loaded) return
     if (!initScrollRef.current) {
       initScrollRef.current = true
       if (!markedInitiallyLoaded) {
         markedInitiallyLoaded = true
         markInitiallyLoadedThreadAsRead()
       }
+
       if (centeredOrdinal) {
         lockedToBottomRef.current = false
         scrollToCentered()
@@ -239,9 +248,12 @@ const useScrolling = (p: {
       }
     }
 
-    setDidFirstLoad(true)
+    requestAnimationFrame(() => {
+      setDidFirstLoad(true)
+    })
   }, [
     listRef,
+    loaded,
     centeredOrdinal,
     isLockedToBottom,
     markInitiallyLoadedThreadAsRead,
@@ -443,14 +455,27 @@ const useItems = (p: {
   return items
 }
 
+const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = React.memo(function ThreadWrapper() {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const editingOrdinal = C.useChatContext(s => s.editing)
-  const mco = C.useChatContext(s => s.messageCenterOrdinal)
-  const centeredOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
-  const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
-  const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
-  const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
+      const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
+      const centeredOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
+      const containsLatestMessage = s.isCaughtUp()
+      return {
+        centeredOrdinal,
+        containsLatestMessage,
+        conversationIDKey,
+        editingOrdinal,
+        loaded,
+        messageOrdinals,
+        messageTypeMap,
+      }
+    })
+  )
+  const {conversationIDKey, editingOrdinal, centeredOrdinal} = data
+  const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = React.useCallback((r: HTMLDivElement | null) => {
@@ -460,6 +485,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
     centeredOrdinal,
     containsLatestMessage,
     listRef,
+    loaded,
     messageOrdinals,
     setListRef: _setListRef,
   })
