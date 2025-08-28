@@ -2582,7 +2582,7 @@ func TestResetAccountNoLogoutSelfCache(t *testing.T) {
 	originalDevice := tc.G.Env.GetDeviceID()
 
 	// make sure FullSelf is cached
-	err := tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err := tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		t.Logf("full self user: %s", u.GetName())
 		return nil
 	})
@@ -3560,7 +3560,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		}
 
 		// do a upak load to make sure it is cached
-		arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc2.G, u1.UID())
+		arg := libkb.NewLoadUserByUIDArg(context.Background(), tc2.G, u1.UID())
 		_, _, err := tc2.G.GetUPAKLoader().Load(arg)
 		require.NoError(t, err)
 

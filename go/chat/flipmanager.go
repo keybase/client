@@ -704,9 +704,10 @@ func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
-			err := m.handleUpdate(m.makeBkgContext(), msg, false)
+			ctx := m.makeBkgContext()
+			err := m.handleUpdate(ctx, msg, false)
 			if err != nil {
-				m.Debug(context.TODO(), "updateLoop: error handling update: %+v", err)
+				m.Debug(ctx, "updateLoop: error handling update: %+v", err)
 			}
 		case <-shutdownCh:
 			m.Debug(context.Background(), "updateLoop: exiting")

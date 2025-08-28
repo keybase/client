@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
+	"context"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -58,13 +58,13 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	t.Logf("using device1:%+v", device1.ID)
 
 	t.Logf("load existing device key")
-	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), device1.ID)
+	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.Background(), user.GetUID(), device1.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, device1.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device1.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		dev, err := u.GetDevice(device1.ID)
 		require.NoError(t, err)
 		require.NotNil(t, dev)
@@ -116,13 +116,13 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	t.Logf("using device2:%+v", device2.ID)
 
 	t.Logf("load brand new device (while old is cached)")
-	upk, deviceKey, revoked, err = tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), device2.ID)
+	upk, deviceKey, revoked, err = tc.G.GetUPAKLoader().LoadDeviceKey(context.Background(), user.GetUID(), device2.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, device2.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device2.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		dev, err := u.GetDevice(deviceKey.DeviceID)
 		require.NoError(t, err)
 		require.NotNil(t, dev)
@@ -163,13 +163,13 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	assertNumDevicesAndKeys(tc, fu, 1, 2)
 
 	t.Logf("load revoked device")
-	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.TODO(), user.GetUID(), thisDevice.ID)
+	upk, deviceKey, revoked, err := tc.G.GetUPAKLoader().LoadDeviceKey(context.Background(), user.GetUID(), thisDevice.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.GetNormalizedName().String(), upk.Base.Username, "usernames must match")
 	require.Equal(t, thisDevice.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *thisDevice.Description, deviceKey.DeviceDescription, "device name must match")
 	require.NotNil(t, revoked, "device should be revoked")
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		dev, err := u.GetDevice(deviceKey.DeviceID)
 		require.NoError(t, err)
 		require.NotNil(t, dev)
@@ -190,7 +190,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "fsc")
 
 	var scv keybase1.Seqno
-	err := tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err := tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()
 		return nil
@@ -198,7 +198,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 	require.NoError(t, err)
 	trackAlice(tc, fu, sigVersion)
 	defer untrackAlice(tc, fu, sigVersion)
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
 		return nil
@@ -231,7 +231,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	t.Logf("using username:%+v", fu.Username)
 
 	var scv keybase1.Seqno
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()
 		return nil
@@ -268,7 +268,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	// Without pubsub (not available on engine tests), we don't get any
 	// invalidation of the user on the first machine (tc). So this
 	// user's sigchain should stay the same.
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		require.True(t, u.GetSigChainLastKnownSeqno() == scv)
 		return nil
@@ -279,7 +279,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	// Check that the sigchain is updated after the repoll, which reflects
 	// the new device having been added.
 	fakeClock.Advance(libkb.CachedUserTimeout + time.Second)
-	err = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+	err = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
 		return nil
@@ -293,7 +293,7 @@ func TestUPAKDeadlock(t *testing.T) {
 	fu := CreateAndSignupFakeUserPaper(tc, "upak")
 
 	// First clear the cache
-	tc.G.KeyfamilyChanged(context.TODO(), fu.UID())
+	tc.G.KeyfamilyChanged(context.Background(), fu.UID())
 
 	var wg sync.WaitGroup
 
@@ -309,7 +309,7 @@ func TestUPAKDeadlock(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		_ = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		_ = tc.G.GetFullSelfer().WithSelf(context.Background(), func(u *libkb.User) error {
 			require.Equal(t, u.GetUID(), fu.UID(), "right UID")
 			return nil
 		})
@@ -318,7 +318,7 @@ func TestUPAKDeadlock(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
+		un, err := tc.G.GetUPAKLoader().LookupUsername(context.Background(), fu.UID())
 		require.NoError(t, err)
 		if un.String() != fu.Username {
 			t.Errorf("username mismatch: %s != %s", un, fu.Username)
@@ -357,7 +357,7 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 
 	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false).WithForceMerkleServerPolling(true)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.Background()).WithStaleOK(false).WithForceMerkleServerPolling(true)
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
@@ -411,7 +411,7 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 
 	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.Background()).WithStaleOK(false)
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
 			return nil, err
@@ -463,7 +463,7 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 
 	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.Background()).WithStaleOK(false)
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
 			return nil, err
@@ -482,7 +482,7 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	// add new device keys.
 	ResetAccount(tc, fu)
 
-	tc.G.GetUPAKLoader().Invalidate(context.TODO(), fu.UID())
+	tc.G.GetUPAKLoader().Invalidate(context.Background(), fu.UID())
 
 	fu.LoginOrBust(tc)
 	if err := AssertProvisioned(tc); err != nil {
@@ -492,7 +492,7 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	fu.LoginOrBust(tc)
 
 	// Make sure that we can load the eldest key from the previous subchain
-	_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
+	_, _, _, err = tc.G.GetUPAKLoader().LoadKeyV2(context.Background(), fu.UID(), upak1.Base.DeviceKeys[0].KID)
 
 	if err != nil {
 		t.Fatal("Failed to load a UID/KID combo from first incarnation")
