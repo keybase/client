@@ -22,12 +22,12 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
   const data = C.useChatContext(
     C.useShallow(s => {
       const containsLatestMessage = s.isCaughtUp()
-      const {loaded} = s
+      const {loaded, messageCenterOrdinal} = s
       const {jumpToRecent, toggleThreadSearch} = s.dispatch
-      return {containsLatestMessage, jumpToRecent, loaded, toggleThreadSearch}
+      return {containsLatestMessage, jumpToRecent, loaded, messageCenterOrdinal, toggleThreadSearch}
     })
   )
-  const {containsLatestMessage, jumpToRecent, loaded, toggleThreadSearch} = data
+  const {containsLatestMessage, jumpToRecent, loaded, toggleThreadSearch, messageCenterOrdinal} = data
 
   const onJump = React.useCallback(() => {
     scrollToBottom()
@@ -35,5 +35,10 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
     toggleThreadSearch(true)
   }, [toggleThreadSearch, jumpToRecent, scrollToBottom])
 
-  return loaded && !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
+  return (
+    loaded &&
+    messageCenterOrdinal &&
+    !containsLatestMessage &&
+    numOrdinals > 0 && <JumpToRecent onClick={onJump} />
+  )
 }
