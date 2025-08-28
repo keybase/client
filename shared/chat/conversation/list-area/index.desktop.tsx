@@ -38,14 +38,8 @@ const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {
-    listRef,
-    setListRef: _setListRef,
-    containsLatestMessage,
-    messageOrdinals,
-    centeredOrdinal,
-    loaded,
-  } = p
+  const {listRef, setListRef: _setListRef, containsLatestMessage} = p
+  const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
