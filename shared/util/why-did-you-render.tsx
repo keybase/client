@@ -2,9 +2,9 @@
 import enabled from './why-did-you-render-enabled'
 if (enabled && __DEV__) {
   const Platform = (require('react-native') as {Platform: {OS: string}}).Platform
-  // react-scan doesnt work on RN yet
+  // react-scan doesn't work on RN yet
   if (Platform.OS === 'web') {
-    console.log('\n\n\nDEBUG: react-scan try to load')
+    logger.debug('react-scan loading')
     const scan = (
       require('react-scan') as
         | {scan: (o: {enabled: boolean; log: boolean; renderCountThreshold: number}) => void}

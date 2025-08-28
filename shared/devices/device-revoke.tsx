@@ -76,7 +76,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
-    console.error(e)
+    logger.error('Failed to get endangered TLFs:', e)
   }
   return []
 }

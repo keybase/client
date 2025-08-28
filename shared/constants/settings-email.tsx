@@ -121,17 +121,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     editEmail: p => {
       const f = async () => {
         // TODO: consider allowing more than one action here
-        // TODO: handle errors
-        if (p.delete) {
-          await T.RPCGen.emailsDeleteEmailRpcPromise({email: p.email})
-          if (get().addedEmail === p.email) {
-            get().dispatch.resetAddedEmail()
+        try {
+          if (p.delete) {
+            await T.RPCGen.emailsDeleteEmailRpcPromise({email: p.email})
+            if (get().addedEmail === p.email) {
+              get().dispatch.resetAddedEmail()
+              return
+            }
             return
           }
-          return
-        }
-        if (p.makePrimary) {
-          await T.RPCGen.emailsSetPrimaryEmailRpcPromise({email: p.email})
+          if (p.makePrimary) {
+            await T.RPCGen.emailsSetPrimaryEmailRpcPromise({email: p.email})
           return
         }
         if (p.verify) {
@@ -147,16 +147,19 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             s.emails.set(p.email, old)
           })
         }
-        if (p.makeSearchable !== undefined) {
-          await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
-            email: p.email,
-            visibility: p.makeSearchable
-              ? T.RPCChat.Keybase1.IdentityVisibility.public
-              : T.RPCChat.Keybase1.IdentityVisibility.private,
-          })
-          return
+          if (p.makeSearchable !== undefined) {
+            await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
+              email: p.email,
+              visibility: p.makeSearchable
+                ? T.RPCChat.Keybase1.IdentityVisibility.public
+                : T.RPCChat.Keybase1.IdentityVisibility.private,
+            })
+            return
+          }
+          logger.warn('Empty editEmail action')
+        } catch (error) {
+          logger.error('Failed to edit email:', error)
         }
-        logger.warn('Empty editEmail action')
       }
       C.ignorePromise(f())
     },
