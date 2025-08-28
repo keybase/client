@@ -116,7 +116,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
       const meta = s.meta
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-      const loadMoreType = s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'
+      const loadMoreType = s.moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
       const pendingState =
         s.id === C.Chat.pendingWaitingConversationIDKey
           ? 'waiting'
