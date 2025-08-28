@@ -1,6 +1,6 @@
 module github.com/keybase/client/packaging/linux/tuxbot/bot
 
-go 1.19
+go 1.23.0
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
@@ -13,15 +13,16 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/distribution/reference v0.6.0 // indirect
+	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
-	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
