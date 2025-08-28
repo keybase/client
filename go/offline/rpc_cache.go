@@ -171,8 +171,8 @@ func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability
 	}
 
 	// If we know we're not connected, use the cache value right away.
-	// TODO: API calls shouldn't necessarily depend on the
-	// connectivity as measured by gregor.
+	// Note: This uses gregor connectivity monitoring which may not
+	// perfectly reflect API server reachability.
 	if mctx.G().ConnectivityMonitor.IsConnected(mctx.Ctx()) == libkb.ConnectivityMonitorNo {
 		if !found {
 			return nil, libkb.OfflineError{}

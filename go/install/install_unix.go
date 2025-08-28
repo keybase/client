@@ -9,7 +9,9 @@ package install
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -164,8 +166,26 @@ func updaterBinName() (string, error) {
 
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	// TODO: Start app, see run_keybase: /opt/keybase/Keybase
-	return nil
+	// Try common locations for the Keybase app
+	appPaths := []string{
+		"/opt/keybase/Keybase",
+		"/usr/bin/keybase-gui",
+		filepath.Join(context.GetRunDir(), "Keybase"),
+	}
+	
+	for _, appPath := range appPaths {
+		if exists, _ := libkb.FileExists(appPath); exists {
+			cmd := exec.Command(appPath)
+			if err := cmd.Start(); err != nil {
+				log.Warning("Failed to start %s: %v", appPath, err)
+				continue
+			}
+			// Detach from the process so it continues running
+			cmd.Process.Release()
+			return nil
+		}
+	}
+	return nil // Not an error if GUI app not found
 }
 
 func InstallLogPath() (string, error) {

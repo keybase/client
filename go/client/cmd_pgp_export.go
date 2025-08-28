@@ -95,7 +95,7 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 	if len(res) > 1 {
 		s.G().Log.Warning("Found several matches:")
 		for _, k := range res {
-			// XXX os.Stderr?  why not Log?
+			// Write to stderr to keep stdout clean for piping
 			os.Stderr.Write([]byte(k.Desc + "\n\n"))
 		}
 		return fmt.Errorf("Specify a key to export")

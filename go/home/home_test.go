@@ -19,7 +19,7 @@ func TestHome(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	home := NewHome(tc.G)
 
 	// test we run without error for markViewed true/false

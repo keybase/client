@@ -33,7 +33,7 @@ func TestLRU(t *testing.T) {
 	}
 
 	lru := NewLRU(tc.G, 2, 1, obj{})
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	testPut := func(i int) {
 		err := lru.Put(ctx, tc.G, objs[i], &objs[i])

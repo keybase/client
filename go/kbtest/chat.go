@@ -43,38 +43,39 @@ func (c ChatTestContext) Context() *globals.Context {
 }
 
 func (c ChatTestContext) Cleanup() {
+	ctx := context.Background()
 	if c.ChatG.PushHandler != nil {
-		<-c.ChatG.PushHandler.Stop(context.TODO())
+		<-c.ChatG.PushHandler.Stop(ctx)
 	}
 	if c.ChatG.MessageDeliverer != nil {
-		<-c.ChatG.MessageDeliverer.Stop(context.TODO())
+		<-c.ChatG.MessageDeliverer.Stop(ctx)
 	}
 	if c.ChatG.ConvLoader != nil {
-		<-c.ChatG.ConvLoader.Stop(context.TODO())
+		<-c.ChatG.ConvLoader.Stop(ctx)
 	}
 	if c.ChatG.FetchRetrier != nil {
-		<-c.ChatG.FetchRetrier.Stop(context.TODO())
+		<-c.ChatG.FetchRetrier.Stop(ctx)
 	}
 	if c.ChatG.EphemeralPurger != nil {
-		<-c.ChatG.EphemeralPurger.Stop(context.TODO())
+		<-c.ChatG.EphemeralPurger.Stop(ctx)
 	}
 	if c.ChatG.EphemeralTracker != nil {
-		<-c.ChatG.EphemeralTracker.Stop(context.TODO())
+		<-c.ChatG.EphemeralTracker.Stop(ctx)
 	}
 	if c.ChatG.InboxSource != nil {
-		<-c.ChatG.InboxSource.Stop(context.TODO())
+		<-c.ChatG.InboxSource.Stop(ctx)
 	}
 	if c.ChatG.Indexer != nil {
-		<-c.ChatG.Indexer.Stop(context.TODO())
+		<-c.ChatG.Indexer.Stop(ctx)
 	}
 	if c.ChatG.CoinFlipManager != nil {
-		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
+		<-c.ChatG.CoinFlipManager.Stop(ctx)
 	}
 	if c.ChatG.BotCommandManager != nil {
-		<-c.ChatG.BotCommandManager.Stop(context.TODO())
+		<-c.ChatG.BotCommandManager.Stop(ctx)
 	}
 	if c.ChatG.UIInboxLoader != nil {
-		<-c.ChatG.UIInboxLoader.Stop(context.TODO())
+		<-c.ChatG.UIInboxLoader.Stop(ctx)
 	}
 	c.TestContext.Cleanup()
 }

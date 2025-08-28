@@ -72,7 +72,16 @@ func rqBinPath() (string, error) {
 
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	// TODO: Start the app
+	// Start the Keybase GUI application
+	appPath := filepath.Join(context.GetRunDir(), "Keybase.exe")
+	if exists, _ := libkb.FileExists(appPath); exists {
+		cmd := exec.Command(appPath)
+		if err := cmd.Start(); err != nil {
+			return fmt.Errorf("failed to start Keybase app: %w", err)
+		}
+		// Detach from the process so it continues running
+		cmd.Process.Release()
+	}
 	return nil
 }
 
