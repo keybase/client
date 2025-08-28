@@ -8,5 +8,5 @@ import (
 )
 
 func fileUrlize(path string) string {
-	return `/` + strings.Replace(path, `\`, `/`, -1)
+	return `/` + strings.ReplaceAll(path, `\`, `/`)
 }
