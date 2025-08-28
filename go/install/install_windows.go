@@ -379,3 +379,59 @@ func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
 	}
 	return keybase1.OnLoginStartupStatus_DISABLED
 }
+
+// KeybaseServiceStatus returns the status of the Keybase service or KBFS process
+func KeybaseServiceStatus(context Context, label string, wait time.Duration, log Log) (status keybase1.ServiceStatus) {
+	if label == "" {
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+		return
+	}
+
+	// Check if the process is running by looking for its executable
+	var processName string
+	switch label {
+	case "service":
+		processName = "keybase.exe"
+	case "kbfs":
+		processName = "kbfsdokan.exe"
+	default:
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "Unknown service label")}
+		return
+	}
+
+	// Use tasklist to check if the process is running
+	cmd := exec.Command("tasklist", "/FI", fmt.Sprintf("IMAGENAME eq %s", processName), "/FO", "CSV", "/NH")
+	output, err := cmd.Output()
+	if err != nil {
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+		return
+	}
+
+	// Parse the output to find the process
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, processName) {
+			// Extract the PID from the CSV output
+			fields := strings.Split(line, ",")
+			if len(fields) >= 2 {
+				pidStr := strings.Trim(fields[1], `"`)
+				if pid, err := strconv.Atoi(pidStr); err == nil {
+					status = keybase1.ServiceStatus{
+						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCOk, "Running"),
+						Pid:    strconv.Itoa(pid),
+					}
+					status.BundleVersion = libkb.VersionString()
+					return
+				}
+			}
+		}
+	}
+
+	// Process not found
+	status = keybase1.ServiceStatus{
+		Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, fmt.Sprintf("%s not running", processName)),
+	}
+	status.BundleVersion = libkb.VersionString()
+	return
+}
