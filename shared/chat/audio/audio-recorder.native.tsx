@@ -547,7 +547,9 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   const {fadeSV} = props
+  const backgroundColor = Styles.undynamicColor(Styles.globalColors.white)
   const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor,
     opacity: fadeSV.value * 0.9,
     transform: [{scale: fadeSV.value}],
   }))
@@ -743,7 +745,9 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
 const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
   const {fadeSV, lockedSV, sendRecording} = props
+  const backgroundColor = Styles.undynamicColor(Styles.globalColors.blue)
   const buttonStyle = useAnimatedStyle(() => ({
+    backgroundColor,
     opacity: lockedSV.value ? fadeSV.value : withTiming(0),
     transform: [{translateY: withTiming(lockedSV.value ? -100 : 50)}],
   }))
@@ -799,7 +803,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   bigBackgroundStyle: {
     ...circleAroundIcon(Styles.isTablet ? 2000 : 750),
-    backgroundColor: Styles.globalColors.white,
   },
   cancelHintIcon: {
     left: 0,
@@ -830,7 +833,6 @@ const styles = Styles.styleSheetCreate(() => ({
   sendRecordingButtonStyle: {
     ...circleAroundIcon(32),
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.blue,
     justifyContent: 'center',
   },
   tooltipContainer: {

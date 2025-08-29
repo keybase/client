@@ -41,6 +41,8 @@ const AnimatedScrollView = createAnimatedComponent(ScrollView)
 const TabletBottomBorderExtension = React.memo(
   (props: {offset?: SharedValue<number>; servicesCount: number}) => {
     const {offset} = props
+
+    const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
     const animatedStyles = useAnimatedStyle(() => {
       const translateY = offset
         ? interpolate(offset.value, [0, 100], [0, -8], {
@@ -48,7 +50,7 @@ const TabletBottomBorderExtension = React.memo(
             extrapolateRight: Extrapolation.CLAMP,
           })
         : 0
-      return {transform: [{translateY}]}
+      return {borderColor, transform: [{translateY}]}
     })
 
     return (
@@ -59,7 +61,6 @@ const TabletBottomBorderExtension = React.memo(
           style={Kb.Styles.collapseStyles([
             {
               borderBottomWidth: 1,
-              borderColor: Kb.Styles.globalColors.black_10,
               bottom: 0,
               height: 2,
               position: 'absolute',
@@ -138,6 +139,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
         direction="horizontal"
         fullWidth={true}
         style={Kb.Styles.collapseStyles([
+          {borderColor: Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)},
           isActive ? styles.activeTabBar : styles.inactiveTabBar,
           isActive && {backgroundColor: serviceIdToAccentColor(service)},
           Kb.Styles.platformStyles({isMobile: animatedTransform}),
@@ -232,7 +234,6 @@ const styles = Kb.Styles.styleSheetCreate(
       badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
       inactiveTabBar: {
         borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
         bottom: 0,
         height: 2,
         position: 'absolute',
