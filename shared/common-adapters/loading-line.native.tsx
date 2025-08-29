@@ -7,8 +7,12 @@ const LoadingLine = React.memo(function LoadingLine() {
   React.useEffect(() => {
     opacity.set(withDelay(1000, withRepeat(withTiming(0, {duration: 600}), -1, true)))
   }, [opacity])
+  const backgroundColor = Styles.undynamicColor(Styles.globalColors.blue)
   const animatedStyle = useAnimatedStyle(() => {
-    return {opacity: opacity.value}
+    return {
+      backgroundColor,
+      opacity: opacity.value,
+    }
   })
   return <Animated.View style={[styles.line, animatedStyle]} />
 })
@@ -17,7 +21,6 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       line: {
-        backgroundColor: Styles.globalColors.blue,
         height: 1,
         position: 'absolute',
         width: '100%',
