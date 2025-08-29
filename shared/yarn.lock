@@ -1319,10 +1319,10 @@
     minimist "^1.2.6"
     plist "^3.0.5"
 
-"@electron/packager@18.4.2":
-  version "18.4.2"
-  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-18.4.2.tgz#f565f14700f492523c88e36abeef92e3d6a87892"
-  integrity sha512-5wr/6YoOhBlQoAloquKksY21Pa/2Eg4kq4y/+jOX+9smAFS4fcM3kG3KyhU/zEuwitxRjquq9/KxDNNhJbhc+w==
+"@electron/packager@18.4.4":
+  version "18.4.4"
+  resolved "https://registry.yarnpkg.com/@electron/packager/-/packager-18.4.4.tgz#708458f73639c2aa919ce5f6250ac519fa53ee5c"
+  integrity sha512-fTUCmgL25WXTcFpM1M72VmFP8w3E4d+KNzWxmTDRpvwkfn/S206MAtM2cy0GF78KS9AwASMOUmlOIzCHeNxcGQ==
   dependencies:
     "@electron/asar" "^3.2.13"
     "@electron/get" "^3.0.0"
@@ -1858,10 +1858,10 @@
     find-up "^5.0.0"
     js-yaml "^4.1.0"
 
-"@gorhom/bottom-sheet@5.1.6":
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/@gorhom/bottom-sheet/-/bottom-sheet-5.1.6.tgz#92365894ae4d4eefdbaa577408cfaf62463a9490"
-  integrity sha512-0b5tQj4fTaZAjST1PnkCp0p7d8iRqMezibTcqc8Kkn3N23Vn6upORNTD1fH0bLfwRt6e0WnZ7DjAmq315lrcKQ==
+"@gorhom/bottom-sheet@5.2.4":
+  version "5.2.4"
+  resolved "https://registry.yarnpkg.com/@gorhom/bottom-sheet/-/bottom-sheet-5.2.4.tgz#3608bcbd41c7be424afa93b74a9910ff13959207"
+  integrity sha512-fItmuq5DUWXE4CNUrarboXxfS4hyVEi0uRhoTTyRrGHeL6Hib+bWaJkXMSou744KLAvgLLuwOWUry/wuTQTO6Q==
   dependencies:
     "@gorhom/portal" "1.0.14"
     invariant "^2.2.4"
@@ -3985,10 +3985,10 @@ babel-plugin-polyfill-regenerator@^0.6.5:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.6.5"
 
-babel-plugin-react-native-web@0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.20.0.tgz#a124d0e000fd5523385e7c617a7527136ad40d22"
-  integrity sha512-n16dES+EBXCtZ0juCrOahIb2weO2ZD11DBEjj/VABclItWgajck1sX63+SyHJrGlbTPcW+d1Evh0SK1OmoUEDw==
+babel-plugin-react-native-web@0.21.1:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.21.1.tgz#0147f1c716119025047475ae3f542ffdacea7d82"
+  integrity sha512-7XywfJ5QIRMwjOL+pwJt2w47Jmi5fFLvK7/So4fV4jIN6PcRbylCp9/l3cJY4VJbSz3lnWTeHDTD1LKIc1C09Q==
 
 babel-plugin-react-native-web@~0.19.13:
   version "0.19.13"
@@ -7741,10 +7741,10 @@ loose-envify@^1.0.0, loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lottie-react-native@7.3.2:
-  version "7.3.2"
-  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.3.2.tgz#3a65077497afd3da9854afa096df21fa6d98f65f"
-  integrity sha512-uKVGXiG3+6GvSVnVSgM1cNQTPxfylg94gc2lGHhsXvjK0NVkxF/S3qDNESJ59K5uDg4AjXlP5+tf/UhA9CEZOA==
+lottie-react-native@7.3.3:
+  version "7.3.3"
+  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.3.3.tgz#c332f81dcb36766e25b46d370e267643ecf81905"
+  integrity sha512-NKGQZllI6rrxF0Mg1amCGwmfFJftI+7v54f48BfWpHH0tTl0RNRj1dujIMvhKGKPt485B41AfGOrFXC1k7/i7w==
 
 lottie-web@5.13.0:
   version "5.13.0"
@@ -9301,10 +9301,10 @@ react-native-screens@4.12.0:
     react-native-is-edge-to-edge "^1.1.7"
     warn-once "^0.1.0"
 
-react-native-web@0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/react-native-web/-/react-native-web-0.20.0.tgz#3fb0591999ed4b54d7822a2785547415e8a5c031"
-  integrity sha512-OOSgrw+aON6R3hRosCau/xVxdLzbjEcsLysYedka0ZON4ZZe6n9xgeN9ZkoejhARM36oTlUgHIQqxGutEJ9Wxg==
+react-native-web@0.21.1:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/react-native-web/-/react-native-web-0.21.1.tgz#ba36a42f02a19da0cfdb70f6f963acaede4a7b3c"
+  integrity sha512-BeNsgwwe4AXUFPAoFU+DKjJ+CVQa3h54zYX77p7GVZrXiiNo3vl03WYDYVEy5R2J2HOPInXtQZB5gmj3vuzrKg==
   dependencies:
     "@babel/runtime" "^7.18.6"
     "@react-native/normalize-colors" "^0.74.1"
@@ -9315,18 +9315,18 @@ react-native-web@0.20.0:
     postcss-value-parser "^4.2.0"
     styleq "^0.1.3"
 
-react-native-webview@13.15.0:
-  version "13.15.0"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-13.15.0.tgz#b6d2f8d8dd65897db76659ddd8198d2c74ec5a79"
-  integrity sha512-Vzjgy8mmxa/JO6l5KZrsTC7YemSdq+qB01diA0FqjUTaWGAGwuykpJ73MDj3+mzBSlaDxAEugHzTtkUQkQEQeQ==
+react-native-webview@13.16.0:
+  version "13.16.0"
+  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-13.16.0.tgz#c995148f944a7eaf12389f0e6d5c6f5e6a775686"
+  integrity sha512-Nh13xKZWW35C0dbOskD7OX01nQQavOzHbCw9XoZmar4eXCo7AvrYJ0jlUfRVVIJzqINxHlpECYLdmAdFsl9xDA==
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-react-native-zoom-toolkit@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-zoom-toolkit/-/react-native-zoom-toolkit-5.0.0.tgz#508e43417505a854ef14b4a708c9ab3afbe34e14"
-  integrity sha512-bmf2CWsUEdCKnfZh+jhDb1Uwk14N2sPsm+9dCanBIncGwYUYT67kglmmYPnUjrLwhk4gYl5pqyjGxo6YkAKcbg==
+react-native-zoom-toolkit@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-zoom-toolkit/-/react-native-zoom-toolkit-5.0.1.tgz#7d01a1c0859fb0a5dd4f3bfd486de84ac83538ea"
+  integrity sha512-itDL8OkyJpoZVXypbSNwULNcjIvoOXEpyf1C0rrzpmYmVkPEqN1OsFhTYWDEZ5hUPnTZ6RwhZtxnjfrn1tBLWA==
 
 react-native@0.79.3:
   version "0.79.3"

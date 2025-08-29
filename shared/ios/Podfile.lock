@@ -126,7 +126,7 @@ PODS:
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
   - lottie-ios (4.5.0)
-  - lottie-react-native (7.3.2):
+  - lottie-react-native (7.3.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1603,7 +1603,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-webview (13.15.0):
+  - react-native-webview (13.16.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2587,7 +2587,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
-  lottie-react-native: cb19cdfe51bf6f5104abc5fca5a65970283c284b
+  lottie-react-native: 25b140ad1c00f41869cc05320b68135935a0f9cd
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: c3e3f5b4ea83e7ff3bc86ce09e2a54b7affd687d
   RCTRequired: ee438439880dffc9425930d1dd1a3c883ee6879c
@@ -2624,7 +2624,7 @@ SPEC CHECKSUMS:
   react-native-kb: c8be99b694b6f1c7e338aaa624ddb1556c910365
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: 5e61d0541825a113f60c01e061974355fec8d7c1
-  react-native-webview: 69c118d283fccfbc4fca0cd680e036ff3bf188fa
+  react-native-webview: f0d598682cbc88a97d66da4121873d3467f76635
   React-NativeModulesApple: 579cac2962d42ffee0d8aae48752f30c4e498bb9
   React-oscompat: f26aa2a4adc84c34212ab12c07988fe19e9cf16a
   React-perflogger: e15a0d43d1928e1c82f4f0b7fc05f7e9bccfede8
