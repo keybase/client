@@ -248,7 +248,11 @@ func (t *Tree) GenerateAndStoreMasterSecret(
 	if err != nil {
 		return nil, err
 	}
-	err = t.eng.(StorageEngineWithBlinding).StoreMasterSecret(ctx, tr, s, ms)
+	engWithBlinding, ok := t.eng.(StorageEngineWithBlinding)
+	if !ok {
+		return nil, fmt.Errorf("storage engine does not support blinding")
+	}
+	err = engWithBlinding.StoreMasterSecret(ctx, tr, s, ms)
 	if err != nil {
 		return nil, err
 	}

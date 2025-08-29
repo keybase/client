@@ -9,6 +9,7 @@ package launchd
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 
 	"os"
@@ -245,7 +246,7 @@ func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error
 	case err := <-errChan:
 		return err
 	case <-time.After(wait):
-		return fmt.Errorf("Waiting for service exit timed out")
+		return errors.New("Waiting for service exit timed out")
 	}
 }
 

@@ -253,7 +253,7 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKs(mctx libkb.MetaContext, merkleRoot 
 
 	// Abort. We only cared about deleting expired deviceEKs.
 	if merkleRoot.IsNil() {
-		return fmt.Errorf("skipping userEK deletion, unable to fetch merkle root")
+		return errors.New("skipping userEK deletion, unable to fetch merkle root")
 	}
 
 	userEKBoxStorage := mctx.G().GetUserEKBoxStorage()

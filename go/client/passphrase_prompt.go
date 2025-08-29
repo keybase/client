@@ -15,7 +15,7 @@ import (
 // promptPassphrase asks the user for a passphrase.
 // Used during signup.
 func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error) {
-	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContextTODO(g))
+	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContext(context.Background(), g))
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = fmt.Sprintf("Pick a strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
@@ -25,7 +25,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 // promptNewPassphrase asks the user for a new passphrase.
 // Used when changing passphrases.
 func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContextTODO(g))
+	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContext(context.Background(), g))
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
@@ -39,7 +39,7 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 // PromptPaperPhrase asks the user to enter a paper key phrase.
 // Used in `rekey paper` command.
 func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
-	m := libkb.NewMetaContextTODO(g)
+	m := libkb.NewMetaContext(context.Background(), g)
 	arg := libkb.DefaultPassphraseArg(m)
 	arg.WindowTitle = "Enter a paper key"
 	arg.Prompt = "Enter a paper key"
@@ -57,7 +57,7 @@ func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
 
 func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, promptConfirm string) (keybase1.GetPassphraseRes, error) {
 	prompter := newClientPrompter(g)
-	m := libkb.NewMetaContextTODO(g)
+	m := libkb.NewMetaContext(context.Background(), g)
 
 	firstPrompt := arg.Prompt
 
@@ -107,5 +107,5 @@ func (c *clientPrompter) Prompt(arg keybase1.GUIEntryArg) (keybase1.GetPassphras
 	promptArg := keybase1.PassphrasePromptArg{
 		GuiArg: arg,
 	}
-	return cli.PassphrasePrompt(context.TODO(), promptArg)
+	return cli.PassphrasePrompt(context.Background(), promptArg)
 }

@@ -25,7 +25,12 @@
     "iced-logger": "0.0.6",
     "iced-runtime": "1.0.4",
     "iced-utils": "0.1.27",
-    "json5": "2.2.1",
-    "prettier": "2.6.2"
+    "json5": "2.2.3",
+    "prettier": "3.6.2"
+  },
+  "resolutions": {
+    "**/minimist": ">=1.2.8",
+    "**/lodash": ">=4.17.21",
+    "**/underscore": ">=1.12.1"
   }
 }

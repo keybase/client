@@ -201,7 +201,7 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer,
 	}
 
 	// make sure local state is clean
-	mctx := libkb.NewMetaContextTODO(g.ExternalG())
+	mctx := libkb.NewMetaContext(context.Background(), g.ExternalG())
 	go u.clearOldUploaderTempDirs(context.Background(), 8*time.Second)
 	go disklru.CleanOutOfSyncWithDelay(mctx, u.previewsLRU, u.getPreviewsDir(), 10*time.Second)
 	go disklru.CleanOutOfSyncWithDelay(mctx, u.fullsLRU, u.getFullsDir(), 10*time.Second)
@@ -437,9 +437,11 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 		return nil, err
 	}
 	if evicted != nil {
-		path := u.normalizeFilenameFromCache(dir, evicted.Value.(string))
-		if oerr := os.Remove(path); oerr != nil {
-			u.Debug(ctx, "failed to remove file at %s, %v", path, oerr)
+		if filename, ok := evicted.Value.(string); ok {
+			path := u.normalizeFilenameFromCache(dir, filename)
+			if oerr := os.Remove(path); oerr != nil {
+				u.Debug(ctx, "failed to remove file at %s, %v", path, oerr)
+			}
 		}
 	}
 	return f, nil

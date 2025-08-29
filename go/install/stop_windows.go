@@ -33,9 +33,11 @@ func StopAllButService(mctx libkb.MetaContext, exitCode keybase1.ExitCode) {
 		}
 		unmountPath := filepath.Join(mountdir, exitFile)
 		mctx.Info("StopAllButService: opening %s", unmountPath)
-		_, err = os.Open(unmountPath)
+		f, err := os.Open(unmountPath)
 		if err != nil {
 			mctx.Debug("StopAllButService: unable to unmount kbfs (%s) but it might still have shut down successfully", err)
+		} else {
+			f.Close()
 		}
 		err = libkb.ChangeMountIcon(mountdir, "")
 		if err != nil {

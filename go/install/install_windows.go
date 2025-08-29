@@ -72,7 +72,16 @@ func rqBinPath() (string, error) {
 
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	// TODO: Start the app
+	// Start the Keybase GUI application
+	appPath := filepath.Join(context.GetRunDir(), "Keybase.exe")
+	if exists, _ := libkb.FileExists(appPath); exists {
+		cmd := exec.Command(appPath)
+		if err := cmd.Start(); err != nil {
+			return fmt.Errorf("failed to start Keybase app: %w", err)
+		}
+		// Detach from the process so it continues running
+		cmd.Process.Release()
+	}
 	return nil
 }
 
@@ -221,8 +230,6 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
 const autoRegName = `Keybase.Keybase.GUI`
 
-// TODO Remove this in 2022.
-const autoRegDeprecatedName = `electron.app.keybase`
 
 func autostartStatus() (enabled bool, err error) {
 	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
@@ -244,8 +251,6 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	defer k.Close()
 
 	// Delete old key if it exists.
-	// TODO Remove this in 2022.
-	k.DeleteValue(autoRegDeprecatedName)
 
 	if !on {
 		// it might not exists, don't propagate error.
@@ -266,26 +271,6 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 }
 
 // This is the old startup info logging. Retain it for now, but it is soon useless.
-// TODO Remove in 2021.
-func deprecatedStartupInfo(logFile *os.File) {
-	if appDataDir, err := libkb.AppDataDir(); err != nil {
-		logFile.WriteString("Error getting AppDataDir\n")
-	} else {
-		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
-			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else if err != nil {
-			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
-			if err != nil {
-				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
-			} else {
-				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
-				if err == nil && len(val) > 0 && val[0] != 2 {
-					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
-				}
-			}
-		}
-	}
-}
 
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
@@ -308,8 +293,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	}
 	logFile.WriteString("\n")
 
-	// Check whether the service shortcut is still present and not disabled
-	deprecatedStartupInfo(logFile)
+	// Check whether the service is set to autostart
 	status, err := autostartStatus()
 	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 
@@ -384,18 +368,8 @@ func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
 }
 
-// delete this function and calls to it if present after 2022
-func deleteDeprecatedFileIfPresent() {
-	// this file is no longer how we do things, and if it's present (which it shouldn't be) it could
-	// cause unexpected behavior
-	if appDataDir, err := libkb.AppDataDir(); err == nil {
-		autostartLinkPath := filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")
-		_ = os.Remove(autostartLinkPath)
-	}
-}
 
 func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
-	deleteDeprecatedFileIfPresent()
 	status, err := autostartStatus()
 	if err != nil {
 		return keybase1.OnLoginStartupStatus_UNKNOWN
@@ -404,4 +378,60 @@ func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
 		return keybase1.OnLoginStartupStatus_ENABLED
 	}
 	return keybase1.OnLoginStartupStatus_DISABLED
+}
+
+// KeybaseServiceStatus returns the status of the Keybase service or KBFS process
+func KeybaseServiceStatus(context Context, label string, wait time.Duration, log Log) (status keybase1.ServiceStatus) {
+	if label == "" {
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+		return
+	}
+
+	// Check if the process is running by looking for its executable
+	var processName string
+	switch label {
+	case "service":
+		processName = "keybase.exe"
+	case "kbfs":
+		processName = "kbfsdokan.exe"
+	default:
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "Unknown service label")}
+		return
+	}
+
+	// Use tasklist to check if the process is running
+	cmd := exec.Command("tasklist", "/FI", fmt.Sprintf("IMAGENAME eq %s", processName), "/FO", "CSV", "/NH")
+	output, err := cmd.Output()
+	if err != nil {
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+		return
+	}
+
+	// Parse the output to find the process
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, processName) {
+			// Extract the PID from the CSV output
+			fields := strings.Split(line, ",")
+			if len(fields) >= 2 {
+				pidStr := strings.Trim(fields[1], `"`)
+				if pid, err := strconv.Atoi(pidStr); err == nil {
+					status = keybase1.ServiceStatus{
+						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCOk, "Running"),
+						Pid:    strconv.Itoa(pid),
+					}
+					status.BundleVersion = libkb.VersionString()
+					return
+				}
+			}
+		}
+	}
+
+	// Process not found
+	status = keybase1.ServiceStatus{
+		Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, fmt.Sprintf("%s not running", processName)),
+	}
+	status.BundleVersion = libkb.VersionString()
+	return
 }

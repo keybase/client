@@ -625,6 +625,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())
 	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 	appState := kbCtx.MobileAppState.State()
 	if appState != keybase1.MobileAppState_BACKGROUNDACTIVE {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")

@@ -1529,6 +1529,7 @@ func (g *gregorHandler) pingLoop() {
 		id, duration, timeout, url.Host)
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
 	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {

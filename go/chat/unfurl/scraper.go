@@ -40,14 +40,16 @@ func (s *Scraper) makeCollector() *colly.Collector {
 		record = rpc.NewNetworkInstrumenter(s.G().ExternalG().RemoteNetworkInstrumenterStorage, "UnfurlScraper")
 	})
 	c.OnResponse(func(r *colly.Response) {
-		if err := record.RecordAndFinish(context.TODO(), int64(len(r.Body))); err != nil {
-			s.Debug(context.TODO(), "colly OnResponse: unable to instrument network request %s, %s", record, err)
+		ctx := context.Background()
+		if err := record.RecordAndFinish(ctx, int64(len(r.Body))); err != nil {
+			s.Debug(ctx, "colly OnResponse: unable to instrument network request %s, %s", record, err)
 		}
 	})
 	if s.G().Env.GetProxyType() != libkb.NoProxy {
 		err := c.SetProxy(libkb.BuildProxyAddressWithProtocol(s.G().Env.GetProxyType(), s.G().Env.GetProxy()))
 		if err != nil {
-			s.Debug(context.TODO(), "makeCollector: error setting proxy: %+v", err)
+			ctx := context.Background()
+			s.Debug(ctx, "makeCollector: error setting proxy: %+v", err)
 		}
 	}
 	return c

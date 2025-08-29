@@ -179,19 +179,19 @@ type emptyKeyring struct{}
 var _ saltpack.Keyring = emptyKeyring{}
 
 func (e emptyKeyring) LookupBoxSecretKey(kids [][]byte) (int, saltpack.BoxSecretKey) {
-	panic("unimplemented")
+	return -1, nil
 }
 
 func (e emptyKeyring) LookupBoxPublicKey(kid []byte) saltpack.BoxPublicKey {
-	panic("unimplemented")
+	return nil
 }
 
 func (e emptyKeyring) GetAllBoxSecretKeys() []saltpack.BoxSecretKey {
-	panic("unimplemented")
+	return nil
 }
 
 func (e emptyKeyring) ImportBoxEphemeralKey(kid []byte) saltpack.BoxPublicKey {
-	panic("unimplemented")
+	return nil
 }
 
 func (e emptyKeyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {

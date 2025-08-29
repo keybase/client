@@ -77,7 +77,7 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
 	li := engine.NewLogin(g, keybase1.DeviceTypeV2_DESKTOP, fu.Username, keybase1.ClientType_CLI)
-	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	m := libkb.NewMetaContext(context.Background(), g).WithUIs(uis)
 	return engine.RunEngine2(m, li)
 }
 
@@ -322,7 +322,9 @@ type TestProvisionUI struct {
 }
 
 func (u *TestProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	panic("ChooseProvisioningMethod deprecated")
+	// This method is deprecated and should not be called in tests
+	// Return an error instead of panicking for better test stability
+	return keybase1.ProvisionMethod_DEVICE, fmt.Errorf("ChooseProvisioningMethod is deprecated and should not be called")
 }
 
 func (u *TestProvisionUI) ChooseGPGMethod(_ context.Context, _ keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {

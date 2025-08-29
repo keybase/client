@@ -44,7 +44,7 @@ const Screenprotector = () => {
       ],
       () => {},
       () => {
-        console.log('cant save screenshot?')
+        logger.error("Can't save screenshot settings")
         setDisableScreenshot(!next)
       }
     )

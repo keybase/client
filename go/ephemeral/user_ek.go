@@ -322,11 +322,9 @@ func fetchUserEKStatement(mctx libkb.MetaContext, uid keybase1.UID) (
 	latestPUK := upak.Current.GetLatestPerUserKey()
 	statement, latestGeneration, wrongKID, err = verifySigWithLatestPUK(mctx, uid, latestPUK, *sig)
 	// Check the wrongKID condition before checking the error, since an error
-	// is still returned in this case. TODO: Turn this warning into an error
-	// after EK support is sufficiently widespread.
+	// is still returned in this case.
 	if wrongKID {
-		mctx.Debug("It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-		return nil, latestGeneration, true, nil
+		return nil, latestGeneration, true, fmt.Errorf("ephemeral key signed with wrong KID - device may have been revoked without generating new ephemeral keys")
 	} else if err != nil {
 		return nil, latestGeneration, false, err
 	}

@@ -1,6 +1,6 @@
 module github.com/keybase/client/go
 
-go 1.22.1
+go 1.23.0
 
 toolchain go1.23.4
 
@@ -72,13 +72,13 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.32.0
+	golang.org/x/crypto v0.41.0
 	golang.org/x/image v0.23.0
 	golang.org/x/mobile v0.0.0-20250106192035-c31d5b91ecc3
-	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
-	golang.org/x/sys v0.29.0
-	golang.org/x/text v0.21.0
+	golang.org/x/net v0.43.0
+	golang.org/x/sync v0.16.0
+	golang.org/x/sys v0.35.0
+	golang.org/x/text v0.28.0
 	golang.org/x/time v0.9.0
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -176,7 +176,7 @@ require (
 	github.com/go-toolsmith/astp v1.1.0 // indirect
 	github.com/go-toolsmith/strparse v1.1.0 // indirect
 	github.com/go-toolsmith/typep v1.1.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
@@ -327,8 +327,8 @@ require (
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

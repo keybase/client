@@ -12,11 +12,11 @@ import (
 // compatibility with node client commands:
 
 func NewCmdCompatDir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	desc := "`keybase dir` has been deprecated."
+	desc := "`keybase dir` has been deprecated. Use `keybase config get mountdir` to see the mount directory."
 	return cli.Command{
 		Name: "dir",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdCompat{Contextified: libkb.NewContextified(g), msg: desc}, "compat", c)
+			cl.ChooseCommand(&cmdCompat{Contextified: libkb.NewContextified(g), msg: desc, suggestion: "keybase config get mountdir"}, "compat", c)
 		},
 		Description: desc,
 	}
@@ -34,12 +34,17 @@ func NewCmdCompatPush(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 type cmdCompat struct {
 	libkb.Contextified
-	msg string
+	msg        string
+	suggestion string
 }
 
 func (c *cmdCompat) GetUsage() libkb.Usage { return libkb.Usage{} }
 func (c *cmdCompat) Run() error {
-	c.G().UI.GetTerminalUI().Printf("%s\n", c.msg)
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("%s\n", c.msg)
+	if c.suggestion != "" {
+		ui.Printf("Try: %s\n", c.suggestion)
+	}
 	return nil
 }
 func (c *cmdCompat) ParseArgv(ctx *cli.Context) error {

@@ -59,7 +59,7 @@ func canExec(s string) error {
 }
 
 func PosixLineEndings(arg string) string {
-	return strings.Replace(arg, "\r", "", -1)
+	return strings.ReplaceAll(arg, "\r", "")
 }
 
 func coTaskMemFree(pv unsafe.Pointer) {

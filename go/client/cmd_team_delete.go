@@ -96,9 +96,10 @@ func (c *CmdTeamDelete) GetUsage() libkb.Usage {
 }
 
 func (c *CmdTeamDelete) listSubteamsRecursiveSoft(cli *keybase1.TeamsClient) []keybase1.TeamName {
+	ctx := context.Background()
 	res, err := c.listSubteamsRecursive(cli)
 	if err != nil {
-		c.G().Log.CDebugf(context.TODO(), "error getting subteams: %v", err)
+		c.G().Log.CDebugf(ctx, "error getting subteams: %v", err)
 		return nil
 	}
 	return res
@@ -106,7 +107,8 @@ func (c *CmdTeamDelete) listSubteamsRecursiveSoft(cli *keybase1.TeamsClient) []k
 
 // List the subteams of c.Team
 func (c *CmdTeamDelete) listSubteamsRecursive(cli *keybase1.TeamsClient) (res []keybase1.TeamName, err error) {
-	subs, err := cli.TeamListSubteamsRecursive(context.TODO(), keybase1.TeamListSubteamsRecursiveArg{
+	ctx := context.Background()
+	subs, err := cli.TeamListSubteamsRecursive(ctx, keybase1.TeamListSubteamsRecursiveArg{
 		ParentTeamName: c.Team.String(),
 		ForceRepoll:    true,
 	})

@@ -53,7 +53,9 @@ func NewCmdBTCRunner(g *libkb.GlobalContext) *CmdBTC {
 }
 
 func (c *CmdBTC) Run() (err error) {
-	return errors.New("this command is deprecated; use `keybase currency add` instead")
+	c.G().UI.GetTerminalUI().Printf("This command is deprecated. Please use `keybase currency add` instead.\n")
+	c.G().UI.GetTerminalUI().Printf("Example: keybase currency add <bitcoin_address>\n")
+	return errors.New("deprecated command")
 }
 
 func (c *CmdBTC) GetUsage() libkb.Usage {

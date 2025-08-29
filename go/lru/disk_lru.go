@@ -100,7 +100,9 @@ func (d *diskLRUIndex) Marshal() diskLRUIndexMarshaled {
 	var m diskLRUIndexMarshaled
 	m.Version = d.Version
 	for e := d.EntryKeys.Front(); e != nil; e = e.Next() {
-		m.EntryKeys = append(m.EntryKeys, e.Value.(string))
+		if s, ok := e.Value.(string); ok {
+			m.EntryKeys = append(m.EntryKeys, s)
+		}
 	}
 	return m
 }
@@ -444,8 +446,13 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 	}
 	if _, ok = entry.Value.(map[string]interface{}); ok {
 		var pathable Pathable
-		jstr, _ := json.Marshal(entry.Value)
-		_ = json.Unmarshal(jstr, &pathable)
+		jstr, err := json.Marshal(entry.Value)
+		if err != nil {
+			return "", false
+		}
+		if err := json.Unmarshal(jstr, &pathable); err != nil {
+			return "", false
+		}
 		path := pathable.Path
 		if len(path) == 0 {
 			return "", false

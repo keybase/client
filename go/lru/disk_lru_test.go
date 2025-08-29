@@ -15,7 +15,7 @@ func TestDiskLRUBasic(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	l := NewDiskLRU("mike", 1, 10)
 
 	k := "mikem:square_360"
@@ -49,7 +49,7 @@ func TestDiskLRUVersion(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	l := NewDiskLRU("mike", 1, 10)
 	l2 := NewDiskLRU("mike", 2, 10)
 
@@ -70,7 +70,7 @@ func TestDiskLRUEvict(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	l := NewDiskLRU("mike", 1, 2)
 	clock := clockwork.NewFakeClock()
 	tc.G.SetClock(clock)
@@ -111,7 +111,7 @@ func TestDiskLRUFlush(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	l := NewDiskLRU("mike", 1, 2)
 	clock := clockwork.NewFakeClock()
 	tc.G.SetClock(clock)
@@ -152,7 +152,7 @@ func TestDiskLRUClean(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestDiskLRUCleaner", 1)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	cacheDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(cacheDir)

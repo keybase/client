@@ -57,7 +57,7 @@ export const PaperKey = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         style={styles.contents}
-        centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
+        centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesn't work well */}
         gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>

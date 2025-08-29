@@ -17,7 +17,7 @@ func createTeam(tc libkb.TestContext) keybase1.TeamID {
 	b, err := libkb.RandBytes(4)
 	require.NoError(tc.T, err)
 	name := hex.EncodeToString(b)
-	teamID, err := teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, name, keybase1.TeamSettings{})
 	require.NoError(tc.T, err)
 	require.NotNil(tc.T, teamID)
 

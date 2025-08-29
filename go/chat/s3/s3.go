@@ -1070,15 +1070,22 @@ func buildError(r *http.Response) error {
 
 	err := Error{}
 
-	// TODO return error if Unmarshal fails?
 	decodeErr := xml.NewDecoder(r.Body).Decode(&err)
-	if decodeErr != nil {
-		log.Printf("\tdecodeErr error: %v", decodeErr)
-	}
 	r.Body.Close()
-	err.StatusCode = r.StatusCode
-	if err.Message == "" {
-		err.Message = r.Status
+	
+	if decodeErr != nil {
+		// If we can't decode the error response, create a generic error
+		if debug {
+			log.Printf("\tdecodeErr error: %v", decodeErr)
+		}
+		err.StatusCode = r.StatusCode
+		err.Message = fmt.Sprintf("S3 error (status %d): %s", r.StatusCode, r.Status)
+		err.Code = "UnknownError"
+	} else {
+		err.StatusCode = r.StatusCode
+		if err.Message == "" {
+			err.Message = r.Status
+		}
 	}
 	if debug {
 		log.Printf("err: %#v\n", err)

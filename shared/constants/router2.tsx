@@ -174,15 +174,15 @@ export const getTab = (navState?: T.Immutable<NavState>): undefined | C.Tabs.Tab
 const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
+  DEBUG_NAV && logger.debug('[Nav] navToThread', conversationIDKey)
   const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
-    console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+    logger.warn('Avoiding trying to nav to thread when missing nav state, bailing')
     return
   }
   if (!rs.routes) {
-    console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+    logger.warn('Avoiding trying to nav to thread when malformed nav state, bailing')
     return
   }
 
@@ -308,7 +308,7 @@ export interface State extends Store {
 export const useState_ = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
-      DEBUG_NAV && console.log('[Nav] clearModals')
+      DEBUG_NAV && logger.debug('[Nav] clearModals')
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -320,17 +320,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       tabLongPress: undefined,
     },
     navUpToScreen: name => {
-      DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
+      DEBUG_NAV && logger.debug('[Nav] navUpToScreen', {name})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
       // some kind of unknown race, just bail
       if (!ns) {
-        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+        logger.warn('Avoiding trying to nav to thread when missing nav state, bailing')
         return
       }
       if (!ns.routes) {
-        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+        logger.warn('Avoiding trying to nav to thread when malformed nav state, bailing')
         return
       }
 

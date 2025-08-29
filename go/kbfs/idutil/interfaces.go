@@ -34,9 +34,8 @@ type Resolver interface {
 	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
 	// parameter.  Otherwise `Resolve` might block on a network call.
 	//
-	// TODO: some of the above assumptions on cacheability aren't
-	// right for subteams, which can change their name, so this may
-	// need updating.
+	// Note: Subteams can change their name, so caching strategies
+	// should account for potential name changes.
 	Resolve(ctx context.Context, assertion string,
 		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)

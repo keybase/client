@@ -34,7 +34,7 @@
     "react-native": "file:../../shared/node_modules/react-native",
     "@types/react": "file:../../shared/node_modules/@types/react",
     "typescript": "file:../../shared/node_modules/typescript",
-    "react-native-builder-bob": "0.40.11"
+    "react-native-builder-bob": "0.40.13"
   },
   "peerDependencies": {
     "react": "*",
@@ -57,5 +57,13 @@
     "android": {
       "javaPackageName": "com.reactnativekb"
     }
+  },
+  "resolutions": {
+    "braces": ">=3.0.3",
+    "ws": ">=7.5.10"
+  },
+  "overrides": {
+    "braces": ">=3.0.3",
+    "ws": ">=7.5.10"
   }
 }

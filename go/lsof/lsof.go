@@ -48,9 +48,6 @@ func (e ExecError) Error() string {
 
 // MountPoint returns processes using the mountpoint "lsof /dir"
 func MountPoint(dir string) ([]Process, error) {
-	// TODO: Fix lsof to not return error on exit status 1 since it isn't
-	// really any error, only an indication that there was no use of the
-	// mount.
 	return run([]string{"-F", "pcuftn", dir})
 }
 
@@ -188,6 +185,17 @@ func run(args []string) ([]Process, error) {
 	args = append([]string{"-w"}, args...)
 	output, err := exec.Command(command, args...).Output()
 	if err != nil {
+		// lsof returns exit status 1 when there are no processes using the resource
+		// This is not an error condition, just an indication of no results
+		if exitError, ok := err.(*exec.ExitError); ok && exitError.ExitCode() == 1 {
+			// Parse any output even with exit status 1
+			// (sometimes lsof returns partial results with exit 1)
+			if len(output) > 0 {
+				return parse(string(output))
+			}
+			// No output means genuinely no processes found
+			return []Process{}, nil
+		}
 		return nil, ExecError{command: command, args: args, output: string(output), err: err}
 	}
 	return parse(string(output))

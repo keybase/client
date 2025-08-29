@@ -9,7 +9,10 @@ package install
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -164,8 +167,26 @@ func updaterBinName() (string, error) {
 
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
-	// TODO: Start app, see run_keybase: /opt/keybase/Keybase
-	return nil
+	// Try common locations for the Keybase app
+	appPaths := []string{
+		"/opt/keybase/Keybase",
+		"/usr/bin/keybase-gui",
+		filepath.Join(context.GetRunDir(), "Keybase"),
+	}
+	
+	for _, appPath := range appPaths {
+		if exists, _ := libkb.FileExists(appPath); exists {
+			cmd := exec.Command(appPath)
+			if err := cmd.Start(); err != nil {
+				log.Warning("Failed to start %s: %v", appPath, err)
+				continue
+			}
+			// Detach from the process so it continues running
+			cmd.Process.Release()
+			return nil
+		}
+	}
+	return nil // Not an error if GUI app not found
 }
 
 func InstallLogPath() (string, error) {
@@ -179,4 +200,66 @@ func WatchdogLogPath(string) (string, error) {
 
 func SystemLogPath() string {
 	return ""
+}
+
+// KeybaseServiceStatus returns the status of the Keybase service or KBFS process
+func KeybaseServiceStatus(context Context, label string, wait time.Duration, log Log) (status keybase1.ServiceStatus) {
+	if label == "" {
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+		return
+	}
+
+	// Determine the process name to look for
+	var processName string
+	switch label {
+	case "service":
+		processName = "keybase"
+	case "kbfs":
+		processName = "kbfsfuse"
+	default:
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "Unknown service label")}
+		return
+	}
+
+	// Use pgrep to find the process
+	cmd := exec.Command("pgrep", "-x", processName)
+	output, err := cmd.Output()
+	if err != nil {
+		// pgrep returns exit code 1 when no processes are found
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+			status = keybase1.ServiceStatus{
+				Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, fmt.Sprintf("%s not running", processName)),
+			}
+			status.BundleVersion = libkb.VersionString()
+			return
+		}
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+		return
+	}
+
+	// Parse the PID from the output (first line)
+	pidStr := string(output)
+	if len(pidStr) > 0 {
+		// Remove trailing newline
+		if pidStr[len(pidStr)-1] == '\n' {
+			pidStr = pidStr[:len(pidStr)-1]
+		}
+		// Take only the first PID if multiple processes are running
+		if newlineIndex := strings.Index(pidStr, "\n"); newlineIndex > 0 {
+			pidStr = pidStr[:newlineIndex]
+		}
+		status = keybase1.ServiceStatus{
+			Status: keybase1.StatusFromCode(keybase1.StatusCode_SCOk, "Running"),
+			Pid:    pidStr,
+		}
+		status.BundleVersion = libkb.VersionString()
+		return
+	}
+
+	// Process not found
+	status = keybase1.ServiceStatus{
+		Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, fmt.Sprintf("%s not running", processName)),
+	}
+	status.BundleVersion = libkb.VersionString()
+	return
 }

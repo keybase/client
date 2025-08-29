@@ -120,7 +120,7 @@ const Advanced = () => {
       ],
       () => {},
       () => {
-        console.log('cant save spell check?')
+        logger.error("Can't save spell check settings")
         setDisableSpellcheck(!next)
       }
     )

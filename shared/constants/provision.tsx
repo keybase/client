@@ -139,7 +139,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
   const _cancel = C.wrapErrors((ignoreWarning?: boolean) => {
     C.useWaitingState.getState().dispatch.clear(waitingKey)
     if (!ignoreWarning) {
-      console.log('Provision: cancel called while not overloaded')
+      logger.info('Provision: cancel called while not overloaded')
     }
   })
 
@@ -199,7 +199,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
   })
 
   const _submitTextCode = C.wrapErrors((_code: string) => {
-    console.log('Provision, unwatched submitTextCode called')
+    logger.info('Provision, unwatched submitTextCode called')
     get().dispatch.restartProvisioning()
   })
 
@@ -362,7 +362,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       let cancelled = false
       // freeze the autosubmit for this call so changes don't affect us
       const {autoSubmit} = get()
-      console.log('Provision: startProvisioning starting with auto submit', autoSubmit)
+      logger.info('Provision: startProvisioning starting with auto submit', autoSubmit)
       const f = async () => {
         const isCanceled = (response: CommonResponseHandler) => {
           if (cancelled) {
@@ -438,7 +438,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
                 })
 
                 if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
-                  console.log('Provision: auto submit device name')
+                  logger.debug('Provision: auto submit device name')
                   get().dispatch.dynamic.setDeviceName?.(get().deviceName)
                 } else {
                   C.useRouterState.getState().dispatch.navigateAppend('setPublicName')
@@ -464,7 +464,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
                 })
 
                 if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
-                  console.log('Provision: auto submit passphrase')
+                  logger.debug('Provision: auto submit passphrase')
                   get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
                 } else {
                   C.useRouterState.getState().dispatch.navigateAppend('selectOtherDevice')
@@ -493,7 +493,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
                 })
 
                 if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
-                  console.log('Provision: auto submit passphrase')
+                  logger.debug('Provision: auto submit passphrase')
                   get().dispatch.dynamic.setPassphrase?.(get().passphrase)
                 } else {
                   switch (type) {
@@ -530,7 +530,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           get().dispatch.resetState()
         } catch (_finalError) {
           if (!(_finalError instanceof RPCError)) {
-            console.log('Provision non rpc error at end?', _finalError)
+            logger.warn('Provision non rpc error at end?', _finalError)
             return
           }
           const finalError = _finalError

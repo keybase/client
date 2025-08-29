@@ -162,14 +162,14 @@ func TestSimple(t *testing.T) {
 		t.Fatal("expected 0 gets")
 	}
 
-	err := credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
+	err := credentialAuthority.CheckUserKey(context.Background(), u0.uid, &u0.username, &key0, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if state.numGets != 1 {
 		t.Fatal("expected 1 get")
 	}
-	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
+	err = credentialAuthority.CheckUserKey(context.Background(), u0.uid, &u0.username, &key0, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestSimple(t *testing.T) {
 		t.Fatalf("Wrong UID on eviction: %s != %s\n", uid, u0.uid)
 	}
 
-	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0, false)
+	err = credentialAuthority.CheckUserKey(context.Background(), u0.uid, &u0.username, &key0, false)
 	if err == nil {
 		t.Fatal("Expected an error")
 	}
@@ -205,7 +205,7 @@ func TestSimple(t *testing.T) {
 		t.Fatalf("Expected a bad key error on key %s (not %s)", key0, bke.kid)
 	}
 
-	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1, false)
+	err = credentialAuthority.CheckUserKey(context.Background(), u0.uid, &u0.username, &key1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,7 +213,7 @@ func TestSimple(t *testing.T) {
 		t.Fatal("expected 2 gets")
 	}
 	state.tick(userTimeout + time.Millisecond)
-	err = credentialAuthority.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1, false)
+	err = credentialAuthority.CheckUserKey(context.Background(), u0.uid, &u0.username, &key1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -234,7 +234,7 @@ func TestSimple(t *testing.T) {
 
 	ng := 3
 	for i := 0; i < 10; i++ {
-		err = credentialAuthority.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.sibkeys[0], false)
+		err = credentialAuthority.CheckUserKey(context.Background(), u1.uid, &u1.username, &u1.sibkeys[0], false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -259,7 +259,7 @@ func TestSimple(t *testing.T) {
 
 	// Make a new user -- u2!
 	u2 := state.newTestUser(4)
-	err = credentialAuthority.CheckUserKey(context.TODO(), u2.uid, &u2.username, &u2.sibkeys[0], false)
+	err = credentialAuthority.CheckUserKey(context.Background(), u2.uid, &u2.username, &u2.sibkeys[0], false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,14 +292,14 @@ func TestCheckUsers(t *testing.T) {
 		t.Fatal("expected 0 gets")
 	}
 
-	err := credentialAuthority.CheckUsers(context.TODO(), users)
+	err := credentialAuthority.CheckUsers(context.Background(), users)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if state.numGets != 10 {
 		t.Fatal("expected 10 gets")
 	}
-	err = credentialAuthority.CheckUsers(context.TODO(), users)
+	err = credentialAuthority.CheckUsers(context.Background(), users)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,7 +307,7 @@ func TestCheckUsers(t *testing.T) {
 		t.Fatal("expected 10 gets")
 	}
 
-	err = credentialAuthority.CheckUsers(context.TODO(), usersWithDud)
+	err = credentialAuthority.CheckUsers(context.Background(), usersWithDud)
 	if err == nil {
 		t.Fatal("Expected an error")
 	} else if _, ok := err.(userNotFoundError); !ok {
@@ -320,29 +320,29 @@ func TestCompareKeys(t *testing.T) {
 	state, credentialAuthority := newTestSetup()
 	u := state.newTestUser(10)
 
-	err := credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, u.subkeys)
+	err := credentialAuthority.CompareUserKeys(context.Background(), u.uid, u.sibkeys, u.subkeys)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, nil, u.subkeys)
+	err = credentialAuthority.CompareUserKeys(context.Background(), u.uid, nil, u.subkeys)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, nil)
+	err = credentialAuthority.CompareUserKeys(context.Background(), u.uid, u.sibkeys, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	missingSibkey := u.sibkeys[1:]
-	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, missingSibkey, u.subkeys)
+	err = credentialAuthority.CompareUserKeys(context.Background(), u.uid, missingSibkey, u.subkeys)
 	if err != ErrKeysNotEqual {
 		t.Fatal("Expected an ErrKeysNotEqual")
 	}
 
 	missingSubkey := u.subkeys[1:]
-	err = credentialAuthority.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, missingSubkey)
+	err = credentialAuthority.CompareUserKeys(context.Background(), u.uid, u.sibkeys, missingSubkey)
 	if err != ErrKeysNotEqual {
 		t.Fatal("Expected an ErrKeysNotEqual")
 	}
