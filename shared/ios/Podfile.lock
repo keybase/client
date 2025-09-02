@@ -2024,7 +2024,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (4.0.3):
+  - RNReanimated (4.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2047,10 +2047,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.0.3)
+    - RNReanimated/reanimated (= 4.1.0)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated (4.0.3):
+  - RNReanimated/reanimated (4.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2073,10 +2073,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.0.3)
+    - RNReanimated/reanimated/apple (= 4.1.0)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated/apple (4.0.3):
+  - RNReanimated/reanimated/apple (4.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2152,7 +2152,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNWorklets (0.4.2):
+  - RNWorklets (0.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2175,9 +2175,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets (= 0.4.2)
+    - RNWorklets/worklets (= 0.5.0)
     - Yoga
-  - RNWorklets/worklets (0.4.2):
+  - RNWorklets/worklets (0.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2200,9 +2200,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets/apple (= 0.4.2)
+    - RNWorklets/worklets/apple (= 0.5.0)
     - Yoga
-  - RNWorklets/worklets/apple (0.4.2):
+  - RNWorklets/worklets/apple (0.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2690,9 +2690,9 @@ SPEC CHECKSUMS:
   RNCPicker: c424533f7747c9463b35d294328e7b2b4d2baf31
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNGestureHandler: 4fbe7fbce86b6b546f75c9db974974262f75ef5d
-  RNReanimated: eb3c6aa7f4b2d5370a44e443ba116f48c9dfe458
+  RNReanimated: 7d28912b9349b44943a04884c457d235fac77d65
   RNScreens: a2b5206aa1b8b161b1e5319f3abd312c616fffcf
-  RNWorklets: fbc45399ffcf580ef29df019bf42c3e1382f9036
+  RNWorklets: c8214ac73c6bc6181f4564a9bcafba1db7ed0c44
   SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
