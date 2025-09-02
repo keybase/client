@@ -81,7 +81,7 @@ const Container = (ownProps: OwnProps) => {
     adderUsername,
     blockUserByDefault,
     context,
-    conversationIDKey,
+    convID: conversationIDKey,
     filterUserByDefault,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
     flagUserByDefault,
