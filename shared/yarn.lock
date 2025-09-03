@@ -10972,10 +10972,10 @@ react-native-is-edge-to-edge@^1.2.1:
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz#64e10851abd9d176cbf2b40562f751622bde3358"
   integrity sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==
 
-react-native-reanimated@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.1.0.tgz#dd0a2495b14fa344d7f482131ecae79110fa59cd"
-  integrity sha512-L8FqZn8VjZyBaCUMYFyx1Y+T+ZTbblaudpxReOXJ66RnOf52g6UM4Pa/IjwLD1XAw1FUxLRQrtpdjbkEc74FiQ==
+react-native-reanimated@4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.0.3.tgz#5b2ab9b440d6c545fd816207cdd47fee6472b561"
+  integrity sha512-apXILxR2gRi3n0Xi0UILr+72vXj1etooOId/4nCgzKfNnvcp+dRzt7UQdFU0/nc+4bPWlSsiIskDxdYXr2KNmw==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
     semver "7.7.2"
@@ -11016,10 +11016,10 @@ react-native-webview@13.16.0:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-react-native-worklets@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.5.0.tgz#ed25b55f3d14b8f66db7a9a5148c609e51eca801"
-  integrity sha512-+/tbUCBEVchxe5xxFvvdC18PRZFCoxq1emcjIezXodElFguk1MaBYpbqABvZHBGrrEOo9k99h4Jbt0i9ArCbxg==
+react-native-worklets@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.4.2.tgz#7b571a64a0d340ffab156f74bc2efc66bda75e57"
+  integrity sha512-02IMmU2rOL6vrF7uA6cLAeN4haXOMTBh7opmVYQbjYG8mNAb0cnhmkvkdQupmpFjBpWZRJnBGYJJa471a/9IPg==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.0.0-0"
     "@babel/plugin-transform-class-properties" "^7.0.0-0"
@@ -11031,7 +11031,6 @@ react-native-worklets@0.5.0:
     "@babel/plugin-transform-unicode-regex" "^7.0.0-0"
     "@babel/preset-typescript" "^7.16.7"
     convert-source-map "^2.0.0"
-    semver "7.7.2"
 
 react-native-zoom-toolkit@5.0.1:
   version "5.0.1"
