@@ -16,6 +16,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func loadTeamForAdmin(tc libkb.TestContext, teamname string) (*Team, error) {
+	return Load(tc.Context(), tc.G, keybase1.LoadTeamArg{
+		Name:        teamname,
+		NeedAdmin:   true,
+		ForceRepoll: true,
+	})
+}
+
 func TestLoaderBasic(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
