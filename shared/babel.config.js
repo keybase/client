@@ -61,16 +61,8 @@ module.exports = function (api /*: any */) {
             },
           },
         ],
-        'react-native-worklets/plugin',
       ],
-      presets: [
-        [
-          'babel-preset-expo',
-          // this pulls in the reanimated 3.x plugin and not the worklet one so we disable this and pull it in
-          // ourselves above. can remove this when expo updates it
-          {unstable_transformImportMeta: true, jsxRuntime: 'automatic', reanimated: false},
-        ],
-      ],
+      presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
       sourceMaps: true,
     }
   }
