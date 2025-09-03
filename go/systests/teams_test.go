@@ -901,7 +901,9 @@ func (u *userPlusDevice) provisionNewDevice() (d *deviceWrapper, cleanup func())
 }
 
 func (u *userPlusDevice) reset() {
-	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
+	// PC: try not doing this
+	// u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
+	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = false
 	uvBefore := u.userVersion()
 	err := u.device.accountClient.ResetAccount(context.TODO(), keybase1.ResetAccountArg{Passphrase: u.passphrase})
 	require.NoError(u.tc.T, err)
