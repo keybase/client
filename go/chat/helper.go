@@ -1097,9 +1097,11 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context, 
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, created bool, reserr error) {
 	defer n.Trace(ctx, &reserr, "newConversationHelper")()
-	// Handle a nil topic name with default values for the members type specified
+	// Handle a nil topic name with default values for the members type
+	// specified
 	if n.topicName == nil {
-		// We never want a blank topic name in team chats, always default to the default team name
+		// We never want a blank topic name in team chats, always default to
+		// the default team name
 		switch n.membersType {
 		case chat1.ConversationMembersType_TEAM:
 			n.topicName = &globals.DefaultTeamTopic
@@ -1114,9 +1116,10 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 	info, err := n.getNameInfo(ctx)
 	if err != nil {
-		// If we failed this, just do a quick inbox search to see if we can find one with the same name.
-		// This can happen if a user tries to create a conversation with the same person as a conversation
-		// in which they are currently locked out due to reset.
+		// If we failed this, just do a quick inbox search to see if we can
+		// find one with the same name.  This can happen if a user tries to
+		// create a conversation with the same person as a conversation in
+		// which they are currently locked out due to reset.
 		if conv := n.findExistingViaInboxSearch(ctx, findConvsTopicName); conv != nil {
 			return *conv, false, nil
 		}
@@ -1124,25 +1127,24 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 	n.tlfName = info.CanonicalName
 
-	// Find any existing conversations that match this argument specifically. We need to do this check
-	// here in the client since we can't see the topic name on the server.
+	// Find any existing conversations that match this argument specifically.
+	// We need to do this check here in the client since we can't see the topic
+	// name on the server.
 
-	// NOTE: The CLI already does this. It is hard to move that code completely into the service, since
-	// there is a ton of logic in there to try and present a nice looking menu to help out the
-	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
-	// should hopefully just result in a bunch of cache hits on the second invocation.
+	// NOTE: The CLI already does this. It is hard to move that code completely
+	// into the service, since there is a ton of logic in there to try and
+	// present a nice looking menu to help out the user and such. For the most
+	// part, the CLI just uses FindConversationsLocal though, so it should
+	// hopefully just result in a bunch of cache hits on the second invocation.
 	convs, err := n.findExisting(ctx, info.ID, findConvsTopicName, types.InboxSourceDataSourceAll)
 	if err != nil {
 		n.Debug(ctx, "error running findExisting: %s", err)
 		convs = nil
 	}
 	// If we find one conversation, then just return it as if we created it.
-	if len(convs) == 1 {
-		// if we have a known topic ID, make sure we hit it
-		if n.topicID == nil || n.topicID.Eq(convs[0].Info.Triple.TopicID) {
-			n.Debug(ctx, "found previous conversation that matches, returning")
-			return convs[0], false, nil
-		}
+	if len(convs) == 1 && (n.topicID == nil || n.topicID.Eq(convs[0].Info.Triple.TopicID)) {
+		n.Debug(ctx, "found previous conversation that matches, returning")
+		return convs[0], false, nil
 	}
 
 	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
