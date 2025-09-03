@@ -23,7 +23,7 @@ export type Props = {
   filterUserByDefault?: boolean
   flagUserByDefault?: boolean
   reportsUserByDefault?: boolean
-  convID?: string
+  conversationIDKey?: string
   context?: BlockModalContext
   finishWaiting: boolean
   isBlocked: (username: string, which: BlockType) => boolean
@@ -128,9 +128,8 @@ const ReportOptions = (props: ReportOptionsProps) => {
 type Item = 'topStuff' | {username: string}
 
 const BlockModal = React.memo((p: Props) => {
-  const {finishWaiting, onClose, refreshBlocks, context, blockUserByDefault, adderUsername, otherUsernames} =
-    p
-  const {reportsUserByDefault, flagUserByDefault} = p
+  const {finishWaiting, onClose, refreshBlocks, context, blockUserByDefault, otherUsernames} = p
+  const {reportsUserByDefault, flagUserByDefault, conversationIDKey, adderUsername} = p
   const [blockTeam, setBlockTeam] = React.useState(true)
   const [finishClicked, setFinishClicked] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
@@ -311,7 +310,7 @@ const BlockModal = React.memo((p: Props) => {
                   setIncludeTranscriptForUsername(username, include)
                 }
                 setReason={(reason: string) => setReportReasonForUsername(username, reason)}
-                showIncludeTranscript={!!p.convID}
+                showIncludeTranscript={!!conversationIDKey}
                 key={`reportoptions-${username}`}
               />
             </>
@@ -373,6 +372,7 @@ const BlockModal = React.memo((p: Props) => {
   return (
     <Kb.Modal
       mode="Default"
+      popupStyleContainer={styles.popupStyleContainer}
       onClose={onClose}
       header={header}
       footer={{
@@ -450,6 +450,8 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     padding: Styles.globalMargins.medium,
   },
+
+  popupStyleContainer: {height: 450},
   radioButton: {marginLeft: Styles.globalMargins.large},
   scroll: Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
