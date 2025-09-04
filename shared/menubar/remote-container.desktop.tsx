@@ -24,7 +24,7 @@ const RemoteContainer = (d: DeserializeProps) => {
       replaceUsername(username)
       setHTTPSrvInfo(httpSrvAddress, httpSrvToken)
       setOutOfDate(outOfDate)
-      setLoggedIn(loggedIn, false)
+      setLoggedIn(loggedIn, false, true)
       for (const [id, unread] of unreadMap) {
         C.getConvoState(id).dispatch.unreadUpdated(unread)
       }
