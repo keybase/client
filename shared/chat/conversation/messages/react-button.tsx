@@ -61,7 +61,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny">
         <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
           <Kb.Markdown
-            serviceOnlyNoWrap={true}
+            serviceOnlyNoWrap={false /* MUST be false to support non-emojis in reactions for bots */}
             styleOverride={markdownOverride}
             lineClamp={1}
             smallStandaloneEmoji={true}
