@@ -304,7 +304,7 @@ const config = (_, {mode}) => {
     };
         ">
     </head>
-${htmlWebpackPlugin.options.isDev ? '<script src="http://localhost:8097"></script>' : ''}
+${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://localhost:8097"></script>' : ''}
     <body>
         <div id="root">
             <div title="loading..." style="flex: 1"></div>
