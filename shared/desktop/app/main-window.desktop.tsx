@@ -8,7 +8,6 @@ import {showDevTools} from '@/local-debug'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import KB2 from '@/util/electron.desktop'
 
@@ -335,10 +334,6 @@ const MainWindow = () => {
   })
 
   win.setContentProtection(disableScreenshot)
-
-  if (__DEV__ || __PROFILE__) {
-    setupDevToolsExtensions()
-  }
 
   win
     .loadURL(htmlFile)

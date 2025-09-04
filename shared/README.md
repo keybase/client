@@ -53,50 +53,10 @@ You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
 instead of toggling the dev tools after launch because of a bug where
 not all source files are available if the dev tools aren't opened at launch.
 
-### Debugging with React Developer Tools and Immutable.js Object Formatter extensions
+### Debugging with React Developer Tools
 
-1. Install the [React Developer
-   Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
-2. Set the following environment variables
-
-If you're using bash on macOS:
-
-```
-export KEYBASE_LOCAL_DEBUG=1
-export KEYBASE_DEV_TOOL_ROOTS="$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
-```
-
-If you're using bash on Linux:
-
-```
-export KEYBASE_LOCAL_DEBUG=1
-export KEYBASE_DEV_TOOL_ROOTS=",$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
-```
-
-(See [this code](https://github.com/keybase/client/blob/master/shared/desktop/yarn-helper/electron.js#L47) for details.)
-
-3. Run `yarn run start-hot`.
-
-If you're running Chromium instead of Google Chrome, or if you've
-installed the extension in your non-default browser, you'll have to
-change the path passed to `KEYBASE_DEV_TOOL_ROOTS`.
-
-If for some reason you don't want to use `start-hot`, you'll have to
-set `KEYBASE_DEV_TOOL_EXTENSIONS` instead of `KEYBASE_DEV_TOOL_ROOTS`,
-and you'll have to use the version subdirectory:
-
-```
-set -x KEYBASE_DEV_TOOL_EXTENSIONS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/2.5.2_0"
-```
-
-Note that this means you'll have to change the last path component if
-Chrome updates the extension, which can happen at any time. (See [this
-code](https://github.com/keybase/client/blob/7e9ad67c0f86a82649f2e81586986892adcdf6fa/shared/desktop/app/dev-tools.js)
-and [the Electron
-docs](https://electron.atom.io/docs/tutorial/devtools-extension/) for
-details.)
-
-Then you can run, e.g. `yarn start`.
+1. Install react-dev-tools using npm or yarn globally
+1. Run it while running a dev build
 
 ## Other docs
 

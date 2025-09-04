@@ -296,14 +296,15 @@ const config = (_, {mode}) => {
     style-src 'unsafe-inline';
     script-src ${
       htmlWebpackPlugin.options.isDev
-        ? "file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval'"
+        ? "file: http://localhost:4000 http://localhost:8097 'unsafe-eval'"
         : "'self'"
     };
     connect-src http://127.0.0.1:* ${
-      htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000' : ''
+      htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000 ws://localhost:8097' : ''
     };
         ">
     </head>
+${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://localhost:8097"></script>' : ''}
     <body>
         <div id="root">
             <div title="loading..." style="flex: 1"></div>

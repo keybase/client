@@ -34,7 +34,6 @@ const config = {
   printRPCWaitingSession: false,
   showDevTools: false,
   skipAppFocusActions: false,
-  skipExtensions: true,
   skipSecondaryDevtools: true,
 }
 
@@ -116,6 +115,5 @@ export const {
   printRPCBytes,
   printRPCStats,
   showDevTools,
-  skipExtensions,
   skipSecondaryDevtools,
 } = config
