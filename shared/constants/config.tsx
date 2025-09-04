@@ -219,7 +219,7 @@ interface State extends Store {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean, causedByStartup: boolean) => void
+    setLoggedIn: (l: boolean, causedByStartup: boolean, fromMenubar?: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -1076,12 +1076,14 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (loggedIn, causedByStartup) => {
+    setLoggedIn: (loggedIn, causedByStartup, fromMenubar = false) => {
       const changed = get().loggedIn !== loggedIn
       set(s => {
         s.loggedIn = loggedIn
         s.loggedInCausedbyStartup = causedByStartup
       })
+
+      if (fromMenubar) return
 
       if (!changed) return
 
