@@ -1060,7 +1060,6 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       }
     },
     setHTTPSrvInfo: (address, token) => {
-      logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
