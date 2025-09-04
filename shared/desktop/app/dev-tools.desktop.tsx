@@ -1,23 +1,6 @@
 import * as Electron from 'electron'
-import {showDevTools, skipExtensions} from '@/local-debug.desktop'
+import {showDevTools} from '@/local-debug.desktop'
 import flags from '@/util/feature-flags'
-
-export function setupDevToolsExtensions() {
-  if (skipExtensions) return
-  const ext = process.env['KEYBASE_DEV_TOOL_EXTENSIONS'] as string | undefined
-  if (!ext) return
-
-  ext.split(',').forEach((p: string) => {
-    Electron.app
-      .whenReady()
-      .then(async () => {
-        await Electron.session.defaultSession.loadExtension(p, {allowFileAccess: true})
-      })
-      .catch((e: unknown) => {
-        console.log('loading dev extensions failed', e)
-      })
-  })
-}
 
 function setupOpenDevtools() {
   let devToolsState = showDevTools

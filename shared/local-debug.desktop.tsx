@@ -18,7 +18,6 @@ let config = {
   printRPCWaitingSession: false, // session / waiting info
   showDevTools: false,
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
-  skipExtensions: true, // if true dont load devtools extensions
   skipSecondaryDevtools: true,
 }
 
@@ -30,7 +29,6 @@ if (__DEV__) {
   config.printRPCStats = true
   config.printRPCWaitingSession = false
   config.showDevTools = true
-  config.skipExtensions = false
   config.skipSecondaryDevtools = true
 }
 
@@ -54,7 +52,6 @@ if (config.PERF) {
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPC = false
-  config.skipExtensions = true
 }
 
 export const {
@@ -71,6 +68,5 @@ export const {
   printRPCWaitingSession,
   showDevTools,
   skipAppFocusActions,
-  skipExtensions,
   skipSecondaryDevtools,
 } = config
