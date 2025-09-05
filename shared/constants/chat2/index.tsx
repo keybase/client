@@ -1879,7 +1879,9 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       set(s => {
         const {skinTone, topReacjis} = userReacjis
         s.userReacjis.skinTone = skinTone
-        s.userReacjis.topReacjis = T.castDraft(topReacjis) || defaultTopReacjis
+        // filter out non-simple emojis
+        s.userReacjis.topReacjis =
+          T.castDraft(topReacjis)?.filter(r => /^:[^:]+:$/.test(r.name)) ?? defaultTopReacjis
       })
     },
     updatedGregor: items => {

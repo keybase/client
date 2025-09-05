@@ -26,10 +26,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     })
   )
 
-  const emojis = C.useChatState(
-    // only allow real simple emojis
-    C.useShallow(s => s.userReacjis.topReacjis.filter(r => /^:[^:]+:$/.test(r.name)).slice(0, 5))
-  )
+  const emojis = C.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = C.Chat.useChatNavigateAppend()
   const _onForward = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
