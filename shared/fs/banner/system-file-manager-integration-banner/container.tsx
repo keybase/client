@@ -280,8 +280,7 @@ const Disabled = (props: {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props
   const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
     driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling,
-    Kb.Styles.globalColors.blue,
-    backgroundToTextStyle(Background.Blue)
+    true
   )
   if (driverStatus.type !== T.FS.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />

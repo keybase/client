@@ -17,7 +17,6 @@ const SFMIPopup = (props: Props) => {
   const enableDriver = React.useCallback(() => driverEnable(), [driverEnable])
   const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
     type === T.FS.DriverStatusType.Disabled && isEnabling,
-    undefined,
     undefined
   )
 
