@@ -28,23 +28,16 @@ const Checkbox = (props: Props) => {
       <Kb.Icon
         boxStyle={Kb.Styles.collapseStyles([
           styles.checkbox,
-          !!props.boxBackgroundColor && styles.checkboxWhiteBorder,
-          !props.checked &&
-            !!props.boxBackgroundColor && {
-              backgroundColor: props.boxBackgroundColor,
-            },
-          props.checked && !props.boxBackgroundColor && styles.checkboxChecked,
+          styles.checkboxWhiteBorder,
+          props.checked && styles.checkboxChecked,
           props.disabled && styles.checkboxInactive,
           props.disabled && props.checked && styles.semiTransparent,
+          props.checkboxStyle,
         ])}
         type="iconfont-check"
-        style={Kb.Styles.collapseStyles([
-          styles.icon,
-          !!props.boxBackgroundColor && {color: props.boxBackgroundColor},
-          !props.checked && styles.transparent,
-        ])}
+        style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
         hoverColor={Kb.Styles.globalColors.white}
-        color={Kb.Styles.globalColors.white}
+        color={props.checkboxColor ?? Kb.Styles.globalColors.white}
         fontSize={9}
       />
       <Kb.Box2 direction="vertical">

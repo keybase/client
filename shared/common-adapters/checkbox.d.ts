@@ -1,15 +1,16 @@
 import type * as React from 'react'
-import type {Color, StylesCrossPlatform} from '@/styles'
+import type * as Styles from '@/styles'
 
 export type Props = {
-  boxBackgroundColor?: Color // desktop only
   key?: string
   label?: string
+  checkboxColor?: Styles.Color
+  checkboxStyle?: Styles.StylesCrossPlatform
   labelComponent?: React.ReactNode
   labelSubtitle?: string
   onCheck?: (newCheckedValue: boolean) => void
   checked: boolean
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
   disabled?: boolean
 }
 
