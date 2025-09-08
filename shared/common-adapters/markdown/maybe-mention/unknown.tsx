@@ -50,11 +50,17 @@ type Props = {
 }
 
 const UnknownMention = (props: Props) => {
+  const {onResolve: _onResolve} = props
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
 
-  const handleMouseOver = () => setShowPopup(true)
-  const handleMouseLeave = () => setShowPopup(false)
+  const handleMouseOver = React.useCallback(() => setShowPopup(true), [])
+  const handleMouseLeave = React.useCallback(() => setShowPopup(false), [])
+
+  const onResolve = React.useCallback(() => {
+    _onResolve()
+    handleMouseLeave()
+  }, [_onResolve, handleMouseLeave])
 
   let text = `@${props.name}`
   if (props.channel.length > 0) {
@@ -78,7 +84,7 @@ const UnknownMention = (props: Props) => {
     <UnknownMentionPopup
       attachTo={mentionRef}
       onHidden={handleMouseLeave}
-      onResolve={props.onResolve}
+      onResolve={onResolve}
       text={text}
       visible={showPopup}
     />
