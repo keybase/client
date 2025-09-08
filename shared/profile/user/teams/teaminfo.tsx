@@ -125,6 +125,7 @@ const TeamInfo = (props: Props) => {
                   onUsernameClicked="profile"
                   usernames={props.publicAdmins}
                   containerStyle={styles.publicAdmins}
+                  lineClamp={5}
                 />
               }
             </Kb.Text>
