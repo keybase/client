@@ -71,14 +71,14 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     for (; p < pend; ++p) {
       auto key = mpToString(p->key);
       auto val = convertMPToJSI(runtime, p->val);
-      obj.setProperty(runtime, key.c_str(), val);
+      obj.setProperty(runtime, jsi::String::createFromUtf8(runtime, key), val);
     }
     return obj;
   }
   case msgpack::type::BIN: {
     auto ptr = o.via.bin.ptr;
     int size = o.via.bin.size;
-    
+
       // make ArrayBuffer and copy in data
       Function arrayBufferCtor =
           runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
@@ -86,7 +86,7 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
       Object abo = ab.getObject(runtime);
       ArrayBuffer abbuf = abo.getArrayBuffer(runtime);
       std::copy(ptr, ptr + size, abbuf.data(runtime));
-  
+
       // Wrap in Uint8Array
       Function uCtor = runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
       Value uc = uCtor.callAsConstructor(runtime, std::move(abbuf));
@@ -96,8 +96,7 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     auto size = o.via.array.size;
     jsi::Array arr(runtime, size);
     for (int i = 0; i < size; ++i) {
-      arr.setValueAtIndex(runtime, i,
-                          convertMPToJSI(runtime, o.via.array.ptr[i]));
+      arr.setValueAtIndex(runtime, i, convertMPToJSI(runtime, o.via.array.ptr[i]));
     }
     return arr;
   }
