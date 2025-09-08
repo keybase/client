@@ -1999,7 +1999,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.27.2):
+  - RNGestureHandler (2.28.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2659,7 +2659,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: d72fac1c6517be910e8be1370ac324059bcbe677
   RNCPicker: c424533f7747c9463b35d294328e7b2b4d2baf31
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: 4fbe7fbce86b6b546f75c9db974974262f75ef5d
+  RNGestureHandler: c50b05a3941646c4e4098344033ca4609b42be85
   RNReanimated: 35a5a59798fe9a9a61259146be9fe8b0b602ab39
   RNScreens: a2b5206aa1b8b161b1e5319f3abd312c616fffcf
   SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
