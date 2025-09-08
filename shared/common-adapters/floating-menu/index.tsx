@@ -1,9 +1,3 @@
-// For stories, all popups using FloatingMenu will need to have a PropProvider
-// decorator added to the story. This is because FloatingMenus are rendered
-// into a GatewayDest component in a storybook context. GatewayDest is only
-// rendered if a PropProvider decorated is used. This is done so that connected
-// components inside of a popup have access to the mocked out Provider component
-
 import * as React from 'react'
 import Overlay from '../overlay'
 import {Box2} from '@/common-adapters/box'
@@ -21,6 +15,7 @@ import {
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
+import {useNavigation} from '@react-navigation/native'
 
 const Kb = {
   Box2,
@@ -67,11 +62,21 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 const defaultSnapPoints = ['75%']
 
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
-  const {snapPoints, items, visible} = props
+  const {snapPoints, items, visible, onHidden} = props
   const isModal = React.useContext(FloatingModalContext)
   const shownRef = React.useRef(false)
 
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
+
+  const navigation = useNavigation()
+
+  React.useEffect(() => {
+    const unsub = navigation.addListener('state', () => {
+      bottomRef.current?.forceClose()
+      onHidden()
+    })
+    return unsub
+  }, [bottomRef, navigation, onHidden])
 
   React.useEffect(() => {
     return () => {
@@ -138,7 +143,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
     <Kb.Overlay
       position={props.position}
       positionFallbacks={props.positionFallbacks}
-      onHidden={props.onHidden}
+      onHidden={onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
       remeasureHint={props.remeasureHint}
