@@ -65,7 +65,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
   })
 }
 
-const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boolean; routeName: Tabs.Tab}) {
+const TabBarIcon = React.memo(function TabBarIconImpl(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
   const navBadges = C.useNotifState(s => s.navBadges)
   const hasPermissions = C.usePushState(s => s.hasPermissions)
@@ -96,10 +96,6 @@ const TabBarIconImpl = React.memo(function TabBarIconImpl(props: {isFocused: boo
     </View>
   ) : null
 })
-
-const TabBarIcon = (p: {isFocused: boolean; routeName: Tabs.Tab}) => (
-  <TabBarIconImpl isFocused={p.isFocused} routeName={p.routeName} />
-)
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
