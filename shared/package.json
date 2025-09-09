@@ -198,6 +198,7 @@
   },
   "resolutions": {
     "**/purepack": "keybase/nullModule",
+    "patch-package/tmp": "0.2.5",
     "**/@khanacademy/perseus-core": "keybase/nullModule",
     "**/@types/react": "19.1.11"
   },
