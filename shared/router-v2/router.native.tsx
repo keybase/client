@@ -265,16 +265,6 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const useBarStyle = () => {
-  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
-  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
-
-  if (darkModePreference === 'system') {
-    return 'default'
-  }
-  return isDarkMode ? 'light-content' : 'dark-content'
-}
-
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
 const argArrayGood = (arr: Array<string>, len: number) => {
@@ -328,7 +318,13 @@ const isValidLink = (link: string) => {
 }
 
 const useInitialState = (loggedInLoaded: boolean) => {
-  const startup = C.useConfigState(s => s.startup)
+  const config = C.useConfigState(
+    C.useShallow(s => {
+      const {androidShare, loggedIn, startup} = s
+      return {androidShare, loggedIn, startup}
+    })
+  )
+  const {androidShare, loggedIn, startup} = config
   const {tab: startupTab, followUser: startupFollowUser, loaded: startupLoaded} = startup
   let {conversation: startupConversation} = startup
 
@@ -340,8 +336,6 @@ const useInitialState = (loggedInLoaded: boolean) => {
     const {hasPermissions, justSignedUp, showPushPrompt} = s
     return loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
   })
-  const loggedIn = C.useConfigState(s => s.loggedIn)
-  const androidShare = C.useConfigState(s => s.androidShare)
 
   const [initialState, setInitialState] = React.useState<undefined | object>(undefined)
   const [initialStateState, setInitialStateState] = React.useState<InitialStateState>('init')
@@ -507,7 +501,9 @@ const RNApp = React.memo(function RNApp() {
       onStateChange,
     })
   }
-  const barStyle = useBarStyle()
+  const barStyle = C.useDarkModeState(s => {
+    return s.darkModePreference === 'system' ? 'default' : s.isDarkMode() ? 'light-content' : 'dark-content'
+  })
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   const rootKey = useRootKey()
 
