@@ -185,48 +185,58 @@ const tabStacks = tabs.map(tab => (
   />
 ))
 
-const AppTabsImpl = React.memo(function AppTabsImpl() {
-  const makeTabBarIcon =
-    (routeName: string) =>
-    ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
-  const makeTabBarLabel =
-    (routeName: string) =>
-    ({focused}: {focused: boolean}) => (
-      <Kb.Text
-        style={Kb.Styles.collapseStyles([
-          styles.label,
-          Kb.Styles.isDarkMode()
-            ? focused
-              ? styles.labelDarkModeFocused
-              : styles.labelDarkMode
-            : focused
-              ? styles.labelLightModeFocused
-              : styles.labelLightMode,
-        ])}
-        type="BodyBig"
-      >
-        {tabToData.get(routeName as C.Tabs.Tab)?.label}
-      </Kb.Text>
-    )
+const TabBarIconWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(function TabBarIconWrapper({
+  routeName,
+  focused,
+}) {
+  return <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+})
 
+const TabBarLabelWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(function TabBarLabelWrapper({
+  routeName,
+  focused,
+}) {
+  const data = tabToData.get(routeName as C.Tabs.Tab)
   return (
-    <Tab.Navigator
-      backBehavior="none"
-      screenOptions={({route}) => {
-        return {
-          ...Common.defaultNavigationOptions,
-          headerShown: false,
-          tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
-          tabBarButton,
-          tabBarHideOnKeyboard: true,
-          tabBarIcon: makeTabBarIcon(route.name),
-          tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
-          tabBarLabel: makeTabBarLabel(route.name),
-          tabBarShowLabel: Kb.Styles.isTablet,
-          tabBarStyle: Common.tabBarStyle,
-        }
-      }}
+    <Kb.Text
+      style={Kb.Styles.collapseStyles([
+        styles.label,
+        Kb.Styles.isDarkMode()
+          ? focused
+            ? styles.labelDarkModeFocused
+            : styles.labelDarkMode
+          : focused
+            ? styles.labelLightModeFocused
+            : styles.labelLightMode,
+      ])}
+      type="BodyBig"
     >
+      {data?.label}
+    </Kb.Text>
+  )
+})
+
+const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
+  return {
+    ...Common.defaultNavigationOptions,
+    headerShown: false,
+    tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
+    tabBarButton,
+    tabBarHideOnKeyboard: true,
+    tabBarIcon: ({focused}: {focused: boolean}) => (
+      <TabBarIconWrapper routeName={route.name as Tabs.Tab} focused={focused} />
+    ),
+    tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
+    tabBarLabel: ({focused}: {focused: boolean}) => (
+      <TabBarLabelWrapper routeName={route.name as Tabs.Tab} focused={focused} />
+    ),
+    tabBarShowLabel: Kb.Styles.isTablet,
+    tabBarStyle: Common.tabBarStyle,
+  }
+}
+const AppTabsImpl = React.memo(function AppTabsImpl() {
+  return (
+    <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
       {tabStacks}
     </Tab.Navigator>
   )
