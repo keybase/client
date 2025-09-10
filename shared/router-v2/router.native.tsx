@@ -102,7 +102,6 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           left: 36,
           position: 'absolute',
-          // new arch? right: 8,
           top: 3,
         },
       }),
@@ -253,23 +252,18 @@ const LoggedOutScreens = makeNavScreens(
   LoggedOutStack.Screen as Screen,
   false
 )
+const loggedOutScreenOptions = {
+  ...Common.defaultNavigationOptions,
+  headerShown: false,
+}
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     // TODO show header and use nav headers
-    <LoggedOutStack.Navigator
-      initialRouteName="login"
-      screenOptions={{
-        ...Common.defaultNavigationOptions,
-        headerShown: false,
-      }}
-    >
+    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutScreenOptions}>
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
 })
-
-const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 
 const useBarStyle = () => {
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
@@ -474,6 +468,15 @@ const useRootKey = () => {
   return rootKey
 }
 
+const RootStack = createNativeStackNavigator()
+const rootStackScreenOptions = {
+  headerShown: false, // eventually do this after we pull apart modal2 etc
+}
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
+const modalScreenOptions = {
+  headerLeft: () => <HeaderLeftCancel2 />,
+  presentation: 'modal',
+} as const
 const RNApp = React.memo(function RNApp() {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = C.useDaemonState(s => {
@@ -506,7 +509,6 @@ const RNApp = React.memo(function RNApp() {
   }
   const barStyle = useBarStyle()
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-
   const rootKey = useRootKey()
 
   if (initialStateState !== 'loaded' || !loggedInLoaded) {
@@ -532,23 +534,11 @@ const RNApp = React.memo(function RNApp() {
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
       >
-        <RootStack.Navigator
-          key="root"
-          screenOptions={{
-            headerShown: false, // eventually do this after we pull apart modal2 etc
-          }}
-        >
+        <RootStack.Navigator key="root" screenOptions={rootStackScreenOptions}>
           {loggedIn ? (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
-              <RootStack.Group
-                screenOptions={{
-                  headerLeft: () => <HeaderLeftCancel2 />,
-                  presentation: 'modal',
-                }}
-              >
-                {ModalScreens}
-              </RootStack.Group>
+              <RootStack.Group screenOptions={modalScreenOptions}>{ModalScreens}</RootStack.Group>
             </>
           ) : (
             <RootStack.Screen name="loggedOut" component={LoggedOut} />
