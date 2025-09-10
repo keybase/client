@@ -18,6 +18,9 @@ const platformShim = (
   isLoggedOut: boolean,
   getOptions?: GetOptions
 ) => {
+  if (!isModal && !isLoggedOut) {
+    return Original
+  }
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
@@ -25,22 +28,17 @@ const platformShim = (
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
 
-    let wrap = <Original {...props} />
-
-    if (isModal || isLoggedOut) {
-      wrap = (
-        <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
-          <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-            <Kb.SafeAreaView
-              style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-            >
-              {wrap}
-            </Kb.SafeAreaView>
-          </SafeAreaProvider>
-        </Kb.KeyboardAvoidingView2>
-      )
-    }
-    return wrap
+    return (
+      <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+          <Kb.SafeAreaView
+            style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+          >
+            <Original {...props} />
+          </Kb.SafeAreaView>
+        </SafeAreaProvider>
+      </Kb.KeyboardAvoidingView2>
+    )
   })
 }
 

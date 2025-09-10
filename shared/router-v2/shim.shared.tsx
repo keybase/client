@@ -22,8 +22,7 @@ export const _shim = (
 
     map[route] = {
       ...old,
-      // only wrap if it uses getScreen originally, else let screen be special (sub navs in desktop)
-      ...(gs && !old.skipShim
+      ...(gs
         ? {
             getScreen: () => {
               if (_cached) {
