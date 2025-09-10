@@ -143,7 +143,7 @@ const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
 const TabStackNavigator = createNativeStackNavigator()
-const tabScreenOptions = {
+const tabStackOptions = {
   ...Common.defaultNavigationOptions,
   animation: 'simple_push',
   animationDuration: 250,
@@ -156,32 +156,33 @@ const TabStack = React.memo<{tab: (typeof tabs)[number]}>(function TabStack({tab
   )
 
   return (
-    <TabStackNavigator.Navigator initialRouteName={tabRoots[tab]} screenOptions={tabScreenOptions}>
+    <TabStackNavigator.Navigator initialRouteName={tabRoots[tab]} screenOptions={tabStackOptions}>
       {screens}
     </TabStackNavigator.Navigator>
   )
 })
 
 // so we have a stack per tab
+const tabScreenOptions = ({route}: {route: {name: string}}) => {
+  let routeName
+  try {
+    routeName = getFocusedRouteNameFromRoute(route)
+  } catch {}
+  return {
+    tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+  }
+}
 const tabStacks = tabs.map(tab => (
   <Tab.Screen
     key={tab}
     name={tab}
-    component={() => <TabStack tab={tab} />}
-    options={({route}) => {
-      let routeName
-      try {
-        routeName = getFocusedRouteNameFromRoute(route)
-      } catch {}
-      return {
-        tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
-      }
-    }}
     listeners={{
       tabLongPress: () => {
         C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
       },
     }}
+    component={() => <TabStack tab={tab} />}
+    options={tabScreenOptions}
   />
 ))
 
@@ -189,14 +190,14 @@ const TabBarIconWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(fu
   routeName,
   focused,
 }) {
-  return <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+  return <TabBarIcon isFocused={focused} routeName={routeName} />
 })
 
 const TabBarLabelWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(function TabBarLabelWrapper({
   routeName,
   focused,
 }) {
-  const data = tabToData.get(routeName as C.Tabs.Tab)
+  const data = tabToData.get(routeName)
   return (
     <Kb.Text
       style={Kb.Styles.collapseStyles([
