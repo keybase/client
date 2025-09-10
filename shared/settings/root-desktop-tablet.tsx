@@ -2,10 +2,11 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
-import {shim, getOptions} from '@/router-v2/shim'
+import {shim} from '@/router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {sharedNewRoutes} from './routes'
+import type {RouteMap} from '@/constants/types/router2'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,
@@ -91,7 +92,7 @@ const SettingsSubNavigator = () => (
         options={
           // @ts-ignore
           ({route, navigation}) => {
-            const no = getOptions(settingsSubRoutes[name])
+            const no = (settingsSubRoutes as RouteMap)[name]?.getOptions
             // eslint-disable-next-line
             const opt = typeof no === 'function' ? no({navigation, route}) : no
             return {...opt}

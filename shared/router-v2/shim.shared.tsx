@@ -1,10 +1,5 @@
-import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap, GetOptionsParams} from '@/constants/types/router2'
 import type {PlatformWrapper} from './shim'
-
-export const _getOptions = (route: RouteDef): GetOptions | undefined => {
-  const no = route.getOptions
-  return no
-}
 
 export const _shim = (
   routes: RouteMap,
@@ -28,7 +23,7 @@ export const _shim = (
               if (_cached) {
                 return _cached
               }
-              _cached = platformWrapper(gs(), isModal, isLoggedOut, _getOptions(old))
+              _cached = platformWrapper(gs(), isModal, isLoggedOut, old.getOptions)
               return _cached
             },
           }

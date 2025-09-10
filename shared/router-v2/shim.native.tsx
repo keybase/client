@@ -2,13 +2,13 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap, GetOptions, RouteDef, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
   Shared._shim(routes, platformShim, isModal, isLoggedOut)
 
-export const getOptions = Shared._getOptions
+export const getOptions = (route: RouteDef) => route.getOptions
 
 const modalOffset = isIOS ? 40 : 0
 

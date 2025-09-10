@@ -4,6 +4,7 @@ import * as Shared from './shim.shared'
 import * as Kb from '@/common-adapters'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
 import type {
+  RouteDef,
   RouteMap,
   GetOptions,
   GetOptionsParams,
@@ -11,7 +12,7 @@ import type {
   ModalType,
 } from '@/constants/types/router2'
 
-export const getOptions = Shared._getOptions
+export const getOptions = (route: RouteDef) => route.getOptions
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
   Shared._shim(routes, platformShim, isModal, isLoggedOut)
 

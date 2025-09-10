@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
-import {shim, getOptions} from './shim'
+import {shim} from './shim'
 import logger from '@/logger'
 import {StatusBar, View, Linking} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
@@ -50,7 +50,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
         name={name}
         getComponent={val.getScreen}
         options={({route, navigation}: {route: unknown; navigation: unknown}) => {
-          const no = getOptions(val)
+          const no = val.getOptions
           // eslint-disable-next-line
           const opt = typeof no === 'function' ? no({navigation, route} as any) : no
           return {

@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import {shim, getOptions} from './shim'
+import {shim} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
 import type {RouteDef, RouteMap} from '@/constants/types/router2'
@@ -46,7 +46,7 @@ type Screen = (p: {
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
   return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
-    const no = getOptions(val)
+    const no = val.getOptions
     // eslint-disable-next-line
     const opt = typeof no === 'function' ? no({navigation, route} as any) : no
     return {...opt}

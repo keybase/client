@@ -12,7 +12,8 @@ import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
 import verifyIO from './verify.inout.page'
-import {getOptions, shim} from '@/router-v2/shim'
+import {shim} from '@/router-v2/shim'
+import type {RouteMap} from '@/constants/types/router2'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -84,7 +85,7 @@ const CryptoSubNavigator = () => (
         options={
           // @ts-ignore
           ({route, navigation}) => {
-            const no = getOptions(cryptoSubRoutes[name])
+            const no = (cryptoSubRoutes as RouteMap)[name]?.getOptions
             // eslint-disable-next-line
             const opt = typeof no === 'function' ? no({navigation, route}) : no
             return {...opt}
