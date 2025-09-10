@@ -85,10 +85,7 @@ const SettingsSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={
-          // eslint-disable-next-line
-          settingsSubRoutes[name].getScreen as any
-        }
+        getComponent={settingsSubRoutes[name].getScreen}
         options={
           // @ts-ignore
           ({route, navigation}) => {

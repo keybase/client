@@ -16,6 +16,7 @@ import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import type {RouteDef, GetOptionsParams, RouteMap} from '@/constants/types/router2'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -39,29 +40,26 @@ type Screen = (p: {
   options: unknown
 }) => React.ReactNode
 
-const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) => {
-  return Object.keys(rs).map(_name => {
-    const name = _name as keyof KBRootParamList
-    const val = rs[name]
-    if (!val?.getScreen) return null
-    return (
-      <Screen
-        key={String(name)}
-        name={name}
-        getComponent={val.getScreen}
-        options={({route, navigation}: {route: unknown; navigation: unknown}) => {
-          const no = val.getOptions
-          // eslint-disable-next-line
-          const opt = typeof no === 'function' ? no({navigation, route} as any) : no
-          return {
-            ...opt,
-            ...(isModal ? {animationEnabled: true} : {}),
-          }
-        }}
-      />
-    )
-  })
+const makeNavScreen = (name: keyof KBRootParamList, rd: RouteDef, Screen: Screen, isModal: boolean) => {
+  return (
+    <Screen
+      key={String(name)}
+      name={name}
+      getComponent={rd.getScreen}
+      options={({route, navigation}: {route: unknown; navigation: unknown}) => {
+        const no = rd.getOptions
+        const opt = typeof no === 'function' ? no({navigation, route} as GetOptionsParams) : no
+        return {
+          ...opt,
+          ...(isModal ? {animationEnabled: true} : {}),
+        }
+      }}
+    />
+  )
 }
+
+const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean) =>
+  (Object.keys(rs) as Array<keyof KBRootParamList>).map(k => makeNavScreen(k, rs[k]!, Screen, isModal))
 
 const TabBarIcon = React.memo(function TabBarIconImpl(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
@@ -148,15 +146,11 @@ const tabStackOptions = {
   animationDuration: 250,
   orientation: 'portrait',
 } as const
+const tabScreens = makeNavScreens(shim(tabRoutes, false, false), TabStackNavigator.Screen as Screen, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
-  const tab = p.route.name
-  const screens = React.useMemo(
-    () => makeNavScreens(shim(tabRoutes, false, false), TabStackNavigator.Screen as Screen, false),
-    []
-  )
   return (
-    <TabStackNavigator.Navigator initialRouteName={tabRoots[tab]} screenOptions={tabStackOptions}>
-      {screens}
+    <TabStackNavigator.Navigator initialRouteName={tabRoots[p.route.name]} screenOptions={tabStackOptions}>
+      {tabScreens}
     </TabStackNavigator.Navigator>
   )
 })
@@ -466,7 +460,7 @@ const RootStack = createNativeStackNavigator()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }
-const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
+const modalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true)
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',
@@ -534,7 +528,7 @@ const RNApp = React.memo(function RNApp() {
           {loggedIn ? (
             <>
               <RootStack.Screen name="loggedIn" component={AppTabs} />
-              <RootStack.Group screenOptions={modalScreenOptions}>{ModalScreens}</RootStack.Group>
+              <RootStack.Group screenOptions={modalScreenOptions}>{modalScreens}</RootStack.Group>
             </>
           ) : (
             <RootStack.Screen name="loggedOut" component={LoggedOut} />
