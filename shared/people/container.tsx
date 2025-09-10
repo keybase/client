@@ -21,7 +21,6 @@ const PeopleReloadable = () => {
     (markViewed = true, force = false) => {
       const now = Date.now()
       if (force || !lastRefreshRef.current || lastRefreshRef.current + waitToRefresh < now) {
-        console.log('aaa')
         lastRefreshRef.current = now
         loadPeople(markViewed, 10)
       }
