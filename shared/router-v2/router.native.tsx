@@ -143,6 +143,12 @@ const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
 const TabStackNavigator = createNativeStackNavigator()
+const tabScreenOptions = {
+  ...Common.defaultNavigationOptions,
+  animation: 'simple_push',
+  animationDuration: 250,
+  orientation: 'portrait',
+} as const
 const TabStack = React.memo<{tab: (typeof tabs)[number]}>(function TabStack({tab}) {
   const screens = React.useMemo(
     () => makeNavScreens(shim(tabRoutes, false, false), TabStackNavigator.Screen as Screen, false),
@@ -150,15 +156,7 @@ const TabStack = React.memo<{tab: (typeof tabs)[number]}>(function TabStack({tab
   )
 
   return (
-    <TabStackNavigator.Navigator
-      initialRouteName={tabRoots[tab]}
-      screenOptions={{
-        ...Common.defaultNavigationOptions,
-        animation: 'simple_push',
-        animationDuration: 250,
-        orientation: 'portrait',
-      }}
-    >
+    <TabStackNavigator.Navigator initialRouteName={tabRoots[tab]} screenOptions={tabScreenOptions}>
       {screens}
     </TabStackNavigator.Navigator>
   )
