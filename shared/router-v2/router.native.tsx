@@ -18,9 +18,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 if (module.hot) {
-  module.hot.accept('', () => {
-    tabScreensCache.clear()
-  })
+  module.hot.accept('', () => {})
 }
 
 // just to get badge rollups
@@ -144,64 +142,52 @@ const styles = Kb.Styles.styleSheetCreate(
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
-// we must ensure we don't keep remaking these components
-const tabScreensCache = new Map<(typeof tabs)[number], ReturnType<typeof makeNavScreens>>()
-const makeTabStack = (tab: (typeof tabs)[number]) => {
-  const S = createNativeStackNavigator()
-
-  let tabScreens = tabScreensCache.get(tab)
-  if (!tabScreens) {
-    tabScreens = makeNavScreens(shim(tabRoutes, false, false), S.Screen as Screen, false)
-    tabScreensCache.set(tab, tabScreens)
-  }
-
-  const TabStack = React.memo(function TabStack() {
-    return (
-      <S.Navigator
-        initialRouteName={tabRoots[tab]}
-        screenOptions={{
-          ...Common.defaultNavigationOptions,
-          animation: 'simple_push',
-          animationDuration: 250,
-          orientation: 'portrait',
-        }}
-      >
-        {tabScreens}
-      </S.Navigator>
-    )
-  })
-  const Comp = () => <TabStack />
-  return Comp
-}
-
-const AppTabsImpl = React.memo(function AppTabsImpl() {
-  // so we have a stack per tab
-  const tabStacks = React.useMemo(
-    () =>
-      tabs.map(tab => (
-        <Tab.Screen
-          key={tab}
-          name={tab}
-          component={makeTabStack(tab)}
-          options={({route}) => {
-            let routeName
-            try {
-              routeName = getFocusedRouteNameFromRoute(route)
-            } catch {}
-            return {
-              tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
-            }
-          }}
-          listeners={{
-            tabLongPress: () => {
-              C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
-            },
-          }}
-        />
-      )),
+const TabStackNavigator = createNativeStackNavigator()
+const TabStack = React.memo<{tab: (typeof tabs)[number]}>(function TabStack({tab}) {
+  const screens = React.useMemo(
+    () => makeNavScreens(shim(tabRoutes, false, false), TabStackNavigator.Screen as Screen, false),
     []
   )
 
+  return (
+    <TabStackNavigator.Navigator
+      initialRouteName={tabRoots[tab]}
+      screenOptions={{
+        ...Common.defaultNavigationOptions,
+        animation: 'simple_push',
+        animationDuration: 250,
+        orientation: 'portrait',
+      }}
+    >
+      {screens}
+    </TabStackNavigator.Navigator>
+  )
+})
+
+// so we have a stack per tab
+const tabStacks = tabs.map(tab => (
+  <Tab.Screen
+    key={tab}
+    name={tab}
+    component={() => <TabStack tab={tab} />}
+    options={({route}) => {
+      let routeName
+      try {
+        routeName = getFocusedRouteNameFromRoute(route)
+      } catch {}
+      return {
+        tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
+      }
+    }}
+    listeners={{
+      tabLongPress: () => {
+        C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+      },
+    }}
+  />
+))
+
+const AppTabsImpl = React.memo(function AppTabsImpl() {
   const makeTabBarIcon =
     (routeName: string) =>
     ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
