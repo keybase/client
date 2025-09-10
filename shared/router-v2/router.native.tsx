@@ -149,12 +149,12 @@ const tabStackOptions = {
   animationDuration: 250,
   orientation: 'portrait',
 } as const
-const TabStack = React.memo<{tab: (typeof tabs)[number]}>(function TabStack({tab}) {
+const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
+  const tab = p.route.name
   const screens = React.useMemo(
     () => makeNavScreens(shim(tabRoutes, false, false), TabStackNavigator.Screen as Screen, false),
     []
   )
-
   return (
     <TabStackNavigator.Navigator initialRouteName={tabRoots[tab]} screenOptions={tabStackOptions}>
       {screens}
@@ -181,32 +181,26 @@ const tabStacks = tabs.map(tab => (
         C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
       },
     }}
-    component={() => <TabStack tab={tab} />}
+    component={TabStack}
     options={tabScreenOptions}
   />
 ))
 
-const TabBarIconWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(function TabBarIconWrapper({
-  routeName,
-  focused,
-}) {
-  return <TabBarIcon isFocused={focused} routeName={routeName} />
+type TabIconProps = {routeName: Tabs.Tab; focused: boolean}
+const TabBarIconWrapper = React.memo(function TabBarIconWrapper(p: TabIconProps) {
+  return <TabBarIcon isFocused={p.focused} routeName={p.routeName} />
 })
-
-const TabBarLabelWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(function TabBarLabelWrapper({
-  routeName,
-  focused,
-}) {
-  const data = tabToData.get(routeName)
+const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabIconProps) {
+  const data = tabToData.get(p.routeName)
   return (
     <Kb.Text
       style={Kb.Styles.collapseStyles([
         styles.label,
         Kb.Styles.isDarkMode()
-          ? focused
+          ? p.focused
             ? styles.labelDarkModeFocused
             : styles.labelDarkMode
-          : focused
+          : p.focused
             ? styles.labelLightModeFocused
             : styles.labelLightMode,
       ])}
@@ -217,12 +211,17 @@ const TabBarLabelWrapper = React.memo<{routeName: Tabs.Tab; focused: boolean}>(f
   )
 })
 
+const android_rippleFix = {color: 'transparent'}
 const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
   return {
     ...Common.defaultNavigationOptions,
     headerShown: false,
     tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
-    tabBarButton,
+    tabBarButton: (p: BottomTabBarButtonProps) => (
+      <PlatformPressable {...p} android_ripple={android_rippleFix}>
+        {p.children}
+      </PlatformPressable>
+    ),
     tabBarHideOnKeyboard: true,
     tabBarIcon: ({focused}: {focused: boolean}) => (
       <TabBarIconWrapper routeName={route.name as Tabs.Tab} focused={focused} />
@@ -246,15 +245,6 @@ const AppTabs = React.memo(
   // ignore all props from the nav layer which we don't control or use
   () => true
 )
-
-const android_rippleFix = {color: 'transparent'}
-const tabBarButton = (p: BottomTabBarButtonProps) => {
-  return (
-    <PlatformPressable {...p} android_ripple={android_rippleFix}>
-      {p.children}
-    </PlatformPressable>
-  )
-}
 
 const LoggedOutStack = createNativeStackNavigator()
 
