@@ -234,13 +234,17 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     tabBarStyle: Common.tabBarStyle,
   }
 }
-const AppTabsImpl = React.memo(function AppTabsImpl() {
-  return (
-    <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
-      {tabStacks}
-    </Tab.Navigator>
-  )
-})
+const AppTabs = React.memo(
+  function AppTabsImpl() {
+    return (
+      <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
+        {tabStacks}
+      </Tab.Navigator>
+    )
+  },
+  // ignore all props from the nav layer which we don't control or use
+  () => true
+)
 
 const android_rippleFix = {color: 'transparent'}
 const tabBarButton = (p: BottomTabBarButtonProps) => {
@@ -250,8 +254,6 @@ const tabBarButton = (p: BottomTabBarButtonProps) => {
     </PlatformPressable>
   )
 }
-
-const AppTabs = () => <AppTabsImpl />
 
 const LoggedOutStack = createNativeStackNavigator()
 
