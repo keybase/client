@@ -272,15 +272,12 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
   ) : null
 })
 
-export const HeaderLeftArrowCanGoBack = (hp: {
-  canGoBack?: boolean
-  tintColor?: string
-  onPress?: () => void
-  badgeNumber?: number
-}) => {
-  const canGoBack = useNavigation().canGoBack()
-  return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
-}
+export const HeaderLeftArrowCanGoBack = React.memo(
+  (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void; badgeNumber?: number}) => {
+    const canGoBack = useNavigation().canGoBack()
+    return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
+  }
+)
 
 export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
   canGoBack?: boolean
