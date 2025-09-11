@@ -1,12 +1,51 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {Screen} from './shim'
 
-export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
-  Shared._shim(routes, platformShim, isModal, isLoggedOut)
+const makeNavScreen = (
+  name: keyof KBRootParamList,
+  rd: RouteDef,
+  Screen: Screen,
+  isModal: boolean,
+  isLoggedOut: boolean
+) => {
+  const origGetScreen = rd.getScreen
+
+  let wrappedGetComponent: undefined | React.ComponentType<any>
+  const getScreen = origGetScreen
+    ? () => {
+        if (wrappedGetComponent === undefined) {
+          wrappedGetComponent = platformShim(origGetScreen(), isModal, isLoggedOut, rd.getOptions)
+        }
+        return wrappedGetComponent
+      }
+    : undefined
+
+  return (
+    <Screen
+      key={String(name)}
+      name={name}
+      getComponent={getScreen}
+      options={({route, navigation}: {route: unknown; navigation: unknown}) => {
+        const no = rd.getOptions
+        const opt = typeof no === 'function' ? no({navigation, route} as GetOptionsParams) : no
+        return {
+          ...opt,
+          ...(isModal ? {animationEnabled: true} : {}),
+        }
+      }}
+    />
+  )
+}
+
+export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+  (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
+    makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
+  )
 
 const modalOffset = isIOS ? 40 : 0
 
@@ -15,7 +54,7 @@ const platformShim = (
   isModal: boolean,
   isLoggedOut: boolean,
   getOptions?: GetOptions
-) => {
+): React.ComponentType<any> => {
   if (!isModal && !isLoggedOut) {
     return Original
   }

@@ -1,18 +1,62 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Shared from './shim.shared'
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as Kb from '@/common-adapters'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
 import type {
-  RouteMap,
+  RouteDef,
   GetOptions,
   GetOptionsParams,
+  RouteMap,
   GetOptionsRet,
   ModalType,
 } from '@/constants/types/router2'
+import type {Screen} from './shim'
 
-export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
-  Shared._shim(routes, platformShim, isModal, isLoggedOut)
+// to reduce closing over too much memory
+const makeOptions = (val: RouteDef) => {
+  return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
+    const no = val.getOptions
+    // eslint-disable-next-line
+    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
+    return {...opt}
+  }
+}
+
+const makeNavScreen = (
+  name: keyof KBRootParamList,
+  rd: RouteDef,
+  Screen: Screen,
+  isModal: boolean,
+  isLoggedOut: boolean
+) => {
+  const origGetScreen = rd.getScreen
+
+  let wrappedGetComponent: undefined | React.ComponentType<any>
+  const getScreen = origGetScreen
+    ? () => {
+        if (wrappedGetComponent === undefined) {
+          wrappedGetComponent = platformShim(origGetScreen(), isModal, isLoggedOut, rd.getOptions)
+        }
+        return wrappedGetComponent
+      }
+    : undefined
+
+  return (
+    <Screen
+      key={String(name)}
+      navigationKey={name}
+      name={name}
+      getComponent={getScreen}
+      options={makeOptions(rd)}
+    />
+  )
+}
+
+export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+  (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
+    makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
+  )
 
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
@@ -134,6 +178,42 @@ const ModalWrapper = (p: WrapProps) => {
   }
 }
 
+const wrapInStrict = (_route: string) => {
+  const wrap = true
+  // TODO use this to disable strict if something is broken
+  return wrap
+}
+
+const platformShim = (
+  Original: React.JSXElementConstructor<GetOptionsParams>,
+  isModal: boolean,
+  _isLoggedOut: boolean,
+  getOptions?: GetOptions
+) => {
+  return React.memo(function ShimmedNew(props: GetOptionsParams) {
+    const navigationOptions =
+      typeof getOptions === 'function'
+        ? getOptions({navigation: props.navigation, route: props.route})
+        : getOptions
+    const original = <Original {...props} />
+    let body = original
+
+    if (isModal) {
+      body = (
+        <ModalWrapper navigation={props.navigation} navigationOptions={navigationOptions}>
+          {body}
+        </ModalWrapper>
+      )
+    }
+
+    if (wrapInStrict(props.route.name)) {
+      body = <React.StrictMode>{body}</React.StrictMode>
+    }
+
+    return body
+  })
+}
+
 const styles = Kb.Styles.styleSheetCreate(() => {
   const modalModeCommon = Kb.Styles.platformStyles({
     isElectron: {
@@ -230,39 +310,3 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     transparentSceneUnderHeader: {...Kb.Styles.globalStyles.fillAbsolute},
   } as const
 })
-
-const wrapInStrict = (_route: string) => {
-  const wrap = true
-  // TODO use this to disable strict if something is broken
-  return wrap
-}
-
-const platformShim = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
-  isModal: boolean,
-  _isLoggedOut: boolean,
-  getOptions?: GetOptions
-) => {
-  return React.memo(function ShimmedNew(props: GetOptionsParams) {
-    const navigationOptions =
-      typeof getOptions === 'function'
-        ? getOptions({navigation: props.navigation, route: props.route})
-        : getOptions
-    const original = <Original {...props} />
-    let body = original
-
-    if (isModal) {
-      body = (
-        <ModalWrapper navigation={props.navigation} navigationOptions={navigationOptions}>
-          {body}
-        </ModalWrapper>
-      )
-    }
-
-    if (wrapInStrict(props.route.name)) {
-      body = <React.StrictMode>{body}</React.StrictMode>
-    }
-
-    return body
-  })
-}

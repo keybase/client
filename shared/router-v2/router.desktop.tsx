@@ -4,11 +4,9 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import {shim} from './shim'
+import {makeNavScreens, type Screen} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
-import type {RouteDef, RouteMap} from '@/constants/types/router2'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
@@ -19,56 +17,7 @@ import './router.css'
 
 // eslint-disable-next-line
 const Tab = createLeftTabNavigator()
-
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
-
-const tabRootsVals = Object.values(tabRoots).filter(root => {
-  return root !== tabRoots[Tabs.fsTab] && root !== tabRoots[Tabs.gitTab]
-}) // we allow some root anywhere
-// we don't want the other roots in other stacks
-const routesMinusRoots = (tab: DesktopTabs) => {
-  const keepVal = tabRoots[tab]
-  return Object.keys(routes).reduce<RouteMap>((m, k) => {
-    if (k === keepVal || !tabRootsVals.includes(k as (typeof tabRootsVals)[number])) {
-      m[k] = routes[k]
-    }
-    return m
-  }, {})
-}
-
-type Screen = (p: {
-  navigationKey: string
-  name: keyof KBRootParamList
-  getComponent?: () => React.ComponentType<any>
-  options: unknown
-}) => React.ReactNode
-
-// to reduce closing over too much memory
-const makeOptions = (val: RouteDef) => {
-  return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
-    const no = val.getOptions
-    // eslint-disable-next-line
-    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
-    return {...opt}
-  }
-}
-
-const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
-  return Object.keys(rs).map(_name => {
-    const name = _name as keyof KBRootParamList
-    const val = rs[name]
-    if (!val?.getScreen) return null
-    return (
-      <Screen
-        key={name}
-        navigationKey={name}
-        name={name}
-        getComponent={val.getScreen}
-        options={makeOptions(val)}
-      />
-    )
-  })
-}
 
 const appTabsInnerOptions = {
   ...Common.defaultNavigationOptions,
@@ -81,17 +30,17 @@ const appTabsInnerOptions = {
   tabBarStyle: Common.tabBarStyle,
 }
 
-const TabStack = createNativeStackNavigator()
-const TabStackNavigator = React.memo(function TabStackNavigator(p: {route: {name: string}}) {
+const TabStackNavigator = createNativeStackNavigator() as {Screen: Screen; Navigator: any}
+const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
+const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
-  const tabScreens = React.useMemo(
-    () => makeNavScreens(shim(routesMinusRoots(tab), false, false), TabStack.Screen as Screen, false),
-    [tab]
-  )
   return (
-    <TabStack.Navigator initialRouteName={tabRoots[tab]} screenOptions={Common.defaultNavigationOptions}>
+    <TabStackNavigator.Navigator
+      initialRouteName={tabRoots[tab]}
+      screenOptions={Common.defaultNavigationOptions}
+    >
       {tabScreens}
-    </TabStack.Navigator>
+    </TabStackNavigator.Navigator>
   )
 })
 
@@ -99,7 +48,7 @@ const AppTabsInner = React.memo(function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {Tabs.desktopTabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} component={TabStackNavigator} />
+        <Tab.Screen key={tab} name={tab} component={TabStack} />
       ))}
     </Tab.Navigator>
   )
@@ -108,24 +57,15 @@ const AppTabsInner = React.memo(function AppTabsInner() {
 const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator()
-const LoggedOutScreens = makeNavScreens(
-  shim(loggedOutRoutes, false, true),
-  LoggedOutStack.Screen as Screen,
-  false
-)
+const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
+const loggedOutOptions = {
+  header: ({navigation}: {navigation: {pop: () => void}}) => (
+    <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
+  ),
+}
 const LoggedOut = React.memo(function LoggedOut() {
   return (
-    <LoggedOutStack.Navigator
-      initialRouteName="login"
-      screenOptions={{
-        header: ({navigation}) => (
-          <Header
-            navigation={navigation}
-            options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}}
-          />
-        ),
-      }}
-    >
+    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutOptions}>
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
@@ -170,6 +110,7 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
+const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()
   const loggedInUser = C.useCurrentUserState(s => s.username)
@@ -191,18 +132,11 @@ const ElectronApp = React.memo(function ElectronApp() {
     setNavState(ns)
   }, [setNavState])
 
-  const ModalScreens = React.useMemo(
-    () => makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen as Screen, true),
-    []
-  )
-
   return (
     <NavigationContainer
       navigationInChildEnabled={true}
-      ref={
-        // eslint-disable-next-line
-        C.Router2.navigationRef_ as any
-      }
+      // eslint-disable-next-line
+      ref={C.Router2.navigationRef_ as any}
       theme={Shared.theme}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
@@ -215,7 +149,7 @@ const ElectronApp = React.memo(function ElectronApp() {
         {loggedInLoaded && loggedIn && (
           <React.Fragment key={`${loggedInUser}loggedIn`}>
             <RootStack.Screen key={`${loggedInUser}loggedIn`} name="loggedIn" component={AppTabs} />
-            {ModalScreens}
+            {modalScreens}
           </React.Fragment>
         )}
         {loggedInLoaded && !loggedIn && (

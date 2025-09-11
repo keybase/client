@@ -1,10 +1,16 @@
-import type * as React from 'react'
-import type {GetOptions, GetOptionsParams} from '@/constants/types/router2'
-export type PlatformWrapper = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
-  isModal: boolean,
-  isLoggedOut: boolean,
-  getOptions: GetOptions | undefined
-) => React.JSXElementConstructor<GetOptionsParams>
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {RouteMap} from '@/constants/types/router2'
 
-export declare function shim<T>(routes: T, isModal: boolean, isLoggedOut: boolean): T
+export type Screen = (p: {
+  navigationKey?: string
+  name: keyof KBRootParamList
+  getComponent?: () => React.ComponentType<any>
+  options: unknown
+}) => React.ReactNode
+
+export declare function makeNavScreens(
+  rs: RouteMap,
+  Screen: Screen,
+  isModal: boolean,
+  isLoggedOut: boolean
+): React.Element
