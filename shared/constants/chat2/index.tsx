@@ -1785,19 +1785,17 @@ export const useState_ = Z.createZustand<State>((set, get) => {
         }
 
         // Get valid keys that we aren't already loading or have loaded
-        const conversationIDKeys = force
-          ? ids
-          : ids.reduce((arr: Array<string>, id) => {
-              if (id && T.Chat.isValidConversationIDKey(id)) {
-                const cs = C.getConvoState(id)
-                const trustedState = cs.meta.trustedState
-                if (trustedState !== 'requesting' && trustedState !== 'trusted') {
-                  arr.push(id)
-                  cs.dispatch.updateMeta({trustedState: 'requesting'})
-                }
-              }
-              return arr
-            }, [])
+        const conversationIDKeys = ids.reduce((arr: Array<string>, id) => {
+          if (id && T.Chat.isValidConversationIDKey(id)) {
+            const cs = C.getConvoState(id)
+            const trustedState = cs.meta.trustedState
+            if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
+              arr.push(id)
+              cs.dispatch.updateMeta({trustedState: 'requesting'})
+            }
+          }
+          return arr
+        }, [])
 
         if (!conversationIDKeys.length) {
           return

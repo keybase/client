@@ -3168,6 +3168,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     dispatch,
     getConvID: () => {
       const id = get().id
+      if (!T.Chat.isValidConversationIDKey(id)) {
+        return new Uint8Array(0)
+      }
+
       const cached = convIDCache.get(id)
       if (cached) return cached
       const cid = T.Chat.keyToConversationID(id)

@@ -12,7 +12,7 @@ import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
 import verifyIO from './verify.inout.page'
-import {getOptions, shim} from '@/router-v2/shim'
+import {makeNavScreens, type Screen} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -68,30 +68,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
-// eslint-disable-next-line
-const TabNavigator = createLeftTabNavigator()
-
-const shimmed = shim(cryptoSubRoutes, false, false)
-const shimKeys = Object.keys(shimmed) as Array<keyof typeof shimmed>
-
+const TabNavigator = createLeftTabNavigator() as {Screen: Screen; Navigator: any}
+const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">
-    {shimKeys.map(name => (
-      <TabNavigator.Screen
-        key={name}
-        name={name}
-        getComponent={shimmed[name].getScreen}
-        options={
-          // @ts-ignore
-          ({route, navigation}) => {
-            const no = getOptions(cryptoSubRoutes[name])
-            // eslint-disable-next-line
-            const opt = typeof no === 'function' ? no({navigation, route}) : no
-            return {...opt}
-          }
-        }
-      />
-    ))}
+    {cryptoScreens}
   </TabNavigator.Navigator>
 )
 

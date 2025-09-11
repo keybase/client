@@ -32,6 +32,5 @@ export type RouteDef = {
   getScreen?: () => React.ComponentType<any>
   getOptions?: GetOptions
   screen?: React.ComponentType
-  skipShim?: boolean
 }
 export type RouteMap = {[K in string]?: RouteDef}

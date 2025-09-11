@@ -9,5 +9,5 @@ const Screen = () => (
   </React.Suspense>
 )
 
-const Page = {getOptions, getScreen: () => Screen, skipShim: true}
+const Page = {getOptions, getScreen: () => Screen}
 export default Page

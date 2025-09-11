@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
-import {shim, getOptions} from '@/router-v2/shim'
+import {makeNavScreens} from '@/router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {sharedNewRoutes} from './routes'
@@ -71,34 +71,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 // eslint-disable-next-line
 const TabNavigator = createLeftTabNavigator()
-
-const shimmed = shim(settingsSubRoutes, false, false)
-const shimKeys = Object.keys(shimmed) as Array<keyof typeof settingsSubRoutes>
+const settingsScreens = makeNavScreens(settingsSubRoutes, TabNavigator.Screen, false, false)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={C.Settings.settingsAccountTab} backBehavior="none">
-    {shimKeys.map(name => (
-      <TabNavigator.Screen
-        key={name}
-        name={name}
-        getComponent={
-          // eslint-disable-next-line
-          settingsSubRoutes[name].getScreen as any
-        }
-        options={
-          // @ts-ignore
-          ({route, navigation}) => {
-            const no = getOptions(settingsSubRoutes[name])
-            // eslint-disable-next-line
-            const opt = typeof no === 'function' ? no({navigation, route}) : no
-            return {...opt}
-          }
-        }
-      />
-    ))}
+    {settingsScreens}
   </TabNavigator.Navigator>
 )
 

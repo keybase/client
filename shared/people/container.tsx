@@ -12,7 +12,7 @@ const PeopleReloadable = () => {
   const oldItems = C.usePeopleState(s => s.oldItems)
   const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   const waiting = C.Waiting.useAnyWaiting(C.People.getPeopleDataWaitingKey)
-  const [lastRefresh, setLastRefresh] = React.useState<number>(0)
+  const lastRefreshRef = React.useRef<number>(0)
 
   const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
@@ -20,12 +20,12 @@ const PeopleReloadable = () => {
   const getData = React.useCallback(
     (markViewed = true, force = false) => {
       const now = Date.now()
-      if (force || !lastRefresh || lastRefresh + waitToRefresh < now) {
-        setLastRefresh(now)
+      if (force || !lastRefreshRef.current || lastRefreshRef.current + waitToRefresh < now) {
+        lastRefreshRef.current = now
         loadPeople(markViewed, 10)
       }
     },
-    [loadPeople, lastRefresh]
+    [loadPeople]
   )
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
