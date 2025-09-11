@@ -79,18 +79,24 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     auto ptr = o.via.bin.ptr;
     int size = o.via.bin.size;
 
-      // make ArrayBuffer and copy in data
-      Function arrayBufferCtor =
-          runtime.global().getPropertyAsFunction(runtime, "ArrayBuffer");
-      Value ab = arrayBufferCtor.callAsConstructor(runtime, size);
-      Object abo = ab.getObject(runtime);
-      ArrayBuffer abbuf = abo.getArrayBuffer(runtime);
-      std::copy(ptr, ptr + size, abbuf.data(runtime));
+    // make ArrayBuffer and copy in data
+    static Function* cachedUint8ArrayCtor = nullptr;
+    static Runtime* cachedRuntime = nullptr;
+    if (cachedRuntime != &runtime) {
+        delete cachedUint8ArrayCtor;
+        cachedUint8ArrayCtor = nullptr;
+        cachedRuntime = &runtime;
+    }
+    if (!cachedUint8ArrayCtor) {
+        auto ctor = runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+        cachedUint8ArrayCtor = new Function(std::move(ctor));
+    }
 
-      // Wrap in Uint8Array
-      Function uCtor = runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
-      Value uc = uCtor.callAsConstructor(runtime, std::move(abbuf));
-      return uc;
+    Value uint8Array = cachedUint8ArrayCtor->callAsConstructor(runtime, size);
+    Object uint8ArrayObj = uint8Array.asObject(runtime);
+    ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer").asObject(runtime).getArrayBuffer(runtime);
+    std::memcpy(buffer.data(runtime), ptr, size);
+    return uint8Array;
   }
   case msgpack::type::ARRAY: {
     auto size = o.via.array.size;
