@@ -18,7 +18,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
-  var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
   var hwKeyEvent: RNHWKeyboardEvent?
@@ -96,6 +95,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     
     var err: NSError?
     Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+    if let err { NSLog("KeybaseInit fail?: \(err)") }
   }
   
   func notifyAppState(_ application: UIApplication) {
@@ -166,9 +166,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("Background fetch started...")
     DispatchQueue.global(qos: .default).async {
       Keybasego.KeybaseBackgroundSync()
-      DispatchQueue.main.async {
-        completionHandler(.newData)
-      }
+      completionHandler(.newData)
       NSLog("Background fetch completed...")
     }
   }
