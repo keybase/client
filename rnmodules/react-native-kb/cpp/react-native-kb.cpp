@@ -23,9 +23,9 @@ Value RpcOnGo(Runtime &runtime, const Value &thisValue, const Value *arguments,
     callback(ptr, size);
     return Value(true);
   } catch (const std::exception &e) {
-    throw new std::runtime_error("Error in RpcOnGo: " + std::string(e.what()));
+    throw std::runtime_error("Error in RpcOnGo: " + std::string(e.what()));
   } catch (...) {
-    throw new std::runtime_error("Unknown error in RpcOnGo");
+    throw std::runtime_error("Unknown error in RpcOnGo");
   }
 }
 
@@ -42,7 +42,7 @@ std::string mpToString(msgpack::object &o) {
   case msgpack::type::FLOAT64:
     return std::to_string(o.as<double>());
   default:
-    throw new std::runtime_error("Invalid map key");
+    throw std::runtime_error("Invalid map key");
   }
 }
 
@@ -132,18 +132,37 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
     }
     return values;
   } catch (const std::exception &e) {
-    throw new std::runtime_error("Error in PrepRpcOnJS: " +
+    throw std::runtime_error("Error in PrepRpcOnJS: " +
                                  std::string(e.what()));
   } catch (...) {
-    throw new std::runtime_error("Unknown error in PrepRpcOnJS");
+    throw std::runtime_error("Unknown error in PrepRpcOnJS");
   }
 }
 
-void RpcOnJS(Runtime &runtime, ShareValues values,
-             void (*err_callback)(const std::string &err)) {
+void RpcOnJS(Runtime &runtime, ShareValues values, void (*err_callback)(const std::string &err)) {
   try {
     if (isTornDown.load()) {
       return;
+    }
+
+    static Function* cachedRpcOnJs = nullptr;
+    static Runtime* cachedRuntime = nullptr;
+
+    if (cachedRuntime != &runtime) {
+      delete cachedRpcOnJs;
+      cachedRpcOnJs = nullptr;
+      cachedRuntime = &runtime;
+    }
+
+    if (!cachedRpcOnJs) {
+      try {
+        auto func = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+        cachedRpcOnJs = new Function(std::move(func));
+      } catch (...) {
+        err_callback("Failed to get rpcOnJs function");
+        throw std::runtime_error("Failed to get rpcOnJs function:");
+        return;
+      }
     }
 
     for (auto &result : *values) {
@@ -152,16 +171,15 @@ void RpcOnJS(Runtime &runtime, ShareValues values,
       if (isTornDown.load()) {
         return;
       }
-      Function rpcOnJs =
-          runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+      Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
       rpcOnJs.call(runtime, std::move(value), 1);
     }
   } catch (const std::exception &e) {
     err_callback(e.what());
-    throw new std::runtime_error("Error in RpcOnJS: " + std::string(e.what()));
+    throw std::runtime_error("Error in RpcOnJS: " + std::string(e.what()));
   } catch (...) {
     err_callback("unknown error");
-    throw new std::runtime_error("Unknown error in RpcOnJS");
+    throw std::runtime_error("Unknown error in RpcOnJS");
   }
 }
 } // namespace kb

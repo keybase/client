@@ -134,7 +134,7 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 - (void)sendToJS:(NSData *)data {
   __weak __typeof__(self) weakSelf = self;
 
-    jsScheduler->scheduleOnJS([data, weakSelf](jsi::Runtime &jsiRuntime) {
+  jsScheduler->scheduleOnJS([data, weakSelf](jsi::Runtime &jsiRuntime) {
     __typeof__(self) strongSelf = weakSelf;
     if (!strongSelf) {
       NSLog(@"Failed to find self in sendToJS invokeAsync!!!");
@@ -147,14 +147,24 @@ return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
     }
 
     int size = (int)[data length];
-    auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
-
-    RpcOnJS(jsiRuntime, values, [](const std::string &err) {
+    if (size <= 0) {
+      NSLog(@"Invalid data size in sendToJS: %d", size);
+      return;
+    }
+    try {
+        auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
+        RpcOnJS(jsiRuntime, values, [](const std::string &err) {
+        KeybaseLogToService([NSString
+            stringWithFormat:@"dNativeLogger: [%f,\"jsi rpconjs error: %@\"]",
+                            [[NSDate date] timeIntervalSince1970] * 1000,
+                            [NSString stringWithUTF8String:err.c_str()]]);
+        });
+    } catch (const std::exception &e) {
+      NSLog(@"Exception in sendToJS msgpack processing: %s", e.what());
       KeybaseLogToService([NSString
-          stringWithFormat:@"dNativeLogger: [%f,\"jsi rpconjs error: %@\"]",
-                           [[NSDate date] timeIntervalSince1970] * 1000,
-                           [NSString stringWithUTF8String:err.c_str()]]);
-    });
+          stringWithFormat:@"dNativeLogger: [%f,\"sendToJS unknown exception\"]",
+                           [[NSDate date] timeIntervalSince1970] * 1000]);
+    }
   });
 }
 
