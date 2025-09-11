@@ -166,7 +166,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("Background fetch started...")
     DispatchQueue.global(qos: .default).async {
       Keybasego.KeybaseBackgroundSync()
-      completionHandler(.newData)
+      DispatchQueue.main.async {
+        completionHandler(.newData)
+      }
       NSLog("Background fetch completed...")
     }
   }
