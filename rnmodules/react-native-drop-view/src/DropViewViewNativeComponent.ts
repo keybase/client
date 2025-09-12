@@ -3,7 +3,7 @@ import {codegenNativeComponent, type DirectEventHandler} from 'react-native'
 
 export type DropItems = Array<{originalPath?: string; content?: string}>
 
-interface NativeProps extends ViewProps {
+export interface NativeProps extends ViewProps {
   onDropped?: DirectEventHandler<{
     manifest: string
   }>
