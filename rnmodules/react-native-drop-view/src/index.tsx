@@ -1,6 +1,12 @@
-import DropView, {type Props, type DropItems} from './DropViewViewNativeComponent'
-import {Platform, View} from 'react-native'
+import DropView, {type DropItems} from './DropViewViewNativeComponent'
+import {Platform, View, type ViewStyle} from 'react-native'
 import * as React from 'react'
+
+export type Props = {
+  children?: React.ReactNode
+  onDropped: (items: DropItems) => void
+  style?: ViewStyle
+}
 
 const isSupported = Platform.OS === 'ios'
 const DropViewWrapper = (p: Props) => {
