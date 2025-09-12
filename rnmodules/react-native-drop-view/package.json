@@ -51,7 +51,7 @@
   },
   "codegenConfig": {
     "name": "RNDropViewViewSpec",
-    "type": "all",
+    "type": "components",
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "com.reactnativedropview"

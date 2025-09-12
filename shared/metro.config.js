@@ -8,7 +8,7 @@
 const {getDefaultConfig} = require('@expo/metro-config')
 const path = require('path')
 const fs = require('fs')
-const exclusionList = require('metro-config/src/defaults/exclusionList')
+//const exclusionList = require('metro-config/src/defaults/exclusionList')
 const ignoredModules = require('./ignored-modules')
 
 const root = path.resolve(__dirname, '.')
@@ -44,12 +44,12 @@ config.resolver = {
   assetExts: [...defaultConfigExpo.resolver.assetExts, 'css'],
   sourceExts: [...defaultConfigExpo.resolver.sourceExts, 'cjs', 'css'],
   // We need to exclude the peerDependencies we've collected in packages' node_modules
-  blacklistRE: exclusionList(
-    [].concat(
-      ...workspaces.map(it =>
-        modules.map(m => new RegExp(`^${escape(path.join(it, 'node_modules', m))}\\/.*$`))
-      )
+  //exclusionList(
+  blocklist: [].concat(
+    ...workspaces.map(it =>
+      modules.map(m => new RegExp(`^${escape(path.join(it, 'node_modules', m))}\\/.*$`))
     )
+    //)
   ),
   // When we import a package from the monorepo, metro won't be able to find their deps
   // We need to specify them in `extraNodeModules` to tell metro where to find them

@@ -31,7 +31,7 @@
                           SUBQUERY (
                             $extensionItem.attachments,
                             $attachment,
-                            (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.item&quot;)
+                            (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.item")
                           ).@count &gt;=1
                         ).@count &gt;= 1
                 </string>
@@ -41,5 +41,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 	</dict>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 </dict>
 </plist>

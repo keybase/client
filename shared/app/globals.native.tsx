@@ -48,7 +48,7 @@ if (!String.prototype.replaceAll) {
 
 global.btoa = btoa
 global.atob = atob
-__FILE_SUFFIX__ = ''
-__PROFILE__ = false
-__HOT__ = false
+global.__FILE_SUFFIX__ = ''
+global.__PROFILE__ = false
+global.__HOT__ = false
 /* eslint-enable */
