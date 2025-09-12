@@ -5,6 +5,8 @@ import * as React from 'react'
 const isSupported = Platform.OS === 'ios'
 const DropViewWrapper = (p: Props) => {
   const {onDropped} = p
+  const onDroppedCB = onDropped
+  /*
   const onDroppedCB = React.useCallback(
     (e: any) => {
       try {
@@ -22,6 +24,7 @@ const DropViewWrapper = (p: Props) => {
     },
     [onDropped]
   )
+    */
   return <DropView {...p} onDropped={onDroppedCB} />
 }
 export default isSupported ? DropViewWrapper : View

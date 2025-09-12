@@ -1,4 +1,4 @@
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent'
+import {codegenNativeComponent} from 'react-native'
 import {DirectEventHandler} from 'react-native/Libraries/Types/CodegenTypes'
 import type {ViewProps, ViewStyle} from 'react-native'
 import type {ReactNode} from 'react'
@@ -12,7 +12,7 @@ export type Props = {
 
 interface NativeProps extends ViewProps {
   onDropped?: DirectEventHandler<{
-    items: {}
+    manifest: string
   }>
 }
 
