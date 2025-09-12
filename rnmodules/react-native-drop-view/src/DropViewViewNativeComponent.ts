@@ -1,4 +1,4 @@
-import type {ViewProps} from 'react-native'
+import type {HostComponent, ViewProps} from 'react-native'
 import {codegenNativeComponent, type DirectEventHandler} from 'react-native'
 
 export type DropItems = Array<{originalPath?: string; content?: string}>
@@ -9,4 +9,5 @@ interface NativeProps extends ViewProps {
   }>
 }
 
-export default codegenNativeComponent<NativeProps>('DropViewView')
+type ComponentType = HostComponent<NativeProps>
+export default codegenNativeComponent<NativeProps>('DropViewView') as ComponentType
