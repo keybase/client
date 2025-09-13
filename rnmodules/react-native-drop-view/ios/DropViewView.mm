@@ -30,29 +30,10 @@ using namespace facebook::react;
   return self;
 }
 
-- (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
-{
-    [super updateProps:props oldProps:oldProps];
-}
 
 Class<RCTComponentViewProtocol> DropViewViewCls(void)
 {
     return DropViewView.class;
-}
-
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-}
-
-- (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
-{
-    [super mountChildComponentView:childComponentView index:index];
-}
-
-- (UIView *)view
-{
-  return [[DropView alloc] init];
 }
 
 @end
