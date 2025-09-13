@@ -4,7 +4,7 @@ import type {ViewProps} from 'react-native'
 
 interface NativeProps extends ViewProps {
   onDropped?: DirectEventHandler<{
-    items: {}
+    items: {originalPath?: string; content?: string}[]
   }>
 }
 
