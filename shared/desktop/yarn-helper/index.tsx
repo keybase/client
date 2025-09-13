@@ -203,7 +203,6 @@ const clearAndroidBuild = () => {
     '../../android/build',
     '../../../rnmodules/react-native-kb/android/build',
     '../../../rnmodules/react-native-kb/android/.cxx',
-    '../../../rnmodules/react-native-drop-view/android/build',
   ]
   for (const p of paths) {
     try {

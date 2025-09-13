@@ -57,7 +57,6 @@ module.exports = function (api /*: any */) {
             alias: {
               '@': './',
               'react-native-kb': '../rnmodules/react-native-kb',
-              'react-native-drop-view': '../rnmodules/react-native-drop-view',
             },
           },
         ],
