@@ -30,7 +30,6 @@ using namespace facebook::react;
   return self;
 }
 
-
 Class<RCTComponentViewProtocol> DropViewViewCls(void)
 {
     return DropViewView.class;
