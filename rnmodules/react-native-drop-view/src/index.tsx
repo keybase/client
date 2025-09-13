@@ -34,5 +34,6 @@ const DropViewWrapper = (p: Props) => {
   return <DropView {...p} onDropped={onDroppedCB} />
 }
 export default isSupported ? DropViewWrapper : View
+export const DropViewView = DropViewWrapper
 
 export type {DropItems} from './DropViewViewNativeComponent'

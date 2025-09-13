@@ -37,9 +37,13 @@ using namespace facebook::react;
     [super updateProps:props oldProps:oldProps];
 }
 
-Class<RCTComponentViewProtocol> DropViewViewCls(void)
+extern "C" Class<RCTComponentViewProtocol> DropViewViewCls(void)
 {
     return DropViewView.class;
+}
+
++ (Class) componentViewClass{
+    return [DropViewView class];
 }
 
 @end

@@ -55,6 +55,11 @@
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "com.reactnativedropview"
+    },
+    "ios": {
+      "componentProvider": {
+        "DropViewView": "DropViewView"
+      }
     }
   }
 }
