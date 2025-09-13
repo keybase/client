@@ -1,4 +1,3 @@
-#ifdef RCT_NEW_ARCH_ENABLED
 #import "DropViewView.h"
 #import "DropView.h"
 #import <react/renderer/components/RNDropViewViewSpec/ComponentDescriptors.h>
@@ -25,10 +24,8 @@ using namespace facebook::react;
 - (instancetype)init
 {
   if (self = [super init]) {
-#ifdef RCT_NEW_ARCH_ENABLED
     static const auto defaultProps = std::make_shared<const DropViewViewProps>();
     _props = defaultProps;
-#endif
   }
   return self;
 }
@@ -59,4 +56,3 @@ Class<RCTComponentViewProtocol> DropViewViewCls(void)
 }
 
 @end
-#endif
