@@ -1,4 +1,3 @@
-// This guard prevent this file to be compiled in the old architecture.
 #import <React/RCTViewComponentView.h>
 #import <UIKit/UIKit.h>
 
