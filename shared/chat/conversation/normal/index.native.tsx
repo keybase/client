@@ -3,7 +3,6 @@ import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
-import DropView, {type DropItems} from '@/common-adapters/drop-view.native'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -127,13 +126,11 @@ const Conversation = React.memo(function Conversation() {
       fullHeight={true}
       key={conversationIDKey}
     >
-      <DropView style={styles.dropView} onDropped={onDropped}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          {threadLoadedOffline && <Offline />}
-          {innerComponent}
-        </Kb.Box2>
-        <PortalHost name="convOverlay" />
-      </DropView>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        {threadLoadedOffline && <Offline />}
+        {innerComponent}
+      </Kb.Box2>
+      <PortalHost name="convOverlay" />
     </Kb.Box2>
   )
 
@@ -153,7 +150,6 @@ const Conversation = React.memo(function Conversation() {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      dropView: {flexGrow: 1},
       innerContainer: {
         flex: 1,
         position: 'relative',
