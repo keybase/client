@@ -199,11 +199,7 @@ const patchIosKBLib = () => {
 }
 
 const clearAndroidBuild = () => {
-  const paths = [
-    '../../android/build',
-    '../../../rnmodules/react-native-kb/android/build',
-    '../../../rnmodules/react-native-kb/android/.cxx',
-  ]
+  const paths = ['../../android/build']
   for (const p of paths) {
     try {
       rimrafSync(path.resolve(__dirname, p))

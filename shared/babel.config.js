@@ -50,17 +50,7 @@ module.exports = function (api /*: any */) {
   } else if (isReactNative) {
     // console.error('KB babel.config.js for ReactNative')
     return {
-      plugins: [
-        [
-          'module-resolver',
-          {
-            alias: {
-              '@': './',
-              'react-native-kb': '../rnmodules/react-native-kb',
-            },
-          },
-        ],
-      ],
+      plugins: [['module-resolver', {alias: {'@': './'}}]],
       presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
       sourceMaps: true,
     }
