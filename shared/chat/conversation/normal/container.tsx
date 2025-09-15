@@ -4,39 +4,30 @@ import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
-import logger from '@/logger'
 
 const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
   const id = C.useChatContext(s => s.id)
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
-  const loadOrangeLine = React.useCallback(
-    (why: string) => {
-      const f = async () => {
-        const store = C.getConvoState(id)
-        const convID = store.getConvID()
-        const readMsgID = store.meta.readMsgID
-        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-          convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID: readMsgID < 0 ? 0 : readMsgID,
-        })
+  const loadOrangeLine = React.useCallback(() => {
+    const f = async () => {
+      const store = C.getConvoState(id)
+      const convID = store.getConvID()
+      const readMsgID = store.meta.readMsgID
+      const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
+        convID,
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        readMsgID: readMsgID < 0 ? 0 : readMsgID,
+      })
 
-        setOrangeLine(T.Chat.numberToOrdinal(unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0))
-        logger.error('[CHATDEBUG] loadOrangeLine: new unreadlineID', {
-          id,
-          readMsgID,
-          why,
-        })
-      }
-      C.ignorePromise(f())
-    },
-    [id]
-  )
+      setOrangeLine(T.Chat.numberToOrdinal(unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0))
+    }
+    C.ignorePromise(f())
+  }, [id])
 
   // initial load
   React.useEffect(() => {
-    loadOrangeLine('mounted')
+    loadOrangeLine()
   }, [loadOrangeLine])
 
   const {markedAsUnread, maxMsgID, readMsgID} = C.useChatContext(
