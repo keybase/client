@@ -106,6 +106,10 @@ const _markdownStyles = Styles.styleSheetCreate(
         isElectron: {color: 'inherit', fontWeight: 'inherit', ...electronWrapStyle},
         isMobile: {color: undefined, fontWeight: undefined},
       }),
+      neutralPreviewStyle: Styles.platformStyles({
+        isElectron: {color: 'inherit', fontWeight: 'inherit'},
+        isMobile: {color: Styles.globalColors.black_50, fontWeight: undefined},
+      }),
       quoteStyle: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.redLighter,
