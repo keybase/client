@@ -53,51 +53,6 @@ const Conversation = React.memo(function Conversation() {
     </Kb.BoxGrow>
   )
 
-  const navigateAppend = C.Chat.useChatNavigateAppend()
-  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
-  const onDropped = React.useCallback(
-    (items: DropItems) => {
-      const {attach: _attach, texts} = items.reduce(
-        (obj, i) => {
-          const {texts, attach} = obj
-          if (i.content) {
-            texts.push(i.content)
-          } else if (i.originalPath) {
-            attach.push({path: i.originalPath})
-          }
-          return obj
-        },
-        {attach: new Array<{path: string}>(), texts: new Array<string>()}
-      )
-      let attach = _attach
-
-      // special case of one text and attachment, if its not a url
-      if (texts.length === 1 && attach.length === 1) {
-        if (texts[0]!.startsWith('http')) {
-          // just use the url and ignore the image
-          attach = []
-        } else {
-          navigateAppend(conversationIDKey => ({
-            props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
-            selected: 'chatAttachmentGetTitles',
-          }))
-          return
-        }
-      }
-      if (texts.length) {
-        injectIntoInput(texts.join('\r'))
-      }
-
-      if (attach.length) {
-        navigateAppend(conversationIDKey => ({
-          props: {conversationIDKey, pathAndOutboxIDs: attach},
-          selected: 'chatAttachmentGetTitles',
-        }))
-      }
-    },
-    [injectIntoInput, navigateAppend]
-  )
-
   const insets = useSafeAreaInsets()
   const headerHeight = Kb.Styles.isTablet ? 115 : 44
   const windowHeight = useSafeAreaFrame().height
