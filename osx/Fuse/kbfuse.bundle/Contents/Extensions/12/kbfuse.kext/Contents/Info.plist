@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>kbfuse</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.github.kbfuse.filesystems.kbfuse.25</string>
+	<string>com.github.kbfuse.filesystems.kbfuse</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -39,19 +39,19 @@
 	<key>DTXcodeBuild</key>
 	<string>17A324</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>26.0</string>
+	<string>12.3</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.bsd</key>
-		<string>25.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.iokit</key>
-		<string>25.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.libkern</key>
-		<string>25.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.mach</key>
-		<string>25.0.0</string>
+		<string>21.0.0</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>25.0.0</string>
+		<string>21.0.0</string>
 	</dict>
 </dict>
 </plist>
