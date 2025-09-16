@@ -8,9 +8,9 @@ cd "$dir"
 rm -rf osxfuse macfuse
 
 version=${VERSION:?"Need to set VERSION for Fuse"}
-if [ "$version" = "4.8.2" ]; then
-  tar -xjf ~/Downloads/macfuse-4.8.2-src-mike.tgz
-  mv macfuse-4.8.2-src macfuse
+if [ "$version" = "5.0.6" ]; then
+  tar -xjf ~/Downloads/macfuse-5.0.6-src-mike.tgz
+  #mv macfuse-5.0.6-src-mike macfuse
 else
   echo "Unsupported VERSION"
   exit 1
@@ -24,14 +24,14 @@ rm -rf /tmp/kbfuse*
 cd macfuse
 # If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
 # use 12.3 SDK (-s) and set deployment target 12.3 (-d). Build for macOS 12 kernel, and support up to Darwin 23 (macOS 14).
-./build.sh -v 5 -t filesystembundle -- -s 15.0 -d 12.3 --kext="12,15.0,24" --kext="15->12" --kext="14->12" --kext="13->12" --code-sign-identity="Developer ID Application: Keybase, Inc."
+./build.sh -v 5 -t filesystembundle -- -s 26.0 -d 12.3 --kext="12,26.0,25" --kext="26->12" --kext="15->12" --kext="14->12" --kext="13->12" --code-sign-identity="Developer ID Application: Keybase, Inc."
 
 cd $dir
 rm -rf kbfuse.bundle
-ditto /tmp/kbfuse/filesystembundle/kbfuse.fs kbfuse.bundle
+ditto ~/Desktop/kbfuse-5.0.6/filesystembundle/Products/kbfuse.fs kbfuse.bundle
 
 # Backup the filesystembundle directory in case we need debug symbols later
-cd /tmp/kbfuse/filesystembundle
+cd ~/Desktop/kbfuse-5.0.6/filesystembundle
 tar zcvpf $dir/fsbundle.tgz  .
 
 # Sign the kext

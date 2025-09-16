@@ -6,55 +6,103 @@
 	<dict>
 		<key>Resources/License.rtf</key>
 		<data>
-		Yh9IUz9T3WPa45y7wWB+5qUkKKs=
+		MokDHlYoUAJGsuUmYDQqu2m4Fl8=
 		</data>
 		<key>Resources/Volume.icns</key>
 		<data>
 		qJASDfOipoOWzjNc2uiXNdbEyrw=
 		</data>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/Info.plist</key>
+		<data>
+		3OArM19WmGX2k5ScgV2v+rcpk3Q=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/MacOS/com.github.kbfuse.app.fsmodule.kbfuse</key>
+		<data>
+		hf3mx9ztdP2OJKJCOBXKcFXSLkU=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/_CodeSignature/CodeResources</key>
+		<data>
+		3gIp+m0oVSqiuqukWj62Bv+l5Uc=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/embedded.provisionprofile</key>
+		<data>
+		25Sb0CbkCAT0I0YECs5x8vTjKgk=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Info.plist</key>
+		<data>
+		jMS+yaZLXMNsaMIrscRBEboONYI=
+		</data>
+		<key>Resources/kbfuse.app/Contents/MacOS/kbfuse</key>
+		<data>
+		1pAG47aG0BVgFGjhbXUhPSiK+GE=
+		</data>
+		<key>Resources/kbfuse.app/Contents/PkgInfo</key>
+		<data>
+		n57qDP4tZfLD1rCS43W0B4LQjzE=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Resources/AppIcon.icns</key>
+		<data>
+		mgYYZ+bzbmzAJ5R40y6bYoJCR1w=
+		</data>
+		<key>Resources/kbfuse.app/Contents/Resources/Assets.car</key>
+		<data>
+		NnCTKIsA9jQOG7e3CcHZk7o1c10=
+		</data>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Info.plist</key>
+		<data>
+		23PDDmkxL1D15KFxswLPpO9Q33o=
+		</data>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Library/LaunchServices/com.github.kbfuse.app.launchservice.broker</key>
+		<data>
+		9tnuV9sGRonGik/7SkO4lmlisuo=
+		</data>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Library/LaunchServices/com.github.kbfuse.app.launchservice.daemon</key>
+		<data>
+		dmYgLh1eWuANEnJqyyNep7QFVhQ=
+		</data>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/MacOS/com.github.kbfuse.app.xpcservice.installer</key>
+		<data>
+		0CgjVVAnoV4CReNMnrEFlDiOA80=
+		</data>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/_CodeSignature/CodeResources</key>
+		<data>
+		UFjUw3aeIEufP83+jwe58+7OzD0=
+		</data>
+		<key>Resources/kbfuse.app/Contents/_CodeSignature/CodeResources</key>
+		<data>
+		/1Gb79y1ipcpL5Ti1Kjb/IrP4TU=
+		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		dBkhtrFqRyypjPa6e4l3wpkIN6s=
+		XTeYGFL9SDSWFxWaprQLZvkXaRM=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		Styry7MbO1r/2L93Vpm4MrZ/wi8=
+		TrmS02JLf8ksSyaXsqR3l45LheA=
 		</data>
 		<key>version.plist</key>
 		<data>
-		rtVXUjgH7zfwKAD2FXWUTmdBbbk=
+		j78YcBD6wh6Y112lP8FTv6osm+M=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Extensions/12/kbfuse.kext/Contents/Info.plist</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			NYNdbc6dF9IvWGJ1dpQJKpSdq0Y=
-			</data>
 			<key>hash2</key>
 			<data>
-			5ZL4722iB7LCgRM8XBWq/khAVydQp8AoMrEPJ745qRk=
+			uSB8pWWBPzbZa47oK6aBHrgk03oFcz3iofIOXouUXe8=
 			</data>
 		</dict>
 		<key>Extensions/12/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			0RDLRfqLt+dro09KcQz0wiLI8yk=
-			</data>
 			<key>hash2</key>
 			<data>
-			V4h/yDAS2wvDXW/KDhph+NrdPvdbKeRwdg7tOCCQkOg=
+			+oiUL9GOCKJg32qy3q+Tah6gtyqHFE1q4OMe13lWtt4=
 			</data>
 		</dict>
 		<key>Extensions/12/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			YwoIhzByBpYWzcwx9V5tdCMIbXg=
-			</data>
 			<key>hash2</key>
 			<data>
 			ZobeEKKKL+EbNsu4bcusyCfPxOoRa02r8YReWu5inps=
@@ -75,59 +123,149 @@
 			<key>symlink</key>
 			<string>12</string>
 		</dict>
+		<key>Extensions/26</key>
+		<dict>
+			<key>symlink</key>
+			<string>12</string>
+		</dict>
 		<key>Resources/License.rtf</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			Yh9IUz9T3WPa45y7wWB+5qUkKKs=
-			</data>
 			<key>hash2</key>
 			<data>
-			h5rYq1/Ai4lH3Ox3ehR+S0rjpGnLodWSQIHDsF8tUGA=
+			sCzj80CpQK29HuxpJB0fJ+rHfB5qhMyscj9nUEO+CvA=
 			</data>
 		</dict>
 		<key>Resources/Volume.icns</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			qJASDfOipoOWzjNc2uiXNdbEyrw=
-			</data>
 			<key>hash2</key>
 			<data>
 			5EGzd4N1aaAnPoccVlA1sEspNMld7NgewR9jMPrIJYo=
 			</data>
 		</dict>
-		<key>Resources/load_kbfuse</key>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/Info.plist</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			dBkhtrFqRyypjPa6e4l3wpkIN6s=
-			</data>
 			<key>hash2</key>
 			<data>
-			9LTZ2OVVkImZIILbik+AUsB2YvCFh0FN92+nMLePS4w=
+			JZoFHh7xE17YFsIQo0USXI0LMJKllooj8sTrLgy3smA=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/MacOS/com.github.kbfuse.app.fsmodule.kbfuse</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			jabJbfGEnGtplpV9AFK9hCO18Y7pUBPhBe8NPKIeJVE=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/_CodeSignature/CodeResources</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			RtmAbzmPbT87bwCrMdo8vjgeVGWDuMb7SUdsk17F+Lo=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Extensions/com.github.kbfuse.app.fsmodule.kbfuse.appex/Contents/embedded.provisionprofile</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			x+QMwMl/P69oyzXzc4Zw08BBiQ3xvMOjkEmvFCPBxWM=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			UxvE0KtBuyGfi3Jrzng5sMgigOh6WAMjRapwvtPAI2A=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/MacOS/kbfuse</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			IZwGyB275ordgpXnxbG4s4k3fS6YG8eCxKRe51hSSMM=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/PkgInfo</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			glAhkclISwTWhTdPmHmgBmBpxJuKyuegSwHTjQfo7KA=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Resources/AppIcon.icns</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			/2n9CSdV2oI7AE3pluLytVsiJ9lfFYOG+B8yiUoxe2A=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/Resources/Assets.car</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			1ArU479bX5KCmtQwz4HIt/NByN3jteSadVEhBpM72RU=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			NSp3dI5uck9jMTA70a/pHk6OzkenXefyJUAW8efBgC0=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Library/LaunchServices/com.github.kbfuse.app.launchservice.broker</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			b1Y7JnYOMpJgiGUnWkVN/9Kr/LHUg6RymcHkCgw9ots=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/Library/LaunchServices/com.github.kbfuse.app.launchservice.daemon</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			O+W+8HihfQkCBfFKqhKkte1cxUZB/UlKvL3s9j8f070=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/MacOS/com.github.kbfuse.app.xpcservice.installer</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			QWjaBQ8zOsuuZTCnuT5y4bbrSQimoLnnEFDlcWRnZhc=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/XPCServices/com.github.kbfuse.app.xpcservice.installer.xpc/Contents/_CodeSignature/CodeResources</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			iVjVCkyjlVGESPPFW/aT3UcU18qjiJSxdxegoQs1+BY=
+			</data>
+		</dict>
+		<key>Resources/kbfuse.app/Contents/_CodeSignature/CodeResources</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			yC87HMYnFg6QMxlbOFerZZ/bTtD7VSVDClWW0mAO4uo=
+			</data>
+		</dict>
+		<key>Resources/load_kbfuse</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			lR6hcFRizCV5hVgzhumYqrGezwt/0tNqJ0b0gPaDp6c=
 			</data>
 		</dict>
 		<key>Resources/mount_kbfuse</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			Styry7MbO1r/2L93Vpm4MrZ/wi8=
-			</data>
 			<key>hash2</key>
 			<data>
-			/O/j+LdYyskoXFv/JiCLisviXNAk3uMq3Mq2HuseAc4=
+			3L4M7CTlM6eOH0y1u/3du0GR9j1krp5HZvVf90SHB84=
 			</data>
 		</dict>
 		<key>version.plist</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			rtVXUjgH7zfwKAD2FXWUTmdBbbk=
-			</data>
 			<key>hash2</key>
 			<data>
-			FHm1I+38VV8yC9Shfq5xR/Am4oQifCpylejL2f0Onxs=
+			3Dh8njcS28IM/u9yUs1CCEYX2+v3ocB2rK1ryB8av5E=
 			</data>
 		</dict>
 	</dict>
