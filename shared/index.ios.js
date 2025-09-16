@@ -2,36 +2,9 @@
 require('immer').enableMapSet()
 import './util/why-did-you-render'
 import './app/globals.native'
-import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
-import Animated from 'react-native-reanimated' // MUST BE HERE due to another bug https://github.com/software-mansion/react-native-reanimated/issues/4836
-import {Appearance} from 'react-native'
-import {darkModeSupported, guiConfig, install} from 'react-native-kb'
-import * as DarkMode from './constants/darkmode'
 
 try {
-  // needed by new arch
-  Animated.addWhitelistedNativeProps({text: true})
-
   console.log('------------- ios starting up ------------')
-
-  install()
-
-  const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
-    DarkMode.useState_.getState().dispatch
-  setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-  setSystemSupported(darkModeSupported === '1')
-  try {
-    const obj = JSON.parse(guiConfig)
-    const dm = obj?.ui?.darkMode
-    switch (dm) {
-      case 'system': // fallthrough
-      case 'alwaysDark': // fallthrough
-      case 'alwaysLight':
-        setDarkModePreference(dm, false)
-        break
-    }
-  } catch (_) {}
-
   const {load} = require('./app/index.native')
   load()
   console.log('------------- ios starting up done ------------')
