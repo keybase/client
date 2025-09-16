@@ -15,7 +15,7 @@ import {
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
-import {useNavigation} from '@react-navigation/native'
+import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
 
 const Kb = {
   Box2,
@@ -61,6 +61,12 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 
 const defaultSnapPoints = ['75%']
 
+type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
+
+const useSafeNavigation: SafeNavigationHook = Styles.isMobile
+  ? (useNavigation as SafeNavigationHook)
+  : () => null
+
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
   const {snapPoints, items, visible, onHidden} = props
   const isModal = React.useContext(FloatingModalContext)
@@ -68,10 +74,10 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
 
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
 
-  const navigation = useNavigation()
+  const navigation = useSafeNavigation()
 
   React.useEffect(() => {
-    const unsub = navigation.addListener('state', () => {
+    const unsub = navigation?.addListener('state', () => {
       bottomRef.current?.forceClose()
       onHidden()
     })
