@@ -151,6 +151,7 @@ export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'u
 export {useShallow, useDeep} from '@/util/zustand'
 export {isNetworkErr, RPCError} from '@/util/errors'
 export {default as useRPC} from '@/util/use-rpc'
+export {fixCrop} from '@/util/crop'
 export {produce} from 'immer'
 export * from './immer'
 export {default as featureFlags} from '../util/feature-flags'

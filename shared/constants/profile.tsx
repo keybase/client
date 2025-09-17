@@ -731,7 +731,10 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     uploadAvatar: (filename, crop) => {
       const f = async () => {
         try {
-          await T.RPCGen.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
+          await T.RPCGen.userUploadUserAvatarRpcPromise(
+            {crop: C.fixCrop(crop), filename},
+            uploadAvatarWaitingKey
+          )
           C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
