@@ -1,1 +1,3 @@
-• Fix team delete not working
+macOS:
+
+• Fix the KBFS mount to work on macOS 26 (Tahoe).
