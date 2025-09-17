@@ -50,6 +50,7 @@ const Container = () => {
               placeholder="Full name"
               autoFocus={true}
               onChangeText={setFullname}
+              style={styles.widthFix}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="middle">
@@ -60,6 +61,7 @@ const Container = () => {
               rowsMin={7}
               rowsMax={7}
               onChangeText={setBio}
+              style={styles.widthFix}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="bottom">
@@ -68,6 +70,7 @@ const Container = () => {
               placeholder="Location"
               onChangeText={setLocation}
               onEnterKeyDown={submit}
+              style={styles.widthFix}
             />
           </Kb.RoundedBox>
           <Kb.Box2 direction="vertical" style={styles.gap} />
@@ -97,6 +100,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   gap: {flexGrow: 1, minHeight: Kb.Styles.globalMargins.small},
   header: {marginBottom: Kb.Styles.globalMargins.small},
+  widthFix: Kb.Styles.platformStyles({
+    isElectron: {
+      width: 'auto',
+    },
+  }),
 }))
 
 export default Container
