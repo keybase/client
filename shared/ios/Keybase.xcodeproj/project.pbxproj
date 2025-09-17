@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,6 +17,17 @@
 		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
+		37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */; };
+		37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */; };
+		37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */; };
+		37E0D88B22A5C7FB008CA4ED /* keybase-medium-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */; };
+		37E0D88C22A5C7FB008CA4ED /* keybase-medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */; };
+		37E0D88D22A5C7FB008CA4ED /* keybase-semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */; };
+		37E0D88E22A5C7FB008CA4ED /* keybase-bold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */; };
+		37E0D88F22A5C7FB008CA4ED /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */; };
+		37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88622A5C7FB008CA4ED /* kb.ttf */; };
+		37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */; };
+		37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37E0D89222A5C83B008CA4ED /* keybasemessage.wav */; };
 		6D30CA5F1EA172E82B44B913 /* Pods_KeybaseShare.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */; };
 		9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2585B4B360D5D792D408D511 /* ExpoModulesProvider.swift */; };
 		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
@@ -71,6 +82,17 @@
 		279FB6F321403A49005E4864 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold-italic.ttf"; path = "../fonts/keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-extrabold.ttf"; path = "../fonts/keybase-extrabold.ttf"; sourceTree = "<group>"; };
+		37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold.ttf"; path = "../fonts/keybase-bold.ttf"; sourceTree = "<group>"; };
+		37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium-italic.ttf"; path = "../fonts/keybase-medium-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-medium.ttf"; path = "../fonts/keybase-medium.ttf"; sourceTree = "<group>"; };
+		37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold.ttf"; path = "../fonts/keybase-semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold-italic.ttf"; path = "../fonts/keybase-bold-italic.ttf"; sourceTree = "<group>"; };
+		37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Semibold.ttf"; path = "../fonts/SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../fonts/kb.ttf; sourceTree = "<group>"; };
+		37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Medium.ttf"; path = "../fonts/SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		37E0D89222A5C83B008CA4ED /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		60B93983273F902C00A226FF /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
 		698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KeybaseShare.release.xcconfig"; path = "Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare.release.xcconfig"; sourceTree = "<group>"; };
 		97CE18EF12A69D8F947E9CB1 /* libPods-Keybase For Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase For Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,10 +115,6 @@
 		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
 		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		DBCD41682E7AF7990069B4A0 /* Assets */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Assets; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
@@ -180,7 +198,17 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				DBCD41682E7AF7990069B4A0 /* Assets */,
+				37E0D89222A5C83B008CA4ED /* keybasemessage.wav */,
+				37E0D88622A5C7FB008CA4ED /* kb.ttf */,
+				37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */,
+				37E0D88022A5C7FA008CA4ED /* keybase-bold.ttf */,
+				37E0D87F22A5C7FA008CA4ED /* keybase-extrabold.ttf */,
+				37E0D88122A5C7FA008CA4ED /* keybase-medium-italic.ttf */,
+				37E0D88222A5C7FA008CA4ED /* keybase-medium.ttf */,
+				37E0D87E22A5C7FA008CA4ED /* keybase-semibold-italic.ttf */,
+				37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */,
+				37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */,
+				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
 				279FB59D2139AB6A005E4864 /* KeybaseShare */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -267,9 +295,6 @@
 			);
 			dependencies = (
 				279FB5A62139AB6A005E4864 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				DBCD41682E7AF7990069B4A0 /* Assets */,
 			);
 			name = Keybase;
 			productName = "Hello World";
@@ -374,6 +399,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37E0D89322A5C83B008CA4ED /* keybasemessage.wav in Resources */,
+				37E0D88822A5C7FB008CA4ED /* keybase-semibold-italic.ttf in Resources */,
+				37E0D88922A5C7FB008CA4ED /* keybase-extrabold.ttf in Resources */,
+				37E0D88A22A5C7FB008CA4ED /* keybase-bold.ttf in Resources */,
+				37E0D88B22A5C7FB008CA4ED /* keybase-medium-italic.ttf in Resources */,
+				37E0D88C22A5C7FB008CA4ED /* keybase-medium.ttf in Resources */,
+				37E0D88D22A5C7FB008CA4ED /* keybase-semibold.ttf in Resources */,
+				37E0D88E22A5C7FB008CA4ED /* keybase-bold-italic.ttf in Resources */,
+				37E0D88F22A5C7FB008CA4ED /* SourceCodePro-Semibold.ttf in Resources */,
+				37E0D89022A5C7FB008CA4ED /* kb.ttf in Resources */,
+				37E0D89122A5C7FB008CA4ED /* SourceCodePro-Medium.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
 				1790BEACF59E3689E320E5CB /* PrivacyInfo.xcprivacy in Resources */,
@@ -885,7 +921,10 @@
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "$(inherited)  ";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -984,7 +1023,10 @@
 				LD = "";
 				LDPLUSPLUS = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = "$(inherited)  ";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",

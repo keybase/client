@@ -87,7 +87,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   func setupGo() {
     // set to true to see logs in xcode
-    let skipLogFile = true
+    let skipLogFile = false
     // uncomment to get more console.logs
     // RCTSetLogThreshold(RCTLogLevel.info.rawValue - 1)
     self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
