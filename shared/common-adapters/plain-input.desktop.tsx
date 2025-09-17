@@ -350,9 +350,6 @@ const styles = Styles.styleSheetCreate(() => ({
   flexable: {
     flex: 1,
     minWidth: 0,
-    // "width: 0" is needed for the input to shrink in flex
-    // https://stackoverflow.com/questions/42421361/input-button-elements-not-shrinking-in-a-flex-container
-    width: 0,
   },
   growAndScroll: Styles.platformStyles({
     isElectron: {
