@@ -15,18 +15,16 @@ const Container = (ownProps: OwnProps) => {
   const canManageBots = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const bot: T.RPCGen.FeaturedBot = C.useBotsState(
-    s =>
-      s.featuredBotsMap.get(ownProps.username) ?? {
-        botAlias: info.fullName,
-        botUsername: ownProps.username,
-        description: '',
-        extendedDescription: '',
-        extendedDescriptionRaw: '',
-        isPromoted: false,
-        rank: 0,
-      }
-  )
+  const _bot = C.useBotsState(s => s.featuredBotsMap.get(ownProps.username))
+  const bot = _bot ?? {
+    botAlias: info.fullName,
+    botUsername: ownProps.username,
+    description: '',
+    extendedDescription: '',
+    extendedDescriptionRaw: '',
+    isPromoted: false,
+    rank: 0,
+  }
 
   const {botAlias, description} = bot
 
