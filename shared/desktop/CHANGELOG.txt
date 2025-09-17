@@ -1,1 +1,3 @@
-• Fix a bug when deleting teams.
+macOS:
+
+• Fix the KBFS mount to work on macOS 26 (Tahoe).
