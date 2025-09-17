@@ -14,11 +14,11 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		r0w425vOa1BqvflDZTBGC9ZYbAA=
+		vIMryRgxTKdTfdFCPxdyB/8BnJs=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		3/hwkaJE8tro5C8Kpzc8IHrpNHc=
+		BjszRYqSR/WCMJdUxFOo0J+Ew/k=
 		</data>
 		<key>version.plist</key>
 		<data>
@@ -31,14 +31,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			d00BiX0Hq7bWPuuMXnXxA6qnhKLXWvLqcLf7bTGSSqs=
+			XmRFwKHEXEhSymDjlfTpI+Tz93hbZb9qLXCPWoHS3N4=
 			</data>
 		</dict>
 		<key>Extensions/12/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			baYvZN3TU2t4xf97Uni6M0hVHmIdN3ZOBj9ZPccs1a8=
+			MF9cB3y/Sx+6tgZ1uqrdv1lG5P0l0/mYF8RMxO4RWrI=
 			</data>
 		</dict>
 		<key>Extensions/12/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
@@ -86,14 +86,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			v7ub+VoKVOtqLNcyrgyE0d8Nx+/u1MPvrqMtcEYbc1E=
+			50EW3Cwirp4WN1REPer1vQvBIgCVESHJwbL4s4mv9KQ=
 			</data>
 		</dict>
 		<key>Resources/mount_kbfuse</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			w7vwVVOY984at1hQ5ljZUcwaGMP7QnqczW9GJ6KKxZs=
+			jORbqAL4H6UtWl04S1w7j4THyZYmM4w99bovJmardN4=
 			</data>
 		</dict>
 		<key>version.plist</key>
