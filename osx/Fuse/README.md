@@ -49,12 +49,14 @@ which you can submit for PR.
 This bundle is included in the KeybaseInstaller.app, so you'll need to build a new
 installer, see [Building the Installer](/osx/Scripts/README.md).
 
-Versioning can be tricky here, here are some tips from last time:
+**Versioning can be tricky here, here are some tips from last time**
 
 - Build against the newest macOS SDK
 - Specify an old build target (like 12.3)
 - Manually fixup Info.plist for the extension, since the Fuse build script puts the wrong values in for the minimum version and kext dependencies.
-- Make sure the name in the Info.plist doesn't have a version number after it.
+  The key here is just to look at the commit from last time, and try to mimic the amount of changes to the Info.plist.
+- Make sure the name in the Info.plist doesn't have a version number after it. The Fuse stuff looks up the name without
+  a version number.
 - `sudo kmutil log show` is a great way to see what is happening.
 
 ### Manual Install
