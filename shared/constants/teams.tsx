@@ -3013,7 +3013,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
         C.useRouterState.getState().dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
           C.useRouterState.getState().dispatch.navigateAppend({
