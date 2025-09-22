@@ -50,9 +50,6 @@ You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
 }
 ```
 
-instead of toggling the dev tools after launch because of a bug where
-not all source files are available if the dev tools aren't opened at launch.
-
 ### Debugging with React Developer Tools
 
 1. Install react-dev-tools using npm or yarn globally
