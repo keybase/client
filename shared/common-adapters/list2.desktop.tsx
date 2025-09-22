@@ -1,6 +1,6 @@
 import * as React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import {FixedSizeList, VariableSizeList} from 'react-window'
+import {List} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
@@ -16,7 +16,7 @@ const Row = React.memo(function Row<T>(p: RowProps<T>) {
 const List2 = <T,>(props: Props<T>) => {
   const {items, indexAsKey, keyProperty, renderItem, estimatedItemHeight} = props
   const {style, itemHeight, forceLayout} = props
-  const variableSizeListRef = React.useRef<VariableSizeList>(null)
+  const variableSizeListRef = React.useRef<List>(null)
 
   const _keyExtractor = React.useCallback(
     (index: number) => {
@@ -47,7 +47,7 @@ const List2 = <T,>(props: Props<T>) => {
     (p: {height: number; width: number; itemHeight: number}) => {
       const {height, width, itemHeight} = p
       return (
-        <FixedSizeList<RowData<T>>
+        <List<RowData<T>>
           style={style as React.CSSProperties}
           height={height}
           width={width}
@@ -57,7 +57,7 @@ const List2 = <T,>(props: Props<T>) => {
           itemSize={itemHeight}
         >
           {Row}
-        </FixedSizeList>
+        </List>
       )
     },
     [style, items.length, _getItemData, _keyExtractor]
@@ -73,31 +73,33 @@ const List2 = <T,>(props: Props<T>) => {
     (p: {height: number; width: number}) => {
       const {height, width} = p
       return (
-        <VariableSizeList<RowData<T>>
+        <List<RowData<T>>
           ref={variableSizeListRef}
           style={style as React.CSSProperties}
-          height={height}
+          rowHeight={height}
           width={width}
-          itemCount={items.length}
+          rowCount={items.length}
           itemData={_getItemData()}
           itemKey={_keyExtractor}
           itemSize={_variableItemSize}
           estimatedItemSize={estimatedItemHeight}
-        >
-          {Row}
-        </VariableSizeList>
+          rowComponent={Row}
+        />
       )
     },
     [style, items.length, _getItemData, _keyExtractor, _variableItemSize, estimatedItemHeight]
   )
 
-  const lastForceLayoutRef = React.useRef(forceLayout)
-  React.useEffect(() => {
-    if (lastForceLayoutRef.current !== forceLayout) {
-      lastForceLayoutRef.current = forceLayout
-      variableSizeListRef.current?.resetAfterIndex(0, true)
-    }
-  }, [forceLayout])
+  // TEMP
+  return null
+
+  // const lastForceLayoutRef = React.useRef(forceLayout)
+  // React.useEffect(() => {
+  //   if (lastForceLayoutRef.current !== forceLayout) {
+  //     lastForceLayoutRef.current = forceLayout
+  //     variableSizeListRef.current?.resetAfterIndex(0, true)
+  //   }
+  // }, [forceLayout])
 
   if (items.length === 0) return null
   return (
