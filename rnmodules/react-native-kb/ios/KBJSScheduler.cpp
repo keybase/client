@@ -21,6 +21,6 @@ KBJSScheduler::KBJSScheduler( jsi::Runtime &rnRuntime, RuntimeExecutor runtimeEx
       runtimeExecutor_(runtimeExecutor) {}
 
 const std::shared_ptr<CallInvoker> KBJSScheduler::getJSCallInvoker() const {
-  assert( jsCallInvoker_ != nullptr && "Expected jsCallInvoker, got nullptr instead.");
+  assert( jsCallInvoker_ != nullptr && " Expected jsCallInvoker, got nullptr instead.");
   return jsCallInvoker_;
 }

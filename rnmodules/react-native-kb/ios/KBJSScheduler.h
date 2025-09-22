@@ -16,10 +16,9 @@ using KBJob = std::function<void(jsi::Runtime &rt)>;
 class KBJSScheduler {
  public:
   // With `jsCallInvoker`.
-  explicit KBJSScheduler(jsi::Runtime &rnRuntime, const std::shared_ptr<CallInvoker> &jsCallInvoker);
+  explicit KBJSScheduler( jsi::Runtime &rnRuntime, const std::shared_ptr<CallInvoker> &jsCallInvoker);
   // With `runtimeExecutor`.
   explicit KBJSScheduler( jsi::Runtime &rnRuntime, RuntimeExecutor runtimeExecutor);
-
   const std::function<void(KBJob)> scheduleOnJS = nullptr;
   const std::shared_ptr<CallInvoker> getJSCallInvoker() const;
 

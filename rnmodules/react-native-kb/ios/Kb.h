@@ -2,12 +2,17 @@
 #import "react-native-kb.h"
 #endif
 
-#import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTEventEmitter.h>
 #import <foundation/Foundation.h>
+
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTCallInvokerModule.h>
 
 @interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
+#else
+#endif
+
 @end
 
 // Singleton to get the paths
