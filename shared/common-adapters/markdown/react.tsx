@@ -106,13 +106,6 @@ const _markdownStyles = Styles.styleSheetCreate(
         isElectron: {color: 'inherit', fontWeight: 'inherit', ...electronWrapStyle},
         isMobile: {color: undefined, fontWeight: undefined},
       }),
-      linkStyle: Styles.platformStyles({
-        isElectron: {
-          ...electronWrapStyle,
-          fontWeight: 'inherit',
-        },
-        isMobile: {fontWeight: undefined},
-      }),
       neutralPreviewStyle: Styles.platformStyles({
         isElectron: {color: 'inherit', fontWeight: 'inherit'},
         isMobile: {color: Styles.globalColors.black_50, fontWeight: undefined},

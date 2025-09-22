@@ -76,13 +76,15 @@ elif [ "$arg" = "android" ]; then
 	android_dir=${DEST_DIR:-"$client_dir/shared/android/keybaselib"}
 	android_dest="$android_dir/keybaselib.aar"
 	android_api="23"
+	# support 16kb page sizes on this ndk
+	android_ldflags="$ldflags \"-extldflags=-Wl,-z,max-page-size=16384\""
 	echo "Building for Android ($android_dest)..."
 	set +e
-	OUTPUT="$(gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+	OUTPUT="$(gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package" 2>&1)"
 	set -e
 	if [[ $OUTPUT == *gomobile* ]]; then
 		build_gomobile
-		gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package"
+		gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package"
 	else
 		echo $OUTPUT
 	fi

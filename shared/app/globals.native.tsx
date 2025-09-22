@@ -51,4 +51,6 @@ global.atob = atob
 global.__FILE_SUFFIX__ = ''
 global.__PROFILE__ = false
 global.__HOT__ = false
+require('immer').enableMapSet()
+import '../util/why-did-you-render'
 /* eslint-enable */

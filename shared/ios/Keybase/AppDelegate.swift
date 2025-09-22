@@ -26,7 +26,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    self.didLaunchSetupBefore(application)
+    self.didLaunchSetupBefore()
+    
+    NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { notification in
+      NSLog("Memory warning received - deferring GC during React Native initialization")
+      // see if this helps avoid this crash
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        if self.reactNativeFactory != nil {
+          Keybasego.KeybaseForceGC()
+        }
+      }
+    }
+    
     let delegate = ReactNativeDelegate()
     let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -47,7 +58,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     
     if let rootView = self.window?.rootViewController?.view {
       self.addDrop(rootView)
-      self.didLaunchSetupAfter(rootView)
+      self.didLaunchSetupAfter(application: application, rootView: rootView)
     }
     
     return true
@@ -109,14 +120,15 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
   
-  @objc func didLaunchSetupBefore(_ application: UIApplication) {
+  func didLaunchSetupBefore() {
     try? AVAudioSession.sharedInstance().setCategory(.ambient)
-    setupGo()
-    notifyAppState(application)
     UNUserNotificationCenter.current().delegate = self
   }
   
-  @objc func didLaunchSetupAfter(_ rootView: UIView) {
+  func didLaunchSetupAfter(application: UIApplication, rootView: UIView) {
+    setupGo()
+    notifyAppState(application)
+    
     rootView.backgroundColor = .systemBackground
     
     // Snapshot resizing workaround for iPad
@@ -135,7 +147,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
   }
   
-  @objc func addDrop(_ rootView: UIView) {
+  func addDrop(_ rootView: UIView) {
     let dropInteraction = UIDropInteraction(delegate: self)
     dropInteraction.allowsSimultaneousDropSessions = true
     rootView.addInteraction(dropInteraction)
@@ -279,12 +291,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func applicationWillEnterForeground(_ application: UIApplication) {
     NSLog("applicationWillEnterForeground: hiding keyz screen.")
     hideCover()
-  }
-  
-  
-  
-  func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
-    Keybasego.KeybaseForceGC()
   }
   
   func keyCommands() -> [UIKeyCommand]? {

@@ -154,7 +154,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
         onError={onError}
         className="fade-anim-enter fade-anim-enter-active"
         ref={imgRef}
-        src={src}
+        src={src || undefined}
         style={imgStyle}
       />
       <Kb.Toast visible={showToast} attachTo={containerRef}>
