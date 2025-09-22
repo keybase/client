@@ -2,22 +2,15 @@
 #import "react-native-kb.h"
 #endif
 
+#import <React/RCTEventEmitter.h>
+#import <foundation/Foundation.h>
+
 #ifdef RCT_NEW_ARCH_ENABLED
 #import <RNKbSpec/RNKbSpec.h>
-#import <React/RCTEventEmitter.h>
-#import <foundation/Foundation.h>
 #import <React/RCTCallInvokerModule.h>
-
 @interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
-#else
-#import <React/RCTBridgeModule.h>
-#import <React/RCTEventEmitter.h>
-#import <foundation/Foundation.h>
-
-@interface Kb : RCTEventEmitter <RCTBridgeModule>
-#endif
-
 @end
+#endif // RCT_NEW_ARCH_ENABLED
 
 // Singleton to get the paths
 @interface FsPathsHolder : NSObject
