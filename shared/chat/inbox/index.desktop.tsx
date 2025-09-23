@@ -122,7 +122,13 @@ const DragLine = (p: {
   }, [setInboxNumSmallRows, inboxNumSmallRows, deltaNewSmallRows])
 
   return (
-    <div style={style}>
+    <div
+      style={{
+        ...style,
+        // so the fake rows are above items further down the list
+        zIndex: 999,
+      }}
+    >
       {showButton && !smallTeamsExpanded && (
         <>
           <div
@@ -234,7 +240,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
 
-  const dragListRef = React.useRef<HTMLDivElement>(null)
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
 
   // stuff for UnreadShortcut
@@ -285,13 +290,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
 
   const onItemsRenderedDebounced = C.useDebouncedCallback(
     React.useCallback(
-      (p: {visibleStartIndex: number; visibleStopIndex: number}) => {
+      (p: {startIndex: number; stopIndex: number}) => {
         if (!isMounted()) {
           return
         }
-        const {visibleStartIndex, visibleStopIndex} = p
+        const {startIndex, stopIndex} = p
         const toUnbox = rows
-          .slice(visibleStartIndex, visibleStopIndex + 1)
+          .slice(startIndex, stopIndex + 1)
           .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
             if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
               arr.push(r.conversationIDKey)
@@ -343,10 +348,10 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
 
   const onItemsRendered = React.useCallback(
-    ({visibleStartIndex, visibleStopIndex}: {visibleStartIndex: number; visibleStopIndex: number}) => {
-      lastVisibleIdx.current = visibleStopIndex
+    ({startIndex, stopIndex}: {startIndex: number; stopIndex: number}) => {
+      lastVisibleIdx.current = stopIndex
       calculateShowUnreadShortcutThrottled()
-      onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+      onItemsRenderedDebounced({startIndex, stopIndex})
     },
     [calculateShowUnreadShortcutThrottled, onItemsRenderedDebounced]
   )
@@ -420,10 +425,10 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   return (
     <Kb.ErrorBoundary>
       <Kb.Box className="inbox-hover-container" style={styles.container}>
-        <div style={styles.list} ref={dragListRef}>
+        <div style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
-              onItemsRendered={onItemsRendered}
+              onRowsRendered={onItemsRendered}
               rowCount={rows.length}
               rowHeight={itemSizeGetter}
               rowComponent={InboxRow}
