@@ -4,86 +4,76 @@ import {List, type RowComponentProps} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
-type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
-const Row = React.memo(function Row<T>(p: RowComponentProps<RowData<T>>) {
+//type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
+const Row = React.memo(function Row(
+  p: RowComponentProps<{
+    items: ReadonlyArray<unknown>
+    renderItem: (index: number, item: unknown) => React.ReactElement | null
+  }>
+) {
   const {index, style, items, renderItem} = p
   const item = items[index]
   return item ? <div style={style}>{renderItem(index, item)}</div> : null
 })
 
 function List2<T>(props: Props<T>) {
-  const {items, indexAsKey, keyProperty, renderItem, estimatedItemHeight} = props
+  const {items, renderItem /*, indexAsKey, keyProperty, estimatedItemHeight*/} = props
   const {style, itemHeight} = props
 
-  const _keyExtractor = React.useCallback(
-    (index: number) => {
-      const item = items[index]
-      if (indexAsKey || !item) {
-        return String(index)
-      }
+  // const _keyExtractor = React.useCallback(
+  //   (index: number) => {
+  //     const item = items[index]
+  //     if (indexAsKey || !item) {
+  //       return String(index)
+  //     }
+  //
+  //     const keyProp = keyProperty || 'key'
+  //     const i: {[key: string]: string} = item
+  //     return i[keyProp] ?? String(index)
+  //   },
+  //   [items, indexAsKey, keyProperty]
+  // )
 
-      const keyProp = keyProperty || 'key'
-      const i: {[key: string]: string} = item
-      return i[keyProp] ?? String(index)
-    },
-    [items, indexAsKey, keyProperty]
-  )
-
-  const _getItemDataCached = React.useRef<RowData<T>>(undefined)
-  const _getItemData = React.useCallback(() => {
-    if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
-      return _getItemDataCached.current
-    }
-    const ret = {items, renderItem}
-    _getItemDataCached.current = ret
-    return ret
-  }, [items, renderItem])
+  // const _getItemDataCached = React.useRef<RowData<T>>(undefined)
+  // const _getItemData = React.useCallback(() => {
+  //   if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
+  //     return _getItemDataCached.current
+  //   }
+  //   const ret = {items, renderItem}
+  //   _getItemDataCached.current = ret
+  //   return ret
+  // }, [items, renderItem])
 
   // Need to pass in itemData to make items re-render on prop changes.
-  const _fixed = React.useCallback(
-    (p: {itemHeight: number}) => {
-      const {itemHeight} = p
-      return (
-        <List
-          style={
-            {height: '100%', overflowY: 'scroll', width: '100%', ...Styles.castStyleDesktop(style)} as const
-          }
-          rowCount={items.length}
-          rowProps={{items, renderItem}}
-          //itemKey={_keyExtractor}
-          rowHeight={itemHeight}
-          rowComponent={Row}
-        />
-      )
-    },
-    [style, items, renderItem]
-  )
+  const _fixed = (p: {itemHeight: number}) => {
+    const {itemHeight} = p
+    return (
+      <List
+        style={
+          {
+            backgroundColor: 'red', // TEMP
 
-  const _variableItemSize = React.useCallback(
-    (index: number) =>
-      itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index]).length : 0,
-    [itemHeight, items]
-  )
+            height: '100%',
+            overflowY: 'scroll',
+            width: '100%',
+            ...Styles.castStyleDesktop(style),
+          } as const
+        }
+        rowCount={items.length}
+        rowProps={{
+          items,
+          renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+        }}
+        rowHeight={itemHeight}
+        rowComponent={Row}
+      />
+    )
+  }
 
-  const _variable = React.useCallback(
-    (p: {height: number; width: number}) => {
-      const {height, width} = p
-      return (
-        <List<RowData<T>>
-          style={style as React.CSSProperties}
-          rowHeight={height}
-          width={width}
-          rowCount={items.length}
-          itemData={_getItemData()}
-          itemKey={_keyExtractor}
-          itemSize={_variableItemSize}
-          estimatedItemSize={estimatedItemHeight}
-          rowComponent={Row}
-        />
-      )
-    },
-    [style, items.length, _getItemData, _keyExtractor, _variableItemSize, estimatedItemHeight]
-  )
+  const _variableItemSize = (index: number, data: {items: ReadonlyArray<T>}) => {
+    const {items} = data
+    return itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index]).length : 0
+  }
 
   if (items.length === 0) return null
   switch (props.itemHeight.type) {
@@ -94,7 +84,27 @@ function List2<T>(props: Props<T>) {
       return _fixed({itemHeight})
     }
     case 'variable':
-      return _variable({})
+      return (
+        <List
+          style={
+            {
+              backgroundColor: 'orange', // TEMP
+
+              height: '100%',
+              overflowY: 'scroll',
+              width: '100%',
+              ...Styles.castStyleDesktop(style),
+            } as const
+          }
+          rowCount={items.length}
+          rowProps={{
+            items,
+            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+          }}
+          rowHeight={_variableItemSize}
+          rowComponent={Row}
+        />
+      )
     default:
       return <></>
   }
