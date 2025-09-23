@@ -123,9 +123,9 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
           {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
+          <Kb.BoxGrow2>
             <Kb.List2 bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} />
-          </Kb.Box2>
+          </Kb.BoxGrow2>
         </Kb.Box2>
       </NewContext.Provider>
     </Kb.Reloadable>

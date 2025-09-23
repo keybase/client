@@ -1,22 +1,19 @@
 import * as React from 'react'
-import AutoSizer from 'react-virtualized-auto-sizer'
-import {List} from 'react-window'
+import * as Styles from '@/styles'
+import {List, type RowComponentProps} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
 type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
-type RowProps<T> = {data: RowData<T>; index: number; style: React.CSSProperties}
-const Row = React.memo(function Row<T>(p: RowProps<T>) {
-  const {index, style, data} = p
-  const {items, renderItem} = data
+const Row = React.memo(function Row<T>(p: RowComponentProps<RowData<T>>) {
+  const {index, style, items, renderItem} = p
   const item = items[index]
   return item ? <div style={style}>{renderItem(index, item)}</div> : null
-}) as <T>(p: RowProps<T>) => React.ReactElement | null
+})
 
-const List2 = <T,>(props: Props<T>) => {
+function List2<T>(props: Props<T>) {
   const {items, indexAsKey, keyProperty, renderItem, estimatedItemHeight} = props
-  const {style, itemHeight, forceLayout} = props
-  const variableSizeListRef = React.useRef<List>(null)
+  const {style, itemHeight} = props
 
   const _keyExtractor = React.useCallback(
     (index: number) => {
@@ -44,23 +41,22 @@ const List2 = <T,>(props: Props<T>) => {
 
   // Need to pass in itemData to make items re-render on prop changes.
   const _fixed = React.useCallback(
-    (p: {height: number; width: number; itemHeight: number}) => {
-      const {height, width, itemHeight} = p
+    (p: {itemHeight: number}) => {
+      const {itemHeight} = p
       return (
-        <List<RowData<T>>
-          style={style as React.CSSProperties}
-          height={height}
-          width={width}
-          itemCount={items.length}
-          itemData={_getItemData()}
-          itemKey={_keyExtractor}
-          itemSize={itemHeight}
-        >
-          {Row}
-        </List>
+        <List
+          style={
+            {height: '100%', overflowY: 'scroll', width: '100%', ...Styles.castStyleDesktop(style)} as const
+          }
+          rowCount={items.length}
+          rowProps={{items, renderItem}}
+          //itemKey={_keyExtractor}
+          rowHeight={itemHeight}
+          rowComponent={Row}
+        />
       )
     },
-    [style, items.length, _getItemData, _keyExtractor]
+    [style, items, renderItem]
   )
 
   const _variableItemSize = React.useCallback(
@@ -74,7 +70,6 @@ const List2 = <T,>(props: Props<T>) => {
       const {height, width} = p
       return (
         <List<RowData<T>>
-          ref={variableSizeListRef}
           style={style as React.CSSProperties}
           rowHeight={height}
           width={width}
@@ -90,43 +85,19 @@ const List2 = <T,>(props: Props<T>) => {
     [style, items.length, _getItemData, _keyExtractor, _variableItemSize, estimatedItemHeight]
   )
 
-  // TEMP
-  return null
-
-  // const lastForceLayoutRef = React.useRef(forceLayout)
-  // React.useEffect(() => {
-  //   if (lastForceLayoutRef.current !== forceLayout) {
-  //     lastForceLayoutRef.current = forceLayout
-  //     variableSizeListRef.current?.resetAfterIndex(0, true)
-  //   }
-  // }, [forceLayout])
-
   if (items.length === 0) return null
-  return (
-    <AutoSizer doNotBailOutOnEmptyChildren={true}>
-      {(p: {height?: number; width?: number}) => {
-        let {height = 1, width = 1} = p
-        if (isNaN(height)) {
-          height = 1
-        }
-        if (isNaN(width)) {
-          width = 1
-        }
-        switch (props.itemHeight.type) {
-          case 'fixed':
-            return _fixed({height, itemHeight: props.itemHeight.height, width})
-          case 'fixedListItem2Auto': {
-            const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-            return _fixed({height, itemHeight, width})
-          }
-          case 'variable':
-            return _variable({height, width})
-          default:
-            return <></>
-        }
-      }}
-    </AutoSizer>
-  )
+  switch (props.itemHeight.type) {
+    case 'fixed':
+      return _fixed({itemHeight: props.itemHeight.height})
+    case 'fixedListItem2Auto': {
+      const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+      return _fixed({itemHeight})
+    }
+    case 'variable':
+      return _variable({})
+    default:
+      return <></>
+  }
 }
 
 export default List2
