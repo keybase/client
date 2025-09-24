@@ -184,7 +184,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
       header={{
         hideBorder: Kb.Styles.isMobile,
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
             Cancel
           </Kb.Text>
         ) : undefined,
@@ -256,14 +256,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
               }}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
-            <Kb.List2
-              items={items}
-              renderItem={renderItem}
-              itemHeight={itemHeight}
-              forceLayout={forceLayout}
-            />
-          </Kb.Box2>
+          <Kb.BoxGrow2>
+            <Kb.List2 items={items} renderItem={renderItem} itemHeight={itemHeight} />
+          </Kb.BoxGrow2>
         </Kb.Box2>
       )}
     </Kb.Modal>
