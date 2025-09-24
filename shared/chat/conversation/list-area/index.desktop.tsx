@@ -16,8 +16,8 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import {chatDebugEnabled} from '@/constants/chat2/debug'
 import logger from '@/logger'
 import shallowEqual from 'shallowequal'
-import useResizeObserver from './use-resize-observer'
-import useIntersectionObserver from './use-intersection-observer'
+import useResizeObserver from '@/util/use-resize-observer.desktop'
+import useIntersectionObserver from '@/util/use-intersection-observer'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
