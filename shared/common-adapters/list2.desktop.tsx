@@ -4,7 +4,6 @@ import {List, type RowComponentProps} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
-//type RowData<T> = {items: Props<T>['items']; renderItem: Props<T>['renderItem']}
 const Row = React.memo(function Row(
   p: RowComponentProps<{
     items: ReadonlyArray<unknown>
