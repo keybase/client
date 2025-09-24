@@ -51,8 +51,6 @@ function List2<T>(props: Props<T>) {
       <List
         style={
           {
-            backgroundColor: 'red', // TEMP
-
             height: '100%',
             overflowY: 'scroll',
             width: '100%',
@@ -88,8 +86,6 @@ function List2<T>(props: Props<T>) {
         <List
           style={
             {
-              backgroundColor: 'orange', // TEMP
-
               height: '100%',
               overflowY: 'scroll',
               width: '100%',

@@ -336,7 +336,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
       },
       container: {
-        backgroundColor: 'green', // TEMP
         alignSelf: 'flex-start',
         position: 'relative',
       },
