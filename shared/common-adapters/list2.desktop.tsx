@@ -17,32 +17,8 @@ const Row = React.memo(function Row(
 })
 
 function List2<T>(props: Props<T>) {
-  const {items, renderItem /*, indexAsKey, keyProperty, estimatedItemHeight*/} = props
+  const {items, renderItem} = props
   const {style, itemHeight} = props
-
-  // const _keyExtractor = React.useCallback(
-  //   (index: number) => {
-  //     const item = items[index]
-  //     if (indexAsKey || !item) {
-  //       return String(index)
-  //     }
-  //
-  //     const keyProp = keyProperty || 'key'
-  //     const i: {[key: string]: string} = item
-  //     return i[keyProp] ?? String(index)
-  //   },
-  //   [items, indexAsKey, keyProperty]
-  // )
-
-  // const _getItemDataCached = React.useRef<RowData<T>>(undefined)
-  // const _getItemData = React.useCallback(() => {
-  //   if (_getItemDataCached.current?.items === items && _getItemDataCached.current.renderItem === renderItem) {
-  //     return _getItemDataCached.current
-  //   }
-  //   const ret = {items, renderItem}
-  //   _getItemDataCached.current = ret
-  //   return ret
-  // }, [items, renderItem])
 
   // Need to pass in itemData to make items re-render on prop changes.
   const _fixed = (p: {itemHeight: number}) => {
@@ -68,9 +44,9 @@ function List2<T>(props: Props<T>) {
     )
   }
 
-  const _variableItemSize = (index: number, data: {items: ReadonlyArray<T>}) => {
+  const _variableItemSize = (index: number, data: {items: ReadonlyArray<unknown>}) => {
     const {items} = data
-    return itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index]).length : 0
+    return itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index] as T).length : 0
   }
 
   if (items.length === 0) return null

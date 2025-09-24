@@ -78,11 +78,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
     }),
   ]
 
-  const [forceLayout, setForceLayout] = React.useState(0)
   const [numItems, setNumItems] = React.useState(0)
   if (numItems !== items.length) {
     setNumItems(items.length)
-    setForceLayout(s => s + 1)
   }
 
   const [selected, setSelected] = React.useState(new Set<T.Chat.ConversationIDKey>())
@@ -248,11 +246,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
               hotkey="f"
               onFocus={() => {
                 setFiltering(true)
-                setForceLayout(s => s + 1)
               }}
               onBlur={() => {
                 setFiltering(false)
-                setForceLayout(s => s + 1)
               }}
             />
           </Kb.Box2>
