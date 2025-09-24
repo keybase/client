@@ -145,10 +145,13 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 	var results []rankedSearchItem
 	if len(query) == 0 {
 		for index, id := range si.Suggested {
-			results = append(results, rankedSearchItem{
-				item:  si.Items[id],
-				score: 100.0 + float64((len(si.Suggested) - index)),
-			})
+			item, ok := si.Items[id]
+			if ok {
+				results = append(results, rankedSearchItem{
+					item:  item,
+					score: 100.0 + float64((len(si.Suggested) - index)),
+				})
+			}
 		}
 	} else {
 		for _, item := range si.Items {
