@@ -1,5 +1,6 @@
 // https://github.com/jaredLunde/react-hook/blob/master/packages/resize-observer/src/index.tsx
 import * as React from 'react'
+import type {UseResizeObserverCallback} from './use-resize-observer'
 
 function useResizeObserver<T extends Element>(
   target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
@@ -86,5 +87,4 @@ let _resizeObserver: ReturnType<typeof createResizeObserver> | undefined
 const getResizeObserver = () =>
   !_resizeObserver ? (_resizeObserver = createResizeObserver()) : _resizeObserver
 
-export type UseResizeObserverCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => any
 export default useResizeObserver

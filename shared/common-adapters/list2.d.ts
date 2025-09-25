@@ -29,7 +29,6 @@ export type FixedListItem2Auto = {
 // Having flex in the list messes with creating the right size inner container
 // for scroll
 export type Props<Item> = {
-  forceLayout?: number // desktop only; causes resetAfterIndex(0, true) whe nit changes.
   style?: CustomStyles<'flex' | 'flexDirection'>
   indexAsKey?: boolean
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
