@@ -34,7 +34,7 @@ export const categoryOrder = [
   'Flags',
 ]
 
-if (__DEV__ && Object.keys(categorized).sort().join(',') !== categoryOrder.sort().join(',')) {
+if (__DEV__ && Object.keys(categorized).sort().join(',') !== [...categoryOrder].sort().join(',')) {
   console.log('[EMOJI] categories incorrect!', categorized)
 }
 
