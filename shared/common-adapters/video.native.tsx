@@ -23,6 +23,7 @@ const DelayMount = ({children}: {children: React.ReactNode}): React.ReactNode =>
 const Video = (props: Props) => {
   const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
   const url = Styles.urlEscapeFilePath(_url)
+  // TODO used?
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
   const source = React.useMemo(() => {
     if (allowFile) {

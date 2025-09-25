@@ -21,7 +21,6 @@ import useIntersectionObserver from '@/util/use-intersection-observer'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
-// We use react-measure to cache the heights
 const scrollOrdinalKey = 'scroll-ordinal-key'
 
 // We load the first thread automatically so in order to mark it read
