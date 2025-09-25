@@ -11240,11 +11240,6 @@ react-test-renderer@19.1.0:
     react-is "^19.1.0"
     scheduler "^0.26.0"
 
-react-virtualized-auto-sizer@1.0.26:
-  version "1.0.26"
-  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.26.tgz#e9470ef6a778dc4f1d5fd76305fa2d8b610c357a"
-  integrity sha512-CblNyiNVw2o+hsa5/49NH2ogGxZ+t+3aweRvNSq7TVjDIlwk7ir4lencEg5HxHeSzwNarSkNkiu0qJSOXtxm5A==
-
 react-window@2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/react-window/-/react-window-2.1.1.tgz#e6ec773d62d0adf2a1939c2a8718da20a8c816f5"
