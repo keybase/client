@@ -620,7 +620,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatUsersAlreadyInConversationError{Uids: uids}
 	case SCChatBadConversationError:
 		var msg string
-		var convID chat1.ConversationID
+		var convID *chat1.ConversationID
 		for _, field := range s.Fields {
 			if field.Key == "Msg" {
 				msg = field.Value
@@ -630,7 +630,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 				if err != nil && g != nil {
 					g.Log.Warning("error parsing ChatBadConversationError")
 				}
-				convID = bs
+				convID = &bs
 			}
 		}
 		return ChatBadConversationError{
@@ -2242,7 +2242,7 @@ func (e ChatUsersAlreadyInConversationError) ToStatus() keybase1.Status {
 }
 
 func (e ChatBadConversationError) ToStatus() keybase1.Status {
-	return keybase1.Status{
+	s := keybase1.Status{
 		Code: SCChatBadConversationError,
 		Name: "SC_CHAT_BAD_CONVERSATION_ERROR",
 		Fields: []keybase1.StringKVPair{
@@ -2250,12 +2250,15 @@ func (e ChatBadConversationError) ToStatus() keybase1.Status {
 				Key:   "Msg",
 				Value: e.Msg,
 			},
-			{
-				Key:   "ConvID",
-				Value: e.ConvID.String(),
-			},
 		},
 	}
+	if !e.ConvID.IsNil() {
+		s.Fields = append(s.Fields, keybase1.StringKVPair{
+			Key:   "ConvID",
+			Value: e.ConvID.String(),
+		})
+	}
+	return s
 }
 
 func (e BadEmailError) ToStatus() keybase1.Status {
