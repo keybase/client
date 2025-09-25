@@ -31,6 +31,7 @@ const appTabsInnerOptions = {
 }
 
 const TabStackNavigator = createNativeStackNavigator() as {Screen: Screen; Navigator: any}
+// eslint-disable-next-line
 const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
@@ -57,6 +58,7 @@ const AppTabsInner = React.memo(function AppTabsInner() {
 const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator()
+// eslint-disable-next-line
 const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
 const loggedOutOptions = {
   header: ({navigation}: {navigation: {pop: () => void}}) => (
@@ -110,6 +112,7 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
+// eslint-disable-next-line
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()

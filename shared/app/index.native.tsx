@@ -37,7 +37,7 @@ const useDarkHookup = () => {
     setSystemDarkMode(Appearance.getColorScheme() === 'dark')
     setSystemSupported(darkModeSupported)
     try {
-      const obj = JSON.parse(guiConfig)
+      const obj = JSON.parse(guiConfig) as {ui?: {darkMode?: string}} | undefined
       const dm = obj?.ui?.darkMode
       switch (dm) {
         case 'system': // fallthrough
@@ -45,6 +45,7 @@ const useDarkHookup = () => {
         case 'alwaysLight':
           setDarkModePreference(dm, false)
           break
+        default:
       }
     } catch {}
   }
