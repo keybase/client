@@ -432,7 +432,8 @@ type HybridConversationSource struct {
 	numExpungeReload int
 	storage          *storage.Storage
 	lockTab          *utils.ConversationLockTab
-	// It is sufficient to clear caches once per conversation. Track what conversations we've already cleared for.
+	// It is sufficient to clear caches once per conversation. Track what
+	// conversations we've already cleared for.
 	deleteConvErrCache map[chat1.ConvIDStr]bool
 }
 
