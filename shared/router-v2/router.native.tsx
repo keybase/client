@@ -34,6 +34,8 @@ const tabStackOptions = {
   animationDuration: 250,
   orientation: 'portrait',
 } as const
+
+// eslint-disable-next-line
 const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen as Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
   return (
@@ -104,6 +106,7 @@ const AppTabs = React.memo(
 
 const LoggedOutStack = createNativeStackNavigator()
 
+// eslint-disable-next-line
 const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
@@ -122,6 +125,7 @@ const RootStack = createNativeStackNavigator()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }
+// eslint-disable-next-line
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
@@ -182,6 +186,7 @@ const RNApp = React.memo(function RNApp() {
           Constants.navigationRef_ as any
         }
         theme={Shared.theme}
+        // eslint-disable-next-line
         initialState={initialState as any}
         onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}

@@ -71,6 +71,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 // eslint-disable-next-line
 const TabNavigator = createLeftTabNavigator()
+// eslint-disable-next-line
 const settingsScreens = makeNavScreens(settingsSubRoutes, TabNavigator.Screen, false, false)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get

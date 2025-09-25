@@ -362,9 +362,6 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
     return ret
   }, [emojisToAdd, pick])
 
-  const [forceLayout, setForceLayout] = React.useState(0)
-  React.useEffect(() => setForceLayout(n => n + 1), [emojisToAdd])
-
   return (
     <Kb.Box2
       direction="vertical"
@@ -390,7 +387,6 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
             }),
             type: 'variable',
           }}
-          forceLayout={forceLayout}
         />
       </Kb.BoxGrow>
     </Kb.Box2>

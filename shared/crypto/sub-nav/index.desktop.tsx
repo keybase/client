@@ -69,6 +69,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator() as {Screen: Screen; Navigator: any}
+// eslint-disable-next-line
 const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">

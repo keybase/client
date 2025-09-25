@@ -3,6 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
+import type * as Tabs from '@/constants/tabs'
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
@@ -85,4 +87,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   hidden: {display: 'none'},
 }))
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
+type NavType = NavigatorTypeBagBase & {
+  ParamList: {
+    [key in (typeof Tabs.desktopTabs)[number]]: undefined
+  }
+}
+
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
+  NavType,
+  StaticConfig<NavigatorTypeBagBase>
+>

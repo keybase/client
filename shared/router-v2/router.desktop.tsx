@@ -15,7 +15,6 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import './router.css'
 
-// eslint-disable-next-line
 const Tab = createLeftTabNavigator()
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
@@ -57,6 +56,7 @@ const AppTabsInner = React.memo(function AppTabsInner() {
 const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator()
+// eslint-disable-next-line
 const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
 const loggedOutOptions = {
   header: ({navigation}: {navigation: {pop: () => void}}) => (
@@ -110,6 +110,7 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
+// eslint-disable-next-line
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()

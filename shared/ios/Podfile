@@ -1,9 +1,11 @@
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+ENV['RCT_USE_RN_DEP'] = '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
+ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
 platform :ios,  min_ios_version_supported
-install! 'cocoapods',
-  :deterministic_uuids => false
 
 prepare_react_native_project!
 
@@ -22,28 +24,15 @@ target 'Keybase' do
     :app_path => "#{Pod::Config.instance.installation_root}/..",
   )
 
-  post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
-    )
-    # fix pods xcode 14 losing signing team
-      installer.pods_project.targets.each do |target|
-            target.build_configurations.each do |config|
-                config.build_settings['CODE_SIGN_IDENTITY'] = ''
-            end
-      end
-  end
-  post_integrate do |installer|
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
-  end
+   post_install do |installer|
+     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+     react_native_post_install(
+       installer,
+       config[:reactNativePath],
+       :mac_catalyst_enabled => false,
+       # :ccache_enabled => true
+     )
+   end
 end
 
 target 'KeybaseShare' do
