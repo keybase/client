@@ -70,14 +70,3 @@ declare module 'emoji-datasource-apple' {
   const data: Array<EmojiData>
   export default data
 }
-
-// for expo
-declare module 'xcode' {
-  export type XcodeProject = any
-  export type XCBuildConfiguration = any
-  export type PBXNativeTarget = any
-  export type PBXGroup = any
-  export type PBXProject = any
-  export type XCConfigurationList = any
-  export type PBXFile = any
-}
