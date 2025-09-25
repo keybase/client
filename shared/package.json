@@ -53,9 +53,7 @@
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace",
     "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local",
-    "pod-install": "yarn pod-install-new",
-    "pod-install-new": "cd ios; pod install --repo-update",
-    "pod-install-old": "cd ios; RCT_NEW_ARCH_ENABLED=0 pod install --repo-update",
+    "pod-install": "cd ios; pod install --repo-update",
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "NODE_ENV=development react-native run-android --mode 'debug'",
     "android-install-downgrade": "adb install -r -d android/app/build/outputs/apk/debug/app-debug.apk",
@@ -64,8 +62,7 @@
     "android-logs": "adb logcat | grep $(adb shell pidof io.keybase.ossifrage)",
     "android-log-clear": "adb logcat -b all -c",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
-    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report",
-    "install-switch": "yarn pod-clean ; rm -rf node_modules ; yarn modules ; yarn pod-install"
+    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"
   },
   "keywords": [],
   "author": "",
