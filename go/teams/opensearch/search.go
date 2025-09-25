@@ -136,6 +136,7 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "OpenSearch.Local", true)
 	defer tracer.Finish()
 	defer func() {
+		mctx := libkb.NewMetaContextBackground(mctx.G())
 		go refreshOpenTeams(mctx, false)
 	}()
 	if si, err = getOpenTeams(mctx); err != nil {
