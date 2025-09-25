@@ -1,7 +1,6 @@
 package stellar
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -130,7 +129,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 						}
 
 						chatWaitGroup.Done()
-					}(mctx.BackgroundWithLogTags()), resultList[index].Username, update.TxID)
+					}(mctx.BackgroundWithLogTags(), resultList[index].Username, update.TxID)
 				}
 			}
 		}
