@@ -504,7 +504,8 @@ type HybridInboxSource struct {
 	readFlushCh           chan struct{}
 	searchStatusMap       map[chat1.ConversationStatus]bool
 	searchMemberStatusMap map[chat1.ConversationMemberStatus]bool
-	deleteConvErrCache    map[chat1.ConvIDStr]bool
+	// It is sufficient to clear caches once per conversation. Track what conversations we've already cleared for.
+	deleteConvErrCache map[chat1.ConvIDStr]bool
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
