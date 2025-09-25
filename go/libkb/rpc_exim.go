@@ -2250,10 +2250,6 @@ func (e ChatBadConversationError) ToStatus() keybase1.Status {
 				Key:   "Msg",
 				Value: e.Msg,
 			},
-			{
-				Key:   "ConvID",
-				Value: e.ConvID.String(),
-			},
 		},
 	}
 	return s
