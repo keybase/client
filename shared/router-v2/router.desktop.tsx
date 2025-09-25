@@ -15,7 +15,6 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import './router.css'
 
-// eslint-disable-next-line
 const Tab = createLeftTabNavigator()
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
@@ -31,7 +30,6 @@ const appTabsInnerOptions = {
 }
 
 const TabStackNavigator = createNativeStackNavigator() as {Screen: Screen; Navigator: any}
-// eslint-disable-next-line
 const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
