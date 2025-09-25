@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {Props} from './video'
 import * as Styles from '@/styles'
-import {CheckURL} from './video.shared'
+import {useCheckURL} from './video.shared'
 
 const Video = (props: Props) => {
   const {onUrlError} = props
@@ -23,24 +23,23 @@ const Video = (props: Props) => {
   }
 
   const url = encodeURI(props.url)
-  return (
-    <CheckURL url={url} allowFile={props.allowFile}>
-      <div style={Styles.castStyleDesktop(Styles.collapseStyles([styles.container, props.style]))}>
-        <video
-          controlsList="nodownload nofullscreen"
-          onClick={onVideoClick}
-          ref={videoRef}
-          controls={!props.hideControls}
-          src={url}
-          style={styles.container}
-          muted={props.muted ?? true}
-          autoPlay={props.autoPlay ?? true}
-          preload="metadata"
-          onError={onUrlError && (() => onUrlError('video loading error'))}
-        />
-      </div>
-    </CheckURL>
+  const content = (
+    <div style={Styles.castStyleDesktop(Styles.collapseStyles([styles.container, props.style]))}>
+      <video
+        controlsList="nodownload nofullscreen"
+        onClick={onVideoClick}
+        ref={videoRef}
+        controls={!props.hideControls}
+        src={url}
+        style={styles.container}
+        muted={props.muted ?? true}
+        autoPlay={props.autoPlay ?? true}
+        preload="metadata"
+        onError={onUrlError && (() => onUrlError('video loading error'))}
+      />
+    </div>
   )
+  return useCheckURL(content, url, props.allowFile)
 }
 
 const styles = Styles.styleSheetCreate(() => ({
