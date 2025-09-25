@@ -1,28 +1,3 @@
-declare module 'electron-positioner' {
-  type ignore = unknown
-  export default ignore
-}
-declare module '@react-native/assets-registry/registry' {
-  type PackagerAsset = {[key: string]: unknown}
-}
-
-declare module 'react-test-renderer' {
-  type ReactTestInstance = any
-}
-
-declare module 'expo-manifests' {
-  export type EASConfig = any
-  export type ExpoGoConfig = any
-  export type NewManifest = any
-  export type BareManifest = any
-  export type EmbeddedManifest = any
-  export type ExpoUpdatesManifest = any
-  export type ManifestAsset = any
-  export type ManifestExtra = any
-  export type ClientScopingConfig = any
-  export type ExpoGoPackagerOpts = any
-}
-
 declare module 'qrcode-generator' {
   const gen: (
     n: number,
@@ -36,23 +11,9 @@ declare module 'qrcode-generator' {
   export default gen
 }
 
-declare module 'fastestsmallesttextencoderdecoder' {
-  type ignore = unknown
-  export default ignore
-}
-
-declare module 'rimraf' {
-  export const rimrafSync: (s: string) => void
-}
-
 declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
   var png: string
   export default png
-}
-
-declare module 'react-is' {
-  import * as React from 'react'
-  export function isValidElementType(value: unknown): value is React.ElementType
 }
 
 declare module 'fs-extra' {
