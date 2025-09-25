@@ -2136,7 +2136,8 @@ func (e ChatAlreadyDeletedError) IsImmediateFail() (chat1.OutboxErrorType, bool)
 // =============================================================================
 
 type ChatBadConversationError struct {
-	Msg string
+	ConvID chat1.ConversationID
+	Msg    string
 }
 
 func (e ChatBadConversationError) Error() string {

@@ -620,13 +620,22 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatUsersAlreadyInConversationError{Uids: uids}
 	case SCChatBadConversationError:
 		var msg string
+		var convID chat1.ConversationID
 		for _, field := range s.Fields {
 			if field.Key == "Msg" {
 				msg = field.Value
 			}
+			if field.Key == "ConvID" {
+				bs, err := chat1.MakeConvID(field.Value)
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing ChatBadConversationError")
+				}
+				convID = bs
+			}
 		}
 		return ChatBadConversationError{
-			Msg: msg,
+			Msg:    msg,
+			ConvID: convID,
 		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
@@ -2240,6 +2249,10 @@ func (e ChatBadConversationError) ToStatus() keybase1.Status {
 			{
 				Key:   "Msg",
 				Value: e.Msg,
+			},
+			{
+				Key:   "ConvID",
+				Value: e.ConvID.String(),
 			},
 		},
 	}
