@@ -84,7 +84,6 @@
     "@react-navigation/core": "7.12.4",
     "@react-navigation/native": "7.1.17",
     "@react-navigation/native-stack": "7.3.26",
-    "base-64": "1.0.0",
     "classnames": "2.5.1",
     "date-fns": "4.1.0",
     "emoji-datasource-apple": "15.1.2",

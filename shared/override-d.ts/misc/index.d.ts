@@ -36,11 +36,6 @@ declare module 'qrcode-generator' {
   export default gen
 }
 
-declare module 'base-64' {
-  export const encode: (s: string) => string
-  export const decode: (s: string) => string
-}
-
 declare module 'fastestsmallesttextencoderdecoder' {
   type ignore = unknown
   export default ignore
