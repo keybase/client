@@ -102,7 +102,6 @@
     "expo-media-library": "18.2.0",
     "expo-sms": "14.0.7",
     "expo-task-manager": "14.0.7",
-    "fastestsmallesttextencoderdecoder": "1.0.22",
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/HOTPOT-use-buffer",
     "google-libphonenumber": "3.2.43",
     "iced-runtime": "1.0.4",
