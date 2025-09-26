@@ -26,7 +26,7 @@ const ignores = [
   'react-native/wipe-cache.js',
   'rn-cli.config.js',
   'rn-transformer.js',
-  'ts-coverage/**',
+  'coverage-ts/**',
 ]
 
 const reactRules = {
