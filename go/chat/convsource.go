@@ -432,6 +432,9 @@ type HybridConversationSource struct {
 	numExpungeReload int
 	storage          *storage.Storage
 	lockTab          *utils.ConversationLockTab
+	// It is sufficient to clear caches once per conversation. Track what
+	// conversations we've already cleared for.
+	deleteConvErrCache map[chat1.ConvIDStr]bool
 }
 
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
@@ -445,6 +448,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 		storage:                storage,
 		lockTab:                utils.NewConversationLockTab(g),
 		numExpungeReload:       50,
+		deleteConvErrCache:     make(map[chat1.ConvIDStr]bool),
 	}
 }
 
@@ -494,6 +498,12 @@ func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1
 
 func (s *HybridConversationSource) maybeNuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, err *error) {
 	if err != nil && utils.IsDeletedConvError(*err) {
+		if s.deleteConvErrCache[convID.ConvIDStr()] {
+			s.Debug(ctx, "skipping cache purge on: %v for convID: %v, uid: %v", *err, convID, uid)
+			return
+		}
+		s.deleteConvErrCache[convID.ConvIDStr()] = true
+
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", *err, convID, uid)
 		if ierr := s.Clear(ctx, convID, uid, &types.ClearOpts{
 			SendLocalAdminNotification: true,

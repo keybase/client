@@ -504,6 +504,8 @@ type HybridInboxSource struct {
 	readFlushCh           chan struct{}
 	searchStatusMap       map[chat1.ConversationStatus]bool
 	searchMemberStatusMap map[chat1.ConversationMemberStatus]bool
+	// It is sufficient to clear caches once per conversation. Track what conversations we've already cleared for.
+	deleteConvErrCache map[chat1.ConvIDStr]bool
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -512,10 +514,11 @@ func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	labeler := utils.NewDebugLabeler(g.ExternalG(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   labeler,
-		readFlushDelay: 5 * time.Second,
-		readFlushCh:    make(chan struct{}, 10),
+		Contextified:       globals.NewContextified(g),
+		DebugLabeler:       labeler,
+		readFlushDelay:     5 * time.Second,
+		readFlushCh:        make(chan struct{}, 10),
+		deleteConvErrCache: make(map[chat1.ConvIDStr]bool),
 	}
 	s.searchStatusMap = map[chat1.ConversationStatus]bool{
 		chat1.ConversationStatus_UNFILED:  true,
@@ -532,8 +535,34 @@ func NewHybridInboxSource(g *globals.Context,
 	return s
 }
 
+func extractConvIDFromError(err error) *chat1.ConversationID {
+	switch e := err.(type) {
+	case libkb.ChatBadConversationError:
+		if !e.ConvID.IsNil() {
+			return &e.ConvID
+		}
+	case libkb.ChatNotInConvError:
+		return &e.ConvID
+	}
+	return nil
+}
+
 func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, err *error) {
 	if err != nil && utils.IsDeletedConvError(*err) {
+		cid := convID
+		// Attempt to deduce a convID from the error itself. Don't
+		// modify convID itself however, we don't want to cycle with
+		// ConvSource.Clear which calls this function.
+		if cid == nil {
+			cid = extractConvIDFromError(*err)
+		}
+		if cid != nil {
+			if s.deleteConvErrCache[cid.ConvIDStr()] {
+				s.Debug(ctx, "skipping cache purge on: %v for convID: %v, uid: %v", *err, cid, uid)
+				return
+			}
+			s.deleteConvErrCache[cid.ConvIDStr()] = true
+		}
 		s.Debug(ctx, "purging caches on: %v for convID: %v, uid: %v", *err, convID, uid)
 		if ierr := s.G().InboxSource.Clear(ctx, uid, &types.ClearOpts{
 			SendLocalAdminNotification: true,
