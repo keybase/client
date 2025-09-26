@@ -4,7 +4,7 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {Screen} from './shim'
+import type {Screen, NavScreensResult} from './shim'
 
 const makeNavScreen = (
   name: keyof KBRootParamList,
@@ -42,7 +42,12 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+export const makeNavScreens = (
+  rs: RouteMap,
+  Screen: Screen,
+  isModal: boolean,
+  isLoggedOut: boolean
+): NavScreensResult =>
   (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
     makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
   )
