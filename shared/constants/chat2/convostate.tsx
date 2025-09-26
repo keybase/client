@@ -500,7 +500,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   ) => {
     const {why, markAsRead = true, incomingMessage = false} = opt
-    logger.info('aaa [CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
+    logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
     if (incomingMessage && get().messageCenterOrdinal) {
@@ -652,7 +652,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const setMessageCenterOrdinal = (m?: T.Chat.CenterOrdinal) => {
-    console.log('aaaa setmessordinal', m)
     set(s => {
       s.messageCenterOrdinal = m
     })
@@ -1501,14 +1500,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
-      console.log('aaaa loadmore', {
-        centeredMessageID,
-        messageCenterOrdinal: get().messageCenterOrdinal,
-        messageIDControl,
-        reason,
-        sd,
-      })
-
       let forceClear = p.forceClear ?? false
 
       if (centeredMessageID) {
@@ -1607,8 +1598,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
         try {
-          console.log('aaaa loadmore 2', {pagination})
-
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
@@ -2011,7 +2000,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messagesClear: () => {
       set(s => {
-        console.log('aaaa CLEAR')
         s.pendingOutboxToOrdinal.clear()
         s.loaded = false
         s.messageMap.clear()

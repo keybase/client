@@ -115,9 +115,11 @@ const useScrolling = (p: {
     // grab the waypoint we made for the centered ordinal and scroll to it
     setTimeout(() => {
       const scrollWaypoint = listRef.current?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
-      scrollWaypoint?.[0]?.scrollIntoView({block: 'center', inline: 'nearest'})
+      adjustScrollAndIgnoreOnScroll(() => {
+        scrollWaypoint?.[0]?.scrollIntoView({block: 'center', inline: 'nearest'})
+      })
     }, 100)
-  }, [listRef])
+  }, [adjustScrollAndIgnoreOnScroll, listRef])
 
   const scrollDown = React.useCallback(() => {
     const list = listRef.current
@@ -157,7 +159,7 @@ const useScrolling = (p: {
 
           const list = listRef.current
           // are we locked on the bottom?
-          if (list) {
+          if (list && !centeredOrdinal) {
             lockedToBottomRef.current =
               list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
           }
@@ -171,7 +173,7 @@ const useScrolling = (p: {
           pointerWrapperRef.current.classList.add('scroll-ignore-pointer')
         }
       }
-    }, [listRef]),
+    }, [listRef, centeredOrdinal]),
     100,
     {leading: true, trailing: true}
   )
@@ -181,7 +183,10 @@ const useScrolling = (p: {
 
   const onScroll = React.useCallback(() => {
     if (programaticScrollRef.current) {
+      // defer this slightly
+      // setTimeout(() => {
       programaticScrollRef.current = false
+      // }, 100)
       return
     }
     if (listRef.current) {
@@ -225,6 +230,7 @@ const useScrolling = (p: {
   const initScrollRef = React.useRef(false)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
+  // handle initial load scrolling only. Either scroll to bottom or scroll to centered
   React.useLayoutEffect(() => {
     if (!loaded) return
     if (!initScrollRef.current) {
@@ -237,7 +243,7 @@ const useScrolling = (p: {
       if (centeredOrdinal) {
         lockedToBottomRef.current = false
         scrollToCentered()
-      } else if (isLockedToBottom()) {
+      } else {
         scrollToBottom()
       }
     }
@@ -262,12 +268,25 @@ const useScrolling = (p: {
 
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
+    // no items? don't be locked
+    if (firstOrdinal === prevFirstOrdinal) {
+      lockedToBottomRef.current = false
+      return
+    }
     // didn't scroll up
-    if (ordinalsLength === prevOrdinalLength || firstOrdinal === prevFirstOrdinal) return
+    if (ordinalsLength === prevOrdinalLength) {
+      return
+    }
     const {current} = listRef
-    if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
+    // maintain scroll position if we got new content
+    if (
+      current &&
+      !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
+      !isLockedToBottom() &&
+      isMounted() &&
+      scrollBottomOffsetRef.current !== undefined
+    ) {
       programaticScrollRef.current = true
-
       const newTop = current.scrollHeight - scrollBottomOffsetRef.current
       const id = setTimeout(() => {
         current.scrollTop = newTop
@@ -279,6 +298,7 @@ const useScrolling = (p: {
     return undefined
     // we want this to fire when the ordinals change
   }, [
+    centeredOrdinal,
     ordinalsLength,
     isLockedToBottom,
     isMounted,
@@ -537,6 +557,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
 
   const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
   const setListContents = useHandleListResize({
+    centeredOrdinal,
     isLockedToBottom,
     scrollToBottom,
     setPointerWrapperRef,
@@ -568,23 +589,24 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
 })
 
 const useHandleListResize = (p: {
+  centeredOrdinal: T.Chat.Ordinal | undefined
   isLockedToBottom: () => boolean
   scrollToBottom: () => void
   setPointerWrapperRef: (r: HTMLDivElement | null) => void
 }) => {
-  const {isLockedToBottom, scrollToBottom, setPointerWrapperRef} = p
+  const {isLockedToBottom, scrollToBottom, setPointerWrapperRef, centeredOrdinal} = p
   const lastResizeHeightRef = React.useRef(0)
   const onListSizeChanged = React.useCallback(
     function onListSizeChanged(contentRect: {height: number}) {
       const {height} = contentRect
       if (height !== lastResizeHeightRef.current) {
         lastResizeHeightRef.current = height
-        if (isLockedToBottom()) {
+        if (isLockedToBottom() && !centeredOrdinal) {
           scrollToBottom()
         }
       }
     },
-    [isLockedToBottom, scrollToBottom]
+    [isLockedToBottom, scrollToBottom, centeredOrdinal]
   )
 
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
