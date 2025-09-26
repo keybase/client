@@ -9,3 +9,6 @@ expo-av to expo-video / expo-audio (not ready yet can't get video size...), miss
 using "react-native-gesture-handler": "2.24.0", as 25 clicking search in chat on inbox ios doesn't work (https://github.com/software-mansion/react-native-gesture-handler/issues/3476)
 
 run electron hash update
+
+happens when switching between branches
+'PlatformConstants issue:' can happen if you switch between 6.6 and 6.5. due to old node_modules being in react-native-kb, clean that up locally then yarn modules so node_modules/react-native-kb/node_modules doesnt exist
