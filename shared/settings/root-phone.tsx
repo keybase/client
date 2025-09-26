@@ -82,20 +82,20 @@ function SettingsNav() {
           text: 'Crypto',
         },
         {
-          badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
-          icon: 'iconfont-nav-2-git',
-          onClick: () => {
-            navigateAppend(C.Settings.settingsGitTab)
-          },
-          text: 'Git',
-        },
-        {
           badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
           onClick: () => {
             navigateAppend(C.Settings.settingsDevicesTab)
           },
           text: 'Devices',
+        },
+        {
+          badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
+          icon: 'iconfont-nav-2-git',
+          onClick: () => {
+            navigateAppend(C.Settings.settingsGitTab)
+          },
+          text: 'Git',
         },
         {
           icon: 'iconfont-nav-2-wallets',
@@ -122,7 +122,19 @@ function SettingsNav() {
           onClick: () => {
             navigateAppend(C.Settings.settingsAccountTab)
           },
-          text: 'Your account',
+          text: 'Account',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsAdvancedTab)
+          },
+          text: 'Advanced',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsArchiveTab)
+          },
+          text: 'Backup',
         },
         {
           onClick: () => {
@@ -132,9 +144,15 @@ function SettingsNav() {
         },
         {
           onClick: () => {
-            navigateAppend(C.Settings.settingsContactsTab)
+            navigateAppend(C.Settings.settingsDisplayTab)
           },
-          text: contactsLabel,
+          text: 'Display',
+        },
+        {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsFeedbackTab)
+          },
+          text: 'Feedback',
         },
         {
           onClick: () => {
@@ -143,17 +161,17 @@ function SettingsNav() {
           text: 'Files',
         },
         {
+          onClick: () => {
+            navigateAppend(C.Settings.settingsContactsTab)
+          },
+          text: contactsLabel,
+        },
+        {
           badgeNumber: badgeNotifications ? 1 : 0,
           onClick: () => {
             navigateAppend(C.Settings.settingsNotificationsTab)
           },
           text: 'Notifications',
-        },
-        {
-          onClick: () => {
-            navigateAppend(C.Settings.settingsDisplayTab)
-          },
-          text: 'Display',
         },
         ...(isAndroid
           ? [
@@ -175,24 +193,6 @@ function SettingsNav() {
             navigateAppend(C.Settings.settingsAboutTab)
           },
           text: 'About',
-        },
-        {
-          onClick: () => {
-            navigateAppend(C.Settings.settingsFeedbackTab)
-          },
-          text: 'Feedback',
-        },
-        {
-          onClick: () => {
-            navigateAppend(C.Settings.settingsAdvancedTab)
-          },
-          text: 'Advanced',
-        },
-        {
-          onClick: () => {
-            navigateAppend(C.Settings.settingsArchiveTab)
-          },
-          text: 'Archive',
         },
         {
           onClick: () => {
