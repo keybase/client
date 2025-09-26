@@ -183,10 +183,7 @@ const useScrolling = (p: {
 
   const onScroll = React.useCallback(() => {
     if (programaticScrollRef.current) {
-      // defer this slightly
-      // setTimeout(() => {
       programaticScrollRef.current = false
-      // }, 100)
       return
     }
     if (listRef.current) {
