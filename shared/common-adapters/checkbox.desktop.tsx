@@ -28,7 +28,6 @@ const Checkbox = (props: Props) => {
       <Kb.Icon
         boxStyle={Kb.Styles.collapseStyles([
           styles.checkbox,
-          styles.checkboxWhiteBorder,
           props.checked && styles.checkboxChecked,
           props.disabled && styles.checkboxInactive,
           props.disabled && props.checked && styles.semiTransparent,
@@ -72,7 +71,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderColor: Kb.Styles.globalColors.blue,
   },
   checkboxInactive: {borderColor: Kb.Styles.globalColors.black_10},
-  checkboxWhiteBorder: {borderColor: Kb.Styles.globalColors.white},
   clickable: Kb.Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.clickable,
