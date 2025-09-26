@@ -8,6 +8,7 @@ import * as T from './types'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
+import debounce from 'lodash/debounce'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean
@@ -379,121 +380,125 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    loadPeople: (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
-      const f = async () => {
-        // more logging to understand why this fails so much
-        logger.info(
-          'getPeopleData: appFocused:',
-          'loggedIn',
-          C.useConfigState.getState().loggedIn,
-          'action',
-          {markViewed, numFollowSuggestionsWanted}
-        )
-
-        try {
-          const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
-            {markViewed, numFollowSuggestionsWanted},
-            getPeopleDataWaitingKey
+    loadPeople: debounce(
+      (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
+        const f = async () => {
+          // more logging to understand why this fails so much
+          logger.info(
+            'getPeopleData: appFocused:',
+            'loggedIn',
+            C.useConfigState.getState().loggedIn,
+            'action',
+            {markViewed, numFollowSuggestionsWanted}
           )
-          const {following, followers} = C.useFollowerState.getState()
-          const oldItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
-            .filter(item => !item.badged && item.data.t !== T.RPCGen.HomeScreenItemType.todo)
-            .reduce(reduceRPCItemToPeopleItem, [])
-          const newItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
-            .filter(item => item.badged || item.data.t === T.RPCGen.HomeScreenItemType.todo)
-            .reduce(reduceRPCItemToPeopleItem, [])
 
-          if (debugTodo) {
-            const allTodos = Object.values(T.RPCGen.HomeScreenTodoType).reduce<
-              Array<T.RPCGen.HomeScreenTodoType>
-            >((arr, t) => {
-              typeof t !== 'string' && arr.push(t)
-              return arr
-            }, [])
-            allTodos.forEach(avdlType => {
-              const todoType = todoTypeEnumToType[avdlType]
-              if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
-                return
-              }
-              const instructions = makeDescriptionForTodoItem({
-                legacyEmailVisibility: 'user@example.com',
-                t: avdlType,
-                verifyAllEmail: 'user@example.com',
-                verifyAllPhoneNumber: '+1555000111',
-              })
-              let metadata: T.People.TodoMetaEmail | T.People.TodoMetaPhone | undefined
-              if (
-                avdlType === T.RPCGen.HomeScreenTodoType.verifyAllEmail ||
-                avdlType === T.RPCGen.HomeScreenTodoType.legacyEmailVisibility
-              ) {
-                metadata = makeTodoMetaEmail({
-                  email: 'user@example.com',
-                })
-              } else if (avdlType === T.RPCGen.HomeScreenTodoType.verifyAllPhoneNumber) {
-                metadata = makeTodoMetaPhone({
-                  phone: '+1555000111',
-                })
-              }
-              newItems.push(
-                makeTodo({
-                  badged: true,
-                  confirmLabel: todoTypeToConfirmLabel[todoType],
-                  icon: todoTypeToIcon[todoType],
-                  instructions,
-                  metadata,
-                  todoType,
-                  type: 'todo',
-                })
-              )
-            })
-            newItems.unshift(
-              makeFollowedNotificationItem({
-                badged: true,
-                newFollows: [
-                  makeFollowedNotification({
-                    contactDescription: 'Danny Test -- dannytest39@keyba.se',
-                    username: 'dannytest39',
-                  }),
-                ],
-                notificationTime: new Date(),
-                type: 'contact',
-              })
+          try {
+            const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
+              {markViewed, numFollowSuggestionsWanted},
+              getPeopleDataWaitingKey
             )
-          }
+            const {following, followers} = C.useFollowerState.getState()
+            const oldItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
+              .filter(item => !item.badged && item.data.t !== T.RPCGen.HomeScreenItemType.todo)
+              .reduce(reduceRPCItemToPeopleItem, [])
+            const newItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
+              .filter(item => item.badged || item.data.t === T.RPCGen.HomeScreenItemType.todo)
+              .reduce(reduceRPCItemToPeopleItem, [])
 
-          const followSuggestions = (data.followSuggestions ?? []).reduce<Array<T.People.FollowSuggestion>>(
-            (list, suggestion) => {
-              const followsMe = followers.has(suggestion.username)
-              const iFollow = following.has(suggestion.username)
-              list.push(
-                makeFollowSuggestion({
-                  followsMe,
-                  fullName: suggestion.fullName,
-                  iFollow,
-                  username: suggestion.username,
+            if (debugTodo) {
+              const allTodos = Object.values(T.RPCGen.HomeScreenTodoType).reduce<
+                Array<T.RPCGen.HomeScreenTodoType>
+              >((arr, t) => {
+                typeof t !== 'string' && arr.push(t)
+                return arr
+              }, [])
+              allTodos.forEach(avdlType => {
+                const todoType = todoTypeEnumToType[avdlType]
+                if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
+                  return
+                }
+                const instructions = makeDescriptionForTodoItem({
+                  legacyEmailVisibility: 'user@example.com',
+                  t: avdlType,
+                  verifyAllEmail: 'user@example.com',
+                  verifyAllPhoneNumber: '+1555000111',
+                })
+                let metadata: T.People.TodoMetaEmail | T.People.TodoMetaPhone | undefined
+                if (
+                  avdlType === T.RPCGen.HomeScreenTodoType.verifyAllEmail ||
+                  avdlType === T.RPCGen.HomeScreenTodoType.legacyEmailVisibility
+                ) {
+                  metadata = makeTodoMetaEmail({
+                    email: 'user@example.com',
+                  })
+                } else if (avdlType === T.RPCGen.HomeScreenTodoType.verifyAllPhoneNumber) {
+                  metadata = makeTodoMetaPhone({
+                    phone: '+1555000111',
+                  })
+                }
+                newItems.push(
+                  makeTodo({
+                    badged: true,
+                    confirmLabel: todoTypeToConfirmLabel[todoType],
+                    icon: todoTypeToIcon[todoType],
+                    instructions,
+                    metadata,
+                    todoType,
+                    type: 'todo',
+                  })
+                )
+              })
+              newItems.unshift(
+                makeFollowedNotificationItem({
+                  badged: true,
+                  newFollows: [
+                    makeFollowedNotification({
+                      contactDescription: 'Danny Test -- dannytest39@keyba.se',
+                      username: 'dannytest39',
+                    }),
+                  ],
+                  notificationTime: new Date(),
+                  type: 'contact',
                 })
               )
-              return list
-            },
-            []
-          )
+            }
 
-          set(s => {
-            if (!isEqual(followSuggestions, s.followSuggestions)) {
-              s.followSuggestions = followSuggestions
-            }
-            if (!isEqual(newItems, s.newItems)) {
-              s.newItems = T.castDraft(newItems)
-            }
-            if (!isEqual(oldItems, s.oldItems)) {
-              s.oldItems = T.castDraft(oldItems)
-            }
-          })
-          // never throw black bars
-        } catch {}
-      }
-      C.ignorePromise(f())
-    },
+            const followSuggestions = (data.followSuggestions ?? []).reduce<Array<T.People.FollowSuggestion>>(
+              (list, suggestion) => {
+                const followsMe = followers.has(suggestion.username)
+                const iFollow = following.has(suggestion.username)
+                list.push(
+                  makeFollowSuggestion({
+                    followsMe,
+                    fullName: suggestion.fullName,
+                    iFollow,
+                    username: suggestion.username,
+                  })
+                )
+                return list
+              },
+              []
+            )
+
+            set(s => {
+              if (!isEqual(followSuggestions, s.followSuggestions)) {
+                s.followSuggestions = followSuggestions
+              }
+              if (!isEqual(newItems, s.newItems)) {
+                s.newItems = T.castDraft(newItems)
+              }
+              if (!isEqual(oldItems, s.oldItems)) {
+                s.oldItems = T.castDraft(oldItems)
+              }
+            })
+            // never throw black bars
+          } catch {}
+        }
+        C.ignorePromise(f())
+      },
+      1000,
+      {leading: true, trailing: false}
+    ),
     markViewed: () => {
       const f = async () => {
         try {
