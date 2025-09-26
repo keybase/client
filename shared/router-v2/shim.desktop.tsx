@@ -11,7 +11,7 @@ import type {
   GetOptionsRet,
   ModalType,
 } from '@/constants/types/router2'
-import type {Screen} from './shim'
+import type {Screen, NavScreensResult} from './shim'
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
@@ -53,7 +53,12 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+export const makeNavScreens = (
+  rs: RouteMap,
+  Screen: Screen,
+  isModal: boolean,
+  isLoggedOut: boolean
+): NavScreensResult =>
   (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
     makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
   )

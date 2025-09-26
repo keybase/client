@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import {makeNavScreens, type Screen} from './shim'
+import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
@@ -13,6 +13,7 @@ import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
+import type {RootParamList} from '@/router-v2/route-params'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
@@ -29,7 +30,7 @@ const appTabsInnerOptions = {
   tabBarStyle: Common.tabBarStyle,
 }
 
-const TabStackNavigator = createNativeStackNavigator() as {Screen: Screen; Navigator: any}
+const TabStackNavigator = createNativeStackNavigator<RootParamList>()
 const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
@@ -55,9 +56,8 @@ const AppTabsInner = React.memo(function AppTabsInner() {
 
 const AppTabs = () => <AppTabsInner />
 
-const LoggedOutStack = createNativeStackNavigator()
-// eslint-disable-next-line
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
+const LoggedOutStack = createNativeStackNavigator<RootParamList>()
+const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
 const loggedOutOptions = {
   header: ({navigation}: {navigation: {pop: () => void}}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
@@ -71,7 +71,7 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNativeStackNavigator()
+const RootStack = createNativeStackNavigator<RootParamList & {loading: undefined; loggedOut: undefined}>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
@@ -110,8 +110,7 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
-// eslint-disable-next-line
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
+const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()
   const loggedInUser = C.useCurrentUserState(s => s.username)
