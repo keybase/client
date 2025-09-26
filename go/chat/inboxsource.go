@@ -538,12 +538,13 @@ func NewHybridInboxSource(g *globals.Context,
 func extractConvIDFromError(err error) *chat1.ConversationID {
 	switch e := err.(type) {
 	case libkb.ChatBadConversationError:
-		return e.ConvID
+		if !e.ConvID.IsNil() {
+			return &e.ConvID
+		}
 	case libkb.ChatNotInConvError:
 		return &e.ConvID
-	default:
-		return nil
 	}
+	return nil
 }
 
 func (s *HybridInboxSource) maybeNuke(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID, err *error) {
