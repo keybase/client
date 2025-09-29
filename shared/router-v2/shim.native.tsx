@@ -6,10 +6,10 @@ import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {Screen, NavScreensResult} from './shim'
 
-const makeNavScreen = (
+const makeNavScreen = <TScreenProps,>(
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: Screen,
+  Screen: Screen<TScreenProps>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -42,9 +42,9 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (
+export const makeNavScreens = <TScreenProps,>(
   rs: RouteMap,
-  Screen: Screen,
+  Screen: Screen<TScreenProps>,
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult =>

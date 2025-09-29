@@ -5,15 +5,20 @@ import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs'
 import type {TypedNavigator} from '@react-navigation/native'
 import * as React from 'react'
 
-// Use the actual Screen type from React Navigation
-export type Screen = React.ComponentType<{
+// Generic Screen type that accepts any Screen component from React Navigation
+// This preserves the specific typing of each navigator's Screen component
+export type Screen<ScreenProps = any> = React.ComponentType<ScreenProps & {
   navigationKey?: string
   name: keyof KBRootParamList
   getComponent?: () => React.ComponentType<any>
   component?: React.ComponentType<any>
+}>
+
+// For backwards compatibility, also export a default Screen type
+export type AnyScreen = Screen<{
   options?: 
-    | NativeStackNavigationOptions
-    | BottomTabNavigationOptions
+    | NativeStackNavigationOptions 
+    | BottomTabNavigationOptions 
     | ((props: {route: any; navigation: any}) => NativeStackNavigationOptions | BottomTabNavigationOptions)
 }>
 

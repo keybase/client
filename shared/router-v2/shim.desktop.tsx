@@ -22,10 +22,10 @@ const makeOptions = (val: RouteDef) => {
   }
 }
 
-const makeNavScreen = (
+const makeNavScreen = <TScreenProps,>(
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: Screen,
+  Screen: Screen<TScreenProps>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -52,9 +52,9 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (
+export const makeNavScreens = <TScreenProps,>(
   rs: RouteMap,
-  Screen: Screen,
+  Screen: Screen<TScreenProps>,
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult =>
