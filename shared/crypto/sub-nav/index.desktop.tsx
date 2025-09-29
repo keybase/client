@@ -12,7 +12,7 @@ import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
 import verifyIO from './verify.inout.page'
-import {makeNavScreens, type Screen} from '@/router-v2/shim'
+import {makeNavScreens} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -69,7 +69,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator() as {Screen: Screen; Navigator: any}
-// eslint-disable-next-line
 const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">

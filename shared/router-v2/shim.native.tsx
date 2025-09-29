@@ -1,4 +1,4 @@
-import * as C from '@/constants'
+import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
