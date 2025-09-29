@@ -5,6 +5,7 @@ import * as Common from '@/router-v2/common'
 import {makeNavScreens} from '@/router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import {sharedNewRoutes} from './routes'
 
 const settingsSubRoutes = {
@@ -68,10 +69,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   nav: {width: Kb.Styles.isTablet ? 200 : 180},
 }))
 
-const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
-// eslint-disable-next-line
+type NavType = NavigatorTypeBagBase & {
+  ParamList: {
+    [key in keyof typeof settingsSubRoutes]: undefined
+  }
+}
+
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
+  NavType,
+  StaticConfig<NavigatorTypeBagBase>
+>
 const TabNavigator = createLeftTabNavigator()
-// eslint-disable-next-line
 const settingsScreens = makeNavScreens(settingsSubRoutes, TabNavigator.Screen, false, false)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
