@@ -47,7 +47,7 @@ const makeNavScreen = (
       key={String(name)}
       navigationKey={name}
       name={name}
-      getComponent={getScreen}
+      getComponent={getScreen as any}
       options={makeOptions(rd)}
     />
   )

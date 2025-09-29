@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
-import {makeNavScreens, type Screen} from './shim'
+import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import {StatusBar, View} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
@@ -39,7 +39,10 @@ const tabStackOptions = {
 const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
   return (
-    <TabStackNavigator.Navigator initialRouteName={tabRoots[p.route.name]} screenOptions={tabStackOptions}>
+    <TabStackNavigator.Navigator
+      initialRouteName={tabRoots[p.route.name] || undefined}
+      screenOptions={tabStackOptions}
+    >
       {tabScreens}
     </TabStackNavigator.Navigator>
   )
@@ -119,7 +122,9 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNativeStackNavigator<RootParamList>()
+const RootStack = createNativeStackNavigator<
+  RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
+>()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }

@@ -6,7 +6,7 @@ import type {TypedNavigator} from '@react-navigation/native'
 
 export type Screen = (p: {
   navigationKey?: string
-  children: any
+  //children: any
   name: keyof KBRootParamList
   getComponent: () => React.ComponentType<any>
   options: any

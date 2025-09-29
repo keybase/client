@@ -29,7 +29,7 @@ const makeNavScreen = (
     <Screen
       key={String(name)}
       name={name}
-      getComponent={getScreen}
+      getComponent={getScreen as any}
       options={({route, navigation}: {route: unknown; navigation: unknown}) => {
         const no = rd.getOptions
         const opt = typeof no === 'function' ? no({navigation, route} as GetOptionsParams) : no
