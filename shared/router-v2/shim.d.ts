@@ -1,35 +1,16 @@
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {RouteMap} from '@/constants/types/router2'
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
-import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs'
 import type {TypedNavigator} from '@react-navigation/native'
+import type {NativeStackNavigatorProps} from '@react-navigation/native-stack'
 import type * as React from 'react'
 
-// Generic Screen type that works with React Navigation's Screen components
-// This accepts the actual Screen component and lets it handle its own prop typing
-export type Screen = React.ComponentType<{
-  navigationKey?: string
-  name: keyof KBRootParamList
-  getComponent?: () => React.ComponentType<any>
-  component?: React.ComponentType<any>
-  options?: any // This will be properly typed by the actual Screen component
-}>
-
-// Alternative type with explicit options for reference
-export type AnyScreen = React.ComponentType<{
-  navigationKey?: string
-  name: keyof KBRootParamList
-  getComponent?: () => React.ComponentType<any>
-  component?: React.ComponentType<any>
-  options?:
-    | NativeStackNavigationOptions
-    | BottomTabNavigationOptions
-    | ((props: {route: any; navigation: any}) => NativeStackNavigationOptions | BottomTabNavigationOptions)
-}>
+// Use the actual Screen and Navigator types from React Navigation navigators
+export type NavigatorScreen = ReturnType<typeof import('@react-navigation/native-stack').createNativeStackNavigator>['Screen']
+export type NavigatorNavigator = ReturnType<typeof import('@react-navigation/native-stack').createNativeStackNavigator>['Navigator']
 
 export type TypedStackNavigator<ParamList extends Record<string, object | undefined>> = TypedNavigator<
   ParamList,
-  {Screen: Screen; Navigator: React.ComponentType<any>}
+  {Screen: NavigatorScreen; Navigator: NavigatorNavigator}
 >
 
 export type NavScreensResult = Array<
