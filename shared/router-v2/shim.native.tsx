@@ -29,10 +29,10 @@ const makeNavScreen = (
     <Screen
       key={String(name)}
       name={name}
-      getComponent={getScreen as any}
-      options={({route, navigation}: {route: unknown; navigation: unknown}) => {
+      getComponent={getScreen}
+      options={({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
         const no = rd.getOptions
-        const opt = typeof no === 'function' ? no({navigation, route} as GetOptionsParams) : no
+        const opt = typeof no === 'function' ? no({navigation, route}) : no
         return {
           ...opt,
           ...(isModal ? {animationEnabled: true} : {}),

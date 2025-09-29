@@ -1,19 +1,21 @@
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {RouteMap} from '@/constants/types/router2'
-// import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
-// import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs'
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
+import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs'
 import type {TypedNavigator} from '@react-navigation/native'
+import * as React from 'react'
 
-export type Screen = (p: {
+// Use the actual Screen type from React Navigation
+export type Screen = React.ComponentType<{
   navigationKey?: string
-  //children: any
   name: keyof KBRootParamList
-  getComponent: () => React.ComponentType<any>
-  options: any
-  // | NativeStackNavigationOptions
-  // | BottomTabNavigationOptions
-  // | ((props: {route: any; navigation: any}) => NativeStackNavigationOptions | BottomTabNavigationOptions)
-}) => React.ReactNode
+  getComponent?: () => React.ComponentType<any>
+  component?: React.ComponentType<any>
+  options?: 
+    | NativeStackNavigationOptions
+    | BottomTabNavigationOptions
+    | ((props: {route: any; navigation: any}) => NativeStackNavigationOptions | BottomTabNavigationOptions)
+}>
 
 export type TypedStackNavigator<ParamList extends Record<string, object | undefined>> = TypedNavigator<
   ParamList,

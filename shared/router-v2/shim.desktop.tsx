@@ -17,8 +17,7 @@ import type {Screen, NavScreensResult} from './shim'
 const makeOptions = (val: RouteDef) => {
   return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
     const no = val.getOptions
-    // eslint-disable-next-line
-    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
     return {...opt}
   }
 }
@@ -47,7 +46,7 @@ const makeNavScreen = (
       key={String(name)}
       navigationKey={name}
       name={name}
-      getComponent={getScreen as any}
+      getComponent={getScreen}
       options={makeOptions(rd)}
     />
   )

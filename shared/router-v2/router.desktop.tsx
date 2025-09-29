@@ -135,8 +135,7 @@ const ElectronApp = React.memo(function ElectronApp() {
   return (
     <NavigationContainer
       navigationInChildEnabled={true}
-      // eslint-disable-next-line
-      ref={C.Router2.navigationRef_ as any}
+      ref={C.Router2.navigationRef_}
       theme={Shared.theme}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
