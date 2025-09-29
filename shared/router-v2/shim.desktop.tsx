@@ -27,13 +27,13 @@ const makeOptions = (val: RouteDef) => {
 const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: NavigatorScreen<KBRootParamList>,
+  Screen: React.ComponentType<any>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
   const origGetScreen = rd.getScreen
 
-  let wrappedGetComponent: undefined | React.ComponentType<GetOptionsParams>
+  let wrappedGetComponent: undefined | React.ComponentType<any>
   const getScreen = origGetScreen
     ? () => {
         if (wrappedGetComponent === undefined) {
@@ -53,9 +53,9 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (
+export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
   rs: RouteMap,
-  Screen: NavigatorScreen<KBRootParamList>,
+  Screen: T['Screen'],
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult =>
@@ -194,7 +194,7 @@ const platformShim = (
   isModal: boolean,
   _isLoggedOut: boolean,
   getOptions?: GetOptions
-): React.ComponentType<GetOptionsParams> => {
+): React.ComponentType<any> => {
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'

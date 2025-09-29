@@ -4,6 +4,12 @@ import type {TypedNavigator} from '@react-navigation/native'
 import type {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type * as React from 'react'
 
+// Generic types for any navigator created by createNavigatorFactory
+export type AnyNavigator = {
+  Screen: React.ComponentType<any>
+  Navigator: React.ComponentType<any>
+}
+
 // Use the actual Screen and Navigator types from React Navigation navigators
 export type NavigatorScreen<ParamList extends Record<string, object | undefined>> = ReturnType<
   typeof createNativeStackNavigator<ParamList>
@@ -20,13 +26,13 @@ export type TypedStackNavigator<ParamList extends Record<string, object | undefi
 export type NavScreensResult = Array<
   React.ReactElement<{
     name: keyof KBRootParamList
-    getComponent?: () => React.ComponentType<GetOptionsParams>
+    getComponent?: () => React.ComponentType<any>
   }>
 >
 
-export declare function makeNavScreens(
+export declare function makeNavScreens<T extends AnyNavigator>(
   rs: RouteMap,
-  Screen: NavigatorScreen<KBRootParamList>,
+  Screen: T['Screen'],
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult
