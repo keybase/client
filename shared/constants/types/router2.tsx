@@ -1,9 +1,7 @@
 import type * as Styles from '@/styles'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-//import type {NavigationContainerRef, NavigationState} from '@react-navigation/core'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {RouteProp} from '@react-navigation/native'
-//type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
 export type GetOptionsParams<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
@@ -17,14 +15,8 @@ export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootPa
   route: RouteProp<KBRootParamList, RouteName>
 }
 
-// Screen component type that matches ViewPropsToPageProps pattern
-// This ensures screen components get the right shape: {route: {params: P}, navigation}
-// Note: We use 'any' for params since screen components have varying prop requirements
-// The actual transformation happens at runtime in the shim layer
 export type ScreenComponentProps = {
-  route: {
-    params: any
-  }
+  route: {params: any}
   navigation: NativeStackNavigationProp<KBRootParamList>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'

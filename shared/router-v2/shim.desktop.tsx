@@ -194,8 +194,6 @@ const platformShim = (
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
 
-    // No runtime transformation needed - RouteProp already has params property
-    // This is just a type assertion since the shapes are compatible
     const original = <Original {...(props as any as ScreenComponentProps)} />
     let body = original
 

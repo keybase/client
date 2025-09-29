@@ -79,8 +79,7 @@ export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) a
   StaticConfig<NavigatorTypeBagBase>
 >
 const TabNavigator = createLeftTabNavigator()
-// TODO this is wrong typing, makeNavScreens assumes global
-const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen as any, false, false)
+const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">
     {cryptoScreens}

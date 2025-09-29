@@ -67,7 +67,6 @@ const platformShim = (
   getOptions?: GetOptions
 ): React.ComponentType<any> => {
   if (!isModal && !isLoggedOut) {
-    // No transformation needed - just type assertion since shapes are compatible
     return Original as React.ComponentType<any>
   }
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
