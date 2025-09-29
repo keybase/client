@@ -22,10 +22,10 @@ const makeOptions = (val: RouteDef) => {
   }
 }
 
-const makeNavScreen = (
+const makeNavScreen = <ParamList extends Record<string, object | undefined> = any>(
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: NavigatorScreen,
+  Screen: NavigatorScreen<ParamList>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -52,9 +52,9 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (
+export const makeNavScreens = <ParamList extends Record<string, object | undefined> = any>(
   rs: RouteMap,
-  Screen: NavigatorScreen,
+  Screen: NavigatorScreen<ParamList>,
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult =>
