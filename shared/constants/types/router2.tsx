@@ -6,15 +6,24 @@ import type {RouteProp} from '@react-navigation/native'
 type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
-export type GetOptionsParams = {
-  navigation: NativeStackNavigationProp<KBRootParamList>
-  route: RouteProp<KBRootParamList, keyof KBRootParamList>
+export type GetOptionsParams<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
+  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
+  route: RouteProp<KBRootParamList, RouteName>
 }
 
 // Type for screen components that receive navigation props
 export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
   navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
   route: RouteProp<KBRootParamList, RouteName>
+}
+
+// Screen component type that matches ViewPropsToPageProps pattern
+// This ensures screen components get the right shape: {route: {params: P}, navigation}
+export type ScreenComponentProps<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
+  route: {
+    params: KBRootParamList[RouteName]
+  }
+  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
 export type GetOptionsRet =
@@ -38,8 +47,8 @@ export type GetOptionsRet =
   | undefined
 export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
 export type RouteDef = {
-  getScreen?: () => React.ComponentType<GetOptionsParams>
+  getScreen?: () => React.ComponentType<ScreenComponentProps>
   getOptions?: GetOptions
-  screen?: React.ComponentType<GetOptionsParams>
+  screen?: React.ComponentType<ScreenComponentProps>
 }
 export type RouteMap = {[K in string]?: RouteDef}

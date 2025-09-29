@@ -11,12 +11,13 @@ import type {
   RouteMap,
   GetOptionsRet,
   ModalType,
+  ScreenComponentProps,
 } from '@/constants/types/router2'
 import type {NavigatorScreen, NavScreensResult} from './shim'
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
-  return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
+  return ({route, navigation}: GetOptionsParams) => {
     const no = val.getOptions
     const opt = typeof no === 'function' ? no({navigation, route}) : no
     return {...opt}
@@ -32,7 +33,7 @@ const makeNavScreen = (
 ) => {
   const origGetScreen = rd.getScreen
 
-  let wrappedGetComponent: undefined | React.ComponentType<any>
+  let wrappedGetComponent: undefined | React.ComponentType<GetOptionsParams>
   const getScreen = origGetScreen
     ? () => {
         if (wrappedGetComponent === undefined) {
@@ -190,17 +191,26 @@ const wrapInStrict = (_route: string) => {
 }
 
 const platformShim = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
+  Original: React.JSXElementConstructor<ScreenComponentProps>,
   isModal: boolean,
   _isLoggedOut: boolean,
   getOptions?: GetOptions
-): React.ComponentType<any> => {
+): React.ComponentType<GetOptionsParams> => {
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
-    const original = <Original {...props} />
+    
+    // Transform GetOptionsParams to ScreenComponentProps
+    const transformedProps: ScreenComponentProps = {
+      navigation: props.navigation,
+      route: {
+        params: props.route.params
+      }
+    }
+    
+    const original = <Original {...transformedProps} />
     let body = original
 
     if (isModal) {

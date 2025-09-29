@@ -16,7 +16,7 @@ export type TypedStackNavigator<ParamList extends Record<string, object | undefi
 export type NavScreensResult = Array<
   React.ReactElement<{
     name: keyof KBRootParamList
-    getComponent?: () => React.ComponentType<any>
+    getComponent?: () => React.ComponentType<import('@/constants/types/router2').GetOptionsParams>
   }>
 >
 
