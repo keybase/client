@@ -14,6 +14,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
@@ -58,8 +59,8 @@ const AppTabs = () => <AppTabsInner />
 
 const LoggedOutStack = createNativeStackNavigator<RootParamList>()
 const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
-const loggedOutOptions = {
-  header: ({navigation}: {navigation: {pop: () => void}}) => (
+const loggedOutOptions: NativeStackNavigationOptions = {
+  header: ({navigation}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
 }
@@ -71,7 +72,7 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNativeStackNavigator<RootParamList & {loading: undefined; loggedOut: undefined}>()
+const RootStack = createNativeStackNavigator<RootParamList & {loading: undefined; loggedOut: undefined; loggedIn: undefined}>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
@@ -81,12 +82,12 @@ const documentTitle = {
   },
 }
 
-const rootScreenOptions = {
+const rootScreenOptions: NativeStackNavigationOptions = {
   headerLeft: () => <HeaderLeftCancel />,
   headerShown: false, // eventually do this after we pull apart modal2 etc
   presentation: 'transparentModal',
   title: '',
-} as const
+}
 
 const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)
