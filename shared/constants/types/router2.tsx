@@ -19,11 +19,13 @@ export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootPa
 
 // Screen component type that matches ViewPropsToPageProps pattern
 // This ensures screen components get the right shape: {route: {params: P}, navigation}
-export type ScreenComponentProps<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
+// Note: We use 'any' for params since screen components have varying prop requirements
+// The actual transformation happens at runtime in the shim layer
+export type ScreenComponentProps = {
   route: {
-    params: KBRootParamList[RouteName]
+    params: any
   }
-  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
+  navigation: NativeStackNavigationProp<KBRootParamList>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
 export type GetOptionsRet =
