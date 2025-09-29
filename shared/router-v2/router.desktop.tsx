@@ -72,7 +72,7 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNativeStackNavigator<RootParamList & {loading: undefined; loggedOut: undefined; loggedIn: undefined}>()
+const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
