@@ -7,6 +7,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -98,4 +100,36 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 		require.NoError(t, tc.Logout())
 		require.NoError(t, u2.Login(tc.G))
 	}
+}
+
+func TestChatBadConversationError(t *testing.T) {
+	e := libkb.ChatBadConversationError{Msg: "", ConvID: nil}
+	status := e.ToStatus()
+	require.Equal(t, len(status.Fields), 2)
+	msg := status.Fields[0]
+	require.Equal(t, msg.Key, "Msg")
+	require.Equal(t, msg.Value, "")
+	convID := status.Fields[1]
+	require.Equal(t, convID.Key, "ConvID")
+	require.Equal(t, convID.Value, "")
+	err := libkb.ImportStatusAsError(nil, &status)
+	e, ok := err.(libkb.ChatBadConversationError)
+	require.True(t, ok)
+	require.True(t, e.ConvID.IsNil())
+
+	cid, err := chat1.MakeConvID("0000c5f97ea8d159507946968bc68ed5d3422ea1450d28171e0d4c7a3541d613")
+	require.NoError(t, err)
+
+	e = libkb.ChatBadConversationError{Msg: "msg", ConvID: cid}
+	status = e.ToStatus()
+	require.Equal(t, len(status.Fields), 2)
+	msg = status.Fields[0]
+	require.Equal(t, msg.Key, "Msg")
+	require.Equal(t, msg.Value, "msg")
+	convID = status.Fields[1]
+	require.Equal(t, convID.Key, "ConvID")
+	require.Equal(t, convID.Value, cid.String())
+	err = libkb.ImportStatusAsError(nil, &status)
+	require.Equal(t, e, err)
+
 }
