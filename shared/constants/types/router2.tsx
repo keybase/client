@@ -1,9 +1,9 @@
 import type * as Styles from '@/styles'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {NavigationContainerRef, NavigationState} from '@react-navigation/core'
+//import type {NavigationContainerRef, NavigationState} from '@react-navigation/core'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {RouteProp} from '@react-navigation/native'
-type Route = NavigationState<KBRootParamList>['routes'][0]
+//type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
 export type GetOptionsParams<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
