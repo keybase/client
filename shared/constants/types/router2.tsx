@@ -1,11 +1,20 @@
 import type * as Styles from '@/styles'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NavigationContainerRef, NavigationState} from '@react-navigation/core'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import type {RouteProp} from '@react-navigation/native'
 type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
+
 export type GetOptionsParams = {
   navigation: NavigationContainerRef<KBRootParamList> & {pop?: () => void}
   route: Route
+}
+
+// Type for screen components that receive navigation props
+export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
+  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
+  route: RouteProp<KBRootParamList, RouteName>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
 export type GetOptionsRet =
@@ -29,8 +38,8 @@ export type GetOptionsRet =
   | undefined
 export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
 export type RouteDef = {
-  getScreen?: () => React.ComponentType<any>
+  getScreen?: () => React.ComponentType<GetOptionsParams>
   getOptions?: GetOptions
-  screen?: React.ComponentType
+  screen?: React.ComponentType<GetOptionsParams>
 }
 export type RouteMap = {[K in string]?: RouteDef}

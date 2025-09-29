@@ -32,7 +32,7 @@ const makeNavScreen = <ParamList extends Record<string, object | undefined>>(
 ) => {
   const origGetScreen = rd.getScreen
 
-  let wrappedGetComponent: undefined | React.ComponentType<GetOptionsParams>
+  let wrappedGetComponent: undefined | React.ComponentType<any>
   const getScreen = origGetScreen
     ? () => {
         if (wrappedGetComponent === undefined) {
@@ -194,7 +194,7 @@ const platformShim = (
   isModal: boolean,
   _isLoggedOut: boolean,
   getOptions?: GetOptions
-) => {
+): React.ComponentType<any> => {
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'

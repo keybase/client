@@ -1,5 +1,5 @@
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {RouteMap, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap} from '@/constants/types/router2'
 import type {TypedNavigator} from '@react-navigation/native'
 import type {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type * as React from 'react'
@@ -17,7 +17,7 @@ export type TypedStackNavigator<ParamList extends Record<string, object | undefi
 export type NavScreensResult = Array<
   React.ReactElement<{
     name: keyof KBRootParamList
-    getComponent?: () => React.ComponentType<GetOptionsParams>
+    getComponent?: () => React.ComponentType<any>
   }>
 >
 
