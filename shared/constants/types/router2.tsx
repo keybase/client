@@ -7,8 +7,8 @@ type Route = NavigationState<KBRootParamList>['routes'][0]
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
 export type GetOptionsParams = {
-  navigation: NavigationContainerRef<KBRootParamList> & {pop?: () => void}
-  route: Route
+  navigation: NativeStackNavigationProp<KBRootParamList>
+  route: RouteProp<KBRootParamList, keyof KBRootParamList>
 }
 
 // Type for screen components that receive navigation props

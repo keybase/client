@@ -5,7 +5,6 @@ import type {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type * as React from 'react'
 
 // Use the actual Screen and Navigator types from React Navigation navigators
-// Make them generic to accept the proper ParamList type
 export type NavigatorScreen<ParamList extends Record<string, object | undefined>> = ReturnType<typeof createNativeStackNavigator<ParamList>>['Screen']
 export type NavigatorNavigator<ParamList extends Record<string, object | undefined>> = ReturnType<typeof createNativeStackNavigator<ParamList>>['Navigator']
 
@@ -21,9 +20,9 @@ export type NavScreensResult = Array<
   }>
 >
 
-export declare function makeNavScreens<ParamList extends Record<string, object | undefined>>(
+export declare function makeNavScreens(
   rs: RouteMap,
-  Screen: NavigatorScreen<ParamList>,
+  Screen: NavigatorScreen<KBRootParamList>,
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult
