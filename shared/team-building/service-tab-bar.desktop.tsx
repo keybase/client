@@ -140,7 +140,7 @@ export const ServiceTabBar = (props: Props) => {
     [services, lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
   )
   const lockedServices = services.slice(0, nLocked)
-  let frontServices
+  let frontServices = new Array<T.TB.ServiceIdWithContact>()
   if (services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
     if (lastSelectedUnlockedService === undefined) {

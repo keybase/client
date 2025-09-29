@@ -381,7 +381,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     loadPeople: debounce(
-      (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
+      (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
         const f = async () => {
           // more logging to understand why this fails so much
           logger.info(

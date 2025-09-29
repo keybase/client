@@ -50,7 +50,7 @@ const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
 
 // so we have a stack per tab
 const tabScreenOptions = ({route}: {route: {name: string}}) => {
-  let routeName
+  let routeName: string | undefined
   try {
     routeName = getFocusedRouteNameFromRoute(route)
   } catch {}
