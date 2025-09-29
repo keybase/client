@@ -43,14 +43,7 @@ const makeNavScreen = (
       }
     : undefined
 
-  return (
-    <Screen
-      key={String(name)}
-      name={name}
-      getComponent={getScreen}
-      options={makeOptions(rd)}
-    />
-  )
+  return <Screen key={String(name)} name={name} getComponent={getScreen} options={makeOptions(rd)} />
 }
 
 export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
@@ -200,7 +193,7 @@ const platformShim = (
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
-    
+
     // No runtime transformation needed - RouteProp already has params property
     // This is just a type assertion since the shapes are compatible
     const original = <Original {...(props as any as ScreenComponentProps)} />

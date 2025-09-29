@@ -8,6 +8,7 @@ import {
   createNavigatorFactory,
   type NavigationContainerRef,
 } from '@react-navigation/core'
+import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
@@ -67,9 +68,19 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   nav: {width: 180},
 }))
 
-const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
-const TabNavigator = createLeftTabNavigator() as {Screen: Screen; Navigator: any}
-const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
+type NavType = NavigatorTypeBagBase & {
+  ParamList: {
+    [key in keyof typeof cryptoSubRoutes]: undefined
+  }
+}
+
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
+  NavType,
+  StaticConfig<NavigatorTypeBagBase>
+>
+const TabNavigator = createLeftTabNavigator()
+// TODO this is wrong typing, makeNavScreens assumes global
+const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen as any, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">
     {cryptoScreens}
