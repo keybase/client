@@ -65,7 +65,7 @@ export const makeNavScreens = <TScreenProps,>(
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
-const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
+const useMouseClick = (navigation: {pop?: () => void}, noClose?: boolean) => {
   const backgroundRef = React.useRef<HTMLDivElement>(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
@@ -94,7 +94,7 @@ const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
       setMouseDownX(mouseResetValue)
       setMouseDownY(mouseResetValue)
       if (dismiss && !noClose) {
-        navigation.pop()
+        navigation.pop?.()
       }
     },
     [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, noClose, navigation]
@@ -104,7 +104,7 @@ const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
 }
 type WrapProps = {
   navigationOptions?: GetOptionsRet
-  navigation: {pop: () => void}
+  navigation: {pop?: () => void}
   children: React.ReactNode
 }
 
@@ -158,7 +158,7 @@ const ModalWrapper = (p: WrapProps) => {
               {!modal2ClearCover && !modal2NoClose && (
                 <Kb.Icon
                   type="iconfont-close"
-                  onClick={() => navigation.pop()}
+                  onClick={() => navigation.pop?.()}
                   color={Kb.Styles.globalColors.whiteOrWhite_75}
                   hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
                   style={styles.modal2CloseIcon}
