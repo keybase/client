@@ -297,7 +297,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
         icon: 'iconfont-folder-downloads',
         iconIsVisible: false,
         onClick: onArchive,
-        title: 'Archive conversation',
+        title: 'Backup conversation',
       } as const)
   } else {
     if (hasChannelSection) {
@@ -360,7 +360,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
         icon: 'iconfont-folder-downloads',
         iconIsVisible: false,
         onClick: onArchive,
-        title: 'Archive conversation',
+        title: 'Backup conversation',
       } as const)
   }
 

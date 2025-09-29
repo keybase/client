@@ -204,7 +204,7 @@ func HandleRequest(ctx context.Context, xp rpc.Transporter, srv *rpc.Server, p R
 	if err != nil {
 		return err
 	}
-	go arh.Run(ctx, xp, srv)
+	go arh.Run(libkb.CopyTagsToBackground(ctx), xp, srv)
 	return nil
 
 }

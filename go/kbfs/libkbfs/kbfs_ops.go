@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1637,7 +1638,7 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 
 	fbo := fs.findTeamByID(ctx, tid)
 	if fbo != nil {
-		go fbo.TeamNameChanged(ctx, tid)
+		go fbo.TeamNameChanged(libkb.CopyTagsToBackground(ctx), tid)
 	}
 }
 
@@ -1650,7 +1651,7 @@ func (fs *KBFSOpsStandard) TeamAbandoned(
 	fs.log.CDebugf(ctx, "Got TeamAbandoned for %s", tid)
 	fbo := fs.findTeamByID(ctx, tid)
 	if fbo != nil {
-		go fbo.TeamAbandoned(ctx, tid)
+		go fbo.TeamAbandoned(libkb.CopyTagsToBackground(ctx), tid)
 	}
 }
 

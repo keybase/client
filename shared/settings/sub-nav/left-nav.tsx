@@ -62,12 +62,26 @@ const LeftNav = (props: Props) => {
           </>
         )}
         <SettingsItem
-          text="Your account"
+          text="Account"
           selected={props.selected === C.Settings.settingsAccountTab}
           type={C.Settings.settingsAccountTab}
           onClick={props.onClick}
           badgeNumber={badgeNumbers.get(TabConstants.settingsTab)}
         />
+        <SettingsItem
+          text="Advanced"
+          type={C.Settings.settingsAdvancedTab}
+          selected={props.selected === C.Settings.settingsAdvancedTab}
+          onClick={props.onClick}
+        />
+        {C.featureFlags.archive ? (
+          <SettingsItem
+            text="Backup"
+            type={C.Settings.settingsArchiveTab}
+            selected={props.selected === C.Settings.settingsArchiveTab}
+            onClick={props.onClick}
+          />
+        ) : null}
         <SettingsItem
           text="Chat"
           type={C.Settings.settingsChatTab}
@@ -83,28 +97,36 @@ const LeftNav = (props: Props) => {
           />
         )}
         <SettingsItem
-          text="Files"
-          type={C.Settings.settingsFsTab}
-          selected={props.selected === C.Settings.settingsFsTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
-          badgeNumber={badgeNotifications ? 1 : 0}
-          text="Notifications"
-          type={C.Settings.settingsNotificationsTab}
-          selected={props.selected === C.Settings.settingsNotificationsTab}
-          onClick={props.onClick}
-        />
-        <SettingsItem
           text="Display"
           type={C.Settings.settingsDisplayTab}
           selected={props.selected === C.Settings.settingsDisplayTab}
           onClick={props.onClick}
         />
         <SettingsItem
-          text="About"
-          type={C.Settings.settingsAboutTab}
-          selected={props.selected === C.Settings.settingsAboutTab}
+          text="Feedback"
+          type={C.Settings.settingsFeedbackTab}
+          selected={props.selected === C.Settings.settingsFeedbackTab}
+          onClick={props.onClick}
+        />
+        <SettingsItem
+          text="Files"
+          type={C.Settings.settingsFsTab}
+          selected={props.selected === C.Settings.settingsFsTab}
+          onClick={props.onClick}
+        />
+        {!Kb.Styles.isTablet && (
+          <SettingsItem
+            text="Invitations"
+            type={C.Settings.settingsInvitationsTab}
+            selected={props.selected === C.Settings.settingsInvitationsTab}
+            onClick={props.onClick}
+          />
+        )}
+        <SettingsItem
+          badgeNumber={badgeNotifications ? 1 : 0}
+          text="Notifications"
+          type={C.Settings.settingsNotificationsTab}
+          selected={props.selected === C.Settings.settingsNotificationsTab}
           onClick={props.onClick}
         />
 
@@ -117,37 +139,16 @@ const LeftNav = (props: Props) => {
           />
         )}
         <SettingsItem
-          text="Feedback"
-          type={C.Settings.settingsFeedbackTab}
-          selected={props.selected === C.Settings.settingsFeedbackTab}
-          onClick={props.onClick}
-        />
-        {!Kb.Styles.isTablet && (
-          <SettingsItem
-            text="Invitations"
-            type={C.Settings.settingsInvitationsTab}
-            selected={props.selected === C.Settings.settingsInvitationsTab}
-            onClick={props.onClick}
-          />
-        )}
-        <SettingsItem
-          text="Advanced"
-          type={C.Settings.settingsAdvancedTab}
-          selected={props.selected === C.Settings.settingsAdvancedTab}
-          onClick={props.onClick}
-        />
-        {C.featureFlags.archive ? (
-          <SettingsItem
-            text="Archive"
-            type={C.Settings.settingsArchiveTab}
-            selected={props.selected === C.Settings.settingsArchiveTab}
-            onClick={props.onClick}
-          />
-        ) : null}
-        <SettingsItem
           text="Wallet"
           type={C.Settings.settingsWalletsTab}
           selected={props.selected === C.Settings.settingsWalletsTab}
+          onClick={props.onClick}
+        />
+        <Kb.Divider />
+        <SettingsItem
+          text="About"
+          type={C.Settings.settingsAboutTab}
+          selected={props.selected === C.Settings.settingsAboutTab}
           onClick={props.onClick}
         />
         {/* TODO: Do something with logoutInProgress once Offline is

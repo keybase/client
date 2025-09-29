@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const getOptions = C.isMobile ? {title: 'Archive'} : undefined
+const getOptions = C.isMobile ? {title: 'Backup'} : undefined
 
 const Archive = React.lazy(async () => import('.'))
 

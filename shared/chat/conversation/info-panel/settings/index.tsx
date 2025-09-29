@@ -111,13 +111,37 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <Kb.Button
               type="Default"
               mode="Secondary"
-              label="Archive channel"
+              label="Backup channel"
               onClick={onArchive}
               icon="iconfont-folder-downloads"
               iconColor={Kb.Styles.globalColors.black}
             />
           </Kb.Box2>
         ) : null}
+        {entityType !== 'channel' &&
+          (ignored ? (
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+              <Kb.Button
+                type="Default"
+                mode="Secondary"
+                label="Unhide this conversation"
+                onClick={onUnhideConv}
+                icon="iconfont-unhide"
+                iconColor={Kb.Styles.globalColors.red}
+              />
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+              <Kb.Button
+                type="Default"
+                mode="Secondary"
+                label="Hide this conversation"
+                onClick={onHideConv}
+                icon="iconfont-unhide"
+                iconColor={Kb.Styles.globalColors.red}
+              />
+            </Kb.Box2>
+          ))}
         <RetentionPicker
           conversationIDKey={
             ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.Chat.noConversationIDKey
@@ -149,26 +173,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 iconColor={Kb.Styles.globalColors.red}
               />
             )}
-            {entityType !== 'channel' &&
-              (ignored ? (
-                <Kb.Button
-                  type="Danger"
-                  mode="Secondary"
-                  label="Unhide this conversation"
-                  onClick={onUnhideConv}
-                  icon="iconfont-unhide"
-                  iconColor={Kb.Styles.globalColors.red}
-                />
-              ) : (
-                <Kb.Button
-                  type="Danger"
-                  mode="Secondary"
-                  label="Hide this conversation"
-                  onClick={onHideConv}
-                  icon="iconfont-unhide"
-                  iconColor={Kb.Styles.globalColors.red}
-                />
-              ))}
           </Kb.Box2>
         ) : null}
       </Kb.Box2>

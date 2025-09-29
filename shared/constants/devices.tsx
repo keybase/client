@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as C from '@/constants'
 import * as T from './types'
+import debounce from 'lodash/debounce'
 
 const initialStore: T.Devices.State = {
   deviceMap: new Map(),
@@ -22,23 +23,27 @@ export const useState_ = Z.createZustand<State>(set => {
     clearBadges: () => {
       C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
     },
-    load: () => {
-      const f = async () => {
-        const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
-        set(s => {
-          C.updateImmerMap(
-            s.deviceMap,
-            new Map(
-              results?.map(r => {
-                const d = rpcDeviceToDevice(r)
-                return [d.deviceID, d]
-              })
+    load: debounce(
+      () => {
+        const f = async () => {
+          const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+          set(s => {
+            C.updateImmerMap(
+              s.deviceMap,
+              new Map(
+                results?.map(r => {
+                  const d = rpcDeviceToDevice(r)
+                  return [d.deviceID, d]
+                })
+              )
             )
-          )
-        })
-      }
-      C.ignorePromise(f())
-    },
+          })
+        }
+        C.ignorePromise(f())
+      },
+      1000,
+      {leading: true, trailing: false}
+    ),
     resetState: 'default',
     setBadges: b => {
       set(s => {

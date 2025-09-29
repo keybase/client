@@ -52,7 +52,7 @@
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace",
-    "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local",
+    "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
     "pod-install": "cd ios; pod install --repo-update",
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "NODE_ENV=development react-native run-android --mode 'debug'",

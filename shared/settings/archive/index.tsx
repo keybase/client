@@ -196,7 +196,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
     : null
   const revisionBehindStr =
     job.kbfsRevision < currentTLFRevision
-      ? `Archive revision ${job.kbfsRevision} behind TLF revision ${currentTLFRevision}. Make a new archive if needed.`
+      ? `Backup revision ${job.kbfsRevision} behind TLF revision ${currentTLFRevision}. Make a new backup if needed.`
       : null
 
   return (
@@ -346,30 +346,30 @@ const Archive = C.featureFlags.archive
               {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
               <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
                 <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
-                  Easily archive your Keybase data by choosing 'archive' in chat and files or click to archive
+                  Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup
                   all.
                 </Kb.Text>
               </Kb.Box2>
               {C.isMobile ? (
                 <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
                   <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                    <Kb.Button small={C.isMobile} label="Archive all chat" onClick={archiveChat} />
-                    <Kb.Button small={C.isMobile} label="Archive all files" onClick={archiveFS} />
+                    <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+                    <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
                   </Kb.Box2>
                   <Kb.Box2 direction="horizontal" alignSelf="center">
-                    <Kb.Button small={C.isMobile} label="Archive all Git repos" onClick={archiveGit} />
+                    <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
                   </Kb.Box2>
                 </Kb.Box2>
               ) : (
                 <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                  <Kb.Button small={C.isMobile} label="Archive all chat" onClick={archiveChat} />
-                  <Kb.Button small={C.isMobile} label="Archive all files" onClick={archiveFS} />
-                  <Kb.Button small={C.isMobile} label="Archive all Git repos" onClick={archiveGit} />
+                  <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+                  <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+                  <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
                 </Kb.Box2>
               )}
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text type="Header">Active archive jobs</Kb.Text>
+              <Kb.Text type="Header">Active backup jobs</Kb.Text>
               {chatJobs.length + kbfsJobs.length ? (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
                   {chatJobs.map((id, idx) => (
@@ -389,7 +389,7 @@ const Archive = C.featureFlags.archive
                 </Kb.Box2>
               ) : (
                 <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
-                  <Kb.Text type="Body">• No active archive jobs</Kb.Text>
+                  <Kb.Text type="Body">• No active backup jobs</Kb.Text>
                 </Kb.Box2>
               )}
             </Kb.Box2>

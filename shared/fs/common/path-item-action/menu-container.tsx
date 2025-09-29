@@ -251,7 +251,7 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-folder-downloads',
           onClick: hideAfter(() => onArchive()),
-          title: 'Archive folder',
+          title: 'Backup folder',
         },
       ] as const)
     : []
