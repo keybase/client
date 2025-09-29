@@ -13,7 +13,7 @@ import type {
   ModalType,
   ScreenComponentProps,
 } from '@/constants/types/router2'
-import type {NavigatorScreen, NavScreensResult} from './shim'
+import type {NavScreensResult} from './shim'
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
@@ -130,7 +130,7 @@ const ModalWrapper = (p: WrapProps) => {
 
   if (modal2) {
     return (
-      <EscapeHandler onESC={topMostModal ? navigation.pop : undefined}>
+      <EscapeHandler onESC={topMostModal ? () => navigation.pop() : undefined}>
         <Kb.Box2Div
           key="background"
           direction="horizontal"

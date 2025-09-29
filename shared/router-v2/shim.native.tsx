@@ -1,11 +1,16 @@
-import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import type {RouteMap, RouteDef, GetOptions, GetOptionsParams, ScreenComponentProps} from '@/constants/types/router2'
+import type {
+  RouteMap,
+  RouteDef,
+  GetOptions,
+  GetOptionsParams,
+  ScreenComponentProps,
+} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {NavigatorScreen, NavScreensResult} from './shim'
+import type {NavScreensResult} from './shim'
 
 const makeNavScreen = (
   name: keyof KBRootParamList,
