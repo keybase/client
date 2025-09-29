@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
-import {makeNavScreens, type Screen} from './shim'
+import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import {StatusBar, View} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
@@ -16,6 +16,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import * as Hooks from './hooks.native'
 import * as TabBar from './tab-bar.native'
+import type {RootParamList} from '@/router-v2/route-params'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -27,7 +28,7 @@ const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
-const TabStackNavigator = createNativeStackNavigator()
+const TabStackNavigator = createNativeStackNavigator<RootParamList>()
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
   animation: 'simple_push',
@@ -35,11 +36,13 @@ const tabStackOptions = {
   orientation: 'portrait',
 } as const
 
-// eslint-disable-next-line
-const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen as Screen, false, false)
+const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
 const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
   return (
-    <TabStackNavigator.Navigator initialRouteName={tabRoots[p.route.name]} screenOptions={tabStackOptions}>
+    <TabStackNavigator.Navigator
+      initialRouteName={tabRoots[p.route.name] || undefined}
+      screenOptions={tabStackOptions}
+    >
       {tabScreens}
     </TabStackNavigator.Navigator>
   )
@@ -104,10 +107,8 @@ const AppTabs = React.memo(
   () => true
 )
 
-const LoggedOutStack = createNativeStackNavigator()
-
-// eslint-disable-next-line
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen as Screen, false, true)
+const LoggedOutStack = createNativeStackNavigator<RootParamList>()
+const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
   headerShown: false,
@@ -121,12 +122,13 @@ const LoggedOut = React.memo(function LoggedOut() {
   )
 })
 
-const RootStack = createNativeStackNavigator()
+const RootStack = createNativeStackNavigator<
+  RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
+>()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }
-// eslint-disable-next-line
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen as Screen, true, false)
+const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',

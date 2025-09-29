@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as Kb from '@/common-adapters'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
 import type {
@@ -10,15 +11,15 @@ import type {
   RouteMap,
   GetOptionsRet,
   ModalType,
+  ScreenComponentProps,
 } from '@/constants/types/router2'
-import type {Screen} from './shim'
+import type {NavScreensResult} from './shim'
 
 // to reduce closing over too much memory
 const makeOptions = (val: RouteDef) => {
-  return ({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
+  return ({route, navigation}: GetOptionsParams) => {
     const no = val.getOptions
-    // eslint-disable-next-line
-    const opt = typeof no === 'function' ? no({navigation, route} as any) : no
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
     return {...opt}
   }
 }
@@ -26,7 +27,7 @@ const makeOptions = (val: RouteDef) => {
 const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: Screen,
+  Screen: React.ComponentType<any>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -42,18 +43,15 @@ const makeNavScreen = (
       }
     : undefined
 
-  return (
-    <Screen
-      key={String(name)}
-      navigationKey={name}
-      name={name}
-      getComponent={getScreen}
-      options={makeOptions(rd)}
-    />
-  )
+  return <Screen key={String(name)} name={name} getComponent={getScreen} options={makeOptions(rd)} />
 }
 
-export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
+  rs: RouteMap,
+  Screen: T['Screen'],
+  isModal: boolean,
+  isLoggedOut: boolean
+): NavScreensResult =>
   (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
     makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
   )
@@ -61,7 +59,7 @@ export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, i
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
-const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
+const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, noClose?: boolean) => {
   const backgroundRef = React.useRef<HTMLDivElement>(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
@@ -100,7 +98,7 @@ const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
 }
 type WrapProps = {
   navigationOptions?: GetOptionsRet
-  navigation: {pop: () => void}
+  navigation: NativeStackNavigationProp<KBRootParamList>
   children: React.ReactNode
 }
 
@@ -132,7 +130,7 @@ const ModalWrapper = (p: WrapProps) => {
 
   if (modal2) {
     return (
-      <EscapeHandler onESC={topMostModal ? navigation.pop : undefined}>
+      <EscapeHandler onESC={topMostModal ? () => navigation.pop() : undefined}>
         <Kb.Box2Div
           key="background"
           direction="horizontal"
@@ -185,17 +183,18 @@ const wrapInStrict = (_route: string) => {
 }
 
 const platformShim = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
+  Original: React.JSXElementConstructor<ScreenComponentProps>,
   isModal: boolean,
   _isLoggedOut: boolean,
   getOptions?: GetOptions
-) => {
+): React.ComponentType<any> => {
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
-    const original = <Original {...props} />
+
+    const original = <Original {...(props as any as ScreenComponentProps)} />
     let body = original
 
     if (isModal) {

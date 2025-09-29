@@ -1,4 +1,5 @@
 import type {RouteProp} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {RootParamListGit} from '../git/routes'
 import type {RootParamListPeople} from '../people/routes'
 import type {RootParamListProfile} from '../profile/routes'
@@ -52,7 +53,7 @@ export type RootParamList = RootParamListIncomingShare &
   RootParamListDevices &
   RootParamListSettings &
   RootParamListGit &
-  Tabs & {loggedIn: undefined}
+  Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined} // special in root navigator
 
 export type RouteKeys = keyof RootParamList
 type AllOptional<T> = {
@@ -76,9 +77,7 @@ export type RouteProps2<RouteName extends keyof RootParamList> = {
   route: RouteName extends TabRoots
     ? Partial<RouteProp<RootParamList, RouteName>>
     : RouteProp<RootParamList, RouteName>
-  navigation: {
-    pop: () => void
-  }
+  navigation: NativeStackNavigationProp<RootParamList, RouteName>
 }
 
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
