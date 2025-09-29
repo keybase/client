@@ -2,21 +2,21 @@ import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {RouteMap, RouteDef, GetOptions, GetOptionsParams, ScreenComponentProps} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NavigatorScreen, NavScreensResult} from './shim'
 
-const makeNavScreen = <ParamList extends Record<string, object | undefined> = any>(
+const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: NavigatorScreen<ParamList>,
+  Screen: NavigatorScreen<KBRootParamList>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
   const origGetScreen = rd.getScreen
 
-  let wrappedGetComponent: undefined | React.ComponentType<any>
+  let wrappedGetComponent: undefined | React.ComponentType<GetOptionsParams>
   const getScreen = origGetScreen
     ? () => {
         if (wrappedGetComponent === undefined) {
@@ -31,7 +31,7 @@ const makeNavScreen = <ParamList extends Record<string, object | undefined> = an
       key={String(name)}
       name={name}
       getComponent={getScreen}
-      options={({route, navigation}: {route: C.Router2.Route; navigation: C.Router2.Navigator}) => {
+      options={({route, navigation}: GetOptionsParams) => {
         const no = rd.getOptions
         const opt = typeof no === 'function' ? no({navigation, route}) : no
         return {
@@ -43,9 +43,9 @@ const makeNavScreen = <ParamList extends Record<string, object | undefined> = an
   )
 }
 
-export const makeNavScreens = <ParamList extends Record<string, object | undefined> = any>(
+export const makeNavScreens = (
   rs: RouteMap,
-  Screen: NavigatorScreen<ParamList>,
+  Screen: NavigatorScreen<KBRootParamList>,
   isModal: boolean,
   isLoggedOut: boolean
 ): NavScreensResult =>
@@ -56,13 +56,14 @@ export const makeNavScreens = <ParamList extends Record<string, object | undefin
 const modalOffset = isIOS ? 40 : 0
 
 const platformShim = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
+  Original: React.JSXElementConstructor<ScreenComponentProps>,
   isModal: boolean,
   isLoggedOut: boolean,
   getOptions?: GetOptions
-): React.ComponentType<any> => {
+): React.ComponentType<GetOptionsParams> => {
   if (!isModal && !isLoggedOut) {
-    return Original
+    // No transformation needed - just type assertion since shapes are compatible
+    return Original as React.ComponentType<GetOptionsParams>
   }
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
@@ -77,7 +78,7 @@ const platformShim = (
           <Kb.SafeAreaView
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
           >
-            <Original {...props} />
+            <Original {...(props as any as ScreenComponentProps)} />
           </Kb.SafeAreaView>
         </SafeAreaProvider>
       </Kb.KeyboardAvoidingView2>

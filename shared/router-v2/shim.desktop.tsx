@@ -46,7 +46,6 @@ const makeNavScreen = (
   return (
     <Screen
       key={String(name)}
-      navigationKey={name}
       name={name}
       getComponent={getScreen}
       options={makeOptions(rd)}
@@ -202,15 +201,9 @@ const platformShim = (
         ? getOptions({navigation: props.navigation, route: props.route})
         : getOptions
     
-    // Transform GetOptionsParams to ScreenComponentProps
-    const transformedProps: ScreenComponentProps = {
-      navigation: props.navigation,
-      route: {
-        params: props.route.params
-      }
-    }
-    
-    const original = <Original {...transformedProps} />
+    // No runtime transformation needed - RouteProp already has params property
+    // This is just a type assertion since the shapes are compatible
+    const original = <Original {...(props as any as ScreenComponentProps)} />
     let body = original
 
     if (isModal) {
