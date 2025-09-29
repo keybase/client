@@ -272,6 +272,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
           const isActive = activeSectionKey
             ? bookmark.coveredSectionKeys.has(activeSectionKey)
             : bookmarkIndex === 0
+          const secKey = bookmark.coveredSectionKeys.values().next().value ?? ''
           return (
             <Kb.Box
               key={bookmark.sectionIndex}
@@ -283,7 +284,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
                 padding="tiny"
                 color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
                 onClick={() => {
-                  setActiveSectionKey(bookmark.coveredSectionKeys.values().next().value ?? '')
+                  setActiveSectionKey(secKey)
                   sectionListRef.current?.scrollToLocation({
                     animated: true,
                     itemIndex: 0,
