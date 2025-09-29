@@ -183,6 +183,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
   
+  func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
+      RNCPushNotificationIOS.didRegister(notificationSettings)
+    }
+  
   public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
   }
@@ -221,7 +225,16 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     RNCPushNotificationIOS.didReceive(response)
+    completionHandler()
   }
+  
+  public func userNotificationCenter(
+      _ center: UNUserNotificationCenter,
+      willPresent notification: UNNotification,
+      withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+      completionHandler([.alert, .badge, .sound])
+    }
   
   public override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
