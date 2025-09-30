@@ -132,6 +132,7 @@ android {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
         }
     }
 
