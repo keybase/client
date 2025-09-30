@@ -75,6 +75,26 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
+    sh '''#!/bin/bash
+      source  ~/.gvm/scripts/gvm
+      gvm install go1.23.12 -B && gvm use go1.23.12 --default
+      source  ~/.nvm/nvm.sh
+      nvm install 24 && nvm use 24 && nvm alias default 24
+
+      # Capture both Go and Node environment variables
+      echo "GOROOT=$(go env GOROOT)" > build_env
+      echo "NODE_PATH=$(npm root -g)" >> build_env
+      echo "PATH=$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+  '''
+
+  // Load and set all environment variables globally using shell commands
+  env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
+  env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
+  env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
+
+  // Clean up temporary file
+  sh 'rm -f build_env'
+
   def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),

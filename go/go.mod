@@ -2,7 +2,7 @@ module github.com/keybase/client/go
 
 go 1.23.0
 
-toolchain go1.23.4
+toolchain go1.23.12
 
 require (
 	bazil.org/fuse v0.0.0-20200424023519-3c101025617f
