@@ -85,6 +85,7 @@ helpers.rootLinuxNode(env, {
       echo "GOROOT=$(go env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
       echo "PATH=$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      cat build_env
   '''
 
   // Load and set all environment variables globally using shell commands
@@ -94,6 +95,10 @@ helpers.rootLinuxNode(env, {
 
   // Clean up temporary file
   sh 'rm -f build_env'
+
+  env.GOVERSION = sh(returnStdout: true, script: 'go version').trim()
+  env.NODEVERSION = sh(returnStdout: true, script: 'node --version').trim()
+  println "GOPATH: ${env.GOPATH} Go version: ${env.GOVERSION} Node version: ${env.NODEVERSION}"
 
   def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
   def images = [
