@@ -167,14 +167,16 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
 
+	begin := time.Now()
+	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
 			setInited()
 		}
+		fmt.Printf("Go: Init complete: %v", time.Since(begin))
 	}()
 
-	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if isIOS {
 		// buffer of bytes
 		buffer = make([]byte, 300*1024)
@@ -316,6 +318,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		}
 	}()
 
+	fmt.Printf("Go: Init complete\n")
 	return nil
 }
 
