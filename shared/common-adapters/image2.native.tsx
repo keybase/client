@@ -1,7 +1,7 @@
 import * as React from 'react'
 import LoadingStateView from './loading-state-view'
 import type {Props} from './image2'
-import {Image, type ImageLoadEventData} from 'expo-image'
+import {Image, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
 
 const Image2 = (p: Props) => {
   const {
@@ -30,9 +30,9 @@ const Image2 = (p: Props) => {
   }
 
   const _onError = React.useCallback(
-    (e: unknown) => {
+    (e: ImageErrorEventData) => {
       setLoading(false)
-      console.log('Image2 load error', e)
+      console.log('Image2 load error', e.error)
       onError?.()
     },
     [setLoading, onError]
