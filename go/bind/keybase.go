@@ -174,7 +174,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		if err == nil {
 			setInited()
 		}
-		fmt.Printf("Go: Init complete: %v", time.Since(begin))
+		fmt.Printf("Go: Init complete: %v\n", time.Since(begin))
 	}()
 
 	if isIOS {
