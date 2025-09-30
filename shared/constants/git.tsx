@@ -2,6 +2,7 @@ import * as C from '.'
 import * as T from './types'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
+import debounce from 'lodash/debounce'
 
 const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -96,15 +97,19 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     C.ignorePromise(wrapper())
   }
 
-  const _load = async () => {
-    const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
-    const {errors, repos} = parseRepos(results || [])
-    const {setGlobalError} = C.useConfigState.getState().dispatch
-    errors.forEach(e => setGlobalError(e))
-    set(s => {
-      s.idToInfo = repos
-    })
-  }
+  const _load = debounce(
+    async () => {
+      const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
+      const {errors, repos} = parseRepos(results || [])
+      const {setGlobalError} = C.useConfigState.getState().dispatch
+      errors.forEach(e => setGlobalError(e))
+      set(s => {
+        s.idToInfo = repos
+      })
+    },
+    1000,
+    {leading: true, trailing: false}
+  )
   const load = () => {
     C.ignorePromise(_load())
   }

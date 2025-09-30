@@ -3,7 +3,6 @@ import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProfileConstants from './profile'
 import * as Router2Constants from './router2'
-import * as Tabs from './tabs'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
@@ -3013,7 +3012,6 @@ export const useState_ = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
         C.useRouterState.getState().dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
           C.useRouterState.getState().dispatch.navigateAppend({
@@ -3131,7 +3129,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await T.RPCGen.teamsUploadTeamAvatarRpcPromise(
-            {crop, filename, sendChatNotification, teamname},
+            {crop: C.fixCrop(crop), filename, sendChatNotification, teamname},
             ProfileConstants.uploadAvatarWaitingKey
           )
           C.useRouterState.getState().dispatch.navigateUp()

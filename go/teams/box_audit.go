@@ -1193,7 +1193,7 @@ func (a *BoxAuditor) MaybeScheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, te
 		mctx.Debug("no re-scheduling a delayed box audit since we're calling recursively based on context")
 		return
 	}
-	go a.scheduleDelayedBoxAuditTeam(mctx, teamID)
+	go a.scheduleDelayedBoxAuditTeam(mctx.BackgroundWithLogTags(), teamID)
 }
 
 func (a *BoxAuditor) scheduleDelayedBoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) {

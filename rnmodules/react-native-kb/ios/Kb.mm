@@ -14,10 +14,7 @@
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
 #import "./KBJSScheduler.h"
-
-#ifdef RCT_NEW_ARCH_ENABLED
 #import "RNKbSpec.h"
-#endif
 
 using namespace facebook::jsi;
 using namespace facebook;
@@ -124,12 +121,10 @@ return @[ metaEventName ];
 }
 
 // Don't compile this code when we build for the old architecture.
-#ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
 (const facebook::react::ObjCTurboModule::InitParams &)params {
-return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
+    return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
-#endif
 
 - (void)sendToJS:(NSData *)data {
   __weak __typeof__(self) weakSelf = self;
@@ -303,22 +298,13 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
-#if defined(RCT_NEW_ARCH_ENABLED)
 @synthesize callInvoker = _callInvoker;
-#endif
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
-#if defined(RCT_NEW_ARCH_ENABLED)
     RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
     _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
     auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
     jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, _callInvoker.callInvoker);
-#else // (RCT_NEW_ARCH_ENABLED)
-    _jsRuntime = [self.bridge respondsToSelector:@selector(runtime)]
-    ? reinterpret_cast<facebook::jsi::Runtime *>(self.bridge.runtime)
-    : nullptr;
-    jsScheduler = std::make_shared<KBJSScheduler>(*_jsRuntime, self.bridge.jsCallInvoker);
-#endif
 
     // stash the current runtime to keep in sync
     auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {

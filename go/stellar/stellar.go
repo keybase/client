@@ -742,7 +742,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendPayment")
 		}
 		if sendArg.QuickReturn {
-			go sendChat(mctx.WithCtx(context.Background()))
+			go sendChat(mctx.BackgroundWithLogTags())
 		} else {
 			sendChat(mctx)
 		}
@@ -890,7 +890,7 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendPathPayment")
 		}
 		if sendArg.QuickReturn {
-			go sendChat(mctx.WithCtx(context.Background()))
+			go sendChat(mctx.BackgroundWithLogTags())
 		} else {
 			sendChat(mctx)
 		}
@@ -1327,7 +1327,7 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendRelayPayment")
 		}
 		if post.QuickReturn {
-			go sendChat(mctx.WithCtx(context.Background()))
+			go sendChat(mctx.BackgroundWithLogTags())
 		} else {
 			sendChat(mctx)
 		}

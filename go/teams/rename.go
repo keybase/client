@@ -119,7 +119,9 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		go func() { _ = mctx.G().GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String()) }()
+		go func() {
+			_ = mctx.G().GetTeamLoader().NotifyTeamRename(mctx.BackgroundWithLogTags().Ctx(), subteam.ID, newName.String())
+		}()
 
 		return nil
 	})

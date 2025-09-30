@@ -19,9 +19,12 @@ import (
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/release/version"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 const defaultCacheControl = "max-age=60"
@@ -63,16 +66,16 @@ func (s ByRelease) Less(i, j int) bool {
 
 // Client is an S3 client
 type Client struct {
-	svc *s3.S3
+	svc *s3.Client
 }
 
 // NewClient constructs a Client
 func NewClient() (*Client, error) {
-	sess, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1")})
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
 		return nil, err
 	}
-	svc := s3.New(sess)
+	svc := s3.NewFromConfig(cfg)
 	return &Client{svc: svc}, nil
 }
 
@@ -84,7 +87,7 @@ func convertEastern(t time.Time) time.Time {
 	return t.In(locationNewYork)
 }
 
-func loadReleases(objects []*s3.Object, bucketName string, prefix string, suffix string, truncate int) []Release {
+func loadReleases(objects []types.Object, bucketName string, prefix string, suffix string, truncate int) []Release {
 	var releases []Release
 	for _, obj := range objects {
 		if strings.HasSuffix(*obj.Key, suffix) {
@@ -164,11 +167,11 @@ func WriteHTML(bucketName string, prefixes string, suffix string, outPath string
 		}
 
 		log.Printf("Uploading to %s", uploadDest)
-		_, err = client.svc.PutObject(&s3.PutObjectInput{
+		_, err = client.svc.PutObject(context.TODO(), &s3.PutObjectInput{
 			Bucket:        aws.String(bucketName),
 			Key:           aws.String(uploadDest),
 			CacheControl:  aws.String(defaultCacheControl),
-			ACL:           aws.String("public-read"),
+			ACL:           types.ObjectCannedACLPublicRead,
 			Body:          bytes.NewReader(buf.Bytes()),
 			ContentLength: aws.Int64(int64(buf.Len())),
 			ContentType:   aws.String("text/html"),
@@ -278,16 +281,16 @@ func Platforms(name string) ([]Platform, error) {
 	}
 }
 
-func listAllObjects(bucketName string, prefix string) ([]*s3.Object, error) {
+func listAllObjects(bucketName string, prefix string) ([]types.Object, error) {
 	client, err := NewClient()
 	if err != nil {
 		return nil, err
 	}
 
 	marker := ""
-	objs := make([]*s3.Object, 0, 1000)
+	objs := make([]types.Object, 0, 1000)
 	for {
-		resp, err := client.svc.ListObjects(&s3.ListObjectsInput{
+		resp, err := client.svc.ListObjects(context.TODO(), &s3.ListObjectsInput{
 			Bucket:    aws.String(bucketName),
 			Delimiter: aws.String("/"),
 			Prefix:    aws.String(prefix),
@@ -394,12 +397,12 @@ func (c *Client) CopyLatest(bucketName string, platform string, dryRun bool) err
 			return nil
 		}
 
-		_, err := c.svc.CopyObject(&s3.CopyObjectInput{
+		_, err := c.svc.CopyObject(context.TODO(), &s3.CopyObjectInput{
 			Bucket:       aws.String(bucketName),
 			CopySource:   aws.String(url),
 			Key:          aws.String(platform.LatestName),
 			CacheControl: aws.String(defaultCacheControl),
-			ACL:          aws.String("public-read"),
+			ACL:          types.ObjectCannedACLPublicRead,
 		})
 		if err != nil {
 			return err
@@ -442,7 +445,7 @@ func (c *Client) copyFromReleases(platform Platform, bucketName string) (release
 func (c *Client) CurrentUpdate(bucketName string, channel string, platformName string, env string) (currentUpdate *Update, path string, err error) {
 	path = updateJSONName(channel, platformName, env)
 	log.Printf("Fetching current update at %s", path)
-	resp, err := c.svc.GetObject(&s3.GetObjectInput{
+	resp, err := c.svc.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(path),
 	})
@@ -533,12 +536,12 @@ func (c *Client) promoteAReleaseToProd(releaseName string, bucketName string, pl
 		return release, nil
 	}
 	log.Printf("PutCopying %s to %s\n", jsonURL, jsonName)
-	_, err = c.svc.CopyObject(&s3.CopyObjectInput{
+	_, err = c.svc.CopyObject(context.TODO(), &s3.CopyObjectInput{
 		Bucket:       aws.String(bucketName),
 		CopySource:   aws.String(jsonURL),
 		Key:          aws.String(jsonName),
 		CacheControl: aws.String(defaultCacheControl),
-		ACL:          aws.String("public-read"),
+		ACL:          types.ObjectCannedACLPublicRead,
 	})
 	return release, err
 }
@@ -610,12 +613,12 @@ func (c *Client) PromoteRelease(bucketName string, delay time.Duration, beforeHo
 	jsonURL := urlString(bucketName, platform.PrefixSupport, fmt.Sprintf("update-%s-%s-%s.json", platform.Name, env, release.Version))
 	jsonName := updateJSONName(toChannel, platform.Name, env)
 	log.Printf("PutCopying %s to %s\n", jsonURL, jsonName)
-	_, err = c.svc.CopyObject(&s3.CopyObjectInput{
+	_, err = c.svc.CopyObject(context.TODO(), &s3.CopyObjectInput{
 		Bucket:       aws.String(bucketName),
 		CopySource:   aws.String(jsonURL),
 		Key:          aws.String(jsonName),
 		CacheControl: aws.String(defaultCacheControl),
-		ACL:          aws.String("public-read"),
+		ACL:          types.ObjectCannedACLPublicRead,
 	})
 
 	if err != nil {
@@ -633,12 +636,12 @@ func copyUpdateJSON(bucketName string, fromChannel string, toChannel string, pla
 	jsonURLSource := urlString(bucketName, "", updateJSONName(fromChannel, platformName, env))
 
 	log.Printf("PutCopying %s to %s\n", jsonURLSource, jsonNameDest)
-	_, err = client.svc.CopyObject(&s3.CopyObjectInput{
+	_, err = client.svc.CopyObject(context.TODO(), &s3.CopyObjectInput{
 		Bucket:       aws.String(bucketName),
 		CopySource:   aws.String(jsonURLSource),
 		Key:          aws.String(jsonNameDest),
 		CacheControl: aws.String(defaultCacheControl),
-		ACL:          aws.String("public-read"),
+		ACL:          types.ObjectCannedACLPublicRead,
 	})
 	return err
 }
@@ -760,12 +763,12 @@ func ReleaseBroken(releaseName string, bucketName string, platformName string) (
 			brokenPath := fmt.Sprintf("broken/%s", path)
 			log.Printf("Copying %s to %s", sourceURL, brokenPath)
 
-			_, err := client.svc.CopyObject(&s3.CopyObjectInput{
+			_, err := client.svc.CopyObject(context.TODO(), &s3.CopyObjectInput{
 				Bucket:       aws.String(bucketName),
 				CopySource:   aws.String(sourceURL),
 				Key:          aws.String(brokenPath),
 				CacheControl: aws.String(defaultCacheControl),
-				ACL:          aws.String("public-read"),
+				ACL:          types.ObjectCannedACLPublicRead,
 			})
 			if err != nil {
 				log.Printf("There was an error trying to (put) copy %s: %s", sourceURL, err)
@@ -773,7 +776,7 @@ func ReleaseBroken(releaseName string, bucketName string, platformName string) (
 			}
 
 			log.Printf("Deleting: %s", path)
-			_, err = client.svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucketName), Key: aws.String(path)})
+			_, err = client.svc.DeleteObject(context.TODO(), &s3.DeleteObjectInput{Bucket: aws.String(bucketName), Key: aws.String(path)})
 			if err != nil {
 				return removed, err
 			}
@@ -834,11 +837,11 @@ func SaveLog(bucketName string, localPath string, maxNumBytes int64) (string, er
 	}
 	uploadDest := filepath.ToSlash(filepath.Join("logs", fmt.Sprintf("%s-%s%s", filename, logID, ".txt")))
 
-	_, err = client.svc.PutObject(&s3.PutObjectInput{
+	_, err = client.svc.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:        aws.String(bucketName),
 		Key:           aws.String(uploadDest),
 		CacheControl:  aws.String(defaultCacheControl),
-		ACL:           aws.String("public-read"),
+		ACL:           types.ObjectCannedACLPublicRead,
 		Body:          bytes.NewReader(data),
 		ContentLength: aws.Int64(int64(len(data))),
 		ContentType:   aws.String("text/plain"),
