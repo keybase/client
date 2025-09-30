@@ -318,7 +318,6 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		}
 	}()
 
-	fmt.Printf("Go: Init complete\n")
 	return nil
 }
 
