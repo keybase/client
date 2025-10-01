@@ -85,7 +85,7 @@ export const Input2 = React.memo(
       const commonStyle = Styles.collapseStyles([styles.common, textStyle as any])
 
       const lineHeight = textStyle.lineHeight
-      let lineStyle
+      let lineStyle = new Array<Styles.StylesCrossPlatform>()
       if (multiline) {
         const defaultRowsToShow = Math.min(2, rowsMax ?? 2)
         const paddingStyles = padding ? Styles.padding(Styles.globalMargins[padding]) : {}

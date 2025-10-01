@@ -17,10 +17,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function
   } = props
   const getItemLayout = React.useMemo(() => {
     return getItemHeight && getSectionHeaderHeight
-      ? getGetItemLayout({
-          getItemHeight,
-          getSectionHeaderHeight,
-        })
+      ? getGetItemLayout({getItemHeight: getItemHeight as any, getSectionHeaderHeight})
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
@@ -88,7 +85,7 @@ interface SectionFooter {
 type ListElement = SectionHeader | Row | SectionFooter
 
 export interface Parameters {
-  getItemHeight: (rowData: any, sectionIndex: number, rowIndex: number) => number
+  getItemHeight: (rowData: unknown, sectionIndex: number, rowIndex: number) => number
   getSeparatorHeight?: (sectionIndex: number, rowIndex: number) => number
   getSectionHeaderHeight?: (sectionIndex: number) => number
   getSectionFooterHeight?: (sectionIndex: number) => number

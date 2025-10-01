@@ -76,9 +76,9 @@ react {
 }
 
 /**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ * Set this to true in release builds to optimize the app using [R8](https://developer.android.com/topic/performance/app-optimization/enable-app-optimization).
  */
-def enableProguardInReleaseBuilds = false
+def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBuilds') ?: false).toBoolean()
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -105,6 +105,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getVersionCode()
         versionName VERSION_NAME
+        buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         // KB added
         multiDexEnabled true
     }
@@ -123,7 +124,7 @@ android {
         }
         release {
             signingConfig signingConfigs.release
-            minifyEnabled enableProguardInReleaseBuilds
+            minifyEnabled enableMinifyInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
         releaseUnsigned.initWith(buildTypes.release)
@@ -131,6 +132,7 @@ android {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
         }
     }
 
@@ -168,16 +170,16 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.9.1'
+    implementation 'androidx.work:work-runtime:2.10.5'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:24.0.1"
+    implementation "com.google.firebase:firebase-messaging:25.0.1"
     implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
-    implementation 'org.msgpack:msgpack-core:0.9.0'
+    implementation 'org.msgpack:msgpack-core:0.9.10'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.8.5"
-    implementation "androidx.lifecycle:lifecycle-process:2.8.5"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.9.4"
+    implementation "androidx.lifecycle:lifecycle-process:2.9.4"
 }
 
 // This requires a google-services.json file locally.  Drop it in

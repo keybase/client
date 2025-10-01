@@ -67,11 +67,11 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
   const listRef = React.useRef</*FlashList<RowItem> | */ FlatList<RowItem> | null>(null)
 
   const onScrollUnbox = C.useDebouncedCallback(
-    (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+    (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
       const {viewableItems} = data
       const item = viewableItems[0]
       if (item && Object.hasOwn(item, 'index')) {
-        askForUnboxing(viewableItems.map(i => i.item as RowItem))
+        askForUnboxing(viewableItems.map(i => i.item))
       }
     },
     1000

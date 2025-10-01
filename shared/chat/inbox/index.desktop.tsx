@@ -4,13 +4,12 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
-import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {VariableSizeList} from 'react-window'
+import {List, type RowComponentProps} from 'react-window'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import './inbox.css'
@@ -123,7 +122,13 @@ const DragLine = (p: {
   }, [setInboxNumSmallRows, inboxNumSmallRows, deltaNewSmallRows])
 
   return (
-    <div style={{...style, position: 'relative'}}>
+    <div
+      style={{
+        ...style,
+        // so the fake rows are above items further down the list
+        zIndex: 999,
+      }}
+    >
       {showButton && !smallTeamsExpanded && (
         <>
           <div
@@ -185,53 +190,47 @@ type InboxRowData = {
   toggleSmallTeamsExpanded: () => void
 }
 
-const InboxRow = React.memo(
-  (p: {data: InboxRowData; index: number; style: object}) => {
-    const {index, style, data} = p
-    const {rows, scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = data
-    const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = data
-    const row = rows[index]
-    if (!row) {
-      // likely small teams were just collapsed
-      return null
-    }
+const InboxRow = React.memo((p: RowComponentProps<InboxRowData>) => {
+  const {index, style, rows} = p
+  const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
+  const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = p
+  const row = rows[index]
+  if (!row) {
+    // likely small teams were just collapsed
+    return null
+  }
 
-    const divStyle = style
+  const divStyle = style
 
-    if (row.type === 'divider') {
-      return (
-        <DragLine
-          scrollDiv={scrollDiv}
-          inboxNumSmallRows={inboxNumSmallRows}
-          showButton={row.showButton}
-          smallTeamsExpanded={smallTeamsExpanded}
-          style={divStyle}
-          toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
-          rows={rows}
-          setInboxNumSmallRows={setInboxNumSmallRows}
-        />
-      )
-    }
-    if (row.type === 'teamBuilder') {
-      return (
-        <div style={divStyle}>
-          <BuildTeam />
-        </div>
-      )
-    }
-
-    // pointer events on so you can click even right after a scroll
+  if (row.type === 'divider') {
     return (
-      <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}]) as React.CSSProperties}>
-        {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+      <DragLine
+        scrollDiv={scrollDiv}
+        inboxNumSmallRows={inboxNumSmallRows}
+        showButton={row.showButton}
+        smallTeamsExpanded={smallTeamsExpanded}
+        style={divStyle}
+        toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
+        rows={rows}
+        setInboxNumSmallRows={setInboxNumSmallRows}
+      />
+    )
+  }
+  if (row.type === 'teamBuilder') {
+    return (
+      <div style={divStyle}>
+        <BuildTeam />
       </div>
     )
-  },
-  (prev, next) => {
-    // we ignore extra props the react-window passes in, especially isScrolling
-    return prev.index === next.index && prev.style === next.style && prev.data === next.data
   }
-)
+
+  // pointer events on so you can click even right after a scroll
+  return (
+    <div style={{...divStyle, pointerEvents: 'auto'}}>
+      {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+    </div>
+  )
+})
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props
@@ -241,8 +240,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
 
-  const listRef = React.useRef<VariableSizeList>(null)
-  const dragListRef = React.useRef<HTMLDivElement>(null)
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
 
   // stuff for UnreadShortcut
@@ -293,13 +290,13 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
 
   const onItemsRenderedDebounced = C.useDebouncedCallback(
     React.useCallback(
-      (p: {visibleStartIndex: number; visibleStopIndex: number}) => {
+      (p: {startIndex: number; stopIndex: number}) => {
         if (!isMounted()) {
           return
         }
-        const {visibleStartIndex, visibleStopIndex} = p
+        const {startIndex, stopIndex} = p
         const toUnbox = rows
-          .slice(visibleStartIndex, visibleStopIndex + 1)
+          .slice(startIndex, stopIndex + 1)
           .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
             if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
               arr.push(r.conversationIDKey)
@@ -315,11 +312,6 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   )
 
   const rowsLength = rows.length
-  React.useEffect(() => {
-    if (smallTeamsExpanded !== lastSmallTeamsExpanded.current || rowsLength !== lastRowsLength.current) {
-      listRef.current?.resetAfterIndex(0, true)
-    }
-  }, [rowsLength, smallTeamsExpanded])
 
   const calculateShowUnreadShortcut = React.useCallback(() => {
     if (!isMounted()) {
@@ -356,10 +348,10 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
 
   const onItemsRendered = React.useCallback(
-    ({visibleStartIndex, visibleStopIndex}: {visibleStartIndex: number; visibleStopIndex: number}) => {
-      lastVisibleIdx.current = visibleStopIndex
+    ({startIndex, stopIndex}: {startIndex: number; stopIndex: number}) => {
+      lastVisibleIdx.current = stopIndex
       calculateShowUnreadShortcutThrottled()
-      onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+      onItemsRenderedDebounced({startIndex, stopIndex})
     },
     [calculateShowUnreadShortcutThrottled, onItemsRenderedDebounced]
   )
@@ -433,35 +425,15 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   return (
     <Kb.ErrorBoundary>
       <Kb.Box className="inbox-hover-container" style={styles.container}>
-        <div style={styles.list} ref={dragListRef}>
+        <div style={styles.list} ref={scrollDiv}>
           {rows.length ? (
-            <AutoSizer doNotBailOutOnEmptyChildren={true}>
-              {(p: {height?: number; width?: number}) => {
-                let {height = 1, width = 1} = p
-                if (isNaN(height)) {
-                  height = 1
-                }
-                if (isNaN(width)) {
-                  width = 1
-                }
-
-                return (
-                  <VariableSizeList
-                    height={height}
-                    width={width}
-                    ref={listRef}
-                    outerRef={scrollDiv}
-                    onItemsRendered={onItemsRendered}
-                    itemCount={rows.length}
-                    itemSize={itemSizeGetter}
-                    estimatedItemSize={56}
-                    itemData={itemData}
-                  >
-                    {InboxRow}
-                  </VariableSizeList>
-                )
-              }}
-            </AutoSizer>
+            <List
+              onRowsRendered={onItemsRendered}
+              rowCount={rows.length}
+              rowHeight={itemSizeGetter}
+              rowComponent={InboxRow}
+              rowProps={itemData}
+            />
           ) : null}
         </div>
         {floatingDivider || (rows.length === 0 && <BuildTeam />)}
@@ -578,7 +550,10 @@ const styles = Kb.Styles.styleSheetCreate(
         width: Kb.Styles.globalMargins.small,
       },
       hover: {backgroundColor: Kb.Styles.globalColors.blueGreyDark},
-      list: {flex: 1},
+      list: {
+        flex: 1,
+        height: '100%',
+      },
       rowWithDragger: {
         height: 68,
       },

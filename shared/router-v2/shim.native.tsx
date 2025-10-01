@@ -1,15 +1,21 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import type {RouteMap, RouteDef, GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {
+  RouteMap,
+  RouteDef,
+  GetOptions,
+  GetOptionsParams,
+  ScreenComponentProps,
+} from '@/constants/types/router2'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {Screen} from './shim'
+import type {NavScreensResult} from './shim'
 
 const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: Screen,
+  Screen: React.ComponentType<any>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
@@ -30,9 +36,9 @@ const makeNavScreen = (
       key={String(name)}
       name={name}
       getComponent={getScreen}
-      options={({route, navigation}: {route: unknown; navigation: unknown}) => {
+      options={({route, navigation}: GetOptionsParams) => {
         const no = rd.getOptions
-        const opt = typeof no === 'function' ? no({navigation, route} as GetOptionsParams) : no
+        const opt = typeof no === 'function' ? no({navigation, route}) : no
         return {
           ...opt,
           ...(isModal ? {animationEnabled: true} : {}),
@@ -42,7 +48,12 @@ const makeNavScreen = (
   )
 }
 
-export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, isLoggedOut: boolean) =>
+export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
+  rs: RouteMap,
+  Screen: T['Screen'],
+  isModal: boolean,
+  isLoggedOut: boolean
+): NavScreensResult =>
   (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
     makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
   )
@@ -50,13 +61,13 @@ export const makeNavScreens = (rs: RouteMap, Screen: Screen, isModal: boolean, i
 const modalOffset = isIOS ? 40 : 0
 
 const platformShim = (
-  Original: React.JSXElementConstructor<GetOptionsParams>,
+  Original: React.JSXElementConstructor<ScreenComponentProps>,
   isModal: boolean,
   isLoggedOut: boolean,
   getOptions?: GetOptions
 ): React.ComponentType<any> => {
   if (!isModal && !isLoggedOut) {
-    return Original
+    return Original as React.ComponentType<any>
   }
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   return React.memo(function ShimmedNew(props: GetOptionsParams) {
@@ -71,7 +82,7 @@ const platformShim = (
           <Kb.SafeAreaView
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
           >
-            <Original {...props} />
+            <Original {...(props as any as ScreenComponentProps)} />
           </Kb.SafeAreaView>
         </SafeAreaProvider>
       </Kb.KeyboardAvoidingView2>

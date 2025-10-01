@@ -149,11 +149,9 @@ const Providers = React.memo(({filter, providerClicked, providers}: ProvidersPro
   }, [filter, filterRegexp, providers])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.flexOne}>
-        <Kb.List2 items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
-      </Kb.Box2>
-    </Kb.Box2>
+    <Kb.BoxGrow2>
+      <Kb.List2 items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
+    </Kb.BoxGrow2>
   )
 })
 

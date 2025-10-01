@@ -8,11 +8,12 @@ import {
   createNavigatorFactory,
   type NavigationContainerRef,
 } from '@react-navigation/core'
+import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import decryptIO from './decrypt.inout.page'
 import encryptIO from './encrypt.inout.page'
 import signIO from './sign.inout.page'
 import verifyIO from './verify.inout.page'
-import {makeNavScreens, type Screen} from '@/router-v2/shim'
+import {makeNavScreens} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -67,8 +68,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   nav: {width: 180},
 }))
 
-const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
-const TabNavigator = createLeftTabNavigator() as {Screen: Screen; Navigator: any}
+type NavType = NavigatorTypeBagBase & {
+  ParamList: {
+    [key in keyof typeof cryptoSubRoutes]: undefined
+  }
+}
+
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
+  NavType,
+  StaticConfig<NavigatorTypeBagBase>
+>
+const TabNavigator = createLeftTabNavigator()
 const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">

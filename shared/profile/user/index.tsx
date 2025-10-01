@@ -6,13 +6,13 @@ import Actions from './actions/container'
 import Assertion from '@/tracker2/assertion'
 import Bio from '@/tracker2/bio'
 import Friend from './friend'
-import Measure from './measure'
 import Teams from './teams'
 import chunk from 'lodash/chunk'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
+import useResizeObserver from '@/util/use-resize-observer'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -313,7 +313,9 @@ const User = (p: Props2) => {
     usernameSelectedTab.set(p.username, tab)
   }
 
-  const onMeasured = (width: number) => setWidth(width)
+  // desktop only
+  const wrapperRef = React.useRef<Kb.MeasureRef | null>(null)
+  useResizeObserver(wrapperRef.current?.divRef ?? null, e => setWidth(e.contentRect.width))
 
   const lastUsernameRef = React.useRef(p.username)
   React.useEffect(() => {
@@ -423,32 +425,29 @@ const User = (p: Props2) => {
         fullHeight={true}
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
-        <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          {!Kb.Styles.isMobile && <Measure onMeasured={onMeasured} />}
-          {!!width && (
-            <Kb.SectionList<Section>
-              key={p.username + width /* force render on user change or width change */}
-              desktopReactListTypeOverride="variable"
-              desktopItemSizeEstimatorOverride={() => 113}
-              getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
-              stickySectionHeadersEnabled={true}
-              renderSectionHeader={renderSectionHeader}
-              keyExtractor={keyExtractor}
-              sections={
-                [
-                  bioTeamProofsSection,
-                  {
-                    data: chunks,
-                    itemWidth,
-                    renderItem: renderOtherUsers,
-                  },
-                ] as const
-              }
-              style={styles.sectionList}
-              contentContainerStyle={styles.sectionListContentStyle}
-            />
-          )}
-        </Kb.Box2>
+        <Kb.Box2Measure direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
+          <Kb.SectionList<Section>
+            key={p.username}
+            desktopReactListTypeOverride="variable"
+            desktopItemSizeEstimatorOverride={() => 113}
+            getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
+            stickySectionHeadersEnabled={true}
+            renderSectionHeader={renderSectionHeader}
+            keyExtractor={keyExtractor}
+            sections={
+              [
+                bioTeamProofsSection,
+                {
+                  data: chunks,
+                  itemWidth,
+                  renderItem: renderOtherUsers,
+                },
+              ] as const
+            }
+            style={styles.sectionList}
+            contentContainerStyle={styles.sectionListContentStyle}
+          />
+        </Kb.Box2Measure>
       </Kb.Box2>
     </Kb.Reloadable>
   )
