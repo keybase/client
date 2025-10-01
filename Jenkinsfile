@@ -224,6 +224,7 @@ helpers.rootLinuxNode(env, {
                 if (hasGoChanges || hasJenkinsfileChanges) {
                   // install the updater test binary
                   dir('go') {
+                    sh "env"
                     sh "go install github.com/keybase/client/go/updater/test"
                   }
                   testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
