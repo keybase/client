@@ -75,6 +75,11 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
+
+  def WINDOWS_PATH = ""
+  helpers.nodeWithCleanup('windows-ssh', {}, {}) {
+    WINDOWS_PATH="${env.PATH}"
+  }
   sh '''#!/bin/bash
       source  ~/.gvm/scripts/gvm
       gvm install go1.23.12 -B && gvm use go1.23.12 --default
@@ -287,7 +292,7 @@ helpers.rootLinuxNode(env, {
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";%PATH%",
+                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
