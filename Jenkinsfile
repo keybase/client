@@ -88,7 +88,6 @@ helpers.rootLinuxNode(env, {
       cat build_env
   '''
 
-  // Load and set all environment variables globally using shell commands
   if (isUnix()) {
     env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
     env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
