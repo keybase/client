@@ -7,7 +7,7 @@ PODS:
   - EXImageLoader (6.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (54.0.10):
+  - Expo (54.0.11):
     - ExpoModulesCore
     - hermes-engine
     - RCTRequired
@@ -40,9 +40,9 @@ PODS:
     - ZXingObjC/PDF417
   - ExpoClipboard (8.0.7):
     - ExpoModulesCore
-  - ExpoContacts (15.0.8):
+  - ExpoContacts (15.0.9):
     - ExpoModulesCore
-  - ExpoFileSystem (19.0.15):
+  - ExpoFileSystem (19.0.16):
     - ExpoModulesCore
   - ExpoFont (14.0.8):
     - ExpoModulesCore
@@ -66,7 +66,7 @@ PODS:
   - ExpoMediaLibrary (18.2.0):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (3.0.18):
+  - ExpoModulesCore (3.0.19):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2494,12 +2494,12 @@ SPEC CHECKSUMS:
   EXAV: e3fefaca88f14624bca01d9a128562a5f8e738f8
   EXConstants: a95804601ee4a6aa7800645f9b070d753b1142b3
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
-  Expo: ed2c8446d6edec2855eda785aa8afde41b25afd4
+  Expo: daeeff1f297db1c942bc73369a997290bead4b45
   ExpoAsset: 9ba6fbd677fb8e241a3899ac00fa735bc911eadf
   ExpoCamera: e75f6807a2c047f3338bbadd101af4c71a1d13a5
   ExpoClipboard: af650d14765f19c60ce2a1eaf9dfe6445eff7365
-  ExpoContacts: f39087ad6b85f388184a52f9858393b2800b0d2e
-  ExpoFileSystem: 5fb091ea11198e109ceef2bdef2e6e66523e62c4
+  ExpoContacts: daf63b6345b974e62e192d7b43ce3e027b4eb4cc
+  ExpoFileSystem: f4bf6bac4ede3b6671c22777f01102a02a028412
   ExpoFont: 86ceec09ffed1c99cfee36ceb79ba149074901b5
   ExpoHaptics: 807476b0c39e9d82b7270349d6487928ce32df84
   ExpoImage: e88f500585913969b930e13a4be47277eb7c6de8
@@ -2508,7 +2508,7 @@ SPEC CHECKSUMS:
   ExpoLocation: 93d7faa0c2adbd5a04686af0c1a61bc6ed3ee2f7
   ExpoMailComposer: f513efa3833a7dbd64065e54d5d61585b43fd9b2
   ExpoMediaLibrary: 641a6952299b395159ccd459bd8f5f6764bf55fe
-  ExpoModulesCore: fa0d48b82163d549371e37503630edb78e2fbf89
+  ExpoModulesCore: 700c9553ee584636363177102e0fe6a86688cecd
   ExpoSMS: 10cd15976285c7e42f91790d6584eea53dc4e026
   EXTaskManager: cf225704fab8de8794a6f57f7fa41a90c0e2cd47
   FBLazyVector: 9e0cd874afd81d9a4d36679daca991b58b260d42
