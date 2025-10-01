@@ -16,14 +16,14 @@ const Row = React.memo(function Row(
 })
 
 function List2<T>(props: Props<T>) {
-  const {items, renderItem} = props
-  const {style, itemHeight} = props
+  const {items, renderItem, style, itemHeight} = props
 
   // Need to pass in itemData to make items re-render on prop changes.
   const _fixed = (p: {itemHeight: number}) => {
     const {itemHeight} = p
     return (
       <List
+        listRef={props.desktopRef as any}
         style={
           {
             height: '100%',
@@ -59,6 +59,7 @@ function List2<T>(props: Props<T>) {
     case 'variable':
       return (
         <List
+          listRef={props.desktopRef as any}
           style={
             {
               height: '100%',
