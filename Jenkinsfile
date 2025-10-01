@@ -216,6 +216,7 @@ helpers.rootLinuxNode(env, {
               }},
               test_linux_go: { withEnv([
                 "PATH=${env.PATH}:${env.GOPATH}/bin",
+                "GOROOT=${env.GOROOT}",
                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                 "GPG=/usr/bin/gpg.distrib",
