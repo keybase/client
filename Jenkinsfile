@@ -75,7 +75,7 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
-    sh '''#!/bin/bash
+  sh '''#!/bin/bash
       source  ~/.gvm/scripts/gvm
       gvm install go1.23.12 -B && gvm use go1.23.12 --default
       source  ~/.nvm/nvm.sh
@@ -89,12 +89,12 @@ helpers.rootLinuxNode(env, {
   '''
 
   // Load and set all environment variables globally using shell commands
-  env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
-  env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
-  env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
-
-  // Clean up temporary file
-  sh 'rm -f build_env'
+  if (isUnix()) {
+    env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
+    env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
+    env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
+    sh 'rm -f build_env'
+  }
 
   env.GOVERSION = sh(returnStdout: true, script: 'go version').trim()
   env.NODEVERSION = sh(returnStdout: true, script: 'node --version').trim()
@@ -224,7 +224,6 @@ helpers.rootLinuxNode(env, {
                 if (hasGoChanges || hasJenkinsfileChanges) {
                   // install the updater test binary
                   dir('go') {
-                    sh "env"
                     sh "go install github.com/keybase/client/go/updater/test"
                   }
                   testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
@@ -292,7 +291,7 @@ helpers.rootLinuxNode(env, {
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\Program Files\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"C:\\windows\\system32\";\"${GOPATH}\\bin\";${env.PATH}",
+                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
