@@ -90,7 +90,6 @@ helpers.rootLinuxNode(env, {
 
   env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
   env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
-  env.ORIGINAL_PATH = env.PATH
   env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
   sh 'rm -f build_env'
 
@@ -288,7 +287,7 @@ helpers.rootLinuxNode(env, {
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.ORIGINAL_PATH}",
+                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";%PATH%",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
