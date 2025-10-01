@@ -90,7 +90,7 @@ helpers.rootLinuxNode(env, {
 
   env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
   env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
-  //env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
+  env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
   sh 'rm -f build_env'
 
   env.GOVERSION = sh(returnStdout: true, script: 'go version').trim()
