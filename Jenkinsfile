@@ -287,7 +287,7 @@ helpers.rootLinuxNode(env, {
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
+                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";%PATH%",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
