@@ -103,12 +103,9 @@ export const RecsAndRecos = (
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
-  > &
-    Types.OnScrollProps & {
-      recommendedHideYourself: boolean
-    }
+  > & {recommendedHideYourself: boolean}
 ) => {
-  const {highlightedIndex, recommendations, onScroll, recommendedHideYourself, namespace} = props
+  const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
 
   const sectionListRef = React.useRef<Kb.SectionListRef>(null)
@@ -167,7 +164,6 @@ export const RecsAndRecos = (
           keyboardShouldPersistTaps="handled"
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
-          onScroll={onScroll}
           selectedIndex={Kb.Styles.isMobile ? undefined : highlightedIndex || 0}
           sections={recommendations ?? []}
           keyExtractor={(item: Types.ResultData, index: number) => {

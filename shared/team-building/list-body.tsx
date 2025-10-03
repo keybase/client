@@ -248,11 +248,6 @@ export const ListBody = (
     [userResults, _teamSoFar, username, following, preExistingTeamMembers]
   )
 
-  // TODO this crashes out renimated 3 https://github.com/software-mansion/react-native-reanimated/issues/2285
-  // in the tab bar, so we just disconnect the shared value for now, likely can just leave this as-is
-  // const onScroll: any = useAnimatedScrollHandler({onScroll: e => (offset.value = e.contentOffset.y)})
-  const onScroll = undefined
-
   const showResults = !!searchString
   const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
 
@@ -314,7 +309,6 @@ export const ListBody = (
       <RecsAndRecos
         highlightedIndex={highlightedIndex}
         recommendations={recommendations}
-        onScroll={onScroll}
         recommendedHideYourself={recommendedHideYourself}
         namespace={namespace}
         selectedService={selectedService}
@@ -337,7 +331,6 @@ export const ListBody = (
         <Kb.List
           reAnimated={true}
           items={searchResults}
-          onScroll={onScroll}
           selectedIndex={highlightedIndex || 0}
           style={styles.list}
           contentContainerStyle={styles.listContentContainer}
