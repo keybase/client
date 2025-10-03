@@ -80,10 +80,10 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     int size = o.via.bin.size;
 
     // make ArrayBuffer and copy in data
+    // non-owning
     static Function* cachedUint8ArrayCtor = nullptr;
     static Runtime* cachedRuntime = nullptr;
     if (cachedRuntime != &runtime) {
-        delete cachedUint8ArrayCtor;
         cachedUint8ArrayCtor = nullptr;
         cachedRuntime = &runtime;
     }
@@ -151,11 +151,11 @@ void RpcOnJS(Runtime &runtime, ShareValues values, void (*err_callback)(const st
       return;
     }
 
+    // non-owning
     static Function* cachedRpcOnJs = nullptr;
     static Runtime* cachedRuntime = nullptr;
 
     if (cachedRuntime != &runtime) {
-      delete cachedRpcOnJs;
       cachedRpcOnJs = nullptr;
       cachedRuntime = &runtime;
     }
