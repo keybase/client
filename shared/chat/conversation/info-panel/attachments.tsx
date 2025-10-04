@@ -5,14 +5,13 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import chunk from 'lodash/chunk'
-import type {Section} from '@/common-adapters/section-list'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 
 type Props = {
   renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+  commonSections: ReadonlyArray<{data: ReadonlyArray<any>; type: 'header-section'}>
 }
 
 const monthNames = [
@@ -103,12 +102,12 @@ type SectionTypes =
   | {type: 'load-more'}
   | {type: 'header-section'}
 
-type InfoPanelSection = Section<
-  unknown,
-  SectionTypes & {
-    renderSectionHeader?: (props: {section: SectionTypes}) => React.ReactElement | null
-  }
->
+type InfoPanelSection = SectionTypes & {
+  data: Array<any>
+  key?: string
+  renderItem: ({item}: {item: unknown; index: number}) => React.ReactElement | null
+  renderSectionHeader?: (props: {section: SectionTypes}) => React.ReactElement | null
+}
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)

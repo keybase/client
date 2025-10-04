@@ -3,14 +3,28 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import type {Section as _Section} from '@/common-adapters/section-list'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   username: string
 }
-type Extra = {renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null}
-type Section = _Section<string | T.RPCGen.FeaturedBot, Extra> | _Section<{key: string}, Extra>
+
+type ItemBot = T.RPCGen.FeaturedBot
+type ItemHeader = {key: 'header-item'}
+type Item = string | ItemBot | ItemHeader
+type Section = {
+  key: string
+  title?: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
+}
+
+function isHeader(item: Item): item is ItemHeader {
+  // eslint-disable-next-line
+  return (item as ItemHeader).key === 'header-item'
+}
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
@@ -170,7 +184,7 @@ const styles = Styles.styleSheetCreate(
 
 type Props = {
   renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section>
+  commonSections: ReadonlyArray<Section>
 }
 
 const inThisChannelHeader = 'bots: in this channel'
@@ -279,15 +293,19 @@ const BotTab = (props: Props) => {
     ...(loadingBots ? [featuredBotSpinner] : []),
   ]
 
-  const sections = [
+  const sections: Array<Section> = [
     {
       data: items,
       key: 'bots',
-      keyExtractor: (item: (typeof items)[number], index: number) => {
+      keyExtractor: (item: Item, index: number) => {
         if (typeof item === 'string' || item instanceof String) {
-          return item
+          return String(item)
         }
-        return item.botUsername ? 'abot-' + item.botUsername : index
+
+        if (isHeader(item)) {
+          return String(index)
+        }
+        return item.botUsername ? 'abot-' + item.botUsername : String(index)
       },
       renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {

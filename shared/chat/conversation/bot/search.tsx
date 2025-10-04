@@ -8,12 +8,19 @@ import {Bot} from '../info-panel/bot'
 
 type Props = {teamID?: T.Teams.TeamID}
 
-const renderSectionHeader = ({section}: {section: {title: string}}) => {
+const renderSectionHeader = ({section}: {section: {title?: string}}) => {
   return <Kb.SectionDivider label={section.title} />
 }
 
 const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
+
+type Item = string | T.RPCGen.FeaturedBot
+type Section = {
+  title: string
+  data: Item[]
+  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+}
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -21,7 +28,10 @@ const SearchBotPopup = (props: Props) => {
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const botSearchResults = C.useBotsState(s => s.botSearchResults)
-  const waiting = C.Waiting.useAnyWaiting([C.Bots.waitingKeyBotSearchUsers, C.Bots.waitingKeyBotSearchFeatured])
+  const waiting = C.Waiting.useAnyWaiting([
+    C.Bots.waitingKeyBotSearchUsers,
+    C.Bots.waitingKeyBotSearchFeatured,
+  ])
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
@@ -54,14 +64,14 @@ const SearchBotPopup = (props: Props) => {
 
   const botData: Array<T.RPCGen.FeaturedBot | string> =
     lastQuery.length > 0
-      ? botSearchResults.get(lastQuery)?.bots.slice() ?? []
+      ? (botSearchResults.get(lastQuery)?.bots.slice() ?? [])
       : C.Bots.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }
-  const botSection = {
+  const botSection: Section = {
     data: botData,
-    renderItem: ({index, item}: {index: number; item: T.RPCGen.FeaturedBot | string}) => {
+    renderItem: ({index, item}: {index: number; item: Item}) => {
       return item === resultEmptyPlaceholder ? (
         <Kb.Text
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
@@ -77,16 +87,16 @@ const SearchBotPopup = (props: Props) => {
   }
   const userData = !lastQuery.length
     ? [userEmptyPlaceholder]
-    : botSearchResults
+    : (botSearchResults
         .get(lastQuery)
         ?.users.filter(u => !featuredBotsMap.get(u))
-        .slice(0, 3) ?? []
+        .slice(0, 3) ?? [])
   if (!userData.length && !waiting) {
     userData.push(resultEmptyPlaceholder)
   }
-  const usersSection = {
+  const usersSection: Section = {
     data: userData,
-    renderItem: ({item}: {item: string}) => {
+    renderItem: ({item}: {item: Item}) => {
       return (
         <Kb.Box2
           direction="horizontal"
@@ -99,7 +109,7 @@ const SearchBotPopup = (props: Props) => {
             <Kb.Text type="BodySmall">No results were found</Kb.Text>
           ) : (
             <Kb.NameWithIcon
-              username={item}
+              username={item as string}
               horizontal={true}
               colorFollowing={true}
               onClick={onSelect}

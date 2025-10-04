@@ -2,23 +2,20 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
-import SafeReactList from '@/common-adapters/safe-react-list'
-import type RL from 'react-list'
 import {BotCommandUpdateStatus} from './shared'
+import {useListRef} from 'react-window'
 
 const SuggestionList = <I,>(props: Props<I>) => {
-  const listRef = React.useRef<RL>(null)
+  const listRef = useListRef(undefined)
   const {selectedIndex} = props
 
   const lastIndexRef = React.useRef(selectedIndex)
   React.useEffect(() => {
     if (lastIndexRef.current !== selectedIndex) {
-      if (listRef.current) {
-        listRef.current.scrollAround(selectedIndex)
-      }
+      listRef.current?.scrollToRow({index: selectedIndex})
     }
     lastIndexRef.current = selectedIndex
-  }, [selectedIndex])
+  }, [selectedIndex, listRef])
 
   const itemRenderer = (index: number) => {
     const i = props.items[index]
@@ -39,9 +36,12 @@ const SuggestionList = <I,>(props: Props<I>) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
     >
-      <Kb.ScrollView style={styles.fullHeight}>
-        <SafeReactList ref={listRef} itemRenderer={itemRenderer} length={props.items.length} type="uniform" />
-      </Kb.ScrollView>
+      <Kb.List2
+        desktopRef={listRef}
+        renderItem={itemRenderer}
+        items={props.items}
+        itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+      />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
@@ -61,7 +61,11 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
       fullHeight: {height: '100%'},
-      listContainer: {backgroundColor: Kb.Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
+      listContainer: {
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderRadius: 4,
+        maxHeight: 224,
+      },
     }) as const
 )
 

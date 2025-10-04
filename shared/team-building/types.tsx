@@ -63,7 +63,3 @@ export type Props = {
   teamID: T.Teams.TeamID | undefined
   teamSoFar: Array<T.TB.SelectedUser>
 }
-
-export type OnScrollProps = {
-  onScroll: undefined | (() => void)
-}

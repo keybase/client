@@ -2,15 +2,14 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {Section} from '@/common-adapters/section-list'
 import Participant from './participant'
 
 type Props = {
   renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+  commonSections: ReadonlyArray<{type: 'header-section'}>
 }
 
-type ParticipantSectionData =
+type Item =
   | {type: 'auditingItem'}
   | {type: 'spinnerItem'}
   | {key: string; type: 'common'}
@@ -22,7 +21,15 @@ type ParticipantSectionData =
       username: string
       type: 'member'
     }
-type ParticipantSectionType = Section<ParticipantSectionData, {type: 'participant'}>
+
+type Section = {
+  key: string
+  title?: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
+}
 
 const MembersTab = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
