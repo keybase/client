@@ -6,9 +6,11 @@ import {useFuseClosedSourceConsent} from './hooks'
 
 type Props = {
   mode: 'Icon' | 'Button'
+  invert?: boolean
 }
 
 const SFMIPopup = (props: Props) => {
+  const {invert} = props
   const sfmi = C.useFSState(s => s.sfmi)
   const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
   const {driverStatus} = sfmi
@@ -17,7 +19,7 @@ const SFMIPopup = (props: Props) => {
   const enableDriver = React.useCallback(() => driverEnable(), [driverEnable])
   const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
     type === T.FS.DriverStatusType.Disabled && isEnabling,
-    undefined
+    invert
   )
 
   const makePopup = React.useCallback(
