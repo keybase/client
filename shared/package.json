@@ -173,6 +173,7 @@
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "6.1.1",
+    "eslint-plugin-react-compiler": "19.1.0-rc.2",
     "fs-extra": "11.3.2",
     "html-webpack-plugin": "5.6.4",
     "json5": "2.2.3",
