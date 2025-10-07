@@ -105,6 +105,15 @@ android {
         versionName VERSION_NAME
         // KB added
         multiDexEnabled true
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+                cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
+                // Add 16KB page size flags
+                cppFlags "-Wl,-z,max-page-size=16384"
+                cppFlags "-Wl,-z,common-page-size=16384"
+            }
+        }
     }
 
     signingConfigs {
@@ -142,6 +151,7 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+        doNotStrip "**/*.so"
     }
 
     // applicationVariants are e.g. debug, release
