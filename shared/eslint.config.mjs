@@ -1,9 +1,9 @@
 import eslint from '@eslint/js'
 import promise from 'eslint-plugin-promise'
+import reactCompiler from 'eslint-plugin-react-compiler'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
-import {fixupPluginRules} from '@eslint/compat'
 import deprecation from 'eslint-plugin-deprecation'
 import importPlugin from 'eslint-plugin-import'
 
@@ -32,7 +32,7 @@ const ignores = [
 const reactRules = {
   'react-hooks/exhaustive-deps': 'error',
   'react-hooks/rules-of-hooks': 'error',
-  'react-hooks/react-compiler': 'warn',
+  'react-compiler/react-compiler': 'warn',
   'react/boolean-prop-naming': 'error',
   'react/button-has-type': 'off',
   'react/default-props-match-prop-types': 'off',
@@ -340,13 +340,13 @@ export default [
   ...tseslint.config({
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
-    extends: [eslint.configs.all, ...tseslint.configs.recommended],
+    extends: [eslint.configs.all, ...tseslint.configs.recommended, reactCompiler.configs.recommended],
     plugins: {
-      promise: fixupPluginRules(promise),
-      react: fixupPluginRules(react),
-      'react-hooks': fixupPluginRules(reactHooks),
-      deprecation: fixupPluginRules(deprecation),
-      importPlugin: fixupPluginRules(importPlugin),
+      promise,
+      react,
+      'react-hooks': reactHooks,
+      deprecation,
+      importPlugin,
     },
     languageOptions: {
       ecmaVersion: 2022,
