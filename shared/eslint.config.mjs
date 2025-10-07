@@ -154,7 +154,7 @@ const rules = {
   strict: ['error', 'global'],
 }
 
-export default tseslint.config(
+export default [
   {ignores},
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -181,7 +181,7 @@ export default tseslint.config(
         require: 'readonly',
       },
       parserOptions: {
-        projectService: true,
+        project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -215,4 +215,4 @@ export default tseslint.config(
       strict: ['error', 'global'],
     },
   },
-)
+]
