@@ -154,17 +154,15 @@ const rules = {
   strict: ['error', 'global'],
 }
 
-export default [
+export default tseslint.config(
   {ignores},
-  ...tseslint.config({
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  reactCompiler.configs.recommended,
+  {
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
-    extends: [
-      eslint.configs.recommended,
-      ...tseslint.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-      reactCompiler.configs.recommended,
-    ],
     plugins: {
       promise,
       react,
@@ -183,7 +181,8 @@ export default [
         require: 'readonly',
       },
       parserOptions: {
-        project: ['./tsconfig.json'],
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     linterOptions: {
@@ -199,7 +198,7 @@ export default [
       },
       react: {version: 'detect'},
     },
-  }),
+  },
   {
     name: 'js',
     ignores: [...ignores, '**/*.tsx'],
@@ -216,4 +215,4 @@ export default [
       strict: ['error', 'global'],
     },
   },
-]
+)
