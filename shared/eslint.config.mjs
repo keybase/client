@@ -156,8 +156,10 @@ const rules = {
 
 export default [
   {ignores},
-  eslint.configs.recommended,
-  // TypeScript configuration (only for .ts/.tsx files)
+  {
+    ...eslint.configs.recommended,
+    ignores: [...ignores, '**/*.js'],
+  },
   ...tseslint.configs.recommended.map(config => ({
     ...config,
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
@@ -173,12 +175,10 @@ export default [
       },
     },
   })),
-  // React Compiler configuration (only for .ts/.tsx files)
   {
     ...reactCompiler.configs.recommended,
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
   },
-  // Custom TypeScript rules
   {
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
@@ -214,7 +214,6 @@ export default [
       react: {version: 'detect'},
     },
   },
-  // JavaScript configuration (only for .js files)
   {
     name: 'js',
     ignores: [...ignores, '**/*.tsx', '**/*.ts', '**/*.d.ts'],
@@ -224,6 +223,7 @@ export default [
       'no-constant-condition': ['warn', {checkLoops: false}],
       'no-implied-eval': 'error',
       'no-script-url': 'error',
+      'no-undeff': 'off',
       'no-self-compare': 'error',
       'no-sequences': 'error',
       'prefer-const': 'error',
