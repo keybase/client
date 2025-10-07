@@ -157,9 +157,28 @@ const rules = {
 export default [
   {ignores},
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  reactCompiler.configs.recommended,
+  // TypeScript configuration (only for .ts/.tsx files)
+  ...tseslint.configs.recommended.map(config => ({
+    ...config,
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+  })),
+  ...tseslint.configs.recommendedTypeChecked.map(config => ({
+    ...config,
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    languageOptions: {
+      ...config.languageOptions,
+      parserOptions: {
+        project: ['./tsconfig.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  })),
+  // React Compiler configuration (only for .ts/.tsx files)
+  {
+    ...reactCompiler.configs.recommended,
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+  },
+  // Custom TypeScript rules
   {
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
@@ -180,10 +199,6 @@ export default [
         requestAnimationFrame: 'readonly',
         require: 'readonly',
       },
-      parserOptions: {
-        project: ['./tsconfig.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
     },
     linterOptions: {
       reportUnusedDisableDirectives: true,
@@ -199,9 +214,10 @@ export default [
       react: {version: 'detect'},
     },
   },
+  // JavaScript configuration (only for .js files)
   {
     name: 'js',
-    ignores: [...ignores, '**/*.tsx'],
+    ignores: [...ignores, '**/*.tsx', '**/*.ts', '**/*.d.ts'],
     files: ['**/*.js'],
     rules: {
       'array-callback-return': 'error',
