@@ -4,7 +4,6 @@ import reactCompiler from 'eslint-plugin-react-compiler'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
-import {fixupPluginRules} from '@eslint/compat'
 import deprecation from 'eslint-plugin-deprecation'
 import importPlugin from 'eslint-plugin-import'
 
@@ -343,11 +342,11 @@ export default [
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
     extends: [eslint.configs.all, ...tseslint.configs.recommended, reactCompiler.configs.recommended],
     plugins: {
-      promise: fixupPluginRules(promise),
-      react: fixupPluginRules(react),
-      'react-hooks': fixupPluginRules(reactHooks),
-      deprecation: fixupPluginRules(deprecation),
-      importPlugin: fixupPluginRules(importPlugin),
+      promise,
+      react,
+      'react-hooks': reactHooks,
+      deprecation,
+      importPlugin,
     },
     languageOptions: {
       ecmaVersion: 2022,

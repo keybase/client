@@ -39,6 +39,7 @@ export default function AddDevice(ownProps: OwnProps) {
     cancel?.()
     navigateUp()
   }, [cancel, navigateUp])
+
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>
