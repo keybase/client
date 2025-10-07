@@ -38,6 +38,9 @@ else()
   set(JSEXECUTOR_LIB ReactAndroid::jscexecutor)
 endif()
 
+target_link_options(cpp PRIVATE "-Wl,-z,max-page-size=16384")
+target_link_options(cpp PRIVATE "-Wl,-z,common-page-size=16384")
+
 target_link_libraries(
         cpp
         ${LOG_LIB}
