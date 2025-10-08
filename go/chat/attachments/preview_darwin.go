@@ -30,29 +30,42 @@ void MakeVideoThumbnail(const char* inFilename) {
 	AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:videoURL options:nil];
 	AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
 	[generateImg setAppliesPreferredTrackTransform:YES];
-	NSError *error = NULL;
 	CMTime time = CMTimeMake(1, 1);
-	CGImageRef image = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+
+	// Use the modern async API wrapped with a semaphore for synchronous behavior
+	__block CGImageRef image = NULL;
+	dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+
+	[generateImg generateCGImageAsynchronouslyForTime:time completionHandler:^(CGImageRef _Nullable imageRef, CMTime actualTime, NSError * _Nullable error) {
+		if (imageRef != NULL) {
+			image = CGImageRetain(imageRef);
+		}
+		dispatch_semaphore_signal(semaphore);
+	}];
+
+	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
 	duration = CMTimeGetSeconds([asset duration]);
 
-	CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
-	CGImageDestinationRef idst = CGImageDestinationCreateWithData(
-		mutableData, (CFStringRef)UTTypeJPEG.identifier, 1, NULL
-	);
-	NSInteger exif             =    1;
-	CGFloat compressionQuality = 0.70;
-	NSDictionary *props = [
-		[NSDictionary alloc]
-		initWithObjectsAndKeys:[NSNumber numberWithFloat:compressionQuality],
-		kCGImageDestinationLossyCompressionQuality,
-		[NSNumber numberWithInteger:exif],
-		kCGImagePropertyOrientation, nil
-	];
-	CGImageDestinationAddImage(idst, image, (CFDictionaryRef)props);
-	CGImageDestinationFinalize(idst);
-	imageData = [NSData dataWithData:(__bridge_transfer NSData *)mutableData];
-	CFRelease(idst);
-	CGImageRelease(image);
+	if (image != NULL) {
+		CFMutableDataRef mutableData = CFDataCreateMutable(NULL, 0);
+		CGImageDestinationRef idst = CGImageDestinationCreateWithData(
+			mutableData, (CFStringRef)UTTypeJPEG.identifier, 1, NULL
+		);
+		NSInteger exif             =    1;
+		CGFloat compressionQuality = 0.70;
+		NSDictionary *props = [
+			[NSDictionary alloc]
+			initWithObjectsAndKeys:[NSNumber numberWithFloat:compressionQuality],
+			kCGImageDestinationLossyCompressionQuality,
+			[NSNumber numberWithInteger:exif],
+			kCGImagePropertyOrientation, nil
+		];
+		CGImageDestinationAddImage(idst, image, (CFDictionaryRef)props);
+		CGImageDestinationFinalize(idst);
+		imageData = [NSData dataWithData:(__bridge_transfer NSData *)mutableData];
+		CFRelease(idst);
+		CGImageRelease(image);
+	}
 }
 
 const void* ImageData() {
