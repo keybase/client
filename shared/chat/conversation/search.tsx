@@ -7,7 +7,7 @@ import {formatTimeForMessages} from '@/util/timestamp'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
 
-const Container = (ownProps: OwnProps) => {
+const useCommon = (ownProps: OwnProps) => {
   const {style} = ownProps
   const conversationIDKey = C.useChatContext(s => s.id)
   const {hits: _hits, status} = C.useChatContext(s => s.threadSearchInfo)
@@ -120,29 +120,25 @@ const Container = (ownProps: OwnProps) => {
     }
   }, [hasHits, selectResult])
 
-  const Searcher = Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
-
-  return (
-    <Searcher
-      status={status}
-      conversationIDKey={conversationIDKey}
-      onToggleThreadSearch={onToggleThreadSearch}
-      selfHide={selfHide}
-      onCancel={onCancel}
-      hits={hits}
-      style={style}
-      submitSearch={submitSearch}
-      selectResult={selectResult}
-      selectedIndex={selectedIndex}
-      onEnter={onEnter}
-      onUp={onUp}
-      onDown={onDown}
-      onChangedText={onChangedText}
-      inProgress={inProgress}
-      hasResults={hasResults}
-      text={text}
-    />
-  )
+  return {
+    conversationIDKey,
+    hasResults,
+    hits,
+    inProgress,
+    onCancel,
+    onChangedText,
+    onDown,
+    onEnter,
+    onToggleThreadSearch,
+    onUp,
+    selectResult,
+    selectedIndex,
+    selfHide,
+    status,
+    style,
+    submitSearch,
+    text,
+  }
 }
 
 const hitHeight = 30
@@ -153,31 +149,8 @@ type SearchHit = {
   timestamp: number
 }
 
-type SearchProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  submitSearch: () => void
-  selectResult: (arg0: number) => void
-  onEnter: () => void
-  onUp: () => void
-  onDown: () => void
-  onChangedText: (arg0: string) => void
-  inProgress: () => boolean
-  hasResults: () => boolean
-  selectedIndex: number
-  text: string
-  style: Kb.Styles.StylesCrossPlatform
-  onToggleThreadSearch: () => void
-  selfHide: () => void
-  onCancel: () => void
-  hits: {
-    author: string
-    summary: string
-    timestamp: number
-  }[]
-  status: T.Chat.ThreadSearchStatus
-}
-
-const ThreadSearchDesktop = (props: SearchProps) => {
+const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps) {
+  const props = useCommon(p)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
   const {onUp, onDown, onChangedText, onCancel, inProgress, hasResults} = props
   const {selectedIndex, status, text, style, onToggleThreadSearch, selfHide} = props
@@ -289,11 +262,23 @@ const ThreadSearchDesktop = (props: SearchProps) => {
       )}
     </Kb.Box2>
   )
-}
+})
 
-const ThreadSearchMobile = (props: SearchProps) => {
+const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
+  const props = useCommon(p)
   const {hits, onEnter, onUp, onDown, onChangedText} = props
   const {onCancel, inProgress, hasResults, selectedIndex, text, style, status} = props
+
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const onceRef = React.useRef(false)
+  React.useEffect(() => {
+    if (onceRef.current) return
+    onceRef.current = true
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 100)
+  }, [])
+
   return (
     <Kb.Box2 direction="horizontal" style={style}>
       <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
@@ -305,12 +290,7 @@ const ThreadSearchMobile = (props: SearchProps) => {
         <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
             <Kb.PlainInput
-              ref={r => {
-                // setting autofocus on android fails sometimes, this workaround seems to work
-                setTimeout(() => {
-                  r?.focus()
-                }, 100)
-              }}
+              ref={inputRef}
               autoFocus={false}
               flexable={true}
               onChangeText={onChangedText}
@@ -348,7 +328,7 @@ const ThreadSearchMobile = (props: SearchProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -411,4 +391,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
