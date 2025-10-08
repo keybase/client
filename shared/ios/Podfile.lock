@@ -2513,7 +2513,7 @@ SPEC CHECKSUMS:
   EXTaskManager: cf225704fab8de8794a6f57f7fa41a90c0e2cd47
   FBLazyVector: 9e0cd874afd81d9a4d36679daca991b58b260d42
   hermes-engine: 35c763d57c9832d0eef764316ca1c4d043581394
-  KBCommon: 9674f1a43c81e35430c74b7d869650ad17216682
+  KBCommon: bd1f35bb07924f4cc57417b00dab6734747b6423
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
