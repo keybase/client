@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.swift_version = '5.0'
   s.pod_target_xcconfig = { 
     'SWIFT_INSTALL_OBJC_HEADER' => 'YES',
-    'ENABLE_ENHANCED_SECURITY[sdk=iphoneos*]' => 'YES',
-    'ENABLE_POINTER_AUTHENTICATION[sdk=iphoneos*]' => 'YES'
+    'ENABLE_ENHANCED_SECURITY' => 'YES',
+    'ENABLE_POINTER_AUTHENTICATION' => 'YES'
   }
 end
