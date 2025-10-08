@@ -554,7 +554,6 @@
 			);
 			name = "Start Packager";
 			outputPaths = (
-				"$(SRCROOT)/../node_modules/react-native/scripts/.packager.env",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -576,7 +575,6 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/main.jsbundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
