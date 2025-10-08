@@ -2079,6 +2079,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     navigateToThread: (_reason, highlightMessageID, pushBody) => {
       set(s => {
         s.threadSearchInfo.visible = false
+        // force loaded if we're an error
+        if (s.id === C.Chat.pendingErrorConversationIDKey) {
+          s.loaded = true
+        }
       })
 
       const loadMessages = () => {
