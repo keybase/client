@@ -554,6 +554,7 @@
 			);
 			name = "Start Packager";
 			outputPaths = (
+				"$(SRCROOT)/../node_modules/react-native/scripts/.packager.env",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -575,6 +576,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/main.jsbundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -637,6 +639,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
+				DISABLE_MANUAL_TARGET_ORDER_BUILD_WARNING = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_POINTER_AUTHENTICATION = YES;
@@ -692,6 +695,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
+				DISABLE_MANUAL_TARGET_ORDER_BUILD_WARNING = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_POINTER_AUTHENTICATION = YES;
