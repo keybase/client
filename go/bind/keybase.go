@@ -203,13 +203,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	libkb.IsIPad = isIPad
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
-	oldProcs := runtime.GOMAXPROCS(0)
-	newProcs := oldProcs - 2
-	if newProcs <= 0 {
-		newProcs = 1
-	}
-	runtime.GOMAXPROCS(newProcs)
-	fmt.Printf("Go: setting GOMAXPROCS to: %d previous: %d\n", newProcs, oldProcs)
+	//oldProcs := runtime.GOMAXPROCS(0)
+	//newProcs := oldProcs - 2
+	//if newProcs <= 0 {
+	//	newProcs = 1
+	//}
+	//runtime.GOMAXPROCS(newProcs)
+	//fmt.Printf("Go: setting GOMAXPROCS to: %d previous: %d\n", newProcs, oldProcs)
 
 	startTrace(logFile)
 
