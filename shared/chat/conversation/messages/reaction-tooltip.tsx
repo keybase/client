@@ -151,7 +151,7 @@ const ReactionTooltipImpl = (props: Props) => {
               initialNumToRender={19} // Keeps height from trashing on mobile
               sections={sections}
               stickySectionHeadersEnabled={true}
-              disableAbsoluteStickyHeader={true}
+              //disableAbsoluteStickyHeader={true}
               contentContainerStyle={styles.list}
               renderItem={renderItem}
               renderSectionHeader={renderSectionHeader}

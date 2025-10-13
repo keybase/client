@@ -13,7 +13,6 @@ import {
   type RenderableEmoji,
   RPCToEmojiData,
 } from './../../util/emoji'
-import type {Section as _Section} from './../../common-adapters/section-list'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
@@ -77,14 +76,16 @@ const maxEmojiSearchResults = 50
 const notFoundHeight = 224
 
 type Row = {emojis: Array<EmojiData>; key: string}
-type Section = _Section<
-  Row,
-  {
-    // enforce string keys so we can easily reference it for coveredSectionKeys
-    key: string
-    title: string
-  }
->
+type Item = Row
+
+type Section = {
+  key: string
+  title: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem?: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
+}
 
 type Props = {
   addEmoji: () => void
@@ -397,7 +398,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         fullWidth={true}
         style={styles.sectionListContainer}
       >
-        <Kb.SectionList<Section>
+        <Kb.SectionList
           ref={sectionListRef}
           getItemHeight={getEmojiWidthWithPadding}
           getSectionHeaderHeight={getSectionHeaderHeight}
