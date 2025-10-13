@@ -202,14 +202,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 type Item = {type: 'settings-panel'} | {type: 'tabs'} | {type: 'header-item'}
-
-type Section = {
-  title?: string
-  data: ReadonlyArray<Item>
-  keyExtractor?: (item: Item, index: number) => string
-  renderItem?: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
-  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
-}
+type Section = Kb.SectionType<Item>
 
 type Props = {
   isPreview: boolean

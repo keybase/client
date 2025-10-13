@@ -78,14 +78,7 @@ const notFoundHeight = 224
 type Row = {emojis: Array<EmojiData>; key: string}
 type Item = Row
 
-type Section = {
-  key: string
-  title: string
-  data: ReadonlyArray<Item>
-  keyExtractor?: (item: Item, index: number) => string
-  renderItem?: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
-  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
-}
+type Section = Omit<Kb.SectionType<Item>, 'renderItem'> & {key: string; title: string}
 
 type Props = {
   addEmoji: () => void

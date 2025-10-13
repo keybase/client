@@ -21,14 +21,7 @@ type Item =
   | {type: 'loading'; text: string}
   | {type: 'friend'; itemWidth: number; usernames: Array<string>}
 
-type Section = {
-  title?: string
-  data: ReadonlyArray<Item>
-  keyExtractor?: (item: Item, index: number) => string
-  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
-  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
-}
-//type Section = _Section<'bioTeamProofs'> | _Section<ChunkType[number], {itemWidth: number}>
+type Section = Kb.SectionType<Item>
 
 export type Props = {
   assertionKeys?: ReadonlyArray<string>

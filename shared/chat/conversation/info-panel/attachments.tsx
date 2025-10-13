@@ -106,13 +106,7 @@ type Item =
   | {type: 'load-more'}
   | {type: 'header-section'}
 
-type Section = {
-  data: ReadonlyArray<Item>
-  key?: string
-  //title?: string
-  renderItem: ({item}: {item: Item; index: number}) => React.ReactElement | null
-  renderSectionHeader?: (props: {section: Section}) => React.ReactElement | null
-}
+type Section = Kb.SectionType<Item>
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
@@ -514,15 +508,12 @@ export const useAttachmentSections = (
     renderItem: () => (
       <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
     ),
-    //renderSectionHeader: p.renderTabs,
-    //type: 'avselector',
   } as const
 
   const commonSections: Array<Section> = [...(p.commonSections as Array<Section>), avSection]
 
   const loadMoreSection: Section = {
     data: [{type: 'load-more'}],
-    key: 'load-more',
     renderItem: () => {
       const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {

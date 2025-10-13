@@ -28,13 +28,7 @@ type Item =
   | typeof addBotButton
   | typeof featuredBotSpinner
 
-type Section = {
-  title?: string
-  data: ReadonlyArray<Item>
-  keyExtractor?: (item: Item, index: number) => string
-  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
-  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
-}
+type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
