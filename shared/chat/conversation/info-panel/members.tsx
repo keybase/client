@@ -6,7 +6,7 @@ import Participant from './participant'
 
 type Props = {
   renderTabs: () => React.ReactElement | null
-  commonSections: ReadonlyArray<{type: 'header-section'}>
+  commonSections: ReadonlyArray<{key: 'header-section'; data: Array<Item>}>
 }
 
 type Item =
@@ -93,11 +93,12 @@ const MembersTab = (props: Props) => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = showUserProfile
 
-  const participantSection: ParticipantSectionType = {
+  const participantSection: Section = {
     data: showSpinner
       ? [{type: 'spinnerItem'} as const]
       : [...(showAuditingBanner ? [{type: 'auditingItem'} as const] : []), ...participantsItems],
-    renderItem: ({index, item}: {index: number; item: ParticipantSectionData}) => {
+    key: 'participant',
+    renderItem: ({index, item}: {index: number; item: Item}) => {
       if (item.type === 'auditingItem') {
         return (
           <Kb.Banner color="grey" small={true}>
@@ -120,25 +121,14 @@ const MembersTab = (props: Props) => {
       }
       return null
     },
-    type: 'participant',
   }
 
   const sections = [...props.commonSections, participantSection]
-
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      desktopReactListTypeOverride="variable"
-      desktopItemSizeEstimatorOverride={() => 56}
-      getItemHeight={(item, secIdx) => {
-        if (sections[secIdx]?.type === 'participant') {
-          const i = item as ParticipantSectionData
-          return i.type === 'member' && i.username ? 56 : 0
-        }
-        return 0
-      }}
-      renderSectionHeader={({section}) => (section.type === 'participant' ? props.renderTabs() : null)}
+      renderSectionHeader={({section}) => (section.key === 'participant' ? props.renderTabs() : null)}
       sections={sections}
     />
   )
