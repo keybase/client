@@ -1,14 +1,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {Keyboard} from 'react-native'
+import {Pressable, Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './back-button'
 import noop from 'lodash/noop'
-// workaround taps in header not working on android devices
-import {Pressable} from 'react-native-gesture-handler'
 
 const Kb = {
   Badge,

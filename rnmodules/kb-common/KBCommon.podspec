@@ -11,5 +11,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.module_name  = 'KBCommon'
   s.swift_version = '5.0'
-  s.pod_target_xcconfig = { 'SWIFT_INSTALL_OBJC_HEADER' => 'YES' }
+  s.pod_target_xcconfig = {
+    'SWIFT_INSTALL_OBJC_HEADER' => 'YES',
+  }
 end

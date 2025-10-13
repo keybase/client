@@ -233,7 +233,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       willPresent notification: UNNotification,
       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-      completionHandler([.alert, .badge, .sound])
+      completionHandler([])
     }
   
   public override func applicationWillTerminate(_ application: UIApplication) {

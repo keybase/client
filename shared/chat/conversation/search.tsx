@@ -1,49 +1,47 @@
 import * as C from '@/constants'
 import type * as Styles from '@/styles'
-import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatTimeForMessages} from '@/util/timestamp'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
 
-const Container = (ownProps: OwnProps) => {
+const useCommon = (ownProps: OwnProps) => {
   const {style} = ownProps
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const {hits: _hits, status} = C.useChatContext(s => s.threadSearchInfo)
-  const initialText = C.useChatContext(s => s.threadSearchQuery)
-  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
-  const _loadSearchHit = React.useCallback(
-    (messageID: T.Chat.MessageID) => {
-      loadMessagesCentered(messageID, 'always')
-    },
-    [loadMessagesCentered]
-  )
-  const setThreadSearchQuery = C.useChatContext(s => s.dispatch.setThreadSearchQuery)
-  const clearInitialText = React.useCallback(() => {
-    setThreadSearchQuery('')
-  }, [setThreadSearchQuery])
-  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const threadSearch = C.useChatContext(s => s.dispatch.threadSearch)
-  const onSearch = threadSearch
-  const onCancel = () => {
-    toggleThreadSearch()
-  }
-  const onToggleThreadSearch = onCancel
-  const selfHide = onCancel
-  const hits = _hits.map(h => ({
-    author: h.author,
-    summary: h.bodySummary.stringValue(),
-    timestamp: h.timestamp,
-  }))
-  const loadSearchHit = React.useCallback(
-    (index: number) => {
-      const message = _hits[index] || C.Chat.makeMessageText()
-      if (message.id > 0) {
-        _loadSearchHit(message.id)
+
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {id: conversationIDKey, threadSearchInfo, threadSearchQuery: initialText, dispatch} = s
+      const {hits: _hits, status} = threadSearchInfo
+      const {loadMessagesCentered, setThreadSearchQuery, toggleThreadSearch, threadSearch} = dispatch
+      return {
+        _hits,
+        conversationIDKey,
+        initialText,
+        loadMessagesCentered,
+        setThreadSearchQuery,
+        status,
+        threadSearch,
+        toggleThreadSearch,
       }
-    },
-    [_hits, _loadSearchHit]
+    })
+  )
+
+  const {conversationIDKey, _hits, status, initialText} = data
+  const {loadMessagesCentered, setThreadSearchQuery, toggleThreadSearch, threadSearch} = data
+  const onToggleThreadSearch = React.useCallback(() => {
+    toggleThreadSearch()
+  }, [toggleThreadSearch])
+
+  const numHits = _hits.length
+  const hits = React.useMemo(
+    () =>
+      _hits.map(h => ({
+        author: h.author,
+        summary: h.bodySummary.stringValue(),
+        timestamp: h.timestamp,
+      })),
+    [_hits]
   )
 
   const [selectedIndex, setSelectedIndex] = React.useState(0)
@@ -53,24 +51,27 @@ const Container = (ownProps: OwnProps) => {
   const submitSearch = React.useCallback(() => {
     setLastSearch(text)
     setSelectedIndex(0)
-    onSearch(text)
-  }, [text, onSearch])
+    threadSearch(text)
+  }, [text, threadSearch])
 
   const selectResult = React.useCallback(
     (index: number) => {
-      loadSearchHit(index)
+      const message = _hits[index] || C.Chat.makeMessageText()
+      if (message.id > 0) {
+        loadMessagesCentered(message.id, 'always')
+      }
       setSelectedIndex(index)
     },
-    [loadSearchHit]
+    [loadMessagesCentered, _hits]
   )
 
   const onUp = React.useCallback(() => {
-    if (selectedIndex >= hits.length - 1) {
+    if (selectedIndex >= numHits - 1) {
       selectResult(0)
       return
     }
     selectResult(selectedIndex + 1)
-  }, [selectedIndex, hits.length, selectResult])
+  }, [selectedIndex, numHits, selectResult])
 
   const onEnter = React.useCallback(() => {
     if (lastSearch === text) {
@@ -82,36 +83,27 @@ const Container = (ownProps: OwnProps) => {
 
   const onDown = React.useCallback(() => {
     if (selectedIndex <= 0) {
-      selectResult(hits.length - 1)
+      selectResult(numHits - 1)
       return
     }
     selectResult(selectedIndex - 1)
-  }, [selectedIndex, hits.length, selectResult])
+  }, [selectedIndex, numHits, selectResult])
 
   const onChangedText = React.useCallback((newText: string) => {
     setText(newText)
   }, [])
 
-  const inProgress = React.useCallback(() => {
-    return status === 'inprogress'
-  }, [status])
-
-  const hasResults = React.useCallback(() => {
-    return status === 'done' || hits.length > 0
-  }, [status, hits.length])
-
-  const maybeSetInitialText = React.useCallback(() => {
-    if (initialText) {
-      clearInitialText()
-      setText(initialText)
-    }
-  }, [initialText, clearInitialText])
+  const inProgress = status === 'inprogress'
+  const hasResults = status === 'done' || numHits > 0
 
   React.useEffect(() => {
-    maybeSetInitialText()
-  }, [maybeSetInitialText])
+    if (initialText) {
+      setThreadSearchQuery('')
+      setText(initialText)
+    }
+  }, [initialText, setThreadSearchQuery])
 
-  const hasHits = hits.length > 0
+  const hasHits = numHits > 0
   const hadHitsRef = React.useRef(false)
   React.useEffect(() => {
     if (hasHits && !hadHitsRef.current) {
@@ -120,29 +112,24 @@ const Container = (ownProps: OwnProps) => {
     }
   }, [hasHits, selectResult])
 
-  const Searcher = Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
-
-  return (
-    <Searcher
-      status={status}
-      conversationIDKey={conversationIDKey}
-      onToggleThreadSearch={onToggleThreadSearch}
-      selfHide={selfHide}
-      onCancel={onCancel}
-      hits={hits}
-      style={style}
-      submitSearch={submitSearch}
-      selectResult={selectResult}
-      selectedIndex={selectedIndex}
-      onEnter={onEnter}
-      onUp={onUp}
-      onDown={onDown}
-      onChangedText={onChangedText}
-      inProgress={inProgress}
-      hasResults={hasResults}
-      text={text}
-    />
-  )
+  return {
+    conversationIDKey,
+    hasResults,
+    hits,
+    inProgress,
+    numHits,
+    onChangedText,
+    onDown,
+    onEnter,
+    onToggleThreadSearch,
+    onUp,
+    selectResult,
+    selectedIndex,
+    status,
+    style,
+    submitSearch,
+    text,
+  }
 }
 
 const hitHeight = 30
@@ -153,34 +140,11 @@ type SearchHit = {
   timestamp: number
 }
 
-type SearchProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  submitSearch: () => void
-  selectResult: (arg0: number) => void
-  onEnter: () => void
-  onUp: () => void
-  onDown: () => void
-  onChangedText: (arg0: string) => void
-  inProgress: () => boolean
-  hasResults: () => boolean
-  selectedIndex: number
-  text: string
-  style: Kb.Styles.StylesCrossPlatform
-  onToggleThreadSearch: () => void
-  selfHide: () => void
-  onCancel: () => void
-  hits: {
-    author: string
-    summary: string
-    timestamp: number
-  }[]
-  status: T.Chat.ThreadSearchStatus
-}
-
-const ThreadSearchDesktop = (props: SearchProps) => {
+const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps) {
+  const props = useCommon(p)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
-  const {onUp, onDown, onChangedText, onCancel, inProgress, hasResults} = props
-  const {selectedIndex, status, text, style, onToggleThreadSearch, selfHide} = props
+  const {onUp, onDown, onChangedText, inProgress, hasResults} = props
+  const {selectedIndex, status, text, style, onToggleThreadSearch} = props
   const hotKeys = ['esc']
   const onHotKey = (cmd: string) => {
     if (cmd === 'esc') {
@@ -191,7 +155,7 @@ const ThreadSearchDesktop = (props: SearchProps) => {
   const onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
-        selfHide()
+        onToggleThreadSearch()
         break
       case 'g':
         if (e.ctrlKey || e.metaKey) {
@@ -255,8 +219,8 @@ const ThreadSearchDesktop = (props: SearchProps) => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-            {inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-            {hasResults() && (
+            {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
@@ -275,8 +239,8 @@ const ThreadSearchDesktop = (props: SearchProps) => {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Button disabled={inProgress()} onClick={submitSearch} label="Search" />
-        <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
+        <Kb.Button disabled={inProgress} onClick={submitSearch} label="Search" />
+        <Kb.Button type="Dim" onClick={onToggleThreadSearch} label="Cancel" />
       </Kb.Box2>
       {hits.length > 0 && (
         <Kb.List2
@@ -289,28 +253,35 @@ const ThreadSearchDesktop = (props: SearchProps) => {
       )}
     </Kb.Box2>
   )
-}
+})
 
-const ThreadSearchMobile = (props: SearchProps) => {
-  const {hits, onEnter, onUp, onDown, onChangedText} = props
-  const {onCancel, inProgress, hasResults, selectedIndex, text, style, status} = props
+const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
+  const props = useCommon(p)
+  const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
+  const {inProgress, hasResults, selectedIndex, text, style, status} = props
+
+  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const onceRef = React.useRef(false)
+  React.useEffect(() => {
+    if (onceRef.current) return
+    onceRef.current = true
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 100)
+  }, [])
+
   return (
     <Kb.Box2 direction="horizontal" style={style}>
       <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
-          <Kb.Text type="BodySemibold" style={styles.done} onClick={onCancel}>
+          <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
             <Kb.PlainInput
-              ref={r => {
-                // setting autofocus on android fails sometimes, this workaround seems to work
-                setTimeout(() => {
-                  r?.focus()
-                }, 100)
-              }}
+              ref={inputRef}
               autoFocus={false}
               flexable={true}
               onChangeText={onChangedText}
@@ -321,13 +292,11 @@ const ThreadSearchMobile = (props: SearchProps) => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-            {inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-            {hasResults() && (
+            {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {hasResults && (
               <Kb.Box2 direction="horizontal" gap="tiny">
                 <Kb.Text type="BodySmall" style={styles.results}>
-                  {status === 'done' && hits.length === 0
-                    ? 'No results'
-                    : `${selectedIndex + 1} of ${hits.length}`}
+                  {status === 'done' && numHits === 0 ? 'No results' : `${selectedIndex + 1} of ${numHits}`}
                 </Kb.Text>
               </Kb.Box2>
             )}
@@ -335,12 +304,12 @@ const ThreadSearchMobile = (props: SearchProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Icon
-            color={hits.length > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+            color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
             onClick={onUp}
             type="iconfont-arrow-up"
           />
           <Kb.Icon
-            color={hits.length > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+            color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
             onClick={onDown}
             type="iconfont-arrow-down"
           />
@@ -348,7 +317,7 @@ const ThreadSearchMobile = (props: SearchProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -411,4 +380,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop

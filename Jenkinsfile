@@ -75,6 +75,33 @@ helpers.rootLinuxNode(env, {
 
   env.BASEDIR=pwd()
   env.GOPATH="${env.BASEDIR}/go"
+
+  def WINDOWS_PATH = ""
+  helpers.nodeWithCleanup('windows-ssh', {}, {}) {
+    WINDOWS_PATH="${env.PATH}"
+  }
+  sh '''#!/bin/bash
+      source  ~/.gvm/scripts/gvm
+      gvm install go1.23.12 -B && gvm use go1.23.12 --default
+      source  ~/.nvm/nvm.sh
+      nvm install 24 && nvm use 24 && nvm alias default 24
+
+      # Capture both Go and Node environment variables
+      echo "GOROOT=$(go env GOROOT)" > build_env
+      echo "NODE_PATH=$(npm root -g)" >> build_env
+      echo "PATH=$(go env GOROOT)/bin:$(npm config get prefix)/bin:${PATH}" >> build_env
+      cat build_env
+  '''
+
+  env.GOROOT = sh(returnStdout: true, script: "grep '^GOROOT=' build_env | cut -d'=' -f2-").trim()
+  env.NODE_PATH = sh(returnStdout: true, script: "grep '^NODE_PATH=' build_env | cut -d'=' -f2-").trim()
+  env.PATH = sh(returnStdout: true, script: "grep '^PATH=' build_env | cut -d'=' -f2-").trim()
+  sh 'rm -f build_env'
+
+  env.GOVERSION = sh(returnStdout: true, script: 'go version').trim()
+  env.NODEVERSION = sh(returnStdout: true, script: 'node --version').trim()
+  println "GOPATH: ${env.GOPATH} Go version: ${env.GOVERSION} Node version: ${env.NODEVERSION}"
+
   def kbwebTag = cause == 'upstream' && kbwebProjectName != '' ? kbwebProjectName : 'master'
   def images = [
     docker.image("897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc"),
@@ -265,7 +292,7 @@ helpers.rootLinuxNode(env, {
                 withEnv([
                   'GOROOT=C:\\Program Files\\go',
                   "GOPATH=${GOPATH}",
-                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${env.PATH}",
+                  "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";\"${GOPATH}\\bin\";${WINDOWS_PATH}",
                   "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                   "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                   "TMP=C:\\Users\\Administrator\\AppData\\Local\\Temp",
@@ -273,6 +300,7 @@ helpers.rootLinuxNode(env, {
                 ]) {
                 ws("client") {
                   println "Checkout Windows"
+                  println "${env.PATH}"
                   retry(3) {
                     checkout scm
                   }
@@ -468,6 +496,9 @@ def testGoBuilds(prefix, packagesToTest, hasKBFSChanges) {
     //   }
     // }
 
+    sh 'go install golang.org/x/vuln/cmd/govulncheck@latest'
+    sh 'go version'
+    sh 'govulncheck ./...'
     if (env.CHANGE_TARGET) {
       println("Running golangci-lint on new code")
       fetchChangeTarget()
