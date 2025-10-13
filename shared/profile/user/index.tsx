@@ -1,5 +1,4 @@
 import * as Constants from '@/constants/tracker2'
-import type {Section as _Section} from '@/common-adapters/section-list'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Actions from './actions/container'
@@ -16,7 +15,20 @@ import useResizeObserver from '@/util/use-resize-observer'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
-type Section = _Section<'bioTeamProofs'> | _Section<ChunkType[number], {itemWidth: number}>
+type Item =
+  | {type: 'bioTeamProofs'}
+  | {type: 'noFriends'; text: string}
+  | {type: 'loading'; text: string}
+  | {type: 'friend'; itemWidth: number; usernames: Array<string>}
+
+type Section = {
+  title?: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
+}
+//type Section = _Section<'bioTeamProofs'> | _Section<ChunkType[number], {itemWidth: number}>
 
 export type Props = {
   assertionKeys?: ReadonlyArray<string>
@@ -292,8 +304,6 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
 
 type Tab = 'followers' | 'following'
 
-type ChunkType = Array<Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}>
-
 const UserWrap = (p: Props) => {
   const insets = Kb.useSafeAreaInsets()
   return <User {...p} insetTop={insets.top} />
@@ -329,7 +339,15 @@ const User = (p: Props2) => {
 
   const friends = selectedTab === 'following' ? p.following : p.followers
   const {itemsInARow, itemWidth} = widthToDimensions(width)
-  const chunks: ChunkType = width ? chunk(friends, itemsInARow) : []
+  const chunks: Array<Item> = width
+    ? chunk(friends, itemsInARow).map(c => {
+        return {
+          itemWidth,
+          type: 'friend',
+          usernames: c,
+        } as const
+      })
+    : []
   if (chunks.length === 0) {
     if (p.following && p.followers) {
       chunks.push({
@@ -349,7 +367,7 @@ const User = (p: Props2) => {
   }
 
   const renderSectionHeader = ({section}: {section: Section}) => {
-    if (section === bioTeamProofsSection) return null
+    if (section.data[0]?.type === 'bioTeamProofs') return null
     if (p.notAUser) return null
 
     const loadingFollowing = p.following === undefined
@@ -367,28 +385,8 @@ const User = (p: Props2) => {
     )
   }
 
-  const renderOtherUsers = ({
-    item,
-    section,
-    index,
-  }: {
-    item: 'bioTeamProofs' | ChunkType[number]
-    section: {itemWidth: number}
-    index: number
-  }) => {
-    if (item === 'bioTeamProofs') return null
-    if (Array.isArray(item)) {
-      return <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
-    }
-    return p.notAUser ? null : (
-      <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
-        <Kb.Text type="BodySmall">{item.text}</Kb.Text>
-      </Kb.Box2>
-    )
-  }
-
   const bioTeamProofsSection = {
-    data: ['bioTeamProofs'],
+    data: [{type: 'bioTeamProofs'}],
     renderItem: () => (
       <BioTeamProofs
         onAddIdentity={p.onAddIdentity}
@@ -409,7 +407,23 @@ const User = (p: Props2) => {
     ),
   } as const
 
-  const keyExtractor = (_: unknown, index: number) => String(index)
+  const sections: Array<Section> = [
+    bioTeamProofsSection,
+    {
+      data: chunks,
+      renderItem: ({item, index}: {item: Item; index: number}) => {
+        if (item.type === 'bioTeamProofs') return null
+        if (item.type === 'friend') {
+          return <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
+        }
+        return p.notAUser ? null : (
+          <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+            <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+          </Kb.Box2>
+        )
+      },
+    },
+  ] as const
 
   return (
     <Kb.Reloadable
@@ -426,24 +440,12 @@ const User = (p: Props2) => {
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
         <Kb.Box2Measure direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
-          <Kb.SectionList<Section>
+          <Kb.SectionList
             key={p.username}
-            desktopReactListTypeOverride="variable"
-            desktopItemSizeEstimatorOverride={() => 113}
-            getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
+            //getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
             stickySectionHeadersEnabled={true}
             renderSectionHeader={renderSectionHeader}
-            keyExtractor={keyExtractor}
-            sections={
-              [
-                bioTeamProofsSection,
-                {
-                  data: chunks,
-                  itemWidth,
-                  renderItem: renderOtherUsers,
-                },
-              ] as const
-            }
+            sections={sections}
             style={styles.sectionList}
             contentContainerStyle={styles.sectionListContentStyle}
           />
