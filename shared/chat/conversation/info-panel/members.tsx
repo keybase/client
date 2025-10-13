@@ -5,11 +5,12 @@ import * as T from '@/constants/types'
 import Participant from './participant'
 
 type Props = {
-  renderTabs: () => React.ReactElement | null
-  commonSections: ReadonlyArray<{key: 'header-section'; data: Array<Item>}>
+  commonSections: ReadonlyArray<Section>
 }
 
 type Item =
+  | {type: 'header-item'}
+  | {type: 'tabs'}
   | {type: 'auditingItem'}
   | {type: 'spinnerItem'}
   | {key: string; type: 'common'}
@@ -23,7 +24,6 @@ type Item =
     }
 
 type Section = {
-  key: string
   title?: string
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
@@ -97,7 +97,6 @@ const MembersTab = (props: Props) => {
     data: showSpinner
       ? [{type: 'spinnerItem'} as const]
       : [...(showAuditingBanner ? [{type: 'auditingItem'} as const] : []), ...participantsItems],
-    key: 'participant',
     renderItem: ({index, item}: {index: number; item: Item}) => {
       if (item.type === 'auditingItem') {
         return (
@@ -128,7 +127,7 @@ const MembersTab = (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => (section.key === 'participant' ? props.renderTabs() : null)}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) ?? null}
       sections={sections}
     />
   )

@@ -201,10 +201,9 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-type Item = {key: 'tab'}
+type Item = {type: 'settings-panel'} | {type: 'tabs'} | {type: 'header-item'}
 
 type Section = {
-  key: string
   title?: string
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
@@ -214,14 +213,12 @@ type Section = {
 
 type Props = {
   isPreview: boolean
-  renderTabs: () => React.ReactElement | null
-  commonSections: Array<{key: 'header-section'; data: Array<Item>}>
+  commonSections: ReadonlyArray<Section>
 }
 
 const SettingsTab = (p: Props) => {
   const section = {
-    data: [{key: 'tab'}],
-    key: 'settings-panel',
+    data: [{type: 'settings-panel'}],
     renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
   } as const
   const sections: Array<Section> = [...p.commonSections, section]
@@ -229,7 +226,7 @@ const SettingsTab = (p: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => (section.key === 'settings-panel' ? p.renderTabs() : null)}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) ?? null}
       sections={sections}
     />
   )
