@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import type {Section} from '@/common-adapters/section-list'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention/container'
@@ -202,25 +201,35 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
+type Item = {key: 'tab'}
+
+type Section = {
+  key: string
+  title?: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem?: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null
+}
+
 type Props = {
   isPreview: boolean
   renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+  commonSections: Array<{key: 'header-section'; data: Array<Item>}>
 }
 
 const SettingsTab = (p: Props) => {
-  const section: Section<unknown, {type: 'settings-panel'}> = {
+  const section = {
     data: [{key: 'tab'}],
     key: 'settings-panel',
-    renderItem: () => <SettingsPanel isPreview={p.isPreview} key="settings" />,
-    type: 'settings-panel',
+    renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
   } as const
-  const sections = [...p.commonSections, section]
+  const sections: Array<Section> = [...p.commonSections, section]
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => (section.type === 'settings-panel' ? p.renderTabs() : null)}
+      renderSectionHeader={({section}) => (section.key === 'settings-panel' ? p.renderTabs() : null)}
       sections={sections}
     />
   )
