@@ -17,10 +17,10 @@ const addBotButton = {type: 'bots: add bot'} as const
 const featuredBotSpinner = {type: 'bots: featured spinners'} as const
 
 type ItemBot = {type: 'featuredBot'} & T.RPCGen.FeaturedBot
-type ItemHeader = {type: 'header-item'}
 type Item =
   | ItemBot
-  | ItemHeader
+  | {type: 'header-item'}
+  | {type: 'tabs'}
   | typeof inThisChannelHeader
   | typeof inThisTeamHeader
   | typeof featuredBotsHeader
