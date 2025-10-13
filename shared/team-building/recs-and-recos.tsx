@@ -5,12 +5,6 @@ import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
-//import {userResultHeight} from './search-result/common-result'
-//import {SectionList as SL} from 'react-native
-
-//type RefType = Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>
-
-//type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
 
 type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
 
@@ -45,7 +39,6 @@ const TeamAlphabetIndex = (
 
   const _onScrollToSection = (label: string) => {
     if (sectionListRef.current) {
-      const ref = sectionListRef.current
       const sectionIndex =
         (recommendations &&
           (label === 'numSection'
@@ -53,7 +46,7 @@ const TeamAlphabetIndex = (
             : recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Kb.Styles.isMobile) {
-        ref.current.scrollToLocation({
+        sectionListRef.current.scrollToLocation({
           animated: false,
           itemIndex: 0,
           sectionIndex,
@@ -108,50 +101,8 @@ export const RecsAndRecos = (
 ) => {
   const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
-
-  //  const sectionListRef = React.useRef<typeof Kb.SectionList<unknown, unknown>>(null)
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-
-  //    sectionListRef.current?.scrollToLocation(params)
-
-  // const _getRecLayout = (
-  //   sections: Array<Types.SearchRecSection>,
-  //   indexInList: number
-  // ): {index: number; length: number; offset: number} => {
-  //   const sectionDividerHeight = Kb.SectionDivider.height
-  //   const dataRowHeight = userResultHeight
-  //
-  //   let numSections = 0
-  //   let numData = 0
-  //   let length = dataRowHeight
-  //   let currSectionHeaderIdx = 0
-  //   for (const s of sections) {
-  //     if (indexInList === currSectionHeaderIdx) {
-  //       // we are the section header
-  //       length = Kb.SectionDivider.height
-  //       break
-  //     }
-  //     numSections++
-  //     const indexInSection = indexInList - currSectionHeaderIdx - 1
-  //     if (indexInSection === s.data.length) {
-  //       // it's the section footer (we don't render footers so 0px).
-  //       numData += s.data.length
-  //       length = 0
-  //       break
-  //     }
-  //     if (indexInSection < s.data.length) {
-  //       // we are in this data
-  //       numData += indexInSection
-  //       break
-  //     }
-  //     // we're not in this section
-  //     numData += s.data.length
-  //     currSectionHeaderIdx += s.data.length + 2 // +2 because footer
-  //   }
-  //   const offset = numSections * sectionDividerHeight + numData * dataRowHeight
-  //   return {index: indexInList, length, offset}
-  // }
 
   const highlightDetails = React.useMemo(
     () => _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations),
@@ -159,7 +110,7 @@ export const RecsAndRecos = (
   )
 
   React.useEffect(() => {
-    sectionListRef.current?.scrollToLocation({sectionIndex: 0, itemIndex: highlightedIndex})
+    sectionListRef.current?.scrollToLocation({itemIndex: highlightedIndex, sectionIndex: 0, viewPosition: 0})
   }, [highlightedIndex])
 
   return (
@@ -172,8 +123,6 @@ export const RecsAndRecos = (
           keyboardShouldPersistTaps="handled"
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
-          // TODO
-          //selectedIndex={Kb.Styles.isMobile ? undefined : highlightedIndex || 0}
           sections={recommendations ?? []}
           keyExtractor={(item: Types.ResultData, index: number) => {
             if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
