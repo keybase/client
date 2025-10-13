@@ -3,7 +3,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
-import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
+import {
+  useAttachmentSections,
+  type Item as AttachmentItem,
+} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
@@ -11,8 +14,6 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {createAnimatedComponent} from '@/common-adapters/reanimated'
-import type {Props as SectionListProps, Section} from '@/common-adapters/section-list'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -99,7 +100,7 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-type SectionTypes =
+type Item =
   | {type: 'doc'}
   | {type: 'link'}
   | {type: 'thumb'}
@@ -108,22 +109,16 @@ type SectionTypes =
   | {type: 'load-more'}
   | {type: 'header-section'}
   | {type: 'headerSection'}
-  | {type: 'membersSection'}
+  | {type: 'membersSection'; username: string}
   | {type: 'membersEmpty'}
   | {type: 'membersFew'}
-  | {type: 'botsInThisConv'}
-  | {type: 'botsInThisTeam'}
+  | {type: 'botsInThisConv'; username: string}
+  | {type: 'botsInThisTeam'; username: string}
   | {type: 'settings'}
+  | {type: 'headerHeader'}
+  | {type: 'headerTabs'}
 
-type InfoPanelSection = Section<
-  unknown,
-  SectionTypes & {
-    renderSectionHeader?: (props: {section: SectionTypes}) => React.ReactElement | null
-    title?: string
-  }
->
-
-const SectionList = createAnimatedComponent<SectionListProps<InfoPanelSection>>(Kb.SectionList)
+type Section = Kb.SectionType<Item | AttachmentItem>
 
 const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
@@ -144,53 +139,51 @@ const Channel = (props: OwnProps) => {
   const participants = useChannelParticipants(teamID, conversationIDKey)
 
   // Make the actual sections (consider farming this out into another function or file)
-  const headerSection: Section<'header' | 'tabs', {type: 'headerSection'}> = {
-    data: ['header', 'tabs'],
-    key: 'headerSection',
-    renderItem: ({item}: {item: 'header' | 'tabs'}) =>
-      item === 'header' ? (
-        <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
-      ) : (
-        <ChannelTabs
-          admin={yourOperations.manageMembers}
-          teamID={teamID}
-          conversationIDKey={conversationIDKey}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-        />
-      ),
-    type: 'headerSection',
-  } as const
+  const renderHeader = ({item}: {item: Item}) =>
+    item.type === 'headerHeader' ? (
+      <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
+    ) : item.type === 'headerTabs' ? (
+      <ChannelTabs
+        admin={yourOperations.manageMembers}
+        teamID={teamID}
+        conversationIDKey={conversationIDKey}
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+      />
+    ) : null
+
+  const headerSection: Section = {
+    data: [{type: 'headerHeader'}, {type: 'headerTabs'}],
+    renderItem: renderHeader,
+  }
 
   const {sections: attachmentSections} = useAttachmentSections(
-    {commonSections: [], renderTabs: () => null},
+    {commonSections: []},
     selectedTab === 'attachments', // load data immediately
     true // variable width
   )
 
-  const sections: Array<InfoPanelSection> = [headerSection as InfoPanelSection]
+  const sections: Array<Section> = [headerSection]
   switch (selectedTab) {
     case 'members': {
-      const memberSection: Section<string, {type: 'membersSection'; title: string}> = {
-        data: participants,
-        key: 'membersSection',
-        renderItem: ({index, item}: {index: number; item: string}) => (
-          <ChannelMemberRow
-            conversationIDKey={conversationIDKey}
-            teamID={teamID}
-            username={item}
-            firstItem={index === 0}
-            isGeneral={meta.channelname === 'general'}
-          />
-        ),
+      sections.push({
+        data: participants.map(p => ({type: 'membersSection', username: p})),
+        renderItem: ({index, item}: {index: number; item: Item}) =>
+          item.type === 'membersSection' ? (
+            <ChannelMemberRow
+              conversationIDKey={conversationIDKey}
+              teamID={teamID}
+              username={item.username}
+              firstItem={index === 0}
+              isGeneral={meta.channelname === 'general'}
+            />
+          ) : null,
         title: `Members (${participants.length})`,
-        type: 'membersSection',
-      } as const
-      sections.push(memberSection as InfoPanelSection)
+      } as const)
 
       if (participants.length === 0) {
-        const membersEmpty: Section<string, {type: 'membersEmpty'}> = {
-          data: ['membersEmpty'],
+        sections.push({
+          data: [{type: 'membersEmpty'}],
           renderItem: () => (
             <EmptyRow
               teamID={teamID}
@@ -199,20 +192,16 @@ const Channel = (props: OwnProps) => {
               notChannelMember={true}
             />
           ),
-          type: 'membersEmpty',
-        } as const
-        sections.push(membersEmpty as InfoPanelSection)
+        } as const)
       } else if (
         participants.length === 1 &&
         meta.membershipType !== 'notMember' &&
         meta.membershipType !== 'youArePreviewing'
       ) {
-        const membersFew: Section<string, {type: 'membersFew'}> = {
-          data: ['membersFew'],
+        sections.push({
+          data: [{type: 'membersFew'}],
           renderItem: () => <EmptyRow teamID={teamID} type="members" conversationIDKey={conversationIDKey} />,
-          type: 'membersFew',
-        } as const
-        sections.push(membersFew as InfoPanelSection)
+        } as const)
       }
       break
     }
@@ -227,36 +216,33 @@ const Channel = (props: OwnProps) => {
         .filter(p => !bots.includes(p))
         .sort((l, r) => l.localeCompare(r))
 
-      const botsInThisConv: Section<string, {type: 'botsInThisConv'; title: string}> = {
-        data: bots,
-        key: 'botsInThisConv',
-        renderItem: ({item}: {item: string}) => <BotRow teamID={teamID} username={item} />,
+      sections.push({
+        data: bots.map(b => ({type: 'botsInThisConv', username: b})),
+        renderItem: ({item}: {item: Item}) =>
+          item.type === 'botsInThisConv' ? <BotRow teamID={teamID} username={item.username} /> : null,
         title: 'In this conversation:',
-        type: 'botsInThisConv',
-      } as const
-      sections.push(botsInThisConv as InfoPanelSection)
+      } as const)
 
-      const botsInThisTeam: Section<string, {type: 'botsInThisTeam'; title: string}> = {
-        data: botsInTeamNotInConv,
-        key: 'botsInThisTeam',
-        renderItem: ({item}: {item: string}) => <BotRow teamID={teamID} username={item} />,
+      sections.push({
+        data: botsInTeamNotInConv.map(b => ({
+          type: 'botsInThisTeam',
+          username: b,
+        })),
+        renderItem: ({item}: {item: Item}) =>
+          item.type === 'botsInThisTeam' ? <BotRow teamID={teamID} username={item.username} /> : null,
         title: 'In this team:',
-        type: 'botsInThisTeam',
-      }
-      sections.push(botsInThisTeam as InfoPanelSection)
+      } as const)
       // TODO: consider adding featured bots here, pending getting an actual design for this tab
       break
     }
     case 'attachments':
-      sections.push(...(attachmentSections as Array<InfoPanelSection>))
+      sections.push(...attachmentSections)
       break
     case 'settings': {
-      const settings: Section<string, {type: 'settings'}> = {
-        data: ['settings'],
-        renderItem: () => <SettingsList isPreview={isPreview} renderTabs={() => null} commonSections={[]} />,
-        type: 'settings',
-      } as const
-      sections.push(settings as InfoPanelSection)
+      sections.push({
+        data: [{type: 'settings'}],
+        renderItem: () => <SettingsList isPreview={isPreview} commonSections={[]} />,
+      } as const)
       break
     }
     default:
@@ -264,7 +250,7 @@ const Channel = (props: OwnProps) => {
 
   return (
     <Kb.Box style={styles.container}>
-      <SectionList
+      <Kb.SectionList
         renderSectionHeader={({section}) =>
           section.title ? <Kb.SectionDivider label={section.title} /> : null
         }

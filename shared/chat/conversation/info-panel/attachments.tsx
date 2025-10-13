@@ -95,7 +95,7 @@ type ThumbData = {
   type: 'thumb'
 }
 
-type Item =
+export type Item =
   | {type: 'header-item'}
   | {type: 'tabs'}
   | Doc
