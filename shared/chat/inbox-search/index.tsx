@@ -6,7 +6,6 @@ import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 import type * as T from '@/constants/types'
-import type {Section as _Section} from '@/common-adapters/section-list'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
@@ -205,11 +204,6 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const keyExtractor = (
-    _: T.RPCGen.FeaturedBot | T.Chat.InboxSearchOpenTeamHit | NameResult | TextResult,
-    index: number
-  ) => String(index)
-
   function renderHit<T extends NameResult | TextResult>(h: {
     item: T
     section: {
@@ -350,11 +344,11 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     status: textStatus,
     title: 'Messages',
   }
-  const sections = [
-    nameSection,
-    openTeamsSection,
-    botsSection,
-    ...(!nameResultsUnread ? [messagesSection] : []),
+  const sections: Array<Section<unknown>> = [
+    nameSection as Section<unknown>,
+    openTeamsSection as Section<unknown>,
+    botsSection as Section<unknown>,
+    ...(!nameResultsUnread ? [messagesSection as Section<unknown>] : []),
   ]
 
   return (
@@ -367,7 +361,6 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           // eslint-disable-next-line
           ({section}) => section.renderHeader(section as any)
         }
-        keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
         sections={sections}
       />
@@ -398,7 +391,22 @@ type SectionExtra<T> = {
   status: T.Chat.InboxSearchStatus
   title: string
 }
-type Section<T> = _Section<T, SectionExtra<T>>
+
+type Section<Item> = {
+  key?: string
+  title?: string
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem?: (p: {
+    index: number
+    item: Item
+    section: {
+      indexOffset: number
+      onSelect: (item: Item, index: number) => void
+    }
+  }) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: Section<Item>}) => React.ReactElement | null
+} & SectionExtra<Item>
 
 const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
 
