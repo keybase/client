@@ -100,25 +100,46 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-type Item =
-  | {type: 'doc'}
-  | {type: 'link'}
-  | {type: 'thumb'}
-  | {type: 'avselector'}
-  | {type: 'no-attachments'}
-  | {type: 'load-more'}
-  | {type: 'header-section'}
-  | {type: 'headerSection'}
-  | {type: 'membersSection'; username: string}
-  | {type: 'membersEmpty'}
-  | {type: 'membersFew'}
-  | {type: 'botsInThisConv'; username: string}
-  | {type: 'botsInThisTeam'; username: string}
-  | {type: 'settings'}
-  | {type: 'headerHeader'}
-  | {type: 'headerTabs'}
+type HeaderItem = {type: 'headerHeader' | 'headerTabs'}
 
-type Section = Kb.SectionType<Item | AttachmentItem>
+type Section =
+  | Kb.SectionType<{type: 'doc'}>
+  | Kb.SectionType<{type: 'link'}>
+  | Kb.SectionType<{type: 'thumb'}>
+  | Kb.SectionType<{type: 'avselector'}>
+  | Kb.SectionType<{type: 'no-attachments'}>
+  | Kb.SectionType<{type: 'load-more'}>
+  | Kb.SectionType<{type: 'header-section'}>
+  | Kb.SectionType<{type: 'headerSection'}>
+  | Kb.SectionType<{type: 'membersSection'; username: string}>
+  | Kb.SectionType<{type: 'membersEmpty'}>
+  | Kb.SectionType<{type: 'membersFew'}>
+  | Kb.SectionType<{type: 'botsInThisConv'; username: string}>
+  | Kb.SectionType<{type: 'botsInThisTeam'; username: string}>
+  | Kb.SectionType<{type: 'settings'}>
+  | Kb.SectionType<HeaderItem>
+  | Kb.SectionType<AttachmentItem>
+
+//type Section = Kb.SectionType<Item | AttachmentItem>
+// type Item =
+//   | {type: 'doc'}
+//   | {type: 'link'}
+//   | {type: 'thumb'}
+//   | {type: 'avselector'}
+//   | {type: 'no-attachments'}
+//   | {type: 'load-more'}
+//   | {type: 'header-section'}
+//   | {type: 'headerSection'}
+//   | {type: 'membersSection'; username: string}
+//   | {type: 'membersEmpty'}
+//   | {type: 'membersFew'}
+//   | {type: 'botsInThisConv'; username: string}
+//   | {type: 'botsInThisTeam'; username: string}
+//   | {type: 'settings'}
+//   | {type: 'headerHeader'}
+//   | {type: 'headerTabs'}
+//
+// type Section = Kb.SectionType<Item | AttachmentItem>
 
 const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
@@ -139,22 +160,20 @@ const Channel = (props: OwnProps) => {
   const participants = useChannelParticipants(teamID, conversationIDKey)
 
   // Make the actual sections (consider farming this out into another function or file)
-  const renderHeader = ({item}: {item: Item}) =>
-    item.type === 'headerHeader' ? (
-      <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
-    ) : item.type === 'headerTabs' ? (
-      <ChannelTabs
-        admin={yourOperations.manageMembers}
-        teamID={teamID}
-        conversationIDKey={conversationIDKey}
-        selectedTab={selectedTab}
-        setSelectedTab={setSelectedTab}
-      />
-    ) : null
-
   const headerSection: Section = {
     data: [{type: 'headerHeader'}, {type: 'headerTabs'}],
-    renderItem: renderHeader,
+    renderItem: ({item}: {item: HeaderItem}) =>
+      item.type === 'headerHeader' ? (
+        <ChannelHeader teamID={teamID} conversationIDKey={conversationIDKey} />
+      ) : (
+        <ChannelTabs
+          admin={yourOperations.manageMembers}
+          teamID={teamID}
+          conversationIDKey={conversationIDKey}
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
+      ),
   }
 
   const {sections: attachmentSections} = useAttachmentSections(
@@ -168,16 +187,15 @@ const Channel = (props: OwnProps) => {
     case 'members': {
       sections.push({
         data: participants.map(p => ({type: 'membersSection', username: p})),
-        renderItem: ({index, item}: {index: number; item: Item}) =>
-          item.type === 'membersSection' ? (
-            <ChannelMemberRow
-              conversationIDKey={conversationIDKey}
-              teamID={teamID}
-              username={item.username}
-              firstItem={index === 0}
-              isGeneral={meta.channelname === 'general'}
-            />
-          ) : null,
+        renderItem: ({index, item}: {index: number; item: {username: string}}) => (
+          <ChannelMemberRow
+            conversationIDKey={conversationIDKey}
+            teamID={teamID}
+            username={item.username}
+            firstItem={index === 0}
+            isGeneral={meta.channelname === 'general'}
+          />
+        ),
         title: `Members (${participants.length})`,
       } as const)
 
@@ -218,8 +236,9 @@ const Channel = (props: OwnProps) => {
 
       sections.push({
         data: bots.map(b => ({type: 'botsInThisConv', username: b})),
-        renderItem: ({item}: {item: Item}) =>
-          item.type === 'botsInThisConv' ? <BotRow teamID={teamID} username={item.username} /> : null,
+        renderItem: ({item}: {item: {username: string}}) => (
+          <BotRow teamID={teamID} username={item.username} />
+        ),
         title: 'In this conversation:',
       } as const)
 
@@ -228,8 +247,9 @@ const Channel = (props: OwnProps) => {
           type: 'botsInThisTeam',
           username: b,
         })),
-        renderItem: ({item}: {item: Item}) =>
-          item.type === 'botsInThisTeam' ? <BotRow teamID={teamID} username={item.username} /> : null,
+        renderItem: ({item}: {item: {username: string}}) => (
+          <BotRow teamID={teamID} username={item.username} />
+        ),
         title: 'In this team:',
       } as const)
       // TODO: consider adding featured bots here, pending getting an actual design for this tab
