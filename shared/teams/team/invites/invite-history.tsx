@@ -6,9 +6,11 @@ import type * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {ModalTitle} from '@/teams/common'
 import {InviteItem} from './invite-item'
-import type {Section} from '@/common-adapters/section-list'
 
 type Props = {teamID: T.Teams.TeamID}
+
+type Item = T.Teams.InviteLink
+type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
 
 const InviteHistory = (props: Props) => {
   const teamID = props.teamID
@@ -23,12 +25,7 @@ const InviteHistory = (props: Props) => {
   const invalid = inviteLinks?.filter(i => !i.isValid) ?? []
   const valid = inviteLinks?.filter(i => i.isValid) ?? []
   const data: Array<T.Teams.InviteLink> = showingValid ? valid : invalid
-  const sections: Array<Section<T.Teams.InviteLink>> = [
-    {
-      data,
-      key: 'invites',
-    },
-  ]
+  const sections: Array<Section> = [{data}]
 
   const emptyOrLoading =
     loading || !data.length ? (

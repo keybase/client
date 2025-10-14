@@ -257,7 +257,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
       <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={mapper} />
     )
 
-  const sectionListRef = React.createRef<Kb.SectionListRef>()
+  const sectionListRef = React.useRef<Kb.SectionListRef<Item, Section>>(null)
 
   const getBookmarkBar = (bookmarks: Array<Bookmark>) => {
     const content = (

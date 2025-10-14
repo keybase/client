@@ -16,7 +16,7 @@ const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
 type Item = string | T.RPCGen.FeaturedBot
-type Section = Kb.SectionType<Item>
+type Section = Omit<Kb.SectionType<Item>, 'title'> & {title: string}
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)

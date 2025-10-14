@@ -8,7 +8,7 @@ import {
 import noop from 'lodash/noop'
 
 export type SectionType<Item> = {
-  title?: string
+  title?: string | React.ReactElement
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
   renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
@@ -52,8 +52,6 @@ function SectionListImpl<ItemT, SectionT>(
 }
 
 export type SectionListRef<ItemT, SectionT> = NativeSectionList<ItemT, SectionT>
-//export type SectionListRef<ItemT, SectionT> = React.RefObject<NativeSectionList<ItemT, SectionT> | null>
-//export type SectionListRef = React.RefObject<NativeSectionList<unknown, unknown>>
 
 const SectionList = React.forwardRef(SectionListImpl) as <ItemT, SectionT>(
   props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}

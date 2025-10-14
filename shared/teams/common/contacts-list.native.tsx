@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Section as _Section} from '@/common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {mapGetEnsureValue} from '@/util/map'
 
-type Section = _Section<Contact, {title: string}>
+type Item = Contact
+type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
 
 const categorize = (contact: Contact): string => {
   if (!contact.name) {
@@ -31,12 +31,11 @@ const filterAndSectionContacts = (contacts: Contact[], search: string): Section[
       const section = mapGetEnsureValue(sectionMap, category, [])
       section.push(contact)
     })
-  const sections: Section[] = []
+  const sections = new Array<Section>()
   for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
     if (sectionMap.has(letter)) {
       sections.push({
-        data: sectionMap.get(letter)!,
-        key: letter,
+        data: sectionMap.get(letter) ?? [],
         title: letter,
       })
     }
@@ -44,10 +43,9 @@ const filterAndSectionContacts = (contacts: Contact[], search: string): Section[
   for (const sectionKey of ['0-9', 'Other']) {
     if (sectionMap.has(sectionKey)) {
       sections.push({
-        data: sectionMap.get(sectionKey)!,
-        key: sectionKey,
+        data: sectionMap.get(sectionKey) ?? [],
         title: sectionKey,
-      })
+      } as const)
     }
   }
   return sections
@@ -72,7 +70,7 @@ type ContactRowProps = {
 }
 const ContactRow = React.memo(({item, disabled, index, onSelect, selected}: ContactRowProps) => {
   const topText = item.name || item.valueFormatted || item.value
-  const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
+  const bottomText = item.name ? (item.valueFormatted ?? item.value) : undefined
   const onCheck = (check: boolean) => onSelect(item, check)
   const listItem = (
     <Kb.ListItem2
@@ -108,7 +106,6 @@ const ContactsList = (props: Props) => {
     [contactInfo.contacts, props.search]
   )
   const renderSectionHeader = ({section}: {section: Section}) => <Kb.SectionDivider label={section.title} />
-  const keyExtractor = (item: Contact) => item.id
 
   // need to box this callback or every row will rerender when the selection changes
   const {onSelect} = props
@@ -143,7 +140,6 @@ const ContactsList = (props: Props) => {
           />
         )
       }}
-      keyExtractor={keyExtractor}
       ListHeaderComponent={props.ListHeaderComponent}
     />
   )

@@ -16,6 +16,7 @@ import {
   useChannelsSections,
   useEmojiSections,
   type Section,
+  type Item,
 } from './rows'
 
 type Props = {
@@ -100,14 +101,13 @@ const Team = (props: Props) => {
 
   // Sections
   const headerSection = {
-    data: ['header', 'tabs'],
-    key: 'headerSection',
-    renderItem: ({item}: {item: unknown}) =>
-      item === 'header' ? (
+    data: [{type: 'header'}, {type: 'tabs'}],
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'header' ? (
         <NewTeamHeader teamID={teamID} />
-      ) : (
+      ) : item.type === 'tabs' ? (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      ),
+      ) : null,
   } as const
 
   const sections: Array<Section> = [headerSection]
@@ -132,7 +132,7 @@ const Team = (props: Props) => {
       sections.push(...invitesSections)
       break
     case 'settings':
-      sections.push({data: ['settings'], key: 'teamSettings', renderItem: () => <Settings teamID={teamID} />})
+      sections.push({data: [{type: 'settings'}], renderItem: () => <Settings teamID={teamID} />})
       break
     case 'channels':
       sections.push(...channelsSections)
@@ -203,11 +203,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: 0,
   },
   list: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-    },
+    // isElectron: {
+    //   ...Kb.Styles.globalStyles.fillAbsolute,
+    //   ...Kb.Styles.globalStyles.flexBoxColumn,
+    //   alignItems: 'stretch',
+    // },
   }),
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
