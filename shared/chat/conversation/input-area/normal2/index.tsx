@@ -288,7 +288,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
 })
 
 const styles = Kb.Styles.styleSheetCreate(() => {
-  const suggestDesktop = {marginBottom: 10, marginLeft: 15, marginRight: 15, marginTop: 'auto'}
+  const suggestDesktop = {marginLeft: 15, marginRight: 15, marginTop: 'auto'}
   return {
     container: Kb.Styles.platformStyles({
       isMobile: {justifyContent: 'flex-end'},
