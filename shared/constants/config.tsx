@@ -179,7 +179,7 @@ interface State extends Store {
       onEngineConnectedDesktop?: () => void
       onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
       onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (path?: ReadonlyArray<any>) => void
+      persistRoute?: (path?: ReadonlyArray<unknown>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
       showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
@@ -198,7 +198,7 @@ interface State extends Store {
     loadIsOnline: () => void
     loadOnStart: (phase: State['loadOnStartPhase']) => void
     login: (username: string, password: string) => void
-    loginError: (error?: RPCError) => void
+    setLoginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineDisonnected: () => void
@@ -699,7 +699,7 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
                       retryLabel = 'Incorrect password.'
                     }
                     const error = new RPCError(retryLabel, T.RPCGen.StatusCode.scinputerror)
-                    get().dispatch.loginError(error)
+                    get().dispatch.setLoginError(error)
                   } else {
                     response.result({passphrase, storeSecret: false})
                   }
@@ -736,20 +736,12 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
           } else if (error.desc !== cancelDesc) {
             // If we're canceling then ignore the error
             error.desc = niceError(error)
-            get().dispatch.loginError(error)
+            get().dispatch.setLoginError(error)
           }
         }
       }
-      get().dispatch.loginError()
+      get().dispatch.setLoginError()
       C.ignorePromise(f())
-    },
-    loginError: error => {
-      set(s => {
-        s.loginError = error
-      })
-      // On login error, turn off the user switching flag, so that the login screen is not
-      // hidden and the user can see and respond to the error.
-      get().dispatch.setUserSwitching(false)
     },
     logoutAndTryToLogInAs: username => {
       const f = async () => {
@@ -1114,6 +1106,14 @@ export const useConfigState_ = Z.createZustand<State>((set, get) => {
       if (!causedByStartup) {
         C.ignorePromise(C.useDaemonState.getState().dispatch.refreshAccounts())
       }
+    },
+    setLoginError: error => {
+      set(s => {
+        s.loginError = error
+      })
+      // On login error, turn off the user switching flag, so that the login screen is not
+      // hidden and the user can see and respond to the error.
+      get().dispatch.setUserSwitching(false)
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return

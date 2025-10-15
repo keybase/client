@@ -118,6 +118,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
     }
     return null
   }
+
   return (
     <Kb.SectionList
       sections={sections}
