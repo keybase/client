@@ -541,20 +541,17 @@ export const useAttachmentSections = (
       }
       return null
     },
-    // type: 'load-more',
   } as const
 
   let sections: Array<Section>
   if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
     const noAttachmentsSection: Section = {
       data: [{type: 'no-attachments'}],
-      //key: 'no-attachments',
       renderItem: () => (
         <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
           <Kb.Text type="BodySmall">No attachments</Kb.Text>
         </Kb.Box2>
       ),
-      //type: 'no-attachments',
     } as const
     sections = [...commonSections, noAttachmentsSection, loadMoreSection]
   } else {
