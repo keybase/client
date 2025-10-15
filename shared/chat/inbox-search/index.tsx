@@ -242,7 +242,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       )
     }
 
-    if (h.item.type !== 'text' && h.item.type !== 'name') return
+    if (h.item.type !== 'text' && h.item.type !== 'name') return null
 
     const {item: _item, section, index} = h
     const item = _item
@@ -381,17 +381,17 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   )
 })
 
-type SectionExtra<T> = {
+type SectionExtra = {
   indexOffset: number
   isCollapsed: boolean
   onCollapse: () => void
-  onSelect: (item: T, index: number) => void
+  onSelect: (item: Item, index: number) => void
   renderHeader: (section: Section) => React.ReactElement
   status: T.Chat.InboxSearchStatus
   title: string
 }
 
-type Section = Kb.SectionType<Item> & SectionExtra<Item>
+type Section = Kb.SectionType<Item> & SectionExtra
 
 const emptyUnreadPlaceholder = {
   conversationIDKey: '',
