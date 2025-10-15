@@ -11,7 +11,15 @@ export type SectionType<Item> = {
   title?: string | React.ReactElement
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
-  renderItem: ({index, item}: {index: number; item: Item}) => React.ReactElement | null
+  renderItem: ({
+    index,
+    item,
+    section,
+  }: {
+    index: number
+    item: Item
+    section: SectionType<Item>
+  }) => React.ReactElement | null
   renderSectionHeader?: (info: {section: SectionType<Item>}) => React.ReactElement | null
 }
 

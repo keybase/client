@@ -12,6 +12,34 @@ import {inboxWidth} from '../inbox/row/sizes'
 
 type OwnProps = {header?: React.ReactElement | null}
 
+type NameResult = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  name: string
+  sizeType: 'big' | 'small'
+  type: 'name'
+}
+
+type TextResult = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  sizeType: 'big' | 'small'
+  type: 'text'
+  name: string
+  numHits: number
+  query: string
+}
+
+type BotResult = {
+  type: 'bot'
+  bot: T.RPCGen.FeaturedBot
+}
+
+type OpenTeamResult = {
+  type: 'openTeam'
+  hit: T.Chat.InboxSearchOpenTeamHit
+}
+
+type Item = NameResult | TextResult | BotResult | OpenTeamResult
+
 const emptySearch = C.Chat.makeInboxSearchInfo()
 
 export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
@@ -65,43 +93,44 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     setBotsAll(s => !s)
   }, [])
 
-  const renderOpenTeams = (h: {
-    item: T.Chat.InboxSearchOpenTeamHit
-    section: {indexOffset: number}
-    index: number
-  }) => {
-    const {item, index, section} = h
-    const realIndex = index + section.indexOffset
+  const renderOpenTeams = (h: {item: Item; index: number}) => {
+    const {item} = h
+    if (item.type !== 'openTeam') return null
+    const {hit} = item
     return (
       <OpenTeamRow
-        description={item.description}
-        name={item.name}
-        memberCount={item.memberCount}
-        inTeam={item.inTeam}
-        publicAdmins={item.publicAdmins}
-        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        description={hit.description}
+        name={hit.name}
+        memberCount={hit.memberCount}
+        inTeam={hit.inTeam}
+        publicAdmins={hit.publicAdmins}
+        isSelected={false}
       />
     )
   }
 
-  const renderBots = (h: {item: T.RPCGen.FeaturedBot; section: {indexOffset: number}; index: number}) => {
+  const renderBots = (h: {item: Item; index: number}) => {
     const {item, index} = h
+    if (item.type !== 'bot') return null
     return (
       <C.ChatProvider id={C.Chat.noConversationIDKey} key={index} canBeNull={true}>
-        <Bot {...item} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
+        <Bot {...item.bot} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
       </C.ChatProvider>
     )
   }
 
-  const selectText = (item: {conversationIDKey: string; query: string}, index: number) => {
-    onSelectConversation(item.conversationIDKey, index, item.query)
+  const selectText = (item: Item, index: number) => {
+    if (item.type === 'text') {
+      onSelectConversation(item.conversationIDKey, index, item.query)
+    }
   }
 
-  const selectBot = (item: T.RPCGen.FeaturedBot) => {
-    onInstallBot(item.botUsername)
+  const selectBot = (item: Item) => {
+    if (item.type !== 'bot') return
+    onInstallBot(item.bot.botUsername)
   }
 
-  const renderNameHeader = (section: Section<NameResult>) => {
+  const renderNameHeader = (section: Section) => {
     return (
       <Kb.SectionDivider
         collapsed={section.isCollapsed}
@@ -112,7 +141,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderTeamHeader = (section: Section<T.Chat.InboxSearchOpenTeamHit>) => {
+  const renderTeamHeader = (section: Section) => {
     const showMore = _openTeamsResults.length > 3 && !openTeamsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
@@ -140,7 +169,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderBotsHeader = (section: Section<T.RPCGen.FeaturedBot>) => {
+  const renderBotsHeader = (section: Section) => {
     const showMore = _botsResults.length > 3 && !botsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
@@ -168,7 +197,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderTextHeader = (section: Section<TextResult>) => {
+  const renderTextHeader = (section: Section) => {
     const ratio = indexPercent / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
@@ -204,14 +233,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  function renderHit<T extends NameResult | TextResult>(h: {
-    item: T
-    section: {
-      indexOffset: number
-      onSelect: (item: T, index: number) => void
-    }
-    index: number
-  }) {
+  function renderHit(h: {item: Item; index: number; section: Section}) {
     if (h.item === emptyUnreadPlaceholder) {
       return (
         <Kb.Text style={styles.emptyUnreadPlaceholder} type="BodySmall" center={true}>
@@ -220,11 +242,13 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       )
     }
 
+    if (h.item.type !== 'text' && h.item.type !== 'name') return
+
     const {item: _item, section, index} = h
     const item = _item
-    const numHits = item.numHits || undefined
+    const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
-    return item.type === 'big' ? (
+    return item.sizeType === 'big' ? (
       <C.ChatProvider id={item.conversationIDKey}>
         <SelectableBigTeamChannel
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
@@ -247,24 +271,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderHitText = (h: {
-    item: TextResult
-    section: {
-      indexOffset: number
-      onSelect: (item: TextResult, index: number) => void
-    }
-    index: number
-  }) => renderHit(h)
-  const renderHitName = (h: {
-    item: NameResult
-    section: {
-      indexOffset: number
-      onSelect: (item: NameResult, index: number) => void
-    }
-    index: number
-  }) => renderHit(h)
-
-  const selectName = (item: NameResult, index: number) => {
+  const selectName = (item: Item, index: number) => {
+    if (item.type !== 'name') return
     onSelectConversation(item.conversationIDKey, index, '')
     onCancel()
   }
@@ -272,24 +280,32 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const nameResults: Array<NameResult> = nameCollapsed
     ? []
     : _nameResults.length
-      ? _nameResults.map(r => ({
-          conversationIDKey: r.conversationIDKey,
-          name: r.name,
-          type: r.teamType,
-        }))
+      ? _nameResults.map(
+          r =>
+            ({
+              conversationIDKey: r.conversationIDKey,
+              name: r.name,
+              sizeType: r.teamType,
+              type: 'name',
+            }) as const
+        )
       : nameResultsUnread
         ? [emptyUnreadPlaceholder]
         : []
 
-  const textResults = textCollapsed
+  const textResults: Array<TextResult> = textCollapsed
     ? []
-    : _textResults.map(r => ({
-        conversationIDKey: r.conversationIDKey,
-        name: r.name,
-        numHits: r.numHits,
-        query: r.query,
-        type: r.teamType,
-      }))
+    : _textResults.map(
+        r =>
+          ({
+            conversationIDKey: r.conversationIDKey,
+            name: r.name,
+            numHits: r.numHits,
+            query: r.query,
+            sizeType: r.teamType,
+            type: 'text',
+          }) as const
+      )
 
   const openTeamsResults = openTeamsCollapsed
     ? []
@@ -300,19 +316,19 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const botsResults = botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, 3)
   const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
 
-  const nameSection: Section<NameResult> = {
+  const nameSection: Section = {
     data: nameResults,
     indexOffset: 0,
     isCollapsed: nameCollapsed,
     onCollapse: toggleCollapseName,
     onSelect: selectName,
     renderHeader: renderNameHeader,
-    renderItem: renderHitName,
+    renderItem: renderHit as Section['renderItem'],
     status: nameStatus,
     title: nameResultsUnread ? 'Unread' : 'Chats',
   }
-  const openTeamsSection: Section<T.Chat.InboxSearchOpenTeamHit> = {
-    data: openTeamsResults,
+  const openTeamsSection: Section = {
+    data: openTeamsResults.map(hit => ({hit, type: 'openTeam'})),
     indexOffset: nameResults.length,
     isCollapsed: openTeamsCollapsed,
     onCollapse: toggleCollapseOpenTeams,
@@ -322,33 +338,33 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     status: openTeamsStatus,
     title: openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
   }
-  const botsSection: Section<T.RPCGen.FeaturedBot> = {
-    data: botsResults,
+  const botsSection: Section = {
+    data: botsResults.map(bot => ({bot, type: 'bot'})),
     indexOffset: openTeamsResults.length + nameResults.length,
     isCollapsed: botsCollapsed,
     onCollapse: toggleCollapseBots,
     onSelect: selectBot,
     renderHeader: renderBotsHeader,
-    renderItem: renderBots,
+    renderItem: renderBots as Section['renderItem'],
     status: botsStatus,
     title: botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
   }
-  const messagesSection: Section<TextResult> = {
+  const messagesSection: Section = {
     data: textResults,
     indexOffset,
     isCollapsed: textCollapsed,
     onCollapse: toggleCollapseText,
     onSelect: selectText,
     renderHeader: renderTextHeader,
-    renderItem: renderHitText,
+    renderItem: renderHit as Section['renderItem'],
     status: textStatus,
     title: 'Messages',
   }
-  const sections: Array<Section<unknown>> = [
-    nameSection as Section<unknown>,
-    openTeamsSection as Section<unknown>,
-    botsSection as Section<unknown>,
-    ...(!nameResultsUnread ? [messagesSection as Section<unknown>] : []),
+  const sections: Array<Section> = [
+    nameSection,
+    openTeamsSection,
+    botsSection,
+    ...(!nameResultsUnread ? [messagesSection] : []),
   ]
 
   return (
@@ -357,10 +373,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       <Kb.SectionList
         ListHeaderComponent={header}
         stickySectionHeadersEnabled={true}
-        renderSectionHeader={
-          // eslint-disable-next-line
-          ({section}) => section.renderHeader(section as any)
-        }
+        renderSectionHeader={({section}: {section: Section}) => section.renderHeader(section)}
         keyboardShouldPersistTaps="handled"
         sections={sections}
       />
@@ -368,47 +381,24 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   )
 })
 
-type NameResult = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  name: string
-  type: 'big' | 'small'
-  numHits?: undefined
-}
-
-type TextResult = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  type: 'big' | 'small'
-  name: string
-  numHits: number
-  query: string
-}
 type SectionExtra<T> = {
   indexOffset: number
   isCollapsed: boolean
   onCollapse: () => void
   onSelect: (item: T, index: number) => void
-  renderHeader: (section: Section<T>) => React.ReactElement
+  renderHeader: (section: Section) => React.ReactElement
   status: T.Chat.InboxSearchStatus
   title: string
 }
 
-type Section<Item> = {
-  key?: string
-  title?: string
-  data: ReadonlyArray<Item>
-  keyExtractor?: (item: Item, index: number) => string
-  renderItem?: (p: {
-    index: number
-    item: Item
-    section: {
-      indexOffset: number
-      onSelect: (item: Item, index: number) => void
-    }
-  }) => React.ReactElement | null
-  renderSectionHeader?: (info: {section: Section<Item>}) => React.ReactElement | null
-} & SectionExtra<Item>
+type Section = Kb.SectionType<Item> & SectionExtra<Item>
 
-const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
+const emptyUnreadPlaceholder = {
+  conversationIDKey: '',
+  name: '---EMPTYRESULT---',
+  sizeType: 'small',
+  type: 'name',
+} as const
 
 const rowHeight = Kb.Styles.isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
