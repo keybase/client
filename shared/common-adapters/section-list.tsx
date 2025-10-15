@@ -27,7 +27,7 @@ function SectionListImpl<ItemT, SectionT>(
 ) {
   const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
   const getItemLayout = React.useMemo(() => {
-    return getItemHeight && getSectionHeaderHeight
+    return getItemHeight
       ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
