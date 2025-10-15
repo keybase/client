@@ -18,7 +18,6 @@ import teamDeleteTeam from './delete-team/page'
 import teamEditChannel from './team/member/edit-channel.page'
 import teamEditTeamDescription from './edit-team-description/page'
 import teamEditTeamInfo from './team/team-info.page'
-import teamEditWelcomeMessage from './edit-team-welcome-message/page'
 import teamExternalTeam from './external-team.page'
 import teamInviteByContact from './invite-by-contact/page'
 import teamInviteByEmail from './invite-by-email/page'
@@ -67,7 +66,6 @@ export const newModalRoutes = {
   teamEditChannel,
   teamEditTeamDescription,
   teamEditTeamInfo,
-  teamEditWelcomeMessage,
   teamInviteByContact,
   teamInviteByEmail,
   teamInviteHistory,

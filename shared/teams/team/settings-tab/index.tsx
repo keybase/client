@@ -18,7 +18,6 @@ type Props = {
   publicityAnyMember: boolean
   publicityMember: boolean
   publicityTeam: boolean
-  onEditWelcomeMessage: () => void
   openTeam: boolean
   openTeamRole: T.Teams.TeamRoleType
   savePublicity: (settings: T.Teams.PublicitySettings) => void

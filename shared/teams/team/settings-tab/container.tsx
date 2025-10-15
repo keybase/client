@@ -34,9 +34,6 @@ const Container = (ownProps: OwnProps) => {
     _loadWelcomeMessage(teamID)
   }, [_loadWelcomeMessage, teamID])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onEditWelcomeMessage = React.useCallback(() => {
-    navigateAppend({props: {teamID}, selected: 'teamEditWelcomeMessage'})
-  }, [navigateAppend, teamID])
   const _savePublicity = React.useCallback(
     (settings: T.Teams.PublicitySettings) => {
       setPublicity(teamID, settings)
@@ -74,7 +71,6 @@ const Container = (ownProps: OwnProps) => {
       ignoreAccessRequests={ignoreAccessRequests}
       isBigTeam={isBigTeam}
       loadWelcomeMessage={loadWelcomeMessage}
-      onEditWelcomeMessage={onEditWelcomeMessage}
       openTeam={openTeam}
       openTeamRole={openTeamRole}
       publicityAnyMember={publicityAnyMember}

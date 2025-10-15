@@ -10,12 +10,6 @@ type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchR
 
 export const numSectionLabel = '0-9'
 
-const isImportContactsEntry = (x: Types.ResultData): x is Types.ImportContactsEntry =>
-  'isImportButton' in x && !!x.isImportButton
-
-const isSearchHintEntry = (x: Types.ResultData): x is Types.SearchHintEntry =>
-  'isSearchHint' in x && !!x.isSearchHint
-
 const SearchHintText = () => (
   <Kb.Box2 direction="vertical" style={styles.searchHint}>
     <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
