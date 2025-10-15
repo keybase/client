@@ -91,7 +91,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
   const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
-  const callbacks = useHeaderCallbacks(teamID)
+  const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -103,14 +103,14 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const avatar = (
     <Kb.Avatar
-      editable={!!callbacks.onEditAvatar}
-      onEditAvatarClick={callbacks.onEditAvatar}
+      editable={!!onEditAvatar}
+      onEditAvatarClick={onEditAvatar}
       teamname={meta.teamname}
       size={96}
       style={Kb.Styles.collapseStyles([
         styles.alignSelfFlexStart,
-        callbacks.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
-        callbacks.onEditAvatar && styles.clickable,
+        onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
+        onEditAvatar && styles.clickable,
       ])}
     />
   )
@@ -133,7 +133,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
             {meta.teamname}
           </Kb.Text>
-          {!!callbacks.onRename && <Kb.Icon type="iconfont-edit" onClick={callbacks.onRename} />}
+          {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
           <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
@@ -156,11 +156,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
                 {`You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
               </Kb.Text>
               {meta.role === 'none' && (
-                <Kb.Text
-                  type="BodySmallSecondaryLink"
-                  onClick={callbacks.onAddSelf}
-                  style={styles.addSelfLink}
-                >
+                <Kb.Text type="BodySmallSecondaryLink" onClick={onAddSelf} style={styles.addSelfLink}>
                   Add yourself
                 </Kb.Text>
               )}
@@ -180,8 +176,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text
             type="Body"
             lineClamp={3}
-            onClick={callbacks.onEditDescription}
-            className={Kb.Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
+            onClick={onEditDescription}
+            className={Kb.Styles.classNames({'hover-underline': !!onEditDescription})}
             style={styles.clickable}
           >
             {details.description}
@@ -194,9 +190,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         )}
         <Activity level={activityLevel} style={styles.activity} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-          {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
+          {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
           {yourOperations.editTeamDescription && (
-            <Kb.Button label="Edit" onClick={callbacks.onEditDescription} small={true} mode="Secondary" />
+            <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
           <Kb.Button mode="Secondary" small={true} ref={teamMenu.popupAnchor} onClick={teamMenu.showPopup}>
@@ -294,16 +290,11 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const onRename = yourOperations.renameTeam
     ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
     : undefined
-  const onManageInvites = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteHistory'})
-  const onGenerateLink = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
-
   return {
     onAddSelf,
     onChat,
     onEditAvatar,
     onEditDescription,
-    onGenerateLink,
-    onManageInvites,
     onRename,
   }
 }
