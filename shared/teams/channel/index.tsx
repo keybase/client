@@ -90,13 +90,14 @@ const useTabsState = (
     lastSelectedTabs[conversationIDKey] = selectedTab
   }, [conversationIDKey, selectedTab])
 
-  const prevConvID = Container.usePrevious(conversationIDKey)
+  const prevConvIDRef = React.useRef(conversationIDKey)
 
   React.useEffect(() => {
-    if (conversationIDKey !== prevConvID) {
+    if (conversationIDKey !== prevConvIDRef.current) {
+      prevConvIDRef.current = conversationIDKey
       setSelectedTab(defaultSelectedTab)
     }
-  }, [conversationIDKey, prevConvID, setSelectedTab, defaultSelectedTab])
+  }, [conversationIDKey, setSelectedTab, defaultSelectedTab])
   return [selectedTab, setSelectedTab]
 }
 
@@ -285,13 +286,7 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 0,
       },
       header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
-      list: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.globalStyles.fillAbsolute,
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
-        },
-      }),
+      list: {},
       listContentContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,
