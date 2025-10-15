@@ -61,15 +61,16 @@ export const ContactsBanner = (props: {
 
   const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
   const onRedoRecs = fetchUserRecs
-  const prevNumContactsImported = Container.usePrevious(numContactsImported)
+  const prevNumContactsImportedRef = React.useRef(numContactsImported)
 
   // Redo search if # of imported contacts changes
   React.useEffect(() => {
-    if (prevNumContactsImported !== undefined && prevNumContactsImported !== numContactsImported) {
+    if (prevNumContactsImportedRef.current !== numContactsImported) {
+      prevNumContactsImportedRef.current = numContactsImported
       onRedoSearch()
       onRedoRecs()
     }
-  }, [numContactsImported, prevNumContactsImported, onRedoSearch, onRedoRecs])
+  }, [numContactsImported, onRedoSearch, onRedoRecs])
 
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.

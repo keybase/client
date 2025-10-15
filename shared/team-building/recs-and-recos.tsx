@@ -124,17 +124,6 @@ export const RecsAndRecos = (
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
           sections={recommendations ?? []}
-          keyExtractor={(item: Types.ResultData, index: number) => {
-            if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
-              // Ids for contacts are not guaranteed to be unique
-              return item.userId + index
-            }
-            return isImportContactsEntry(item)
-              ? 'Import Contacts'
-              : isSearchHintEntry(item)
-                ? 'New User Search Hint'
-                : item.userId
-          }}
           renderItem={({index, item: result, section}) =>
             result.isImportButton ? (
               <ContactsImportButton />
