@@ -157,6 +157,10 @@ const Team = (props: Props) => {
     []
   )
 
+  const getItemHeight = React.useCallback(() => {
+    return 48
+  }, [])
+
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.Box style={styles.container}>
@@ -166,6 +170,7 @@ const Team = (props: Props) => {
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}
+          getItemHeight={getItemHeight}
         />
         <SelectionPopup
           selectedTab={
