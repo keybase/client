@@ -202,13 +202,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: 0,
     top: 0,
   },
-  list: Kb.Styles.platformStyles({
-    // isElectron: {
-    //   ...Kb.Styles.globalStyles.fillAbsolute,
-    //   ...Kb.Styles.globalStyles.flexBoxColumn,
-    //   alignItems: 'stretch',
-    // },
-  }),
+  list: Kb.Styles.platformStyles({}),
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
       display: 'flex',
