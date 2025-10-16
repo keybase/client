@@ -38,6 +38,7 @@ const PlainInput = React.memo(
 
     const lastNativeTextRef = React.useRef<string | undefined>(undefined)
     const lastNativeSelectionRef = React.useRef<Selection | undefined>(undefined)
+    const afterTransformRef = React.useRef<(() => void) | undefined>(undefined)
 
     // This is controlled if a value prop is passed
     const controlled = typeof value === 'string'
@@ -155,8 +156,6 @@ const PlainInput = React.memo(
         },
       }
     }, [dummyInput, onFocus, _setSelection, controlled, transformText])
-
-    const afterTransformRef = React.useRef<(() => void) | undefined>(undefined)
 
     const _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       const {start, end} = event.nativeEvent.selection

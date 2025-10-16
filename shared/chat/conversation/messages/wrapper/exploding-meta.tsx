@@ -71,6 +71,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     forceUpdate()
   }, [exploded, explodesAt, forceUpdate, mode, setMode, tickerIDRef])
 
+  const updateLoopRef = React.useRef<() => void>()
   const updateLoop = React.useCallback(() => {
     if (pending) {
       return
@@ -91,9 +92,10 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     }
     forceUpdateIDRef.current = setTimeout(() => {
       forceUpdate()
-      updateLoop()
+      updateLoopRef.current?.()
     }, interval)
   }, [_secondLoop, exploded, explodesAt, forceUpdate, forceUpdateIDRef, pending, setMode, tickerIDRef])
+  updateLoopRef.current = updateLoop
 
   const _setHidden = React.useCallback(() => {
     mode !== 'hidden' && setMode('hidden')
