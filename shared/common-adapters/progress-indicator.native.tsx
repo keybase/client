@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type {Props} from './progress-indicator'
 import {ActivityIndicator} from 'react-native'
 import {globalColors, collapseStyles} from '@/styles'

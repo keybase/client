@@ -1,4 +1,3 @@
-import * as React from 'react'
 import logger from '@/logger'
 import BigTeamHeader from './big-team-header'
 import BigTeamChannel from './big-team-channel'

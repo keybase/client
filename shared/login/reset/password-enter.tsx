@@ -17,8 +17,10 @@ const EnterPassword = () => {
     resetAccount(password)
   }, [resetAccount, password])
 
+  const [now] = React.useState(() => Date.now())
+
   // If we're here because the timer has run out, change the title.
-  const title = endTime > 0 && Date.now() > endTime ? 'Almost done' : 'Your password'
+  const title = endTime > 0 && now > endTime ? 'Almost done' : 'Your password'
   return (
     <SignupScreen
       title={title}

@@ -127,7 +127,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
 // In order to have this play nicely with scrolling and keyboards, put all the stuff in a List.
 type Item = 'topStuff' | {username: string}
 
-const BlockModal = React.memo((p: Props) => {
+const BlockModal = React.memo(function BlockModal(p: Props) {
   const {finishWaiting, onClose, refreshBlocks, context, blockUserByDefault, otherUsernames} = p
   const {reportsUserByDefault, flagUserByDefault, conversationIDKey, adderUsername} = p
   const [blockTeam, setBlockTeam] = React.useState(true)

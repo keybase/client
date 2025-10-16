@@ -45,14 +45,6 @@ const useData = () => {
     }
   }, [clearCountdown])
 
-  C.useOnUnMountOnce(() => {
-    clearCountdown()
-  })
-
-  C.useOnMountOnce(() => {
-    resetError(!!error)
-  })
-
   const resetError = React.useCallback(
     (newError: boolean) => {
       setSize(newError ? 'Small' : 'Closed')
@@ -67,6 +59,14 @@ const useData = () => {
     },
     [clearCountdown, onDismiss]
   )
+
+  C.useOnUnMountOnce(() => {
+    clearCountdown()
+  })
+
+  C.useOnMountOnce(() => {
+    resetError(!!error)
+  })
 
   React.useEffect(() => {
     const id = setTimeout(

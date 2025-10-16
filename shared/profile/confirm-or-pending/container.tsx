@@ -60,8 +60,8 @@ const Container = () => {
           </Kb.Text>
           {platform === 'http' && (
             <Kb.Text center={true} type="BodySmall">
-              Note: {username} doesn't load over https. If you get a real SSL certificate (not self-signed) in
-              the future, please replace this proof with a fresh one.
+              Note: {username} doesn&apos;t load over https. If you get a real SSL certificate (not
+              self-signed) in the future, please replace this proof with a fresh one.
             </Kb.Text>
           )}
         </>

@@ -45,6 +45,8 @@ const ExplodingPopupHeader = (props: Props) => {
     [showUserProfile, onHidden]
   )
 
+  const [now] = React.useState(() => Date.now())
+
   const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
   const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
   const info = (
@@ -125,7 +127,7 @@ const ExplodingPopupHeader = (props: Props) => {
             color={Kb.Styles.globalColors.white}
           />
           <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
-            {msToDHMS(props.explodesAt - Date.now())}
+            {msToDHMS(props.explodesAt - now)}
           </Kb.Text>
         </Kb.Box2>
       )}

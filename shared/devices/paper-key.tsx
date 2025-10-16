@@ -42,7 +42,7 @@ const PaperKey = () => {
         <Kb.Text type="Header">Paper key generated!</Kb.Text>
         <Kb.Text type="Body" style={styles.intro}>
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
-          This is the only time you'll see this so be sure to write it down.
+          This is the only time you&apos;ll see this so be sure to write it down.
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
           {paperkey ? (

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'

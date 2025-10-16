@@ -40,7 +40,10 @@ const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
-const UserBubbleCollection = React.memo((p: {teamSoFar: Props['teamSoFar']; onRemove: Props['onRemove']}) => {
+const UserBubbleCollection = React.memo(function UserBubbleCollection(p: {
+  teamSoFar: Props['teamSoFar']
+  onRemove: Props['onRemove']
+}) {
   const {teamSoFar, onRemove} = p
   return (
     <>

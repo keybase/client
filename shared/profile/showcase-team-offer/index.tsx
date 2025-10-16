@@ -118,8 +118,8 @@ const ShowcaseTeamOfferHeader = () => (
     )}
     <Kb.InfoNote containerStyle={styles.noteContainer}>
       <Kb.Text center={true} style={styles.noteText} type="BodySmall">
-        Featuring a team will encourage others to ask to join. The team's description and number of members
-        will be public.
+        Featuring a team will encourage others to ask to join. The team&apos;s description and number of
+        members will be public.
       </Kb.Text>
     </Kb.InfoNote>
   </Kb.Box>

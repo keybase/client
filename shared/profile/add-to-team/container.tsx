@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {sendNotificationFooter} from '@/teams/role-picker'
+import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
-import {FloatingRolePicker} from '@/teams/role-picker'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 
 const getOwnerDisabledReason = (
@@ -194,7 +193,7 @@ const Container = (ownProps: OwnProps) => {
                 ) : (
                   <Kb.Box2 direction="vertical" centerChildren={true}>
                     <Kb.Text center={true} type="Body">
-                      Looks like you haven't joined any teams yet yourself!
+                      {"Looks like you haven't joined any teams yet yourself!"}
                     </Kb.Text>
                     <Kb.Text center={true} type="Body">
                       You can join teams over in the Teams tab.

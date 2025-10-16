@@ -61,7 +61,7 @@ const RetentionWarning = (props: Props) => {
                 everyone.
               </Kb.Text>
               {showChannelWarnings && (
-                <Kb.Text type="BodySmall">Channels you've set manually will not be affected.</Kb.Text>
+                <Kb.Text type="BodySmall">{"Channels you've set manually will not be affected."}</Kb.Text>
               )}
             </Kb.Box2>
           }

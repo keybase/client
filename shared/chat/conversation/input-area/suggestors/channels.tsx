@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'

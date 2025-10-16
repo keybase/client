@@ -18,7 +18,7 @@ export default function Import() {
         terminal:
       </Kb.Text>
       <Kb.Box style={styleTerminal}>
-        <Kb.Text type="TerminalComment"># import a key from gpg's key chain</Kb.Text>
+        <Kb.Text type="TerminalComment">{"# import a key from gpg's key chain"}</Kb.Text>
         <Kb.Text type="Terminal">keybase pgp select</Kb.Text>
         <Kb.Text type="TerminalEmpty" />
         <Kb.Text type="TerminalComment"># for more options</Kb.Text>

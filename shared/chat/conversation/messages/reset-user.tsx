@@ -27,8 +27,9 @@ const Container = () => {
             {username}
           </Kb.Text>{' '}
           <Kb.Text type="BodySemibold" negative={true}>
-            lost all their devices and this account has new keys. If you want to let them into this chat and
-            folder's history, you should either:
+            {
+              "lost all their devices and this account has new keys. If you want to let them into this chat and folder's history, you should either:"
+            }
           </Kb.Text>
         </Kb.Text>
         <Kb.Box style={styles.bullet}>
@@ -40,7 +41,7 @@ const Container = () => {
           </Kb.Text>
         </Kb.Box>
         <Kb.Text type="BodySemibold" negative={true} style={styles.lastSentence}>
-          Don't let them in until one of the above is&nbsp;true.
+          Don&apos;t let them in until one of the above is&nbsp;true.
         </Kb.Text>
         <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
           <Kb.Button

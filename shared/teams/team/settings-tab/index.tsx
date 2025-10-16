@@ -171,7 +171,7 @@ const IgnoreAccessRequests = (props: {
         checked={props.newIgnoreAccessRequests}
         labelComponent={
           <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-            <Kb.Text type="Body">Don't allow requests to join this team</Kb.Text>
+            <Kb.Text type="Body">{"Don't allow requests to join this team"}</Kb.Text>
             <Kb.Text type="BodySmall">
               Requests to join this team will be silently ignored by all admins.
             </Kb.Text>

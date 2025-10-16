@@ -5,13 +5,15 @@ import type {Props, AnimationType} from './animation'
 // prettier-ignore
 type AnimationObject = {
   v: string; fr: number; ip: number; op: number; w: number; h: number;
-  nm: string; ddd: number; assets: any[]; layers: any[]
+  nm: string; ddd: number; assets: unknown[]; layers: unknown[]
 }
 
 const Animation = React.memo(function Animation(props: Props) {
   const {animationType} = props
-  const dataRef = React.useRef(require('./animation-data.json') as {[key in AnimationType]: AnimationObject})
-  const source = dataRef.current[animationType]
+  const [data] = React.useState(
+    () => require('./animation-data.json') as {[key in AnimationType]: AnimationObject}
+  )
+  const source = data[animationType]
 
   return (
     <Box style={props.containerStyle}>

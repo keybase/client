@@ -6,7 +6,7 @@ import type {Props, TextType, _StylesTextCrossPlatform} from './text'
 import KB2 from '@/util/electron.desktop'
 const {showContextMenu} = KB2.functions
 
-const Text = React.memo((p: Props) => {
+const Text = React.memo(function Text(p: Props) {
   const {onClickURL, allowHighlightText, textRef, className: _className} = p
   const {type, onClick, negative, underlineNever, lineClamp, selectable} = p
   const {center, tooltip, virtualText, underline, title, style, children} = p

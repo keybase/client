@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import NativeScrollView from '@/common-adapters/scroll-view.native'
 import useData from './hook'

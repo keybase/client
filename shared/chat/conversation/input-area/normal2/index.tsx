@@ -64,7 +64,7 @@ const useHintText = (p: {
   return 'Write a message'
 }
 
-const Input = React.memo(function () {
+const Input = React.memo(function Input() {
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
   const showCommandStatus = C.useChatContext(s => !!s.commandStatus)

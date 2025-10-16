@@ -32,10 +32,9 @@ const rootRows: Array<SectionListItem> = [
   },
 ]
 
-const getRenderItem =
-  (destinationPickerIndex?: number) =>
-  ({item, section}: {item: SectionListItem; section: {key: string}}) =>
-    section.key === 'section-top' ? (
+const getRenderItem = (destinationPickerIndex?: number) =>
+  function WrapTLF({item, section}: {item: SectionListItem; section: {key: string}}) {
+    return section.key === 'section-top' ? (
       <WrapRow>
         <TlfType name={item.name as T.FS.TlfType} destinationPickerIndex={destinationPickerIndex} />
       </WrapRow>
@@ -50,6 +49,7 @@ const getRenderItem =
         />
       </WrapRow>
     )
+  }
 
 const renderSectionHeader = ({section}: {section: {key: string; title: string}}) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />

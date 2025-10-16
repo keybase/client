@@ -1,12 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {OrdinalContext} from '../ids-context'
+import {HighlightedContext, OrdinalContext} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 import {animationDuration} from './exploding-height-retainer'
-import {HighlightedContext} from '../ids-context'
 
 export type OwnProps = {onClick?: () => void}
 
@@ -147,9 +146,10 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     }
   }, [exploded, forceUpdateIDRef, messageKey, setMode, sharedTimerIDRef, sharedTimerKeyRef, tickerIDRef])
 
+  const [now] = React.useState(() => Date.now())
   const backgroundColor = pending
     ? Kb.Styles.globalColors.black
-    : explodesAt - Date.now() < oneMinuteInMs
+    : explodesAt - now < oneMinuteInMs
       ? Kb.Styles.globalColors.red
       : Kb.Styles.globalColors.black
   let children: React.ReactNode
@@ -178,7 +178,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
               ])}
               virtualText={true}
             >
-              {pending ? '' : formatDurationShort(explodesAt - Date.now())}
+              {pending ? '' : formatDurationShort(explodesAt - now)}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>

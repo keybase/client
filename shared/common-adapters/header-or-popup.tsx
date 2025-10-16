@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import {isMobile} from '@/constants/platform'
 import {HeaderHocWrapper, type Props as HeaderHocProps} from './header-hoc'
 import PopupDialog, {type Props as PopupDialogProps} from './popup-dialog'

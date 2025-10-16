@@ -1,7 +1,6 @@
 import eslint from '@eslint/js'
-import promise from 'eslint-plugin-promise'
-import reactCompiler from 'eslint-plugin-react-compiler'
-import react from 'eslint-plugin-react'
+import pluginPromise from 'eslint-plugin-promise'
+import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 import importPlugin from 'eslint-plugin-import'
@@ -41,7 +40,6 @@ const rules = {
   '@typescript-eslint/no-base-to-string': 'error',
   '@typescript-eslint/no-dupe-class-members': 'error',
   '@typescript-eslint/no-dynamic-delete': 'error',
-  '@typescript-eslint/no-empty-interface': 'error',
   '@typescript-eslint/no-empty-object-type': 'warn',
   '@typescript-eslint/no-explicit-any': 'warn',
   '@typescript-eslint/no-extra-non-null-assertion': 'error',
@@ -51,7 +49,6 @@ const rules = {
   '@typescript-eslint/no-implied-eval': 'error',
   '@typescript-eslint/no-invalid-void-type': 'error',
   '@typescript-eslint/no-loop-func': 'error',
-  '@typescript-eslint/no-loss-of-precision': 'error',
   '@typescript-eslint/no-meaningless-void-operator': 'error',
   '@typescript-eslint/no-misused-new': 'error',
   '@typescript-eslint/no-misused-promises': 'error',
@@ -99,7 +96,6 @@ const rules = {
   '@typescript-eslint/restrict-template-expressions': 'error',
   '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
   '@typescript-eslint/triple-slash-reference': 'error',
-  '@typescript-eslint/typedef': 'error',
   '@typescript-eslint/unbound-method': 'error',
   '@typescript-eslint/unified-signatures': 'error',
   'array-callback-return': 'error',
@@ -113,11 +109,12 @@ const rules = {
   'promise/catch-or-return': 'error',
   'promise/no-new-statics': 'error',
   'promise/no-return-in-finally': 'error',
+  'promise/always-return': 'warn',
   'promise/no-return-wrap': 'error',
   'promise/param-names': 'error',
   'promise/valid-params': 'error',
-  'react-compiler/react-compiler': 'warn',
   'react-hooks/exhaustive-deps': 'error',
+  'react-hooks/preserve-manual-memoization': 'warn',
   'react-hooks/rules-of-hooks': 'error',
   'react/boolean-prop-naming': 'error',
   'react/jsx-boolean-value': ['error', 'always'],
@@ -129,6 +126,7 @@ const rules = {
   'react/jsx-no-undef': 'error',
   'react/jsx-uses-vars': 'warn',
   'react/no-access-state-in-setstate': 'error',
+  'react/no-children-prop': 'off',
   'react/no-danger': 'error',
   'react/no-danger-with-children': 'error',
   'react/no-deprecated': 'error',
@@ -147,16 +145,21 @@ const rules = {
   'react/no-unused-state': 'error',
   'react/no-will-update-set-state': 'warn',
   'react/prefer-stateless-function': 'error',
+  'react/prop-types': 'off',
   'react/react-in-jsx-scope': 'off',
   'react/style-prop-object': 'error',
   'react/void-dom-elements-no-children': 'error',
   'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
   strict: ['error', 'global'],
+
+  // TEMP
+  'react-hooks/refs': 'warn',
 }
 
 export default [
-  {ignores},
+  {name: 'ignores', ignores},
   {
+    name: 'eslint generic',
     ...eslint.configs.recommended,
     ignores: [...ignores, '**/*.js'],
   },
@@ -171,23 +174,44 @@ export default [
       ...config.languageOptions,
       parserOptions: {
         project: ['./tsconfig.json'],
-        tsconfigRootDir: import.meta.dirname,
+        //tsconfigRootDir: __dirname,
       },
     },
   })),
   {
-    ...reactCompiler.configs.recommended,
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    name: 'react-hooks',
+    ...reactHooks.configs.flat.recommended,
+  },
+  {
+    ...importPlugin.flatConfigs.recommended,
+    settings: {
+      ...importPlugin.flatConfigs.recommended.settings,
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+        node: {
+          extensions: ['.js', '.tsx', '.d.ts', '.native.tsx', '.desktop.tsx', '.native.js', '.desktop.js'],
+        },
+      },
+    },
+  },
+  pluginPromise.configs['flat/recommended'],
+  {
+    name: 'react',
+    ...reactPlugin.configs.flat.recommended,
+    settings: {
+      ...reactPlugin.configs.flat.recommended.settings,
+      react: {version: 'detect'},
+    },
+  },
+  {
+    name: 'react-jsx',
+    ...reactPlugin.configs.flat['jsx-runtime'],
   },
   {
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
-    plugins: {
-      promise,
-      react,
-      'react-hooks': reactHooks,
-      import: importPlugin,
-    },
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -206,11 +230,6 @@ export default [
     name: 'kblint',
     rules,
     settings: {
-      'import/resolver': {
-        node: {
-          extensions: ['.js', '.tsx', '.d.ts', '.native.tsx', '.desktop.tsx', '.native.js', '.desktop.js'],
-        },
-      },
       react: {version: 'detect'},
     },
   },

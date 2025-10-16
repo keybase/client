@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
 import Box from '@/common-adapters/box'
 import Divider from '@/common-adapters/divider'

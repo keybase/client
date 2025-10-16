@@ -102,8 +102,9 @@ const FinderIntegration = (props: Props) => {
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="BodySmall">
-                Get access to your files and folders just like you normally do with your local files. It's
-                encrypted and secure.
+                {
+                  "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
+                }
               </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
                 <Kbfs.SystemFileManagerIntegrationPopup mode="Button" />

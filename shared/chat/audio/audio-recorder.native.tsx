@@ -179,7 +179,6 @@ const useIconAndOverlay = (p: {
     }
     const cleanupOverlayTimeout = () => {
       clearTimeout(id)
-      // eslint-disable-next-line
       id = 0
     }
 
@@ -766,10 +765,10 @@ const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: 
 
 const AudioCounter = () => {
   const [seconds, setSeconds] = React.useState(0)
-  const startTime = React.useRef(Date.now())
+  const [startTime] = React.useState(() => Date.now())
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setSeconds((Date.now() - startTime.current) / 1000)
+      setSeconds((Date.now() - startTime) / 1000)
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])

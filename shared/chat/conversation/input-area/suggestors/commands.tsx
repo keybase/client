@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type {RefType as Input2Ref} from '@/common-adapters/input2'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {

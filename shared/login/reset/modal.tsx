@@ -18,7 +18,7 @@ const ResetModalImpl = () => {
       navigateUp()
     }
   }, [active, navigateUp])
-  const now = Date.now()
+  const [now] = React.useState(() => Date.now())
   const timeLeft = endTime - now
 
   const msg =

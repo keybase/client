@@ -48,6 +48,14 @@ const PlainInput = React.memo(
       inputRef.current?.setNativeProps(nativeProps)
     }, [])
 
+    // Validate that this selection makes sense with current value
+    const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
+      let {start, end} = selection
+      end = Math.max(0, Math.min(end || 0, nativeText.length))
+      start = Math.min(start || 0, end)
+      return {end, start}
+    }
+
     const _setSelection = React.useCallback(
       (selection: Selection) => {
         const newSelection = _sanityCheckSelection(selection, lastNativeTextRef.current || '')
@@ -149,14 +157,6 @@ const PlainInput = React.memo(
     }, [dummyInput, onFocus, _setSelection, controlled, transformText])
 
     const afterTransformRef = React.useRef<(() => void) | undefined>(undefined)
-
-    // Validate that this selection makes sense with current value
-    const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
-      let {start, end} = selection
-      end = Math.max(0, Math.min(end || 0, nativeText.length))
-      start = Math.min(start || 0, end)
-      return {end, start}
-    }
 
     const _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       const {start, end} = event.nativeEvent.selection

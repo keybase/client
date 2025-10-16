@@ -38,7 +38,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
           <Kb.Icon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
-            We're having a hard time loading this page.
+            {"We're having a hard time loading this page."}
           </Kb.Text>
           {expanded && (
             <Kb.Box2 direction="vertical" style={styles.detailContainer}>

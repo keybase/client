@@ -68,7 +68,13 @@ type ContactRowProps = {
   onSelect: Props['onSelect']
   selected: boolean
 }
-const ContactRow = React.memo(({item, disabled, index, onSelect, selected}: ContactRowProps) => {
+const ContactRow = React.memo(function ContactRow({
+  item,
+  disabled,
+  index,
+  onSelect,
+  selected,
+}: ContactRowProps) {
   const topText = item.name || item.valueFormatted || item.value
   const bottomText = item.name ? (item.valueFormatted ?? item.value) : undefined
   const onCheck = (check: boolean) => onSelect(item, check)

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
 import Icon from '@/common-adapters/icon'

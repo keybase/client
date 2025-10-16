@@ -37,7 +37,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   if (pathItem.type !== T.FS.PathType.File) {
-    return <Kb.Text type="BodySmallError">This shouldn't happen type={pathItem.type}</Kb.Text>
+    return <Kb.Text type="BodySmallError">{`This shouldn't happen type=${pathItem.type}`}</Kb.Text>
   }
 
   if (fileContext === C.FS.emptyFileContext) {
@@ -118,7 +118,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
         <DefaultView path={path} />
       )
     default:
-      return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
+      return <Kb.Text type="BodySmallError">{"This shouldn't happen"}</Kb.Text>
   }
 }
 

@@ -41,7 +41,7 @@ const SFMIPopup = (props: Props) => {
               Enable Keybase in {C.fileUIName}?
             </Kb.Text>
             <Kb.Text type="BodySmall" style={styles.text} center={true}>
-              Get access to your files and folders just like you normally do with your local files. It's
+              Get access to your files and folders just like you normally do with your local files. It&apos;s
               encrypted and secure.
             </Kb.Text>
             <Kb.Divider style={styles.divider} />
