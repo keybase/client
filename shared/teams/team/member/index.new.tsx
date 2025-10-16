@@ -114,13 +114,20 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
   const nav = Container.useSafeNavigation()
   const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const wasWaiting = Container.usePrevious(waiting)
+  const wasWaitingRef = React.useRef(waiting)
+  const [leaving, setLeaving] = React.useState(false)
+
   React.useEffect(() => {
-    if (wasWaiting && !waiting) {
+    if (wasWaitingRef.current && !waiting) {
+      setLeaving(true)
       nav.safeNavigateUp()
+    } else {
+      setLeaving(false)
     }
-  })
-  return wasWaiting && !waiting
+    wasWaitingRef.current = waiting
+  }, [waiting, nav])
+
+  return leaving
 }
 
 type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}

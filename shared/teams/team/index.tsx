@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -50,13 +49,17 @@ const useTabsState = (
     [resetErrorInSettings, loadTeamChannelList, teamID, selectedTab]
   )
 
-  const prevTeamID = Container.usePrevious(teamID)
+  const prevTeamIDRef = React.useRef(teamID)
 
   React.useEffect(() => {
-    if (teamID !== prevTeamID) {
+    if (teamID !== prevTeamIDRef.current) {
       setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+  }, [teamID, setSelectedTab, defaultSelectedTab])
+
+  React.useEffect(() => {
+    prevTeamIDRef.current = teamID
+  }, [teamID])
   return [selectedTab, setSelectedTab]
 }
 

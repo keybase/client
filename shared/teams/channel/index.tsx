@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import {
   useAttachmentSections,
@@ -29,13 +28,13 @@ const useLoadDataForChannelPage = (
   participants: ReadonlyArray<string>,
   bots: ReadonlyArray<string>
 ) => {
-  const prevSelectedTab = Container.usePrevious(selectedTab)
+  const prevSelectedTabRef = React.useRef(selectedTab)
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
-    if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
+    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
         unboxRows([conversationIDKey])
       }
@@ -48,20 +47,23 @@ const useLoadDataForChannelPage = (
     getMembers,
     selectedTab,
     conversationIDKey,
-    prevSelectedTab,
     meta.conversationIDKey,
     participants,
     teamID,
   ])
   const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
-    if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
+    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already
       bots
         .filter(botUsername => !featuredBotsMap.has(botUsername))
         .map(botUsername => searchFeaturedBots(botUsername))
     }
-  }, [selectedTab, searchFeaturedBots, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
+  }, [selectedTab, searchFeaturedBots, conversationIDKey, bots, featuredBotsMap])
+
+  React.useEffect(() => {
+    prevSelectedTabRef.current = selectedTab
+  }, [selectedTab])
 
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {

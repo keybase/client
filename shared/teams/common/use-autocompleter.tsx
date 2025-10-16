@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -11,12 +10,15 @@ function useAutocompleter<U>(
 ) {
   const [selected, setSelected] = React.useState(0)
   const filterLCase = filter.trim().toLowerCase()
-  const prevFilterLCase = Container.usePrevious(filterLCase)
+  const prevFilterLCaseRef = React.useRef(filterLCase)
   React.useEffect(() => {
-    if (prevFilterLCase !== filterLCase) {
+    if (prevFilterLCaseRef.current !== filterLCase) {
       setSelected(0)
     }
-  }, [setSelected, prevFilterLCase, filterLCase])
+  }, [setSelected, filterLCase])
+  React.useEffect(() => {
+    prevFilterLCaseRef.current = filterLCase
+  }, [filterLCase])
   const itemsFiltered = React.useMemo(() => {
     let itemsFiltered = filterLCase
       ? items.filter(item => item.label.toLowerCase().includes(filterLCase))
