@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -258,21 +257,24 @@ const useScrolling = (p: {
   ])
 
   const firstOrdinal = messageOrdinals[0]
-  const prevFirstOrdinal = Container.usePrevious(firstOrdinal)
+  const prevFirstOrdinalRef = React.useRef(firstOrdinal)
   const ordinalsLength = messageOrdinals.length
-  const prevOrdinalLength = Container.usePrevious(ordinalsLength)
+  const prevOrdinalLengthRef = React.useRef(ordinalsLength)
 
   // called after dom update, to apply value
   React.useLayoutEffect(() => {
     // no items? don't be locked
-    if (firstOrdinal === prevFirstOrdinal) {
+    if (firstOrdinal === prevFirstOrdinalRef.current) {
       lockedToBottomRef.current = false
       return
     }
+    prevFirstOrdinalRef.current = firstOrdinal
+
     // didn't scroll up
-    if (ordinalsLength === prevOrdinalLength) {
+    if (ordinalsLength === prevOrdinalLengthRef.current) {
       return
     }
+    prevOrdinalLengthRef.current = ordinalsLength
     const {current} = listRef
     // maintain scroll position if we got new content
     if (
@@ -293,16 +295,7 @@ const useScrolling = (p: {
     }
     return undefined
     // we want this to fire when the ordinals change
-  }, [
-    centeredOrdinal,
-    ordinalsLength,
-    isLockedToBottom,
-    isMounted,
-    prevFirstOrdinal,
-    prevOrdinalLength,
-    listRef,
-    firstOrdinal,
-  ])
+  }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
   const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
