@@ -437,7 +437,6 @@ const User = (p: Props2) => {
         <Kb.Box2Measure direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
           <Kb.SectionList
             key={p.username}
-            //getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
             stickySectionHeadersEnabled={true}
             renderSectionHeader={renderSectionHeader}
             sections={sections}
