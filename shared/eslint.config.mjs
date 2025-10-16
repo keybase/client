@@ -3,7 +3,6 @@ import pluginPromise from 'eslint-plugin-promise'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
-import importPlugin from 'eslint-plugin-import'
 
 const ignores = [
   'babel.config.js',
@@ -181,20 +180,6 @@ export default [
   {
     name: 'react-hooks',
     ...reactHooks.configs.flat.recommended,
-  },
-  {
-    ...importPlugin.flatConfigs.recommended,
-    settings: {
-      ...importPlugin.flatConfigs.recommended.settings,
-      'import/resolver': {
-        typescript: {
-          project: './tsconfig.json',
-        },
-        node: {
-          extensions: ['.js', '.tsx', '.d.ts', '.native.tsx', '.desktop.tsx', '.native.js', '.desktop.js'],
-        },
-      },
-    },
   },
   pluginPromise.configs['flat/recommended'],
   {
