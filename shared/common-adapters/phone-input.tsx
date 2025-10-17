@@ -246,8 +246,6 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
       )
     }
 
-    console.log('aaaa', {selected, mobileItems})
-
     return (
       <Kb.FloatingPicker
         items={mobileItems}
