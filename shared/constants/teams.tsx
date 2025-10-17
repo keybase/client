@@ -1558,7 +1558,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 
           // Dismiss the create channel dialog.
           const visibleScreen = Router2Constants.getVisibleScreen()
-          if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
+          if (visibleScreen?.name === 'chatCreateChannel') {
             C.useRouterState.getState().dispatch.clearModals()
           }
           // Reload on team page

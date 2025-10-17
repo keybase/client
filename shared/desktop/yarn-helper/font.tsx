@@ -64,7 +64,7 @@ const mapPaths =
       throw new Error('invalid path')
     }
     const match = path.match(iconfontRegex)
-    if (!match || match.length !== 4) {
+    if (match?.length !== 4) {
       if (!skipUnmatchedFile) console.error(`Filename did not match, skipping ${path}`)
       return undefined
     }

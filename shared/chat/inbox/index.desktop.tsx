@@ -282,7 +282,7 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     }
     let show = true
     const row = rows[lastVisibleIdx.current]
-    if (!row || row.type !== 'small') {
+    if (row?.type !== 'small') {
       show = false
     }
     setShowFloating(show)

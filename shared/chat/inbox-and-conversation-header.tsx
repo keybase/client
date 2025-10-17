@@ -128,10 +128,10 @@ const Header2 = () => {
   }
 
   // if there is no description (and is not a 1-on-1), don't render the description box
-  const renderDescription = description || (fullName && withoutSelf && withoutSelf.length === 1)
+  const renderDescription = description || (fullName && withoutSelf?.length === 1)
 
   // trim() call makes sure that string is not just whitespace
-  if (withoutSelf && withoutSelf.length === 1 && desc.trim()) {
+  if (withoutSelf?.length === 1 && desc.trim()) {
     description = (
       <Kb.Markdown
         smallStandaloneEmoji={true}

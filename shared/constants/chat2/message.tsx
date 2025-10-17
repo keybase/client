@@ -528,10 +528,11 @@ export const uiRequestInfoToChatRequestInfo = (
 export const uiPaymentInfoToChatPaymentInfo = (
   ps?: ReadonlyArray<T.RPCChat.UIPaymentInfo>
 ): MessageTypes.ChatPaymentInfo | undefined => {
-  if (!ps || ps.length !== 1) {
+  if (ps?.length !== 1) {
     return undefined
   }
-  const p = ps[0]!
+  const p = ps[0]
+  if (!p) return undefined
   const serviceStatus = C.Wallets.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ?? T.Wallets.noAccountID,

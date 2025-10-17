@@ -21,7 +21,7 @@ const ReplyPreview = () => {
     }
   }
   let attachment: T.Chat.MessageAttachment | undefined
-  if (message && message.type === 'attachment') {
+  if (message?.type === 'attachment') {
     if (message.attachmentType === 'image') {
       attachment = message
     }

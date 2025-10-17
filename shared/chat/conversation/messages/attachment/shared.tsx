@@ -66,7 +66,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const ordinal = React.useContext(OrdinalContext)
   const state = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
-    if (!m || m.type !== 'attachment') {
+    if (m?.type !== 'attachment') {
       return 'none'
     }
 
