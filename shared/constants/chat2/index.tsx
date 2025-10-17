@@ -689,7 +689,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
           } as const
           set(s => {
             const {inboxSearch} = s
-            if (inboxSearch && inboxSearch.textStatus === 'inprogress') {
+            if (inboxSearch?.textStatus === 'inprogress') {
               const {conversationIDKey} = result
               const textResults = inboxSearch.textResults.filter(
                 r => r.conversationIDKey !== conversationIDKey

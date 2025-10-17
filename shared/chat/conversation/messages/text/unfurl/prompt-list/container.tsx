@@ -12,7 +12,7 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
   const {unfurlResolvePrompt, messageID, promptDomains} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
-      const messageID = message && message.type === 'text' ? message.id : noMessageID
+      const messageID = message?.type === 'text' ? message.id : noMessageID
       const unfurlResolvePrompt = s.dispatch.unfurlResolvePrompt
       const promptDomains = s.unfurlPrompt.get(messageID)
       return {messageID, promptDomains, unfurlResolvePrompt}

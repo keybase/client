@@ -210,7 +210,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
     navigateAppend(C.Settings.settingsAccountTab)
   }
 
-  const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
+  const meta = props.metadata?.type === 'email' ? props.metadata : undefined
 
   const [now] = React.useState(() => Date.now())
   // Has the user received a verification email less than 30 minutes ago?
@@ -255,7 +255,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
             label: 'Verify',
             onClick: () => {
               const meta = props.metadata
-              meta && meta.type === 'phone' && onConfirm(meta.phone)
+              meta?.type === 'phone' && onConfirm(meta.phone)
             },
             type: 'Success' as const,
           },
@@ -287,7 +287,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
             label: 'Make searchable',
             onClick: () => {
               const meta = props.metadata
-              meta && meta.type === 'email' && onConfirm(meta.email)
+              meta?.type === 'email' && onConfirm(meta.email)
             },
             type: 'Success' as const,
           },

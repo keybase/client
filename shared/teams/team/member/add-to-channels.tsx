@@ -126,7 +126,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const itemHeight = React.useMemo(() => {
     const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
-      return item && item.type === 'header'
+      return item?.type === 'header'
         ? {index, length: headerHeight, offset: 0}
         : {
             index,

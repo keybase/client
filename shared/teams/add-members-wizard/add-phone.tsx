@@ -48,7 +48,7 @@ const AddPhone = () => {
   }
 
   const maybeSubmit = (evt?: React.KeyboardEvent) => {
-    if (!disabled && evt && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+    if (!disabled && evt?.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       onContinue()
     }
   }

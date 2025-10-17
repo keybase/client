@@ -1834,7 +1834,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messageAttachmentNativeShare: ordinal => {
       const message = get().messageMap.get(ordinal)
-      if (!message || message.type !== 'attachment') {
+      if (message?.type !== 'attachment') {
         throw new Error('Invalid share message')
       }
       // Native share sheet for attachments
