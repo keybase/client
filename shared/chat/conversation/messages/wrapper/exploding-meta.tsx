@@ -95,7 +95,10 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
       updateLoopRef.current()
     }, interval)
   }, [_secondLoop, exploded, explodesAt, forceUpdate, forceUpdateIDRef, pending, setMode, tickerIDRef])
-  updateLoopRef.current = updateLoop
+
+  React.useLayoutEffect(() => {
+    updateLoopRef.current = updateLoop
+  }, [updateLoop])
 
   const _setHidden = React.useCallback(() => {
     mode !== 'hidden' && setMode('hidden')
