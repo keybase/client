@@ -183,10 +183,7 @@ const RNApp = React.memo(function RNApp() {
       <NavigationContainer
         navigationInChildEnabled={true}
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        ref={
-          // eslint-disable-next-line
-          Constants.navigationRef_ as any
-        }
+        ref={Constants.navigationRef as any}
         theme={Shared.theme}
         // eslint-disable-next-line
         initialState={initialState as any}
