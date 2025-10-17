@@ -204,21 +204,21 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
       setSelected(_selected)
     }, [_selected])
 
-    const desktopItemsRef = React.useRef<
-      Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}> | undefined
-    >(undefined)
-    const mobileItemsRef = React.useRef<Array<{label: string; value: string}> | undefined>(undefined)
+    const desktopItems = React.useMemo(
+      () => menuItems(countryData(), filter, onSelectMenu),
+      [filter, onSelectMenu]
+    )
+    const mobileItems = React.useMemo(() => pickerItems(countryData()), [])
 
     const onSelectFirst = () => {
-      if (Styles.isMobile && mobileItemsRef.current?.[0]) {
-        onSelectMenu(mobileItemsRef.current[0].value)
-      } else if (desktopItemsRef.current?.[0]) {
-        onSelectMenu(desktopItemsRef.current[0].alpha2)
+      if (Styles.isMobile && mobileItems?.[0]) {
+        onSelectMenu(mobileItems[0].value)
+      } else if (desktopItems?.[0]) {
+        onSelectMenu(desktopItems[0].alpha2)
       }
       onHidden()
     }
     if (!isMobile) {
-      desktopItemsRef.current = menuItems(countryData(), filter, onSelectMenu)
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
@@ -237,7 +237,7 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
               />
             </Kb.Box2>
           }
-          items={desktopItemsRef.current}
+          items={desktopItems}
           listStyle={styles.countryList}
           onHidden={onHidden}
           visible={visible}
@@ -245,10 +245,9 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
         />
       )
     }
-    mobileItemsRef.current = pickerItems(countryData())
     return (
       <Kb.FloatingPicker
-        items={mobileItemsRef.current}
+        items={mobileItems}
         onSelect={setSelected}
         onHidden={onCancel}
         onCancel={onCancel}
