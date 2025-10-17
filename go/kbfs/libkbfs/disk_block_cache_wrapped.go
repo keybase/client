@@ -93,7 +93,7 @@ func newDiskBlockCacheWrapped(
 		syncCacheLimitTrackerType, syncCacheFolderName, mode)
 	if syncCacheErr != nil {
 		log := config.MakeLogger("DBC")
-		log.Warning("Could not initialize sync block cache.")
+		log.Warning("Could not initialize sync block cache: %v", syncCacheErr)
 		// We still return success because the working set cache successfully
 		// initialized.
 	}
@@ -174,7 +174,9 @@ func (cache *diskBlockCacheWrapped) moveBetweenCachesWithBlockLocked(
 	go func() {
 		defer cache.deleteGroup.Done()
 		// Don't catch the errors -- this is just best effort.
-		_, _, _ = secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+		if secondaryCache != nil {
+			_, _, _ = secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+		}
 	}()
 }
 
@@ -228,6 +230,9 @@ func (cache *diskBlockCacheWrapped) moveBetweenCachesLocked(
 	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
 	newCacheType DiskBlockCacheType) (moved bool) {
 	_, secondaryCache := cache.rankCachesLocked(newCacheType)
+	if secondaryCache == nil {
+		return false
+	}
 	buf, serverHalf, prefetchStatus, err := secondaryCache.Get(
 		ctx, tlfID, blockID)
 	if err != nil {
@@ -372,10 +377,12 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		}
 		return err
 	}
-	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
-	if !isNoSuchBlockError {
-		return err
+	if secondaryCache != nil {
+		err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+		_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
+		if !isNoSuchBlockError {
+			return err
+		}
 	}
 	// Try one last time in the primary cache, in case of this
 	// sequence of events:

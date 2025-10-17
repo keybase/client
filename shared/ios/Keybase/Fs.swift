@@ -24,7 +24,7 @@ import Foundation
                 try? fm.removeItem(atPath: (oldLogPath as NSString).appendingPathComponent($0))
             }
         }
-      // Create LevelDB and log directories with a slightly lower data protection
+        // Create LevelDB and log directories with a slightly lower data protection
         // mode so we can use them in the background
         [
             "keybase.chat.leveldb",
@@ -83,19 +83,18 @@ import Foundation
         }
         NSLog("setAllFiles is true charging forward")
 
-      // If the caller wants us to set everything in the directory, then let's do it now (one level down at least)
-        do {
-            let contents = try fm.contentsOfDirectory(atPath: path)
-            for file in contents {
+        // Recursively set attributes on all subdirectories and files
+        if let enumerator = fm.enumerator(atPath: path) {
+            for case let file as String in enumerator {
                 let filePath = (path as NSString).appendingPathComponent(file)
                 do {
                     try fm.setAttributes(noProt, ofItemAtPath: filePath)
                 } catch {
-                    NSLog("Error setting file attributes on file: \(file) error: \(error)")
+                    NSLog("Error setting file attributes on: \(filePath) error: \(error)")
                 }
             }
-        } catch {
-            NSLog("Error listing directory contents: \(error)")
+        } else {
+            NSLog("Error creating enumerator for path: \(path)")
         }
     }
 
