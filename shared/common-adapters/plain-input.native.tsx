@@ -174,6 +174,13 @@ const PlainInput = React.memo(
       onEnterKeyDown?.()
     }, [onEnterKeyDown])
 
+    // Update lastNativeTextRef when value changes (controlled mode)
+    React.useEffect(() => {
+      if (typeof value === 'string') {
+        lastNativeTextRef.current = value
+      }
+    }, [value])
+
     const _getProps = () => {
       const _getStyle = () => {
         const _getCommonStyle = () => {
@@ -252,9 +259,6 @@ const PlainInput = React.memo(
 
     const props = _getProps()
 
-    if (props.value) {
-      lastNativeTextRef.current = props.value
-    }
     if (p.dummyInput) {
       // There are three things we want from a dummy input.
       // 1. Tapping the input does not fire the native handler. Because the native handler opens the keyboard which we don't want.
