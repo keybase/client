@@ -15,6 +15,8 @@ const Kb = {
   Text,
 }
 
+// semi-controller to work around issues where a fully controlled one will cause the wheel on ios
+// to jump back and then slowly animate to the value you just went to
 function WrapPicker<T>(p: {
   initialValue?: T
   onValueChange: (v: T | undefined) => void
@@ -55,8 +57,6 @@ export {Picker}
 
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
 const FloatingPicker = <T extends string | number>(props: Props<T>) => {
-  console.log('aaa picker render', props)
-
   if (!props.visible) {
     return null
   }
