@@ -211,9 +211,9 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
     const mobileItems = React.useMemo(() => pickerItems(countryData()), [])
 
     const onSelectFirst = () => {
-      if (Styles.isMobile && mobileItems?.[0]) {
+      if (Styles.isMobile && mobileItems[0]) {
         onSelectMenu(mobileItems[0].value)
-      } else if (desktopItems?.[0]) {
+      } else if (desktopItems[0]) {
         onSelectMenu(desktopItems[0].alpha2)
       }
       onHidden()

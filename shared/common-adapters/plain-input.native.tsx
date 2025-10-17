@@ -260,6 +260,7 @@ const PlainInput = React.memo(
     const props = _getProps()
 
     if (p.dummyInput) {
+      const {ref, onFocus, ...rest} = props
       // There are three things we want from a dummy input.
       // 1. Tapping the input does not fire the native handler. Because the native handler opens the keyboard which we don't want.
       // 2. Calls to ref.focus() on the input do not fire the native handler.
@@ -267,10 +268,11 @@ const PlainInput = React.memo(
       // editable=false yields 1 and 2
       // pointerEvents=none yields 1 and 3
       return (
-        <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
+        <ClickableBox style={{flexGrow: 1}} onClick={onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
             <NativeTextInput
-              {...props}
+              {...rest}
+              ref={ref}
               editable={false}
               // needed to workaround changing this not doing the right thing
               key={p.type}
