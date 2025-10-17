@@ -150,9 +150,7 @@ const rules = {
   'react/void-dom-elements-no-children': 'error',
   'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
   strict: ['error', 'global'],
-
-  // TEMP
-  'react-hooks/refs': 'warn',
+  'react-hooks/refs': 'error',
 }
 
 export default [

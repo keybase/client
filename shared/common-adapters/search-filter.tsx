@@ -66,7 +66,7 @@ export type SearchFilterRef = {
 }
 const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFilter(props, ref) {
   const {onChange, onBlur: _onBlur, onFocus: _onFocus, hotkey} = props
-  const {onKeyDown: _onKeyDown, onCancel} = props
+  const {onKeyDown: _onKeyDown, onCancel, measureRef} = props
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
@@ -270,7 +270,7 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
 
   const inside = (
     <Kb.Box2Measure
-      ref={props.measureRef}
+      ref={measureRef}
       direction="horizontal"
       style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
       pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}

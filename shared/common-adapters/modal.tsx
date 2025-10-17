@@ -54,34 +54,36 @@ type Props = {
   popupStyleCover?: Styles.StylesCrossPlatform
 }
 
-const ModalInner = (props: Props) => (
-  <>
-    {props.header ? <Header {...props.header} /> : null}
-    {props.banners ? props.banners : null}
-    {props.noScrollView ? (
-      Styles.isMobile ? (
-        <Kb.BoxGrow>{props.children}</Kb.BoxGrow>
+const ModalInner = (props: Props) => {
+  const {header, banners, noScrollView, backgroundStyle, footer} = props
+  const {children, scrollViewRef, scrollViewContainerStyle, mode, fullscreen} = props
+  return (
+    <>
+      {header ? <Header {...header} /> : null}
+      {banners ? banners : null}
+      {noScrollView ? (
+        Styles.isMobile ? (
+          <Kb.BoxGrow>{children}</Kb.BoxGrow>
+        ) : (
+          children
+        )
       ) : (
-        props.children
-      )
-    ) : (
-      <Kb.ScrollView
-        ref={props.scrollViewRef}
-        alwaysBounceVertical={false}
-        style={Styles.collapseStyles([styles.scroll, props.backgroundStyle])}
-        contentContainerStyle={Styles.collapseStyles([
-          styles.scrollContentContainer,
-          props.scrollViewContainerStyle,
-        ])}
-      >
-        {props.children}
-      </Kb.ScrollView>
-    )}
-    {!!props.footer && (
-      <Footer {...props.footer} wide={(props.mode ?? 'Default') === 'Wide'} fullscreen={!!props.fullscreen} />
-    )}
-  </>
-)
+        <Kb.ScrollView
+          ref={scrollViewRef}
+          alwaysBounceVertical={false}
+          style={Styles.collapseStyles([styles.scroll, backgroundStyle])}
+          contentContainerStyle={Styles.collapseStyles([
+            styles.scrollContentContainer,
+            scrollViewContainerStyle,
+          ])}
+        >
+          {children}
+        </Kb.ScrollView>
+      )}
+      {!!footer && <Footer {...footer} wide={(mode ?? 'Default') === 'Wide'} fullscreen={!!fullscreen} />}
+    </>
+  )
+}
 
 /** TODO being deprecated. if you change this change modal2 and talk to #frontend **/
 const Modal = (props: Props) =>

@@ -99,7 +99,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     },
     [teamID]
   )
-  const teamMenu = Kb.usePopup2(makePopup)
+  const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (
     <Kb.Avatar
@@ -195,10 +195,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
-          <Kb.Button mode="Secondary" small={true} ref={teamMenu.popupAnchor} onClick={teamMenu.showPopup}>
+          <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
             <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
-          {teamMenu.popup}
+          {tmpopup}
         </Kb.Box2>
       </Kb.Box2>
       {popup}

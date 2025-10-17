@@ -12,7 +12,10 @@ type DefaultViewProps = {
   showInSystemFileManager: () => void
 }
 
-const Share = (p: ClickableProps) => <Kb.Button key="share" label="Share" onClick={p.onClick} ref={p.mref} />
+const Share = (p: ClickableProps) => {
+  const {onClick, mref} = p
+  return <Kb.Button key="share" label="Share" onClick={onClick} ref={mref} />
+}
 const DefaultView = (props: DefaultViewProps) => {
   const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.FS.emptyFileContext)
   return (

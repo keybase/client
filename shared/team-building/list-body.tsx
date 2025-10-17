@@ -262,29 +262,43 @@ export const ListBody = (
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
   const lastEnterInputCounterRef = React.useRef(enterInputCounter)
-  if (lastEnterInputCounterRef.current !== enterInputCounter) {
-    lastEnterInputCounterRef.current = enterInputCounter
-    const userResultsToShow = showRecs ? flattenRecommendations(recommendations ?? []) : searchResults
-    const selectedResult =
-      !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
-    if (selectedResult) {
-      // We don't handle cases where they hit enter on someone that is already a
-      // team member
-      if (selectedResult.isPreExistingTeamMember) {
-        return
+  React.useEffect(() => {
+    if (lastEnterInputCounterRef.current !== enterInputCounter) {
+      lastEnterInputCounterRef.current = enterInputCounter
+      const userResultsToShow = showRecs ? flattenRecommendations(recommendations ?? []) : searchResults
+      const selectedResult =
+        !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
+      if (selectedResult) {
+        // We don't handle cases where they hit enter on someone that is already a
+        // team member
+        if (selectedResult.isPreExistingTeamMember) {
+          return
+        }
+        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+          onRemove(selectedResult.userId)
+          onChangeText('')
+        } else {
+          onAdd(selectedResult.userId)
+        }
+      } else if (!searchString && !!teamSoFar.length) {
+        // They hit enter with an empty search string and a teamSoFar
+        // We'll Finish the team building
+        onFinishTeamBuilding()
       }
-      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-        onRemove(selectedResult.userId)
-        onChangeText('')
-      } else {
-        onAdd(selectedResult.userId)
-      }
-    } else if (!searchString && !!teamSoFar.length) {
-      // They hit enter with an empty search string and a teamSoFar
-      // We'll Finish the team building
-      onFinishTeamBuilding()
     }
-  }
+  }, [
+    enterInputCounter,
+    showRecs,
+    recommendations,
+    searchResults,
+    highlightedIndex,
+    teamSoFar,
+    onRemove,
+    onChangeText,
+    onAdd,
+    searchString,
+    onFinishTeamBuilding,
+  ])
 
   if (showRecPending || showLoading) {
     return (

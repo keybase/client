@@ -8,6 +8,7 @@ function useResizeObserver<T extends Element>(
 ): ResizeObserver {
   const resizeObserver = getResizeObserver()
   const storedCallback = React.useRef(callback)
+  // eslint-disable-next-line
   storedCallback.current = callback
 
   React.useLayoutEffect(() => {
@@ -35,7 +36,7 @@ function createResizeObserver() {
   let ticking = false
   let allEntries: ResizeObserverEntry[] = []
 
-  const callbacks: Map<any, Array<UseResizeObserverCallback>> = new Map()
+  const callbacks: Map<unknown, Array<UseResizeObserverCallback>> = new Map()
 
   const observer = new window.ResizeObserver((entries: ResizeObserverEntry[], obs: ResizeObserver) => {
     allEntries = allEntries.concat(entries)

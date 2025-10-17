@@ -22,14 +22,14 @@ export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
-export const navigationRef_ = createNavigationContainerRef<KBRootParamList>()
+export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
 registerDebugClear(() => {
-  navigationRef_.current = null
+  navigationRef.current = null
 })
 
 export const _getNavigator = () => {
-  return navigationRef_.isReady() ? navigationRef_ : undefined
+  return navigationRef.isReady() ? navigationRef : undefined
 }
 
 export const logState = () => {
@@ -42,8 +42,8 @@ export const logState = () => {
 }
 
 export const getRootState = (): NavState | undefined => {
-  if (!navigationRef_.isReady()) return
-  return navigationRef_.getRootState()
+  if (!navigationRef.isReady()) return
+  return navigationRef.getRootState()
 }
 
 const _isLoggedIn = (s: T.Immutable<NavState>) => {

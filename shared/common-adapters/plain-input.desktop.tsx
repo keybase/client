@@ -334,12 +334,13 @@ const PlainInput = React.memo(
       }
     })
 
+    const {ref: inputPropsRef, ...restInputProps} = inputProps
     return (
       <>
         {multiline ? (
-          <textarea {...inputProps} ref={inputProps.ref as any as React.RefObject<HTMLTextAreaElement>} />
+          <textarea {...restInputProps} ref={inputPropsRef as any as React.RefObject<HTMLTextAreaElement>} />
         ) : (
-          <input {...inputProps} ref={inputProps.ref as any as React.RefObject<HTMLInputElement>} />
+          <input {...restInputProps} ref={inputPropsRef as any as React.RefObject<HTMLInputElement>} />
         )}
       </>
     )
