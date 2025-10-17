@@ -104,7 +104,12 @@ export const RecsAndRecos = (
   )
 
   React.useEffect(() => {
-    sectionListRef.current?.scrollToLocation({itemIndex: highlightedIndex, sectionIndex: 0, viewPosition: 0})
+    highlightedIndex >= 0 &&
+      sectionListRef.current?.scrollToLocation({
+        itemIndex: highlightedIndex,
+        sectionIndex: 0,
+        viewPosition: 0,
+      })
   }, [highlightedIndex])
 
   return (

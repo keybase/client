@@ -293,21 +293,6 @@ const useScrolling = (p: {
     // we want this to fire when the ordinals change
   }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
-  // const tempRef = React.useRef(0)
-  // React.useEffect(() => {
-  //   if (
-  //     listRef.current &&
-  //     !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
-  //     !isLockedToBottom() &&
-  //     isMounted() &&
-  //     scrollBottomOffsetRef.current !== undefined
-  //   ) {
-  //     const newTop = listRef.current.scrollHeight - scrollBottomOffsetRef.current
-  //     tempRef.current = newTop
-  //     console.log('aaa useEffct', tempRef.current)
-  //   }
-  // }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
-
   // Check to see if our centered ordinal has changed, and if so, scroll to it
   const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
   React.useEffect(() => {
