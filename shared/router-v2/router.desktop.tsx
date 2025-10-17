@@ -133,10 +133,16 @@ const ElectronApp = React.memo(function ElectronApp() {
     setNavState(ns)
   }, [setNavState])
 
+  const navRef = React.useCallback((ref: typeof C.Router2.navigationRef.current) => {
+    if (ref) {
+      C.Router2.navigationRef.current = ref
+    }
+  }, [])
+
   return (
     <NavigationContainer
       navigationInChildEnabled={true}
-      ref={C.Router2.navigationRef_}
+      ref={navRef}
       theme={Shared.theme}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}

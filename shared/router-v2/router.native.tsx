@@ -153,6 +153,12 @@ const RNApp = React.memo(function RNApp() {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
   }, [])
 
+  const navRef = React.useCallback((ref: typeof Constants.navigationRef.current) => {
+    if (ref) {
+      Constants.navigationRef.current = ref
+    }
+  }, [])
+
   const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
@@ -183,7 +189,7 @@ const RNApp = React.memo(function RNApp() {
       <NavigationContainer
         navigationInChildEnabled={true}
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        ref={Constants.navigationRef as any}
+        ref={navRef}
         theme={Shared.theme}
         // eslint-disable-next-line
         initialState={initialState as any}
