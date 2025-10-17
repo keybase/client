@@ -15,9 +15,6 @@ const Kb = {
   Text,
 }
 
-// {.map(item => (
-//   <Kb.Picker.Item key={item.label} {...item} />
-// ))}
 function WrapPicker<T>(p: {
   initialValue?: T
   onValueChange: (v: T | undefined) => void
