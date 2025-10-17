@@ -1,19 +1,71 @@
+import * as React from 'react'
 import * as Styles from '@/styles'
-import {SafeAreaView} from 'react-native'
+import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Overlay from './overlay'
 import Text from './text'
 import type {Props} from './floating-picker'
 
+const Kb = {
+  Box2,
+  Overlay,
+  Picker,
+  SafeAreaView,
+  Text,
+}
+
+// {.map(item => (
+//   <Kb.Picker.Item key={item.label} {...item} />
+// ))}
+function WrapPicker<T>(p: {
+  initialValue?: T
+  onValueChange: (v: T | undefined) => void
+  prompt?: string
+  style?: Styles.StylesCrossPlatform
+  itemStyle?: Styles.StylesCrossPlatform
+  options: Array<{label: string; value: T}>
+}) {
+  const {initialValue, onValueChange, options, prompt, style, itemStyle} = p
+  const [localValue, setLocalValue] = React.useState(initialValue)
+
+  const handleValueChange = React.useCallback(
+    (value: T) => {
+      const selectedOption = options.find(option => option.value === value)
+      if (!selectedOption) return
+      setLocalValue(selectedOption.value)
+      onValueChange(selectedOption.value)
+    },
+    [onValueChange, options]
+  )
+
+  return (
+    <Picker
+      selectedValue={localValue}
+      onValueChange={handleValueChange}
+      prompt={prompt}
+      style={style}
+      itemStyle={itemStyle}
+    >
+      {options.map((option, index) => (
+        <Picker.Item key={index} label={option.label} value={option.value} />
+      ))}
+    </Picker>
+  )
+}
+
+export {Picker}
+
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
 const FloatingPicker = <T extends string | number>(props: Props<T>) => {
+  console.log('aaa picker render', props)
+
   if (!props.visible) {
     return null
   }
 
   return (
-    <Overlay
+    <Kb.Overlay
       key={
         // Android bug: after selecting a new value (e.g. in
         // set-explode-popup), it flips to the new value, then back to the old
@@ -24,32 +76,29 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
       }
       onHidden={props.onHidden}
     >
-      <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.menu}>
         {props.header}
-        <Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
-          <Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
             Cancel
-          </Text>
-          <Box2 direction="horizontal" style={styles.flexOne} />
-          <Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.flexOne} />
+          <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
             Done
-          </Text>
-        </Box2>
+          </Kb.Text>
+        </Kb.Box2>
         {props.prompt}
-        <Picker
-          selectedValue={props.selectedValue}
-          onValueChange={itemValue => props.onSelect(itemValue)}
+        <WrapPicker<T>
+          initialValue={props.selectedValue}
+          onValueChange={props.onSelect}
           prompt={props.promptString}
           style={styles.picker}
           itemStyle={styles.item}
-        >
-          {props.items.map(item => (
-            <Picker.Item key={item.label} {...item} />
-          ))}
-        </Picker>
-        <SafeAreaView style={styles.safeArea} />
-      </Box2>
-    </Overlay>
+          options={props.items}
+        />
+        <Kb.SafeAreaView style={styles.safeArea} />
+      </Kb.Box2>
+    </Kb.Overlay>
   )
 }
 
@@ -101,7 +150,7 @@ const styles = Styles.styleSheetCreate(
       safeArea: {
         backgroundColor: Styles.globalColors.white,
       },
-    } as const)
+    }) as const
 )
 
 export default FloatingPicker
