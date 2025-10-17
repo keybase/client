@@ -152,7 +152,7 @@ const rules = {
   strict: ['error', 'global'],
 
   // TEMP
-  'react-hooks/refs': 'warn',
+  'react-hooks/refs': 'error',
 }
 
 export default [
