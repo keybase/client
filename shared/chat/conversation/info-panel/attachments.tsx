@@ -5,14 +5,12 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import chunk from 'lodash/chunk'
-import type {Section} from '@/common-adapters/section-list'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 
 type Props = {
-  renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+  commonSections: ReadonlyArray<Section>
 }
 
 const monthNames = [
@@ -58,6 +56,7 @@ type Doc = {
   onDownload?: () => void
   onShowInFinder?: () => void
   onClick: () => void
+  type: 'doc'
 }
 
 type Link = {
@@ -68,6 +67,7 @@ type Link = {
   url?: string
   key: string
   id: T.Chat.MessageID
+  type: 'link'
 }
 
 type ThumbData = {
@@ -92,23 +92,21 @@ type ThumbData = {
     thumb: Thumb
   }[]
   key: number
+  type: 'thumb'
 }
 
-type SectionTypes =
-  | {type: 'doc'}
-  | {type: 'link'}
-  | {type: 'thumb'}
+export type Item =
+  | {type: 'header-item'}
+  | {type: 'tabs'}
+  | Doc
+  | Link
+  | ThumbData
   | {type: 'avselector'}
   | {type: 'no-attachments'}
   | {type: 'load-more'}
   | {type: 'header-section'}
 
-type InfoPanelSection = Section<
-  unknown,
-  SectionTypes & {
-    renderSectionHeader?: (props: {section: SectionTypes}) => React.ReactElement | null
-  }
->
+type Section = Kb.SectionType<Item>
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
@@ -435,7 +433,7 @@ export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
-): {sections: Array<InfoPanelSection>} => {
+): {sections: Array<Section>} => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
   )
@@ -505,24 +503,17 @@ export const useAttachmentSections = (
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
-  const avSection: InfoPanelSection = {
-    data: [{key: 'avselector'}],
-    key: 'avselector',
+  const avSection: Section = {
+    data: [{type: 'avselector'}],
     renderItem: () => (
       <AttachmentTypeSelector selectedView={selectedAttachmentView} onSelectView={onAttachmentViewChange} />
     ),
-    renderSectionHeader: p.renderTabs,
-    type: 'avselector',
   } as const
 
-  const commonSections: Array<InfoPanelSection> = [
-    ...(p.commonSections as Array<InfoPanelSection>),
-    avSection,
-  ]
+  const commonSections: Array<Section> = [...(p.commonSections as Array<Section>), avSection]
 
-  const loadMoreSection: InfoPanelSection = {
-    data: [{key: 'load more'}],
-    key: 'load-more',
+  const loadMoreSection: Section = {
+    data: [{type: 'load-more'}],
     renderItem: () => {
       const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
@@ -550,20 +541,17 @@ export const useAttachmentSections = (
       }
       return null
     },
-    type: 'load-more',
   } as const
 
-  let sections: Array<InfoPanelSection>
+  let sections: Array<Section>
   if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
-    const noAttachmentsSection: InfoPanelSection = {
-      data: [{key: 'no-attachments'}],
-      key: 'no-attachments',
+    const noAttachmentsSection: Section = {
+      data: [{type: 'no-attachments'}],
       renderItem: () => (
         <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
           <Kb.Text type="BodySmall">No attachments</Kb.Text>
         </Kb.Box2>
       ),
-      type: 'no-attachments',
     } as const
     sections = [...commonSections, noAttachmentsSection, loadMoreSection]
   } else {
@@ -572,7 +560,7 @@ export const useAttachmentSections = (
         {
           const rowSize = 4 // count of images in each row
           const maxMediaThumbSize = infoPanelWidth() / rowSize
-          const s = formMonths(
+          const s: Array<Section> = formMonths(
             (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(
               m =>
                 ({
@@ -603,27 +591,30 @@ export const useAttachmentSections = (
               thumb,
             }))
             const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)
-            const data = dataChunked.map((images, i) => ({images, key: i}))
+            const data: ReadonlyArray<ThumbData> = dataChunked.map((images, i) => ({
+              images,
+              key: i,
+              type: 'thumb',
+            }))
             return {
               data,
               key: month.key,
-              renderItem: ({item}: {item: ThumbData; index: number}) => (
-                <Kb.Box2
-                  direction="horizontal"
-                  fullWidth={true}
-                  style={useFlexWrap ? styles.flexWrap : undefined}
-                >
-                  {item.images.map(cell => {
-                    return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
-                  })}
-                </Kb.Box2>
-              ),
+              renderItem: ({item}: {item: Item; index: number}) =>
+                item.type === 'thumb' ? (
+                  <Kb.Box2
+                    direction="horizontal"
+                    fullWidth={true}
+                    style={useFlexWrap ? styles.flexWrap : undefined}
+                  >
+                    {item.images.map(cell => {
+                      return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
+                    })}
+                  </Kb.Box2>
+                ) : null,
               renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-              title: `${month.month} ${month.year}`,
-              type: 'thumb',
-            }
+            } as const
           })
-          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
+          sections = [...commonSections, ...s, loadMoreSection]
         }
         break
       case T.RPCChat.GalleryItemTyp.doc:
@@ -644,19 +635,20 @@ export const useAttachmentSections = (
             onDownload: () => onDocDownload(m),
             onShowInFinder: !C.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
             progress: m.transferProgress,
+            type: 'doc',
           }))
 
-          const s = formMonths(docs).map(
+          const s: Array<Section> = formMonths(docs).map(
             month =>
               ({
                 data: month.data,
                 key: month.key,
-                renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
+                renderItem: ({item}: {item: Item}) =>
+                  item.type === 'doc' ? <DocViewRow item={item} /> : null,
                 renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-                type: 'doc',
               }) as const
           )
-          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
+          sections = [...commonSections, ...s, loadMoreSection]
         }
         break
       case T.RPCChat.GalleryItemTyp.link:
@@ -672,6 +664,7 @@ export const useAttachmentSections = (
                 id: m.id,
                 key: `unfurl-empty-${m.ordinal}-${m.author}-${m.timestamp}`,
                 snippet: m.decoratedText?.stringValue() ?? '',
+                type: 'link',
               })
             } else {
               ;[...m.unfurls.values()].forEach((u, i) => {
@@ -683,6 +676,7 @@ export const useAttachmentSections = (
                     key: `unfurl-${m.ordinal}-${i}-${m.author}-${m.timestamp}-${u.unfurl.generic.url}`,
                     snippet: m.decoratedText?.stringValue() ?? '',
                     title: u.unfurl.generic.title,
+                    type: 'link',
                     url: u.unfurl.generic.url,
                   })
                 }
@@ -694,8 +688,8 @@ export const useAttachmentSections = (
           const s = formMonths(links).map(month => ({
             data: month.data,
             key: month.key,
-            renderItem: ({item}: {item: Link}) => {
-              return (
+            renderItem: ({item}: {item: Item}) => {
+              return item.type === 'link' ? (
                 <Kb.ClickableBox2
                   onClick={() => {
                     jumpToAttachment(item.id)
@@ -740,12 +734,11 @@ export const useAttachmentSections = (
                     <Kb.Divider />
                   </Kb.Box2>
                 </Kb.ClickableBox2>
-              )
+              ) : null
             },
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
-            type: 'link',
           }))
-          sections = [...commonSections, ...(s as Array<InfoPanelSection>), loadMoreSection]
+          sections = [...commonSections, ...s, loadMoreSection]
         }
         break
     }

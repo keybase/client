@@ -561,7 +561,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.(true)
-      C.useConfigState.getState().dispatch.loginError()
+      C.useConfigState.getState().dispatch.setLoginError()
       C.useConfigState.getState().dispatch.resetRevokedSelf()
 
       set(s => {

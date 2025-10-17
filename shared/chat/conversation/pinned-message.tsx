@@ -127,7 +127,7 @@ const UnpinPrompt = (props: UnpinProps) => {
       <Kb.Text type="BodyBig">Unpin this message?</Kb.Text>
       <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodySmall">This will remove the pin from</Kb.Text>
-        <Kb.Text type="BodySmall">everyone's view.</Kb.Text>
+        <Kb.Text type="BodySmall">{"everyone's view."}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

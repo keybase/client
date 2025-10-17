@@ -212,9 +212,9 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
 
+  const [now] = React.useState(() => Date.now())
   // Has the user received a verification email less than 30 minutes ago?
-  const hasRecentVerifyEmail =
-    meta?.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+  const hasRecentVerifyEmail = meta?.lastVerifyEmailDate && now / 1000 - meta.lastVerifyEmailDate < 30 * 60
 
   const buttons: Array<TaskButton> = [
     ...(meta

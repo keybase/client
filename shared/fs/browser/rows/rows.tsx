@@ -26,7 +26,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
 
 const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
-const Rows = React.memo((props: Props & {listKey: string}) => {
+const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
   const {items, emptyMode, destinationPickerIndex, listKey} = props
 
   const _rowRenderer = React.useCallback(

@@ -31,7 +31,7 @@ const LoginRender = (props: Props) => {
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
             <Kb.Box style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
-                Since you don't have a lock screen, you'll have to type your password everytime.
+                {"Since you don't have a lock screen, you'll have to type your password everytime."}
               </Kb.Text>
             </Kb.Box>
           )}

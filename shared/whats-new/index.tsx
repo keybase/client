@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as C from '@/constants'
 import {currentVersion, lastVersion, lastLastVersion} from '@/constants/whats-new'

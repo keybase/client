@@ -12,7 +12,7 @@ import {
   type SwipeDirection,
 } from 'react-native-zoom-toolkit'
 
-const ZoomableImage = React.memo(function (p: Props) {
+const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
   const {isFetching, resolution} = useImageResolution({uri: src})
   const currentZoomSV = useSharedValue(1)

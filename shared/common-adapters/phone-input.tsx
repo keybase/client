@@ -166,97 +166,99 @@ type CountrySelectorRef = {
   onSelectMenu: (s: string) => void
 }
 
-const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProps>((p, ref) => {
-  const {onHidden, onSelect, selected: _selected, visible, attachTo} = p
-  const [filter, setFilter] = React.useState('')
-  const [selected, setSelected] = React.useState(_selected)
+const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProps>(
+  function CountrySelector(p, ref) {
+    const {onHidden, onSelect, selected: _selected, visible, attachTo} = p
+    const [filter, setFilter] = React.useState('')
+    const [selected, setSelected] = React.useState(_selected)
 
-  const clearFilter = React.useCallback(() => {
-    setFilter('')
-  }, [])
+    const clearFilter = React.useCallback(() => {
+      setFilter('')
+    }, [])
 
-  const onSelectMenu = p.onSelect
+    const onSelectMenu = p.onSelect
 
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      clearFilter,
-      onSelectMenu,
-    }),
-    [clearFilter, onSelectMenu]
-  )
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        clearFilter,
+        onSelectMenu,
+      }),
+      [clearFilter, onSelectMenu]
+    )
 
-  const onCancel = React.useCallback(() => {
-    setSelected(p.selected)
-    onHidden()
-  }, [p.selected, onHidden])
+    const onCancel = React.useCallback(() => {
+      setSelected(p.selected)
+      onHidden()
+    }, [p.selected, onHidden])
 
-  const onDone = React.useCallback(() => {
-    if (!selected) {
-      return
+    const onDone = React.useCallback(() => {
+      if (!selected) {
+        return
+      }
+      onSelect(selected)
+      onHidden()
+    }, [onSelect, onHidden, selected])
+
+    React.useEffect(() => {
+      setSelected(_selected)
+    }, [_selected])
+
+    const desktopItemsRef = React.useRef<
+      Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}> | undefined
+    >(undefined)
+    const mobileItemsRef = React.useRef<Array<{label: string; value: string}> | undefined>(undefined)
+
+    const onSelectFirst = () => {
+      if (Styles.isMobile && mobileItemsRef.current?.[0]) {
+        onSelectMenu(mobileItemsRef.current[0].value)
+      } else if (desktopItemsRef.current?.[0]) {
+        onSelectMenu(desktopItemsRef.current[0].alpha2)
+      }
+      onHidden()
     }
-    onSelect(selected)
-    onHidden()
-  }, [onSelect, onHidden, selected])
-
-  React.useEffect(() => {
-    setSelected(_selected)
-  }, [_selected])
-
-  const desktopItemsRef = React.useRef<
-    Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}> | undefined
-  >(undefined)
-  const mobileItemsRef = React.useRef<Array<{label: string; value: string}> | undefined>(undefined)
-
-  const onSelectFirst = () => {
-    if (Styles.isMobile && mobileItemsRef.current?.[0]) {
-      onSelectMenu(mobileItemsRef.current[0].value)
-    } else if (desktopItemsRef.current?.[0]) {
-      onSelectMenu(desktopItemsRef.current[0].alpha2)
+    if (!isMobile) {
+      desktopItemsRef.current = menuItems(countryData(), filter, onSelectMenu)
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          containerStyle={styles.countryLayout}
+          header={
+            <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
+              <Kb.SearchFilter
+                size="full-width"
+                icon="iconfont-search"
+                placeholderCentered={true}
+                mobileCancelButton={true}
+                onChange={setFilter}
+                placeholderText="Search"
+                focusOnMount={true}
+                onEnterKeyDown={onSelectFirst}
+              />
+            </Kb.Box2>
+          }
+          items={desktopItemsRef.current}
+          listStyle={styles.countryList}
+          onHidden={onHidden}
+          visible={visible}
+          attachTo={attachTo}
+        />
+      )
     }
-    onHidden()
-  }
-  if (!isMobile) {
-    desktopItemsRef.current = menuItems(countryData(), filter, onSelectMenu)
+    mobileItemsRef.current = pickerItems(countryData())
     return (
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        containerStyle={styles.countryLayout}
-        header={
-          <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
-            <Kb.SearchFilter
-              size="full-width"
-              icon="iconfont-search"
-              placeholderCentered={true}
-              mobileCancelButton={true}
-              onChange={setFilter}
-              placeholderText="Search"
-              focusOnMount={true}
-              onEnterKeyDown={onSelectFirst}
-            />
-          </Kb.Box2>
-        }
-        items={desktopItemsRef.current}
-        listStyle={styles.countryList}
-        onHidden={onHidden}
+      <Kb.FloatingPicker
+        items={mobileItemsRef.current}
+        onSelect={setSelected}
+        onHidden={onCancel}
+        onCancel={onCancel}
+        onDone={onDone}
+        selectedValue={selected}
         visible={visible}
-        attachTo={attachTo}
       />
     )
   }
-  mobileItemsRef.current = pickerItems(countryData())
-  return (
-    <Kb.FloatingPicker
-      items={mobileItemsRef.current}
-      onSelect={setSelected}
-      onHidden={onCancel}
-      onCancel={onCancel}
-      onDone={onDone}
-      selectedValue={selected}
-      visible={visible}
-    />
-  )
-})
+)
 
 type Props = {
   autoFocus?: boolean

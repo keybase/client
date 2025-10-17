@@ -38,40 +38,41 @@ const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo(
-  (props: {offset?: SharedValue<number>; servicesCount: number}) => {
-    const {offset} = props
+const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension(props: {
+  offset?: SharedValue<number>
+  servicesCount: number
+}) {
+  const {offset} = props
 
-    const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
-    const animatedStyles = useAnimatedStyle(() => {
-      const translateY = offset
-        ? interpolate(offset.value, [0, 100], [0, -8], {
-            extrapolateLeft: Extrapolation.CLAMP,
-            extrapolateRight: Extrapolation.CLAMP,
-          })
-        : 0
-      return {borderColor, transform: [{translateY}]}
-    })
+  const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
+  const animatedStyles = useAnimatedStyle(() => {
+    const translateY = offset
+      ? interpolate(offset.value, [0, 100], [0, -8], {
+          extrapolateLeft: Extrapolation.CLAMP,
+          extrapolateRight: Extrapolation.CLAMP,
+        })
+      : 0
+    return {borderColor, transform: [{translateY}]}
+  })
 
-    return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
-        <AnimatedBox2
-          direction="horizontal"
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([
-            {
-              borderBottomWidth: 1,
-              bottom: 0,
-              height: 2,
-              position: 'absolute',
-            },
-            animatedStyles,
-          ])}
-        />
-      </Kb.Box2>
-    )
-  }
-)
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+      <AnimatedBox2
+        direction="horizontal"
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([
+          {
+            borderBottomWidth: 1,
+            bottom: 0,
+            height: 2,
+            position: 'absolute',
+          },
+          animatedStyles,
+        ])}
+      />
+    </Kb.Box2>
+  )
+})
 
 const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   const {offset, isActive, service, label, onClick} = props

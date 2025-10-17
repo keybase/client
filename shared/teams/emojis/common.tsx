@@ -13,7 +13,7 @@ type AliasInputProps = {
 }
 
 export type AliasRef = {focus: () => void}
-export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>((props, ref) => {
+export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function AliasInput(props, ref) {
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
 
   React.useImperativeHandle(ref, () => ({

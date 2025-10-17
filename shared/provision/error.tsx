@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
 import type {RPCError} from '@/util/errors'
@@ -108,7 +108,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
-            You can't authorize by password, since you have established device or paper keys.
+            {"You can't authorize by password, since you have established device or paper keys."}
           </Text>
           <Text center={true} type="Body">
             You can go back and pick a device or paper key, or{' '}
@@ -126,7 +126,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
             You have already authorized this device.{' '}
           </Text>
           <Text center={true} type="Body">
-            Please use 'keybase login [username]' to log in.{' '}
+            {"Please use 'keybase login [username]' to log in. "}
           </Text>
         </Wrapper>
       )
@@ -135,7 +135,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
         return (
           <Wrapper onBack={onBack}>
             <Text center={true} type="Body">
-              You can't authorize using solely a password, since you have active device keys.
+              {"You can't authorize using solely a password, since you have active device keys."}
             </Text>
             <Text center={true} type="BodySemibold">
               You have options:
@@ -168,7 +168,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
         return (
           <Wrapper onBack={onBack}>
             <Text center={true} type="Body">
-              You can't authorize using a password, since you've established a PGP key.
+              {"You can't authorize using a password, since you've established a PGP key."}
             </Text>
             <Text center={true} type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
@@ -212,8 +212,9 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
       ) : (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
-            Your PGP keychain has multiple keys installed, and we're not sure which one to use to authorize
-            your account.
+            {
+              "Your PGP keychain has multiple keys installed, and we're not sure which one to use to authorize your account."
+            }
           </Text>
           <Text center={true} type="Body">
             Please run <Text type="TerminalInline">keybase login</Text> on the command line to continue.
@@ -224,7 +225,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
-            Looks like that's a bad password.
+            {"Looks like that's a bad password."}
           </Text>
           <Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
             Reset your password?
@@ -237,8 +238,9 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
-            Sorry, your account is already established with a PGP public key, but we can't access the
-            corresponding private key.
+            {
+              "Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key."
+            }
           </Text>
           <Text center={true} type="BodySemibold">
             You have options:

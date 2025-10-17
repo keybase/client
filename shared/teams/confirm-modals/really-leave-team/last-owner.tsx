@@ -49,10 +49,10 @@ const ReallyLeaveTeam = (props: Props) => (
             <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
           </Kb.Box2>
           <Kb.Text type="Header" center={true} style={styles.headerText}>
-            You can't leave the {props.name} team because you're the only owner.
+            {"You can't leave the {props.name} team because you're the only owner."}
           </Kb.Text>
           <Kb.Text type="Body" center={true} style={styles.bodyText}>
-            You'll have to add another user as an owner before you can leave {props.name}. Or, you can{' '}
+            {`You'll have to add another user as an owner before you can leave ${props.name}. Or, you can `}
             <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
               delete the&nbsp;team
             </Kb.Text>

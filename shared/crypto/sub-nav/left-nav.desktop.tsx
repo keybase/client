@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Constants from '@/constants/crypto'
 import NavRow from './nav-row'

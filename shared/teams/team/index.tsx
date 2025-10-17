@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -16,6 +15,7 @@ import {
   useChannelsSections,
   useEmojiSections,
   type Section,
+  type Item,
 } from './rows'
 
 type Props = {
@@ -49,13 +49,17 @@ const useTabsState = (
     [resetErrorInSettings, loadTeamChannelList, teamID, selectedTab]
   )
 
-  const prevTeamID = Container.usePrevious(teamID)
+  const prevTeamIDRef = React.useRef(teamID)
 
   React.useEffect(() => {
-    if (teamID !== prevTeamID) {
+    if (teamID !== prevTeamIDRef.current) {
       setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+  }, [teamID, setSelectedTab, defaultSelectedTab])
+
+  React.useEffect(() => {
+    prevTeamIDRef.current = teamID
+  }, [teamID])
   return [selectedTab, setSelectedTab]
 }
 
@@ -100,14 +104,13 @@ const Team = (props: Props) => {
 
   // Sections
   const headerSection = {
-    data: ['header', 'tabs'],
-    key: 'headerSection',
-    renderItem: ({item}: {item: unknown}) =>
-      item === 'header' ? (
+    data: [{type: 'header'}, {type: 'tabs'}],
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'header' ? (
         <NewTeamHeader teamID={teamID} />
-      ) : (
+      ) : item.type === 'tabs' ? (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      ),
+      ) : null,
   } as const
 
   const sections: Array<Section> = [headerSection]
@@ -132,7 +135,7 @@ const Team = (props: Props) => {
       sections.push(...invitesSections)
       break
     case 'settings':
-      sections.push({data: ['settings'], key: 'teamSettings', renderItem: () => <Settings teamID={teamID} />})
+      sections.push({data: [{type: 'settings'}], renderItem: () => <Settings teamID={teamID} />})
       break
     case 'channels':
       sections.push(...channelsSections)
@@ -157,6 +160,10 @@ const Team = (props: Props) => {
     []
   )
 
+  const getItemHeight = React.useCallback(() => {
+    return 48
+  }, [])
+
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.Box style={styles.container}>
@@ -166,6 +173,7 @@ const Team = (props: Props) => {
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}
+          getItemHeight={getItemHeight}
         />
         <SelectionPopup
           selectedTab={
@@ -202,13 +210,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: 0,
     top: 0,
   },
-  list: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-    },
-  }),
+  list: Kb.Styles.platformStyles({}),
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
       display: 'flex',

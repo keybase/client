@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import Box from '@/common-adapters/box'

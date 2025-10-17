@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Container from '@/util/container'
 import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
@@ -26,8 +25,22 @@ const LoginWrapper = (props: Props) => {
   const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const prevPassword = Container.usePrevious(password)
-  const prevError = Container.usePrevious(error)
+  const setLoginError = C.useConfigState(s => s.dispatch.setLoginError)
+  const prevPasswordRef = React.useRef(password)
+  const prevErrorRef = React.useRef(error)
+
+  React.useEffect(() => {
+    if (password.length && !prevPasswordRef.current.length) {
+      setLoginError()
+    }
+    prevPasswordRef.current = password
+  }, [password, setLoginError])
+
+  React.useEffect(() => {
+    if (error.length && !prevErrorRef.current.length) {
+      setPassword('')
+    }
+  }, [error, setPassword])
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
 
@@ -35,35 +48,22 @@ const LoginWrapper = (props: Props) => {
     onLogin(selectedUser, password)
   }, [selectedUser, password, onLogin])
 
-  const loginError = C.useConfigState(s => s.dispatch.loginError)
-
   const selectedUserChange = React.useCallback(
     (user: string) => {
-      loginError()
+      setLoginError()
       setPassword('')
       setSelectedUser(user)
       if (loggedInMap.get(user)) {
         onLogin(user, '')
       }
     },
-    [loginError, setPassword, setSelectedUser, onLogin, loggedInMap]
+    [setLoginError, setPassword, setSelectedUser, onLogin, loggedInMap]
   )
 
-  // Effects
-  React.useEffect(() => {
-    if (!prevError && !!error) {
-      setPassword('')
-    }
-  }, [prevError, error, setPassword])
   React.useEffect(() => {
     setSelectedUser(pselectedUser)
   }, [pselectedUser, setSelectedUser])
 
-  React.useEffect(() => {
-    if (!prevPassword && !!password) {
-      loginError()
-    }
-  }, [password, prevPassword, loginError])
   React.useEffect(() => {
     if (error === needPasswordError) {
       setGotNeedPasswordError(true)

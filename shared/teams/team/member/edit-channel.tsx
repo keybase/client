@@ -42,7 +42,6 @@ const EditChannel = (props: Props) => {
     Promise.all(ps)
       .then(() => {
         nav.safeNavigateUp()
-
         loadTeamChannelList(teamID)
       })
       .catch(() => {})
@@ -83,7 +82,7 @@ const EditChannel = (props: Props) => {
           containerStyle={styles.channelNameinput}
         />
         {oldName === 'general' && (
-          <Kb.Text type="BodySmall">You can't edit the #general channel's name.</Kb.Text>
+          <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
         <Kb.LabeledInput
           hoverPlaceholder="What is this channel about?"

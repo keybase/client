@@ -70,9 +70,9 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
     case undefined:
       return null
     case T.FS.SoftError.NoAccess:
-      return <Kb.Banner color="blue">You don't have access to this folder or file.</Kb.Banner>
+      return <Kb.Banner color="blue">{"You don't have access to this folder or file."}</Kb.Banner>
     case T.FS.SoftError.Nonexistent:
-      return <Kb.Banner color="yellow">This file or folder doesn't exist.</Kb.Banner>
+      return <Kb.Banner color="yellow">{"This file or folder doesn't exist."}</Kb.Banner>
   }
 }
 

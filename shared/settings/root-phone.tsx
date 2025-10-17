@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {Section as _Section} from '@/common-adapters/section-list'
 import {keybaseFM} from '@/constants/whats-new'
 import {isAndroid} from '@/constants/platform'
 import SettingsItem from './sub-nav/settings-item'
@@ -48,18 +47,16 @@ const PerfRow = () => {
   )
 }
 
-type Section = _Section<
-  {
-    badgeNumber?: number
-    text: string
-    icon?: Kb.IconType
-    onClick: () => void
-    iconComponent?: (a: object) => React.ReactElement
-    subText?: string
-    textColor?: string
-  },
-  {title: string}
->
+type Item = {
+  badgeNumber?: number
+  text: string
+  icon?: Kb.IconType
+  onClick: () => void
+  iconComponent?: (a: object) => React.ReactElement
+  subText?: string
+  textColor?: string
+}
+type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
 
 function SettingsNav() {
   const badgeNumbers = C.useNotifState(s => s.navBadges)

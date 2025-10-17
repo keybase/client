@@ -37,7 +37,7 @@ export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
   const [displayDuration, setDisplayDuration] = React.useState(0)
   const [glueTTL, setGlueTTL] = React.useState(0)
   const [mode, setMode] = React.useState(Mode.Hidden)
-  const [now, setNow] = React.useState(Date.now())
+  const [now, setNow] = React.useState(() => Date.now())
 
   const tick = React.useCallback(() => {
     setNow(Date.now())

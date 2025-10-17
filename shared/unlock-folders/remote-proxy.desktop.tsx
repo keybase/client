@@ -7,7 +7,7 @@ import {serialize, type ProxyProps} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
-const UnlockFolders = React.memo(function (p: ProxyProps) {
+const UnlockFolders = React.memo(function UnlockFolders(p: ProxyProps) {
   const windowComponent = 'unlock-folders'
   const windowParam = windowComponent
 

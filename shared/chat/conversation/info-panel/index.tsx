@@ -88,34 +88,35 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
     ]
   }
 
-  const renderTabs = () => {
-    const tabs = getTabs()
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Tabs
-          tabs={tabs}
-          selectedTab={props.selectedTab}
-          onSelect={props.onSelectTab}
-          style={styles.tabContainer}
-          tabStyle={styles.tab}
-          clickableTabStyle={styles.clickableTabStyle}
-        />
-      </Kb.Box2>
-    )
-  }
-
   const commonSections = [
     {
-      data: [{key: 'header-item'}], // 'header' cannot be used as a key, RN uses that key.
-      key: 'header-section',
+      data: [{type: 'header-item'}],
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
           {props.teamname && props.channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
-      type: 'header-section',
-    } as const,
-  ]
+    },
+    {
+      data: [{type: 'tabs'}],
+      renderItem: () => null,
+      renderSectionHeader: () => {
+        const tabs = getTabs()
+        return (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Tabs
+              tabs={tabs}
+              selectedTab={props.selectedTab}
+              onSelect={props.onSelectTab}
+              style={styles.tabContainer}
+              tabStyle={styles.tab}
+              clickableTabStyle={styles.clickableTabStyle}
+            />
+          </Kb.Box2>
+        )
+      },
+    },
+  ] as const
 
   if (!props.conversationIDKey) {
     // if we dont have a valid conversation ID, just render a spinner
@@ -134,18 +135,16 @@ const _InfoPanel = (props: InfoPanelProps & {conversationIDKey: T.Chat.Conversat
   let sectionList: React.ReactNode
   switch (props.selectedTab) {
     case 'settings':
-      sectionList = (
-        <SettingsList isPreview={props.isPreview} renderTabs={renderTabs} commonSections={commonSections} />
-      )
+      sectionList = <SettingsList isPreview={props.isPreview} commonSections={commonSections} />
       break
     case 'members':
-      sectionList = <MembersList renderTabs={renderTabs} commonSections={commonSections} />
+      sectionList = <MembersList commonSections={commonSections} />
       break
     case 'attachments':
-      sectionList = <AttachmentsList renderTabs={renderTabs} commonSections={commonSections} />
+      sectionList = <AttachmentsList commonSections={commonSections} />
       break
     case 'bots':
-      sectionList = <BotsList renderTabs={renderTabs} commonSections={commonSections} />
+      sectionList = <BotsList commonSections={commonSections} />
       break
     default:
       sectionList = null

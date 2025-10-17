@@ -76,7 +76,7 @@ const Container = (ownProps: OwnProps) => {
                 <Kb.Text center={true} type="Body">
                   Your request was sent to the admins of{' '}
                   {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
-                  Hang tight, you'll get notified as soon as you're let in.
+                  {"Hang tight, you'll get notified as soon as you're let in."}
                 </Kb.Text>
               </Kb.Box>
             </Kb.Box2>

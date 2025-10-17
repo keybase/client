@@ -107,7 +107,6 @@ const Container = (ownProps: OwnProps) => {
         <NewContext.Provider value={badged}>
           <Kb.SectionList
             keyExtractor={item => item}
-            sectionKeyExtractor={section => section.title}
             extraData={expandedSet}
             renderItem={({item}) => (
               <Row

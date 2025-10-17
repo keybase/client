@@ -86,7 +86,7 @@ type ProvidersProps = {
   filter: string
 } & Props
 
-const Providers = React.memo(({filter, providerClicked, providers}: ProvidersProps) => {
+const Providers = React.memo(function Providers({filter, providerClicked, providers}: ProvidersProps) {
   const _itemHeight = React.useMemo(
     () =>
       ({

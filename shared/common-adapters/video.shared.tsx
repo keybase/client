@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import {Box2} from './box'
 import Text from './text'
 import URL from 'url-parse'

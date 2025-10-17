@@ -31,7 +31,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
           <Kb.Text type="BodySmall" style={styles.bullet}>
             {bullet}
           </Kb.Text>
-          Your team channels will now appear in the "Big teams" section of the inbox.
+          {'Your team channels will now appear in the "Big teams" section of the inbox.'}
         </Kb.Text>
 
         <Kb.Text type="BodySmall">

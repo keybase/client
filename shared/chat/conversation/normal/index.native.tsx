@@ -15,7 +15,7 @@ import logger from '@/logger'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
-    Couldn't load all chat messages due to network connectivity. Retrying...
+    {"Couldn't load all chat messages due to network connectivity. Retrying..."}
   </Kb.Banner>
 )
 

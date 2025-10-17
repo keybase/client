@@ -60,7 +60,7 @@ const Container = () => {
   const proofActionText = actionMap.get(platform) ?? ''
   const onCompleteText = checkMap.get(platform) ?? 'OK posted! Check for it!'
   const noteText = noteMap.get(platform) ?? ''
-  const DescriptionView = descriptionMap.get(platform) ?? null
+  const DescriptionView = descriptionMap[platform]
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       <Kb.ScrollView
@@ -102,7 +102,7 @@ const Container = () => {
               </Kb.Text>
             )}
           </>
-          {DescriptionView && <DescriptionView platformUserName={platformUserName} />}
+          <DescriptionView platformUserName={platformUserName} />
           {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
           {!!noteText && (
             <Kb.Text center={true} type="Body">
@@ -157,8 +157,8 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   return (
     <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
       <Kb.Text center={true} type="BodySemibold">
-        Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text> at one
-        of these URL's.
+        Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text>
+        {" at one of these URL's."}
       </Kb.Text>
       <Kb.Text
         type="BodyPrimaryLink"
@@ -180,62 +180,49 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   )
 }
 
-const descriptionMap = new Map([
-  [
-    'dns',
-    () => (
-      <Kb.Text center={true} type="BodySemibold">
-        Enter the following as a TXT entry in your DNS zone,{' '}
-        <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>. If you need a "name" for your entry,
-        give it "@".
+const descriptionMap = {
+  dns: () => (
+    <Kb.Text center={true} type="BodySemibold">
+      Enter the following as a TXT entry in your DNS zone,{' '}
+      <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>
+      {'. If you need a "name" for your entry, give it "@".'}
+    </Kb.Text>
+  ),
+  facebook: () => null,
+  github: () => (
+    <Kb.Text center={true} type="BodySemibold">
+      Login to GitHub and paste the text below into a <Kb.Text type="BodySemiboldItalic">public</Kb.Text> gist
+      called <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
+    </Kb.Text>
+  ),
+  hackernews: () => (
+    <Kb.Text center={true} type="BodySemibold">
+      Please add the below text{' '}
+      <Kb.Text type="BodySemibold" style={{...Kb.Styles.globalStyles.italic}}>
+        exactly as it appears
+      </Kb.Text>{' '}
+      to your profile.
+    </Kb.Text>
+  ),
+  http: WebDescription,
+  https: WebDescription,
+  reddit: () => (
+    <Kb.Text center={true} type="BodySemibold">
+      Click the button below and post the form in the subreddit{' '}
+      <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
+    </Kb.Text>
+  ),
+  rooter: () => null,
+  twitter: () => (
+    <Kb.Text center={true} type="BodySemibold">
+      Please tweet the text below{' '}
+      <Kb.Text type="BodySemiboldItalic" style={{...Kb.Styles.globalStyles.italic}}>
+        exactly as it appears.
       </Kb.Text>
-    ),
-  ],
-  [
-    'github',
-    () => (
-      <Kb.Text center={true} type="BodySemibold">
-        Login to GitHub and paste the text below into a <Kb.Text type="BodySemiboldItalic">public</Kb.Text>{' '}
-        gist called <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
-      </Kb.Text>
-    ),
-  ],
-  [
-    'hackernews',
-    () => (
-      <Kb.Text center={true} type="BodySemibold">
-        Please add the below text{' '}
-        <Kb.Text type="BodySemibold" style={{...Kb.Styles.globalStyles.italic}}>
-          exactly as it appears
-        </Kb.Text>{' '}
-        to your profile.
-      </Kb.Text>
-    ),
-  ],
-  ['http', WebDescription],
-  ['https', WebDescription],
-  [
-    'reddit',
-    () => (
-      <Kb.Text center={true} type="BodySemibold">
-        Click the button below and post the form in the subreddit{' '}
-        <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
-      </Kb.Text>
-    ),
-  ],
-  [
-    'twitter',
-    () => (
-      <Kb.Text center={true} type="BodySemibold">
-        Please tweet the text below{' '}
-        <Kb.Text type="BodySemiboldItalic" style={{...Kb.Styles.globalStyles.italic}}>
-          exactly as it appears.
-        </Kb.Text>
-      </Kb.Text>
-    ),
-  ],
-  ['web', WebDescription],
-])
+    </Kb.Text>
+  ),
+  web: WebDescription,
+} as const
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   blue: {color: Kb.Styles.globalColors.blueDark},

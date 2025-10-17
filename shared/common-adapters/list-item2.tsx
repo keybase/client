@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
@@ -302,8 +302,8 @@ const getIconStyle = (props: Props) =>
       ? styles.iconSmallWithStatusIcon
       : styles.iconSmallWithNoStatusIcon
     : props.statusIcon
-    ? styles.iconLargeWithStatusIcon
-    : styles.iconLargeWithNoStatusIcon)
+      ? styles.iconLargeWithStatusIcon
+      : styles.iconLargeWithNoStatusIcon)
 
 const getContainerStyles = (props: Props) =>
   Styles.collapseStyles([
@@ -313,15 +313,15 @@ const getContainerStyles = (props: Props) =>
           ? styles.containerSmallWithStatusIconWithIcon
           : styles.containerSmallWithStatusIconNoIcon
         : props.icon
-        ? styles.containerSmallNoStatusIconWithIcon
-        : styles.containerSmallNoStatusIconNoIcon
+          ? styles.containerSmallNoStatusIconWithIcon
+          : styles.containerSmallNoStatusIconNoIcon
       : props.statusIcon
-      ? props.icon
-        ? styles.containerLargeWithStatusIconWithIcon
-        : styles.containerLargeWithStatusIconNoIcon
-      : props.icon
-      ? styles.containerLargeNoStatusIconWithIcon
-      : styles.containerLargeNoStatusIconNoIcon,
+        ? props.icon
+          ? styles.containerLargeWithStatusIconWithIcon
+          : styles.containerLargeWithStatusIconNoIcon
+        : props.icon
+          ? styles.containerLargeNoStatusIconWithIcon
+          : styles.containerLargeNoStatusIconNoIcon,
     // If this becomes a problem, memoize different heights we use.
     !!props.height && {minHeight: props.height},
     props.containerStyleOverride,
@@ -334,8 +334,8 @@ const getActionStyle = (props: Props) =>
         ? styles.actionSmallIsGrowOnHover
         : styles.actionSmallNotGrowOnHover
       : props.onlyShowActionOnHover
-      ? styles.actionLargeIsGrowOnHover
-      : styles.actionLargeNotGrowOnHover,
+        ? styles.actionLargeIsGrowOnHover
+        : styles.actionLargeNotGrowOnHover,
     !!props.height && {minHeight: props.height},
   ])
 

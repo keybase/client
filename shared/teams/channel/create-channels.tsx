@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
@@ -18,17 +17,25 @@ const CreateChannels = (props: Props) => {
   )
   const waiting = C.useTeamsState(s => s.creatingChannels)
   const error = C.useTeamsState(s => s.errorInChannelCreation)
-  const prevWaiting = Container.usePrevious(waiting)
+  const prevWaitingRef = React.useRef(waiting)
 
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const createChannels = C.useTeamsState(s => s.dispatch.createChannels)
   React.useEffect(() => {
-    if (prevWaiting === true && !waiting) {
+    if (!!prevWaitingRef.current && !waiting) {
       loadTeamChannelList(teamID)
     }
-  }, [loadTeamChannelList, prevWaiting, teamID, waiting])
+  }, [loadTeamChannelList, teamID, waiting])
 
-  const success = prevWaiting && !waiting && !error
+  const [success, setSuccess] = React.useState(!waiting && !error)
+
+  React.useEffect(() => {
+    prevWaitingRef.current = waiting
+  }, [waiting])
+
+  React.useEffect(() => {
+    setSuccess(prevWaitingRef.current && !waiting && !error)
+  }, [waiting, error])
 
   const banners = React.useMemo(
     () =>

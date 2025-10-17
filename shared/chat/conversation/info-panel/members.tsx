@@ -2,15 +2,15 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {Section} from '@/common-adapters/section-list'
 import Participant from './participant'
 
 type Props = {
-  renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section<unknown, {type: 'header-section'}>>
+  commonSections: ReadonlyArray<Section>
 }
 
-type ParticipantSectionData =
+type Item =
+  | {type: 'header-item'}
+  | {type: 'tabs'}
   | {type: 'auditingItem'}
   | {type: 'spinnerItem'}
   | {key: string; type: 'common'}
@@ -22,7 +22,8 @@ type ParticipantSectionData =
       username: string
       type: 'member'
     }
-type ParticipantSectionType = Section<ParticipantSectionData, {type: 'participant'}>
+
+type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -86,11 +87,11 @@ const MembersTab = (props: Props) => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = showUserProfile
 
-  const participantSection: ParticipantSectionType = {
+  const participantSection: Section = {
     data: showSpinner
       ? [{type: 'spinnerItem'} as const]
       : [...(showAuditingBanner ? [{type: 'auditingItem'} as const] : []), ...participantsItems],
-    renderItem: ({index, item}: {index: number; item: ParticipantSectionData}) => {
+    renderItem: ({index, item}: {index: number; item: Item}) => {
       if (item.type === 'auditingItem') {
         return (
           <Kb.Banner color="grey" small={true}>
@@ -113,25 +114,17 @@ const MembersTab = (props: Props) => {
       }
       return null
     },
-    type: 'participant',
   }
 
   const sections = [...props.commonSections, participantSection]
-
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      desktopReactListTypeOverride="variable"
-      desktopItemSizeEstimatorOverride={() => 56}
-      getItemHeight={(item, secIdx) => {
-        if (sections[secIdx]?.type === 'participant') {
-          const i = item as ParticipantSectionData
-          return i.type === 'member' && i.username ? 56 : 0
-        }
-        return 0
+      getItemHeight={item => {
+        return item?.type === 'member' && item.username ? 56 : 0
       }}
-      renderSectionHeader={({section}) => (section.type === 'participant' ? props.renderTabs() : null)}
+      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) ?? null}
       sections={sections}
     />
   )

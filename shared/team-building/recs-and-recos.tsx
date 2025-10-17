@@ -5,17 +5,10 @@ import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
-import {userResultHeight} from './search-result/common-result'
-import {createAnimatedComponent} from '@/common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
+
+type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
 
 export const numSectionLabel = '0-9'
-
-const isImportContactsEntry = (x: Types.ResultData): x is Types.ImportContactsEntry =>
-  'isImportButton' in x && !!x.isImportButton
-
-const isSearchHintEntry = (x: Types.ResultData): x is Types.SearchHintEntry =>
-  'isSearchHint' in x && !!x.isSearchHint
 
 const SearchHintText = () => (
   <Kb.Box2 direction="vertical" style={styles.searchHint}>
@@ -27,7 +20,7 @@ const SearchHintText = () => (
 
 const TeamAlphabetIndex = (
   props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: React.RefObject<Kb.SectionListRef | null>
+    sectionListRef: RefType
   }
 ) => {
   const {recommendations, teamSoFar, sectionListRef} = props
@@ -40,7 +33,6 @@ const TeamAlphabetIndex = (
 
   const _onScrollToSection = (label: string) => {
     if (sectionListRef.current) {
-      const ref = sectionListRef.current
       const sectionIndex =
         (recommendations &&
           (label === 'numSection'
@@ -48,7 +40,7 @@ const TeamAlphabetIndex = (
             : recommendations.findIndex(section => section.label === label))) ||
         -1
       if (sectionIndex >= 0 && Kb.Styles.isMobile) {
-        ref.scrollToLocation({
+        sectionListRef.current.scrollToLocation({
           animated: false,
           itemIndex: 0,
           sectionIndex,
@@ -72,10 +64,6 @@ const TeamAlphabetIndex = (
     </>
   )
 }
-
-const SectionList = createAnimatedComponent<
-  SectionListProps<SectionType<Types.ResultData, Types.SearchRecSection>>
->(Kb.SectionList)
 
 const _listIndexToSectionAndLocalIndex = (
   highlightedIndex?: number,
@@ -103,85 +91,38 @@ export const RecsAndRecos = (
     | 'onAdd'
     | 'onRemove'
     | 'teamSoFar'
-  > &
-    Types.OnScrollProps & {
-      recommendedHideYourself: boolean
-    }
+  > & {recommendedHideYourself: boolean}
 ) => {
-  const {highlightedIndex, recommendations, onScroll, recommendedHideYourself, namespace} = props
+  const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
-
-  const sectionListRef = React.useRef<Kb.SectionListRef>(null)
+  const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-
-  const _getRecLayout = (
-    sections: Array<Types.SearchRecSection>,
-    indexInList: number
-  ): {index: number; length: number; offset: number} => {
-    const sectionDividerHeight = Kb.SectionDivider.height
-    const dataRowHeight = userResultHeight
-
-    let numSections = 0
-    let numData = 0
-    let length = dataRowHeight
-    let currSectionHeaderIdx = 0
-    for (const s of sections) {
-      if (indexInList === currSectionHeaderIdx) {
-        // we are the section header
-        length = Kb.SectionDivider.height
-        break
-      }
-      numSections++
-      const indexInSection = indexInList - currSectionHeaderIdx - 1
-      if (indexInSection === s.data.length) {
-        // it's the section footer (we don't render footers so 0px).
-        numData += s.data.length
-        length = 0
-        break
-      }
-      if (indexInSection < s.data.length) {
-        // we are in this data
-        numData += indexInSection
-        break
-      }
-      // we're not in this section
-      numData += s.data.length
-      currSectionHeaderIdx += s.data.length + 2 // +2 because footer
-    }
-    const offset = numSections * sectionDividerHeight + numData * dataRowHeight
-    return {index: indexInList, length, offset}
-  }
 
   const highlightDetails = React.useMemo(
     () => _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations),
     [highlightedIndex, recommendations]
   )
+
+  React.useEffect(() => {
+    highlightedIndex >= 0 &&
+      sectionListRef.current?.scrollToLocation({
+        itemIndex: highlightedIndex,
+        sectionIndex: 0,
+        viewPosition: 0,
+      })
+  }, [highlightedIndex])
+
   return (
     <Kb.BoxGrow>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <SectionList
-          // @ts-ignore
-          ref={Kb.Styles.isMobile ? sectionListRef : undefined}
+        <Kb.SectionList
+          ref={sectionListRef}
           contentContainerStyle={{minHeight: '133%'}}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
-          onScroll={onScroll}
-          selectedIndex={Kb.Styles.isMobile ? undefined : highlightedIndex || 0}
           sections={recommendations ?? []}
-          keyExtractor={(item: Types.ResultData, index: number) => {
-            if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
-              // Ids for contacts are not guaranteed to be unique
-              return item.userId + index
-            }
-            return isImportContactsEntry(item)
-              ? 'Import Contacts'
-              : isSearchHintEntry(item)
-                ? 'New User Search Hint'
-                : item.userId
-          }}
-          getItemLayout={_getRecLayout}
           renderItem={({index, item: result, section}) =>
             result.isImportButton ? (
               <ContactsImportButton />

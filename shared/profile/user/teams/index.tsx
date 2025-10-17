@@ -96,7 +96,7 @@ const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
         <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
-          Feature the teams you're in
+          {"Feature the teams you're in"}
         </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox>

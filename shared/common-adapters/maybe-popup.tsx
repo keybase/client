@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import * as Styles from '@/styles'

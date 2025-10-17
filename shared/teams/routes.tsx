@@ -18,13 +18,10 @@ import teamDeleteTeam from './delete-team/page'
 import teamEditChannel from './team/member/edit-channel.page'
 import teamEditTeamDescription from './edit-team-description/page'
 import teamEditTeamInfo from './team/team-info.page'
-import teamEditWelcomeMessage from './edit-team-welcome-message/page'
 import teamExternalTeam from './external-team.page'
 import teamInviteByContact from './invite-by-contact/page'
 import teamInviteByEmail from './invite-by-email/page'
-import teamInviteHistory from './team/invites/invite-history.page'
 import teamInviteLinkJoin from './join-team/join-from-invite.page'
-import teamInviteLinksGenerate from './team/invites/generate-link.page'
 import teamJoinTeamDialog from './join-team/page'
 import teamMember from './team/member/index.new.page'
 import teamNewTeamDialog from './new-team/page'
@@ -67,12 +64,9 @@ export const newModalRoutes = {
   teamEditChannel,
   teamEditTeamDescription,
   teamEditTeamInfo,
-  teamEditWelcomeMessage,
   teamInviteByContact,
   teamInviteByEmail,
-  teamInviteHistory,
   teamInviteLinkJoin,
-  teamInviteLinksGenerate,
   teamJoinTeamDialog,
   teamNewTeamDialog,
   teamReallyLeaveTeam,

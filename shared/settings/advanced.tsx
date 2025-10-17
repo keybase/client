@@ -154,7 +154,7 @@ const Advanced = () => {
                 <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                   <Kb.Text type="Body">Always stay logged in</Kb.Text>
                   <Kb.Text type="BodySmall">
-                    You won't be asked for your password when restarting the app or your device.
+                    {"You won't be asked for your password when restarting the app or your device."}
                   </Kb.Text>
                 </Kb.Box2>
               }
@@ -230,7 +230,7 @@ const Developer = () => {
   return (
     <Kb.Box style={styles.developerContainer}>
       <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
-        Please don't do anything below here unless instructed to by a developer.
+        {"Please don't do anything below here unless instructed to by a developer."}
       </Kb.Text>
       <Kb.Divider style={styles.divider} />
       <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />

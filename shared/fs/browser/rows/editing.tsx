@@ -9,7 +9,7 @@ type Props = {
   editID: T.FS.EditID
 }
 
-const Editing = React.memo(function ({editID}: Props) {
+const Editing = React.memo(function Editing({editID}: Props) {
   const discardEdit = C.useFSState(s => s.dispatch.discardEdit)
   const onCancel = () => {
     discardEdit(editID)

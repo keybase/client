@@ -3,14 +3,32 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import type {Section as _Section} from '@/common-adapters/section-list'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   username: string
 }
-type Extra = {renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null}
-type Section = _Section<string | T.RPCGen.FeaturedBot, Extra> | _Section<{key: string}, Extra>
+
+const inThisChannelHeader = {type: 'bots: in this channel'} as const
+const inThisTeamHeader = {type: 'bots: in this team'} as const
+const featuredBotsHeader = {type: 'bots: featured bots'} as const
+const loadMoreBotsButton = {type: 'bots: load more'} as const
+const addBotButton = {type: 'bots: add bot'} as const
+const featuredBotSpinner = {type: 'bots: featured spinners'} as const
+
+type ItemBot = {type: 'featuredBot'} & T.RPCGen.FeaturedBot
+type Item =
+  | ItemBot
+  | {type: 'header-item'}
+  | {type: 'tabs'}
+  | typeof inThisChannelHeader
+  | typeof inThisTeamHeader
+  | typeof featuredBotsHeader
+  | typeof loadMoreBotsButton
+  | typeof addBotButton
+  | typeof featuredBotSpinner
+
+type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
@@ -169,19 +187,10 @@ const styles = Styles.styleSheetCreate(
 )
 
 type Props = {
-  renderTabs: () => React.ReactElement | null
-  commonSections: Array<Section>
+  commonSections: ReadonlyArray<Section>
 }
 
-const inThisChannelHeader = 'bots: in this channel'
-const inThisTeamHeader = 'bots: in this team'
-const featuredBotsHeader = 'bots: featured bots'
-const loadMoreBotsButton = 'bots: load more'
-const addBotButton = 'bots: add bot'
-const featuredBotSpinner = 'bots: featured spinners'
-
 const BotTab = (props: Props) => {
-  const {renderTabs} = props
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = C.useTeamsState(s => (teamname ? C.Teams.getCanPerformByID(s, teamID) : undefined))
@@ -211,29 +220,33 @@ const BotTab = (props: Props) => {
   }
 
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const featuredBots = C.Bots.getFeaturedSorted(featuredBotsMap)
+  const featuredBots: Array<Item> = C.Bots.getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
         !(!adhocTeam && teamMembers && C.Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
-    .map((bot, index) => ({...bot, index}))
+    .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = C.useUsersState(s => s.infoMap)
   const loadedAllBots = C.useBotsState(s => s.featuredBotsLoaded)
 
-  const usernamesToFeaturedBots = (usernames: string[]) =>
-    usernames.map((b, index) => ({
-      ...(featuredBotsMap.get(b) ?? {
-        botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname ?? '',
-        botUsername: b,
-        description: infoMap.get(b)?.bio ?? '',
-        extendedDescription: '',
-        extendedDescriptionRaw: '',
-        isPromoted: false,
-        rank: 0,
-      }),
-      index,
-    }))
+  const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>
+    usernames.map(
+      (b, index) =>
+        ({
+          ...(featuredBotsMap.get(b) ?? {
+            botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname ?? '',
+            botUsername: b,
+            description: infoMap.get(b)?.bio ?? '',
+            extendedDescription: '',
+            extendedDescriptionRaw: '',
+            isPromoted: false,
+            rank: 0,
+          }),
+          index,
+          type: 'featuredBot',
+        }) as const
+    )
 
   // bots in conv
   const botsInConv: string[] =
@@ -267,27 +280,28 @@ const BotTab = (props: Props) => {
     }
   }, [featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
 
-  const items: Array<string | T.RPCGen.FeaturedBot> = [
-    ...(canManageBots ? [addBotButton] : []),
-    ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
+  const items: Array<Item> = [
+    ...(canManageBots ? ([addBotButton] as const) : []),
+    ...(botsInConv.length > 0 ? ([inThisChannelHeader] as const) : []),
     ...usernamesToFeaturedBots(botsInConv),
-    ...(botsInTeam.length > 0 ? [inThisTeamHeader] : []),
+    ...(botsInTeam.length > 0 ? ([inThisTeamHeader] as const) : []),
     ...usernamesToFeaturedBots(botsInTeam),
     featuredBotsHeader,
-    ...(featuredBots.length > 0 ? featuredBots : []),
-    ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
-    ...(loadingBots ? [featuredBotSpinner] : []),
+    ...featuredBots,
+    ...(!loadedAllBots && featuredBots.length > 0 ? ([loadMoreBotsButton] as const) : []),
+    ...(loadingBots ? ([featuredBotSpinner] as const) : []),
   ]
 
-  const sections = [
+  const sections: Array<Section> = [
     {
       data: items,
-      key: 'bots',
-      keyExtractor: (item: (typeof items)[number], index: number) => {
-        if (typeof item === 'string' || item instanceof String) {
-          return item
+      keyExtractor: (item: Item, index: number) => {
+        switch (item.type) {
+          case 'featuredBot':
+            return item.botUsername ? 'abot-' + item.botUsername : String(index)
+          default:
+            return String(item.type)
         }
-        return item.botUsername ? 'abot-' + item.botUsername : index
       },
       renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {
@@ -353,12 +367,16 @@ const BotTab = (props: Props) => {
               firstItem={i.index === 0}
               onClick={onBotSelect}
               showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(i.botUsername)}
-              showTeamAdd={canManageBots && !!featuredBots.find(bot => bot.botUsername === i.botUsername)}
+              showTeamAdd={
+                canManageBots &&
+                !!featuredBots.find(bot =>
+                  bot.type === 'featuredBot' ? bot.botUsername === i.botUsername : false
+                )
+              }
             />
           )
         }
       },
-      renderSectionHeader: renderTabs,
     },
   ]
 

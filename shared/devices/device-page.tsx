@@ -150,7 +150,7 @@ const DevicePage = (ownProps: OwnProps) => {
           onClick={showRevokeDevicePage}
         />
       )}
-      {canRevoke ? null : <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
+      {canRevoke ? null : <Kb.Text type="BodySmall">{"You can't revoke your last device."}</Kb.Text>}
     </Kb.Box2>
   )
 }

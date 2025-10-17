@@ -10,8 +10,6 @@ import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
-import {createAnimatedComponent} from '@/common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -32,7 +30,6 @@ type TeamTreeRowNotIn = {
 type TeamTreeRowIn = {
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
-type Either = TeamTreeRowNotIn & {role?: T.Teams.TeamRoleType}
 
 const getMemberships = (
   state: C.Teams.State,
@@ -117,19 +114,24 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
   const nav = Container.useSafeNavigation()
   const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const wasWaiting = Container.usePrevious(waiting)
+  const wasWaitingRef = React.useRef(waiting)
+  const [leaving, setLeaving] = React.useState(false)
+
   React.useEffect(() => {
-    if (wasWaiting && !waiting) {
+    if (wasWaitingRef.current && !waiting) {
+      setLeaving(true)
       nav.safeNavigateUp()
+    } else {
+      setLeaving(false)
     }
-  })
-  return wasWaiting && !waiting
+    wasWaitingRef.current = waiting
+  }, [waiting, nav])
+
+  return leaving
 }
 
-type Extra = {title: React.ReactElement}
-type Section = SectionType<Either, Extra>
-
-const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList)
+type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}
+type Section = Kb.SectionType<Item>
 
 const TeamMember = (props: OwnProps) => {
   const username = props.username
@@ -169,41 +171,41 @@ const TeamMember = (props: OwnProps) => {
   }
 
   const nodesInSection: Section = {
-    data: nodesIn,
-    key: 'section-nodes',
-    renderItem: ({item, index}) => (
-      <NodeInRow
-        node={item as TeamTreeRowIn}
-        idx={index}
-        isParentTeamMe={isMe && teamID === item.teamID}
-        username={username}
-        expanded={expandedSet.has(item.teamID)}
-        setExpanded={newExpanded => {
-          if (newExpanded) {
-            expandedSet.add(item.teamID)
-          } else {
-            expandedSet.delete(item.teamID)
-          }
-          setExpandedSet(new Set([...expandedSet]))
-        }}
-      />
-    ),
+    data: nodesIn.map(n => ({tri: n, type: 'section-nodes'})),
+    renderItem: ({item, index}: {item: Item; index: number}) =>
+      item.type === 'section-nodes' ? (
+        <NodeInRow
+          node={item.tri}
+          idx={index}
+          isParentTeamMe={isMe && teamID === item.tri.teamID}
+          username={username}
+          expanded={expandedSet.has(item.tri.teamID)}
+          setExpanded={newExpanded => {
+            if (newExpanded) {
+              expandedSet.add(item.tri.teamID)
+            } else {
+              expandedSet.delete(item.tri.teamID)
+            }
+            setExpandedSet(new Set([...expandedSet]))
+          }}
+        />
+      ) : null,
     title: makeTitle(isMe ? 'You are a member of:' : `${username} is a member of:`),
   }
 
-  const nodesNotInSection = {
-    data: nodesNotIn,
-    key: 'section-add-nodes',
-    renderItem: ({item, index}: {item: Either; index: number}) => (
-      <NodeNotInRow node={item as TeamTreeRowNotIn} idx={index} username={username} />
-    ),
+  const nodesNotInSection: Section = {
+    data: nodesNotIn.map(n => ({
+      tni: n,
+      type: 'section-add-nodes',
+    })),
+    renderItem: ({item, index}: {item: Item; index: number}) =>
+      item.type === 'section-add-nodes' ? (
+        <NodeNotInRow node={item.tni} idx={index} username={username} />
+      ) : null,
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
 
-  const sections = [
-    ...(nodesIn.length > 0 ? [nodesInSection] : []),
-    ...(nodesNotIn.length > 0 ? [nodesNotInSection] : []),
-  ]
+  const sections: Array<Section> = [nodesInSection, nodesNotInSection]
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
       {errors.length > 0 && (
@@ -251,12 +253,11 @@ const TeamMember = (props: OwnProps) => {
           </>
         </Kb.Banner>
       )}
-      <SectionList
+      <Kb.SectionList
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
         sections={sections}
         ListHeaderComponent={<TeamMemberHeader teamID={teamID} username={username} />}
-        keyExtractor={item => `member:${username}:${item.teamname}`}
       />
     </Kb.Box2>
   )
@@ -420,7 +421,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
   const isMe = props.username === C.useCurrentUserState(s => s.username)
-  const changingRole = C.Waiting.useAnyWaiting(C.Teams.editMembershipWaitingKey(props.node.teamID, props.username))
+  const changingRole = C.Waiting.useAnyWaiting(
+    C.Teams.editMembershipWaitingKey(props.node.teamID, props.username)
+  )
   const loadingActivity = C.Waiting.useAnyWaiting(
     C.Teams.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )

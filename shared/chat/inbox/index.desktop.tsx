@@ -190,7 +190,7 @@ type InboxRowData = {
   toggleSmallTeamsExpanded: () => void
 }
 
-const InboxRow = React.memo((p: RowComponentProps<InboxRowData>) => {
+const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>) {
   const {index, style, rows} = p
   const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
   const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = p

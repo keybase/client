@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import _Password from '@/settings/password'
 
 const Password = () => {

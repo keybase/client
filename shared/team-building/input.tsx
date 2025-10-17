@@ -1,7 +1,6 @@
 import * as React from 'react'
 import noop from 'lodash/noop'
 import * as Kb from '@/common-adapters/index'
-import * as Container from '@/util/container'
 import type {NativeSyntheticEvent} from 'react-native'
 
 type Props = {
@@ -56,17 +55,13 @@ const handleKeyDown = (
 const Input = (props: Props) => {
   const ref = React.useRef<Kb.SearchFilterRef>(null)
   const {focusCounter, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown} = props
-  const prevFocusCounter = Container.usePrevious(focusCounter)
+  const prevFocusCounterRef = React.useRef(focusCounter)
   React.useEffect(() => {
-    if (
-      !Kb.Styles.isMobile &&
-      prevFocusCounter !== undefined &&
-      focusCounter > prevFocusCounter &&
-      ref.current
-    ) {
+    if (!Kb.Styles.isMobile && focusCounter > prevFocusCounterRef.current && ref.current) {
       ref.current.focus()
     }
-  }, [focusCounter, prevFocusCounter])
+    prevFocusCounterRef.current = focusCounter
+  }, [focusCounter, prevFocusCounterRef])
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {

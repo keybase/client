@@ -92,7 +92,7 @@ const ConfirmReset = () => {
                 labelComponent={
                   <Kb.Text type="Body" style={Kb.Styles.globalStyles.flexOne}>
                     You will <Kb.Text type="BodyExtrabold">lose access to your wallet funds</Kb.Text> if you
-                    haven't backed up your Stellar private keys outside of Keybase.
+                    haven&apos;t backed up your Stellar private keys outside of Keybase.
                   </Kb.Text>
                 }
                 checked={checkWallet}

@@ -39,7 +39,7 @@ const InstallSecurityPrefs = () => {
                   •
                 </Kb.Text>
                 <Kb.Text type="BodySemibold" style={styles.listText}>
-                  Change "Allow applications downloaded from" to "App Store and identified developers"
+                  {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
                 </Kb.Text>
               </Kb.Box>
             </Kb.Box2>

@@ -67,7 +67,7 @@ type AvatarZoomRef = {
 }
 
 const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number; height: number}>(
-  (p, ref) => {
+  function AvatarZoom(p, ref) {
     const {src, width, height} = p
     const resolution = React.useMemo(() => {
       return {height, width}

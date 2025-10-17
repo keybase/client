@@ -13,7 +13,7 @@ import * as Reanimated from 'react-native-reanimated'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // const ReplyIcon = React.memo(function ({progress}: {progress: Reanimated.SharedValue<number>}) {
-const ReplyIcon = React.memo(function () {
+const ReplyIcon = React.memo(function ReplyIcon() {
   // const as = Reanimated.useAnimatedStyle(() => {
   //   const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
   //   return {opacity}

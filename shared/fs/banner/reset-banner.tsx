@@ -98,7 +98,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textDontLetThemIn}>
         <Kb.Text type="BodySemibold" negative={true}>
-          Don't let them in until one of those is true.
+          {"Don't let them in until one of those is true."}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small">
@@ -123,7 +123,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       </Kb.Box2>
       {resetParticipants.length > 1 && (
         <Kb.Text type="BodySemibold" negative={true} style={styles.textOrUntil}>
-          Or until you're sure,{' '}
+          {"Or until you're sure, "}
           <Kb.Text type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
             open a folder without any of them.
           </Kb.Text>

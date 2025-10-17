@@ -29,10 +29,14 @@ const EditTeamDescription = (props: Props) => {
   const onSave = () => editTeamDescription(teamID, description)
   const onClose = () => nav.safeNavigateUp()
 
-  const wasWaiting = Container.usePrevious(waiting)
+  const wasWaitingRef = React.useRef(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
-  }, [waiting, wasWaiting, nav, error])
+    if (!waiting && wasWaitingRef.current && !error) nav.safeNavigateUp()
+  }, [waiting, wasWaitingRef, nav, error])
+
+  React.useEffect(() => {
+    wasWaitingRef.current = waiting
+  }, [waiting])
 
   return (
     <Kb.Modal

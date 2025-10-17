@@ -1,4 +1,3 @@
-import * as React from 'react'
 import logger from '@/logger'
 import * as Kb from '@/common-adapters'
 import {ignoreDisconnectOverlay} from '@/local-debug.desktop'

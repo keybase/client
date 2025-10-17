@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import {encryptTab} from '@/constants/crypto'
@@ -113,8 +113,9 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image="release-5.1.0-blocking">
-        We heard you. You can now block and report spammers from the chat conversation or from people's
-        profiles.
+        {
+          "We heard you. You can now block and report spammers from the chat conversation or from people's profiles."
+        }
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image="release-4.7.0-fast-user-switching">
         You can now quickly switch between all your signed in accounts from the user menu.

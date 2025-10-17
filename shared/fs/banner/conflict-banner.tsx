@@ -97,7 +97,7 @@ const ConflictBanner = (props: Props) => {
       )
     }
     default:
-      return <Kb.Text type="Body">'Unknown conflictState: ' + conflictState</Kb.Text>
+      return <Kb.Text type="Body">{'Unknown conflictState: ' + props.conflictState}</Kb.Text>
   }
 }
 

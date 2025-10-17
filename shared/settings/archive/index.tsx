@@ -346,8 +346,9 @@ const Archive = C.featureFlags.archive
               {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
               <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
                 <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
-                  Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup
-                  all.
+                  {
+                    "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
+                  }
                 </Kb.Text>
               </Kb.Box2>
               {C.isMobile ? (

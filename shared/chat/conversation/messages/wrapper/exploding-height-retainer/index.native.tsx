@@ -120,30 +120,37 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
 
   force // just to trigger
 
-  if (!running) {
-    return null
-  }
-  const children: Array<React.ReactNode> = []
-  for (let i = 0; i < numImages * 4; i++) {
-    const r = Math.random()
-    let emoji: string
-    if (Kb.Styles.isAndroid) {
-      emoji = r < 0.5 ? '💥' : '💣'
-    } else {
-      if (r < 0.33) {
-        emoji = '💥'
-      } else if (r < 0.66) {
-        emoji = '💣'
-      } else {
-        emoji = '🤯'
-      }
+  const [children, setChildren] = React.useState<React.ReactNode>(null)
+
+  React.useEffect(() => {
+    if (!running) {
+      setChildren(null)
+      return
     }
-    children.push(
-      <Kb.Text key={i} type="Body" fixOverdraw={false}>
-        {emoji}
-      </Kb.Text>
-    )
-  }
+    const children: Array<React.ReactNode> = []
+    for (let i = 0; i < numImages * 4; i++) {
+      const r = Math.random()
+      let emoji: string
+      if (Kb.Styles.isAndroid) {
+        emoji = r < 0.5 ? '💥' : '💣'
+      } else {
+        if (r < 0.33) {
+          emoji = '💥'
+        } else if (r < 0.66) {
+          emoji = '💣'
+        } else {
+          emoji = '🤯'
+        }
+      }
+      children.push(
+        <Kb.Text key={i} type="Body" fixOverdraw={false}>
+          {emoji}
+        </Kb.Text>
+      )
+    }
+    setChildren(children)
+  }, [running, numImages])
+
   return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
 }
 

@@ -39,13 +39,17 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const error = C.Waiting.useAnyErrors(C.Teams.deleteTeamWaitingKey(teamID))
-  const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
+  const prevDeleteWaitingRef = React.useRef(deleteWaiting)
   React.useEffect(() => {
-    if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
+    if (!deleteWaiting && prevDeleteWaitingRef.current && !error) {
       // Finished, nav up
       onBack()
     }
-  }, [deleteWaiting, prevDeleteWaiting, onBack, error])
+  }, [deleteWaiting, onBack, error])
+
+  React.useEffect(() => {
+    prevDeleteWaitingRef.current = deleteWaiting
+  }, [deleteWaiting])
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {
@@ -68,7 +72,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
         header={<Header teamname={teamname} />}
         prompt={
           <Kb.Text type="Header" center={true} style={Kb.Styles.padding(0, Kb.Styles.globalMargins.small)}>
-            You can't delete {teamname} because it has subteams.
+            {"You can't delete {teamname} because it has subteams."}
           </Kb.Text>
         }
         onCancel={onBack}

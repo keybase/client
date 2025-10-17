@@ -1,28 +1,47 @@
 import * as React from 'react'
-import type {Props, Section} from './section-list'
-import {SectionList as NativeSectionList} from 'react-native'
+import {
+  SectionList as NativeSectionList,
+  type SectionListProps,
+  type ViewToken,
+  type SectionListData,
+} from 'react-native'
 import noop from 'lodash/noop'
 
-const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function SectionList<
-  T extends Section<any, any>,
->(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) {
-  const {
-    getItemHeight,
-    getSectionHeaderHeight,
-    onSectionChange,
-    renderItem,
-    renderSectionHeader,
-    sections,
-    ...rest
-  } = props
+export type SectionType<Item> = {
+  title?: string | React.ReactElement
+  data: ReadonlyArray<Item>
+  keyExtractor?: (item: Item, index: number) => string
+  renderItem: ({
+    index,
+    item,
+    section,
+  }: {
+    index: number
+    item: Item
+    section: SectionType<Item>
+  }) => React.ReactElement | null
+  renderSectionHeader?: (info: {section: SectionType<Item>}) => React.ReactElement | null
+}
+
+type Props<ItemT, SectionT> = SectionListProps<ItemT, SectionT> & {
+  getItemHeight?: (item: ItemT | undefined, sectionIndex: number, indexWithinSection: number) => number
+  getSectionHeaderHeight?: (sectionIndex: number) => number
+  onSectionChange?: (section: SectionT) => void
+}
+
+function SectionListImpl<ItemT, SectionT>(
+  props: Props<ItemT, SectionT>,
+  ref: React.Ref<NativeSectionList<ItemT, SectionT>>
+) {
+  const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
   const getItemLayout = React.useMemo(() => {
-    return getItemHeight && getSectionHeaderHeight
-      ? getGetItemLayout({getItemHeight: getItemHeight as any, getSectionHeaderHeight})
+    return getItemHeight
+      ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
-    ? (e: {viewableItems: Array<{section: T}>}) => {
-        const section = e.viewableItems[0]?.section
+    ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
+        const section = e.viewableItems[0]?.section as SectionT | undefined
         section && onSectionChange(section)
       }
     : undefined
@@ -30,44 +49,27 @@ const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function
   return (
     <NativeSectionList
       overScrollMode="never"
+      getItemLayout={getItemLayout}
+      onViewableItemsChanged={onViewableItemsChanged}
       onScrollToIndexFailed={noop}
       keyboardDismissMode="on-drag"
-      ref={forwardedRef}
-      renderItem={
-        // eslint-disable-next-line
-        renderItem as any
-      }
-      renderSectionHeader={
-        // eslint-disable-next-line
-        renderSectionHeader as any
-      }
-      sections={
-        // eslint-disable-next-line
-        sections as any
-      }
+      ref={ref}
       {...rest}
-      getItemLayout={
-        // eslint-disable-next-line
-        getItemLayout as any
-      }
-      onViewableItemsChanged={
-        // eslint-disable-next-line
-        onViewableItemsChanged as any
-      }
     />
   )
-})
+}
+
+export type SectionListRef<ItemT, SectionT> = NativeSectionList<ItemT, SectionT>
+
+const SectionList = React.forwardRef(SectionListImpl) as <ItemT, SectionT>(
+  props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
+) => React.ReactElement
 
 export default SectionList
 
 // From https://github.com/jsoendermann/rn-section-list-get-item-layout
 // Author Jan Soendermann
 // Apache License, Version 2.0
-
-type SectionListDataProp = Array<{
-  title: string
-  data: any[]
-}>
 
 interface SectionHeader {
   type: 'SECTION_HEADER'
@@ -84,23 +86,22 @@ interface SectionFooter {
 
 type ListElement = SectionHeader | Row | SectionFooter
 
-export interface Parameters {
-  getItemHeight: (rowData: unknown, sectionIndex: number, rowIndex: number) => number
+export interface Parameters<ItemT> {
+  getItemHeight: (rowData: ItemT | undefined, sectionIndex: number, rowIndex: number) => number
   getSeparatorHeight?: (sectionIndex: number, rowIndex: number) => number
   getSectionHeaderHeight?: (sectionIndex: number) => number
   getSectionFooterHeight?: (sectionIndex: number) => number
   listHeaderHeight?: number | (() => number)
 }
 
-const getGetItemLayout =
-  ({
-    getItemHeight,
-    getSeparatorHeight = () => 0,
-    getSectionHeaderHeight = () => 0,
-    getSectionFooterHeight = () => 0,
-    listHeaderHeight = 0,
-  }: Parameters) =>
-  (data: SectionListDataProp, index: number) => {
+function getGetItemLayout<ItemT, SectionT>({
+  getItemHeight,
+  getSeparatorHeight = () => 0,
+  getSectionHeaderHeight = () => 0,
+  getSectionFooterHeight = () => 0,
+  listHeaderHeight = 0,
+}: Parameters<ItemT>) {
+  return (data: SectionListData<ItemT, SectionT>[] | null, index: number) => {
     let i = 0
     let sectionIndex = 0
     let elementPointer: ListElement = {type: 'SECTION_HEADER'}
@@ -109,7 +110,7 @@ const getGetItemLayout =
     while (i < index) {
       switch (elementPointer.type) {
         case 'SECTION_HEADER': {
-          const sectionData = data[sectionIndex]?.data
+          const sectionData = data?.[sectionIndex]?.data
 
           offset += getSectionHeaderHeight(sectionIndex)
 
@@ -124,7 +125,7 @@ const getGetItemLayout =
           break
         }
         case 'ROW': {
-          const sectionData = data[sectionIndex]?.data
+          const sectionData = data?.[sectionIndex]?.data
           const rowIndex = elementPointer.index
 
           offset += getItemHeight(sectionData?.[rowIndex], sectionIndex, rowIndex)
@@ -156,7 +157,7 @@ const getGetItemLayout =
         break
       case 'ROW': {
         const rowIndex = elementPointer.index
-        length = getItemHeight(data[sectionIndex]?.data[rowIndex], sectionIndex, rowIndex)
+        length = getItemHeight(data?.[sectionIndex]?.data[rowIndex], sectionIndex, rowIndex)
         break
       }
       case 'SECTION_FOOTER':
@@ -168,3 +169,4 @@ const getGetItemLayout =
 
     return {index, length, offset}
   }
+}
