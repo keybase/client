@@ -19,7 +19,6 @@ const useOrangeLine = () => {
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
         readMsgID: readMsgID < 0 ? 0 : readMsgID,
       })
-
       setOrangeLine(T.Chat.numberToOrdinal(unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0))
     }
     C.ignorePromise(f())
@@ -30,11 +29,11 @@ const useOrangeLine = () => {
     loadOrangeLine()
   }, [loadOrangeLine])
 
-  const {markedAsUnread, maxMsgID, readMsgID} = C.useChatContext(
+  const {markedAsUnread, maxVisibleMsgID} = C.useChatContext(
     C.useShallow(s => {
-      const {maxMsgID, readMsgID} = s.meta
+      const {maxVisibleMsgID} = s.meta
       const {markedAsUnread} = s
-      return {markedAsUnread, maxMsgID, readMsgID}
+      return {markedAsUnread, maxVisibleMsgID}
     })
   )
 
@@ -47,13 +46,14 @@ const useOrangeLine = () => {
     }
   }, [loadOrangeLine, markedAsUnread])
 
-  // we're not looking add a line
+  // just use the rpc for orange line if we're not active
+  // if we are active we want to keep whatever state we had so it is maintained
   const active = C.useActiveState(s => s.active)
   React.useEffect(() => {
-    if (!active && readMsgID < maxMsgID) {
-      setOrangeLine(T.Chat.numberToOrdinal(readMsgID + 0.0001))
+    if (!active) {
+      loadOrangeLine()
     }
-  }, [active, maxMsgID, readMsgID])
+  }, [maxVisibleMsgID, loadOrangeLine, active])
 
   // mobile backgrounded us
   const mobileAppState = C.useConfigState(s => s.mobileAppState)
