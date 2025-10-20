@@ -5,7 +5,7 @@ Install xcode
 # Quick Start
 
 1. `brew install watchman cocoapods` (install the file watcher)
-1. `yarn pod-install`
+1. `yarn modules && yarn pod-install`
 1. `yarn rn-gobuild-ios` (build the go library)
 1. `yarn rn-start2` (start the packager)
 1. `open ios/Keybase.xcworkspace` (Open workspace (not xcodeproj))

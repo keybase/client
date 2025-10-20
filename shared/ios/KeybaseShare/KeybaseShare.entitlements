@@ -8,6 +8,18 @@
 	<array>
 		<string>group.keybase</string>
 	</array>
+	<key>com.apple.security.hardened-process</key>
+	<true/>
+	<key>com.apple.security.hardened-process.checked-allocations</key>
+	<true/>
+	<key>com.apple.security.hardened-process.dyld-ro</key>
+	<true/>
+	<key>com.apple.security.hardened-process.enhanced-security-version</key>
+	<integer>1</integer>
+	<key>com.apple.security.hardened-process.hardened-heap</key>
+	<true/>
+	<key>com.apple.security.hardened-process.platform-restrictions</key>
+	<integer>2</integer>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)group.keybase</string>
