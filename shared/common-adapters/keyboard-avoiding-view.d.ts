@@ -10,6 +10,7 @@ export type Props = {
   extraPadding?: number
   // only used on ipad modals since they float
   compensateNotBeingOnBottom?: boolean
+  behavior?: 'height' | 'padding' | 'translate-with-padding'
 }
 
 export declare const KeyboardAvoidingView2: (p: Props) => React.ReactNode

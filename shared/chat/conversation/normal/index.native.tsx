@@ -95,7 +95,10 @@ const Conversation = React.memo(function Conversation() {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2 extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}>
+      <Kb.KeyboardAvoidingView2
+        extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
+        behavior="translate-with-padding"
+      >
         {content}
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
