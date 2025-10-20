@@ -38,5 +38,14 @@ end
 target 'KeybaseShare' do
   pod 'KBCommon', :path => '../../rnmodules/kb-common'
   use_frameworks! :linkage => :static
+
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['ENABLE_POINTER_AUTHENTICATION'] = 'YES'
+        config.build_settings['ENABLE_ENHANCED_SECURITY'] = 'YES'
+      end
+    end
+  end
 end
 
