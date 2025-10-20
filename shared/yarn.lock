@@ -11132,6 +11132,13 @@ react-native-is-edge-to-edge@^1.2.1:
 "react-native-kb@file:../rnmodules/react-native-kb":
   version "0.1.1"
 
+react-native-keyboard-controller@1.19.2:
+  version "1.19.2"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.19.2.tgz#10679b977ae6faf9876e730a2b3ee926377ddaa3"
+  integrity sha512-121W+WLnYMTpVyAwm2tPjBc6NLKS2srQOvlkFMYZEYNIsZPvWLQ92n7kBlR32Wpsm8t9rE9xfWZEyNPhCoe+mQ==
+  dependencies:
+    react-native-is-edge-to-edge "^1.2.1"
+
 react-native-reanimated@4.1.3:
   version "4.1.3"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.1.3.tgz#de29587b8ff7febada32497793803215faeac636"
