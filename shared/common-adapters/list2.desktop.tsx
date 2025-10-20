@@ -56,6 +56,27 @@ function List2<T>(props: Props<T>) {
       const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
       return _fixed({itemHeight})
     }
+    case 'trueVariable':
+      return (
+        <List
+          listRef={props.desktopRef as any}
+          style={
+            {
+              height: '100%',
+              overflowY: 'scroll',
+              width: '100%',
+              ...Styles.castStyleDesktop(style),
+            } as const
+          }
+          rowCount={items.length}
+          rowProps={{
+            items,
+            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+          }}
+          rowHeight={props.itemHeight.rowHeight}
+          rowComponent={Row}
+        />
+      )
     case 'variable':
       return (
         <List

@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type {CustomStyles} from '@/styles'
-import type {useListRef} from 'react-window'
+import type {useListRef, DynamicRowHeight} from 'react-window'
 
 // List2 differs from list in that on desktop it uses react-window.
 // Don't use List2 if you need a list with dynamic item sizes
@@ -27,6 +27,11 @@ export type FixedListItem2Auto = {
   type: 'fixedListItem2Auto'
 }
 
+export type TrueVariable = {
+  type: 'trueVariable'
+  rowHeight: DynamicRowHeight
+}
+
 // Having flex in the list messes with creating the right size inner container
 // for scroll
 export type Props<Item> = {
@@ -35,7 +40,7 @@ export type Props<Item> = {
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
   items: ReadonlyArray<Item>
   renderItem: (index: number, item: Item) => React.ReactElement | null
-  itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItem2Auto
+  itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItem2Auto | TrueVariable
   estimatedItemHeight?: number
   selectedIndex?: number // TODO,
   bounces?: boolean // mobile only,
