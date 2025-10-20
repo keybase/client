@@ -48,6 +48,11 @@ post_install do |installer|
     target.build_configurations.each do |build_config|
       build_config.build_settings['ENABLE_POINTER_AUTHENTICATION'] = 'YES'
       build_config.build_settings['ENABLE_ENHANCED_SECURITY'] = 'YES'
+
+      # Workaround for iOS SDK 18/Xcode 16 malloc header bug with pointer authentication
+      # The SDK headers reference _backdeploy variants that don't exist
+      build_config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
+      build_config.build_settings['OTHER_CFLAGS'] << '-D_MALLOC_TYPED(x,y)='
     end
   end
 end
