@@ -37,43 +37,46 @@ type DropdownButtonProps = {
   inline?: boolean
   loading?: boolean
 }
-export const DropdownButton = (props: DropdownButtonProps) => (
-  <Kb.ClickableBox
-    onClick={!props.disabled ? props.toggleOpen : undefined}
-    style={Styles.collapseStyles([styles.dropdownBoxContainer, props.style])}
-  >
-    <Kb.Box2Measure
-      direction="vertical"
-      ref={props.popupAnchor}
-      className={Styles.classNames('dropdown_border', {
-        hover: !props.disabled,
-      })}
-      style={Styles.collapseStyles([
-        styles.measureBox,
-        {
-          paddingRight: props.inline
-            ? Styles.globalMargins.tiny
-            : Styles.isMobile
-              ? Styles.globalMargins.large
-              : Styles.globalMargins.small,
-        },
-        props.disabled ? {opacity: 0.3} : {},
-        {cursor: !props.disabled ? 'pointer' : undefined},
-        {width: props.inline ? undefined : '100%'},
-      ])}
+export const DropdownButton = (props: DropdownButtonProps) => {
+  const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
+  return (
+    <Kb.ClickableBox
+      onClick={!disabled ? toggleOpen : undefined}
+      style={Styles.collapseStyles([styles.dropdownBoxContainer, style])}
     >
-      <Kb.Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
-        {props.loading ? <Kb.ProgressIndicator type="Small" /> : props.selected}
-      </Kb.Box>
-      <Kb.Icon
-        type="iconfont-caret-down"
-        inheritColor={true}
-        sizeType="Tiny"
-        style={{marginTop: Styles.isMobile ? 2 : -8}}
-      />
-    </Kb.Box2Measure>
-  </Kb.ClickableBox>
-)
+      <Kb.Box2Measure
+        direction="vertical"
+        ref={popupAnchor}
+        className={Styles.classNames('dropdown_border', {
+          hover: !disabled,
+        })}
+        style={Styles.collapseStyles([
+          styles.measureBox,
+          {
+            paddingRight: inline
+              ? Styles.globalMargins.tiny
+              : Styles.isMobile
+                ? Styles.globalMargins.large
+                : Styles.globalMargins.small,
+          },
+          disabled ? {opacity: 0.3} : {},
+          {cursor: !disabled ? 'pointer' : undefined},
+          {width: inline ? undefined : '100%'},
+        ])}
+      >
+        <Kb.Box style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
+          {loading ? <Kb.ProgressIndicator type="Small" /> : selected}
+        </Kb.Box>
+        <Kb.Icon
+          type="iconfont-caret-down"
+          inheritColor={true}
+          sizeType="Tiny"
+          style={{marginTop: Styles.isMobile ? 2 : -8}}
+        />
+      </Kb.Box2Measure>
+    </Kb.ClickableBox>
+  )
+}
 
 type Props<N> = {
   disabled?: boolean

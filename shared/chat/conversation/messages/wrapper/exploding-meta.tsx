@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {HighlightedContext, OrdinalContext} from '../ids-context'
 import * as Kb from '@/common-adapters'
-import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
+import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 import {animationDuration} from './exploding-height-retainer'
@@ -12,6 +12,7 @@ export type OwnProps = {onClick?: () => void}
 const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
   const {onClick} = p
   const ordinal = React.useContext(OrdinalContext)
+  const [now, setNow] = React.useState(() => Date.now())
 
   const {exploding, exploded, submitState, explodesAt, messageKey} = C.useChatContext(
     C.useShallow(s => {
@@ -48,54 +49,58 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     }
   }, [messageKey])
 
-  const tickerIDRef = React.useRef<TickerID>(0)
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
-  const forceUpdateIDRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = React.useContext(HighlightedContext)
 
-  const [_force, setforce] = React.useState(0)
-  const forceUpdate = React.useCallback(() => {
-    setforce(f => f + 1)
-  }, [])
-
   const _secondLoop = React.useCallback(() => {
-    const difference = explodesAt - Date.now()
+    const n = Date.now()
+    setNow(n)
+    const difference = explodesAt - n
     if (difference <= 0 || exploded) {
       if (mode === 'countdown') {
         setMode('boom')
       }
-      tickerIDRef.current && removeTicker(tickerIDRef.current)
       return
     }
-    forceUpdate()
-  }, [exploded, explodesAt, forceUpdate, mode, setMode, tickerIDRef])
+  }, [exploded, explodesAt, mode, setMode])
 
-  const updateLoopRef = React.useRef<() => void>(() => {})
+  const [inter, setInter] = React.useState(0)
   const updateLoop = React.useCallback(() => {
+    setNow(Date.now())
     if (pending) {
+      setInter(0)
       return
     }
 
     const difference = explodesAt - Date.now()
     if (difference <= 0 || exploded) {
       setMode('boom')
+      setInter(0)
       return
     }
     // we don't need a timer longer than 60000 (android complains also)
-    const interval = Math.min(getLoopInterval(difference), 60000)
-    if (interval < 1000) {
-      tickerIDRef.current && removeTicker(tickerIDRef.current)
+    setInter(Math.min(getLoopInterval(difference), 60000))
+  }, [exploded, explodesAt, pending, setMode])
+
+  React.useEffect(() => {
+    if (!inter) return () => {}
+
+    if (inter < 1000) {
       // switch to 'seconds' mode
-      tickerIDRef.current = addTicker(_secondLoop)
-      return
+      const id = addTicker(_secondLoop)
+      return () => {
+        removeTicker(id)
+      }
+    } else {
+      const id = setTimeout(() => {
+        updateLoop()
+      }, inter)
+      return () => {
+        clearTimeout(id)
+      }
     }
-    forceUpdateIDRef.current = setTimeout(() => {
-      forceUpdate()
-      updateLoopRef.current()
-    }, interval)
-  }, [_secondLoop, exploded, explodesAt, forceUpdate, forceUpdateIDRef, pending, setMode, tickerIDRef])
-  updateLoopRef.current = updateLoop
+  }, [inter, _secondLoop, updateLoop])
 
   const _setHidden = React.useCallback(() => {
     mode !== 'hidden' && setMode('hidden')
@@ -141,14 +146,11 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     lastExplodedRef.current = exploded
 
     return () => {
-      tickerIDRef.current && removeTicker(tickerIDRef.current)
       sharedTimerIDRef.current &&
         SharedTimer.removeObserver(sharedTimerKeyRef.current, sharedTimerIDRef.current)
-      forceUpdateIDRef.current && clearTimeout(forceUpdateIDRef.current)
     }
-  }, [exploded, forceUpdateIDRef, messageKey, setMode, sharedTimerIDRef, sharedTimerKeyRef, tickerIDRef])
+  }, [exploded, messageKey, setMode, sharedTimerIDRef, sharedTimerKeyRef])
 
-  const [now] = React.useState(() => Date.now())
   const backgroundColor = pending
     ? Kb.Styles.globalColors.black
     : explodesAt - now < oneMinuteInMs

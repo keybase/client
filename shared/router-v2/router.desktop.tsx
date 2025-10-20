@@ -93,11 +93,11 @@ const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)
   React.useEffect(() => {
     if (!setNavOnce.current) {
-      if (C.Router2.navigationRef_.isReady()) {
+      if (C.Router2.navigationRef.isReady()) {
         setNavOnce.current = true
 
         if (__DEV__) {
-          window.DEBUGNavigator = C.Router2.navigationRef_.current
+          window.DEBUGNavigator = C.Router2.navigationRef.current
           window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('@/constants')
           registerDebugClear(() => {
@@ -133,10 +133,16 @@ const ElectronApp = React.memo(function ElectronApp() {
     setNavState(ns)
   }, [setNavState])
 
+  const navRef = React.useCallback((ref: typeof C.Router2.navigationRef.current) => {
+    if (ref) {
+      C.Router2.navigationRef.current = ref
+    }
+  }, [])
+
   return (
     <NavigationContainer
       navigationInChildEnabled={true}
-      ref={C.Router2.navigationRef_}
+      ref={navRef}
       theme={Shared.theme}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}

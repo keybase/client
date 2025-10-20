@@ -286,7 +286,6 @@ const useScrolling = (p: {
     ) {
       programaticScrollRef.current = true
       const newTop = list.scrollHeight - scrollBottomOffsetRef.current
-      //console.log('aaa uselayout', newTop, tempRef.current)
       list.scrollTop = newTop
     }
     return undefined
