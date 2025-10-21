@@ -49,15 +49,28 @@ post_install do |installer|
       build_config.build_settings['ENABLE_POINTER_AUTHENTICATION'] = 'YES'
       build_config.build_settings['ENABLE_ENHANCED_SECURITY'] = 'YES'
 
-      # Disable explicit modules to avoid precompilation issues with malloc workaround
+      # WORKAROUND: iOS SDK 18 / Xcode 16 malloc header bug with pointer authentication
+      #
+      # When ENABLE_POINTER_AUTHENTICATION = YES, the iOS 18 SDK's malloc/_malloc_type.h
+      # header contains a bug where it references undefined _backdeploy symbols.
+      # This causes compilation to fail with:
+      #   error: use of undeclared identifier 'malloc_type_zone_malloc_with_options_backdeploy'
+      #
+      # The workarounds below are needed until Apple fixes this SDK bug:
+      # 1. Disable explicit modules to prevent precompilation before our fix applies
+      # 2. Define _MALLOC_TYPED as empty to remove the buggy attribute
+      # 3. Pass the flag to both C and Swift compilation
+      #
+      # NOTE: CLANG_ENABLE_MODULES = NO is also set in the main project targets
+      # This makes builds slower but is necessary for pointer authentication to work.
+      #
+      # Related: Can be removed when Apple releases a fixed SDK in future Xcode updates
+
       build_config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
 
-      # Workaround for iOS SDK 18/Xcode 16 malloc header bug with pointer authentication
-      # The SDK headers reference _backdeploy variants that don't exist
       build_config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
       build_config.build_settings['OTHER_CFLAGS'] << '-D_MALLOC_TYPED(x,y)='
 
-      # Also pass the flag through Swift compilation for module imports
       build_config.build_settings['OTHER_SWIFT_FLAGS'] ||= ['$(inherited)']
       build_config.build_settings['OTHER_SWIFT_FLAGS'] << '-Xcc'
       build_config.build_settings['OTHER_SWIFT_FLAGS'] << '-D_MALLOC_TYPED(x,y)='
