@@ -48,6 +48,20 @@ post_install do |installer|
     build_config.build_settings['CLANG_ENABLE_EXPLICIT_MODULES'] = 'NO'
   end
 
+  # Add malloc workaround to all CocoaPods prefix headers
+  installer.pods_project.targets.each do |target|
+    prefix_header_path = "Pods/Target Support Files/#{target.name}/#{target.name}-prefix.pch"
+    if File.exist?(prefix_header_path)
+      content = File.read(prefix_header_path)
+      unless content.include?('_MALLOC_TYPED')
+        # Add the workaround at the very beginning
+        workaround = "// Workaround for iOS SDK 18/Xcode 16 malloc bug with pointer authentication\n#define _MALLOC_TYPED(x,y)\n\n"
+        File.write(prefix_header_path, workaround + content)
+        puts "✓ Added malloc workaround to: #{target.name}-prefix.pch"
+      end
+    end
+  end
+
   # Enable pointer authentication for all pods
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |build_config|
