@@ -43,9 +43,15 @@ post_install do |installer|
     # :ccache_enabled => true
   )
 
+  # Disable Clang modules at project level for all pods
+  installer.pods_project.build_configurations.each do |build_config|
+    build_config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+  end
+
   # Enable pointer authentication for all pods
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |build_config|
+      build_config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
       build_config.build_settings['ENABLE_POINTER_AUTHENTICATION'] = 'YES'
       build_config.build_settings['ENABLE_ENHANCED_SECURITY'] = 'YES'
 
