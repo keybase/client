@@ -43,6 +43,35 @@ post_install do |installer|
     # :ccache_enabled => true
   )
 
+  # Convert @import to #import in node_modules since modules are disabled
+  # This fixes @import statements in React Native dependencies
+  node_modules_path = File.join(Dir.pwd, '..', 'node_modules')
+  Dir.glob("#{node_modules_path}/**/*.{m,mm}").each do |file_path|
+    next unless File.file?(file_path)
+    
+    content = File.read(file_path)
+    original_content = content.dup
+    
+    # Convert @import statements to #import
+    # e.g., @import SystemConfiguration.CaptiveNetwork; -> #import <SystemConfiguration/CaptiveNetwork.h>
+    content.gsub!(/@import\s+([^;]+);/) do
+      framework_path = $1.strip
+      parts = framework_path.split('.')
+      if parts.length == 1
+        # @import Foundation; -> #import <Foundation/Foundation.h>
+        "#import <#{parts[0]}/#{parts[0]}.h>"
+      else
+        # @import SystemConfiguration.CaptiveNetwork; -> #import <SystemConfiguration/CaptiveNetwork.h>
+        "#import <#{parts[0]}/#{parts[1]}.h>"
+      end
+    end
+    
+    if content != original_content
+      File.write(file_path, content)
+      puts "✓ Fixed @import in: #{File.basename(file_path)}"
+    end
+  end
+
   # Disable Clang modules at project level for all pods
   installer.pods_project.build_configurations.each do |build_config|
     build_config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
