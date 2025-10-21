@@ -48,10 +48,10 @@ post_install do |installer|
   node_modules_path = File.join(Dir.pwd, '..', 'node_modules')
   Dir.glob("#{node_modules_path}/**/*.{m,mm}").each do |file_path|
     next unless File.file?(file_path)
-    
+
     content = File.read(file_path)
     original_content = content.dup
-    
+
     # Convert @import statements to #import
     # e.g., @import SystemConfiguration.CaptiveNetwork; -> #import <SystemConfiguration/CaptiveNetwork.h>
     content.gsub!(/@import\s+([^;]+);/) do
@@ -65,7 +65,7 @@ post_install do |installer|
         "#import <#{parts[0]}/#{parts[1]}.h>"
       end
     end
-    
+
     if content != original_content
       File.write(file_path, content)
       puts "✓ Fixed @import in: #{File.basename(file_path)}"
