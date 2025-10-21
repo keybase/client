@@ -1,0 +1,9 @@
+//
+// Prefix header for iOS SDK 18 / Xcode 16 pointer authentication workaround
+//
+
+#ifdef __OBJC__
+    // Workaround must be applied before any system headers
+    #undef _MALLOC_TYPED
+    #define _MALLOC_TYPED(x,y)
+#endif
