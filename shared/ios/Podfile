@@ -53,6 +53,11 @@ post_install do |installer|
       # The SDK headers reference _backdeploy variants that don't exist
       build_config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
       build_config.build_settings['OTHER_CFLAGS'] << '-D_MALLOC_TYPED(x,y)='
+
+      # Also pass the flag through Swift compilation for module imports
+      build_config.build_settings['OTHER_SWIFT_FLAGS'] ||= ['$(inherited)']
+      build_config.build_settings['OTHER_SWIFT_FLAGS'] << '-Xcc'
+      build_config.build_settings['OTHER_SWIFT_FLAGS'] << '-D_MALLOC_TYPED(x,y)='
     end
   end
 end

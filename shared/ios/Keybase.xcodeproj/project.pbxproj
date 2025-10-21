@@ -676,7 +676,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG -Xcc -D_MALLOC_TYPED(x,y)=";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
@@ -737,7 +737,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -Xcc -D_MALLOC_TYPED(x,y)=";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
@@ -799,7 +799,7 @@
 					"$(inherited)",
 					"-D_MALLOC_TYPED(x,y)=",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG -Xcc -D_MALLOC_TYPED(x,y)=";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -863,7 +863,7 @@
 					"$(inherited)",
 					"-D_MALLOC_TYPED(x,y)=",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -Xcc -D_MALLOC_TYPED(x,y)=";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
