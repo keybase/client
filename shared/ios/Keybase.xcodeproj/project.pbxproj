@@ -630,10 +630,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					arm64,
-					arm64e,
-				);
+			ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
@@ -642,8 +639,6 @@
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_BITCODE = NO;
-				ENABLE_ENHANCED_SECURITY = YES;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -677,7 +672,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -689,10 +683,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					arm64,
-					arm64e,
-				);
+			ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
@@ -701,8 +692,6 @@
 				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_BITCODE = NO;
-				ENABLE_ENHANCED_SECURITY = YES;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -736,7 +725,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -747,10 +735,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1FBA52321551ABCD0E9F3CDE /* Pods-KeybaseShare.debug.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					arm64,
-					arm64e,
-				);
+			ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -772,8 +757,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_BITCODE = NO;
-				ENABLE_ENHANCED_SECURITY = YES;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -796,7 +779,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "KeybaseShare/KeybaseShare-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
@@ -808,10 +790,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 698E0E782682CDB9F02EDD13 /* Pods-KeybaseShare.release.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					arm64,
-					arm64e,
-				);
+			ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -834,8 +813,6 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_BITCODE = NO;
-				ENABLE_ENHANCED_SECURITY = YES;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -858,7 +835,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "KeybaseShare/KeybaseShare-Bridging-Header.h";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -899,8 +875,6 @@
 				COPY_PHASE_STRIP = NO;
 				CXX = "";
 				DEVELOPMENT_TEAM = 99229SGT5K;
-				ENABLE_ENHANCED_SECURITY = YES;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1023,9 +997,7 @@
 				COPY_PHASE_STRIP = YES;
 				CXX = "";
 				DEVELOPMENT_TEAM = 99229SGT5K;
-				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_POINTER_AUTHENTICATION = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
