@@ -9,13 +9,9 @@ platform :ios,  min_ios_version_supported
 
 prepare_react_native_project!
 
-# Store config for use in post_install
-$react_native_config = nil
-
 target 'Keybase' do
   use_expo_modules!
   config = use_native_modules!
-  $react_native_config = config
 
   use_frameworks! :linkage => :static
 
@@ -27,6 +23,16 @@ target 'Keybase' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
   )
+
+   post_install do |installer|
+     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+     react_native_post_install(
+       installer,
+       config[:reactNativePath],
+       :mac_catalyst_enabled => false,
+       # :ccache_enabled => true
+     )
+   end
 end
 
 target 'KeybaseShare' do
@@ -34,13 +40,3 @@ target 'KeybaseShare' do
   use_frameworks! :linkage => :static
 end
 
-post_install do |installer|
-  # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-  react_native_post_install(
-    installer,
-    $react_native_config[:reactNativePath],
-    :mac_catalyst_enabled => false,
-    # :ccache_enabled => true
-  )
-
-end
