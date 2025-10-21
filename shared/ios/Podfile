@@ -49,6 +49,9 @@ post_install do |installer|
       build_config.build_settings['ENABLE_POINTER_AUTHENTICATION'] = 'YES'
       build_config.build_settings['ENABLE_ENHANCED_SECURITY'] = 'YES'
 
+      # Disable explicit modules to avoid precompilation issues with malloc workaround
+      build_config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+
       # Workaround for iOS SDK 18/Xcode 16 malloc header bug with pointer authentication
       # The SDK headers reference _backdeploy variants that don't exist
       build_config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
