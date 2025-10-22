@@ -46,11 +46,17 @@ module.exports = function (api /*: any */) {
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
         '@babel/preset-typescript',
       ],
+      plugins: [
+        'babel-plugin-react-compiler', // must run first!
+      ],
     }
   } else if (isReactNative) {
     // console.error('KB babel.config.js for ReactNative')
     return {
-      plugins: [['module-resolver', {alias: {'@': './'}}]],
+      plugins: [
+        'babel-plugin-react-compiler', // must run first!
+        ['module-resolver', {alias: {'@': './'}}],
+      ],
       presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
       sourceMaps: true,
     }

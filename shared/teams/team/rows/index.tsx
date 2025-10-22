@@ -204,16 +204,20 @@ export const useChannelsSections = (
   const createRow = canCreate
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
     : []
+
+  const channelsValues = [...channels.values()]
   return [
     ...createRow,
     {
-      data: [...channels.values().map(c => ({c, type: 'channel-channels'}))].sort((a, b) =>
-        a.c.channelname === 'general'
-          ? -1
-          : b.c.channelname === 'general'
-            ? 1
-            : a.c.channelname.localeCompare(b.c.channelname)
-      ),
+      data: channelsValues
+        .map(c => ({c, type: 'channel-channels'}))
+        .sort((a, b) =>
+          a.c.channelname === 'general'
+            ? -1
+            : b.c.channelname === 'general'
+              ? 1
+              : a.c.channelname.localeCompare(b.c.channelname)
+        ),
       renderItem: ({item}: {item: Item}) =>
         item.type === 'channel-channels' ? (
           <ChannelRow teamID={teamID} conversationIDKey={item.c.conversationIDKey} />
