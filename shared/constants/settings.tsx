@@ -6,7 +6,7 @@ import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from './tabs'
 import logger from '@/logger'
-import {pprofDir} from '@/constants/platform'
+import {androidIsTestDevice, pprofDir} from '@/constants/platform'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -138,6 +138,10 @@ export const useState_ = Z.createZustand<State>(set => {
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')
+        }
+
+        if (androidIsTestDevice) {
+          return
         }
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
