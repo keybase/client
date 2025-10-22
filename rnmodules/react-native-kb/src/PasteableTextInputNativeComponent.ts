@@ -12,8 +12,5 @@ export interface NativePasteableTextInputProps extends ViewProps {
   onPasteImage?: DirectEventHandler<OnPasteImageEvent>
 }
 
-export default codegenNativeComponent<NativePasteableTextInputProps>('PasteableTextInput', {
-  interfaceOnly: false,
-  paperComponentName: 'RCTMultilineTextInputView',
-}) as HostComponent<NativePasteableTextInputProps>
+export default codegenNativeComponent<NativePasteableTextInputProps>('PasteableTextInput') as HostComponent<NativePasteableTextInputProps>
 
