@@ -157,3 +157,6 @@ export const guiConfig: string = KBC.guiConfig
 export const serverConfig: string = KBC.serverConfig
 export const uses24HourClock: boolean = KBC.uses24HourClock
 export const version: string = KBC.version
+
+export {default as PasteableTextInput} from './PasteableTextInput'
+export type {PasteableTextInputProps} from './PasteableTextInput'
