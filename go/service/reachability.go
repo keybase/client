@@ -4,9 +4,8 @@
 package service
 
 import (
+	"context"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -39,9 +38,9 @@ func (h *reachabilityHandler) StartReachability(_ context.Context) (res keybase1
 	}, nil
 }
 
-func (h *reachabilityHandler) CheckReachability(_ context.Context) (res keybase1.Reachability, err error) {
+func (h *reachabilityHandler) CheckReachability(ctx context.Context) (res keybase1.Reachability, err error) {
 	h.G().Trace("CheckReachability", &err)()
-	return h.reachability.check(), nil
+	return h.reachability.check(ctx), nil
 }
 
 type reachability struct {
@@ -71,8 +70,8 @@ func (h *reachability) setReachability(r keybase1.Reachability) {
 	}
 }
 
-func (h *reachability) check() (k keybase1.Reachability) {
-	reachable := h.gh.isReachable()
+func (h *reachability) check(ctx context.Context) (k keybase1.Reachability) {
+	reachable := h.gh.isReachable(ctx)
 	if reachable {
 		k.Reachable = keybase1.Reachable_YES
 	} else {
@@ -97,6 +96,6 @@ func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonito
 }
 
 func (h *reachability) CheckReachability(ctx context.Context) error {
-	h.check()
+	h.check(ctx)
 	return nil
 }
