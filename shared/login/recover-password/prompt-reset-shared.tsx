@@ -5,6 +5,7 @@ import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
+import {androidIsTestDevice} from '@/constants/platform'
 
 export type Props = {
   resetPassword?: boolean
@@ -22,6 +23,11 @@ const PromptReset = (props: Props) => {
   const username = C.useRecoverState(s => s.username)
 
   const onContinue = React.useCallback(() => {
+    // dont do this in preflight
+    if (androidIsTestDevice) {
+      nav.safeNavigateUp()
+      return
+    }
     if (resetPassword) {
       submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
