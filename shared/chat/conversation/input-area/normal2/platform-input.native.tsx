@@ -140,12 +140,14 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
 })
 
 const AnimatedExpand = (() => {
+  'use no memo'
   if (skipAnimations) {
     return React.memo(function AnimatedExpand() {
       return null
     })
   } else {
     return React.memo(function AnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
+      'use no memo'
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle = useAnimatedStyle(() => ({
@@ -501,6 +503,7 @@ const AnimatedInput = (() => {
   } else {
     return React.memo(
       React.forwardRef<Input2Ref, Input2Props & {expanded: boolean}>(function AnimatedInput(p, ref) {
+        'use no memo'
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
         const lastExpandedRef = React.useRef(expanded)
