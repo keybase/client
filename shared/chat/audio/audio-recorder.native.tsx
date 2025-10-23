@@ -43,7 +43,9 @@ const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
   const lastShowTooltipRef = React.useRef(showTooltip)
   const opacitySV = useSharedValue(0)
-  const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
+  const animatedStyles = useAnimatedStyle(() => {
+    return {opacity: opacitySV.value}
+  }, [])
 
   React.useEffect(() => {
     if (showTooltip === lastShowTooltipRef.current) return
