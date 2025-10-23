@@ -113,7 +113,7 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           size="small"
           icon="iconfont-search"
           waiting={props.waiting}
-          focusOnMount={true}
+          focusOnMount={false}
           onKeyDown={(e: React.KeyboardEvent) => {
             switch (e.key) {
               case 'ArrowDown':
