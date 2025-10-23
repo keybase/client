@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Main from './main.native'
-import {KeyboardProvider} from 'react-native-keyboard-controller'
+// crashy still
+// import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
 import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
@@ -156,23 +157,22 @@ const Keybase = () => {
 
   const {unmountAll, show} = useUnmountAll()
 
+  // <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
   return show ? (
     <WRAP>
-      <KeyboardProvider statusBarTranslucent={true} navigationBarTranslucent={true}>
-        <ReducedMotionConfig mode={ReduceMotion.Never} />
-        <GestureHandlerRootView style={styles.gesture}>
-          <PortalProvider>
-            <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-              <StoreHelper>
-                <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
-                  <Main />
-                  {unmountAll}
-                </Kb.Styles.CanFixOverdrawContext.Provider>
-              </StoreHelper>
-            </SafeAreaProvider>
-          </PortalProvider>
-        </GestureHandlerRootView>
-      </KeyboardProvider>
+      <ReducedMotionConfig mode={ReduceMotion.Never} />
+      <GestureHandlerRootView style={styles.gesture}>
+        <PortalProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+            <StoreHelper>
+              <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
+                <Main />
+                {unmountAll}
+              </Kb.Styles.CanFixOverdrawContext.Provider>
+            </StoreHelper>
+          </SafeAreaProvider>
+        </PortalProvider>
+      </GestureHandlerRootView>
     </WRAP>
   ) : (
     unmountAll
