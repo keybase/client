@@ -40,10 +40,13 @@ enum Visible {
 }
 
 const useTooltip = () => {
+  'use no memo'
   const [showTooltip, setShowTooltip] = React.useState(false)
   const lastShowTooltipRef = React.useRef(showTooltip)
   const opacitySV = useSharedValue(0)
-  const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
+  const animatedStyles = useAnimatedStyle(() => {
+    return {opacity: opacitySV.value}
+  })
 
   React.useEffect(() => {
     if (showTooltip === lastShowTooltipRef.current) return
@@ -91,6 +94,7 @@ const useIconAndOverlay = (p: {
   cancelRecording: () => void
   ampSV: SVN
 }) => {
+  'use no memo'
   const {stageRecording, startRecording, sendRecording, cancelRecording, flashTip, ampSV} = p
   const [visible, setVisible] = React.useState(Visible.HIDDEN)
 
@@ -545,6 +549,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
 })
 
 const BigBackground = (props: {fadeSV: SVN}) => {
+  'use no memo'
   const {fadeSV} = props
   const backgroundColor = Styles.undynamicColor(Styles.globalColors.white)
   const animatedStyle = useAnimatedStyle(() => ({
@@ -556,6 +561,7 @@ const BigBackground = (props: {fadeSV: SVN}) => {
 }
 
 const AmpCircle = (props: {ampSV: SVN; dragXSV: SVN; dragYSV: SVN; fadeSV: SVN; lockedSV: SVN}) => {
+  'use no memo'
   const {ampSV, dragXSV, dragYSV, fadeSV, lockedSV} = props
   const animatedStyle = useAnimatedStyle(() => {
     const dragDistanceX = -50
@@ -581,6 +587,7 @@ const InnerCircle = (props: {
   lockedSV: SVN
   stageRecording: () => void
 }) => {
+  'use no memo'
   const {dragXSV, dragYSV, fadeSV, lockedSV, stageRecording} = props
   const circleStyle = useAnimatedStyle(() => {
     // worklet needs this locally for some reason
@@ -606,6 +613,7 @@ const InnerCircle = (props: {
 }
 
 const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN}) => {
+  'use no memo'
   const {lockedSV, fadeSV, dragXSV, dragYSV} = props
   const slideAmount = 150
   const spaceBetween = 20
@@ -661,6 +669,7 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
 const AnimatedText = Animated.createAnimatedComponent(Kb.Text)
 
 const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: () => void}) => {
+  'use no memo'
   const {lockedSV, fadeSV, onCancel, dragXSV} = props
   const arrowStyle = useAnimatedStyle(() => {
     // copy paste so we don't share as many vars between jsc contexts
@@ -743,6 +752,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 }
 
 const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: () => void}) => {
+  'use no memo'
   const {fadeSV, lockedSV, sendRecording} = props
   const backgroundColor = Styles.undynamicColor(Styles.globalColors.blue)
   const buttonStyle = useAnimatedStyle(() => ({

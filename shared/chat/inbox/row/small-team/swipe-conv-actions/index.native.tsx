@@ -19,6 +19,7 @@ const Action = (p: {
   onClick: () => void
   progress: Reanimated.SharedValue<number>
 }) => {
+  'use no memo'
   const {text, color, iconType, onClick, progress, offset} = p
   const as = Reanimated.useAnimatedStyle(() => {
     const ratio = progress.value

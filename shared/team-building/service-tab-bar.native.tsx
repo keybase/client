@@ -42,6 +42,7 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
   offset?: SharedValue<number>
   servicesCount: number
 }) {
+  'use no memo'
   const {offset} = props
 
   const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
@@ -75,6 +76,7 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
 })
 
 const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
+  'use no memo'
   const {offset, isActive, service, label, onClick} = props
   const color = isActive ? serviceIdToAccentColor(service) : Kb.Styles.globalColors.black
 
@@ -151,6 +153,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
 })
 
 export const ServiceTabBar = (props: Props) => {
+  'use no memo'
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
   const onClick = React.useCallback(
