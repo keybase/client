@@ -2,12 +2,12 @@ PODS:
   - EXAV (16.0.7):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (18.0.9):
+  - EXConstants (18.0.10):
     - ExpoModulesCore
   - EXImageLoader (6.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (54.0.16):
+  - Expo (54.0.20):
     - ExpoModulesCore
     - hermes-engine
     - RCTRequired
@@ -1977,7 +1977,7 @@ PODS:
     - Yoga
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.28.0):
+  - RNGestureHandler (2.29.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2074,7 +2074,7 @@ PODS:
     - ReactNativeDependencies
     - RNWorklets
     - Yoga
-  - RNScreens (4.17.1):
+  - RNScreens (4.18.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2096,9 +2096,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNScreens/common (= 4.17.1)
+    - RNScreens/common (= 4.18.0)
     - Yoga
-  - RNScreens/common (4.17.1):
+  - RNScreens/common (4.18.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2540,9 +2540,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   EXAV: e3fefaca88f14624bca01d9a128562a5f8e738f8
-  EXConstants: a95804601ee4a6aa7800645f9b070d753b1142b3
+  EXConstants: fd688cef4e401dcf798a021cfb5d87c890c30ba3
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
-  Expo: eed4c1e558a4a64449e2353da6ad3867a960e60a
+  Expo: 1eae5a52f4532767fc1c40eb4cca4f202d88db1e
   ExpoAsset: 9ba6fbd677fb8e241a3899ac00fa735bc911eadf
   ExpoCamera: e75f6807a2c047f3338bbadd101af4c71a1d13a5
   ExpoClipboard: af650d14765f19c60ce2a1eaf9dfe6445eff7365
@@ -2640,9 +2640,9 @@ SPEC CHECKSUMS:
   RNCMaskedView: ee2fc4739eb35be50bcf4f95daca19f316b5d50c
   RNCPicker: 0a2e0c924f89d88878cbda326b0fe1655e35967f
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
-  RNGestureHandler: c3831b3b1b5014c6afab7fff7e4171394a3419ab
+  RNGestureHandler: 0735734692faf500bb0260743a0821702ed46384
   RNReanimated: d6282d5be09ec53b2b69e4addeae2f342c4c99ed
-  RNScreens: abb40de417ad8bf13bcd378932ad64d6c624a4d9
+  RNScreens: 30e3e86744e6dd0c46ebee546f7f79d70b382c69
   RNWorklets: 54d8dffb7f645873a58484658ddfd4bd1a9a0bc1
   SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
