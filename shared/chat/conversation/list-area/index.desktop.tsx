@@ -299,9 +299,19 @@ const useScrolling = (p: {
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
+    } else if (lastCenteredOrdinal && !centeredOrdinal && containsLatestMessage) {
+      lockedToBottomRef.current = true
+      scrollToBottom()
     }
     setLastCenteredOrdinal(centeredOrdinal)
-  }, [centeredOrdinal, scrollToCentered, setLastCenteredOrdinal, lastCenteredOrdinal])
+  }, [
+    centeredOrdinal,
+    scrollToCentered,
+    setLastCenteredOrdinal,
+    lastCenteredOrdinal,
+    containsLatestMessage,
+    scrollToBottom,
+  ])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
