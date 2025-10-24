@@ -15,7 +15,30 @@ const EmojiWrapper = (props: Props) => {
   const {emojiName, size, style} = props
 
   const match = emojiName.match(nameReg)
-  if (!match) return null
+  if (!match) {
+    if (emojiName) {
+      return (
+        <span
+          className="emoji emoji-native"
+          style={Styles.castStyleDesktop(
+            Styles.platformStyles({
+              common: {...style},
+              isElectron: {
+                display: 'inline-block',
+                fontSize: size,
+                height: size,
+                width: size,
+              } as const,
+            })
+          )}
+        >
+          {emojiName}
+        </span>
+      )
+    } else {
+      return null
+    }
+  }
   const name = match[1] ?? ''
   const skin = match[2]
 
