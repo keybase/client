@@ -2476,6 +2476,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     selectedConversation: () => {
       const conversationIDKey = get().id
       clearChatTimeCache()
+      setMessageCenterOrdinal()
 
       const fetchConversationBio = () => {
         const participantInfo = get().participants
@@ -2511,7 +2512,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
       })
-      setMessageCenterOrdinal()
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
     },
@@ -3026,7 +3026,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } else {
           threadSearchInfo.visible = !threadSearchInfo.visible
         }
-        if (s.messageCenterOrdinal) {
+
+        if (!threadSearchInfo.visible) {
+          s.messageCenterOrdinal = undefined
+        } else if (s.messageCenterOrdinal) {
           s.messageCenterOrdinal.highlightMode = 'none'
         }
       })
