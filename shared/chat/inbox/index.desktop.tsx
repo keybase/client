@@ -190,7 +190,7 @@ type InboxRowData = {
   toggleSmallTeamsExpanded: () => void
 }
 
-const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>): React.ReactElement {
+const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>) {
   const {index, style, rows} = p
   const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
   const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = p
@@ -230,7 +230,7 @@ const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>
       {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
     </div>
   )
-})
+}) as (props: RowComponentProps<InboxRowData>) => React.ReactElement
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props

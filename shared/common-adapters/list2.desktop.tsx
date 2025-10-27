@@ -1,10 +1,10 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as Styles from '@/styles'
 import {List, type RowComponentProps} from 'react-window'
 import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
-const Row = function Row(
+const Row = React.memo(function Row(
   p: RowComponentProps<{
     items: ReadonlyArray<unknown>
     renderItem: (index: number, item: unknown) => React.ReactElement | null
@@ -13,7 +13,12 @@ const Row = function Row(
   const {index, style, items, renderItem} = p
   const item = items[index]
   return item ? <div style={style}>{renderItem(index, item)}</div> : <div style={style} />
-}
+}) as (
+  props: RowComponentProps<{
+    items: ReadonlyArray<unknown>
+    renderItem: (index: number, item: unknown) => React.ReactElement | null
+  }>
+) => React.ReactElement
 
 function List2<T>(props: Props<T>) {
   const {items, renderItem, style, itemHeight} = props
