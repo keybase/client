@@ -190,14 +190,14 @@ type InboxRowData = {
   toggleSmallTeamsExpanded: () => void
 }
 
-const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>) {
+const InboxRow = function InboxRow(p: RowComponentProps<InboxRowData>) {
   const {index, style, rows} = p
   const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
   const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = p
   const row = rows[index]
   if (!row) {
     // likely small teams were just collapsed
-    return null
+    return <div style={style} />
   }
 
   const divStyle = style
@@ -230,7 +230,7 @@ const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>
       {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
     </div>
   )
-})
+}
 
 const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props
