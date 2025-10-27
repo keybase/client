@@ -77,15 +77,15 @@ const platformShim = (
         : getOptions
 
     return (
-      <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+      <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+        <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
           <Kb.SafeAreaView
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
           >
             <Original {...(props as any as ScreenComponentProps)} />
           </Kb.SafeAreaView>
-        </SafeAreaProvider>
-      </Kb.KeyboardAvoidingView2>
+        </Kb.KeyboardAvoidingView2>
+      </SafeAreaProvider>
     )
   })
 }
