@@ -12,8 +12,13 @@ const Row = React.memo(function Row(
 ) {
   const {index, style, items, renderItem} = p
   const item = items[index]
-  return item ? <div style={style}>{renderItem(index, item)}</div> : null
-})
+  return item ? <div style={style}>{renderItem(index, item)}</div> : <div style={style} />
+}) as (
+  props: RowComponentProps<{
+    items: ReadonlyArray<unknown>
+    renderItem: (index: number, item: unknown) => React.ReactElement | null
+  }>
+) => React.ReactElement
 
 function List2<T>(props: Props<T>) {
   const {items, renderItem, style, itemHeight} = props

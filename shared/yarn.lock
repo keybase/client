@@ -2784,52 +2784,53 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@7.5.0":
-  version "7.5.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.5.0.tgz#2a851cd9e7c202f90107368612658baebbcd4a32"
-  integrity sha512-JY9yQDQTv7avXqXdrToyn6ogcBqY2gTXg7C1J6OWZGz7QhlnPZQm375T4nYBWqVWsODVNeNagkCPptZGOxI1rg==
+"@react-navigation/bottom-tabs@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.6.0.tgz#99e7c2b94faca687a291fc2cb733d663f17037ba"
+  integrity sha512-5qnicy9SdgnCjEj6wNiJiKgxHtP7gtLi8+owxRy1HatgNknQyIS00dFWlzxHLiRnU5zuIUtX2/9DZoDLrLyrTQ==
   dependencies:
-    "@react-navigation/elements" "^2.7.0"
+    "@react-navigation/elements" "^2.7.1"
     color "^4.2.3"
 
-"@react-navigation/core@7.12.4", "@react-navigation/core@^7.12.4":
-  version "7.12.4"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.12.4.tgz#73cc4c0989455c93bf21d7aeecc89d3a7006ccde"
-  integrity sha512-xLFho76FA7v500XID5z/8YfGTvjQPw7/fXsq4BIrVSqetNe/o/v+KAocEw4ots6kyv3XvSTyiWKh2g3pN6xZ9Q==
+"@react-navigation/core@7.13.0", "@react-navigation/core@^7.13.0":
+  version "7.13.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-7.13.0.tgz#71577637cc32626e208fa994fc13e77394b17932"
+  integrity sha512-Fc/SO23HnlGnkou/z8JQUzwEMvhxuUhr4rdPTIZp/c8q1atq3k632Nfh8fEiGtk+MP1wtIvXdN2a5hBIWpLq3g==
   dependencies:
     "@react-navigation/routers" "^7.5.1"
     escape-string-regexp "^4.0.0"
+    fast-deep-equal "^3.1.3"
     nanoid "^3.3.11"
     query-string "^7.1.3"
     react-is "^19.1.0"
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
 
-"@react-navigation/elements@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.7.0.tgz#1d340b8815f9cea48cd48a9a0f079662fb0db943"
-  integrity sha512-lqlUUTqzKJrm3WYmiy901DSpa5wW8DWSmqNqWlRFWDVjx6SSjOUThQpdMnVXhydPtrTo74yVUPB27oe/jrvo4Q==
+"@react-navigation/elements@^2.7.1":
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.7.1.tgz#1b5fc5127762ee7257322b093c08a9da1d2056f2"
+  integrity sha512-IZO8lx8+ftfbBdaL79FB4mo8PuaMLHnGt4iPLx0TRocIaHHUaPcb4R1ble1DGKeRuyeBbFHu2uLTD1YRDE0lsg==
   dependencies:
     color "^4.2.3"
     use-latest-callback "^0.2.4"
     use-sync-external-store "^1.5.0"
 
-"@react-navigation/native-stack@7.5.1":
-  version "7.5.1"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.5.1.tgz#8b184a65c49bcd21d859ac06ae9c033e0df319b7"
-  integrity sha512-OTn+thYqa5z43j8CyVsi/pTAAZHj27ly/fsd9zz8l8ypxoGhYz7Ro0+Gb9MsL+9Yw1QJTXzJ8dk41+Ay1MafKg==
+"@react-navigation/native-stack@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.6.0.tgz#ee4609aa99e0c82077d578c169fc47e67d249c79"
+  integrity sha512-LgHUzGayQTuzmGxP/Y8W/cM4RDnWOrb2hjl+bVzTiMZwhGTsr+m32nyyBMdhw4crAgeHpG0muXtgN7VvVK2DJA==
   dependencies:
-    "@react-navigation/elements" "^2.7.0"
+    "@react-navigation/elements" "^2.7.1"
     color "^4.2.3"
     sf-symbols-typescript "^2.1.0"
     warn-once "^0.1.1"
 
-"@react-navigation/native@7.1.18":
-  version "7.1.18"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.1.18.tgz#dc768403c5dfef13b0791fd546eaa213e0d879a5"
-  integrity sha512-DZgd6860dxcq3YX7UzIXeBr6m3UgXvo9acxp5jiJyIZXdR00Br9JwVkO7e0bUeTA2d3Z8dsmtAR84Y86NnH64Q==
+"@react-navigation/native@7.1.19":
+  version "7.1.19"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.1.19.tgz#f147e412a9f4a5c5eed85b4bde25171d0ce0297b"
+  integrity sha512-fM7q8di4Q8sp2WUhiUWOe7bEDRyRhbzsKQOd5N2k+lHeCx3UncsRYuw4Q/KN0EovM3wWKqMMmhy/YWuEO04kgw==
   dependencies:
-    "@react-navigation/core" "^7.12.4"
+    "@react-navigation/core" "^7.13.0"
     escape-string-regexp "^4.0.0"
     fast-deep-equal "^3.1.3"
     nanoid "^3.3.11"
@@ -6874,10 +6875,10 @@ image-size@^1.0.2:
   dependencies:
     queue "6.0.2"
 
-immer@10.1.3:
-  version "10.1.3"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-10.1.3.tgz#e38a0b97db59949d31d9b381b04c2e441b1c3747"
-  integrity sha512-tmjF/k8QDKydUlm3mZU+tjM6zeq9/fFpPqH9SzWmBnVVKsPBg/V66qsMwb3/Bo90cgUN+ghdVBess+hPsxUyRw==
+immer@10.2.0:
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-10.2.0.tgz#88a4ce06a1af64172d254b70f7cb04df51c871b1"
+  integrity sha512-d/+XTN3zfODyjr89gM3mPq1WNX2B8pYsu7eORitdwyA2sBubnTl3laYlBk4sXY5FUa5qTZGBDPJICVbvqzjlbw==
 
 import-fresh@^3.2.1, import-fresh@^3.3.0:
   version "3.3.1"
@@ -9481,10 +9482,10 @@ react-native-is-edge-to-edge@^1.2.1:
 "react-native-kb@file:../rnmodules/react-native-kb":
   version "0.1.1"
 
-react-native-keyboard-controller@1.19.2:
-  version "1.19.2"
-  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.19.2.tgz#10679b977ae6faf9876e730a2b3ee926377ddaa3"
-  integrity sha512-121W+WLnYMTpVyAwm2tPjBc6NLKS2srQOvlkFMYZEYNIsZPvWLQ92n7kBlR32Wpsm8t9rE9xfWZEyNPhCoe+mQ==
+react-native-keyboard-controller@1.19.3:
+  version "1.19.3"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.19.3.tgz#71690b39b8ed88c844d652b0e92f462cd033bfe7"
+  integrity sha512-62vfV/xbZ8xGurbOUIgsDDkgVY4NsTpY7ZjVA97XibUcC/9pXVVyqBAI79dmp+TurSuPnBenf08Va1DJOZf9lg==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
@@ -9636,10 +9637,10 @@ react-test-renderer@19.1.0:
     react-is "^19.1.0"
     scheduler "^0.26.0"
 
-react-window@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-window/-/react-window-2.2.1.tgz#3adbafffba43ed045895adec2d050883670953ff"
-  integrity sha512-jrUMKDLW1B4yX4OU0QjdytGgWIg6wqWfiTe86lUhFsCUltkNNB/zYxFU0DTKAzBOMRbkpLVWS1IkLvQeO4L7nw==
+react-window@2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/react-window/-/react-window-2.2.2.tgz#09a7a8b2b1d3ab68e45c757c28f22a015f117adc"
+  integrity sha512-kvHKwFImKBWNbx2S87NZOhQhAVkBthjmnOfHlhQI45p3A+D+V53E+CqQMsyHrxNe3ke+YtWXuKDa1eoHAaIWJg==
 
 react@19.1.0:
   version "19.1.0"
