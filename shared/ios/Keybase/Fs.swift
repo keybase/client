@@ -2,6 +2,9 @@ import Foundation
 
 @objc class FsHelper: NSObject {
     @objc func setupFs(_ skipLogFile: Bool, setupSharedHome shouldSetupSharedHome: Bool) -> [String: String] {
+        let setupFsStartTime = CFAbsoluteTimeGetCurrent()
+        NSLog("setupFs: starting")
+
         var home = NSHomeDirectory()
         let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.keybase")
         var sharedHome = sharedURL?.relativePath ?? ""
@@ -46,6 +49,9 @@ import Foundation
         // Mark avatars, which are in the caches dir
         createBackgroundReadableDirectory(path: (oldLogPath as NSString).appendingPathComponent("avatars"), setAllFiles: true)
 
+        let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
+        NSLog("setupFs: completed in %.3f seconds", setupFsElapsed)
+
         return [
             "home": home,
             "sharedHome": sharedHome,
@@ -65,6 +71,7 @@ import Foundation
     }
 
     private func createBackgroundReadableDirectory(path: String, setAllFiles: Bool) {
+        let dirStartTime = CFAbsoluteTimeGetCurrent()
         let fm = FileManager.default
         // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the
         // directory accessible as long as the user has unlocked the phone once. The
@@ -95,6 +102,8 @@ import Foundation
                     NSLog("Error setting file attributes on: \(filePath) error: \(error)")
                 }
             }
+            let dirElapsed = CFAbsoluteTimeGetCurrent() - dirStartTime
+            NSLog("createBackgroundReadableDirectory completed for: \(path), processed \(fileCount) files, total: %.3f seconds", dirElapsed)
         } else {
             NSLog("Error creating enumerator for path: \(path)")
         }
