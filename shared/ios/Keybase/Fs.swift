@@ -12,13 +12,13 @@ import Foundation
         }
 
         let appKeybasePath = Self.getAppKeybasePath()
-      // Put logs in a subdir that is entirely background readable
+        // Put logs in a subdir that is entirely background readable
         let oldLogPath = ("~/Library/Caches/Keybase" as NSString).expandingTildeInPath
         let logPath = (oldLogPath as NSString).appendingPathComponent("logs")
         let serviceLogFile = skipLogFile ? "" : (logPath as NSString).appendingPathComponent("ios.log")
 
         if !skipLogFile {
-          // cleanup old log files
+            // cleanup old log files
             let fm = FileManager.default
             ["ios.log", "ios.log.ek"].forEach {
                 try? fm.removeItem(atPath: (oldLogPath as NSString).appendingPathComponent($0))
@@ -43,6 +43,8 @@ import Foundation
         ].forEach {
             createBackgroundReadableDirectory(path: (appKeybasePath as NSString).appendingPathComponent($0), setAllFiles: true)
         }
+        // Mark avatars, which are in the caches dir
+        createBackgroundReadableDirectory(path: (oldLogPath as NSString).appendingPathComponent("avatars"), setAllFiles: true)
 
         return [
             "home": home,
