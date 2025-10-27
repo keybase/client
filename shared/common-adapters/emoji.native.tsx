@@ -22,7 +22,7 @@ const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
       style={Styles.collapseStyles([sizeStyle.get(size), props.style])} // Mobile emoji need to be smaller with Proxima Nova
       allowFontScaling={props.allowFontScaling}
     >
-      {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}
+      {emojiIndexByName[emojiName] ? emojiIndexByName[emojiName] + emojiVariantSuffix : emojiName}
     </Text>
   )
 })
