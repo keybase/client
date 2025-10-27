@@ -93,11 +93,13 @@ import Foundation
         NSLog("setAllFiles is true charging forward")
 
         // Recursively set attributes on all subdirectories and files
+        var fileCount = 0
         if let enumerator = fm.enumerator(atPath: path) {
             for case let file as String in enumerator {
                 let filePath = (path as NSString).appendingPathComponent(file)
                 do {
                     try fm.setAttributes(noProt, ofItemAtPath: filePath)
+                    fileCount += 1
                 } catch {
                     NSLog("Error setting file attributes on: \(filePath) error: \(error)")
                 }
