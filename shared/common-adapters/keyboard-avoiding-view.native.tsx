@@ -1,3 +1,4 @@
+/*
 import * as Styles from '@/styles'
 import {
   AccessibilityInfo,
@@ -306,8 +307,8 @@ export const KeyboardAvoidingView2 = (p: KAVProps) => {
     </KeyboardAvoidingView>
   )
 }
+*/
 
-/* // TODO still crashy
 import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
 import type {Props} from './keyboard-avoiding-view'
 import * as Styles from '@/styles'
@@ -341,4 +342,3 @@ export default KeyboardAvoidingView2
 const styles = Styles.styleSheetCreate(() => ({
   keyboard: {flexGrow: 1, flexShrink: 1},
 }))
-*/
