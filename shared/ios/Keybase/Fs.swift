@@ -2,6 +2,9 @@ import Foundation
 
 @objc class FsHelper: NSObject {
     @objc func setupFs(_ skipLogFile: Bool, setupSharedHome shouldSetupSharedHome: Bool) -> [String: String] {
+        let setupFsStartTime = CFAbsoluteTimeGetCurrent()
+        NSLog("setupFs: starting")
+
         var home = NSHomeDirectory()
         let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.keybase")
         var sharedHome = sharedURL?.relativePath ?? ""
@@ -12,19 +15,19 @@ import Foundation
         }
 
         let appKeybasePath = Self.getAppKeybasePath()
-      // Put logs in a subdir that is entirely background readable
+        // Put logs in a subdir that is entirely background readable
         let oldLogPath = ("~/Library/Caches/Keybase" as NSString).expandingTildeInPath
         let logPath = (oldLogPath as NSString).appendingPathComponent("logs")
         let serviceLogFile = skipLogFile ? "" : (logPath as NSString).appendingPathComponent("ios.log")
 
         if !skipLogFile {
-          // cleanup old log files
+            // cleanup old log files
             let fm = FileManager.default
             ["ios.log", "ios.log.ek"].forEach {
                 try? fm.removeItem(atPath: (oldLogPath as NSString).appendingPathComponent($0))
             }
         }
-      // Create LevelDB and log directories with a slightly lower data protection
+        // Create LevelDB and log directories with a slightly lower data protection
         // mode so we can use them in the background
         [
             "keybase.chat.leveldb",
@@ -43,6 +46,11 @@ import Foundation
         ].forEach {
             createBackgroundReadableDirectory(path: (appKeybasePath as NSString).appendingPathComponent($0), setAllFiles: true)
         }
+        // Mark avatars, which are in the caches dir
+        createBackgroundReadableDirectory(path: (oldLogPath as NSString).appendingPathComponent("avatars"), setAllFiles: true)
+
+        let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
+        NSLog("setupFs: completed in %.3f seconds", setupFsElapsed)
 
         return [
             "home": home,
@@ -63,6 +71,7 @@ import Foundation
     }
 
     private func createBackgroundReadableDirectory(path: String, setAllFiles: Bool) {
+        let dirStartTime = CFAbsoluteTimeGetCurrent()
         let fm = FileManager.default
         // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the
         // directory accessible as long as the user has unlocked the phone once. The
@@ -83,19 +92,22 @@ import Foundation
         }
         NSLog("setAllFiles is true charging forward")
 
-      // If the caller wants us to set everything in the directory, then let's do it now (one level down at least)
-        do {
-            let contents = try fm.contentsOfDirectory(atPath: path)
-            for file in contents {
+        // Recursively set attributes on all subdirectories and files
+        var fileCount = 0
+        if let enumerator = fm.enumerator(atPath: path) {
+            for case let file as String in enumerator {
                 let filePath = (path as NSString).appendingPathComponent(file)
                 do {
                     try fm.setAttributes(noProt, ofItemAtPath: filePath)
+                    fileCount += 1
                 } catch {
-                    NSLog("Error setting file attributes on file: \(file) error: \(error)")
+                    NSLog("Error setting file attributes on: \(filePath) error: \(error)")
                 }
             }
-        } catch {
-            NSLog("Error listing directory contents: \(error)")
+            let dirElapsed = CFAbsoluteTimeGetCurrent() - dirStartTime
+            NSLog("createBackgroundReadableDirectory completed for: \(path), processed \(fileCount) files, total: %.3f seconds", dirElapsed)
+        } else {
+            NSLog("Error creating enumerator for path: \(path)")
         }
     }
 
