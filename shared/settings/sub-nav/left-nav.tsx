@@ -16,7 +16,7 @@ type Props = {
 const LeftNav = (props: Props) => {
   const {navigate} = props
   const badgeNumbers = C.useNotifState(s => s.navBadges)
-  const badgeNotifications = C.usePushState(s => !s.hasPermissions)
+  const badgeNotifications = C.usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   const onSignout = React.useCallback(() => {
     navigate(C.Settings.settingsLogOutTab)
@@ -123,7 +123,7 @@ const LeftNav = (props: Props) => {
           />
         )}
         <SettingsItem
-          badgeNumber={badgeNotifications ? 1 : 0}
+          badgeNumber={badgeNotifications}
           text="Notifications"
           type={C.Settings.settingsNotificationsTab}
           selected={props.selected === C.Settings.settingsNotificationsTab}
