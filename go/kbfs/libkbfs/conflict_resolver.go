@@ -311,6 +311,11 @@ func (cr *ConflictResolver) Wait(ctx context.Context) error {
 // goroutines.
 func (cr *ConflictResolver) Shutdown() {
 	cr.stopProcessing()
+	cr.ForceCancel()
+	// Wait for all resolution goroutines to finish before returning.
+	// This prevents the DB from being closed while goroutines are still
+	// trying to write to it (which would cause a panic).
+	_ = cr.resolveGroup.Wait(context.Background())
 }
 
 // Pause cancels any ongoing resolutions and prevents any new ones from
