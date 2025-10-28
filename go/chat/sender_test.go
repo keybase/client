@@ -229,6 +229,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
 		serverConn = gh
+		tc.GregorConn = gh
 	}
 	boxer := NewBoxer(g)
 	boxer.SetClock(world.Fc)

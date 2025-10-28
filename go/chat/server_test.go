@@ -55,6 +55,7 @@ type gregorTestConnection struct {
 	globals.Contextified
 	utils.DebugLabeler
 
+	conn         *rpc.Connection
 	cli          rpc.GenericClient
 	uid          gregor1.UID
 	sessionToken string
@@ -87,8 +88,16 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 	conn := rpc.NewConnectionWithTransport(g, trans,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
+	g.conn = conn
 	g.cli = conn.GetClient()
 	return nil
+}
+
+func (g *gregorTestConnection) Close() {
+	if g.conn != nil {
+		g.conn.Shutdown()
+		g.conn = nil
+	}
 }
 
 func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
@@ -399,6 +408,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
 		serverConn = gh
+		tc.GregorConn = gh
 	}
 
 	h.boxer = NewBoxer(g)
