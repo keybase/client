@@ -22,9 +22,10 @@ import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
 import AudioSend from './audio-send.native'
+import {scheduleOnRN} from 'react-native-worklets'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
-const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
+const {interpolate, withSequence, withSpring} = Reanimated
 const {useAnimatedReaction, withDelay, withTiming, interpolateColor, default: Animated} = Reanimated
 type SVN = Reanimated.SharedValue<number>
 
@@ -80,7 +81,7 @@ const useTooltip = () => {
 
   const flashTip = React.useCallback(() => {
     'worklet'
-    runOnJS(setShowTooltip)(true)
+    scheduleOnRN(setShowTooltip, true)
   }, [setShowTooltip])
 
   return {flashTip, tooltip}
@@ -113,11 +114,11 @@ const useIconAndOverlay = (p: {
       if (f === 0) {
         if (fadeSyncedSV.value !== 0) {
           fadeSyncedSV.set(0)
-          runOnJS(setVisible)(Visible.HIDDEN)
+          scheduleOnRN(setVisible, Visible.HIDDEN)
         }
       } else if (fadeSyncedSV.value !== 1) {
         fadeSyncedSV.set(1)
-        runOnJS(setVisible)(Visible.SHOW)
+        scheduleOnRN(setVisible, Visible.SHOW)
       }
     }
   )
@@ -192,7 +193,7 @@ const useIconAndOverlay = (p: {
       .maxPointers(1)
       .onTouchesDown(() => {
         'worklet'
-        runOnJS(setupOverlayTimeout)()
+        scheduleOnRN(setupOverlayTimeout)
         if (!panStartSV.value) {
           panStartSV.set(Date.now())
         }
@@ -202,22 +203,22 @@ const useIconAndOverlay = (p: {
         const diff = Date.now() - panStartSV.value
         startedSV.set(0)
         panStartSV.set(0)
-        runOnJS(cleanupOverlayTimeout)()
+        scheduleOnRN(cleanupOverlayTimeout)
         const needTip = diff < 200
         const wasCancel = canceledSV.value === 1
         const panLocked = lockedSV.value === 1
         if (wasCancel) {
-          runOnJS(onCancelRecording)()
+          scheduleOnRN(onCancelRecording)
           return
         }
 
         if (needTip) {
-          runOnJS(onFlashTip)()
+          scheduleOnRN(onFlashTip)
           return
         }
 
         if (!panLocked) {
-          runOnJS(sendRecording)()
+          scheduleOnRN(sendRecording)
           onReset()
           fadeSV.set(withTiming(0, {duration: 200}))
         }
