@@ -7,11 +7,8 @@ import type {Props, IconProps} from './service-tab-bar'
 import {
   useSharedValue,
   useAnimatedStyle,
-  interpolate,
   withSpring,
   withDelay,
-  Extrapolation,
-  type SharedValue,
   createAnimatedComponent,
 } from '@/common-adapters/reanimated'
 
@@ -21,38 +18,19 @@ const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension(props: {
-  offset?: SharedValue<number>
-  servicesCount: number
-}) {
-  'use no memo'
-  const {offset} = props
-
-  const borderColor = Kb.Styles.undynamicColor(Kb.Styles.globalColors.black_10)
-  const animatedStyles = useAnimatedStyle(() => {
-    const translateY = offset
-      ? interpolate(offset.value, [0, 100], [0, -8], {
-          extrapolateLeft: Extrapolation.CLAMP,
-          extrapolateRight: Extrapolation.CLAMP,
-        })
-      : 0
-    return {borderColor, transform: [{translateY}]}
-  })
-
+const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension() {
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([
-          {
-            borderBottomWidth: 1,
-            bottom: 0,
-            height: 2,
-            position: 'absolute',
-          },
-          animatedStyles,
-        ])}
+        style={{
+          borderBottomWidth: 1,
+          borderColor: Kb.Styles.globalColors.black_10,
+          bottom: 0,
+          height: 2,
+          position: 'absolute',
+        }}
       />
     </Kb.Box2>
   )
@@ -104,7 +82,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
 
 export const ServiceTabBar = (props: Props) => {
   'use no memo'
-  const {onChangeService, offset, services, selectedService} = props
+  const {onChangeService, services, selectedService} = props
   const bounceX = useSharedValue(40)
   const onClick = React.useCallback(
     (service: T.TB.ServiceIdWithContact) => {
@@ -139,16 +117,13 @@ export const ServiceTabBar = (props: Props) => {
       {services.map(service => (
         <ServiceIcon
           key={service}
-          offset={offset}
           service={service}
           label={serviceIdToLongLabel(service)}
           onClick={onClick}
           isActive={selectedService === service}
         />
       ))}
-      {Kb.Styles.isTablet ? (
-        <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
-      ) : null}
+      {Kb.Styles.isTablet ? <TabletBottomBorderExtension /> : null}
     </AnimatedScrollView>
   )
 }

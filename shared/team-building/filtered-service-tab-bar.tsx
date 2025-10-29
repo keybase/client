@@ -9,7 +9,7 @@ export const FilteredServiceTabBar = (
   }
 ) => {
   const {selectedService, onChangeService} = props
-  const {servicesShown, minimalBorder, offset, filterServices} = props
+  const {servicesShown, minimalBorder, filterServices} = props
 
   const services = React.useMemo(
     () =>
@@ -25,7 +25,6 @@ export const FilteredServiceTabBar = (
       onChangeService={onChangeService}
       servicesShown={servicesShown}
       minimalBorder={minimalBorder}
-      offset={offset}
     />
   )
 }
