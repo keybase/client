@@ -32,6 +32,9 @@ import (
 type ChatTestContext struct {
 	libkb.TestContext
 	ChatG *globals.ChatContext
+
+	// gregor connection for tests (if using real gregord)
+	GregorConn gregorTestConnectionCloser
 }
 
 func NewMetaContextForTest(c ChatTestContext) libkb.MetaContext {
@@ -43,6 +46,9 @@ func (c ChatTestContext) Context() *globals.Context {
 }
 
 func (c ChatTestContext) Cleanup() {
+	if c.GregorConn != nil {
+		c.GregorConn.Close()
+	}
 	if c.ChatG.PushHandler != nil {
 		<-c.ChatG.PushHandler.Stop(context.TODO())
 	}
@@ -77,6 +83,10 @@ func (c ChatTestContext) Cleanup() {
 		<-c.ChatG.UIInboxLoader.Stop(context.TODO())
 	}
 	c.TestContext.Cleanup()
+}
+
+type gregorTestConnectionCloser interface {
+	Close()
 }
 
 type ChatMockWorld struct {
