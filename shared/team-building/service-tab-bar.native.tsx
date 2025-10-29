@@ -2,26 +2,22 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import type * as T from '@/constants/types'
-import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {
+  default as Animated,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withDelay,
-  createAnimatedComponent,
 } from '@/common-adapters/reanimated'
 
 export const labelHeight = 34
-
-const AnimatedBox2 = Kb.Box2Animated
-const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension() {
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
-      <AnimatedBox2
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         style={{
@@ -42,7 +38,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
 
   return (
     <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
-      <AnimatedBox2 direction="vertical" style={styles.serviceIconContainer}>
+      <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
@@ -55,7 +51,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2 direction="vertical" style={styles.labelContainer}>
+        <Kb.Box2 direction="vertical" style={styles.labelContainer}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {label.map((label, i) => (
@@ -65,9 +61,9 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
               ))}
             </Kb.Box2>
           </Kb.Box2>
-        </AnimatedBox2>
-      </AnimatedBox2>
-      <AnimatedBox2
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         style={Kb.Styles.collapseStyles([
@@ -102,7 +98,7 @@ export const ServiceTabBar = (props: Props) => {
   })
 
   return (
-    <AnimatedScrollView
+    <Animated.ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
       scrollEventThrottle={16}
@@ -124,7 +120,7 @@ export const ServiceTabBar = (props: Props) => {
         />
       ))}
       {Kb.Styles.isTablet ? <TabletBottomBorderExtension /> : null}
-    </AnimatedScrollView>
+    </Animated.ScrollView>
   )
 }
 
@@ -163,7 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       serviceIconContainer: {
         alignSelf: 'center',
-        height: '100%',
+        paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'relative',
       },
