@@ -44,7 +44,9 @@ class NativeTransport extends TransportShared {
   }
 
   // Override and disable some built in stuff in TransportShared
-  reset() {}
+  reset() {
+    this.connected = false
+  }
   close() {}
   get_generation() {
     return 1
@@ -108,7 +110,7 @@ function createClient(
         case 'kb-engine-reset':
           logger.info('Engine reset requested')
           engineStarted = false
-          nativeTransport.connected = false
+          nativeTransport.reset()
           connectCallback()
           break
         case 'kb-engine-ready':

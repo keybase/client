@@ -1,10 +1,9 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
 
 export interface Spec extends TurboModule {
-  install: () => boolean
-  addListener: (eventType: string) => void
-  removeListeners: (count: number) => void
-  isGoReady: () => boolean
+  install(): boolean
+  addListener(eventType: string): void
+  removeListeners(count: number): void
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
