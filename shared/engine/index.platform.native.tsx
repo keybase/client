@@ -7,33 +7,39 @@ import {engineStart, engineReset, getNativeEmitter, isGoReady} from 'react-nativ
 class NativeTransport extends TransportShared {
   private connectCB: undefined | ((err?: unknown) => void)
   private connected = false
+
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
     connectCallback?: ConnectDisconnectCB,
     disconnectCallback?: ConnectDisconnectCB
   ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
-
-    // we don't connect a socket but there is a handshake we need to do
-    this.needsConnect = false
-
-    console.error('aaaa native construct', this.connected)
+    // We need explicit connection handshake with Go
+    this.needsConnect = true
   }
 
-  setGoReady() {
+  signalGoReady() {
+    if (this.connected) {
+      logger.info('Go already marked ready, ignoring')
+      return
+    }
+    logger.info('Go is ready, marking transport connected')
     this.connected = true
     this.connectCB?.()
     this.connectCB = undefined
   }
 
-  // We're always connected, so call the callback
   connect(cb: (err?: unknown) => void) {
-    console.error('aaaa connect call')
+    logger.info('Transport connect called')
+    if (this.connected) {
+      // Already connected
+      cb()
+      return
+    }
     this.connectCB = cb
   }
 
   is_connected() {
-    console.error('aaaa isconnected', this.connected)
     return this.connected
   }
 
@@ -64,12 +70,14 @@ class NativeTransport extends TransportShared {
   }
 }
 
+let engineStarted = false
+
 function createClient(
   incomingRPCCallback: IncomingRPCCallbackType,
   connectCallback: ConnectDisconnectCB,
   disconnectCallback: ConnectDisconnectCB
 ) {
-  console.error('aaaa createclient')
+  logger.info('Creating native RPC client')
   const nativeTransport = new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   const client = sharedCreateClient(nativeTransport)
 
@@ -81,37 +89,55 @@ function createClient(
     }
   }
 
-  const RNEmitter = getNativeEmitter()
-
-  if (isGoReady()) {
+  const handleGoReady = () => {
+    if (engineStarted) {
+      logger.warn('engineStart already called, ignoring')
+      return
+    }
+    engineStarted = true
+    logger.info('Starting engine Go→JS read loop')
     engineStart()
-    nativeTransport.setGoReady()
+    nativeTransport.signalGoReady()
   }
 
-  console.error('aaaa engine before add listener')
+  // Register listener FIRST
+  const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
     try {
       switch (payload) {
         case 'kb-engine-reset':
+          logger.info('Engine reset requested')
+          engineStarted = false
+          nativeTransport.connected = false
           connectCallback()
           break
         case 'kb-engine-ready':
-          console.error('aaaa engine reday')
-          // Go is initialized, start the bridge
-          engineStart()
-          nativeTransport.setGoReady()
+          logger.info('Received Go ready event')
+          handleGoReady()
           break
       }
     } catch (e) {
       logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
+
+  // THEN check if Go is already ready (handles race)
+  // Small delay to ensure listener is fully registered
+  setTimeout(() => {
+    if (isGoReady()) {
+      logger.info('Go was already ready, starting now')
+      handleGoReady()
+    } else {
+      logger.info('Waiting for Go to become ready...')
+    }
+  }, 0)
+
   return client
 }
 
 function resetClient() {
-  // Tell the RN bridge to reset itself
   engineReset()
+  engineStarted = false
 }
 
 export {resetClient, createClient, rpcLog}
