@@ -270,22 +270,18 @@ RCT_EXPORT_METHOD(engineStart) {
            selector:@selector(engineReset)
                name:RCTJavaScriptWillStartLoadingNotification
              object:nil];
-    self.readQueue =
-        dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-    
-    // Note: We don't start the read loop here anymore.
-    // It will be started when JS calls notifyJSReady()
+    self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
     NSLog(@"Engine infrastructure initialized, waiting for JS ready signal");
   });
 }
 
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
-  
+
   // Signal to Go that JS is ready
   KeybaseNotifyJSReady();
   NSLog(@"Notified Go that JS is ready");
-  
+
   // Now start the read loop
   dispatch_async(self.readQueue, ^{
     NSLog(@"Starting ReadArr loop");

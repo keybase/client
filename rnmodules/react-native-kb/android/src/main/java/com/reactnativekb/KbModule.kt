@@ -61,7 +61,6 @@ import com.facebook.react.common.annotations.FrameworkAPI
 
 @OptIn(FrameworkAPI::class)
 internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
-    private var started: Boolean? = false
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
@@ -554,13 +553,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     @ReactMethod
     override fun engineStart() {
         NativeLogger.info("KeybaseEngine infrastructure initialized, waiting for JS ready signal")
-        try {
-            started = true
-            // Note: We don't start the executor here anymore.
-            // It will be started when JS calls notifyJSReady()
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in engineStart", e)
-        }
+        // moved to notifyJSReady
     }
 
     @ReactMethod
@@ -569,7 +562,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         try {
             // Signal to Go that JS is ready
             Keybase.notifyJSReady()
-            
+
             // Now start the executor to read from Go
             if (executor == null) {
                 val ex = Executors.newSingleThreadExecutor()
