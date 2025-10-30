@@ -174,6 +174,11 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
+	
+	// Initialize JS ready channel if not already done (in case Init called directly)
+	if jsReadyCh == nil {
+		jsReadyCh = make(chan struct{})
+	}
 
 	begin := time.Now()
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
