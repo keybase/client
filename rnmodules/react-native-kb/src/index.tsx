@@ -134,9 +134,6 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
 export const engineReset = (): void => {
   return Kb.engineReset()
 }
-export const engineStart = (): void => {
-  return Kb.engineStart()
-}
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }

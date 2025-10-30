@@ -2,7 +2,7 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import logger from '@/logger'
-import {engineStart, engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
+import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
 
 class NativeTransport extends TransportShared {
   constructor(
@@ -68,9 +68,6 @@ function createClient(
     }
   }
 
-  // Set up infrastructure first
-  engineStart()
-
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
     try {
@@ -84,7 +81,7 @@ function createClient(
   })
   
   // Signal that JS is ready to send/receive RPCs
-  // This unblocks the native ReadArr loop and allows bidirectional communication
+  // This sets up native infrastructure and starts bidirectional communication
   logger.info('JS engine ready, notifying native side')
   notifyJSReady()
   

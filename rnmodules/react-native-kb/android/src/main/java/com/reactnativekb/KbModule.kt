@@ -551,19 +551,15 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     @ReactMethod
-    override fun engineStart() {
-        NativeLogger.info("KeybaseEngine infrastructure initialized, waiting for JS ready signal")
-        // moved to notifyJSReady
-    }
-
-    @ReactMethod
     override fun notifyJSReady() {
         NativeLogger.info("JS signaled ready, starting ReadFromKBLib loop")
         try {
+            started = true
+            
             // Signal to Go that JS is ready
             Keybase.notifyJSReady()
 
-            // Now start the executor to read from Go
+            // Start the executor to read from Go
             if (executor == null) {
                 val ex = Executors.newSingleThreadExecutor()
                 executor = ex

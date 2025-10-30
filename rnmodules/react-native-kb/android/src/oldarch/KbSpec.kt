@@ -26,7 +26,6 @@ abstract class KbSpec(context: ReactApplicationContext?) : ReactContextBaseJavaM
     abstract fun androidAppColorSchemeChanged(prefString: String)
     abstract fun androidSetApplicationIconBadgeNumber(badge: Double)
     abstract fun engineReset()
-    abstract fun engineStart()
     abstract fun notifyJSReady()
     abstract fun shareListenersRegistered()
     abstract fun addListener(eventType: String)
