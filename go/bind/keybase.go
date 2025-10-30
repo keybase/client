@@ -377,8 +377,24 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
+var bridgeReadyChan = make(chan struct{})
+var bridgeReadyOnce sync.Once
+
+func SetRNReady() {
+    bridgeReadyOnce.Do(func() {
+        close(bridgeReadyChan)
+    })
+}
+
 // WriteArr sends raw bytes encoded msgpack rpc payload, ios only
 func WriteArr(b []byte) (err error) {
+    select {
+    case <-bridgeReadyChan:
+        // Ready!
+    case <-time.After(30 * time.Second):
+        return errors.New("timeout waiting for bridge ready")
+    }
+
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
 	defer func() { err = flattenError(err) }()

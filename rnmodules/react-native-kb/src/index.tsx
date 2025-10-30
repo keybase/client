@@ -138,6 +138,9 @@ export const engineReset = (): void => {
 export const engineStart = (): void => {
   return Kb.engineStart()
 }
+export const isGoReady = (): boolean => {
+  return Kb.isGoReady()
+}
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
 }

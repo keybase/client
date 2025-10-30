@@ -2,9 +2,11 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import logger from '@/logger'
-import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
+import {engineStart, engineReset, getNativeEmitter, isGoReady} from 'react-native-kb'
 
 class NativeTransport extends TransportShared {
+  private connectCB: undefined | ((err?: unknown) => void)
+  private connected = false
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
     connectCallback?: ConnectDisconnectCB,
@@ -12,16 +14,27 @@ class NativeTransport extends TransportShared {
   ) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
-    // We're connected locally so we never get disconnected
+    // we don't connect a socket but there is a handshake we need to do
     this.needsConnect = false
+
+    console.error('aaaa native construct', this.connected)
+  }
+
+  setGoReady() {
+    this.connected = true
+    this.connectCB?.()
+    this.connectCB = undefined
   }
 
   // We're always connected, so call the callback
   connect(cb: (err?: unknown) => void) {
-    cb()
+    console.error('aaaa connect call')
+    this.connectCB = cb
   }
+
   is_connected() {
-    return true
+    console.error('aaaa isconnected', this.connected)
+    return this.connected
   }
 
   // Override and disable some built in stuff in TransportShared
@@ -56,9 +69,9 @@ function createClient(
   connectCallback: ConnectDisconnectCB,
   disconnectCallback: ConnectDisconnectCB
 ) {
-  const client = sharedCreateClient(
-    new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
-  )
+  console.error('aaaa createclient')
+  const nativeTransport = new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
+  const client = sharedCreateClient(nativeTransport)
 
   global.rpcOnJs = (objs: unknown) => {
     try {
@@ -68,14 +81,26 @@ function createClient(
     }
   }
 
-  engineStart()
-
   const RNEmitter = getNativeEmitter()
+
+  if (isGoReady()) {
+    engineStart()
+    nativeTransport.setGoReady()
+  }
+
+  console.error('aaaa engine before add listener')
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
     try {
       switch (payload) {
         case 'kb-engine-reset':
           connectCallback()
+          break
+        case 'kb-engine-ready':
+          console.error('aaaa engine reday')
+          // Go is initialized, start the bridge
+          engineStart()
+          nativeTransport.setGoReady()
+          break
       }
     } catch (e) {
       logger.error('>>>> meta engine event JS thrown!', e)

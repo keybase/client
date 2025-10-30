@@ -66,6 +66,7 @@ public:
 static const NSString *tagName = @"NativeLogger";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
+static NSString *const metaEventEngineReady = @"kb-engine-ready";
 
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
@@ -88,6 +89,7 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
 @implementation Kb
 
+BOOL goIsReady = NO;
 jsi::Runtime *_jsRuntime;
 std::shared_ptr<KBJSScheduler> jsScheduler;
 
@@ -101,8 +103,23 @@ RCT_EXPORT_MODULE()
 }
 
 - (instancetype)init {
-  self = [super init];
-  return self;
+    self = [super init];
+    if (self) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+            selector:@selector(onGoReady)
+            name:@"GoReady"
+            object:nil];
+    }
+    return self;
+}
+
+- (void)onGoReady {
+  goIsReady = YES;
+  [self sendEventWithName:metaEventName body:metaEventEngineReady];
+}
+
+- (void)dealloc {
+ [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)invalidate {
@@ -259,6 +276,10 @@ RCT_EXPORT_METHOD(engineReset) {
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isGoReady) {
+    return @(goIsReady);
 }
 
 RCT_EXPORT_METHOD(engineStart) {

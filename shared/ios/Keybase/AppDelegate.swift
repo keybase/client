@@ -86,27 +86,35 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   /////// KB specific
   
   func setupGo() {
-    // set to true to see logs in xcode
-    let skipLogFile = false
-    // uncomment to get more console.logs
-    // RCTSetLogThreshold(RCTLogLevel.info.rawValue - 1)
-    self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
-    FsPathsHolder.shared().fsPaths = self.fsPaths
-    
-    
-    let systemVer = UIDevice.current.systemVersion
-    let isIPad = UIDevice.current.userInterfaceIdiom == .pad
-    let isIOS = true
-    
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      guard let self = self else { return }
+      
+      // set to true to see logs in xcode
+      let skipLogFile = false
+      // uncomment to get more console.logs
+      // RCTSetLogThreshold(RCTLogLevel.info.rawValue - 1)
+      self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
+      FsPathsHolder.shared().fsPaths = self.fsPaths
+      
+      
+      let systemVer = UIDevice.current.systemVersion
+      let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+      let isIOS = true
+      
 #if targetEnvironment(simulator)
-    let securityAccessGroupOverride = true
+      let securityAccessGroupOverride = true
 #else
-    let securityAccessGroupOverride = false
+      let securityAccessGroupOverride = false
 #endif
-    
-    var err: NSError?
-    Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
-    if let err { NSLog("KeybaseInit fail?: \(err)") }
+      
+      var err: NSError?
+      Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+      if let err { NSLog("KeybaseInit fail?: \(err)") }
+      
+      DispatchQueue.main.async {
+          NotificationCenter.default.post(name: NSNotification.Name("GoReady"), object: nil)
+      }
+    }
   }
   
   func notifyAppState(_ application: UIApplication) {
