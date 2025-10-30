@@ -47,6 +47,7 @@ export interface Spec extends TurboModule {
   androidSetApplicationIconBadgeNumber(n: number): void
   engineReset(): void
   engineStart(): void
+  notifyJSReady(): void
   shareListenersRegistered(): void
 }
 

@@ -47,6 +47,11 @@ var logSendContext status.LogSendContext
 var initMutex sync.Mutex
 var initComplete bool
 
+// JS readiness synchronization
+var jsReadyOnce sync.Once
+var jsReadyCh chan struct{}
+var connMutex sync.Mutex // Protects conn operations
+
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
 	DisplayChatNotification(notification *ChatNotification)
@@ -152,6 +157,9 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) {
 	startOnce.Do(func() {
+		// Initialize JS ready channel
+		jsReadyCh = make(chan struct{})
+		
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
@@ -382,10 +390,23 @@ func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
 	defer func() { err = flattenError(err) }()
+	
+	// Lazily initialize connection on first write
+	connMutex.Lock()
 	if conn == nil {
+		if err := ensureConnection(); err != nil {
+			connMutex.Unlock()
+			return fmt.Errorf("Failed to establish connection: %s", err)
+		}
+	}
+	currentConn := conn
+	connMutex.Unlock()
+	
+	if currentConn == nil {
 		return errors.New("connection not initialized")
 	}
-	n, err := conn.Write(bytes)
+	
+	n, err := currentConn.Write(bytes)
 	if err != nil {
 		return fmt.Errorf("Write error: %s", err)
 	}
@@ -404,10 +425,26 @@ var buffer = make([]byte, bufferSize)
 // It is called serially by the mobile run loops.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
+	
+	// Wait for JS to signal it's ready (only blocks once)
+	<-jsReadyCh
+	
+	// Lazily initialize connection on first read
+	connMutex.Lock()
 	if conn == nil {
+		if err := ensureConnection(); err != nil {
+			connMutex.Unlock()
+			return nil, fmt.Errorf("Failed to establish connection: %s", err)
+		}
+	}
+	currentConn := conn
+	connMutex.Unlock()
+	
+	if currentConn == nil {
 		return nil, errors.New("connection not initialized")
 	}
-	n, err := conn.Read(buffer)
+	
+	n, err := currentConn.Read(buffer)
 	if n > 0 && err == nil {
 		return buffer[0:n], nil
 	}
@@ -423,21 +460,50 @@ func ReadArr() (data []byte, err error) {
 	return nil, nil
 }
 
+// ensureConnection establishes the loopback connection if not already connected.
+// Must be called with connMutex held.
+func ensureConnection() error {
+	if !isInited() {
+		return errors.New("keybase not initialized")
+	}
+	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		return errors.New("loopback listener not initialized")
+	}
+	
+	var err error
+	conn, err = kbCtx.LoopbackListener.Dial()
+	if err != nil {
+		return fmt.Errorf("Failed to dial loopback listener: %s", err)
+	}
+	fmt.Printf("Go: Established loopback connection\n")
+	return nil
+}
+
 // Reset resets the socket connection
 func Reset() error {
+	connMutex.Lock()
+	defer connMutex.Unlock()
+	
 	if conn != nil {
 		conn.Close()
+		conn = nil
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
 		return nil
 	}
 
-	var err error
-	conn, err = kbCtx.LoopbackListener.Dial()
-	if err != nil {
-		return fmt.Errorf("Socket error: %s", err)
-	}
+	// Connection will be re-established lazily on next read/write
+	fmt.Printf("Go: Connection reset, will reconnect on next operation\n")
 	return nil
+}
+
+// NotifyJSReady signals that the JavaScript side is ready to send/receive RPCs.
+// This unblocks the ReadArr loop and allows bidirectional communication.
+func NotifyJSReady() {
+	jsReadyOnce.Do(func() {
+		fmt.Printf("Go: JS signaled ready, unblocking RPC communication\n")
+		close(jsReadyCh)
+	})
 }
 
 // ForceGC Forces a gc

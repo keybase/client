@@ -272,29 +272,43 @@ RCT_EXPORT_METHOD(engineStart) {
              object:nil];
     self.readQueue =
         dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+    
+    // Note: We don't start the read loop here anymore.
+    // It will be started when JS calls notifyJSReady()
+    NSLog(@"Engine infrastructure initialized, waiting for JS ready signal");
+  });
+}
 
-    dispatch_async(self.readQueue, ^{
-      while (true) {
-        {
-          __typeof__(self) strongSelf = weakSelf;
-          if (!strongSelf || !strongSelf.bridge) {
-            NSLog(@"Bridge dead, bailing");
-            return;
-          }
-        }
-
-        NSError *error = nil;
-        NSData *data = KeybaseReadArr(&error);
-        if (error) {
-          NSLog(@"Error reading data: %@", error);
-        } else if (data) {
-          __typeof__(self) strongSelf = weakSelf;
-          if (strongSelf) {
-            [strongSelf sendToJS:data];
-          }
+RCT_EXPORT_METHOD(notifyJSReady) {
+  __weak __typeof__(self) weakSelf = self;
+  
+  // Signal to Go that JS is ready
+  KeybaseNotifyJSReady();
+  NSLog(@"Notified Go that JS is ready");
+  
+  // Now start the read loop
+  dispatch_async(self.readQueue, ^{
+    NSLog(@"Starting ReadArr loop");
+    while (true) {
+      {
+        __typeof__(self) strongSelf = weakSelf;
+        if (!strongSelf || !strongSelf.bridge) {
+          NSLog(@"Bridge dead, bailing from ReadArr loop");
+          return;
         }
       }
-    });
+
+      NSError *error = nil;
+      NSData *data = KeybaseReadArr(&error);
+      if (error) {
+        NSLog(@"Error reading data: %@", error);
+      } else if (data) {
+        __typeof__(self) strongSelf = weakSelf;
+        if (strongSelf) {
+          [strongSelf sendToJS:data];
+        }
+      }
+    }
   });
 }
 
