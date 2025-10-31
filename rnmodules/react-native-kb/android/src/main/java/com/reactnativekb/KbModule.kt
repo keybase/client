@@ -554,8 +554,6 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     override fun notifyJSReady() {
         NativeLogger.info("JS signaled ready, starting ReadFromKBLib loop")
         try {
-            started = true
-            
             // Signal to Go that JS is ready
             Keybase.notifyJSReady()
 
