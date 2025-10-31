@@ -1,7 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 
-type UsageMap = Map<string, Set<string>> // namespace -> Set of action names
+type ActionUsage = {
+  constant: boolean // The action constant (e.g., openChatFromWidget)
+  creator: boolean // The action creator (e.g., createOpenChatFromWidget)
+  payloadType: boolean // The payload type (e.g., OpenChatFromWidgetPayload)
+}
+
+type UsageMap = Map<string, Map<string, ActionUsage>> // namespace -> action name -> usage details
 
 /**
  * Scans TypeScript files to find which actions are actually used in the codebase
@@ -58,16 +64,16 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
           // Extract action name from createXxx
           if (imp.startsWith('create')) {
             const actionName = decapitalize(imp.slice(6)) // remove 'create'
-            addUsage(namespace, actionName)
+            addUsage(namespace, actionName, 'creator')
           }
           // Extract action name from XxxPayload types
           else if (imp.endsWith('Payload')) {
             const actionName = decapitalize(imp.slice(0, -7)) // remove 'Payload'
-            addUsage(namespace, actionName)
+            addUsage(namespace, actionName, 'payloadType')
           }
           // Also check for constant imports like 'openChatFromWidget'
           else if (!imp.endsWith('Actions') && imp !== 'Actions') {
-            addUsage(namespace, imp)
+            addUsage(namespace, imp, 'constant')
           }
         }
       } else if (namespaceImport) {
@@ -81,11 +87,11 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
           const actionDirect = nsMatch[3]
 
           if (actionFromCreate) {
-            addUsage(namespace, decapitalize(actionFromCreate))
+            addUsage(namespace, decapitalize(actionFromCreate), 'creator')
           } else if (actionFromPayload) {
-            addUsage(namespace, decapitalize(actionFromPayload))
+            addUsage(namespace, decapitalize(actionFromPayload), 'payloadType')
           } else if (actionDirect && !['Actions', 'resetStore', 'typePrefix'].includes(actionDirect)) {
-            addUsage(namespace, actionDirect)
+            addUsage(namespace, actionDirect, 'constant')
           }
         }
       }
@@ -99,7 +105,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
       const namespace = match[1]
       const actionName = match[2]
       if (namespace && actionName !== 'resetStore' && actionName) {
-        addUsage(namespace, actionName)
+        addUsage(namespace, actionName, 'constant')
       }
     }
 
@@ -117,7 +123,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
       )
       const localMatch = localCreateRegex.exec(content)
       if (localMatch?.[1]) {
-        addUsage(localMatch[1], actionName)
+        addUsage(localMatch[1], actionName, 'payloadType') // ReturnType means we need the payload type
       }
     }
 
@@ -126,11 +132,16 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
     // generated TypeScript code. They just need the action to exist in the protocol.
   }
 
-  function addUsage(namespace: string, actionName: string) {
+  function addUsage(namespace: string, actionName: string, part: 'constant' | 'creator' | 'payloadType') {
     if (!usageMap.has(namespace)) {
-      usageMap.set(namespace, new Set())
+      usageMap.set(namespace, new Map())
     }
-    usageMap.get(namespace)!.add(actionName)
+    const namespaceMap = usageMap.get(namespace)!
+    if (!namespaceMap.has(actionName)) {
+      namespaceMap.set(actionName, {constant: false, creator: false, payloadType: false})
+    }
+    const usage = namespaceMap.get(actionName)!
+    usage[part] = true
   }
 
   function decapitalize(s: string): string {
@@ -142,17 +153,17 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
 }
 
 /**
- * Filters action JSON to only include used actions and their required imports
+ * Filters action JSON to include used actions with usage metadata
  */
 export function filterActions(
   namespace: string,
   actionJson: {prelude: string[]; actions: Record<string, unknown>},
   usageMap: UsageMap
 ): {prelude: string[]; actions: Record<string, any>} {
-  const usedActions = usageMap.get(namespace)
+  const usedActionsMap = usageMap.get(namespace)
 
   // If no usage found, keep everything (safe default)
-  if (!usedActions || usedActions.size === 0) {
+  if (!usedActionsMap || usedActionsMap.size === 0) {
     console.warn(
       `⚠️  No usage found for ${namespace} - generating all actions (this might be a false negative)`
     )
@@ -163,8 +174,10 @@ export function filterActions(
   let filteredCount = 0
 
   for (const [actionName, actionDesc] of Object.entries(actionJson.actions)) {
-    if (usedActions.has(actionName)) {
-      filteredActions[actionName] = actionDesc
+    const usage = usedActionsMap.get(actionName)
+    if (usage) {
+      // Attach usage metadata to the action descriptor
+      filteredActions[actionName] = {...actionDesc, _usage: usage}
     } else {
       filteredCount++
     }
@@ -204,7 +217,15 @@ export function analyzeAndReport(rootDir: string): UsageMap {
 
   console.log('📈 Usage Summary:')
   for (const [namespace, actions] of usageMap.entries()) {
-    console.log(`  ${namespace}: ${actions.size} actions used`)
+    const counts = {constant: 0, creator: 0, payloadType: 0}
+    for (const usage of actions.values()) {
+      if (usage.constant) counts.constant++
+      if (usage.creator) counts.creator++
+      if (usage.payloadType) counts.payloadType++
+    }
+    console.log(
+      `  ${namespace}: ${actions.size} actions (const: ${counts.constant}, creator: ${counts.creator}, payload: ${counts.payloadType})`
+    )
   }
   console.log()
 

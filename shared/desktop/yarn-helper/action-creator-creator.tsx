@@ -84,6 +84,7 @@ function compileActions(
 ): string {
   return Object.keys(actions)
     .map((actionName: ActionName) => compileActionFn?.(ns, actionName, actions[actionName]))
+    .filter(Boolean)
     .sort()
     .join('\n')
 }
@@ -114,7 +115,8 @@ function printPayload(p: ActionDesc) {
     : 'undefined'
 }
 
-function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
+function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+  // Always generate payload type if action is used at all (needed for Actions union)
   const allowCreate = ns !== 'engine-gen'
   if (allowCreate) {
     return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
@@ -124,9 +126,16 @@ function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
 }
 
 function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: ActionDesc | undefined) {
-  // don't make action creators for this
-  const allowCreate = ns !== 'engine-gen'
   const desc = _desc ?? {}
+  const usage = (desc as any)?._usage
+  const allowCreate = ns !== 'engine-gen'
+  
+  // For non-engine-gen (remote, etc), skip if creator is not used
+  // For engine-gen, always generate the type (needed for payload ReturnType)
+  if (allowCreate && usage && !usage.creator) {
+    return ''
+  }
+  
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
   const comment = desc['_description']
@@ -149,7 +158,8 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
   }
 }
 
-function compileStateTypeConstant(ns: ActionNS, actionName: ActionName) {
+function compileStateTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+  // Always generate constant if action is used at all (needed for Actions union and switch statements)
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
