@@ -65,30 +65,43 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
             const actionName = decapitalize(imp.slice(0, -7)) // remove 'Payload'
             addUsage(namespace, actionName)
           }
-          // Skip bare constant imports - only count if creator or payload type is used
-          // This filters out constants used only in switch statements
+          // Also check for constant imports like 'openChatFromWidget'
+          else if (!imp.endsWith('Actions') && imp !== 'Actions') {
+            addUsage(namespace, imp)
+          }
         }
       } else if (namespaceImport) {
         // Namespace import - scan for usage patterns
-        // RemoteGen.createX, RemoteGen.XxxPayload (skip bare constant access)
-        const nsPattern = new RegExp(`\\b${namespaceImport}\\.(?:create(\\w+)|(\\w+)Payload)\\b`, 'g')
+        // RemoteGen.createX, RemoteGen.openChatFromWidget, RemoteGen.XxxPayload
+        const nsPattern = new RegExp(`\\b${namespaceImport}\\.(?:create(\\w+)|(\\w+)Payload|(\\w+))\\b`, 'g')
         let nsMatch
         while ((nsMatch = nsPattern.exec(content)) !== null) {
           const actionFromCreate = nsMatch[1]
           const actionFromPayload = nsMatch[2]
+          const actionDirect = nsMatch[3]
 
           if (actionFromCreate) {
             addUsage(namespace, decapitalize(actionFromCreate))
           } else if (actionFromPayload) {
             addUsage(namespace, decapitalize(actionFromPayload))
+          } else if (actionDirect && !['Actions', 'resetStore', 'typePrefix'].includes(actionDirect)) {
+            addUsage(namespace, actionDirect)
           }
         }
       }
     }
 
-    // Note: We do NOT track string literal usage like 'remote:openChatFromWidget'
-    // because those don't actually import the generated code - they're just string comparisons.
-    // Only track actual imports of creators and payload types.
+    // Pattern 2: Action type string literals (for saga listeners, reducers, etc.)
+    // case 'remote:openChatFromWidget':
+    // type: 'remote:openChatFromWidget'
+    const typeStringRegex = /['"](\w+):(\w+)['"]/g
+    while ((match = typeStringRegex.exec(content)) !== null) {
+      const namespace = match[1]
+      const actionName = match[2]
+      if (namespace && actionName !== 'resetStore' && actionName) {
+        addUsage(namespace, actionName)
+      }
+    }
 
     // Pattern 3: ReturnType usage
     // ReturnType<typeof RemoteGen.createX>
