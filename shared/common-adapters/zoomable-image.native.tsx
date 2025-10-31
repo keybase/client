@@ -3,7 +3,8 @@ import * as Styles from '@/styles'
 import * as React from 'react'
 import Image2 from './image2.native'
 import {View, type LayoutChangeEvent} from 'react-native'
-import {useSharedValue, runOnJS} from 'react-native-reanimated'
+import {useSharedValue} from 'react-native-reanimated'
+import {scheduleOnRN} from 'react-native-worklets'
 import {
   fitContainer,
   ResumableZoom,
@@ -37,12 +38,13 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
           x: left,
           y: top,
         }
-        runOnJS(onZoom)(z)
+        scheduleOnRN(onZoom, z)
       }
     },
     [currentZoomSV, onZoom, resolution]
   )
 
+  // not a worklet
   const onSwipe = React.useCallback(
     (dir: SwipeDirection) => {
       if (Math.abs(currentZoomSV.get() - 1) < 0.1) {

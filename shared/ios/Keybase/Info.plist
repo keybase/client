@@ -114,5 +114,7 @@
 	<false/>
   <key>UIDesignRequiresCompatibility</key>
   <true/>
+  <key>ReactNativeReleaseLevel</key>
+  <string>experimental</string>
 </dict>
 </plist>

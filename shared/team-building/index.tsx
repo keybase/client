@@ -13,7 +13,6 @@ import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
-import {useSharedValue} from '@/common-adapters/reanimated'
 
 const deriveTeamSoFar = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {
@@ -166,8 +165,6 @@ const TeamBuilding = (p: OwnProps) => {
 
   const waitingForCreate = C.Waiting.useAnyWaiting(C.Chat.waitingKeyCreating)
 
-  const offset = useSharedValue(0)
-
   C.useOnMountOnce(() => {
     fetchUserRecs()
   })
@@ -213,7 +210,6 @@ const TeamBuilding = (p: OwnProps) => {
               onChangeService={onChangeService}
               servicesShown={5} // wider bar, show more services
               minimalBorder={true} // only show bottom border on icon when active
-              offset={offset}
             />
           )}
           <ListBody
@@ -227,7 +223,6 @@ const TeamBuilding = (p: OwnProps) => {
             teamSoFar={teamSoFar}
             onChangeText={onChangeText}
             onSearchForMore={onSearchForMore}
-            offset={offset}
             onFinishTeamBuilding={onFinishTeamBuilding}
           />
           {waitingForCreate && (
@@ -279,7 +274,6 @@ const TeamBuilding = (p: OwnProps) => {
             filterServices={filterServices}
             selectedService={selectedService}
             onChangeService={onChangeService}
-            offset={offset}
           />
         )}
         {showContactsBanner && (

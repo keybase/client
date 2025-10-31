@@ -212,7 +212,6 @@ export const ListBody = (
     | 'onChangeText'
     | 'onFinishTeamBuilding'
   > & {
-    offset: unknown
     enterInputCounter: number
   }
 ) => {
@@ -221,7 +220,7 @@ export const ListBody = (
   const teamID = params.teamID
   const {searchString, selectedService} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
-  const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
+  const {namespace, highlightedIndex, enterInputCounter, onFinishTeamBuilding} = props
 
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
   const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
