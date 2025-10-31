@@ -115,8 +115,14 @@ function printPayload(p: ActionDesc) {
     : 'undefined'
 }
 
-function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
-  // Always generate payload type if action is used at all (needed for Actions union)
+function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+  const usage = (desc as any)?._usage
+
+  // Skip if payload type is not used (not in Actions union means not needed)
+  if (usage && !usage.payloadType) {
+    return ''
+  }
+
   const allowCreate = ns !== 'engine-gen'
   if (allowCreate) {
     return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
@@ -130,9 +136,9 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
   const usage = (desc as any)?._usage
   const allowCreate = ns !== 'engine-gen'
 
-  // For non-engine-gen (remote, etc), skip if creator is not used
-  // For engine-gen, always generate the type (needed for payload ReturnType)
-  if (allowCreate && usage && !usage.creator) {
+  // Skip if neither creator nor payload type is used
+  // (If payload type is used, we need the creator for ReturnType)
+  if (usage && !usage.creator && !usage.payloadType) {
     return ''
   }
 
