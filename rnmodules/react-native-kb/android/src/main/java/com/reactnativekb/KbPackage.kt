@@ -24,7 +24,7 @@ class KbPackage : TurboReactPackage() {
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
         return ReactModuleInfoProvider {
             val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-            val isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+            val isTurboModule = true
             moduleInfos[KbModule.NAME] = ReactModuleInfo(
                     KbModule.NAME,
                     KbModule.NAME,
