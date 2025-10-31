@@ -104,9 +104,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let securityAccessGroupOverride = false
 #endif
 
-    var err: NSError?
-    Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
-    if let err { NSLog("KeybaseInit fail?: \(err)") }
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      guard let self = self else { return }
+      var err: NSError?
+      Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+      if let err { NSLog("KeybaseInit fail?: \(err)") }
+    }
   }
 
   func notifyAppState(_ application: UIApplication) {

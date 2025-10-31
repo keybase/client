@@ -261,24 +261,29 @@ RCT_EXPORT_METHOD(engineReset) {
   }
 }
 
-RCT_EXPORT_METHOD(engineStart) {
+RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
   dispatch_async(dispatch_get_main_queue(), ^{
+    // Setup infrastructure
     [[NSNotificationCenter defaultCenter]
         addObserver:self
            selector:@selector(engineReset)
                name:RCTJavaScriptWillStartLoadingNotification
              object:nil];
-    self.readQueue =
-        dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-
+    self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+    
+    // Signal to Go that JS is ready
+    KeybaseNotifyJSReady();
+    NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
+    
+    // Start the read loop
     dispatch_async(self.readQueue, ^{
       while (true) {
         {
           __typeof__(self) strongSelf = weakSelf;
           if (!strongSelf || !strongSelf.bridge) {
-            NSLog(@"Bridge dead, bailing");
+            NSLog(@"Bridge dead, bailing from ReadArr loop");
             return;
           }
         }
