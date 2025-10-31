@@ -61,12 +61,12 @@ func memstats() {
 func memprof() {
 	f, err := os.Create("/tmp/sc_memprof")
 	if err != nil {
-		log.Fatal("could not create memory profile: ", err)
+		log.Printf("could not create memory profile: %v", err)
 	}
 	defer f.Close()
 	runtime.GC() // get up-to-date statistics
 	if err := pprof.WriteHeapProfile(f); err != nil {
-		log.Fatal("could not write memory profile: ", err)
+		log.Printf("could not write memory profile: %v", err)
 	}
 	f.Close()
 	fmt.Printf("wrote memory profile to /tmp/sc_memprof\n")
