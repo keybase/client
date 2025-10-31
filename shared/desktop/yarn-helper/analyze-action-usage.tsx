@@ -177,7 +177,7 @@ export function filterActions(
     const usage = usedActionsMap.get(actionName)
     if (usage) {
       // Attach usage metadata to the action descriptor
-      filteredActions[actionName] = {...actionDesc, _usage: usage}
+      filteredActions[actionName] = {...(actionDesc as object), _usage: usage}
     } else {
       filteredCount++
     }

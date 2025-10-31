@@ -115,7 +115,7 @@ function printPayload(p: ActionDesc) {
     : 'undefined'
 }
 
-function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
   // Always generate payload type if action is used at all (needed for Actions union)
   const allowCreate = ns !== 'engine-gen'
   if (allowCreate) {
@@ -129,13 +129,13 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
   const desc = _desc ?? {}
   const usage = (desc as any)?._usage
   const allowCreate = ns !== 'engine-gen'
-  
+
   // For non-engine-gen (remote, etc), skip if creator is not used
   // For engine-gen, always generate the type (needed for payload ReturnType)
   if (allowCreate && usage && !usage.creator) {
     return ''
   }
-  
+
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
   const comment = desc['_description']
@@ -158,7 +158,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: Actio
   }
 }
 
-function compileStateTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+function compileStateTypeConstant(ns: ActionNS, actionName: ActionName) {
   // Always generate constant if action is used at all (needed for Actions union and switch statements)
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
@@ -179,10 +179,10 @@ async function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created: Array<string> = []
-  
+
   // Analyze usage first
   const usageMap = analyzeAndReport(path.join(__dirname, '../..'))
-  
+
   const proms = files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
@@ -191,10 +191,10 @@ async function main() {
         created.push(ns)
         console.log(`Generating ${ns}`)
         let desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
-        
+
         // Filter actions based on usage
         desc = filterActions(ns, desc, usageMap)
-        
+
         const outPath = path.join(root, '..', ns + '-gen.tsx')
         const generated: string = await prettier.format(compile(ns, desc), {
           ...(await prettier.resolveConfig(outPath)),
