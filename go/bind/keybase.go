@@ -159,7 +159,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	startOnce.Do(func() {
 		// Initialize JS ready channel
 		jsReadyCh = make(chan struct{})
-		
+
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
@@ -174,7 +174,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
-	
+
 	// Initialize JS ready channel if not already done (in case Init called directly)
 	if jsReadyCh == nil {
 		jsReadyCh = make(chan struct{})
@@ -395,7 +395,7 @@ func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
 	defer func() { err = flattenError(err) }()
-	
+
 	// Lazily initialize connection on first write
 	connMutex.Lock()
 	if conn == nil {
@@ -406,11 +406,11 @@ func WriteArr(b []byte) (err error) {
 	}
 	currentConn := conn
 	connMutex.Unlock()
-	
+
 	if currentConn == nil {
 		return errors.New("connection not initialized")
 	}
-	
+
 	n, err := currentConn.Write(bytes)
 	if err != nil {
 		return fmt.Errorf("Write error: %s", err)
@@ -430,10 +430,10 @@ var buffer = make([]byte, bufferSize)
 // It is called serially by the mobile run loops.
 func ReadArr() (data []byte, err error) {
 	defer func() { err = flattenError(err) }()
-	
+
 	// Wait for JS to signal it's ready (only blocks once)
 	<-jsReadyCh
-	
+
 	// Lazily initialize connection on first read
 	connMutex.Lock()
 	if conn == nil {
@@ -444,11 +444,11 @@ func ReadArr() (data []byte, err error) {
 	}
 	currentConn := conn
 	connMutex.Unlock()
-	
+
 	if currentConn == nil {
 		return nil, errors.New("connection not initialized")
 	}
-	
+
 	n, err := currentConn.Read(buffer)
 	if n > 0 && err == nil {
 		return buffer[0:n], nil
@@ -474,7 +474,7 @@ func ensureConnection() error {
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
 		return errors.New("loopback listener not initialized")
 	}
-	
+
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
@@ -488,7 +488,7 @@ func ensureConnection() error {
 func Reset() error {
 	connMutex.Lock()
 	defer connMutex.Unlock()
-	
+
 	if conn != nil {
 		conn.Close()
 		conn = nil
