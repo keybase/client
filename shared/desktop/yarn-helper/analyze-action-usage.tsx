@@ -39,13 +39,14 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
     // import * as RemoteGen from '@/actions/remote-gen'
     // import {createOpenChatFromWidget} from '@/actions/remote-gen'
     // import type {OpenChatFromWidgetPayload} from '@/actions/remote-gen'
-    const importRegex = /import\s+(?:type\s+)?(?:{([^}]+)}|\*\s+as\s+(\w+))\s+from\s+['"][@./]*actions\/(\w+)-gen['"]/g
+    // Note: handles engine-gen-gen.tsx -> engine-gen namespace mapping
+    const importRegex = /import\s+(?:type\s+)?(?:{([^}]+)}|\*\s+as\s+(\w+))\s+from\s+['"][@./]*actions\/([\w-]+?)(?:-gen)?['"]/g
     let match
 
     while ((match = importRegex.exec(content)) !== null) {
       const namedImports = match[1]
       const namespaceImport = match[2]
-      const namespace = match[3] // e.g., 'remote', 'engine-gen'
+      const namespace = match[3] // e.g., 'remote', 'engine-gen' (strips trailing -gen)
 
       if (namedImports) {
         // Parse named imports: {createX, createY, XxxPayload, Actions}
