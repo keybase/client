@@ -159,7 +159,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
 }
 
 /**
- * Filters action JSON to only include used actions
+ * Filters action JSON to only include used actions and their required imports
  */
 export function filterActions(
   namespace: string,
@@ -187,13 +187,28 @@ export function filterActions(
     }
   }
 
+  // Filter prelude imports - only keep imports that are actually used by remaining actions
+  const actionDescriptions = Object.values(filteredActions)
+    .map(desc => JSON.stringify(desc))
+    .join(' ')
+
+  const filteredPrelude = actionJson.prelude.filter(importLine => {
+    // Extract the type name from: import type * as chat1Types from '...'
+    const typeMatch = importLine.match(/import\s+type\s+\*\s+as\s+(\w+)/)
+    if (!typeMatch) return true // Keep non-type imports
+
+    const typeName = typeMatch[1]
+    // Check if this type is used in any remaining action
+    return actionDescriptions.includes(typeName)
+  })
+
   console.log(
     `📊 ${namespace}: keeping ${Object.keys(filteredActions).length}/${Object.keys(actionJson.actions).length} actions (filtered ${filteredCount})`
   )
 
   return {
     actions: filteredActions,
-    prelude: actionJson.prelude,
+    prelude: filteredPrelude,
   }
 }
 
