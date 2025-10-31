@@ -40,13 +40,16 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
     // import {createOpenChatFromWidget} from '@/actions/remote-gen'
     // import type {OpenChatFromWidgetPayload} from '@/actions/remote-gen'
     // Note: handles engine-gen-gen.tsx -> engine-gen namespace mapping
-    const importRegex = /import\s+(?:type\s+)?(?:{([^}]+)}|\*\s+as\s+(\w+))\s+from\s+['"][@./]*actions\/([\w-]+?)(?:-gen)?['"]/g
+    const importRegex =
+      /import\s+(?:type\s+)?(?:{([^}]+)}|\*\s+as\s+(\w+))\s+from\s+['"][@./]*actions\/([\w-]+?)(?:-gen)?['"]/g
     let match
 
     while ((match = importRegex.exec(content)) !== null) {
       const namedImports = match[1]
       const namespaceImport = match[2]
       const namespace = match[3] // e.g., 'remote', 'engine-gen' (strips trailing -gen)
+
+      if (!namespace) continue
 
       if (namedImports) {
         // Parse named imports: {createX, createY, XxxPayload, Actions}
@@ -70,10 +73,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
       } else if (namespaceImport) {
         // Namespace import - scan for usage patterns
         // RemoteGen.createX, RemoteGen.openChatFromWidget, RemoteGen.XxxPayload
-        const nsPattern = new RegExp(
-          `\\b${namespaceImport}\\.(?:create(\\w+)|(\\w+)Payload|(\\w+))\\b`,
-          'g'
-        )
+        const nsPattern = new RegExp(`\\b${namespaceImport}\\.(?:create(\\w+)|(\\w+)Payload|(\\w+))\\b`, 'g')
         let nsMatch
         while ((nsMatch = nsPattern.exec(content)) !== null) {
           const actionFromCreate = nsMatch[1]
@@ -84,10 +84,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
             addUsage(namespace, decapitalize(actionFromCreate))
           } else if (actionFromPayload) {
             addUsage(namespace, decapitalize(actionFromPayload))
-          } else if (
-            actionDirect &&
-            !['Actions', 'resetStore', 'typePrefix'].includes(actionDirect)
-          ) {
+          } else if (actionDirect && !['Actions', 'resetStore', 'typePrefix'].includes(actionDirect)) {
             addUsage(namespace, actionDirect)
           }
         }
@@ -101,7 +98,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
     while ((match = typeStringRegex.exec(content)) !== null) {
       const namespace = match[1]
       const actionName = match[2]
-      if (actionName !== 'resetStore') {
+      if (namespace && actionName !== 'resetStore' && actionName) {
         addUsage(namespace, actionName)
       }
     }
@@ -112,14 +109,14 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
     const returnTypeRegex = /ReturnType<typeof\s+(?:(\w+)\.)?create(\w+)>/g
     while ((match = returnTypeRegex.exec(content)) !== null) {
       // Try to infer namespace from context if not explicit
-      const actionName = decapitalize(match[2])
+      const actionName = decapitalize(match[2] ?? '')
       // If we have a namespace import, we would have caught it above
       // This is mainly for local imports
       const localCreateRegex = new RegExp(
         `import\\s+{[^}]*create${match[2]}[^}]*}\\s+from\\s+['"][@./]*actions/(\\w+)-gen['"]`
       )
       const localMatch = localCreateRegex.exec(content)
-      if (localMatch) {
+      if (localMatch?.[1]) {
         addUsage(localMatch[1], actionName)
       }
     }
@@ -133,6 +130,8 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
       const version = match[2] // e.g., '1'
       const service = match[3] // e.g., 'chatUi'
       const method = match[4] // e.g., 'chatThreadCached'
+
+      if (!protocol || !version || !service || !method) continue
 
       // Convert to action name: chat.1.chatUi.chatThreadCached -> chat1ChatUiChatThreadCached
       const actionName = protocol + version + capitalize(service) + capitalize(method)
@@ -164,7 +163,7 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
  */
 export function filterActions(
   namespace: string,
-  actionJson: {prelude: string[]; actions: Record<string, any>},
+  actionJson: {prelude: string[]; actions: Record<string, unknown>},
   usageMap: UsageMap
 ): {prelude: string[]; actions: Record<string, any>} {
   const usedActions = usageMap.get(namespace)
@@ -193,8 +192,8 @@ export function filterActions(
   )
 
   return {
-    prelude: actionJson.prelude,
     actions: filteredActions,
+    prelude: actionJson.prelude,
   }
 }
 
@@ -213,4 +212,3 @@ export function analyzeAndReport(rootDir: string): UsageMap {
 
   return usageMap
 }
-
