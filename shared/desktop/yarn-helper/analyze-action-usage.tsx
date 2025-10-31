@@ -123,6 +123,21 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
         addUsage(localMatch[1], actionName)
       }
     }
+
+    // Pattern 4: RPC method name usage (engine-gen specific)
+    // 'chat.1.chatUi.chatThreadCached': handler
+    // Maps to: chat1ChatUiChatThreadCached
+    const rpcMethodRegex = /['"](\w+)\.(\d+)\.(\w+)\.(\w+)['"]/g
+    while ((match = rpcMethodRegex.exec(content)) !== null) {
+      const protocol = match[1] // e.g., 'chat'
+      const version = match[2] // e.g., '1'
+      const service = match[3] // e.g., 'chatUi'
+      const method = match[4] // e.g., 'chatThreadCached'
+
+      // Convert to action name: chat.1.chatUi.chatThreadCached -> chat1ChatUiChatThreadCached
+      const actionName = protocol + version + capitalize(service) + capitalize(method)
+      addUsage('engine-gen', actionName)
+    }
   }
 
   function addUsage(namespace: string, actionName: string) {
@@ -130,6 +145,10 @@ export function analyzeActionUsage(rootDir: string): UsageMap {
       usageMap.set(namespace, new Set())
     }
     usageMap.get(namespace)!.add(actionName)
+  }
+
+  function capitalize(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1)
   }
 
   function decapitalize(s: string): string {
