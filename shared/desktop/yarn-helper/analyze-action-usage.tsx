@@ -199,7 +199,7 @@ export function filterActions(
 
     const typeName = typeMatch[1]
     // Check if this type is used in any remaining action
-    return actionDescriptions.includes(typeName)
+    return actionDescriptions.includes(typeName ?? '')
   })
 
   console.log(
