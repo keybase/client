@@ -115,7 +115,7 @@ function printPayload(p: ActionDesc) {
     : 'undefined'
 }
 
-function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) {
+function compileActionPayloads(ns: ActionNS, actionName: ActionName) {
   // Always generate payload type if action is used (needed for Actions union type safety)
   const allowCreate = ns !== 'engine-gen'
   if (allowCreate) {
