@@ -54,7 +54,7 @@
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace",
     "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
     "pod-install": "cd ios; pod install --repo-update",
-    "android-clean": "cd android; ./gradlew clean",
+    "android-clean": "cd android; rm -rf build; rm -rf app/.cxx ; ./gradlew clean",
     "android-debug": "NODE_ENV=development react-native run-android --mode 'debug'",
     "android-install-downgrade": "adb install -r -d android/app/build/outputs/apk/debug/app-debug.apk",
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned' --appId io.keybase.ossifrage.unsigned",
