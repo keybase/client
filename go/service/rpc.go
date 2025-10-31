@@ -43,14 +43,28 @@ func (t *connTransport) IsConnected() bool {
 }
 
 func (t *connTransport) Finalize() {
+	if t.transport != nil {
+		t.transport.Close()
+	}
 	t.transport = t.stagedTransport
 	t.stagedTransport = nil
 }
 
 func (t *connTransport) Close() {
-	t.conn.Close()
+	if t.conn != nil {
+		t.conn.Close()
+	}
+	if t.transport != nil {
+		t.transport.Close()
+	}
+	t.transport = nil
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
+	t.stagedTransport = nil
 }
 
 func (t *connTransport) Reset() {
 	t.transport = nil
+	t.stagedTransport = nil
 }
