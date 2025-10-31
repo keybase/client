@@ -2,6 +2,7 @@ import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
 import fs from 'fs'
+import {analyzeAndReport, filterActions} from './analyze-action-usage'
 
 type ActionNS = string
 type ActionName = string
@@ -168,6 +169,10 @@ async function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created: Array<string> = []
+  
+  // Analyze usage first
+  const usageMap = analyzeAndReport(path.join(__dirname, '../..'))
+  
   const proms = files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
@@ -175,7 +180,11 @@ async function main() {
         const ns = path.basename(file, '.json')
         created.push(ns)
         console.log(`Generating ${ns}`)
-        const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+        let desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+        
+        // Filter actions based on usage
+        desc = filterActions(ns, desc, usageMap)
+        
         const outPath = path.join(root, '..', ns + '-gen.tsx')
         const generated: string = await prettier.format(compile(ns, desc), {
           ...(await prettier.resolveConfig(outPath)),
