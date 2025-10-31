@@ -16,7 +16,7 @@ type FileDesc = {
 
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) => string
 
-const reservedPayloadKeys = ['_description']
+const reservedPayloadKeys = ['_description', '_usage']
 const typeMap: Array<string> = []
 const cleanName = (c: string) => c.replace(/-/g, '')
 
