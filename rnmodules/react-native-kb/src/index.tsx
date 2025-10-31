@@ -6,10 +6,9 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n'
 
-// @ts-expect-error
 const isTurboModuleEnabled = global.__turboModuleProxy != null
 
-const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb
+const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules['Kb']
 
 const Kb = KbModule
   ? KbModule
@@ -135,8 +134,8 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
 export const engineReset = (): void => {
   return Kb.engineReset()
 }
-export const engineStart = (): void => {
-  return Kb.engineStart()
+export const notifyJSReady = (): void => {
+  return Kb.notifyJSReady()
 }
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
