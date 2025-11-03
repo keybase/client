@@ -6,8 +6,7 @@ import {OrdinalContext} from '../../ids-context'
 // Perf issues w/ old arch so using old impl now
 //import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {SwipeTrigger as OldSwipeTrigger} from './swipeable.native'
-import {dismiss} from '@/util/keyboard'
-import {Pressable} from 'react-native'
+import {Pressable, Keyboard} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
 import * as Reanimated from 'react-native-reanimated'
 // import {useDebugLayout} from '@/util/debug-react'
@@ -29,7 +28,7 @@ const ReplyIcon = React.memo(function ReplyIcon() {
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
 
-  const onPress = React.useCallback(() => dismiss(), [])
+  const onPress = React.useCallback(() => Keyboard.dismiss(), [])
 
   // uncomment to debug measuring issues w/ items
   // const onLayout =

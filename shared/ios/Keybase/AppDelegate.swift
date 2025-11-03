@@ -9,6 +9,30 @@ import RNCPushNotificationIOS
 import ExpoModulesCore
 import Keybasego
 
+class KeyboardWindow: UIWindow {
+  override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+    guard let key = presses.first?.key else {
+      super.pressesBegan(presses, with: event)
+      return
+    }
+    
+    if key.keyCode == .keyboardReturnOrEnter {
+      if key.modifierFlags.contains(.shift) {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "shift-enter"])
+      } else {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "enter"])
+      }
+      return
+    }
+    
+    super.pressesBegan(presses, with: event)
+  }
+}
+
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
@@ -20,7 +44,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
-  var hwKeyEvent: RNHWKeyboardEvent?
   
   public override func application(
     _ application: UIApplication,
@@ -47,7 +70,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     bindReactNativeFactory(factory)
     
 #if os(iOS) || os(tvOS)
-    window = UIWindow(frame: UIScreen.main.bounds)
+    window = KeyboardWindow(frame: UIScreen.main.bounds)
     factory.startReactNative(
       withModuleName: "Keybase",
       in: window,
@@ -309,25 +332,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     hideCover()
   }
   
-  func keyCommands() -> [UIKeyCommand]? {
-    var keys = [UIKeyCommand]()
-    if hwKeyEvent == nil {
-      hwKeyEvent = RNHWKeyboardEvent()
-    }
-    if hwKeyEvent?.isListening() == true {
-      keys.append(UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(sendEnter(_:))))
-      keys.append(UIKeyCommand(input: "\r", modifierFlags: .shift, action: #selector(sendShiftEnter(_:))))
-    }
-    return keys
-  }
-  
-  @objc func sendEnter(_ sender: UIKeyCommand) {
-    (hwKeyEvent)?.sendHWKeyEvent("enter")
-  }
-  
-  @objc func sendShiftEnter(_ sender: UIKeyCommand) {
-    (hwKeyEvent)?.sendHWKeyEvent("shift-enter")
-  }
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {

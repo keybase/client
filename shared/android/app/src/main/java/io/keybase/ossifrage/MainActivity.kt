@@ -27,8 +27,8 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.PermissionListener
-import com.github.emilioicai.hwkeyboardevent.HWKeyboardEventModule
 import com.reactnativekb.DarkModePreference
+import com.reactnativekb.KbModule
 import com.reactnativekb.GuiConfig
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.util.DNSNSFetcher
@@ -335,13 +335,11 @@ class MainActivity : ReactActivity() {
         if (isUsingHardwareKeyboard && event.keyCode == KeyEvent.KEYCODE_ENTER) {
             // Detects user pressing the enter key
             if (event.action == KeyEvent.ACTION_DOWN && !event.isShiftPressed) {
-                // Enter is pressed
-                HWKeyboardEventModule.getInstance().keyPressed("enter")
+                KbModule.keyPressed("enter")
                 return true
             }
             if (event.action == KeyEvent.ACTION_DOWN && event.isShiftPressed) {
-                // Shift-Enter is pressed
-                HWKeyboardEventModule.getInstance().keyPressed("shift-enter")
+                KbModule.keyPressed("shift-enter")
                 return true
             }
         }

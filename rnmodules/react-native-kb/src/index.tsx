@@ -131,6 +131,20 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
+// Hardware keyboard events
+const hwKeyPressedListeners: any[] = []
+
+export const onHWKeyPressed = (callback: (event: {pressedKey: string}) => void): void => {
+  const emitter = getNativeEmitter()
+  const listener = emitter.addListener('hardwareKeyPressed', callback)
+  hwKeyPressedListeners.push(listener)
+}
+
+export const removeOnHWKeyPressed = (): void => {
+  hwKeyPressedListeners.forEach(listener => listener?.remove())
+  hwKeyPressedListeners.length = 0
+}
+
 export const engineReset = (): void => {
   return Kb.engineReset()
 }

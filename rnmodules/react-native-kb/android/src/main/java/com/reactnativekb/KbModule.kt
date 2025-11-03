@@ -60,7 +60,7 @@ import keybase.Keybase.writeArr
 import com.facebook.react.common.annotations.FrameworkAPI
 
 @OptIn(FrameworkAPI::class)
-internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
+class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
@@ -384,6 +384,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
 
     init {
         this.reactContext = reactContext!!
+        instance = this
         misTestDevice = isTestDevice(reactContext)
         setSecureFlag()
         reactContext.addLifecycleEventListener(object : LifecycleEventListener {
@@ -659,13 +660,29 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         promise.reject(Exception("wrong platform"))
     }
 
+    private fun sendHardwareKeyEvent(keyName: String) {
+        val params = Arguments.createMap()
+        params.putString("pressedKey", keyName)
+        reactContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit(HW_KEY_EVENT, params)
+    }
+
     companion object {
-        val NAME: String = "Kb"
+        const val NAME: String = "Kb"
         private val RN_NAME: String = "ReactNativeJS"
         private val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
         private val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
+        private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
+
+        private var instance: KbModule? = null
+
+        @JvmStatic
+        fun keyPressed(keyName: String) {
+            instance?.sendHardwareKeyEvent(keyName)
+        }
 
         // Is this a robot controlled test device? (i.e. pre-launch report?)
         private fun isTestDevice(context: ReactApplicationContext): Boolean {

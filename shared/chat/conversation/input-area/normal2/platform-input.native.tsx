@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
-import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import {onHWKeyPressed, removeOnHWKeyPressed} from 'react-native-kb'
 import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from './set-explode-popup/container'
 import Typing from './typing'
@@ -12,7 +12,6 @@ import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
 import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
-import {isOpen} from '@/util/keyboard'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
@@ -325,15 +324,15 @@ const PlatformInput = (p: Props) => {
     const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Kb.Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
+          onQueueSubmit()
           break
         case 'shift-enter':
           insertText('\n')
       }
     }
-    HWKeyboardEvent.onHWKeyPressed(cb)
+    onHWKeyPressed(cb)
     return () => {
-      HWKeyboardEvent.removeOnHWKeyPressed()
+      removeOnHWKeyPressed()
     }
   }, [onQueueSubmit, insertText])
 
