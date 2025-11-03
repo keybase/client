@@ -335,12 +335,10 @@ class MainActivity : ReactActivity() {
         if (isUsingHardwareKeyboard && event.keyCode == KeyEvent.KEYCODE_ENTER) {
             // Detects user pressing the enter key
             if (event.action == KeyEvent.ACTION_DOWN && !event.isShiftPressed) {
-                // Enter is pressed
                 KbModule.keyPressed("enter")
                 return true
             }
             if (event.action == KeyEvent.ACTION_DOWN && event.isShiftPressed) {
-                // Shift-Enter is pressed
                 KbModule.keyPressed("shift-enter")
                 return true
             }

@@ -325,7 +325,7 @@ const PlatformInput = (p: Props) => {
     const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Kb.Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
+          onQueueSubmit()
           break
         case 'shift-enter':
           insertText('\n')

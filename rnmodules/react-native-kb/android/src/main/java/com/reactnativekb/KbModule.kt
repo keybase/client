@@ -676,9 +676,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
         private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
-        
+
         private var instance: KbModule? = null
-        
+
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
