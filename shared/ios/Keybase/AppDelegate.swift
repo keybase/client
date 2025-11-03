@@ -9,6 +9,30 @@ import RNCPushNotificationIOS
 import ExpoModulesCore
 import Keybasego
 
+class KeyboardWindow: UIWindow {
+  override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+    guard let key = presses.first?.key else {
+      super.pressesBegan(presses, with: event)
+      return
+    }
+    
+    if key.keyCode == .keyboardReturnOrEnter {
+      if key.modifierFlags.contains(.shift) {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "shift-enter"])
+      } else {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "enter"])
+      }
+      return
+    }
+    
+    super.pressesBegan(presses, with: event)
+  }
+}
+
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
@@ -46,7 +70,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     bindReactNativeFactory(factory)
     
 #if os(iOS) || os(tvOS)
-    window = UIWindow(frame: UIScreen.main.bounds)
+    window = KeyboardWindow(frame: UIScreen.main.bounds)
     factory.startReactNative(
       withModuleName: "Keybase",
       in: window,
@@ -147,28 +171,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.window?.addSubview(self.resignImageView!)
     
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
-  }
-  
-  override public func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-    guard let key = presses.first?.key else {
-      super.pressesBegan(presses, with: event)
-      return
-    }
-    
-    if key.keyCode == .keyboardReturnOrEnter {
-      if key.modifierFlags.contains(.shift) {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
-                                      object: nil, 
-                                      userInfo: ["pressedKey": "shift-enter"])
-      } else {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
-                                      object: nil, 
-                                      userInfo: ["pressedKey": "enter"])
-      }
-      return
-    }
-    
-    super.pressesBegan(presses, with: event)
   }
   
   func addDrop(_ rootView: UIView) {
