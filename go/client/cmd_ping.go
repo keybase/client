@@ -108,13 +108,26 @@ func (t *pingGregorTransport) IsConnected() bool {
 
 func (t *pingGregorTransport) Finalize() {
 	t.G().Log.Debug("pingGregorTransport Finalize")
+	if t.transport != nil {
+		t.transport.Close()
+	}
 	t.transport = t.stagedTransport
 	t.stagedTransport = nil
 }
 
 func (t *pingGregorTransport) Close() {
 	t.G().Log.Debug("pingGregorTransport Close")
-	t.conn.Close()
+	if t.conn != nil {
+		t.conn.Close()
+	}
+	if t.transport != nil {
+		t.transport.Close()
+	}
+	t.transport = nil
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
+	t.stagedTransport = nil
 }
 
 // pingGregorHandler implements rpc.ConnectionHandler
