@@ -1419,8 +1419,6 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-  - react-native-hw-keyboard-event (0.0.4):
-    - React
   - react-native-kb (0.1.1):
     - hermes-engine
     - RCTRequired
@@ -2270,7 +2268,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - react-native-hw-keyboard-event (from `../node_modules/react-native-hw-keyboard-event`)
   - react-native-kb (from `../node_modules/react-native-kb`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -2445,8 +2442,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
-  react-native-hw-keyboard-event:
-    :path: "../node_modules/react-native-hw-keyboard-event"
   react-native-kb:
     :path: "../node_modules/react-native-kb"
   react-native-keyboard-controller:
@@ -2600,7 +2595,6 @@ SPEC CHECKSUMS:
   React-logger: 7b234de35acb469ce76d6bbb0457f664d6f32f62
   React-Mapbuffer: 85140be073ac6c3fd2c74dead95fbab2f02e6821
   React-microtasksnativemodule: 76142165bc0f6ea98eae79e06c071c1e3aa3ae85
-  react-native-hw-keyboard-event: 0821ba9b3613fac77a44b44927a301d3e5af4f12
   react-native-kb: 601e1f00aafbdefc08db404ec2b50eb5553045c1
   react-native-keyboard-controller: 60544b707b1e310dca6ed2cb86a0314ad2493d64
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
