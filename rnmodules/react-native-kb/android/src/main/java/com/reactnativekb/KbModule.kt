@@ -60,7 +60,7 @@ import keybase.Keybase.writeArr
 import com.facebook.react.common.annotations.FrameworkAPI
 
 @OptIn(FrameworkAPI::class)
-internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
+class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
@@ -669,7 +669,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
     }
 
     companion object {
-        val NAME: String = "Kb"
+        const val NAME: String = "Kb"
         private val RN_NAME: String = "ReactNativeJS"
         private val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
         private val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
@@ -679,6 +679,7 @@ internal class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactCo
         
         private var instance: KbModule? = null
         
+        @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
         }
