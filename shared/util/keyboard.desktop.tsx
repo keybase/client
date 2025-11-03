@@ -1,2 +1,0 @@
-const dismiss = () => {}
-export {dismiss}
