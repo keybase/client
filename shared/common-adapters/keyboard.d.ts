@@ -1,1 +1,0 @@
-export function dismiss(): void
