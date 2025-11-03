@@ -115,6 +115,7 @@
     "react-is": "19.1.0",
     "react-list": "0.8.18",
     "react-native": "0.81.4",
+    "react-native-gesture-handler": "2.29.1",
     "react-native-keyboard-controller": "1.19.4",
     "react-native-kb": "file:../rnmodules/react-native-kb",
     "react-native-reanimated": "4.1.3",
