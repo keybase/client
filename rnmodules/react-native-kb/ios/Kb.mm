@@ -102,10 +102,16 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)init {
   self = [super init];
+  // Listen for hardware keyboard events from NotificationCenter
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(handleHardwareKeyPressed:)
+                                               name:@"hardwareKeyPressed"
+                                             object:nil];
   return self;
 }
 
 - (void)invalidate {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
   currentRuntime = nil;
   _jsRuntime = nil;
   [super invalidate];
@@ -117,7 +123,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-return @[ metaEventName ];
+return @[ metaEventName, @"hardwareKeyPressed" ];
 }
 
 // Don't compile this code when we build for the old architecture.
@@ -366,6 +372,19 @@ RCT_EXPORT_METHOD(iosGetHasShownPushPrompt: (RCTPromiseResolveBlock)resolve reje
     resolve(@TRUE);
     return;
   }];
+}
+
+- (void)handleHardwareKeyPressed:(NSNotification *)notification {
+  NSString *keyName = notification.userInfo[@"pressedKey"];
+  if (keyName) {
+    NSDictionary *event = @{@"pressedKey": keyName};
+    [self sendEventWithName:@"hardwareKeyPressed" body:event];
+  }
+}
+
+RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
+  NSDictionary *event = @{@"pressedKey": keyName};
+  [self sendEventWithName:@"hardwareKeyPressed" body:event];
 }
 
 - (NSNumber *)androidCheckPushPermissions {return @-1;}

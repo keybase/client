@@ -20,7 +20,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
-  var hwKeyEvent: RNHWKeyboardEvent?
   
   public override func application(
     _ application: UIApplication,
@@ -311,22 +310,17 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   
   func keyCommands() -> [UIKeyCommand]? {
     var keys = [UIKeyCommand]()
-    if hwKeyEvent == nil {
-      hwKeyEvent = RNHWKeyboardEvent()
-    }
-    if hwKeyEvent?.isListening() == true {
-      keys.append(UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(sendEnter(_:))))
-      keys.append(UIKeyCommand(input: "\r", modifierFlags: .shift, action: #selector(sendShiftEnter(_:))))
-    }
+    keys.append(UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(sendEnter(_:))))
+    keys.append(UIKeyCommand(input: "\r", modifierFlags: .shift, action: #selector(sendShiftEnter(_:))))
     return keys
   }
   
   @objc func sendEnter(_ sender: UIKeyCommand) {
-    (hwKeyEvent)?.sendHWKeyEvent("enter")
+    NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), object: nil, userInfo: ["pressedKey": "enter"])
   }
   
   @objc func sendShiftEnter(_ sender: UIKeyCommand) {
-    (hwKeyEvent)?.sendHWKeyEvent("shift-enter")
+    NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), object: nil, userInfo: ["pressedKey": "shift-enter"])
   }
 }
 

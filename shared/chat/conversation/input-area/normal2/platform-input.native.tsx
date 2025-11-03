@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
-import HWKeyboardEvent from 'react-native-hw-keyboard-event'
+import {onHWKeyPressed, removeOnHWKeyPressed} from 'react-native-kb'
 import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from './set-explode-popup/container'
 import Typing from './typing'
@@ -331,9 +331,9 @@ const PlatformInput = (p: Props) => {
           insertText('\n')
       }
     }
-    HWKeyboardEvent.onHWKeyPressed(cb)
+    onHWKeyPressed(cb)
     return () => {
-      HWKeyboardEvent.removeOnHWKeyPressed()
+      removeOnHWKeyPressed()
     }
   }, [onQueueSubmit, insertText])
 
