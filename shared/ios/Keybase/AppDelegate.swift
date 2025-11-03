@@ -149,6 +149,28 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
   }
   
+  override public func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+    guard let key = presses.first?.key else {
+      super.pressesBegan(presses, with: event)
+      return
+    }
+    
+    if key.keyCode == .keyboardReturnOrEnter {
+      if key.modifierFlags.contains(.shift) {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "shift-enter"])
+      } else {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), 
+                                      object: nil, 
+                                      userInfo: ["pressedKey": "enter"])
+      }
+      return
+    }
+    
+    super.pressesBegan(presses, with: event)
+  }
+  
   func addDrop(_ rootView: UIView) {
     let dropInteraction = UIDropInteraction(delegate: self)
     dropInteraction.allowsSimultaneousDropSessions = true
@@ -308,20 +330,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     hideCover()
   }
   
-  func keyCommands() -> [UIKeyCommand]? {
-    var keys = [UIKeyCommand]()
-    keys.append(UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(sendEnter(_:))))
-    keys.append(UIKeyCommand(input: "\r", modifierFlags: .shift, action: #selector(sendShiftEnter(_:))))
-    return keys
-  }
-  
-  @objc func sendEnter(_ sender: UIKeyCommand) {
-    NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), object: nil, userInfo: ["pressedKey": "enter"])
-  }
-  
-  @objc func sendShiftEnter(_ sender: UIKeyCommand) {
-    NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"), object: nil, userInfo: ["pressedKey": "shift-enter"])
-  }
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
