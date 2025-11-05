@@ -32,6 +32,7 @@ const colorDefs = {
   blueLighter: {dark: '#4C8EFF', light: '#A8CCFF'},
   blueLighter2: {dark: 'rgba(24, 45, 110, .5)', light: '#EBF2FC'},
   blueLighter3: {dark: '#101010', light: '#F7F9FC'},
+  blueLighterOrBlack_50: {dark: 'rgba(255, 255, 255, 0.50)', light: '#A8CCFF'},
   blueLighter_20: {dark: 'rgba(168, 204, 255, 0.2)', light: 'rgba(168, 204, 255, 0.2)'},
   blueLighter_20_on_white: {dark: 'rgb(238, 245, 255)', light: 'rgb(238, 245, 255)'},
   blueLighter_40: {dark: 'rgba(168, 204, 255, 0.4)', light: 'rgba(168, 204, 255, 0.4)'},
@@ -48,18 +49,18 @@ const colorDefs = {
   brown_75_on_white: {dark: 'rgb(117,87,78)', light: 'rgb(117,87,78)'},
   fastBlank: {dark: isIOS ? '#191919' : undefined, light: isIOS ? '#FFFFFF' : undefined},
   green: {dark: '#37BD99', light: '#37BD99'},
-  greenDark: {dark: '#189e7a', light: '#189e7a'},
+  greenDark: {dark: '#189E7A', light: '#189E7A'},
   greenDarker: {dark: '#12785D', light: '#12785D'},
   greenLight: {dark: '#B7EED9', light: '#B7EED9'},
   greenLighter: {dark: '#E8FAF6', light: '#E8FAF6'},
-  grey: {dark: '#333', light: '#e6e6e6'},
-  greyDark: {dark: '#666', light: '#cccccc'},
-  greyDarker: {dark: '#999', light: '#aaaaaa'},
-  greyDarkest: {dark: '#aaa', light: '#2D2D2D'},
-  greyLight: {dark: '#444', light: '#f0f0f0'},
-  orange: {dark: '#ff6f21', light: '#ff6f21'},
+  grey: {dark: '#333', light: '#E6E6E6'},
+  greyDark: {dark: '#666', light: '#CCCCCC'},
+  greyDarker: {dark: '#999', light: '#AAAAAA'},
+  greyDarkest: {dark: '#AAA', light: '#2D2D2D'},
+  greyLight: {dark: '#444', light: '#F0F0F0'},
+  orange: {dark: '#FF6F21', light: '#FF6F21'},
   orange_90: {dark: 'rgba(255, 111, 33, 0.9)', light: 'rgba(255, 111, 33, 0.9)'},
-  purple: {dark: '#8852ff', light: '#8852ff'},
+  purple: {dark: '#8852FF', light: '#8852FF'},
   purpleDark: {dark: '#6D3FD1', light: '#6D3FD1'},
   purpleDarker: {dark: '#5128a8', light: '#5128a8'},
   purpleLight: {dark: '#9D70FF', light: '#9D70FF'},
@@ -72,7 +73,7 @@ const colorDefs = {
   redDark: {dark: '#EB253B', light: '#EB253B'},
   redDarker: {dark: '#BD0B1F', light: '#BD0B1F'},
   redLight: {dark: '#FFCAC1', light: '#FFCAC1'},
-  redLighter: {dark: '#2d2d2d', light: '#FAF2ED'},
+  redLighter: {dark: '#2D2D2D', light: '#FAF2ED'},
   red_10: {dark: 'rgba(255,0,0,0.1)', light: 'rgba(255,0,0,0.1)'},
   red_20: {dark: 'rgba(255,0,0,0.2)', light: 'rgba(255,0,0,0.2)'},
   red_75: {dark: 'rgba(255,0,0,0.75)', light: 'rgba(255,0,0,0.75)'},
@@ -118,7 +119,6 @@ const colorVariants = {
   blueDarkOrGreyDarkest: {dark: 'greyDarkest', light: 'blueDark'},
   blueDarkerOrBlack: {dark: 'black', light: 'blueDarker'},
   blueDarkerOrBlack_60: {dark: 'black_60', light: 'blueDarker'},
-  blueLighterOrBlack_50: {dark: 'black_50', light: 'blueLighter'},
   blueLighterOrBlueDarker: {dark: 'blueDarker', light: 'blueLighter'},
   blueLighterOrBlueLight: {dark: 'blueLight', light: 'blueLighter'},
   blueLighterOrWhite: {dark: 'white', light: 'blueLighter'},
@@ -146,45 +146,31 @@ const colorVariants = {
 const specialVariants = {
   blueDarkerOrBlack_85: {dark: 'rgba(0, 0, 0, .85)', light: 'blueDarker'},
   brown_75OrYellow: {dark: 'yellow', light: 'brown_75'},
-  yellowOrYellowAlt: {dark: '#c3c390', light: '#ffffc0'},
+  yellowOrYellowAlt: {dark: '#C3C390', light: '#FFFFC0'},
 } as const
 
 type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
 
-// Generate color objects
 function createColorObject(mode: 'light' | 'dark') {
   const result = {} as Record<ColorNames, string>
 
-  // Add base colors
   for (const [_key, val] of Object.entries(colorDefs)) {
     const key = _key as keyof typeof colorDefs
     const color = val[mode]
     result[key] = color as string
   }
 
-  // Add variant getters
-  for (const [key, val] of Object.entries(colorVariants)) {
-    Object.defineProperty(result, key, {
-      configurable: false,
-      enumerable: true,
-      get() {
-        return result[val[mode]]
-      },
-    })
+  for (const [_key, val] of Object.entries(colorVariants)) {
+    const key = _key as keyof typeof colorVariants
+    const colorName = val[mode]
+    result[key] = colorDefs[colorName].light
   }
 
-  // Add special variants
   for (const [_key, val] of Object.entries(specialVariants)) {
     const key = _key as keyof typeof specialVariants
-    Object.defineProperty(result, key, {
-      configurable: false,
-      enumerable: true,
-      get() {
-        const ref = val[mode]
-        const r = result as Record<string, string>
-        return r[ref] ?? ref
-      },
-    })
+    const ref = val[mode]
+    const r = result as Record<string, string>
+    result[key] = r[ref] ?? ref
   }
 
   return result
