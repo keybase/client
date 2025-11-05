@@ -9,6 +9,7 @@ import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, type EmojiData, type RenderableEmoji} from '@/util/emoji'
 import {usePickerState, type PickKey} from './use-picker'
+import {Keyboard} from 'react-native'
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -354,7 +355,7 @@ const Routable = (props: RoutableProps) => {
   const onDidPick = navigateUp
 
   C.useOnMountOnce(() => {
-    Kb.keyboardDismiss()
+    Keyboard.dismiss()
   })
 
   return (
