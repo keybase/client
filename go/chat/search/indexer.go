@@ -57,6 +57,7 @@ type Indexer struct {
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
+	syncInterval          time.Duration
 	selectiveSyncActiveMu sync.Mutex
 	selectiveSyncActive   bool
 	flushDelay            time.Duration
@@ -86,9 +87,11 @@ func NewIndexer(g *globals.Context) *Indexer {
 	case libkb.MobileAppType:
 		idx.SetMaxSyncConvs(maxSyncConvsMobile)
 		idx.startSyncDelay = startSyncDelayMobile
+		idx.syncInterval = syncIntervalMobile
 	default:
 		idx.startSyncDelay = startSyncDelayDesktop
 		idx.SetMaxSyncConvs(maxSyncConvsDesktop)
+		idx.syncInterval = syncIntervalDesktop
 	}
 	return idx
 }
@@ -197,9 +200,9 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 	idx.Lock()
 	suspendCh := idx.suspendCh
 	idx.Unlock()
-	idx.Debug(ctx, "starting SelectiveSync bg loop")
+	idx.Debug(ctx, "starting SelectiveSync bg loop with interval: %v", idx.syncInterval)
 
-	ticker := libkb.NewBgTicker(time.Hour)
+	ticker := libkb.NewBgTicker(idx.syncInterval)
 	after := time.After(idx.startSyncDelay)
 	appState := keybase1.MobileAppState_FOREGROUND
 	netState := keybase1.MobileNetworkState_WIFI
@@ -220,7 +223,8 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		l.Lock()
 		defer l.Unlock()
 		if cancelFn != nil {
-			cancelFn()
+			idx.Debug(ctx, "SelectiveSync already running, skipping new sync attempt")
+			return
 		}
 		ctx, cancelFn = context.WithCancel(ctx)
 		go func() {
@@ -699,7 +703,6 @@ func (idx *Indexer) Search(ctx context.Context, query, origQuery string,
 		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
-	idx.CancelSync(ctx)
 	sess := newSearchSession(query, origQuery, idx.uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
