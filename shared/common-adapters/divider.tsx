@@ -19,12 +19,12 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
   },
   horizontal: {
-    maxHeight: 1,
-    minHeight: 1,
+    maxHeight: Styles.hairlineWidth,
+    minHeight: Styles.hairlineWidth,
   },
   vertical: {
-    maxWidth: 1,
-    minWidth: 1,
+    maxWidth: Styles.hairlineWidth,
+    minWidth: Styles.hairlineWidth,
   },
 }))
 
