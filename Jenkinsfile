@@ -712,6 +712,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/chat': [
         disable: true,
       ],
+      'github.com/keybase/client/go/chat/attachments': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/teams': [
         disable: true,
       ],
