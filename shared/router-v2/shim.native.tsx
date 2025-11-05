@@ -1,16 +1,12 @@
-import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import type {
   RouteMap,
   RouteDef,
-  GetOptions,
   GetOptionsParams,
-  ScreenComponentProps,
 } from '@/constants/types/router2'
-import {isTablet, isIOS} from '@/constants/platform'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NavScreensResult} from './shim'
+import {makeLayout} from './screen-layout.native'
 
 const makeNavScreen = (
   name: keyof KBRootParamList,
@@ -19,23 +15,12 @@ const makeNavScreen = (
   isModal: boolean,
   isLoggedOut: boolean
 ) => {
-  const origGetScreen = rd.getScreen
-
-  let wrappedGetComponent: undefined | React.ComponentType<any>
-  const getScreen = origGetScreen
-    ? () => {
-        if (wrappedGetComponent === undefined) {
-          wrappedGetComponent = platformShim(origGetScreen(), isModal, isLoggedOut, rd.getOptions)
-        }
-        return wrappedGetComponent
-      }
-    : undefined
-
   return (
     <Screen
       key={String(name)}
       name={name}
-      getComponent={getScreen}
+      component={rd.screen}
+      layout={makeLayout(isModal, isLoggedOut, rd.getOptions)}
       options={({route, navigation}: GetOptionsParams) => {
         const no = rd.getOptions
         const opt = typeof no === 'function' ? no({navigation, route}) : no
@@ -57,52 +42,3 @@ export const makeNavScreens = <T extends {Screen: React.ComponentType<any>}>(
   (Object.keys(rs) as Array<keyof KBRootParamList>).map(k =>
     makeNavScreen(k, rs[k]!, Screen, isModal, isLoggedOut)
   )
-
-const modalOffset = isIOS ? 40 : 0
-
-const platformShim = (
-  Original: React.JSXElementConstructor<ScreenComponentProps>,
-  isModal: boolean,
-  isLoggedOut: boolean,
-  getOptions?: GetOptions
-): React.ComponentType<any> => {
-  if (!isModal && !isLoggedOut) {
-    return Original as React.ComponentType<any>
-  }
-  // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  return React.memo(function ShimmedNew(props: GetOptionsParams) {
-    const navigationOptions =
-      typeof getOptions === 'function'
-        ? getOptions({navigation: props.navigation, route: props.route})
-        : getOptions
-
-    return (
-      <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
-        <Kb.KeyboardAvoidingView2 extraOffset={modalOffset} compensateNotBeingOnBottom={isModal && isTablet}>
-          <Kb.SafeAreaView
-            style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
-          >
-            <Original {...(props as any as ScreenComponentProps)} />
-          </Kb.SafeAreaView>
-        </Kb.KeyboardAvoidingView2>
-      </SafeAreaProvider>
-    )
-  })
-}
-
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      keyboard: {
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
-      modal: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
-    }) as const
-)
