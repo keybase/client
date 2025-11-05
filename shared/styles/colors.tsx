@@ -5,159 +5,162 @@ import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 
 // Define all colors with their light/dark variants in one place
 const colorDefs = {
-  // Base colors
-  black: {light: 'rgba(0, 0, 0, 0.85)', dark: 'rgba(255, 255, 255, 0.85)'},
-  black_05: {light: 'rgba(0, 0, 0, 0.05)', dark: 'rgba(255, 255, 255, 0.05)'},
-  black_05_on_white: {light: 'rgb(242,242,242)', dark: 'rgb(13, 13, 13)'},
-  black_10: {light: 'rgba(0, 0, 0, 0.10)', dark: 'rgba(255, 255, 255, 0.10)'},
-  black_10_on_white: {light: 'rgb(229,229,229)', dark: 'rgb(26, 26, 26)'},
-  black_20: {light: 'rgba(0, 0, 0, 0.20)', dark: 'rgba(255, 255, 255, 0.20)'},
-  black_20_on_white: {light: 'rgb(204,204,204)', dark: 'rgb(51, 51, 51)'},
-  black_35: {light: 'rgba(0, 0, 0, 0.35)', dark: 'rgba(255, 255, 255, 0.35)'},
-  black_40: {light: 'rgba(0, 0, 0, 0.40)', dark: 'rgba(255, 255, 255, 0.40)'},
-  black_50: {light: 'rgba(0, 0, 0, 0.50)', dark: 'rgba(255, 255, 255, 0.50)'},
-  black_50_on_white: {light: 'rgb(127,127,127)', dark: 'rgb(128, 128, 128)'},
-  black_60: {light: 'rgba(0, 0, 0, 0.60)', dark: 'rgba(255, 255, 255, 0.60)'},
-  black_63: {light: 'rgba(0, 0, 0, 0.63)', dark: 'rgba(255, 255, 255, 0.63)'},
-  black_on_white: {light: 'rgb(38,38,38)', dark: 'rgb(217, 217, 217)'},
-  blue: {light: '#4C8EFF', dark: '#4C8EFF'},
-  blueDark: {light: '#3663EA', dark: '#3663EA'},
-  blueDarker: {light: '#1036AC', dark: '#1036AC'},
-  blueDarker2: {light: '#182D6E', dark: '#182D6E'},
-  blueDarker2_75: {light: 'rgba(24, 45, 110, .75)', dark: 'rgba(24, 45, 110, .75)'},
-  blueDarker2_75_on_white: {light: 'rgb(82,98,147)', dark: 'rgb(173, 157, 108)'},
-  blueGrey: {light: '#F2F4F7', dark: '#202020'},
-  blueGreyDark: {light: '#E0E8F6', dark: 'rgba(24, 45, 110, .5)'},
-  blueGreyLight: {light: '#F9F9FA', dark: '#222'},
-  blueLight: {light: '#73A6FF', dark: '#73A6FF'},
-  blueLighter: {light: '#A8CCFF', dark: '#4C8EFF'},
-  blueLighter2: {light: '#EBF2FC', dark: 'rgba(24, 45, 110, .5)'},
-  blueLighter3: {light: '#F7F9FC', dark: '#101010'},
-  blueLighter_20: {light: 'rgba(168, 204, 255, 0.2)', dark: 'rgba(168, 204, 255, 0.2)'},
-  blueLighter_20_on_white: {light: 'rgb(238, 245, 255)', dark: 'rgb(238, 245, 255)'},
-  blueLighter_40: {light: 'rgba(168, 204, 255, 0.4)', dark: 'rgba(168, 204, 255, 0.4)'},
-  blueLighter_40_on_white: {light: 'rgb(220, 235, 255)', dark: 'rgb(220, 235, 255)'},
-  blueLighter_60: {light: 'rgba(168, 204, 255, 0.6)', dark: 'rgba(168, 204, 255, 0.6)'},
-  blueLighter_60_on_white: {light: 'rgb(203, 224, 255)', dark: 'rgb(203, 224, 255)'},
-  blue_10: {light: 'rgba(51, 160, 255, 0.1)', dark: 'rgba(51, 160, 255, 0.1)'},
-  blue_30: {light: 'rgba(51, 160, 255, 0.3)', dark: 'rgba(51, 160, 255, 0.3)'},
-  blue_30_on_white: {light: 'rgb(192,226,255)', dark: 'rgb(192,226,255)'},
-  blue_60: {light: 'rgba(51, 160, 255, 0.6)', dark: 'rgba(51, 160, 255, 0.6)'},
-  blue_60_on_white: {light: 'rgb(133,198,255)', dark: 'rgb(133,198,255)'},
-  brown: {light: 'rgb(71, 31, 17)', dark: 'rgb(71, 31, 17)'},
-  brown_75: {light: 'rgba(71, 31, 17, 0.75)', dark: 'rgba(71, 31, 17, 0.75)'},
-  brown_75_on_white: {light: 'rgb(117,87,78)', dark: 'rgb(117,87,78)'},
-  fastBlank: {light: isIOS ? '#FFFFFF' : undefined, dark: isIOS ? '#191919' : undefined},
-  green: {light: '#37BD99', dark: '#37BD99'},
-  greenDark: {light: '#189e7a', dark: '#189e7a'},
-  greenDarker: {light: '#12785d', dark: '#12785d'},
-  greenLight: {light: '#B7EED9', dark: '#B7EED9'},
-  greenLighter: {light: '#E8FAF6', dark: '#E8FAF6'},
-  grey: {light: '#e6e6e6', dark: '#333'},
-  greyDark: {light: '#cccccc', dark: '#666'},
-  greyDarker: {light: '#aaaaaa', dark: '#999'},
-  greyDarkest: {light: '#2d2d2d', dark: '#aaa'},
-  greyLight: {light: '#f0f0f0', dark: '#444'},
-  orange: {light: '#ff6f21', dark: '#ff6f21'},
-  orange_90: {light: 'rgba(255, 111, 33, 0.9)', dark: 'rgba(255, 111, 33, 0.9)'},
-  purple: {light: '#8852ff', dark: '#8852ff'},
-  purpleDark: {light: '#6d3fd1', dark: '#6d3fd1'},
-  purpleDarker: {light: '#5128a8', dark: '#5128a8'},
-  purpleLight: {light: '#9d70ff', dark: '#9d70ff'},
-  purpleLighter: {light: '#E8DEFF', dark: '#E8DEFF'},
-  purple_01: {light: 'rgba(132, 82, 255, 0.01)', dark: 'rgba(132, 82, 255, 0.01)'},
-  purple_10: {light: 'rgba(132, 82, 255, 0.1)', dark: 'rgba(132, 82, 255, 0.1)'},
-  purple_30: {light: 'rgba(132, 82, 255, 0.3)', dark: 'rgba(132, 82, 255, 0.3)'},
-  purple_40: {light: 'rgba(132, 82, 255, 0.4)', dark: 'rgba(132, 82, 255, 0.4)'},
-  red: {light: '#ff4d61', dark: '#ff4d61'},
-  redDark: {light: '#eb253b', dark: '#eb253b'},
-  redDarker: {light: '#bd0b1f', dark: '#bd0b1f'},
-  redLight: {light: '#FFCAC1', dark: '#FFCAC1'},
-  redLighter: {light: '#FAF2ED', dark: '#2d2d2d'},
-  red_10: {light: 'rgba(255,0,0,0.1)', dark: 'rgba(255,0,0,0.1)'},
-  red_20: {light: 'rgba(255,0,0,0.2)', dark: 'rgba(255,0,0,0.2)'},
-  red_75: {light: 'rgba(255,0,0,0.75)', dark: 'rgba(255,0,0,0.75)'},
-  red_75_on_white: {light: 'rgb(255,64,64)', dark: 'rgb(255,64,64)'},
-  transparent: {light: 'rgba(0, 0, 0, 0)', dark: 'rgba(255, 255, 255, 0)'},
-  transparent_on_white: {light: '#FFFFFF', dark: '#191919'},
-  white: {light: '#FFFFFF', dark: '#191919'},
-  white_0: {light: 'rgba(255, 255, 255, 0)', dark: 'rgba(25, 25, 25, 0)'},
-  white_0_on_white: {light: '#FFFFFF', dark: '#191919'},
-  white_10: {light: 'rgba(255, 255, 255, 0.10)', dark: 'rgba(25, 25, 25, 0.10)'},
-  white_20: {light: 'rgba(255, 255, 255, 0.20)', dark: 'rgba(25, 25, 25, 0.20)'},
-  white_20_on_white: {light: '#FFFFFF', dark: '#191919'},
-  white_35: {light: 'rgba(255, 255, 255, 0.35)', dark: 'rgba(25, 25, 25, 0.35)'},
-  white_40: {light: 'rgba(255, 255, 255, 0.40)', dark: 'rgba(25, 25, 25, 0.40)'},
-  white_40_on_white: {light: '#FFFFFF', dark: '#191919'},
-  white_60: {light: 'rgba(255, 255, 255, 0.60)', dark: 'rgba(25, 25, 25, 0.60)'},
-  white_75: {light: 'rgba(255, 255, 255, 0.75)', dark: 'rgba(25, 25, 25, 0.75)'},
-  white_75_on_white: {light: '#FFFFFF', dark: '#191919'},
-  white_90: {light: 'rgba(255, 255, 255, 0.90)', dark: 'rgba(25, 25, 25, 0.90)'},
-  white_90_on_white: {light: '#FFFFFF', dark: '#191919'},
-  yellow: {light: '#FFF75A', dark: '#FFF75A'},
-  yellowDark: {light: '#FFB800', dark: '#FFB800'},
-  yellowLight: {light: '#FFFDCC', dark: '#FFFDCC'},
+  black: {dark: 'rgba(255, 255, 255, 0.85)', light: 'rgba(0, 0, 0, 0.85)'},
+  black_05: {dark: 'rgba(255, 255, 255, 0.05)', light: 'rgba(0, 0, 0, 0.05)'},
+  black_05_on_white: {dark: 'rgb(13, 13, 13)', light: 'rgb(242,242,242)'},
+  black_10: {dark: 'rgba(255, 255, 255, 0.10)', light: 'rgba(0, 0, 0, 0.10)'},
+  black_10_on_white: {dark: 'rgb(26, 26, 26)', light: 'rgb(229,229,229)'},
+  black_20: {dark: 'rgba(255, 255, 255, 0.20)', light: 'rgba(0, 0, 0, 0.20)'},
+  black_20_on_white: {dark: 'rgb(51, 51, 51)', light: 'rgb(204,204,204)'},
+  black_35: {dark: 'rgba(255, 255, 255, 0.35)', light: 'rgba(0, 0, 0, 0.35)'},
+  black_40: {dark: 'rgba(255, 255, 255, 0.40)', light: 'rgba(0, 0, 0, 0.40)'},
+  black_50: {dark: 'rgba(255, 255, 255, 0.50)', light: 'rgba(0, 0, 0, 0.50)'},
+  black_50_on_white: {dark: 'rgb(128, 128, 128)', light: 'rgb(127,127,127)'},
+  black_60: {dark: 'rgba(255, 255, 255, 0.60)', light: 'rgba(0, 0, 0, 0.60)'},
+  black_63: {dark: 'rgba(255, 255, 255, 0.63)', light: 'rgba(0, 0, 0, 0.63)'},
+  black_on_white: {dark: 'rgb(217, 217, 217)', light: 'rgb(38,38,38)'},
+  blue: {dark: '#4C8EFF', light: '#4C8EFF'},
+  blueDark: {dark: '#3663EA', light: '#3663EA'},
+  blueDarker: {dark: '#1036AC', light: '#1036AC'},
+  blueDarker2: {dark: '#182D6E', light: '#182D6E'},
+  blueDarker2_75: {dark: 'rgba(24, 45, 110, .75)', light: 'rgba(24, 45, 110, .75)'},
+  blueDarker2_75_on_white: {dark: 'rgb(173, 157, 108)', light: 'rgb(82,98,147)'},
+  blueGrey: {dark: '#202020', light: '#F2F4F7'},
+  blueGreyDark: {dark: 'rgba(24, 45, 110, .5)', light: '#E0E8F6'},
+  blueGreyLight: {dark: '#222', light: '#F9F9FA'},
+  blueLight: {dark: '#73A6FF', light: '#73A6FF'},
+  blueLighter: {dark: '#4C8EFF', light: '#A8CCFF'},
+  blueLighter2: {dark: 'rgba(24, 45, 110, .5)', light: '#EBF2FC'},
+  blueLighter3: {dark: '#101010', light: '#F7F9FC'},
+  blueLighter_20: {dark: 'rgba(168, 204, 255, 0.2)', light: 'rgba(168, 204, 255, 0.2)'},
+  blueLighter_20_on_white: {dark: 'rgb(238, 245, 255)', light: 'rgb(238, 245, 255)'},
+  blueLighter_40: {dark: 'rgba(168, 204, 255, 0.4)', light: 'rgba(168, 204, 255, 0.4)'},
+  blueLighter_40_on_white: {dark: 'rgb(220, 235, 255)', light: 'rgb(220, 235, 255)'},
+  blueLighter_60: {dark: 'rgba(168, 204, 255, 0.6)', light: 'rgba(168, 204, 255, 0.6)'},
+  blueLighter_60_on_white: {dark: 'rgb(203, 224, 255)', light: 'rgb(203, 224, 255)'},
+  blue_10: {dark: 'rgba(51, 160, 255, 0.1)', light: 'rgba(51, 160, 255, 0.1)'},
+  blue_30: {dark: 'rgba(51, 160, 255, 0.3)', light: 'rgba(51, 160, 255, 0.3)'},
+  blue_30_on_white: {dark: 'rgb(192,226,255)', light: 'rgb(192,226,255)'},
+  blue_60: {dark: 'rgba(51, 160, 255, 0.6)', light: 'rgba(51, 160, 255, 0.6)'},
+  blue_60_on_white: {dark: 'rgb(133,198,255)', light: 'rgb(133,198,255)'},
+  brown: {dark: 'rgb(71, 31, 17)', light: 'rgb(71, 31, 17)'},
+  brown_75: {dark: 'rgba(71, 31, 17, 0.75)', light: 'rgba(71, 31, 17, 0.75)'},
+  brown_75_on_white: {dark: 'rgb(117,87,78)', light: 'rgb(117,87,78)'},
+  fastBlank: {dark: isIOS ? '#191919' : undefined, light: isIOS ? '#FFFFFF' : undefined},
+  green: {dark: '#37BD99', light: '#37BD99'},
+  greenDark: {dark: '#189e7a', light: '#189e7a'},
+  greenDarker: {dark: '#12785D', light: '#12785D'},
+  greenLight: {dark: '#B7EED9', light: '#B7EED9'},
+  greenLighter: {dark: '#E8FAF6', light: '#E8FAF6'},
+  grey: {dark: '#333', light: '#e6e6e6'},
+  greyDark: {dark: '#666', light: '#cccccc'},
+  greyDarker: {dark: '#999', light: '#aaaaaa'},
+  greyDarkest: {dark: '#aaa', light: '#2D2D2D'},
+  greyLight: {dark: '#444', light: '#f0f0f0'},
+  orange: {dark: '#ff6f21', light: '#ff6f21'},
+  orange_90: {dark: 'rgba(255, 111, 33, 0.9)', light: 'rgba(255, 111, 33, 0.9)'},
+  purple: {dark: '#8852ff', light: '#8852ff'},
+  purpleDark: {dark: '#6D3FD1', light: '#6D3FD1'},
+  purpleDarker: {dark: '#5128a8', light: '#5128a8'},
+  purpleLight: {dark: '#9D70FF', light: '#9D70FF'},
+  purpleLighter: {dark: '#E8DEFF', light: '#E8DEFF'},
+  purple_01: {dark: 'rgba(132, 82, 255, 0.01)', light: 'rgba(132, 82, 255, 0.01)'},
+  purple_10: {dark: 'rgba(132, 82, 255, 0.1)', light: 'rgba(132, 82, 255, 0.1)'},
+  purple_30: {dark: 'rgba(132, 82, 255, 0.3)', light: 'rgba(132, 82, 255, 0.3)'},
+  purple_40: {dark: 'rgba(132, 82, 255, 0.4)', light: 'rgba(132, 82, 255, 0.4)'},
+  red: {dark: '#FF4D61', light: '#FF4D61'},
+  redDark: {dark: '#EB253B', light: '#EB253B'},
+  redDarker: {dark: '#BD0B1F', light: '#BD0B1F'},
+  redLight: {dark: '#FFCAC1', light: '#FFCAC1'},
+  redLighter: {dark: '#2d2d2d', light: '#FAF2ED'},
+  red_10: {dark: 'rgba(255,0,0,0.1)', light: 'rgba(255,0,0,0.1)'},
+  red_20: {dark: 'rgba(255,0,0,0.2)', light: 'rgba(255,0,0,0.2)'},
+  red_75: {dark: 'rgba(255,0,0,0.75)', light: 'rgba(255,0,0,0.75)'},
+  red_75_on_white: {dark: 'rgb(255,64,64)', light: 'rgb(255,64,64)'},
+  transparent: {dark: 'rgba(255, 255, 255, 0)', light: 'rgba(0, 0, 0, 0)'},
+  transparent_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white: {dark: '#191919', light: '#FFFFFF'},
+  white_0: {dark: 'rgba(25, 25, 25, 0)', light: 'rgba(255, 255, 255, 0)'},
+  white_0_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_10: {dark: 'rgba(25, 25, 25, 0.10)', light: 'rgba(255, 255, 255, 0.10)'},
+  white_20: {dark: 'rgba(25, 25, 25, 0.20)', light: 'rgba(255, 255, 255, 0.20)'},
+  white_20_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_35: {dark: 'rgba(25, 25, 25, 0.35)', light: 'rgba(255, 255, 255, 0.35)'},
+  white_40: {dark: 'rgba(25, 25, 25, 0.40)', light: 'rgba(255, 255, 255, 0.40)'},
+  white_40_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_60: {dark: 'rgba(25, 25, 25, 0.60)', light: 'rgba(255, 255, 255, 0.60)'},
+  white_75: {dark: 'rgba(25, 25, 25, 0.75)', light: 'rgba(255, 255, 255, 0.75)'},
+  white_75_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_90: {dark: 'rgba(25, 25, 25, 0.90)', light: 'rgba(255, 255, 255, 0.90)'},
+  white_90_on_white: {dark: '#191919', light: '#FFFFFF'},
+  yellow: {dark: '#FFF75A', light: '#FFF75A'},
+  yellowDark: {dark: '#FFB800', light: '#FFB800'},
+  yellowLight: {dark: '#FFFDCC', light: '#FFFDCC'},
 } as const
 
 // Define variant getters that reference other colors
-type ColorKey = keyof typeof colorDefs
-const colorVariants: Record<string, {light: ColorKey; dark: ColorKey}> = {
-  blackOrBlack: {light: 'black', dark: 'black'},
-  blackOrWhite: {light: 'black', dark: 'white'},
-  black_05OrBlack: {light: 'black_05', dark: 'black'},
-  black_05OrBlack_60: {light: 'black_05', dark: 'black_60'},
-  black_05OrWhite_10: {light: 'black_05', dark: 'white_10'},
-  black_10OrBlack: {light: 'black_10', dark: 'black'},
-  black_20OrBlack: {light: 'black_20', dark: 'black'},
-  black_20OrWhite_20: {light: 'black_20', dark: 'white_20'},
-  black_50OrBlack_40: {light: 'black_50', dark: 'black_40'},
-  black_50OrBlack_50: {light: 'black_50', dark: 'black_50'},
-  black_50OrBlack_60: {light: 'black_50', dark: 'black_60'},
-  black_50OrWhite: {light: 'black_50', dark: 'white'},
-  black_50OrWhite_40: {light: 'black_50', dark: 'white_40'},
-  black_50OrWhite_75: {light: 'black_50', dark: 'white_75'},
-  blueDarkOrBlueLight: {light: 'blueDark', dark: 'blueLight'},
-  blueDarkOrGreyDarkest: {light: 'blueDark', dark: 'greyDarkest'},
-  blueDarkerOrBlack: {light: 'blueDarker', dark: 'black'},
-  blueDarkerOrBlack_60: {light: 'blueDarker', dark: 'black_60'},
-  blueLighterOrBlack_50: {light: 'blueLighter', dark: 'black_50'},
-  blueLighterOrBlueDarker: {light: 'blueLighter', dark: 'blueDarker'},
-  blueLighterOrBlueLight: {light: 'blueLighter', dark: 'blueLight'},
-  blueLighterOrWhite: {light: 'blueLighter', dark: 'white'},
-  greenDarkOrBlack: {light: 'greenDark', dark: 'black'},
-  greenDarkOrWhite: {light: 'greenDark', dark: 'white'},
-  greenLightOrWhite: {light: 'greenLight', dark: 'white'},
-  greenLighterOrGreen: {light: 'greenLighter', dark: 'green'},
-  greenLighterOrGreenDark: {light: 'greenLighter', dark: 'greenDark'},
-  greenOrGreenLighter: {light: 'greenLighter', dark: 'greenLighter'},
-  purpleDarkOrWhite: {light: 'purpleDark', dark: 'white'},
-  purpleOrWhite: {light: 'purple', dark: 'white'},
-  purple_10OrPurple: {light: 'purple_10', dark: 'purple'},
-  redDarkOrWhite: {light: 'redDark', dark: 'white'},
-  red_10OrRed: {light: 'red_10', dark: 'red'},
-  whiteOrBlack: {light: 'white', dark: 'black'},
-  whiteOrBlueDark: {light: 'white', dark: 'blueDark'},
-  whiteOrGreenDark: {light: 'white', dark: 'greenDark'},
-  whiteOrWhite: {light: 'white', dark: 'white'},
-  whiteOrWhite_75: {light: 'white', dark: 'white_75'},
-  white_40OrBlack_60: {light: 'white_40', dark: 'black_60'},
-  white_40OrWhite_40: {light: 'white_40', dark: 'white_40'},
-}
+const colorVariants = {
+  blackOrBlack: {dark: 'black', light: 'black'},
+  blackOrWhite: {dark: 'white', light: 'black'},
+  black_05OrBlack: {dark: 'black', light: 'black_05'},
+  black_05OrBlack_60: {dark: 'black_60', light: 'black_05'},
+  black_05OrWhite_10: {dark: 'white_10', light: 'black_05'},
+  black_10OrBlack: {dark: 'black', light: 'black_10'},
+  black_20OrBlack: {dark: 'black', light: 'black_20'},
+  black_20OrWhite_20: {dark: 'white_20', light: 'black_20'},
+  black_50OrBlack_40: {dark: 'black_40', light: 'black_50'},
+  black_50OrBlack_50: {dark: 'black_50', light: 'black_50'},
+  black_50OrBlack_60: {dark: 'black_60', light: 'black_50'},
+  black_50OrWhite: {dark: 'white', light: 'black_50'},
+  black_50OrWhite_40: {dark: 'white_40', light: 'black_50'},
+  black_50OrWhite_75: {dark: 'white_75', light: 'black_50'},
+  blueDarkOrBlueLight: {dark: 'blueLight', light: 'blueDark'},
+  blueDarkOrGreyDarkest: {dark: 'greyDarkest', light: 'blueDark'},
+  blueDarkerOrBlack: {dark: 'black', light: 'blueDarker'},
+  blueDarkerOrBlack_60: {dark: 'black_60', light: 'blueDarker'},
+  blueLighterOrBlack_50: {dark: 'black_50', light: 'blueLighter'},
+  blueLighterOrBlueDarker: {dark: 'blueDarker', light: 'blueLighter'},
+  blueLighterOrBlueLight: {dark: 'blueLight', light: 'blueLighter'},
+  blueLighterOrWhite: {dark: 'white', light: 'blueLighter'},
+  greenDarkOrBlack: {dark: 'black', light: 'greenDark'},
+  greenDarkOrWhite: {dark: 'white', light: 'greenDark'},
+  greenLightOrWhite: {dark: 'white', light: 'greenLight'},
+  greenLighterOrGreen: {dark: 'green', light: 'greenLighter'},
+  greenLighterOrGreenDark: {dark: 'greenDark', light: 'greenLighter'},
+  greenOrGreenLighter: {dark: 'greenLighter', light: 'greenLighter'},
+  purpleDarkOrWhite: {dark: 'white', light: 'purpleDark'},
+  purpleOrWhite: {dark: 'white', light: 'purple'},
+  purple_10OrPurple: {dark: 'purple', light: 'purple_10'},
+  redDarkOrWhite: {dark: 'white', light: 'redDark'},
+  red_10OrRed: {dark: 'red', light: 'red_10'},
+  whiteOrBlack: {dark: 'black', light: 'white'},
+  whiteOrBlueDark: {dark: 'blueDark', light: 'white'},
+  whiteOrGreenDark: {dark: 'greenDark', light: 'white'},
+  whiteOrWhite: {dark: 'white', light: 'white'},
+  whiteOrWhite_75: {dark: 'white_75', light: 'white'},
+  white_40OrBlack_60: {dark: 'black_60', light: 'white_40'},
+  white_40OrWhite_40: {dark: 'white_40', light: 'white_40'},
+} as const
 
 // Special variants with literal values
 const specialVariants = {
-  blueDarkerOrBlack_85: {light: 'blueDarker', dark: 'rgba(0, 0, 0, .85)'},
-  brown_75OrYellow: {light: 'brown_75', dark: 'yellow'},
-  yellowOrYellowAlt: {light: '#ffffc0', dark: '#c3c390'},
+  blueDarkerOrBlack_85: {dark: 'rgba(0, 0, 0, .85)', light: 'blueDarker'},
+  brown_75OrYellow: {dark: 'yellow', light: 'brown_75'},
+  yellowOrYellowAlt: {dark: '#c3c390', light: '#ffffc0'},
 } as const
+
+type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
 
 // Generate color objects
 function createColorObject(mode: 'light' | 'dark') {
-  const result: any = {}
+  const result = {} as Record<ColorNames, string>
 
   // Add base colors
-  for (const [key, val] of Object.entries(colorDefs)) {
-    result[key] = val[mode]
+  for (const [_key, val] of Object.entries(colorDefs)) {
+    const key = _key as keyof typeof colorDefs
+    const color = val[mode]
+    if (!color) throw new Error('Invalid color setup')
+    result[key] = color
   }
 
   // Add variant getters
@@ -172,13 +175,15 @@ function createColorObject(mode: 'light' | 'dark') {
   }
 
   // Add special variants
-  for (const [key, val] of Object.entries(specialVariants)) {
+  for (const [_key, val] of Object.entries(specialVariants)) {
+    const key = _key as keyof typeof specialVariants
     Object.defineProperty(result, key, {
       configurable: false,
       enumerable: true,
       get() {
         const ref = val[mode]
-        return typeof ref === 'string' && ref in result ? result[ref] : ref
+        const r = result as Record<string, string>
+        return r[ref] ?? ref
       },
     })
   }
@@ -186,8 +191,8 @@ function createColorObject(mode: 'light' | 'dark') {
   return result
 }
 
-export const colors = createColorObject('light') as const
-export const darkColors: {[P in keyof typeof colors]: string | undefined} = createColorObject('dark')
+export const colors = createColorObject('light')
+export const darkColors = createColorObject('dark')
 
 type Color = typeof colors
 type Names = keyof Color
@@ -199,7 +204,7 @@ if (isIOS) {
     DynamicColorIOS: typeof DynamicColorIOSType
   }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
-    obj[name] = DynamicColorIOS({dark: darkColors[name] ?? '', light: colors[name] ?? ''})
+    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
   }, {}) as Color
 } else {
