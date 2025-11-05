@@ -159,8 +159,7 @@ function createColorObject(mode: 'light' | 'dark') {
   for (const [_key, val] of Object.entries(colorDefs)) {
     const key = _key as keyof typeof colorDefs
     const color = val[mode]
-    if (!color) throw new Error('Invalid color setup')
-    result[key] = color
+    result[key] = color as string
   }
 
   // Add variant getters
