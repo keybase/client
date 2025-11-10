@@ -99,7 +99,7 @@ const colorDefs = {
   yellowLight: {dark: '#FFFDCC', light: '#FFFDCC'},
 } as const
 
-// Define variant getters that reference other colors
+//  colors based on light names
 const colorVariants = {
   blackOrBlack: {dark: 'black', light: 'black'},
   blackOrWhite: {dark: 'white', light: 'black'},
