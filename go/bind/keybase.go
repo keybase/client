@@ -52,6 +52,16 @@ var jsReadyOnce sync.Once
 var jsReadyCh = make(chan struct{})
 var connMutex sync.Mutex // Protects conn operations
 
+// log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
+func log(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if kbCtx != nil && kbCtx.Log != nil {
+		kbCtx.Log.Info(msg)
+	} else {
+		fmt.Printf("%s\n", msg)
+	}
+}
+
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
 	DisplayChatNotification(notification *ChatNotification)
@@ -173,13 +183,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	debug.SetTraceback("all")
 
 	begin := time.Now()
-	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	log("Go: Initializing: home: %s mobileSharedHome: %s", homeDir, mobileSharedHome)
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
 			setInited()
 		}
-		fmt.Printf("Go: Init complete: %v\n", time.Since(begin))
+		log("Go: Init complete: %v err: %v", time.Since(begin), err)
 	}()
 
 	if isIOS {
@@ -197,13 +207,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	var perfLogFile, ekLogFile, guiLogFile string
 	if logFile != "" {
-		fmt.Printf("Go: Using log: %s\n", logFile)
+		log("Go: Using log: %s", logFile)
 		ekLogFile = logFile + ".ek"
-		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
+		log("Go: Using eklog: %s", ekLogFile)
 		perfLogFile = logFile + ".perf"
-		fmt.Printf("Go: Using perfLog: %s\n", perfLogFile)
+		log("Go: Using perfLog: %s", perfLogFile)
 		guiLogFile = logFile + ".gui"
-		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
+		log("Go: Using guilog: %s", guiLogFile)
 	}
 	libkb.IsIPad = isIPad
 
@@ -221,7 +231,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
 	dnsServers := dnsNSFetcher.GetServers()
 	for _, srv := range dnsServers {
-		fmt.Printf("Go: DNS Server: %s\n", srv)
+		log("Go: DNS Server: %s", srv)
 	}
 
 	kbCtx = libkb.NewGlobalContext()
@@ -232,7 +242,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	if isIPad {
 		suffix = " (iPad)"
 	}
-	fmt.Printf("Go (GOOS:%s): Mobile OS version is: %q%v\n", runtime.GOOS, mobileOsVersion, suffix)
+	log("Go (GOOS:%s): Mobile OS version is: %q%v", runtime.GOOS, mobileOsVersion, suffix)
 	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
@@ -263,13 +273,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		LinkCacheSize:                  1000,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
-		fmt.Printf("failed to configure: %s\n", err)
+		log("failed to configure: %s", err)
 		return err
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
 	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline); err != nil {
-		fmt.Printf("failed to start loopback: %s\n", err)
+		log("failed to start loopback: %s", err)
 		return err
 	}
 	kbCtx.SetService()
@@ -277,7 +287,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	if err = kbSvc.SetupCriticalSubServices(); err != nil {
-		fmt.Printf("failed subservices setup: %s\n", err)
+		log("failed subservices setup: %s", err)
 		return err
 	}
 	kbSvc.SetupChatModules(nil)
@@ -294,7 +304,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		Perf:    config.GetPerfLogFile(),
 	}
 
-	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
+	log("Go: Using config: %+v", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
 
 	logSendContext = status.LogSendContext{
 		Contextified: libkb.NewContextified(kbCtx),
@@ -303,7 +313,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// open the connection
 	if err = Reset(); err != nil {
-		fmt.Printf("failed conn setup %s\n", err)
+		log("failed conn setup %s", err)
 		return err
 	}
 
@@ -319,7 +329,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		if _, err = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, nil,
 			kbCtx.Log); err != nil {
-			fmt.Printf("unable to init KBFS: %s", err)
+			log("unable to init KBFS: %s", err)
 		}
 	}()
 
@@ -449,7 +459,7 @@ func ReadArr() (data []byte, err error) {
 	if err != nil {
 		// Attempt to fix the connection
 		if ierr := Reset(); ierr != nil {
-			fmt.Printf("failed to Reset: %v\n", ierr)
+			log("failed to Reset: %v", ierr)
 		}
 		return nil, fmt.Errorf("Read error: %s", err)
 	}
@@ -472,7 +482,7 @@ func ensureConnection() error {
 	if err != nil {
 		return fmt.Errorf("Failed to dial loopback listener: %s", err)
 	}
-	fmt.Printf("Go: Established loopback connection\n")
+	log("Go: Established loopback connection")
 	return nil
 }
 
@@ -490,7 +500,7 @@ func Reset() error {
 	}
 
 	// Connection will be re-established lazily on next read/write
-	fmt.Printf("Go: Connection reset, will reconnect on next operation\n")
+	log("Go: Connection reset, will reconnect on next operation")
 	return nil
 }
 
@@ -498,20 +508,20 @@ func Reset() error {
 // This unblocks the ReadArr loop and allows bidirectional communication.
 func NotifyJSReady() {
 	jsReadyOnce.Do(func() {
-		fmt.Printf("Go: JS signaled ready, unblocking RPC communication\n")
+		log("Go: JS signaled ready, unblocking RPC communication")
 		close(jsReadyCh)
 	})
 }
 
 // ForceGC Forces a gc
 func ForceGC() {
-	fmt.Printf("Flushing global caches\n")
+	log("Flushing global caches")
 	kbCtx.FlushCaches()
-	fmt.Printf("Done flushing global caches\n")
-
-	fmt.Printf("Starting force gc\n")
+	log("Done flushing global caches")
+	runtime.GC()
+	log("Starting force gc")
 	debug.FreeOSMemory()
-	fmt.Printf("Done force gc\n")
+	log("Done force gc")
 }
 
 // Version returns semantic version string
@@ -764,17 +774,17 @@ func startTrace(logFile string) {
 	tname := filepath.Join(filepath.Dir(logFile), "svctrace.out")
 	f, err := os.Create(tname)
 	if err != nil {
-		fmt.Printf("error creating %s\n", tname)
+		log("error creating %s", tname)
 		return
 	}
-	fmt.Printf("Go: starting trace %s\n", tname)
+	log("Go: starting trace %s", tname)
 	_ = trace.Start(f)
 	go func() {
-		fmt.Printf("Go: sleeping 30s for trace\n")
+		log("Go: sleeping 30s for trace")
 		time.Sleep(30 * time.Second)
-		fmt.Printf("Go: stopping trace %s\n", tname)
+		log("Go: stopping trace %s", tname)
 		trace.Stop()
 		time.Sleep(5 * time.Second)
-		fmt.Printf("Go: trace stopped\n")
+		log("Go: trace stopped")
 	}()
 }
