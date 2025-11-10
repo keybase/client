@@ -1,18 +1,13 @@
 import * as React from 'react'
 import type * as C from '@/constants'
 
-const getOptions = {
-  headerShadowVisible: false,
-  headerTitle: '',
-}
-
-type OwnProps = C.ViewPropsToPageProps<typeof Team>
 const Team = React.lazy(async () => import('.'))
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Team {...p.route.params} />
-  </React.Suspense>
-)
+type OwnProps = C.ViewPropsToPageProps<typeof Team>
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {
+  getOptions: {
+    headerShadowVisible: false,
+    headerTitle: '',
+  },
+  screen: (p: OwnProps) => <Team {...p.route.params} />,
+}
