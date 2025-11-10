@@ -3109,3 +3109,19 @@ func GetGregorBool(ctx context.Context, g *globals.Context, key string, defaultV
 	}
 	return defaultVal, nil
 }
+
+type bgOperationKey int
+
+var bgOpKey bgOperationKey
+
+func MakeConvLoaderContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, bgOpKey, true)
+}
+
+func IsConvLoaderContext(ctx context.Context) bool {
+	val := ctx.Value(bgOpKey)
+	if _, ok := val.(bool); ok {
+		return true
+	}
+	return false
+}
