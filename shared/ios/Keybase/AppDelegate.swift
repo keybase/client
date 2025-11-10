@@ -51,7 +51,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   ) -> Bool {
     self.didLaunchSetupBefore()
     
-    // Start Go initialization early, before React Native
     setupGo()
     
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
@@ -152,7 +151,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
   
   func didLaunchSetupAfter(application: UIApplication, rootView: UIView) {
-    // Go is already initialized synchronously at this point
     notifyAppState(application)
     
     rootView.backgroundColor = .systemBackground
