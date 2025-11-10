@@ -5,13 +5,7 @@ import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 
-type OwnProps = {
-  // Desktop only: popup.desktop.tsx passes this function to close the popup
-  // when navigating within the app
-  onBack?: () => void
-}
-
-const WhatsNewContainer = (ownProps: OwnProps) => {
+const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
@@ -29,9 +23,6 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
   const onBack = () => {
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)
-    }
-    if (ownProps?.onBack) {
-      ownProps.onBack()
     }
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
