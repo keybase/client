@@ -187,7 +187,6 @@ const RNApp = React.memo(function RNApp() {
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true} key={rootKey}>
       {bar}
       <NavigationContainer
-        navigationInChildEnabled={true}
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         ref={navRef}
         theme={Shared.theme}

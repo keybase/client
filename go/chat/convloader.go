@@ -239,22 +239,6 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-type bgOperationKey int
-
-var bgOpKey bgOperationKey
-
-func (b *BackgroundConvLoader) makeConvLoaderContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, bgOpKey, true)
-}
-
-func (b *BackgroundConvLoader) isConvLoaderContext(ctx context.Context) bool {
-	val := ctx.Value(bgOpKey)
-	if _, ok := val.(bool); ok {
-		return true
-	}
-	return false
-}
-
 func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
 	b.Debug(context.TODO(), "setTestingNameInfoSource: setting to %T", ni)
 	b.testingNameInfoSource = ni
@@ -263,7 +247,7 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJob) error {
 	// allow high priority to be queued even in the bkg loader context. Often times, this is something like
 	// an ephemeral purge which we don't want to block.
-	if job.Priority != types.ConvLoaderPriorityHighest && b.isConvLoaderContext(ctx) {
+	if job.Priority != types.ConvLoaderPriorityHighest && utils.IsConvLoaderContext(ctx) {
 		b.Debug(ctx, "Queue: refusing to queue in background loader context: convID: %s", job)
 		return nil
 	}
@@ -482,7 +466,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(
-		globals.ChatCtx(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		globals.ChatCtx(utils.MakeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
 	ctx := al.Ctx
 	alKey := b.addActiveLoadLocked(al)
