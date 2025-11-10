@@ -1,15 +1,3 @@
 import * as React from 'react'
 
-const getOptions = {
-  title: 'Display',
-}
-
-const Display = React.lazy(async () => import('./display'))
-const Screen = () => (
-  <React.Suspense>
-    <Display />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {getOptions: {title: 'Display'}, screen: React.lazy(async () => import('./display'))}

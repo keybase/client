@@ -1,20 +1,13 @@
 import * as React from 'react'
 
-const getOptions = {
-  headerShown: true,
-  needsKeyboard: true,
-  title: 'Sign',
+export default {
+  getOptions: {
+    headerShown: true,
+    needsKeyboard: true,
+    title: 'Sign',
+  },
+  screen: React.lazy(async () => {
+    const {SignInput} = await import('./sign')
+    return {default: SignInput}
+  }),
 }
-
-const Input = React.lazy(async () => {
-  const {SignInput} = await import('./sign')
-  return {default: SignInput}
-})
-const Screen = () => (
-  <React.Suspense>
-    <Input />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page

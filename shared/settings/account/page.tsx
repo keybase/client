@@ -1,10 +1,6 @@
 import * as React from 'react'
 
-const getOptions = {title: 'Your account'}
-const Account = React.lazy(async () => import('.'))
-
-const Page = {
-  getOptions,
-  getScreen: () => Account,
+export default {
+  getOptions: {title: 'Your account'},
+  screen: React.lazy(async () => import('.')),
 }
-export default Page

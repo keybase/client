@@ -11,7 +11,8 @@ const mouseDistanceThreshold = 5
 
 const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, noClose?: boolean) => {
   const backgroundRef = React.useRef<HTMLDivElement>(null)
-
+  // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
+  // window around to count
   const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
   const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
   const onMouseDown = React.useCallback(
@@ -139,18 +140,16 @@ type LayoutProps = {
 
 export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?: GetOptions) => {
   return ({children, route, navigation}: LayoutProps) => {
-    const navigationOptions =
-      typeof getOptions === 'function'
-        ? getOptions({navigation, route})
-        : getOptions
+    const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 
     const suspenseContent = (
       <React.Suspense
+      /*
         fallback={
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
             <Kb.ProgressIndicator type="Large" />
           </Kb.Box2>
-        }
+        }*/
       >
         {children}
       </React.Suspense>
@@ -252,4 +251,3 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     }),
   } as const
 })
-

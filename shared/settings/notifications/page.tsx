@@ -1,15 +1,6 @@
 import * as React from 'react'
 
-const getOptions = {
-  title: 'Notifications',
+export default {
+  getOptions: {title: 'Notifications'},
+  screen: React.lazy(async () => import('./container')),
 }
-
-const Notif = React.lazy(async () => import('./container'))
-const Screen = () => (
-  <React.Suspense>
-    <Notif />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page

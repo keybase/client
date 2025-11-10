@@ -8,11 +8,10 @@ const Disable = React.lazy(async () => {
 
 type OwnProps = C.ViewPropsToPageProps<typeof Disable>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Disable {...p.route.params} />
-  </React.Suspense>
-)
-
-const Page = {getScreen: () => Screen}
-export default Page
+export default {
+  screen: (p: OwnProps) => (
+    <React.Suspense>
+      <Disable {...p.route.params} />
+    </React.Suspense>
+  ),
+}

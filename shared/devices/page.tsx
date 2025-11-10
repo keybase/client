@@ -10,12 +10,4 @@ const getOptions = C.isMobile
       title: 'Devices',
     }
 
-const Index = React.lazy(async () => import('.'))
-const Screen = () => (
-  <React.Suspense>
-    <Index />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {getOptions, screen: React.lazy(async () => import('.'))}

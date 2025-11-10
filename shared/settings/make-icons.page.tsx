@@ -126,5 +126,4 @@ const Screen = __DEV__
     }
   : () => null
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

@@ -1,16 +1,10 @@
 import * as React from 'react'
 
-const getOptions = {
-  header: undefined,
-  title: 'Screen Protector',
+const Page = {
+  getOptions: {
+    header: undefined,
+    title: 'Screen Protector',
+  },
+  screen: React.lazy(async () => import('./screenprotector')),
 }
-
-const Root = React.lazy(async () => import('./screenprotector'))
-const Screen = () => (
-  <React.Suspense>
-    <Root />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
 export default Page

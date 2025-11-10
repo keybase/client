@@ -31,13 +31,12 @@ const getOptions = ({route}: OwnProps) => {
 
 const Building = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Building>
-const Screen = (p: OwnProps) => (
-  <C.TBProvider namespace={p.route.params.namespace}>
-    <React.Suspense>
-      <Building {...p.route.params} />
-    </React.Suspense>
-  </C.TBProvider>
-)
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {
+  getOptions,
+  screen: (p: OwnProps) => (
+    <C.TBProvider namespace={p.route.params.namespace}>
+      <Building {...p.route.params} />
+    </C.TBProvider>
+  ),
+}
