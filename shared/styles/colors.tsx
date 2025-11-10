@@ -2,6 +2,7 @@
 import {useState_ as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isAndroid} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
+import type {Opaque} from '@/constants/types/ts'
 
 // Define all colors with their light/dark variants in one place
 const colorDefs = {
@@ -99,7 +100,7 @@ const colorDefs = {
   yellowLight: {dark: '#FFFDCC', light: '#FFFDCC'},
 } as const
 
-// Define variant getters that reference other colors
+//  colors based on light names
 const colorVariants = {
   blackOrBlack: {dark: 'black', light: 'black'},
   blackOrWhite: {dark: 'white', light: 'black'},
@@ -151,6 +152,11 @@ const specialVariants = {
 
 type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
 
+// Create a unique opaque type for each color name
+type OpaqueColors = {
+  [K in ColorNames]: Opaque<string, K>
+}
+
 function createColorObject(mode: 'light' | 'dark') {
   const result = {} as Record<ColorNames, string>
 
@@ -173,7 +179,7 @@ function createColorObject(mode: 'light' | 'dark') {
     result[key] = r[ref] ?? ref
   }
 
-  return result
+  return result as {[K in ColorNames]: OpaqueColors[K]}
 }
 
 export const colors = createColorObject('light')
