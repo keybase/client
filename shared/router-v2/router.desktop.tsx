@@ -141,7 +141,6 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
-      navigationInChildEnabled={true}
       ref={navRef}
       theme={Shared.theme}
       onStateChange={onStateChange}

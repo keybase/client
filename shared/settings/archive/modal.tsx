@@ -91,17 +91,17 @@ const ArchiveModal = (p: Props) => {
     resetWaiters()
     navigateUp()
   }, [navigateUp, resetWaiters])
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onProgress = React.useCallback(() => {
     resetWaiters()
     navigateUp()
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
       setTimeout(() => {
-        // so we can go into the sub nav, very unusual so kinda hacky
-        C.Router2._getNavigator()?.navigate(C.Settings.settingsArchiveTab)
+        navigateAppend(C.Settings.settingsArchiveTab)
       }, 200)
     }, 200)
-  }, [navigateUp, resetWaiters, switchTab])
+  }, [navigateUp, resetWaiters, switchTab, navigateAppend])
 
   const selectPath = React.useCallback(() => {
     const f = async () => {
