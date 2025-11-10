@@ -11,7 +11,7 @@ type OwnProps = {
   onBack?: () => void
 }
 
-const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnProps) {
+const WhatsNewContainer = (ownProps?: OwnProps) => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
@@ -30,7 +30,7 @@ const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnPro
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)
     }
-    if (ownProps.onBack) {
+    if (ownProps?.onBack) {
       ownProps.onBack()
     }
   }
@@ -50,6 +50,6 @@ const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnPro
     seenVersions,
   }
   return <WhatsNew {...props} />
-})
+}
 
-export default WhatsNewContainer
+export default React.memo(WhatsNewContainer)
