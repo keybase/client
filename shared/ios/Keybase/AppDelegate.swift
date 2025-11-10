@@ -51,13 +51,15 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   ) -> Bool {
     self.didLaunchSetupBefore()
     
-    NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { notification in
+    // Start Go initialization early, before React Native
+    setupGo()
+    
+    NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       NSLog("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-        if self.reactNativeFactory != nil {
-          Keybasego.KeybaseForceGC()
-        }
+        guard let self = self, self.reactNativeFactory != nil else { return }
+        Keybasego.KeybaseForceGC()
       }
     }
     
@@ -116,7 +118,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
     FsPathsHolder.shared().fsPaths = self.fsPaths
     
-    
     let systemVer = UIDevice.current.systemVersion
     let isIPad = UIDevice.current.userInterfaceIdiom == .pad
     let isIOS = true
@@ -127,12 +128,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let securityAccessGroupOverride = false
 #endif
     
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      guard let self = self else { return }
-      var err: NSError?
-      Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
-      if let err { NSLog("KeybaseInit fail?: \(err)") }
-    }
+    // Initialize Go synchronously - happens during splash screen
+    NSLog("Starting KeybaseInit (synchronous)...")
+    var err: NSError?
+    Keybasego.KeybaseInit(fsPaths["homedir"], fsPaths["sharedHome"], fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, &err)
+    if let err { NSLog("KeybaseInit FAILED: \(err)") }
   }
   
   func notifyAppState(_ application: UIApplication) {
@@ -152,7 +152,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
   
   func didLaunchSetupAfter(application: UIApplication, rootView: UIView) {
-    setupGo()
+    // Go is already initialized synchronously at this point
     notifyAppState(application)
     
     rootView.backgroundColor = .systemBackground
