@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
@@ -6,11 +5,6 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
-
-type _Elem = object | null | false
-// CollapsibleStyle is a generic version of ?StylesMobile and family,
-// slightly extended to support "isFoo && myStyle".
-type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -174,7 +168,7 @@ export function styleSheetCreate<O extends NamedStyles>(styles: () => O) {
   return styleSheetCreateProxy(styles, o => o)
 }
 
-export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): object | undefined => {
+export const collapseStyles = (styles: ReadonlyArray<unknown>): object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -195,9 +189,12 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): object 
   const s = Object.assign({}, ...styles.flat()) as object
   return Object.keys(s).length ? s : undefined
 }
+
 export const collapseStylesDesktop = collapseStyles
+
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
+export * from './styles-base'
 
 export {themed as globalColors} from './colors'
 export const borderRadius = 4
@@ -207,23 +204,10 @@ export const dimensionWidth = 0
 export const dimensionHeight = 0
 export {isDarkMode, DarkModeContext} from './dark-mode'
 export const headerExtraHeight = 0
-export const CanFixOverdrawContext = React.createContext(false)
-export const dontFixOverdraw = {canFixOverdraw: false}
-export const yesFixOverdraw = {canFixOverdraw: true}
 export const undynamicColor = (col: string) => col
 // nothing on desktop, it all works
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p
-export const urlEscapeFilePath = (path: string) => {
-  if (path.startsWith('file://')) {
-    const parts = path.split('/')
-    parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]!)
-    return parts.join('/')
-  }
-  return path
-}
-export const castStyleDesktop = (style: CollapsibleStyle) => style
-export const castStyleNative = (style: CollapsibleStyle) => style
 
 export const useIsDarkMode = () => {
   return isDarkMode()

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
@@ -6,11 +5,6 @@ import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
-
-type _Elem = object | null | false
-// CollapsibleStyle is a generic version of ?StylesMobile and family,
-// slightly extended to support "isFoo && myStyle".
-export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const font = isIOS
   ? {
@@ -65,8 +59,8 @@ export const styleSheetCreate = (f: () => MapToStyles): unknown =>
 export {isDarkMode}
 
 export const collapseStyles = (
-  styles: ReadonlyArray<CollapsibleStyle>
-): undefined | CollapsibleStyle | ReadonlyArray<object | null | false> => {
+  styles: ReadonlyArray<unknown>
+): undefined | unknown | ReadonlyArray<object | null | false> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {
@@ -92,10 +86,12 @@ export const collapseStyles = (
   return styles
 }
 export const collapseStylesDesktop = collapseStyles
+
 export const transition = () => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
+export * from './styles-base'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export {DarkModeContext} from './dark-mode'
@@ -103,7 +99,7 @@ export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
-export const CanFixOverdrawContext = React.createContext(false)
+
 export const undynamicColor = (_col: string) => {
   const col = _col as string | {dynamic?: {dark: string; light: string}}
   // try and unwrap, some things (toggle?) don't seems to like mixed dynamic colors
@@ -112,6 +108,7 @@ export const undynamicColor = (_col: string) => {
   }
   return col
 }
+
 export const normalizePath = (p: string) => {
   if (p.startsWith('/')) {
     return `file://${p}`
@@ -125,18 +122,6 @@ export const unnormalizePath = (p: string) => {
   }
   return p
 }
-
-export const urlEscapeFilePath = (path: string) => {
-  if (path.startsWith('file://')) {
-    const parts = path.split('/')
-    parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]!)
-    return parts.join('/')
-  }
-  return path
-}
-
-export const castStyleDesktop = (style: CollapsibleStyle) => style
-export const castStyleNative = (style: CollapsibleStyle) => style
 
 export const useIsDarkMode = () => {
   const s = useColorScheme()
