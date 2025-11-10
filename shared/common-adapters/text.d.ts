@@ -17,7 +17,7 @@ type Colors = typeof colors
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 
 // Talk to design before adding a color here - these should cover all cases.
-type AllowedColorNames = 
+type AllowedColorNames =
   | 'blueDark'
   | 'blueLighter' // for terminal background only
   | 'greenDark'
@@ -28,13 +28,13 @@ type AllowedColorNames =
   | 'black_on_white'
   | 'black_50'
   | 'black_50_on_white'
+  | 'black_50OrWhite_40'
   | 'black_35'
   | 'black_20'
   | 'black_20_on_white'
   | 'white'
   | 'white_75'
   | 'white_40'
-  // | 'white_40OrWhite_40'
   | 'brown_75'
   | 'orange'
   | 'transparent'
