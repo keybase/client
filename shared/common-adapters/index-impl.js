@@ -333,9 +333,6 @@ module.exports = {
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },
-  get keyboardDismiss() {
-    return require('./keyboard').dismiss
-  },
   get largeListItem2Height() {
     return require('./list-item2').largeHeight
   },

@@ -572,6 +572,9 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/chat/attachments': [
         parallel: 1,
       ],
+      'github.com/keybase/client/go/updater': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/kbfs/test': [
         name: 'kbfs_test_fuse',
         flags: '-tags fuse',
@@ -709,8 +712,14 @@ def testGoTestSuite(prefix, packagesToTest) {
       'github.com/keybase/client/go/chat': [
         disable: true,
       ],
+      'github.com/keybase/client/go/chat/attachments': [
+        parallel: 1,
+      ],
       'github.com/keybase/client/go/teams': [
         disable: true,
+      ],
+      'github.com/keybase/client/go/updater': [
+        parallel: 1,
       ],
       'github.com/keybase/client/go/kbfs/libdokan': [
         parallel: 1,

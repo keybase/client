@@ -135,13 +135,13 @@ export const initDesktopStyles = () => {
   const colorVars = `
         :root { ${colorNames
           .reduce((s, name) => {
-            s.push(`--color-${name}: ${colors[name] ?? ''};`)
+            s.push(`--color-${name}: ${colors[name]};`)
             return s
           }, new Array<string>())
           .join(' ')} }
         .darkMode { ${colorNames
           .reduce((s, name) => {
-            s.push(`--color-${name}: ${darkColors[name] ?? ''};`)
+            s.push(`--color-${name}: ${darkColors[name]};`)
             return s
           }, new Array<string>())
           .join(' ')} }
