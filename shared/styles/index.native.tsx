@@ -59,7 +59,6 @@ export const styleSheetCreate = (f: () => MapToStyles): unknown =>
 // used to find specific styles to help debug perf
 export {isDarkMode}
 
-// Native-specific collapseStyles: returns array (not object) for RN style handling
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): undefined | CollapsibleStyle | ReadonlyArray<object | null | false> => {

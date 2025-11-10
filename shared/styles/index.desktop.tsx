@@ -5,6 +5,7 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
+import type {CollapsibleStyle} from './styles-base'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -167,6 +168,31 @@ type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 export function styleSheetCreate<O extends NamedStyles>(styles: () => O) {
   return styleSheetCreateProxy(styles, o => o)
 }
+
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): object | undefined => {
+  // fast path for a single style that passes. Often we do stuff like
+  // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+  // case we can just take styles.myStyle and not render thrash
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (valid.length === 0) {
+    return undefined
+  }
+  if (valid.length === 1) {
+    const s = valid[0]
+    if (typeof s === 'object') {
+      return s as object
+    }
+  }
+
+  // jenkins doesn't support flat yet
+  const s = Object.assign({}, ...styles.flat()) as object
+  return Object.keys(s).length ? s : undefined
+}
+
+export const collapseStylesDesktop = collapseStyles
+
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
 export * from './styles-base'
