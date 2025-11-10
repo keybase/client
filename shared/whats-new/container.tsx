@@ -52,4 +52,4 @@ const WhatsNewContainer = (ownProps?: OwnProps) => {
   return <WhatsNew {...props} />
 }
 
-export default React.memo(WhatsNewContainer)
+export default WhatsNewContainer
