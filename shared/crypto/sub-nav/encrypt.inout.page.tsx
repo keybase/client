@@ -5,11 +5,4 @@ const Input = React.lazy(async () => {
   return {default: EncryptIO}
 })
 
-const Screen = () => (
-  <React.Suspense>
-    <Input />
-  </React.Suspense>
-)
-
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Input}

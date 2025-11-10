@@ -4,11 +4,4 @@ import type * as C from '@/constants'
 const Remove = React.lazy(async () => import('./confirm-remove-from-channel'))
 type OwnProps = C.ViewPropsToPageProps<typeof Remove>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Remove {...p.route.params} />
-  </React.Suspense>
-)
-
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: (p: OwnProps) => <Remove {...p.route.params} />}

@@ -5,13 +5,6 @@ const Disable = React.lazy(async () => {
   const {DeleteModal} = await import('./confirm-delete')
   return {default: DeleteModal}
 })
-
 type OwnProps = C.ViewPropsToPageProps<typeof Disable>
 
-export default {
-  screen: (p: OwnProps) => (
-    <React.Suspense>
-      <Disable {...p.route.params} />
-    </React.Suspense>
-  ),
-}
+export default {screen: (p: OwnProps) => <Disable {...p.route.params} />}
