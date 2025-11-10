@@ -2,453 +2,188 @@
 import {useState_ as useDarkModeState} from '@/constants/darkmode'
 import {isIOS, isAndroid} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
+import type {Opaque} from '@/constants/types/ts'
 
-export const colors = {
-  black: 'rgba(0, 0, 0, 0.85)',
-  get blackOrBlack() {
-    return this.black
-  },
-  get blackOrWhite() {
-    return this.black
-  },
-  black_05: 'rgba(0, 0, 0, 0.05)',
-  get black_05OrBlack() {
-    return this.black_05
-  },
-  get black_05OrBlack_60() {
-    return this.black_05
-  },
-  get black_05OrWhite_10() {
-    return this.black_05
-  },
-  black_05_on_white: 'rgb(242,242,242)',
-  black_10: 'rgba(0, 0, 0, 0.10)',
-  get black_10OrBlack() {
-    return this.black_10
-  },
-  black_10_on_white: 'rgb(229,229,229)',
-  black_20: 'rgba(0, 0, 0, 0.20)',
-  get black_20OrBlack() {
-    return this.black_20
-  },
-  get black_20OrWhite_20() {
-    return this.black_20
-  },
-  black_20_on_white: 'rgb(204,204,204)',
-  black_35: 'rgba(0, 0, 0, 0.35)',
-  black_40: 'rgba(0, 0, 0, 0.40)',
-  black_50: 'rgba(0, 0, 0, 0.50)',
-  get black_50OrBlack_40() {
-    return this.black_50
-  },
-  get black_50OrBlack_50() {
-    return this.black_50
-  },
-  get black_50OrBlack_60() {
-    return this.black_50
-  },
-  get black_50OrWhite() {
-    return this.black_50
-  },
-  get black_50OrWhite_40() {
-    return this.black_50
-  },
-  get black_50OrWhite_75() {
-    return this.black_50
-  },
-  black_50_on_white: 'rgb(127,127,127)',
-  black_60: 'rgba(0, 0, 0, 0.60)',
-  black_63: 'rgba(0, 0, 0, 0.63)',
-  black_on_white: 'rgb(38,38,38)',
-  blue: '#4C8EFF',
-  blueDark: '#3663EA',
-  get blueDarkOrBlueLight() {
-    return this.blueDark
-  },
-  get blueDarkOrGreyDarkest() {
-    return this.blueDark
-  },
-  blueDarker: '#1036AC',
-  blueDarker2: '#182D6E',
-  blueDarker2_75: 'rgba(24, 45, 110, .75)',
-  blueDarker2_75_on_white: 'rgb(82,98,147)',
-  get blueDarkerOrBlack() {
-    return this.blueDarker
-  },
-  get blueDarkerOrBlack_60() {
-    return this.blueDarker
-  },
-  get blueDarkerOrBlack_85() {
-    return this.blueDarker
-  },
-  blueGrey: '#F2F4F7',
-  blueGreyDark: '#E0E8F6',
-  blueGreyLight: '#F9F9FA',
-  blueLight: '#73A6FF',
-  blueLighter: '#A8CCFF',
-  blueLighter2: '#EBF2FC',
-  blueLighter3: '#F7F9FC',
-  get blueLighterOrBlack_50() {
-    return this.blueLighter
-  },
-  get blueLighterOrBlueDarker() {
-    return this.blueLighter
-  },
-  get blueLighterOrBlueLight() {
-    return this.blueLighter
-  },
-  get blueLighterOrWhite() {
-    return this.blueLighter
-  },
-  blueLighter_20: 'rgba(168, 204, 255, 0.2)',
-  blueLighter_20_on_white: 'rgb(238, 245, 255)',
-  blueLighter_40: 'rgba(168, 204, 255, 0.4)',
-  blueLighter_40_on_white: 'rgb(220, 235, 255)',
-  blueLighter_60: 'rgba(168, 204, 255, 0.6)',
-  blueLighter_60_on_white: 'rgb(203, 224, 255)',
-  blue_10: 'rgba(51, 160, 255, 0.1)',
-  blue_30: 'rgba(51, 160, 255, 0.3)',
-  blue_30_on_white: 'rgb(192,226,255)',
-  blue_60: 'rgba(51, 160, 255, 0.6)',
-  blue_60_on_white: 'rgb(133,198,255)',
-  brown: 'rgb(71, 31, 17)',
-  brown_75: 'rgba(71, 31, 17, 0.75)',
-  get brown_75OrYellow() {
-    return this.brown_75
-  },
-  brown_75_on_white: 'rgb(117,87,78)',
-  // TODO with new arch we need to change this so ios gets tree collapsing
-  fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminated if we use white, on Android it's eliminated if it's undefined /shrug
-  green: '#37BD99',
-  greenDark: '#189e7a',
-  get greenDarkOrBlack() {
-    return this.greenDark
-  },
-  get greenDarkOrWhite() {
-    return this.greenDark
-  },
-  greenDarker: '#12785d',
-  greenLight: '#B7EED9',
-  get greenLightOrWhite() {
-    return this.greenLight
-  },
-  greenLighter: '#E8FAF6',
-  get greenLighterOrGreen() {
-    return this.greenLighter
-  },
-  get greenLighterOrGreenDark() {
-    return this.greenLighter
-  },
-  get greenOrGreenLighter() {
-    return this.greenLighter
-  },
-  grey: '#e6e6e6',
-  greyDark: '#cccccc',
-  greyDarker: '#aaaaaa',
-  greyDarkest: '#2d2d2d',
-  greyLight: '#f0f0f0',
-  orange: '#ff6f21',
-  orange_90: 'rgba(255, 111, 33, 0.9)',
-  purple: '#8852ff',
-  purpleDark: '#6d3fd1',
-  get purpleDarkOrWhite() {
-    return this.purpleDark
-  },
-  purpleDarker: '#5128a8',
-  purpleLight: '#9d70ff',
-  purpleLighter: '#E8DEFF',
-  get purpleOrWhite() {
-    return this.purple
-  },
-  purple_01: 'rgba(132, 82, 255, 0.01)',
-  purple_10: 'rgba(132, 82, 255, 0.1)',
-  get purple_10OrPurple() {
-    return this.purple_10
-  },
-  purple_30: 'rgba(132, 82, 255, 0.3)',
-  purple_40: 'rgba(132, 82, 255, 0.4)',
-  red: '#ff4d61',
-  redDark: '#eb253b',
-  get redDarkOrWhite() {
-    return this.redDark
-  },
-  redDarker: '#bd0b1f',
-  redLight: '#FFCAC1',
-  redLighter: '#FAF2ED',
-  red_10: 'rgba(255,0,0,0.1)',
-  get red_10OrRed() {
-    return this.red_10
-  },
-  red_20: 'rgba(255,0,0,0.2)',
-  red_75: 'rgba(255,0,0,0.75)',
-  red_75_on_white: 'rgb(255,64,64)',
-  transparent: 'rgba(0, 0, 0, 0)',
-  transparent_on_white: '#FFFFFF',
-  white: '#FFFFFF',
-  get whiteOrBlack() {
-    return this.white
-  },
-  get whiteOrBlueDark() {
-    return this.white
-  },
-  get whiteOrGreenDark() {
-    return this.white
-  },
-  get whiteOrWhite() {
-    return this.white
-  },
-  get whiteOrWhite_75() {
-    return this.white
-  },
-  white_0: 'rgba(255, 255, 255, 0)',
-  white_0_on_white: '#FFFFFF',
-  white_10: 'rgba(255, 255, 255, 0.10)',
-  white_20: 'rgba(255, 255, 255, 0.20)',
-  white_20_on_white: '#FFFFFF',
-  white_35: 'rgba(255, 255, 255, 0.35)',
-  white_40: 'rgba(255, 255, 255, 0.40)',
-  get white_40OrBlack_60() {
-    return this.white_40
-  },
-  get white_40OrWhite_40() {
-    return this.white_40
-  },
-  white_40_on_white: '#FFFFFF',
-  white_60: 'rgba(255, 255, 255, 0.60)',
-  white_75: 'rgba(255, 255, 255, 0.75)',
-  white_75_on_white: '#FFFFFF',
-  white_90: 'rgba(255, 255, 255, 0.90)',
-  white_90_on_white: '#FFFFFF',
-  yellow: '#FFF75A',
-  yellowDark: '#FFB800',
-  yellowLight: '#FFFDCC',
-  get yellowOrYellowAlt() {
-    return '#ffffc0'
-  },
+// Define all colors with their light/dark variants in one place
+const colorDefs = {
+  black: {dark: 'rgba(255, 255, 255, 0.85)', light: 'rgba(0, 0, 0, 0.85)'},
+  black_05: {dark: 'rgba(255, 255, 255, 0.05)', light: 'rgba(0, 0, 0, 0.05)'},
+  black_05_on_white: {dark: 'rgb(13, 13, 13)', light: 'rgb(242,242,242)'},
+  black_10: {dark: 'rgba(255, 255, 255, 0.10)', light: 'rgba(0, 0, 0, 0.10)'},
+  black_10_on_white: {dark: 'rgb(26, 26, 26)', light: 'rgb(229,229,229)'},
+  black_20: {dark: 'rgba(255, 255, 255, 0.20)', light: 'rgba(0, 0, 0, 0.20)'},
+  black_20_on_white: {dark: 'rgb(51, 51, 51)', light: 'rgb(204,204,204)'},
+  black_35: {dark: 'rgba(255, 255, 255, 0.35)', light: 'rgba(0, 0, 0, 0.35)'},
+  black_40: {dark: 'rgba(255, 255, 255, 0.40)', light: 'rgba(0, 0, 0, 0.40)'},
+  black_50: {dark: 'rgba(255, 255, 255, 0.50)', light: 'rgba(0, 0, 0, 0.50)'},
+  black_50_on_white: {dark: 'rgb(128, 128, 128)', light: 'rgb(127,127,127)'},
+  black_60: {dark: 'rgba(255, 255, 255, 0.60)', light: 'rgba(0, 0, 0, 0.60)'},
+  black_63: {dark: 'rgba(255, 255, 255, 0.63)', light: 'rgba(0, 0, 0, 0.63)'},
+  black_on_white: {dark: 'rgb(217, 217, 217)', light: 'rgb(38,38,38)'},
+  blue: {dark: '#4C8EFF', light: '#4C8EFF'},
+  blueDark: {dark: '#3663EA', light: '#3663EA'},
+  blueDarker: {dark: '#1036AC', light: '#1036AC'},
+  blueDarker2: {dark: '#182D6E', light: '#182D6E'},
+  blueDarker2_75: {dark: 'rgba(24, 45, 110, .75)', light: 'rgba(24, 45, 110, .75)'},
+  blueDarker2_75_on_white: {dark: 'rgb(173, 157, 108)', light: 'rgb(82,98,147)'},
+  blueGrey: {dark: '#202020', light: '#F2F4F7'},
+  blueGreyDark: {dark: 'rgba(24, 45, 110, .5)', light: '#E0E8F6'},
+  blueGreyLight: {dark: '#222', light: '#F9F9FA'},
+  blueLight: {dark: '#73A6FF', light: '#73A6FF'},
+  blueLighter: {dark: '#4C8EFF', light: '#A8CCFF'},
+  blueLighter2: {dark: 'rgba(24, 45, 110, .5)', light: '#EBF2FC'},
+  blueLighter3: {dark: '#101010', light: '#F7F9FC'},
+  blueLighterOrBlack_50: {dark: 'rgba(255, 255, 255, 0.50)', light: '#A8CCFF'},
+  blueLighter_20: {dark: 'rgba(168, 204, 255, 0.2)', light: 'rgba(168, 204, 255, 0.2)'},
+  blueLighter_20_on_white: {dark: 'rgb(238, 245, 255)', light: 'rgb(238, 245, 255)'},
+  blueLighter_40: {dark: 'rgba(168, 204, 255, 0.4)', light: 'rgba(168, 204, 255, 0.4)'},
+  blueLighter_40_on_white: {dark: 'rgb(220, 235, 255)', light: 'rgb(220, 235, 255)'},
+  blueLighter_60: {dark: 'rgba(168, 204, 255, 0.6)', light: 'rgba(168, 204, 255, 0.6)'},
+  blueLighter_60_on_white: {dark: 'rgb(203, 224, 255)', light: 'rgb(203, 224, 255)'},
+  blue_10: {dark: 'rgba(51, 160, 255, 0.1)', light: 'rgba(51, 160, 255, 0.1)'},
+  blue_30: {dark: 'rgba(51, 160, 255, 0.3)', light: 'rgba(51, 160, 255, 0.3)'},
+  blue_30_on_white: {dark: 'rgb(192,226,255)', light: 'rgb(192,226,255)'},
+  blue_60: {dark: 'rgba(51, 160, 255, 0.6)', light: 'rgba(51, 160, 255, 0.6)'},
+  blue_60_on_white: {dark: 'rgb(133,198,255)', light: 'rgb(133,198,255)'},
+  brown: {dark: 'rgb(71, 31, 17)', light: 'rgb(71, 31, 17)'},
+  brown_75: {dark: 'rgba(71, 31, 17, 0.75)', light: 'rgba(71, 31, 17, 0.75)'},
+  brown_75_on_white: {dark: 'rgb(117,87,78)', light: 'rgb(117,87,78)'},
+  fastBlank: {dark: isIOS ? '#191919' : undefined, light: isIOS ? '#FFFFFF' : undefined},
+  green: {dark: '#37BD99', light: '#37BD99'},
+  greenDark: {dark: '#189E7A', light: '#189E7A'},
+  greenDarker: {dark: '#12785D', light: '#12785D'},
+  greenLight: {dark: '#B7EED9', light: '#B7EED9'},
+  greenLighter: {dark: '#E8FAF6', light: '#E8FAF6'},
+  grey: {dark: '#333', light: '#E6E6E6'},
+  greyDark: {dark: '#666', light: '#CCCCCC'},
+  greyDarker: {dark: '#999', light: '#AAAAAA'},
+  greyDarkest: {dark: '#AAA', light: '#2D2D2D'},
+  greyLight: {dark: '#444', light: '#F0F0F0'},
+  orange: {dark: '#FF6F21', light: '#FF6F21'},
+  orange_90: {dark: 'rgba(255, 111, 33, 0.9)', light: 'rgba(255, 111, 33, 0.9)'},
+  purple: {dark: '#8852FF', light: '#8852FF'},
+  purpleDark: {dark: '#6D3FD1', light: '#6D3FD1'},
+  purpleDarker: {dark: '#5128a8', light: '#5128a8'},
+  purpleLight: {dark: '#9D70FF', light: '#9D70FF'},
+  purpleLighter: {dark: '#E8DEFF', light: '#E8DEFF'},
+  purple_01: {dark: 'rgba(132, 82, 255, 0.01)', light: 'rgba(132, 82, 255, 0.01)'},
+  purple_10: {dark: 'rgba(132, 82, 255, 0.1)', light: 'rgba(132, 82, 255, 0.1)'},
+  purple_30: {dark: 'rgba(132, 82, 255, 0.3)', light: 'rgba(132, 82, 255, 0.3)'},
+  purple_40: {dark: 'rgba(132, 82, 255, 0.4)', light: 'rgba(132, 82, 255, 0.4)'},
+  red: {dark: '#FF4D61', light: '#FF4D61'},
+  redDark: {dark: '#EB253B', light: '#EB253B'},
+  redDarker: {dark: '#BD0B1F', light: '#BD0B1F'},
+  redLight: {dark: '#FFCAC1', light: '#FFCAC1'},
+  redLighter: {dark: '#2D2D2D', light: '#FAF2ED'},
+  red_10: {dark: 'rgba(255,0,0,0.1)', light: 'rgba(255,0,0,0.1)'},
+  red_20: {dark: 'rgba(255,0,0,0.2)', light: 'rgba(255,0,0,0.2)'},
+  red_75: {dark: 'rgba(255,0,0,0.75)', light: 'rgba(255,0,0,0.75)'},
+  red_75_on_white: {dark: 'rgb(255,64,64)', light: 'rgb(255,64,64)'},
+  transparent: {dark: 'rgba(255, 255, 255, 0)', light: 'rgba(0, 0, 0, 0)'},
+  transparent_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white: {dark: '#191919', light: '#FFFFFF'},
+  white_0: {dark: 'rgba(25, 25, 25, 0)', light: 'rgba(255, 255, 255, 0)'},
+  white_0_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_10: {dark: 'rgba(25, 25, 25, 0.10)', light: 'rgba(255, 255, 255, 0.10)'},
+  white_20: {dark: 'rgba(25, 25, 25, 0.20)', light: 'rgba(255, 255, 255, 0.20)'},
+  white_20_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_35: {dark: 'rgba(25, 25, 25, 0.35)', light: 'rgba(255, 255, 255, 0.35)'},
+  white_40: {dark: 'rgba(25, 25, 25, 0.40)', light: 'rgba(255, 255, 255, 0.40)'},
+  white_40_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_60: {dark: 'rgba(25, 25, 25, 0.60)', light: 'rgba(255, 255, 255, 0.60)'},
+  white_75: {dark: 'rgba(25, 25, 25, 0.75)', light: 'rgba(255, 255, 255, 0.75)'},
+  white_75_on_white: {dark: '#191919', light: '#FFFFFF'},
+  white_90: {dark: 'rgba(25, 25, 25, 0.90)', light: 'rgba(255, 255, 255, 0.90)'},
+  white_90_on_white: {dark: '#191919', light: '#FFFFFF'},
+  yellow: {dark: '#FFF75A', light: '#FFF75A'},
+  yellowDark: {dark: '#FFB800', light: '#FFB800'},
+  yellowLight: {dark: '#FFFDCC', light: '#FFFDCC'},
 } as const
 
-export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
-  black: 'rgba(255, 255, 255, 0.85)',
-  get blackOrBlack() {
-    return colors.black
-  },
-  get blackOrWhite() {
-    return colors.white
-  },
-  black_05: 'rgba(255, 255, 255, 0.05)',
-  get black_05OrBlack() {
-    return colors.black
-  },
-  get black_05OrBlack_60() {
-    return colors.black_60
-  },
-  get black_05OrWhite_10() {
-    return colors.white_10
-  },
-  black_05_on_white: 'rgb(13, 13, 13)',
-  black_10: 'rgba(255, 255, 255, 0.10)',
-  get black_10OrBlack() {
-    return colors.black
-  },
-  black_10_on_white: 'rgb(26, 26, 26)',
-  black_20: 'rgba(255, 255, 255, 0.20)',
-  get black_20OrBlack() {
-    return colors.black
-  },
-  get black_20OrWhite_20() {
-    return colors.white_20
-  },
-  black_20_on_white: 'rgb(51, 51, 51)',
-  black_35: 'rgba(255, 255, 255, 0.35)',
-  black_40: 'rgba(255, 255, 255, 0.40)',
-  black_50: 'rgba(255, 255, 255, 0.50)',
-  get black_50OrBlack_40() {
-    return colors.black_40
-  },
-  get black_50OrBlack_50() {
-    return colors.black_50
-  },
-  get black_50OrBlack_60() {
-    return colors.black_60
-  },
-  get black_50OrWhite() {
-    return colors.white
-  },
-  get black_50OrWhite_40() {
-    return colors.white_40
-  },
-  get black_50OrWhite_75() {
-    return colors.white_75
-  },
-  black_50_on_white: 'rgb(128, 128, 128)',
-  black_60: 'rgba(255, 255, 255, 0.60)',
-  black_63: 'rgba(255, 255, 255, 0.63)',
-  black_on_white: 'rgb(217, 217, 217)',
-  blue: '#4C8EFF',
-  blueDark: '#3663EA',
-  get blueDarkOrBlueLight() {
-    return colors.blueLight
-  },
-  get blueDarkOrGreyDarkest() {
-    return colors.greyDarkest
-  },
-  blueDarker: '#1036AC',
-  blueDarker2: '#182D6E',
-  blueDarker2_75: 'rgba(24, 45, 110, .75)',
-  blueDarker2_75_on_white: 'rgb(173, 157, 108)',
-  get blueDarkerOrBlack() {
-    return colors.black
-  },
-  get blueDarkerOrBlack_60() {
-    return colors.black_60
-  },
-  get blueDarkerOrBlack_85() {
-    return 'rgba(0, 0, 0, .85)'
-  },
-  blueGrey: '#202020',
-  blueGreyDark: 'rgba(24, 45, 110, .5)',
-  blueGreyLight: '#222',
-  blueLight: '#73A6FF',
-  blueLighter: '#4C8EFF',
-  blueLighter2: 'rgba(24, 45, 110, .5)',
-  blueLighter3: '#101010',
-  get blueLighterOrBlack_50() {
-    return this.black_50
-  },
-  get blueLighterOrBlueDarker() {
-    return this.blueDarker
-  },
-  get blueLighterOrBlueLight() {
-    return colors.blueLight
-  },
-  get blueLighterOrWhite() {
-    return colors.white
-  },
-  blueLighter_20: 'rgba(168, 204, 255, 0.2)',
-  blueLighter_20_on_white: 'rgb(238, 245, 255)',
-  blueLighter_40: 'rgba(168, 204, 255, 0.4)',
-  blueLighter_40_on_white: 'rgb(220, 235, 255)',
-  blueLighter_60: 'rgba(168, 204, 255, 0.6)',
-  blueLighter_60_on_white: 'rgb(203, 224, 255)',
-  blue_10: 'rgba(51, 160, 255, 0.1)',
-  blue_30: 'rgba(51, 160, 255, 0.3)',
-  blue_30_on_white: 'rgb(192,226,255)',
-  blue_60: 'rgba(51, 160, 255, 0.6)',
-  blue_60_on_white: 'rgb(133,198,255)',
-  brown: 'rgb(71, 31, 17)',
-  brown_75: 'rgba(71, 31, 17, 0.75)',
-  get brown_75OrYellow() {
-    return colors.yellow
-  },
-  brown_75_on_white: 'rgb(117,87,78)',
-  fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
-  green: '#37BD99',
-  greenDark: '#189e7a',
-  get greenDarkOrBlack() {
-    return colors.black
-  },
-  get greenDarkOrWhite() {
-    return colors.white
-  },
-  greenDarker: '#12785d',
-  greenLight: '#B7EED9',
-  get greenLightOrWhite() {
-    return colors.white
-  },
-  greenLighter: '#E8FAF6',
-  get greenLighterOrGreen() {
-    return colors.green
-  },
-  get greenLighterOrGreenDark() {
-    return colors.greenDark
-  },
-  get greenOrGreenLighter() {
-    return colors.greenLighter
-  },
-  grey: '#333',
-  greyDark: '#666',
-  greyDarker: '#999',
-  greyDarkest: '#aaa',
-  greyLight: '#444',
-  orange: '#ff6f21',
-  orange_90: 'rgba(255, 111, 33, 0.9)',
-  purple: '#8852ff',
-  purpleDark: '#6d3fd1',
-  get purpleDarkOrWhite() {
-    return colors.white
-  },
-  purpleDarker: '#5128a8',
-  purpleLight: '#9d70ff',
-  purpleLighter: '#E8DEFF',
-  get purpleOrWhite() {
-    return colors.white
-  },
-  purple_01: 'rgba(132, 82, 255, 0.01)',
-  purple_10: 'rgba(132, 82, 255, 0.1)',
-  get purple_10OrPurple() {
-    return colors.purple
-  },
-  purple_30: 'rgba(132, 82, 255, 0.3)',
-  purple_40: 'rgba(132, 82, 255, 0.4)',
-  red: '#ff4d61',
-  redDark: '#eb253b',
-  get redDarkOrWhite() {
-    return colors.white
-  },
-  redDarker: '#bd0b1f',
-  redLight: '#FFCAC1',
-  redLighter: '#2d2d2d',
-  red_10: 'rgba(255,0,0,0.1)',
-  get red_10OrRed() {
-    return colors.red
-  },
-  red_20: 'rgba(255,0,0,0.2)',
-  red_75: 'rgba(255,0,0,0.75)',
-  red_75_on_white: 'rgb(255,64,64)',
-  transparent: 'rgba(255, 255, 255, 0)',
-  transparent_on_white: '#191919',
-  white: '#191919',
-  get whiteOrBlack() {
-    return colors.black
-  },
-  get whiteOrBlueDark() {
-    return colors.blueDark
-  },
-  get whiteOrGreenDark() {
-    return colors.greenDark
-  },
-  get whiteOrWhite() {
-    return colors.white
-  },
-  get whiteOrWhite_75() {
-    return colors.white_75
-  },
-  white_0: 'rgba(25, 25, 25, 0)',
-  white_0_on_white: '#191919',
-  white_10: 'rgba(25, 25, 25, 0.10)',
-  white_20: 'rgba(25, 25, 25, 0.20)',
-  white_20_on_white: '#191919',
-  white_35: 'rgba(25, 25, 25, 0.35)',
-  white_40: 'rgba(25, 25, 25, 0.40)',
-  get white_40OrBlack_60() {
-    return colors.black_60
-  },
-  get white_40OrWhite_40() {
-    return colors.white_40
-  },
-  white_40_on_white: '#191919',
-  white_60: 'rgba(25, 25, 25, 0.60)',
-  white_75: 'rgba(25, 25, 25, 0.75)',
-  white_75_on_white: '#191919',
-  white_90: 'rgba(25, 25, 25, 0.90)',
-  white_90_on_white: '#191919',
-  yellow: '#FFF75A',
-  yellowDark: '#FFB800',
-  yellowLight: '#FFFDCC',
-  get yellowOrYellowAlt() {
-    return '#c3c390'
-  },
+//  colors based on light names
+const colorVariants = {
+  blackOrBlack: {dark: 'black', light: 'black'},
+  blackOrWhite: {dark: 'white', light: 'black'},
+  black_05OrBlack: {dark: 'black', light: 'black_05'},
+  black_05OrBlack_60: {dark: 'black_60', light: 'black_05'},
+  black_05OrWhite_10: {dark: 'white_10', light: 'black_05'},
+  black_10OrBlack: {dark: 'black', light: 'black_10'},
+  black_20OrBlack: {dark: 'black', light: 'black_20'},
+  black_20OrWhite_20: {dark: 'white_20', light: 'black_20'},
+  black_50OrBlack_40: {dark: 'black_40', light: 'black_50'},
+  black_50OrBlack_50: {dark: 'black_50', light: 'black_50'},
+  black_50OrBlack_60: {dark: 'black_60', light: 'black_50'},
+  black_50OrWhite: {dark: 'white', light: 'black_50'},
+  black_50OrWhite_40: {dark: 'white_40', light: 'black_50'},
+  black_50OrWhite_75: {dark: 'white_75', light: 'black_50'},
+  blueDarkOrBlueLight: {dark: 'blueLight', light: 'blueDark'},
+  blueDarkOrGreyDarkest: {dark: 'greyDarkest', light: 'blueDark'},
+  blueDarkerOrBlack: {dark: 'black', light: 'blueDarker'},
+  blueDarkerOrBlack_60: {dark: 'black_60', light: 'blueDarker'},
+  blueLighterOrBlueDarker: {dark: 'blueDarker', light: 'blueLighter'},
+  blueLighterOrBlueLight: {dark: 'blueLight', light: 'blueLighter'},
+  blueLighterOrWhite: {dark: 'white', light: 'blueLighter'},
+  greenDarkOrBlack: {dark: 'black', light: 'greenDark'},
+  greenDarkOrWhite: {dark: 'white', light: 'greenDark'},
+  greenLightOrWhite: {dark: 'white', light: 'greenLight'},
+  greenLighterOrGreen: {dark: 'green', light: 'greenLighter'},
+  greenLighterOrGreenDark: {dark: 'greenDark', light: 'greenLighter'},
+  greenOrGreenLighter: {dark: 'greenLighter', light: 'greenLighter'},
+  purpleDarkOrWhite: {dark: 'white', light: 'purpleDark'},
+  purpleOrWhite: {dark: 'white', light: 'purple'},
+  purple_10OrPurple: {dark: 'purple', light: 'purple_10'},
+  redDarkOrWhite: {dark: 'white', light: 'redDark'},
+  red_10OrRed: {dark: 'red', light: 'red_10'},
+  whiteOrBlack: {dark: 'black', light: 'white'},
+  whiteOrBlueDark: {dark: 'blueDark', light: 'white'},
+  whiteOrGreenDark: {dark: 'greenDark', light: 'white'},
+  whiteOrWhite: {dark: 'white', light: 'white'},
+  whiteOrWhite_75: {dark: 'white_75', light: 'white'},
+  white_40OrBlack_60: {dark: 'black_60', light: 'white_40'},
+  white_40OrWhite_40: {dark: 'white_40', light: 'white_40'},
 } as const
+
+// Special variants with literal values
+const specialVariants = {
+  blueDarkerOrBlack_85: {dark: 'rgba(0, 0, 0, .85)', light: 'blueDarker'},
+  brown_75OrYellow: {dark: 'yellow', light: 'brown_75'},
+  yellowOrYellowAlt: {dark: '#C3C390', light: '#FFFFC0'},
+} as const
+
+type ColorNames = keyof typeof colorDefs | keyof typeof colorVariants | keyof typeof specialVariants
+
+// Create a unique opaque type for each color name
+type OpaqueColors = {
+  [K in ColorNames]: Opaque<string, K>
+}
+
+function createColorObject(mode: 'light' | 'dark') {
+  const result = {} as Record<ColorNames, string>
+
+  for (const [_key, val] of Object.entries(colorDefs)) {
+    const key = _key as keyof typeof colorDefs
+    const color = val[mode]
+    result[key] = color as string
+  }
+
+  for (const [_key, val] of Object.entries(colorVariants)) {
+    const key = _key as keyof typeof colorVariants
+    const colorName = val[mode]
+    result[key] = colorDefs[colorName].light
+  }
+
+  for (const [_key, val] of Object.entries(specialVariants)) {
+    const key = _key as keyof typeof specialVariants
+    const ref = val[mode]
+    const r = result as Record<string, string>
+    result[key] = r[ref] ?? ref
+  }
+
+  return result as {[K in ColorNames]: OpaqueColors[K]}
+}
+
+export const colors = createColorObject('light')
+export const darkColors = createColorObject('dark')
 
 type Color = typeof colors
 type Names = keyof Color
@@ -460,7 +195,7 @@ if (isIOS) {
     DynamicColorIOS: typeof DynamicColorIOSType
   }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
-    obj[name] = DynamicColorIOS({dark: darkColors[name] ?? '', light: colors[name] ?? ''})
+    obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
   }, {}) as Color
 } else {

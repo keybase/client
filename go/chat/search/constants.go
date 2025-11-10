@@ -13,8 +13,8 @@ const MaxContext = 15
 
 const (
 	// max convs to sync in the background
-	maxSyncConvsDesktop = 50
-	maxSyncConvsMobile  = 5
+	maxSyncConvsDesktop = 100
+	maxSyncConvsMobile  = 10
 
 	// tokenizer
 	maxPrefixLength = 10
@@ -22,5 +22,9 @@ const (
 
 	// delay before starting SelectiveSync
 	startSyncDelayDesktop = 10 * time.Second
-	startSyncDelayMobile  = 30 * time.Second
+	startSyncDelayMobile  = 20 * time.Second
+
+	// sync frequency - how often SelectiveSync runs
+	syncIntervalDesktop = 5 * time.Minute
+	syncIntervalMobile  = 15 * time.Minute
 )

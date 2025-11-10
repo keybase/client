@@ -106,76 +106,38 @@ type diskStorage interface {
 	RemoveAliasEntry(ctx context.Context, alias string)
 	GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error)
 	PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error
-	Flush() error
-	Cancel()
+	Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 }
 
-type tokenBatch struct {
-	convID chat1.ConversationID
-	tokens map[string]*tokenEntry
-}
-
-func newTokenBatch(convID chat1.ConversationID) *tokenBatch {
-	return &tokenBatch{
-		convID: convID,
-		tokens: make(map[string]*tokenEntry),
-	}
-}
-
-type mdBatch struct {
-	convID chat1.ConversationID
-	md     *indexMetadata
-}
-
-type batchingStore struct {
+type diskStore struct {
 	utils.DebugLabeler
-	sync.Mutex
 
-	uid        gregor1.UID
-	mdb        *libkb.JSONLocalDb
-	edb        *encrypteddb.EncryptedDB
-	keyFn      func(ctx context.Context) ([32]byte, error)
-	aliasBatch map[string]*aliasEntry
-	tokenBatch map[chat1.ConvIDStr]*tokenBatch
-	mdBatch    map[chat1.ConvIDStr]*mdBatch
+	uid   gregor1.UID
+	mdb   *libkb.JSONLocalDb
+	edb   *encrypteddb.EncryptedDB
+	keyFn func(ctx context.Context) ([32]byte, error)
 }
 
-func newBatchingStore(g *globals.Context, uid gregor1.UID,
+func newDiskStore(g *globals.Context, uid gregor1.UID,
 	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB,
-	mdb *libkb.JSONLocalDb) *batchingStore {
-	b := &batchingStore{
-		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.batchingStore", false),
+	mdb *libkb.JSONLocalDb) *diskStore {
+	return &diskStore{
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.diskStore", false),
 		uid:          uid,
 		keyFn:        keyFn,
 		edb:          edb,
 		mdb:          mdb,
 	}
-	b.Lock()
-	b.resetLocked()
-	b.Unlock()
-	return b
 }
 
-func (b *batchingStore) resetLocked() {
-	b.aliasBatch = make(map[string]*aliasEntry)
-	b.tokenBatch = make(map[chat1.ConvIDStr]*tokenBatch)
-	b.mdBatch = make(map[chat1.ConvIDStr]*mdBatch)
-}
-
-func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
+func (d *diskStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) (res *tokenEntry, err error) {
-	b.Lock()
-	defer b.Unlock()
-	batch, ok := b.tokenBatch[convID.ConvIDStr()]
-	if ok && batch.tokens[token] != nil {
-		return batch.tokens[token].dup(), nil
-	}
-	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
+	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
 	if err != nil {
 		return nil, err
 	}
 	res = new(tokenEntry)
-	found, err := b.edb.Get(ctx, key, res)
+	found, err := d.edb.Get(ctx, key, res)
 	if err != nil {
 		return nil, err
 	}
@@ -185,51 +147,34 @@ func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.Conversa
 	return res, nil
 }
 
-func (b *batchingStore) PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
+func (d *diskStore) PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string, te *tokenEntry) (err error) {
-	b.Lock()
-	defer b.Unlock()
-	key := convID.ConvIDStr()
-	batch, ok := b.tokenBatch[key]
-	if !ok {
-		batch = newTokenBatch(convID)
+	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
+	if err != nil {
+		return err
 	}
-	batch.tokens[token] = te
-	b.tokenBatch[key] = batch
-	return nil
+	return d.edb.Put(ctx, key, te)
 }
 
-func (b *batchingStore) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID,
+func (d *diskStore) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) {
-	b.Lock()
-	defer b.Unlock()
-	batch, ok := b.tokenBatch[convID.ConvIDStr()]
-	if ok {
-		delete(batch.tokens, token)
-	}
-	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
+	key, err := tokenKey(ctx, d.uid, convID, token, d.keyFn)
 	if err != nil {
-		b.Debug(ctx, "RemoveTokenEntry: failed to get tokenkey: %s", err)
+		d.Debug(ctx, "RemoveTokenEntry: failed to get tokenkey: %s", err)
 		return
 	}
-	if err := b.mdb.Delete(key); err != nil {
-		b.Debug(ctx, "RemoveTokenEntry: failed to delete key: %s", err)
+	if err := d.mdb.Delete(key); err != nil {
+		d.Debug(ctx, "RemoveTokenEntry: failed to delete key: %s", err)
 	}
 }
 
-func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
-	b.Lock()
-	defer b.Unlock()
-	var ok bool
-	if res, ok = b.aliasBatch[alias]; ok {
-		return res.dup(), nil
-	}
-	key, err := aliasKey(ctx, alias, b.keyFn)
+func (d *diskStore) GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
+	key, err := aliasKey(ctx, alias, d.keyFn)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	res = new(aliasEntry)
-	found, err := b.edb.Get(ctx, key, res)
+	found, err := d.edb.Get(ctx, key, res)
 	if err != nil {
 		return nil, err
 	}
@@ -239,36 +184,29 @@ func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *a
 	return res, nil
 }
 
-func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
-	b.Lock()
-	defer b.Unlock()
-	b.aliasBatch[alias] = ae
-	return nil
+func (d *diskStore) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
+	key, err := aliasKey(ctx, alias, d.keyFn)
+	if err != nil {
+		return err
+	}
+	return d.edb.Put(ctx, key, ae)
 }
 
-func (b *batchingStore) RemoveAliasEntry(ctx context.Context, alias string) {
-	b.Lock()
-	defer b.Unlock()
-	delete(b.aliasBatch, alias)
-	key, err := aliasKey(ctx, alias, b.keyFn)
+func (d *diskStore) RemoveAliasEntry(ctx context.Context, alias string) {
+	key, err := aliasKey(ctx, alias, d.keyFn)
 	if err != nil {
-		b.Debug(ctx, "RemoveAliasEntry: failed to get key: %s", err)
+		d.Debug(ctx, "RemoveAliasEntry: failed to get key: %s", err)
 		return
 	}
-	if err := b.mdb.Delete(key); err != nil {
-		b.Debug(ctx, "RemoveAliasEntry: failed to delete key: %s", err)
+	if err := d.mdb.Delete(key); err != nil {
+		d.Debug(ctx, "RemoveAliasEntry: failed to delete key: %s", err)
 	}
 }
 
-func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
-	b.Lock()
-	defer b.Unlock()
-	if md, ok := b.mdBatch[convID.ConvIDStr()]; ok {
-		return md.md.dup(), nil
-	}
-	key := metadataKey(b.uid, convID)
+func (d *diskStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
+	key := metadataKey(d.uid, convID)
 	res = new(indexMetadata)
-	found, err := b.mdb.GetIntoMsgpack(res, key)
+	found, err := d.mdb.GetIntoMsgpack(res, key)
 	if err != nil {
 		return nil, err
 	}
@@ -278,81 +216,55 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 	return res, nil
 }
 
-func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
-	b.Lock()
-	defer b.Unlock()
-	b.mdBatch[convID.ConvIDStr()] = &mdBatch{
-		md:     md,
-		convID: convID,
-	}
-	return nil
+func (d *diskStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
+	return d.mdb.PutObjMsgpack(metadataKey(d.uid, convID), nil, md)
 }
 
-func (b *batchingStore) Flush() (err error) {
-	ctx := context.Background()
-	defer b.Trace(ctx, &err, "Flush")()
-	b.Lock()
-	defer b.Unlock()
-	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
-		return nil
+func (d *diskStore) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	mdKey := metadataKey(uid, convID)
+	tokKey := libkb.DbKey{
+		Typ: libkb.DBChatIndex,
+		Key: fmt.Sprintf("tm:%s:%s:", uid, convID),
 	}
-	defer b.resetLocked()
-
-	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(b.tokenBatch))
-	for _, tokenBatch := range b.tokenBatch {
-		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
-		for token, te := range tokenBatch.tokens {
-			key, err := tokenKey(ctx, b.uid, tokenBatch.convID, token, b.keyFn)
-			if err != nil {
-				return err
-			}
-			if err := b.edb.Put(ctx, key, te); err != nil {
-				return err
-			}
+	dbKeys, err := d.G().LocalChatDb.KeysWithPrefixes(mdKey.ToBytes(), tokKey.ToBytes())
+	if err != nil {
+		return fmt.Errorf("could not get KeysWithPrefixes: %v", err)
+	}
+	epick := libkb.FirstErrorPicker{}
+	for dbKey := range dbKeys {
+		if dbKey.Typ == libkb.DBChatIndex &&
+			(strings.HasPrefix(dbKey.Key, mdKey.Key) ||
+				strings.HasPrefix(dbKey.Key, tokKey.Key)) {
+			epick.Push(d.G().LocalChatDb.Delete(dbKey))
 		}
 	}
-	b.Debug(ctx, "Flush: flushing %d aliases", len(b.aliasBatch))
-	for alias, ae := range b.aliasBatch {
-		key, err := aliasKey(ctx, alias, b.keyFn)
-		if err != nil {
-			return err
-		}
-		if err := b.edb.Put(ctx, key, ae); err != nil {
-			return err
-		}
-	}
-	b.Debug(ctx, "Flush: flushing %d conv metadata", len(b.mdBatch))
-	for _, mdBatch := range b.mdBatch {
-		b.Debug(ctx, "Flush: flushing md from %s", mdBatch.convID)
-		if err := b.mdb.PutObjMsgpack(metadataKey(b.uid, mdBatch.convID), nil, mdBatch.md); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *batchingStore) Cancel() {
-	defer b.Trace(context.Background(), nil, "Cancel")()
-	b.Lock()
-	defer b.Unlock()
-	b.resetLocked()
+	return epick.Error()
 }
 
 type store struct {
 	globals.Contextified
 	utils.DebugLabeler
-	sync.RWMutex
+	sync.RWMutex // Protects caches and dirty tracking
 
 	uid         gregor1.UID
 	keyFn       func(ctx context.Context) ([32]byte, error)
 	aliasCache  *lru.Cache
 	tokenCache  *lru.Cache
+	mdCache     *lru.Cache
 	diskStorage diskStorage
+
+	// Track dirty entries that need to be flushed to disk
+	dirtyTokens   map[chat1.ConvIDStr]map[string]struct{} // map[convIDStr][token]
+	dirtyAliases  map[string]struct{}                     // map[alias]
+	dirtyMetadata map[chat1.ConvIDStr]struct{}            // map[convIDStr]
+
+	flushMtx sync.Mutex // Synchronizes flush operations to disk
 }
 
 func newStore(g *globals.Context, uid gregor1.UID) *store {
 	ac, _ := lru.New(10000)
 	tc, _ := lru.New(3000)
+	mc, _ := lru.New(500) // Metadata cache (smaller, fewer active conversations)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
@@ -360,14 +272,17 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 		return g.LocalChatDb
 	}
 	return &store{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.store", false),
-		uid:          uid,
-		keyFn:        keyFn,
-		aliasCache:   ac,
-		tokenCache:   tc,
-		diskStorage: newBatchingStore(g, uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn),
-			g.LocalChatDb),
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "Search.store", false),
+		uid:           uid,
+		keyFn:         keyFn,
+		aliasCache:    ac,
+		tokenCache:    tc,
+		mdCache:       mc,
+		diskStorage:   newDiskStore(g, uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn), g.LocalChatDb),
+		dirtyTokens:   make(map[chat1.ConvIDStr]map[string]struct{}),
+		dirtyAliases:  make(map[string]struct{}),
+		dirtyMetadata: make(map[chat1.ConvIDStr]struct{}),
 	}
 }
 
@@ -549,11 +464,6 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	if te, ok := s.tokenCache.Get(cacheKey); ok {
 		return te.(*tokenEntry), nil
 	}
-	defer func() {
-		if err == nil {
-			s.tokenCache.Add(cacheKey, res.dup())
-		}
-	}()
 	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
 		return nil, err
 	}
@@ -564,6 +474,7 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	if res.Version != refTokenEntry.Version {
 		return newTokenEntry(), nil
 	}
+	s.tokenCache.Add(cacheKey, res)
 	return res, nil
 }
 
@@ -571,11 +482,6 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	if dat, ok := s.aliasCache.Get(alias); ok {
 		return dat.(*aliasEntry), nil
 	}
-	defer func() {
-		if err == nil {
-			s.aliasCache.Add(alias, res.dup())
-		}
-	}()
 	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
 		return nil, err
 	}
@@ -586,36 +492,62 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	if res.Version != refAliasEntry.Version {
 		return newAliasEntry(), nil
 	}
+	s.aliasCache.Add(alias, res)
 	return res, nil
 }
 
 func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string, te *tokenEntry) (err error) {
-	defer func() {
-		if err == nil {
-			s.tokenCache.Add(s.tokenCacheKey(convID, token), te.dup())
-		}
-	}()
-	return s.diskStorage.PutTokenEntry(ctx, convID, token, te)
+	cacheKey := s.tokenCacheKey(convID, token)
+	s.tokenCache.Add(cacheKey, te)
+
+	convIDStr := convID.ConvIDStr()
+	if s.dirtyTokens[convIDStr] == nil {
+		s.dirtyTokens[convIDStr] = make(map[string]struct{})
+	}
+	s.dirtyTokens[convIDStr][token] = struct{}{}
+
+	return nil
 }
 
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
-	defer func() {
-		if err == nil {
-			s.aliasCache.Add(alias, ae.dup())
-		}
-	}()
-	return s.diskStorage.PutAliasEntry(ctx, alias, ae)
+	s.aliasCache.Add(alias, ae)
+	s.dirtyAliases[alias] = struct{}{}
+
+	return nil
+}
+
+func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
+	convIDStr := convID.ConvIDStr()
+	s.mdCache.Add(convIDStr, md)
+	s.dirtyMetadata[convIDStr] = struct{}{}
+
+	return nil
 }
 
 func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) {
-	s.tokenCache.Remove(s.tokenCacheKey(convID, token))
+	cacheKey := s.tokenCacheKey(convID, token)
+
+	s.tokenCache.Remove(cacheKey)
+
+	convIDStr := convID.ConvIDStr()
+	if tokens, ok := s.dirtyTokens[convIDStr]; ok {
+		delete(tokens, token)
+		// Clean up empty map
+		if len(tokens) == 0 {
+			delete(s.dirtyTokens, convIDStr)
+		}
+	}
+
+	// Delete from disk immediately
 	s.diskStorage.RemoveTokenEntry(ctx, convID, token)
 }
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 	s.aliasCache.Remove(alias)
+	delete(s.dirtyAliases, alias)
+	// Delete from disk immediately
 	s.diskStorage.RemoveAliasEntry(ctx, alias)
 }
 
@@ -705,16 +637,22 @@ func (s *store) removeMsg(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
+	convIDStr := convID.ConvIDStr()
+	if cached, ok := s.mdCache.Get(convIDStr); ok {
+		return cached.(*indexMetadata), nil
+	}
+
 	if res, err = s.diskStorage.GetMetadata(ctx, convID); err != nil {
-		return res, err
+		return nil, err
 	}
 	if res == nil {
 		s.deleteOldMetadataVersions(ctx, convID)
-		return newIndexMetadata(), nil
+		res = newIndexMetadata()
+	} else if res.Version != refIndexMetadata.Version {
+		res = newIndexMetadata()
 	}
-	if res.Version != refIndexMetadata.Version {
-		return newIndexMetadata(), nil
-	}
+
+	s.mdCache.Add(convIDStr, res)
 	return res, nil
 }
 
@@ -748,10 +686,8 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		return err
 	}
 	defer func() {
-		if modified {
-			if err := s.diskStorage.PutMetadata(ctx, convID, md); err != nil {
-				s.Debug(ctx, "failed to put metadata: %s", err)
-			}
+		if modified && err == nil {
+			err = s.putMetadata(ctx, convID, md)
 		}
 	}()
 	for _, msg := range msgs {
@@ -835,33 +771,117 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 
 func (s *store) ClearMemory() {
 	defer s.Trace(context.Background(), nil, "ClearMemory")()
+	s.Lock()
+	defer s.Unlock()
+
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
-	s.diskStorage.Cancel()
+	s.mdCache.Purge()
+
+	s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
+	s.dirtyAliases = make(map[string]struct{})
+	s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
 }
 
 func (s *store) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
-	mdKey := metadataKey(uid, convID)
-	tokKey := libkb.DbKey{
-		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("tm:%s:%s:", uid, convID),
-	}
-	dbKeys, err := s.G().LocalChatDb.KeysWithPrefixes(mdKey.ToBytes(), tokKey.ToBytes())
-	if err != nil {
-		return fmt.Errorf("could not get KeysWithPrefixes: %v", err)
-	}
-	epick := libkb.FirstErrorPicker{}
-	for dbKey := range dbKeys {
-		if dbKey.Typ == libkb.DBChatIndex &&
-			(strings.HasPrefix(dbKey.Key, mdKey.Key) ||
-				strings.HasPrefix(dbKey.Key, tokKey.Key)) {
-			epick.Push(s.G().LocalChatDb.Delete(dbKey))
-		}
-	}
 	s.ClearMemory()
-	return epick.Error()
+	return s.diskStorage.Clear(ctx, uid, convID)
 }
 
 func (s *store) Flush() error {
-	return s.diskStorage.Flush()
+	ctx := context.Background()
+	defer s.Trace(ctx, nil, "store.Flush")()
+
+	s.flushMtx.Lock()
+	defer s.flushMtx.Unlock()
+
+	// Snapshot the cache entries that need to be flushed to disk.
+	type tokenSnapshot struct {
+		convID chat1.ConversationID
+		token  string
+		entry  *tokenEntry
+	}
+	var tokenSnapshots []tokenSnapshot
+	aliasSnapshots := make(map[string]*aliasEntry)
+	mdSnapshots := make(map[chat1.ConvIDStr]*indexMetadata)
+	{
+		s.Lock()
+
+		if len(s.dirtyTokens) == 0 && len(s.dirtyAliases) == 0 && len(s.dirtyMetadata) == 0 {
+			s.Debug(ctx, "Flush: nothing dirty, skipping")
+			s.Unlock()
+			return nil
+		}
+
+		for convIDStr, tokens := range s.dirtyTokens {
+			convID, err := chat1.MakeConvID(string(convIDStr))
+			if err != nil {
+				s.Debug(ctx, "Flush: invalid convID %s: %s", convIDStr, err)
+				continue
+			}
+			for token := range tokens {
+				cacheKey := s.tokenCacheKey(convID, token)
+				if cachedVal, ok := s.tokenCache.Get(cacheKey); ok {
+					te := cachedVal.(*tokenEntry)
+					tokenSnapshots = append(tokenSnapshots, tokenSnapshot{
+						convID: convID,
+						token:  token,
+						entry:  te.dup(),
+					})
+				}
+			}
+		}
+
+		for alias := range s.dirtyAliases {
+			if cachedVal, ok := s.aliasCache.Get(alias); ok {
+				ae := cachedVal.(*aliasEntry)
+				aliasSnapshots[alias] = ae.dup()
+			}
+		}
+
+		for convIDStr := range s.dirtyMetadata {
+			if cachedVal, ok := s.mdCache.Get(convIDStr); ok {
+				md := cachedVal.(*indexMetadata)
+				mdSnapshots[convIDStr] = md.dup()
+			}
+		}
+
+		// Clear dirty tracking
+		s.dirtyTokens = make(map[chat1.ConvIDStr]map[string]struct{})
+		s.dirtyAliases = make(map[string]struct{})
+		s.dirtyMetadata = make(map[chat1.ConvIDStr]struct{})
+
+		s.Unlock()
+	}
+
+	s.Debug(ctx, "Flush: writing %d tokens, %d aliases, %d metadata to disk",
+		len(tokenSnapshots), len(aliasSnapshots), len(mdSnapshots))
+
+	for _, snapshot := range tokenSnapshots {
+		if err := s.diskStorage.PutTokenEntry(ctx, snapshot.convID, snapshot.token, snapshot.entry); err != nil {
+			s.Debug(ctx, "Flush: failed to write token: %s", err)
+			return err
+		}
+	}
+
+	for alias, ae := range aliasSnapshots {
+		if err := s.diskStorage.PutAliasEntry(ctx, alias, ae); err != nil {
+			s.Debug(ctx, "Flush: failed to write alias: %s", err)
+			return err
+		}
+	}
+
+	for convIDStr, md := range mdSnapshots {
+		convID, err := chat1.MakeConvID(string(convIDStr))
+		if err != nil {
+			s.Debug(ctx, "Flush: invalid convID %s: %s", convIDStr, err)
+			continue
+		}
+		if err := s.diskStorage.PutMetadata(ctx, convID, md); err != nil {
+			s.Debug(ctx, "Flush: failed to write metadata: %s", err)
+			return err
+		}
+	}
+
+	return nil
 }
