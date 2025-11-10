@@ -11,7 +11,7 @@ type OwnProps = {
   onBack?: () => void
 }
 
-const WhatsNewContainer = (ownProps?: OwnProps) => {
+const WhatsNewContainer = (ownProps: OwnProps) => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
