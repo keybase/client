@@ -1,5 +1,3 @@
 import * as React from 'react'
 
-const Paper = React.lazy(async () => import('./paper-key'))
-
-export default {screen: Paper}
+export default {screen: React.lazy(async () => import('./paper-key'))}

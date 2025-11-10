@@ -2,8 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 
-const Explain = React.lazy(async () => import('./explain-device'))
-
 export default {
   getOptions: () => ({
     headerBottomStyle: {height: undefined},
@@ -17,5 +15,5 @@ export default {
       </Kb.Box2>
     ),
   }),
-  screen: Explain,
+  screen: React.lazy(async () => import('./explain-device')),
 }

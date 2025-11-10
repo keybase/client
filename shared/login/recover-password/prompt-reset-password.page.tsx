@@ -2,8 +2,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {InfoIcon} from '@/signup/common'
 
-const ResetPassword = React.lazy(async () => import('./prompt-reset-password'))
-
 const styles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
@@ -18,5 +16,5 @@ export default {
       </Kb.Box2>
     ),
   },
-  screen: ResetPassword,
+  screen: React.lazy(async () => import('./prompt-reset-password')),
 }
