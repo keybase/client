@@ -87,8 +87,8 @@ export const initListeners = () => {
 
 // extracts the payload from pages used in routing
 export type PagesToParams<T> = {
-  [K in keyof T]: T[K] extends {getScreen: infer U}
-    ? U extends () => (args: infer V) => any
+  [K in keyof T]: T[K] extends {screen: infer U}
+    ? U extends (args: infer V) => any
       ? V extends {route: {params: infer W}}
         ? W
         : undefined

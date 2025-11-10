@@ -13,11 +13,8 @@ type LayoutProps = {
 }
 
 export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
-  return ({children, route, navigation}: LayoutProps) => {
-    const navigationOptions =
-      typeof getOptions === 'function'
-        ? getOptions({navigation, route})
-        : getOptions
+  return function Layout({children, route, navigation}: LayoutProps) {
+    const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 
     const suspenseContent = (
       <React.Suspense
@@ -59,4 +56,3 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
-

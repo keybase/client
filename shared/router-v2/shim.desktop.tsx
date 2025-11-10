@@ -16,7 +16,7 @@ const makeOptions = (val: RouteDef) => {
 const makeNavScreen = (
   name: keyof KBRootParamList,
   rd: RouteDef,
-  Screen: React.ComponentType<any>,
+  Screen: React.ComponentType<unknown>,
   isModal: boolean,
   isLoggedOut: boolean
 ) => {

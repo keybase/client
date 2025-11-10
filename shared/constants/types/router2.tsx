@@ -41,8 +41,6 @@ export type GetOptionsRet =
   | undefined
 export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
 export type RouteDef = {
-  // TEMP remove
-  getScreen?: never
   getOptions?: GetOptions
   screen: React.ComponentType<ScreenComponentProps>
 }
