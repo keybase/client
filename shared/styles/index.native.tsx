@@ -5,7 +5,6 @@ import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
-import type {CollapsibleStyle} from './styles-base'
 
 const font = isIOS
   ? {
@@ -60,8 +59,8 @@ export const styleSheetCreate = (f: () => MapToStyles): unknown =>
 export {isDarkMode}
 
 export const collapseStyles = (
-  styles: ReadonlyArray<CollapsibleStyle>
-): undefined | CollapsibleStyle | ReadonlyArray<object | null | false> => {
+  styles: ReadonlyArray<unknown>
+): undefined | unknown | ReadonlyArray<object | null | false> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {

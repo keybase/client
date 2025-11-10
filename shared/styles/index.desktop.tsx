@@ -5,7 +5,6 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
-import type {CollapsibleStyle} from './styles-base'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -169,7 +168,7 @@ export function styleSheetCreate<O extends NamedStyles>(styles: () => O) {
   return styleSheetCreateProxy(styles, o => o)
 }
 
-export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): object | undefined => {
+export const collapseStyles = (styles: ReadonlyArray<unknown>): object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
