@@ -49,7 +49,7 @@ var initComplete bool
 
 // JS readiness synchronization
 var jsReadyOnce sync.Once
-var jsReadyCh chan struct{}
+var jsReadyCh = make(chan struct{})
 var connMutex sync.Mutex // Protects conn operations
 
 type PushNotifier interface {
@@ -157,9 +157,6 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool) {
 	startOnce.Do(func() {
-		// Initialize JS ready channel
-		jsReadyCh = make(chan struct{})
-
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
@@ -174,11 +171,6 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	// better crash logging
 	os.Setenv("GOTRACEBACK", "crash")
 	debug.SetTraceback("all")
-
-	// Initialize JS ready channel if not already done (in case Init called directly)
-	if jsReadyCh == nil {
-		jsReadyCh = make(chan struct{})
-	}
 
 	begin := time.Now()
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
