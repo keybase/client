@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'

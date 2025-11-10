@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
@@ -6,7 +5,6 @@ import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '@/util/path'
-import type {CollapsibleStyle} from './styles-base'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
