@@ -4,4 +4,6 @@ import type * as C from '@/constants'
 const Send = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Send>
 
-export default {screen: (p: OwnProps) => <Send {...p.route.params} />}
+const Screen = (p: OwnProps) => <Send {...p.route.params} />
+
+export default {screen: Screen}

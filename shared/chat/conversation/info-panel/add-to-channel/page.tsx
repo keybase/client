@@ -3,13 +3,14 @@ import * as C from '@/constants'
 
 const Add = React.lazy(async () => import('./index.new'))
 type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Add>>
-export default {
-  screen: (p: OwnProps) => {
-    const {conversationIDKey, ...rest} = p.route.params
-    return (
-      <C.Chat.ProviderScreen rp={p}>
-        <Add {...rest} />
-      </C.Chat.ProviderScreen>
-    )
-  },
+
+const Screen = (p: OwnProps) => {
+  const {conversationIDKey, ...rest} = p.route.params
+  return (
+    <C.Chat.ProviderScreen rp={p}>
+      <Add {...rest} />
+    </C.Chat.ProviderScreen>
+  )
 }
+
+export default {screen: Screen}

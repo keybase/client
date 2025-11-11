@@ -32,11 +32,13 @@ const getOptions = ({route}: OwnProps) => {
 const Building = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Building>
 
+const Screen = (p: OwnProps) => (
+  <C.TBProvider namespace={p.route.params.namespace}>
+    <Building {...p.route.params} />
+  </C.TBProvider>
+)
+
 export default {
   getOptions,
-  screen: (p: OwnProps) => (
-    <C.TBProvider namespace={p.route.params.namespace}>
-      <Building {...p.route.params} />
-    </C.TBProvider>
-  ),
+  screen: Screen,
 }

@@ -7,4 +7,6 @@ const Disable = React.lazy(async () => {
 })
 type OwnProps = C.ViewPropsToPageProps<typeof Disable>
 
-export default {screen: (p: OwnProps) => <Disable {...p.route.params} />}
+const Screen = (p: OwnProps) => <Disable {...p.route.params} />
+
+export default {screen: Screen}

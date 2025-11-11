@@ -18,8 +18,9 @@ const getOptions = (ownProps?: OwnProps) => {
 const Index = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Index>
 
-const Page = {
+const Screen = (p: OwnProps) => <Index {...p.route.params} />
+
+export default {
   getOptions,
-  screen: (p: OwnProps) => <Index {...p.route.params} />,
+  screen: Screen,
 }
-export default Page

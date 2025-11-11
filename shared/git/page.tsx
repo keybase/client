@@ -5,6 +5,8 @@ import {HeaderTitle, HeaderRightActions} from './nav-header'
 const Index = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Index>
 
+const Screen = (p: OwnProps) => <Index {...p.route.params} />
+
 export default {
   getOptions: C.isMobile
     ? {title: 'Git'}
@@ -13,5 +15,5 @@ export default {
         headerTitle: HeaderTitle,
         title: 'Git',
       },
-  screen: (p: OwnProps) => <Index {...p.route.params} />,
+  screen: Screen,
 }

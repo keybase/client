@@ -3,4 +3,7 @@ import type * as C from '@/constants'
 
 const InviteGen = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof InviteGen>
-export default {screen: (p: OwnProps) => <InviteGen {...p.route.params} />}
+
+const Screen = (p: OwnProps) => <InviteGen {...p.route.params} />
+
+export default {screen: Screen}

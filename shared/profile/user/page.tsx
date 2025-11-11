@@ -24,4 +24,7 @@ const getOptions = {
 
 const Profile = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Profile>
-export default {getOptions, screen: (p: OwnProps) => <Profile {...p.route.params} />}
+
+const Screen = (p: OwnProps) => <Profile {...p.route.params} />
+
+export default {getOptions, screen: Screen}

@@ -12,13 +12,14 @@ const styles = Kb.Styles.styleSheetCreate(
 const AddToTeam = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof AddToTeam>
 
-const Page = {
+const Screen = (p: OwnProps) => <AddToTeam {...p.route.params} />
+
+export default {
   getOptions: {
     modal2: true,
     modal2ClearCover: false,
     modal2Style: styles.modal2,
     modal2Type: 'DefaultFullHeight',
   },
-  screen: (p: OwnProps) => <AddToTeam {...p.route.params} />,
+  screen: Screen,
 }
-export default Page

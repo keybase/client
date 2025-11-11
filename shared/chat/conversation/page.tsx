@@ -5,18 +5,19 @@ import {headerNavigationOptions} from './header-area/container'
 const Convo = React.lazy(async () => import('./container'))
 type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Convo>>
 
-const Page = {
+const Screen = (p: OwnProps) => {
+  const {conversationIDKey, ...rest} = p.route.params
+  return (
+    <C.Chat.ProviderScreen rp={p} canBeNull={true}>
+      <Convo {...rest} />
+    </C.Chat.ProviderScreen>
+  )
+}
+
+export default {
   getOptions: ({route}: OwnProps) => ({
     ...headerNavigationOptions(route),
     presentation: undefined,
   }),
-  screen: (p: OwnProps) => {
-    const {conversationIDKey, ...rest} = p.route.params
-    return (
-      <C.Chat.ProviderScreen rp={p} canBeNull={true}>
-        <Convo {...rest} />
-      </C.Chat.ProviderScreen>
-    )
-  },
+  screen: Screen,
 }
-export default Page

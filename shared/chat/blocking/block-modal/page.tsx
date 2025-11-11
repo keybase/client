@@ -4,12 +4,12 @@ import * as C from '@/constants'
 const Block = React.lazy(async () => import('./container'))
 type OwnProps = C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof Block>>
 
-export default {
-  screen: (p: OwnProps) => {
-    return (
-      <C.Chat.ProviderScreen rp={p} canBeNull={true}>
-        <Block {...p.route.params} />
-      </C.Chat.ProviderScreen>
-    )
-  },
+const Screen = (p: OwnProps) => {
+  return (
+    <C.Chat.ProviderScreen rp={p} canBeNull={true}>
+      <Block {...p.route.params} />
+    </C.Chat.ProviderScreen>
+  )
 }
+
+export default {screen: Screen}

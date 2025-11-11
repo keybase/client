@@ -4,4 +4,6 @@ import type * as C from '@/constants'
 const TeamInfo = React.lazy(async () => import('./team-info'))
 type OwnProps = C.ViewPropsToPageProps<typeof TeamInfo>
 
-export default {screen: (p: OwnProps) => <TeamInfo {...p.route.params} />}
+const Screen = (p: OwnProps) => <TeamInfo {...p.route.params} />
+
+export default {screen: Screen}

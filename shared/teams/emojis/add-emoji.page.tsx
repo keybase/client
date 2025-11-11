@@ -4,4 +4,6 @@ import type * as C from '@/constants'
 const AddEmoji = React.lazy(async () => import('./add-emoji'))
 type OwnProps = C.ViewPropsToPageProps<typeof AddEmoji>
 
-export default {screen: (p: OwnProps) => <AddEmoji {...p.route.params} />}
+const Screen = (p: OwnProps) => <AddEmoji {...p.route.params} />
+
+export default {screen: Screen}

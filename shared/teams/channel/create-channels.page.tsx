@@ -4,4 +4,6 @@ import type * as C from '@/constants'
 const CreateChan = React.lazy(async () => import('./create-channels'))
 type OwnProps = C.ViewPropsToPageProps<typeof CreateChan>
 
-export default {screen: (p: OwnProps) => <CreateChan {...p.route.params} />}
+const Screen = (p: OwnProps) => <CreateChan {...p.route.params} />
+
+export default {screen: Screen}

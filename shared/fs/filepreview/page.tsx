@@ -8,7 +8,6 @@ const BarePreview = React.lazy(async () => {
 
 type OwnProps = C.ViewPropsToPageProps<typeof BarePreview>
 
-const Page = {
-  screen: (p: OwnProps) => <BarePreview {...p.route.params} />,
-}
-export default Page
+const Screen = (p: OwnProps) => <BarePreview {...p.route.params} />
+
+export default {screen: Screen}

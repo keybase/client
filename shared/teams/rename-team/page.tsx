@@ -4,4 +4,6 @@ import type * as C from '@/constants'
 const Rename = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Rename>
 
-export default {screen: (p: OwnProps) => <Rename {...p.route.params} />}
+const Screen = (p: OwnProps) => <Rename {...p.route.params} />
+
+export default {screen: Screen}
