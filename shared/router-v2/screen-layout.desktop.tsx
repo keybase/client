@@ -141,19 +141,7 @@ type LayoutProps = {
 export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?: GetOptions) => {
   return ({children, route, navigation}: LayoutProps) => {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-
-    const suspenseContent = (
-      <React.Suspense
-      /*
-        fallback={
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.ProgressIndicator type="Large" />
-          </Kb.Box2>
-        }*/
-      >
-        {children}
-      </React.Suspense>
-    )
+    const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
     let body = suspenseContent
 
