@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {screen: React.lazy(async () => import('./set-public-name'))}
+const Screen = React.lazy(async () => import('./set-public-name'))
+export default {screen: Screen}

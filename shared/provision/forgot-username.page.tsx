@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {screen: React.lazy(async () => import('./forgot-username'))}
+const Screen = React.lazy(async () => import('./forgot-username'))
+export default {screen: Screen}

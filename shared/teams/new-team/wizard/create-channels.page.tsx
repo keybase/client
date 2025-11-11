@@ -1,5 +1,4 @@
 import * as React from 'react'
 
-const CreateChan = React.lazy(async () => import('./create-channels'))
-
-export default {screen: CreateChan}
+const Screen = React.lazy(async () => import('./create-channels'))
+export default {screen: Screen}

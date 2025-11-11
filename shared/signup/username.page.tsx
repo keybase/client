@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
 
+const Screen = React.lazy(async () => import('./username'))
+
 export default {
   getOptions: {
     headerBottomStyle: {height: undefined},
@@ -15,5 +17,5 @@ export default {
       </Kb.Box2>
     ),
   },
-  screen: React.lazy(async () => import('./username')),
+  screen: Screen,
 }

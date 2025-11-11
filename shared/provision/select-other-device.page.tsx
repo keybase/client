@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {screen: React.lazy(async () => import('./select-other-device'))}
+const Screen = React.lazy(async () => import('./select-other-device'))
+export default {screen: Screen}

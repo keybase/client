@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {getOptions: {headerLeft: undefined}, screen: React.lazy(async () => import('./error'))}
+const Screen = React.lazy(async () => import('./error'))
+export default {getOptions: {headerLeft: undefined}, screen: Screen}

@@ -44,10 +44,12 @@ const ConnectedHeaderRightActions = () => {
   return <HeaderRightActions {...actions} />
 }
 
+const Screen = React.lazy(async () => import('./container'))
+
 export default {
   getOptions: {
     headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
     title: 'Teams',
   },
-  screen: React.lazy(async () => import('./container')),
+  screen: Screen,
 }

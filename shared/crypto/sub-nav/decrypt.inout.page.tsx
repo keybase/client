@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-export default {
-  screen: React.lazy(async () => {
-    const {DecryptIO} = await import('../operations/decrypt')
-    return {default: DecryptIO}
-  }),
-}
+const Screen = React.lazy(async () => {
+  const {DecryptIO} = await import('../operations/decrypt')
+  return {default: DecryptIO}
+})
+
+export default {screen: Screen}

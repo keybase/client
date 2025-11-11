@@ -6,6 +6,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
+const Screen = React.lazy(async () => import('./prompt-reset-password'))
+
 export default {
   getOptions: {
     headerBottomStyle: {height: undefined},
@@ -16,5 +18,5 @@ export default {
       </Kb.Box2>
     ),
   },
-  screen: React.lazy(async () => import('./prompt-reset-password')),
+  screen: Screen,
 }
