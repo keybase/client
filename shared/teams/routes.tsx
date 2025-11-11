@@ -6,7 +6,6 @@ import {HeaderRightActions} from './main/header'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 
-// Teams Root
 const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
@@ -33,7 +32,6 @@ const teamsRoot = {
   },
 }
 
-// Team Page
 const Team = React.lazy(async () => import('./team'))
 const team = {
   getOptions: {
@@ -47,7 +45,6 @@ const team = {
   },
 }
 
-// Team Channel
 const Channel = React.lazy(async () => import('./channel'))
 const teamChannel = {
   getOptions: {
@@ -65,7 +62,6 @@ const teamChannel = {
   },
 }
 
-// External Team
 const Ext = React.lazy(async () => import('./external-team'))
 const teamExternalTeam = {
   getOptions: {
@@ -79,7 +75,6 @@ const teamExternalTeam = {
   },
 }
 
-// Team Member
 const TeamMemberIndex = React.lazy(async () => import('./team/member/index.new'))
 const teamMember = {
   getOptions: {
@@ -90,7 +85,6 @@ const teamMember = {
   },
 }
 
-// Modal Routes
 const OpenTeamWarning = React.lazy(async () => import('./team/settings-tab/open-team-warning'))
 const openTeamWarning = {screen: OpenTeamWarning}
 
