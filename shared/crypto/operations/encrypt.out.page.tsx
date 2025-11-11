@@ -6,7 +6,6 @@ export default {
     needsKeyboard: false,
     title: 'Encrypted',
   },
-
   screen: React.lazy(async () => {
     const {EncryptOutput} = await import('./encrypt')
     return {default: EncryptOutput}

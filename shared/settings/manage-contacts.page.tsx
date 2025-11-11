@@ -6,5 +6,5 @@ export default {
     header: undefined,
     title: 'Contacts',
   },
-  screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : null,
+  screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
 }
