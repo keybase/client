@@ -33,5 +33,5 @@ const Screen = (p: OwnProps) => {
   )
 }
 
-const Page = {getOptions, getScreen: () => Screen}
+const Page = {getOptions, screen: Screen}
 export default Page

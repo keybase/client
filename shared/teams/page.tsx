@@ -4,13 +4,6 @@ import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 
-const getOptions = {
-  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
-}
-
-const Root = React.lazy(async () => import('./container'))
-
 const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
@@ -37,6 +30,7 @@ const TeamsFilter = () => {
     />
   ) : null
 }
+
 const filterStyles = Kb.Styles.styleSheetCreate(() => ({
   filter: {
     alignSelf: 'flex-end',
@@ -50,11 +44,12 @@ const ConnectedHeaderRightActions = () => {
   return <HeaderRightActions {...actions} />
 }
 
-const Screen = () => (
-  <React.Suspense>
-    <Root />
-  </React.Suspense>
-)
+const Screen = React.lazy(async () => import('./container'))
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {
+  getOptions: {
+    headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+    title: 'Teams',
+  },
+  screen: Screen,
+}

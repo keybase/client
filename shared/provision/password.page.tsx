@@ -1,11 +1,4 @@
 import * as React from 'react'
 
-const PWD = React.lazy(async () => import('./password'))
-const Screen = () => (
-  <React.Suspense>
-    <PWD />
-  </React.Suspense>
-)
-
-const Page = {getScreen: () => Screen}
-export default Page
+const Screen = React.lazy(async () => import('./password'))
+export default {screen: Screen}

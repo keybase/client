@@ -41,8 +41,7 @@ export type GetOptionsRet =
   | undefined
 export type GetOptions = GetOptionsRet | ((p: GetOptionsParams) => GetOptionsRet)
 export type RouteDef = {
-  getScreen?: () => React.ComponentType<ScreenComponentProps>
   getOptions?: GetOptions
-  screen?: React.ComponentType<ScreenComponentProps>
+  screen: React.ComponentType<ScreenComponentProps>
 }
 export type RouteMap = {[K in string]?: RouteDef}

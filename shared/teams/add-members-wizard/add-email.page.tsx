@@ -4,11 +4,6 @@ import type * as C from '@/constants'
 const AddEmail = React.lazy(async () => import('./add-email'))
 type OwnProps = C.ViewPropsToPageProps<typeof AddEmail>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <AddEmail {...p.route.params} />
-  </React.Suspense>
-)
+const Screen = (p: OwnProps) => <AddEmail {...p.route.params} />
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

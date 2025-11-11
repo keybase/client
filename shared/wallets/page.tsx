@@ -1,13 +1,4 @@
 import * as React from 'react'
 
-const getOptions = {title: 'Wallet'}
-
-const Index = React.lazy(async () => import('.'))
-const Screen = () => (
-  <React.Suspense>
-    <Index />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+const Screen = React.lazy(async () => import('.'))
+export default {getOptions: {title: 'Wallet'}, screen: Screen}

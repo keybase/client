@@ -1,11 +1,4 @@
 import * as React from 'react'
 
-const Paper = React.lazy(async () => import('./paper-key'))
-const Screen = () => (
-  <React.Suspense>
-    <Paper />
-  </React.Suspense>
-)
-
-const Page = {getScreen: () => Screen}
-export default Page
+const Screen = React.lazy(async () => import('./paper-key'))
+export default {screen: Screen}

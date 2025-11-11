@@ -3,11 +3,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import ProfileSearch from '../profile/search'
 
-const getOptions = {
-  headerLeft: () => <Kb.HeaderLeftBlank />,
-  headerRight: () => <HeaderAvatar />,
-  headerTitle: () => <ProfileSearch />,
-}
 const HeaderAvatar = () => {
   const myUsername = C.useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -15,12 +10,13 @@ const HeaderAvatar = () => {
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
-const People = React.lazy(async () => import('./container'))
-const Screen = () => (
-  <React.Suspense>
-    <People />
-  </React.Suspense>
-)
+const Screen = React.lazy(async () => import('./container'))
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {
+  getOptions: {
+    headerLeft: () => <Kb.HeaderLeftBlank />,
+    headerRight: () => <HeaderAvatar />,
+    headerTitle: () => <ProfileSearch />,
+  },
+  screen: Screen,
+}

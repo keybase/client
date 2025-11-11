@@ -1,11 +1,5 @@
 import * as React from 'react'
 
-const ConfirmOrPending = React.lazy(async () => import('./container'))
-const Screen = () => (
-  <React.Suspense>
-    <ConfirmOrPending />
-  </React.Suspense>
-)
+const Screen = React.lazy(async () => import('./container'))
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

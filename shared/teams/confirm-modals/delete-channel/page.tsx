@@ -4,11 +4,6 @@ import type * as C from '@/constants'
 const DeleteChan = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof DeleteChan>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <DeleteChan {...p.route.params} />
-  </React.Suspense>
-)
+const Screen = (p: OwnProps) => <DeleteChan {...p.route.params} />
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

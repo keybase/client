@@ -1,17 +1,10 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import openURL from '@/util/open-url'
 import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 
-type OwnProps = {
-  // Desktop only: popup.desktop.tsx passes this function to close the popup
-  // when navigating within the app
-  onBack?: () => void
-}
-
-const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnProps) {
+const WhatsNewContainer = () => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
@@ -30,9 +23,6 @@ const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnPro
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)
     }
-    if (ownProps.onBack) {
-      ownProps.onBack()
-    }
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const props = {
@@ -50,6 +40,6 @@ const WhatsNewContainer = React.memo(function WhatsNewContainer(ownProps: OwnPro
     seenVersions,
   }
   return <WhatsNew {...props} />
-})
+}
 
 export default WhatsNewContainer

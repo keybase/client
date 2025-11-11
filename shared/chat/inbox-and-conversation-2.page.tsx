@@ -37,11 +37,6 @@ const TabletHeader = React.memo(function TabletHeader() {
   )
 })
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Split {...p.route.params} />
-  </React.Suspense>
-)
+const Screen = (p: OwnProps) => <Split {...p.route.params} />
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {getOptions, screen: Screen}

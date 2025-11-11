@@ -17,11 +17,10 @@ const getOptions = (ownProps?: OwnProps) => {
 
 const Index = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Index>
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Index {...p.route.params} />
-  </React.Suspense>
-)
 
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+const Screen = (p: OwnProps) => <Index {...p.route.params} />
+
+export default {
+  getOptions,
+  screen: Screen,
+}

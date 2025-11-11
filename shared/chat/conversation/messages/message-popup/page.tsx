@@ -16,5 +16,4 @@ const Screen = (p: OwnProps) => {
   )
 }
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

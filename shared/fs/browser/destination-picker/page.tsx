@@ -4,11 +4,6 @@ import type * as C from '@/constants'
 const Picker = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Picker>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Picker {...p.route.params} />
-  </React.Suspense>
-)
+const Screen = (p: OwnProps) => <Picker {...p.route.params} />
 
-const Page = {getScreen: () => Screen}
-export default Page
+export default {screen: Screen}

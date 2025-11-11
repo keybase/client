@@ -1,14 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
 
-const getOptions = C.isMobile ? {title: 'Files'} : undefined
+const Screen = React.lazy(async () => import('./container'))
 
-const Files = React.lazy(async () => import('./container'))
-const Screen = () => (
-  <React.Suspense>
-    <Files />
-  </React.Suspense>
-)
-
-const Page = {getOptions, getScreen: () => Screen}
-export default Page
+export default {
+  getOptions: C.isMobile ? {title: 'Files'} : undefined,
+  screen: Screen,
+}
