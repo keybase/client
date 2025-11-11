@@ -2,10 +2,36 @@ import * as React from 'react'
 import type * as C from '@/constants'
 import {HeaderLeftCancel, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
+import {HeaderTitle, HeaderRightActions} from './nav-header'
 
-import devicesRoot from './page'
-import deviceAdd from './add-device.page'
-import devicePaperKey from './paper-key.page'
+const DevicesRoot = React.lazy(async () => import('.'))
+const devicesRoot = {
+  getOptions: C.isMobile
+    ? {title: 'Devices'}
+    : {
+        headerRightActions: HeaderRightActions,
+        headerTitle: HeaderTitle,
+        title: 'Devices',
+      },
+  screen: DevicesRoot,
+}
+
+const Add = React.lazy(async () => import('./add-device'))
+const deviceAdd = {
+  screen: function DeviceAdd(p: C.ViewPropsToPageProps<typeof Add>) {
+    return <Add {...p.route.params} />
+  },
+}
+
+const PaperKey = React.lazy(async () => import('./paper-key'))
+const devicePaperKey = {
+  getOptions: {
+    gesturesEnabled: false,
+    modal2: true,
+    modal2NoClose: true,
+  },
+  screen: PaperKey,
+}
 
 const Device = React.lazy(async () => import('./device-page'))
 const devicePage = {
