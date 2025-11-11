@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import openURL from '@/util/open-url'
 import {currentVersion} from '@/constants/whats-new'

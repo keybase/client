@@ -1,9 +1,5 @@
-import * as React from 'react'
-import type {
-  RouteMap,
-  RouteDef,
-  GetOptionsParams,
-} from '@/constants/types/router2'
+import type * as React from 'react'
+import type {RouteMap, RouteDef, GetOptionsParams} from '@/constants/types/router2'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NavScreensResult} from './shim'
 import {makeLayout} from './screen-layout.native'
