@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {screen: React.lazy(async () => import('./kext-permission-popup'))}
+const Screen = React.lazy(async () => import('./kext-permission-popup'))
+export default {screen: Screen}

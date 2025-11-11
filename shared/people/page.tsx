@@ -10,11 +10,13 @@ const HeaderAvatar = () => {
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
+const Screen = React.lazy(async () => import('./container'))
+
 export default {
   getOptions: {
     headerLeft: () => <Kb.HeaderLeftBlank />,
     headerRight: () => <HeaderAvatar />,
     headerTitle: () => <ProfileSearch />,
   },
-  screen: React.lazy(async () => import('./container')),
+  screen: Screen,
 }

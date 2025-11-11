@@ -1,2 +1,4 @@
 import * as React from 'react'
-export default {screen: React.lazy(async () => import('./enter-paper-key'))}
+
+const Screen = React.lazy(async () => import('./enter-paper-key'))
+export default {screen: Screen}

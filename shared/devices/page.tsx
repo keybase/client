@@ -10,4 +10,6 @@ const getOptions = C.isMobile
       title: 'Devices',
     }
 
-export default {getOptions, screen: React.lazy(async () => import('.'))}
+const Screen = React.lazy(async () => import('.'))
+
+export default {getOptions, screen: Screen}

@@ -1,3 +1,4 @@
 import * as React from 'react'
 
-export default {getOptions: {title: 'Display'}, screen: React.lazy(async () => import('./display'))}
+const Screen = React.lazy(async () => import('./display'))
+export default {getOptions: {title: 'Display'}, screen: Screen}

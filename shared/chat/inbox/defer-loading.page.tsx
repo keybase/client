@@ -26,5 +26,6 @@ const getOptions = {
   ),
 }
 
-const Page = {getOptions, screen: React.lazy(async () => import('./defer-loading'))}
-export default Page
+const Screen = React.lazy(async () => import('./defer-loading'))
+
+export default {getOptions, screen: Screen}

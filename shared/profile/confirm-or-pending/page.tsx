@@ -1,5 +1,5 @@
 import * as React from 'react'
 
-export default {
-  screen: React.lazy(async () => import('./container')),
-}
+const Screen = React.lazy(async () => import('./container'))
+
+export default {screen: Screen}
