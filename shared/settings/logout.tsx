@@ -3,7 +3,7 @@ import * as Container from '@/util/container'
 import * as Constants from '@/constants/settings'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import UpdatePassword from '../password'
+import UpdatePassword from './password'
 
 const LogoutContainer = () => {
   const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)

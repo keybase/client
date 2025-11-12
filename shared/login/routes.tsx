@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import type {HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 import {InfoIcon} from '@/signup/common'
 import proxySettingsModal from '../settings/proxy/page'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
@@ -9,11 +8,11 @@ import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 
 const Login = React.lazy(async () => import('.'))
-const login = {
-  screen: Login,
-}
+const login = {screen: Login}
 
-const RecoverPasswordDeviceSelector = React.lazy(async () => import('./recover-password/device-selector/container'))
+const RecoverPasswordDeviceSelector = React.lazy(
+  async () => import('./recover-password/device-selector/container')
+)
 const recoverPasswordDeviceSelector = {
   screen: RecoverPasswordDeviceSelector,
 }
@@ -79,7 +78,9 @@ const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
-const RecoverPasswordPromptResetAccount = React.lazy(async () => import('./recover-password/prompt-reset-account'))
+const RecoverPasswordPromptResetAccount = React.lazy(
+  async () => import('./recover-password/prompt-reset-account')
+)
 const recoverPasswordPromptResetAccount = {
   getOptions: {
     headerBottomStyle: {height: undefined},
@@ -93,7 +94,9 @@ const recoverPasswordPromptResetAccount = {
   screen: RecoverPasswordPromptResetAccount,
 }
 
-const RecoverPasswordPromptResetPassword = React.lazy(async () => import('./recover-password/prompt-reset-password'))
+const RecoverPasswordPromptResetPassword = React.lazy(
+  async () => import('./recover-password/prompt-reset-password')
+)
 const recoverPasswordPromptResetPassword = {
   getOptions: {
     headerBottomStyle: {height: undefined},

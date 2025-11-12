@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Container from '@/util/container'
-import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
@@ -10,8 +9,8 @@ const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onNewTeam: () => launchNewTeamWizardOrModal(),
-    onOpenFolder: () => nav.safeNavigateAppend({props: {}, selected: 'teamsRoot'}),
+    onCreateTeam: () => launchNewTeamWizardOrModal(),
+    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
   }
 }
 
@@ -20,7 +19,7 @@ const teamsRoot = {
   getOptions: C.isMobile
     ? {headerRightActions: () => null, title: 'Teams'}
     : {
-        headerRightActions: () => {
+        headerRightActions: function HeaderRight() {
           const actions = useHeaderActions()
           return <HeaderRightActions {...actions} />
         },
@@ -98,9 +97,11 @@ const TeamAddEmojiAlias = React.lazy(async () => import('./emojis/add-alias'))
 const teamAddEmojiAlias = {screen: TeamAddEmojiAlias}
 
 const TeamAddToChannels = React.lazy(async () => import('./team/member/add-to-channels'))
-const teamAddToChannels = {screen: function AddToChannels(p: C.ViewPropsToPageProps<typeof TeamAddToChannels>) {
-  return <TeamAddToChannels {...p.route.params} />
-}}
+const teamAddToChannels = {
+  screen: function AddToChannels(p: C.ViewPropsToPageProps<typeof TeamAddToChannels>) {
+    return <TeamAddToChannels {...p.route.params} />
+  },
+}
 
 const TeamAddToTeamConfirm = React.lazy(async () => import('./add-members-wizard/confirm'))
 const teamAddToTeamConfirm = {screen: TeamAddToTeamConfirm}
@@ -127,9 +128,11 @@ const TeamDeleteTeam = React.lazy(async () => import('./delete-team'))
 const teamDeleteTeam = {screen: TeamDeleteTeam}
 
 const TeamEditChannel = React.lazy(async () => import('./team/member/edit-channel'))
-const teamEditChannel = {screen: function EditChannel(p: C.ViewPropsToPageProps<typeof TeamEditChannel>) {
-  return <TeamEditChannel {...p.route.params} />
-}}
+const teamEditChannel = {
+  screen: function EditChannel(p: C.ViewPropsToPageProps<typeof TeamEditChannel>) {
+    return <TeamEditChannel {...p.route.params} />
+  },
+}
 
 const TeamEditTeamDescription = React.lazy(async () => import('./edit-team-description'))
 const teamEditTeamDescription = {screen: TeamEditTeamDescription}
@@ -137,7 +140,7 @@ const teamEditTeamDescription = {screen: TeamEditTeamDescription}
 const TeamEditTeamInfo = React.lazy(async () => import('./team/team-info'))
 const teamEditTeamInfo = {screen: TeamEditTeamInfo}
 
-const TeamInviteByContact = React.lazy(async () => import('./invite-by-contact'))
+const TeamInviteByContact = React.lazy(async () => import('./invite-by-contact/container'))
 const teamInviteByContact = {screen: TeamInviteByContact}
 
 const TeamInviteByEmail = React.lazy(async () => import('./invite-by-email'))
@@ -146,7 +149,7 @@ const teamInviteByEmail = {screen: TeamInviteByEmail}
 const TeamInviteLinkJoin = React.lazy(async () => import('./join-team/join-from-invite'))
 const teamInviteLinkJoin = {screen: TeamInviteLinkJoin}
 
-const TeamJoinTeamDialog = React.lazy(async () => import('./join-team'))
+const TeamJoinTeamDialog = React.lazy(async () => import('./join-team/container'))
 const teamJoinTeamDialog = {screen: TeamJoinTeamDialog}
 
 const TeamNewTeamDialog = React.lazy(async () => import('./new-team'))
@@ -155,7 +158,9 @@ const teamNewTeamDialog = {screen: TeamNewTeamDialog}
 const TeamReallyLeaveTeam = React.lazy(async () => import('./confirm-modals/really-leave-team'))
 const teamReallyLeaveTeam = {screen: TeamReallyLeaveTeam}
 
-const TeamReallyRemoveChannelMember = React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))
+const TeamReallyRemoveChannelMember = React.lazy(
+  async () => import('./confirm-modals/confirm-remove-from-channel')
+)
 const teamReallyRemoveChannelMember = {screen: TeamReallyRemoveChannelMember}
 
 const TeamReallyRemoveMember = React.lazy(async () => import('./confirm-modals/confirm-kick-out'))

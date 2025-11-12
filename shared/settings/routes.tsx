@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Constants from '@/constants/settings'
-import type {ViewPropsToPageProps} from '@/constants'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
@@ -35,7 +34,7 @@ const feedback = {
   },
 }
 
-const Files = React.lazy(async () => import('./files'))
+const Files = React.lazy(async () => import('./files/container'))
 const fs = {screen: Files}
 
 const Invitations = React.lazy(async () => import('./invites'))
@@ -50,10 +49,16 @@ const whatsNew = {
   screen: WhatsNew,
 }
 
-const AddEmail = React.lazy(async () => import('./account/email'))
+const AddEmail = React.lazy(async () => {
+  const {Email} = await import('./account/add-modals')
+  return {default: Email}
+})
 const addEmail = {screen: AddEmail}
 
-const AddPhone = React.lazy(async () => import('./account/phone'))
+const AddPhone = React.lazy(async () => {
+  const {Phone} = await import('./account/add-modals')
+  return {default: Phone}
+})
 const addPhone = {screen: AddPhone}
 
 const SettingsVerifyPhone = React.lazy(async () => {
@@ -65,7 +70,7 @@ const settingsVerifyPhone = {screen: SettingsVerifyPhone}
 const DbNukeConfirm = React.lazy(async () => import('./db-nuke-confirm/container'))
 const dbNukeConfirm = {screen: DbNukeConfirm}
 
-const MakeIcons = React.lazy(async () => import('./make-icons'))
+const MakeIcons = React.lazy(async () => import('./make-icons.page'))
 const makeIcons = {screen: MakeIcons}
 
 const InviteSent = React.lazy(async () => import('./invite-generated'))
@@ -86,7 +91,7 @@ const mobileCheckPassphrase = {screen: MobileCheckPassphrase}
 const DisableCertPinningModal = React.lazy(async () => import('./disable-cert-pinning-modal'))
 const disableCertPinningModal = {screen: DisableCertPinningModal}
 
-const SettingsDeleteAddress = React.lazy(async () => import('./account/confirm-delete-modal'))
+const SettingsDeleteAddress = React.lazy(async () => import('./account/confirm-delete'))
 const settingsDeleteAddress = {screen: SettingsDeleteAddress}
 
 const KeybaseLinkError = React.lazy(async () => import('../deeplinks/error'))
@@ -100,21 +105,14 @@ const settingsRootDesktop = {screen: SettingsRootDesktop}
 
 const ScreenprotectorTab = React.lazy(async () => import('./screenprotector'))
 const screenprotectorTab = {
-  getOptions: {
-    header: undefined,
-    title: 'Screen Protector',
-  },
+  getOptions: {header: undefined, title: 'Screen Protector'},
   screen: ScreenprotectorTab,
 }
 
-const ContactsTab = C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>
-const contactsTab = {
-  getOptions: {
-    header: undefined,
-    title: 'Contacts',
-  },
-  screen: ContactsTab,
-}
+const ContactsTab = C.isMobile
+  ? React.lazy(async () => import('./manage-contacts'))
+  : Promise.resolve(() => <></>)
+const contactsTab = {getOptions: {header: undefined, title: 'Contacts'}, screen: ContactsTab}
 
 const WebLinks = React.lazy(async () => import('./web-links'))
 const webLinks = {
@@ -134,10 +132,7 @@ const SettingsPushPrompt = React.lazy(async () => import('./notifications/push-p
 const settingsPushPrompt = {screen: SettingsPushPrompt}
 
 const Archive = C.featureFlags.archive ? React.lazy(async () => import('./archive')) : () => <></>
-const archive = {
-  getOptions: C.isMobile ? {title: 'Backup'} : undefined,
-  screen: Archive,
-}
+const archive = {getOptions: C.isMobile ? {title: 'Backup'} : undefined, screen: Archive}
 
 const ArchiveModal = React.lazy(async () => import('./archive/modal'))
 const archiveModal = {screen: ArchiveModal}
@@ -198,4 +193,3 @@ export const newModalRoutes = {
 }
 
 export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
-

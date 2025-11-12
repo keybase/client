@@ -4,7 +4,7 @@ import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {useTeamDetailsSubscribe} from '../subscriber'
+import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
 
 type OwnProps = {teamID: T.Teams.TeamID}

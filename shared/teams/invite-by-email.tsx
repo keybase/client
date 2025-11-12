@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {FloatingRolePicker} from '../role-picker'
+import {FloatingRolePicker} from './role-picker'
 import capitalize from 'lodash/capitalize'
 
 type OwnProps = {teamID: string}

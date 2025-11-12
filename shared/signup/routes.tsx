@@ -4,14 +4,10 @@ import type * as C from '@/constants'
 import {InfoIcon} from './common'
 
 const Feedback = React.lazy(async () => import('./feedback'))
-const feedback = {
-  screen: Feedback,
-}
+const feedback = {screen: Feedback}
 
 const DeviceName = React.lazy(async () => import('./device-name'))
-const signupEnterDevicename = {
-  screen: DeviceName,
-}
+const signupEnterDevicename = {screen: DeviceName}
 
 const Username = React.lazy(async () => import('./username'))
 const signupEnterUsername = {
@@ -31,19 +27,13 @@ const signupEnterUsername = {
 }
 
 const Email = React.lazy(async () => import('./email/container'))
-const signupEnterEmail = {
-  screen: Email,
-}
+const signupEnterEmail = {screen: Email}
 
 const PhoneNumber = React.lazy(async () => import('./phone-number/container'))
-const signupEnterPhoneNumber = {
-  screen: PhoneNumber,
-}
+const signupEnterPhoneNumber = {screen: PhoneNumber}
 
 const VerifyPhoneNumber = React.lazy(async () => import('./phone-number/verify-container'))
-const signupVerifyPhoneNumber = {
-  screen: VerifyPhoneNumber,
-}
+const signupVerifyPhoneNumber = {screen: VerifyPhoneNumber}
 
 export const newRoutes = {
   signupEnterDevicename,

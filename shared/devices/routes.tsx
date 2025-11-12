@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import * as C from '@/constants'
 import {HeaderLeftCancel, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
@@ -25,11 +25,7 @@ const deviceAdd = {
 
 const PaperKey = React.lazy(async () => import('./paper-key'))
 const devicePaperKey = {
-  getOptions: {
-    gesturesEnabled: false,
-    modal2: true,
-    modal2NoClose: true,
-  },
+  getOptions: {gesturesEnabled: false, modal2: true, modal2NoClose: true},
   screen: PaperKey,
 }
 

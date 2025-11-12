@@ -10,11 +10,7 @@ const DecryptInput = React.lazy(async () => {
   return {default: DecryptInput}
 })
 const decryptIn = {
-  getOptions: {
-    headerShown: true,
-    needsKeyboard: true,
-    title: 'Decrypt',
-  },
+  getOptions: {headerShown: true, needsKeyboard: true, title: 'Decrypt'},
   screen: DecryptInput,
 }
 
@@ -37,11 +33,7 @@ const EncryptInput = React.lazy(async () => {
   return {default: EncryptInput}
 })
 const encryptIn = {
-  getOptions: {
-    headerShown: true,
-    needsKeyboard: true,
-    title: 'Encrypt',
-  },
+  getOptions: {headerShown: true, needsKeyboard: true, title: 'Encrypt'},
   screen: EncryptInput,
 }
 
@@ -50,11 +42,7 @@ const EncryptOutput = React.lazy(async () => {
   return {default: EncryptOutput}
 })
 const encryptOut = {
-  getOptions: {
-    headerShown: true,
-    needsKeyboard: false,
-    title: 'Encrypted',
-  },
+  getOptions: {headerShown: true, needsKeyboard: false, title: 'Encrypted'},
   screen: EncryptOutput,
 }
 
@@ -63,11 +51,7 @@ const SignInput = React.lazy(async () => {
   return {default: SignInput}
 })
 const signIn = {
-  getOptions: {
-    headerShown: true,
-    needsKeyboard: true,
-    title: 'Sign',
-  },
+  getOptions: {headerShown: true, needsKeyboard: true, title: 'Sign'},
   screen: SignInput,
 }
 
@@ -90,11 +74,7 @@ const VerifyInput = React.lazy(async () => {
   return {default: VerifyInput}
 })
 const verifyIn = {
-  getOptions: {
-    headerShown: true,
-    needsKeyboard: true,
-    title: 'Verify',
-  },
+  getOptions: {headerShown: true, needsKeyboard: true, title: 'Verify'},
   screen: VerifyInput,
 }
 

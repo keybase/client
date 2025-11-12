@@ -48,14 +48,12 @@ const destinationPicker = {
   },
 }
 
-const KextPermission = React.lazy(async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup'))
-const kextPermission = {
-  screen: KextPermission,
-}
+const KextPermission = React.lazy(
+  async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
+)
+const kextPermission = {screen: KextPermission}
 
-export const newRoutes = {
-  fsRoot,
-}
+export const newRoutes = {fsRoot}
 
 export const newModalRoutes = {
   barePreview,
