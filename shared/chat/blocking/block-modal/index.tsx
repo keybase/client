@@ -20,18 +20,18 @@ type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean; report?: R
 export type Props = {
   adderUsername?: string
   blockUserByDefault?: boolean
-  filterUserByDefault?: boolean
-  flagUserByDefault?: boolean
-  reportsUserByDefault?: boolean
-  conversationIDKey?: string
   context?: BlockModalContext
+  conversationIDKey?: string
+  filterUserByDefault?: boolean
   finishWaiting: boolean
+  flagUserByDefault?: boolean
   isBlocked: (username: string, which: BlockType) => boolean
   loadingWaiting: boolean
   onClose: () => void
   onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => void
   otherUsernames?: Array<string>
   refreshBlocks: () => void
+  reportsUserByDefault?: boolean
   teamname?: string
 }
 

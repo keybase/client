@@ -563,7 +563,7 @@ export const useState_ = Z.createZustand<State>((set, get) => {
 // Works for components with or without route params
 export function makeScreen<T extends React.LazyExoticComponent<any>>(
   Component: T,
-  options?: {getOptions?: any}
+  options?: {getOptions?: unknown}
 ) {
   return {
     ...options,
