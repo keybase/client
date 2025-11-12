@@ -94,13 +94,27 @@ const ForwardMsgPick = React.lazy(async () => import('./conversation/fwd-msg'))
 const chatForwardMsgPick = {screen: ForwardMsgPick}
 
 const InfoPanel = React.lazy(async () => import('./conversation/info-panel'))
-const chatInfoPanel = {screen: InfoPanel}
+const chatInfoPanel = {
+  screen: function InfoPanelScreen(p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof InfoPanel>>) {
+    return <InfoPanel {...p.route.params} />
+  },
+}
 
 const InstallBot = React.lazy(async () => import('./conversation/bot/install'))
-const chatInstallBot = {screen: InstallBot}
+const chatInstallBot = {
+  screen: function InstallBotScreen(p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof InstallBot>>) {
+    return <InstallBot {...p.route.params} />
+  },
+}
 
 const InstallBotPick = React.lazy(async () => import('./conversation/bot/team-picker'))
-const chatInstallBotPick = {screen: InstallBotPick}
+const chatInstallBotPick = {
+  screen: function InstallBotPickScreen(
+    p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof InstallBotPick>>
+  ) {
+    return <InstallBotPick {...p.route.params} />
+  },
+}
 
 const LocationPreview = React.lazy(async () => import('./conversation/input-area/location-popup'))
 const chatLocationPreview = {screen: LocationPreview}
@@ -112,7 +126,11 @@ const MessagePopup = React.lazy(async () => {
 const chatMessagePopup = {screen: MessagePopup}
 
 const PDF = React.lazy(async () => import('./pdf'))
-const chatPDF = {screen: PDF}
+const chatPDF = {
+  screen: function PDFScreen(p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof PDF>>) {
+    return <PDF {...p.route.params} />
+  },
+}
 
 const RootSingle = React.lazy(async () => import('./inbox/defer-loading'))
 const chatRootSingle = {getOptions: {headerShown: false}, screen: RootSingle}
@@ -121,7 +139,13 @@ const RootSplit = React.lazy(async () => import('./inbox-and-conversation-2'))
 const chatRootSplit = {getOptions: {headerShown: false}, screen: RootSplit}
 
 const SearchBots = React.lazy(async () => import('./conversation/bot/search'))
-const chatSearchBots = {screen: SearchBots}
+const chatSearchBots = {
+  screen: function SearchBotsScreen(
+    p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof SearchBots>>
+  ) {
+    return <SearchBots {...p.route.params} />
+  },
+}
 
 const ShowNewTeamDialog = React.lazy(async () => import('./new-team-dialog-container'))
 const chatShowNewTeamDialog = {screen: ShowNewTeamDialog}
@@ -132,7 +156,13 @@ const UnfurlMapPopup = React.lazy(
 const chatUnfurlMapPopup = {screen: UnfurlMapPopup}
 
 const SendToChat = React.lazy(async () => import('./send-to-chat'))
-const chatSendToChat = {screen: SendToChat}
+const chatSendToChat = {
+  screen: function SendToChatScreen(
+    p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<typeof SendToChat>>
+  ) {
+    return <SendToChat {...p.route.params} />
+  },
+}
 
 export const newRoutes = {
   chatConversation,
