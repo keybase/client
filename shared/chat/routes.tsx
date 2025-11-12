@@ -52,8 +52,8 @@ const chatConversation = {
 const ChatCreateChannel = React.lazy(async () => import('./create-channel'))
 const chatCreateChannel = makeChatScreen(ChatCreateChannel)
 
-const DeleteHistoryWarning = React.lazy(async () => import('./delete-history-warning'))
-const chatDeleteHistoryWarning = {screen: makeChatScreen(DeleteHistoryWarning).screen}
+const DeleteHistoryWarning = React.lazy(async () => import('./delete-history-warning/container'))
+const chatDeleteHistoryWarning = {screen: DeleteHistoryWarning}
 
 const EnterPaperkey = React.lazy(async () => import('./conversation/rekey/enter-paper-key'))
 const chatEnterPaperkey = {getOptions: {headerShown: false}, screen: EnterPaperkey}
