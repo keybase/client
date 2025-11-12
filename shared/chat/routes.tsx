@@ -10,7 +10,7 @@ function makeChatScreen<T extends React.LazyExoticComponent<any>>(
     ...options,
     screen: (p: C.Chat.ChatProviderProps<C.ViewPropsToPageProps<T>>) => {
       const Comp = Component as any
-      return <Comp {...p.route.params} />
+      return <Comp {...(p.route.params ?? {})} />
     },
   }
 }
