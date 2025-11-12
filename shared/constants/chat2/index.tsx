@@ -1990,17 +1990,16 @@ import {type ChatProviderProps, ProviderScreen} from './convostate'
 
 export function makeChatScreen<T extends React.LazyExoticComponent<any>>(
   Component: T,
-  options?: {getOptions?: unknown},
-  skipProvider = false
+  options?: {getOptions?: unknown; skipProvider?: boolean; canBeNullConvoID?: boolean}
 ) {
   return {
     ...options,
     screen: function Screen(p: ChatProviderProps<C.ViewPropsToPageProps<T>>) {
       const Comp = Component as any
-      return skipProvider ? (
+      return options?.skipProvider ? (
         <Comp {...p.route.params} />
       ) : (
-        <ProviderScreen rp={p}>
+        <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
           <Comp {...p.route.params} />
         </ProviderScreen>
       )
