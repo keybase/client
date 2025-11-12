@@ -15,11 +15,13 @@ export const newRoutes = {
   chatRoot: C.Chat.isSplit
     ? C.Chat.makeChatScreen(
         React.lazy(async () => import('./inbox-and-conversation-2')),
-        {getOptions: {headerShown: false}}
+        {getOptions: {headerShown: false}},
+        true
       )
     : C.Chat.makeChatScreen(
         React.lazy(async () => import('./inbox/defer-loading')),
-        {getOptions: {headerShown: false}}
+        {getOptions: {headerShown: false}},
+        true
       ),
 }
 

@@ -568,7 +568,7 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
 ) {
   return {
     ...options,
-    screen: (p: C.ViewPropsToPageProps<COM>) => {
+    screen: function Screen(p: C.ViewPropsToPageProps<COM>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
     },

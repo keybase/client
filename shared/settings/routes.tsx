@@ -92,7 +92,7 @@ export const newRoutes = {
   ...sharedNewRoutes,
   [Constants.settingsContactsTab]: {
     getOptions: {header: undefined, title: 'Contacts'},
-    screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : Promise.resolve(() => <></>),
+    screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },
   webLinks: C.makeScreen(WebLinks, {
     getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
